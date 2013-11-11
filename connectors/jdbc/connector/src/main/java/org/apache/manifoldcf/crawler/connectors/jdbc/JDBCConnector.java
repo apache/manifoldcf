@@ -84,6 +84,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected String accessMethod = null;
   protected String host = null;
   protected String databaseName = null;
+  protected String rawDriverString = null;
   protected String userName = null;
   protected String password = null;
 
@@ -101,10 +102,10 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       if (jdbcProvider == null || jdbcProvider.length() == 0)
         throw new ManifoldCFException("Missing parameter '"+JDBCConstants.providerParameter+"'");
-      if (host == null || host.length() == 0)
-        throw new ManifoldCFException("Missing parameter '"+JDBCConstants.hostParameter+"'");
+      if ((host == null || host.length() == 0) && (rawDriverString == null || rawDriverString.length() == 0))
+        throw new ManifoldCFException("Missing parameter '"+JDBCConstants.hostParameter+"' or '"+JDBCConstants.driverStringParameter+"'");
 
-      connection = new JDBCConnection(jdbcProvider,(accessMethod==null || accessMethod.equals("name")),host,databaseName,userName,password);
+      connection = new JDBCConnection(jdbcProvider,(accessMethod==null || accessMethod.equals("name")),host,databaseName,rawDriverString,userName,password);
     }
   }
 
@@ -139,6 +140,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     accessMethod = configParams.getParameter(JDBCConstants.methodParameter);
     host = configParams.getParameter(JDBCConstants.hostParameter);
     databaseName = configParams.getParameter(JDBCConstants.databaseNameParameter);
+    rawDriverString = configParams.getParameter(JDBCConstants.driverStringParameter);
     userName= configParams.getParameter(JDBCConstants.databaseUserName);
     password = configParams.getObfuscatedParameter(JDBCConstants.databasePassword);
   }
@@ -175,6 +177,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     jdbcProvider = null;
     accessMethod = null;
     databaseName = null;
+    rawDriverString = null;
     userName = null;
     password = null;
 
@@ -193,7 +196,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   @Override
   public String[] getBinNames(String documentIdentifier)
   {
-    return new String[]{host};
+    return new String[]{(rawDriverString==null||rawDriverString.length()==0)?host:rawDriverString};
   }
 
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
@@ -761,14 +764,14 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "<!--\n"+
 "function checkConfigForSave()\n"+
 "{\n"+
-"  if (editconnection.databasehost.value == \"\")\n"+
+"  if (editconnection.databasehost.value == \"\" && editconnection.rawjdbcstring.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.PleaseFillInADatabaseServerName") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Server") + "\");\n"+
 "    editconnection.databasehost.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.databasename.value == \"\")\n"+
+"  if (editconnection.databasename.value == \"\" && editconnection.rawjdbcstring.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.PleaseFillInTheNameOfTheDatabase") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Server") + "\");\n"+
@@ -816,6 +819,9 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String databaseName = parameters.getParameter(JDBCConstants.databaseNameParameter);
     if (databaseName == null)
       databaseName = "database";
+    String rawJDBCString = parameters.getParameter(JDBCConstants.driverStringParameter);
+    if (rawJDBCString == null)
+      rawJDBCString = "";
     String databaseUser = parameters.getParameter(JDBCConstants.databaseUserName);
     if (databaseUser == null)
       databaseUser = "";
@@ -874,6 +880,9 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DatabaseServiceNameOrInstanceDatabase") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"databasename\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(databaseName)+"\"/></td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.RawDatabaseConnectString") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"80\" name=\"rawjdbcstring\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rawJDBCString)+"\"/></td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -881,7 +890,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       out.print(
 "<input type=\"hidden\" name=\"databasehost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(host)+"\"/>\n"+
-"<input type=\"hidden\" name=\"databasename\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(databaseName)+"\"/>\n"
+"<input type=\"hidden\" name=\"databasename\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(databaseName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"rawjdbcstring\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rawJDBCString)+"\"/>\n"
       );
     }
 
@@ -938,6 +948,10 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String databaseName = variableContext.getParameter("databasename");
     if (databaseName != null)
       parameters.setParameter(JDBCConstants.databaseNameParameter,databaseName);
+
+    String rawJDBCString = variableContext.getParameter("rawjdbcstring");
+    if (rawJDBCString != null)
+      parameters.setParameter(JDBCConstants.driverStringParameter,rawJDBCString);
 
     String userName = variableContext.getParameter("username");
     if (userName != null)

@@ -32,6 +32,8 @@ public class JDBCConstants
   public static String hostParameter = "Host";
   /** The database name config parameter */
   public static String databaseNameParameter = "Database name";
+  /** The raw configuration string */
+  public static String driverStringParameter = "Raw driver string";
   /** The user name config parameter */
   public static String databaseUserName = "User name";
   /** The password config parameter */

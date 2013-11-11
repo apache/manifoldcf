@@ -65,6 +65,7 @@ public class JDBCAuthority extends BaseAuthorityConnector {
   protected String accessMethod = null;
   protected String host = null;
   protected String databaseName = null;
+  protected String rawDriverString = null;
   protected String userName = null;
   protected String password = null;
 
@@ -101,6 +102,7 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     accessMethod = configParams.getParameter(JDBCConstants.methodParameter);
     host = configParams.getParameter(JDBCConstants.hostParameter);
     databaseName = configParams.getParameter(JDBCConstants.databaseNameParameter);
+    rawDriverString = configParams.getParameter(JDBCConstants.driverStringParameter);
     userName = configParams.getParameter(JDBCConstants.databaseUserName);
     password = configParams.getObfuscatedParameter(JDBCConstants.databasePassword);
 
@@ -138,6 +140,7 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     jdbcProvider = null;
     accessMethod = null;
     databaseName = null;
+    rawDriverString = null;
     userName = null;
     password = null;
 
@@ -153,19 +156,19 @@ public class JDBCAuthority extends BaseAuthorityConnector {
       if (jdbcProvider == null || jdbcProvider.length() == 0) {
         throw new ManifoldCFException("Missing parameter '" + JDBCConstants.providerParameter + "'");
       }
-      if (host == null || host.length() == 0) {
-        throw new ManifoldCFException("Missing parameter '" + JDBCConstants.hostParameter + "'");
-      }
+      if ((host == null || host.length() == 0) && (rawDriverString == null || rawDriverString.length() == 0))
+        throw new ManifoldCFException("Missing parameter '"+JDBCConstants.hostParameter+"' or '"+JDBCConstants.driverStringParameter+"'");
 
-      connection = new JDBCConnection(jdbcProvider,(accessMethod==null || accessMethod.equals("name")),host,databaseName,userName,password);
+      connection = new JDBCConnection(jdbcProvider,(accessMethod==null || accessMethod.equals("name")),host,databaseName,rawDriverString,userName,password);
     }
   }
 
   private String createCacheConnectionString() {
     StringBuilder sb = new StringBuilder();
     sb.append(jdbcProvider).append("|")
-      .append(host).append("|")
-      .append(databaseName).append("|")
+      .append((host==null)?"":host).append("|")
+      .append((databaseName==null)?"":databaseName).append("|")
+      .append((rawDriverString==null)?"":rawDriverString).append("|")
       .append(userName);
     return sb.toString();
   }
@@ -346,36 +349,37 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     tabsArray.add(Messages.getString(locale, "JDBCAuthority.Queries"));
 
     out.print(
-      "<script type=\"text/javascript\">\n"
-      + "<!--\n"
-      + "function checkConfigForSave()\n"
-      + "{\n"
-      + "  if (editconnection.databasehost.value == \"\")\n"
-      + "  {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseFillInADatabaseServerName") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Server") + "\");\n"
-      + "    editconnection.databasehost.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.databasename.value == \"\")\n"
-      + "  {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseFillInTheNameOfTheDatabase") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Server") + "\");\n"
-      + "    editconnection.databasename.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.username.value == \"\")\n"
-      + "  {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseSupplyTheDatabaseUsernameForThisConnection") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Credentials") + "\");\n"
-      + "    editconnection.username.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  return true;\n"
-      + "}\n"
-      + "\n"
-      + "//-->\n"
-      + "</script>\n");
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.databasehost.value == \"\" && editconnection.rawjdbcstring.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseFillInADatabaseServerName") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Server") + "\");\n"+
+"    editconnection.databasehost.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.databasename.value == \"\" && editconnection.rawjdbcstring.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseFillInTheNameOfTheDatabase") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Server") + "\");\n"+
+"    editconnection.databasename.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.username.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseSupplyTheDatabaseUsernameForThisConnection") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Credentials") + "\");\n"+
+"    editconnection.username.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
   }
 
   /**
@@ -410,6 +414,9 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     if (lDatabaseName == null) {
       lDatabaseName = "database";
     }
+    String rawJDBCString = parameters.getParameter(JDBCConstants.driverStringParameter);
+    if (rawJDBCString == null)
+      rawJDBCString = "";
     String databaseUser = parameters.getParameter(JDBCConstants.databaseUserName);
     if (databaseUser == null) {
       databaseUser = "";
@@ -465,19 +472,25 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     // "Server" tab
     if (tabName.equals(Messages.getString(locale, "JDBCAuthority.Server"))) {
       out.print(
-        "<table class=\"displaytable\">\n"
-        + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-        + "  <tr>\n"
-        + "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseHostAndPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"databasehost\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lHost) + "\"/></td>\n"
-        + "  </tr>\n"
-        + "  <tr>\n"
-        + "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseServiceNameOrInstanceDatabase") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"databasename\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lDatabaseName) + "\"/></td>\n"
-        + "  </tr>\n"
-        + "</table>\n");
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseHostAndPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"databasehost\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lHost) + "\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseServiceNameOrInstanceDatabase") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"databasename\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lDatabaseName) + "\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCAuthority.RawDatabaseConnectString") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"80\" name=\"rawjdbcstring\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rawJDBCString)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
     } else {
       out.print(
-        "<input type=\"hidden\" name=\"databasehost\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lHost) + "\"/>\n"
-        + "<input type=\"hidden\" name=\"databasename\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lDatabaseName) + "\"/>\n");
+"<input type=\"hidden\" name=\"databasehost\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lHost) + "\"/>\n"+
+"<input type=\"hidden\" name=\"databasename\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lDatabaseName) + "\"/>\n"+
+"<input type=\"hidden\" name=\"rawjdbcstring\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rawJDBCString)+"\"/>\n"
+      );
     }
 
     // "Credentials" tab
@@ -557,6 +570,10 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     if (lDatabaseName != null) {
       parameters.setParameter(JDBCConstants.databaseNameParameter, lDatabaseName);
     }
+
+    String rawJDBCString = variableContext.getParameter("rawjdbcstring");
+    if (rawJDBCString != null)
+      parameters.setParameter(JDBCConstants.driverStringParameter,rawJDBCString);
 
     String lUserName = variableContext.getParameter("username");
     if (lUserName != null) {

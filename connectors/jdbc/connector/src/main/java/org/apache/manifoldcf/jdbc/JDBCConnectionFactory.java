@@ -36,13 +36,13 @@ public class JDBCConnectionFactory
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private static Map driverMap;
+  private static Map<String,String> driverMap;
 
   private static ConnectionPoolManager _pool = null;
 
   static
   {
-    driverMap = new HashMap();
+    driverMap = new HashMap<String,String>();
     driverMap.put("oracle:thin:@","oracle.jdbc.OracleDriver");
     driverMap.put("postgresql:","org.postgresql.Driver");
     driverMap.put("jtds:sqlserver:","net.sourceforge.jtds.jdbc.Driver");
@@ -63,16 +63,16 @@ public class JDBCConnectionFactory
   {
   }
 
-
-  public static WrappedConnection getConnection(String providerName, String host, String database, String userName, String password)
-    throws ManifoldCFException, ServiceInterruption
+  /** Convert various connection parameters to a JDBC connection string, used in conjunction with the
+  * provider name.
+  */
+  public static String getJDBCDriverString(String providerName, String host, String database, String rawDriverString)
   {
+    if (rawDriverString != null && rawDriverString.length() > 0)
+      return rawDriverString;
+
     if (database.length() == 0)
       database = "_root_";
-
-    String driverClassName = (String)driverMap.get(providerName);
-    if (driverClassName == null)
-      throw new ManifoldCFException("Unrecognized jdbc provider: '"+providerName+"'");
 
     String instanceName = null;
     // Special for MSSQL: Allow database spec to contain an instance name too, in form:
@@ -87,7 +87,17 @@ public class JDBCConnectionFactory
       }
     }
 
-    String dburl = "jdbc:" + providerName + "//" + host + "/" + database + ((instanceName==null)?"":";instance="+instanceName);
+    return host + "/" + database + ((instanceName==null)?"":";instance="+instanceName);
+  }
+  
+  public static WrappedConnection getConnection(String providerName, String jdbcDriverString, String userName, String password)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    String driverClassName = driverMap.get(providerName);
+    if (driverClassName == null)
+      throw new ManifoldCFException("Unrecognized jdbc provider: '"+providerName+"'");
+
+    String dburl = "jdbc:" + providerName + "//" + jdbcDriverString;
     if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("JDBC: The connect string is '"+dburl+"'");
     try
@@ -99,13 +109,7 @@ public class JDBCConnectionFactory
         // the database and host at a minimum.
 
         // Provider is part of the pool key, so that the pools can distinguish between different databases
-        String poolKey = providerName + "/";
-
-        // Distinguish between instance names and databases too
-        if (instanceName == null)
-          poolKey += host + "/" + database;
-        else
-          poolKey += host + "/" + instanceName + "/" + database;
+        String poolKey = providerName + "/" + jdbcDriverString;
 
         // Better include the credentials on the pool key, or we won't be able to change those and have it build new connections
         // The password value is SHA-1 hashed, because the pool driver reports the password in many exceptions and we don't want it

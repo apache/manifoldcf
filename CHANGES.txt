@@ -3,9 +3,13 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-808: Add raw jdbc string so smart users can override the
+default behavior and supply gobbledegook Oracle connect strings.
+(Marcello Lorenzi, Karl Wright)
+
 CONNECTORS-807: Handle the case when there are no documents being
 deleted.
-(Adian Conlon, Karl Wright)
+(Adrian Conlon, Karl Wright)
 
 CONNECTORS-804: Web connector documentation is out of date.
 (Shigeki Kobayashi, Karl Wright)

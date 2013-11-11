@@ -38,19 +38,19 @@ public class JDBCConnection
 
   protected String jdbcProvider = null;
   protected boolean useName;
-  protected String host = null;
-  protected String databaseName = null;
+  protected String driverString = null;
   protected String userName = null;
   protected String password = null;
 
   /** Constructor.
   */
-  public JDBCConnection(String jdbcProvider, boolean useName, String host, String databaseName, String userName, String password)
+  public JDBCConnection(String jdbcProvider, boolean useName, String host, String databaseName, String rawDriverString,
+    String userName, String password)
+    throws ManifoldCFException
   {
     this.jdbcProvider = jdbcProvider;
     this.useName = useName;
-    this.host = host;
-    this.databaseName = databaseName;
+    this.driverString = JDBCConnectionFactory.getJDBCDriverString(jdbcProvider, host, databaseName, rawDriverString);
     this.userName = userName;
     this.password = password;
   }
@@ -213,7 +213,7 @@ public class JDBCConnection
     {
       try
       {
-        WrappedConnection tempConnection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
+        WrappedConnection tempConnection = JDBCConnectionFactory.getConnection(jdbcProvider,driverString,userName,password);
         JDBCConnectionFactory.releaseConnection(tempConnection);
       }
       catch (Throwable e)
@@ -367,7 +367,7 @@ public class JDBCConnection
     {
       try
       {
-        WrappedConnection tempConnection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
+        WrappedConnection tempConnection = JDBCConnectionFactory.getConnection(jdbcProvider,driverString,userName,password);
         try
         {
           execute(tempConnection.getConnection(),query,params,false,0,useName);
@@ -1050,7 +1050,7 @@ public class JDBCConnection
     {
       try
       {
-        connection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
+        connection = JDBCConnectionFactory.getConnection(jdbcProvider,driverString,userName,password);
         // lightest statement type
         stmt = connection.getConnection().createStatement();
         stmt.execute(query);
@@ -1350,7 +1350,7 @@ public class JDBCConnection
     {
       try
       {
-        connection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
+        connection = JDBCConnectionFactory.getConnection(jdbcProvider,driverString,userName,password);
         ps = connection.getConnection().prepareStatement(query);
         loadPS(ps, params);
         rs = ps.executeQuery();
