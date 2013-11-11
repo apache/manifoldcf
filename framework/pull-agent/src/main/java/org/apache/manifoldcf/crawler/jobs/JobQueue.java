@@ -709,7 +709,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       list.add(identifiers[i].getID());
       i++;
     }
-    doDeletes(list);
+    if (list.size() > 0)
+      doDeletes(list);
     noteModifications(0,0,identifiers.length);
   }
 

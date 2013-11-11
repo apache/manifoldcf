@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-807: Handle the case when there are no documents being
+deleted.
+(Adian Conlon, Karl Wright)
+
 CONNECTORS-804: Web connector documentation is out of date.
 (Shigeki Kobayashi, Karl Wright)
 
