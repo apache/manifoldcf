@@ -30,7 +30,7 @@ public class ZooKeeperLockObject extends LockObject
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private final static String LOCK_PATH_PREFIX = "org.apache.manifoldcf.locks-";
+  private final static String LOCK_PATH_PREFIX = "/org.apache.manifoldcf.locks-";
 
   private final ZooKeeperConnectionPool pool;
   private final String lockPath;

@@ -37,9 +37,9 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   protected final static String zookeeperConnectStringParameter = "org.apache.manifoldcf.zookeeper.connectstring";
   protected final static String zookeeperSessionTimeoutParameter = "org.apache.manifoldcf.zookeeper.sessiontimeout";
 
-  private final static String CONFIGURATION_PATH = "org.apache.manifoldcf.configuration";
-  private final static String RESOURCE_PATH_PREFIX = "org.apache.manifoldcf.resources/";
-  private final static String FLAG_PATH_PREFIX = "org.apache.manifoldcf.flags/";
+  private final static String CONFIGURATION_PATH = "/org.apache.manifoldcf.configuration";
+  private final static String RESOURCE_PATH_PREFIX = "/org.apache.manifoldcf.resources-";
+  private final static String FLAG_PATH_PREFIX = "/org.apache.manifoldcf.flags-";
     
   // ZooKeeper connection pool
   protected static Integer connectionPoolLock = new Integer(0);

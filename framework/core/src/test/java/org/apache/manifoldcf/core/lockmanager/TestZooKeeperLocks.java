@@ -20,18 +20,227 @@ package org.apache.manifoldcf.core.lockmanager;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.*;
 import org.junit.*;
 import static org.junit.Assert.*;
 
 public class TestZooKeeperLocks extends ZooKeeperBase
 {
+  protected final static int readerThreadCount = 20;
+  protected final static int writerThreadCount = 20;
+
   @Test
   public void multiThreadZooKeeperLockTest()
     throws Exception
   {
-    // Sleep; cuts down on zookeeper noise for now
-    Thread.sleep(1000L);
-    // MHL
+    // First, set off the threads
+    ZooKeeperConnectionPool pool = new ZooKeeperConnectionPool("localhost:8348",2000);
+
+    String lockKey = "testkey";
+    AtomicInteger ai = new AtomicInteger(0);
+    
+    ReaderThread[] readerThreads = new ReaderThread[readerThreadCount];
+    for (int i = 0 ; i < readerThreadCount ; i++)
+    {
+      readerThreads[i] = new ReaderThread(pool, lockKey, ai);
+      readerThreads[i].start();
+    }
+
+    WriterThread[] writerThreads = new WriterThread[writerThreadCount];
+    for (int i = 0 ; i < writerThreadCount ; i++)
+    {
+      writerThreads[i] = new WriterThread(pool, lockKey, ai);
+      writerThreads[i].start();
+    }
+    
+    for (int i = 0 ; i < readerThreadCount ; i++)
+    {
+      Throwable e = readerThreads[i].finishUp();
+      if (e != null)
+      {
+        if (e instanceof RuntimeException)
+          throw (RuntimeException)e;
+        if (e instanceof Error)
+          throw (Error)e;
+        if (e instanceof Exception)
+          throw (Exception)e;
+      }
+    }
+    
+    for (int i = 0 ; i < writerThreadCount ; i++)
+    {
+      Throwable e = writerThreads[i].finishUp();
+      if (e != null)
+      {
+        if (e instanceof RuntimeException)
+          throw (RuntimeException)e;
+        if (e instanceof Error)
+          throw (Error)e;
+        if (e instanceof Exception)
+          throw (Exception)e;
+      }
+    }
+    
+  }
+  
+  /** Reader thread */
+  protected static class ReaderThread extends Thread
+  {
+    protected final ZooKeeperConnectionPool pool;
+    protected final Object lockKey;
+    protected final AtomicInteger ai;
+    
+    protected Throwable exception = null;
+    
+    public ReaderThread(ZooKeeperConnectionPool pool, Object lockKey, AtomicInteger ai)
+    {
+      setName("reader");
+      this.pool = pool;
+      this.lockKey = lockKey;
+      this.ai = ai;
+    }
+    
+    public void run()
+    {
+      try
+      {
+        // Create a new lock pool since that is the best way to insure real
+        // zookeeper action.
+        LockPool lp = new LockPool(new LockObjectFactory());
+        LockObject lo = new ZooKeeperLockObject(lp, lockKey, pool);
+        // First test: count all reader threads inside read lock.
+        // This guarantees that read locks are non-exclusive.
+        // Enter read lock
+        lo.enterReadLock();
+        try
+        {
+          // Count this thread
+          ai.incrementAndGet();
+          // Wait until all readers have been counted.  This test will hang if the readers function
+          // exclusively
+          while (ai.intValue() < readerThreadCount)
+          {
+            Thread.sleep(10L);
+          }
+        }
+        finally
+        {
+          lo.leaveReadLock();
+        }
+        // Now, all the writers will get involved; we just need to make sure we never see an inconsistent value
+        while (ai.get() < readerThreadCount + 2*writerThreadCount)
+        {
+          lo.enterReadLock();
+          try
+          {
+            // The writer thread will increment the counter twice for every thread, both times within the lock.
+            // We never want to see the intermediate values.
+            if ((ai.get() - readerThreadCount) % 2 == 1)
+              throw new Exception("Was able to read when write lock in place");
+          }
+          finally
+          {
+            lo.leaveReadLock();
+          }
+        }
+      }
+      catch (InterruptedException e)
+      {
+      }
+      catch (Throwable e)
+      {
+        exception = e;
+      }
+    }
+    
+    public Throwable finishUp()
+      throws InterruptedException
+    {
+      join();
+      return exception;
+    }
+    
+  }
+
+  /** Writer thread */
+  protected static class WriterThread extends Thread
+  {
+    protected final ZooKeeperConnectionPool pool;
+    protected final Object lockKey;
+    protected final AtomicInteger ai;
+
+    protected Throwable exception = null;
+    
+    public WriterThread(ZooKeeperConnectionPool pool, Object lockKey, AtomicInteger ai)
+    {
+      setName("writer");
+      this.pool = pool;
+      this.lockKey = lockKey;
+      this.ai = ai;
+    }
+    
+    public void run()
+    {
+      try
+      {
+        // Create a new lock pool since that is the best way to insure real
+        // zookeeper action.
+        // LockPool is a dummy
+        LockPool lp = new LockPool(new LockObjectFactory());
+        LockObject lo = new ZooKeeperLockObject(lp, lockKey, pool);
+        // Take write locks but free them if read is what's active
+        while (true)
+        {
+          lo.enterWriteLock();
+          try
+          {
+            // Check if we made it in during read cycle... that would be bad.
+            if (ai.get() > 0 && ai.get() < readerThreadCount)
+              throw new Exception("Was able to write even when readers were active");
+            if (ai.get() == readerThreadCount)
+              break;
+          }
+          finally
+          {
+            lo.leaveWriteLock();
+          }
+          Thread.sleep(10L);
+        }
+        
+        // Get write lock, increment twice, and leave write lock
+        lo.enterWriteLock();
+        try
+        {
+          if ((ai.get() - readerThreadCount) % 2 == 1)
+            throw new Exception("More than one writer thread active at the same time!");
+          ai.incrementAndGet();
+          // Keep the lock for a while so other threads have to wait
+          Thread.sleep(50L);
+          // Increment again
+          ai.incrementAndGet();
+        }
+        finally
+        {
+          lo.leaveWriteLock();
+        }
+        // Completed successfully!
+      }
+      catch (InterruptedException e)
+      {
+      }
+      catch (Throwable e)
+      {
+        exception = e;
+      }
+    }
+    
+    public Throwable finishUp()
+      throws InterruptedException
+    {
+      join();
+      return exception;
+    }
+    
   }
   
 }
