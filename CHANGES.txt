@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.4.1 =====================
 
+CONNECTORS-797: Bad query when maxcount was exceeded in the
+database table for the jobstatus screen.
+(Graeme Seaton, Karl Wright)
+
 CONNECTORS-796: Fix NPE in RSS connector having to do with
 tags that aren't nested as expected.
 (Benjamin Brandmeier, Karl Wright)
