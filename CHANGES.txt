@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.4.1 =====================
 
+CONNECTORS-806: Web connector session passwords were not being
+handled in the UI properly.
+(Karl Wright)
+
 CONNECTORS-797: Bad query when maxcount was exceeded in the
 database table for the jobstatus screen.
 (Graeme Seaton, Karl Wright)
