@@ -1,6 +1,12 @@
 ManifoldCF Change Log
 $Id$
 
+======================= Release 1.4.1 =====================
+
+CONNECTORS-796: Fix NPE in RSS connector having to do with
+tags that aren't nested as expected.
+(Benjamin Brandmeier, Karl Wright)
+
 ======================= Release 1.4 =====================
 
 CONNECTORS-791: Broken WHERE clause in job status query.
