@@ -80,9 +80,9 @@ public class ZooKeeperConnection
 
     try
     {
-      // Assert that we want a read lock
+      // Assert that we want a write lock
       lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
-      String lockSequenceNumber = lockNode.substring(WRITE_PREFIX.length());
+      String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length());
       // See if we got it
       List<String> children = zookeeper.getChildren(lockPath,false);
       for (String x : children)
@@ -127,7 +127,7 @@ public class ZooKeeperConnection
     {
       // Assert that we want a read lock
       lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
-      String lockSequenceNumber = lockNode.substring(NONEXWRITE_PREFIX.length());
+      String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length());
       // See if we got it
       List<String> children = zookeeper.getChildren(lockPath,false);
       for (String x : children)
@@ -170,7 +170,7 @@ public class ZooKeeperConnection
     {
       // Assert that we want a read lock
       lockNode = createSequentialChild(lockPath,READ_PREFIX);
-      String lockSequenceNumber = lockNode.substring(READ_PREFIX.length());
+      String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length());
       // See if we got it
       List<String> children = zookeeper.getChildren(lockPath,false);
       for (String x : children)

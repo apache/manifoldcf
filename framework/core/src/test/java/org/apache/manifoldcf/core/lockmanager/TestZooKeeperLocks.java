@@ -27,8 +27,8 @@ import static org.junit.Assert.*;
 
 public class TestZooKeeperLocks extends ZooKeeperBase
 {
-  protected final static int readerThreadCount = 20;
-  protected final static int writerThreadCount = 20;
+  protected final static int readerThreadCount = 10;
+  protected final static int writerThreadCount = 5;
 
   @Test
   public void multiThreadZooKeeperLockTest()
@@ -174,7 +174,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
           ai.incrementAndGet();
           // Wait until all readers have been counted.  This test will hang if the readers function
           // exclusively
-          while (ai.intValue() < readerThreadCount)
+          while (ai.get() < readerThreadCount)
           {
             Thread.sleep(10L);
           }
@@ -188,7 +188,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         // Now, all the writers will get involved; we just need to make sure we never see an inconsistent value
         while (ai.get() < readerThreadCount + 2*writerThreadCount)
         {
-          System.out.println("Waiting for all read threads to succeed...");
+          System.out.println("Waiting for all write threads to succeed...");
           lo = new ZooKeeperLockObject(lp, lockKey, pool);
           enterReadLock(lo);
           try
@@ -202,6 +202,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
           {
             leaveReadLock(lo);
           }
+          Thread.sleep(100L);
         }
         System.out.println("Done with reader thread");
       }
@@ -254,19 +255,20 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         {
           lo = new ZooKeeperLockObject(lp, lockKey, pool);
           enterWriteLock(lo);
+          System.out.println("Made it into write lock");
           try
           {
             // Check if we made it in during read cycle... that would be bad.
             if (ai.get() > 0 && ai.get() < readerThreadCount)
               throw new Exception("Was able to write even when readers were active");
-            if (ai.get() == readerThreadCount)
+            if (ai.get() >= readerThreadCount)
               break;
           }
           finally
           {
             leaveWriteLock(lo);
           }
-          Thread.sleep(10L);
+          Thread.sleep(100L);
         }
         
         // Get write lock, increment twice, and leave write lock
@@ -281,6 +283,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
           Thread.sleep(50L);
           // Increment again
           ai.incrementAndGet();
+          System.out.println("Updated write count");
         }
         finally
         {
