@@ -1145,15 +1145,19 @@
     <target name="preclean-for-delivery">
         <mkdir dir="dist"/>
         <mkdir dir="dist/example"/>
-        <mkdir dir="dist/multiprocess-example"/>
         <mkdir dir="dist/example-proprietary"/>
-        <mkdir dir="dist/multiprocess-example-proprietary"/>
+        <mkdir dir="dist/multiprocess-file-example"/>
+        <mkdir dir="dist/multiprocess-zk-example"/>
+        <mkdir dir="dist/multiprocess-file-example-proprietary"/>
+        <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
         <delete file="dist/connectors.xml"/>
         <delete file="dist/connectors-proprietary.xml"/>
         <delete file="dist/example/properties.xml"/>
         <delete file="dist/example-proprietary/properties.xml"/>
-        <delete file="dist/multiprocess-example/properties.xml"/>
-        <delete file="dist/multiprocess-example-proprietary/properties.xml"/>
+        <delete file="dist/multiprocess-file-example/properties.xml"/>
+        <delete file="dist/multiprocess-file-example-proprietary/properties.xml"/>
+        <delete file="dist/multiprocess-zk-example/properties.xml"/>
+        <delete file="dist/multiprocess-zk-example-proprietary/properties.xml"/>
         <delete file="dist/NOTICE.txt"/>
         <delete file="dist/LICENSE.txt"/>
     </target>
@@ -1167,13 +1171,21 @@
         <copy todir="dist/web-proprietary">
             <fileset dir="framework/dist/web-proprietary"/>
         </copy>
-        <mkdir dir="dist/multiprocess-example"/>
-        <copy todir="dist/multiprocess-example">
-            <fileset dir="framework/dist/multiprocess-example"/>
+        <mkdir dir="dist/multiprocess-file-example"/>
+        <copy todir="dist/multiprocess-file-example">
+            <fileset dir="framework/dist/multiprocess-file-example"/>
         </copy>
-        <mkdir dir="dist/multiprocess-example-proprietary"/>
-        <copy todir="dist/multiprocess-example-proprietary">
-            <fileset dir="framework/dist/multiprocess-example-proprietary"/>
+        <mkdir dir="dist/multiprocess-file-example-proprietary"/>
+        <copy todir="dist/multiprocess-file-example-proprietary">
+            <fileset dir="framework/dist/multiprocess-file-example-proprietary"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example"/>
+        <copy todir="dist/multiprocess-zk-example">
+            <fileset dir="framework/dist/multiprocess-zk-example"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
+        <copy todir="dist/multiprocess-zk-example-proprietary">
+            <fileset dir="framework/dist/multiprocess-zk-example-proprietary"/>
         </copy>
         <mkdir dir="dist/example"/>
         <copy todir="dist/example">
@@ -1205,8 +1217,10 @@
         <chmod dir="dist/script-engine" perm="a+x" includes="**/*.sh"/>
         <chmod dir="dist/example" perm="a+x" includes="**/*.sh"/>
         <chmod dir="dist/example-proprietary" perm="a+x" includes="**/*.sh"/>
-        <chmod dir="dist/multiprocess-example" perm="a+x" includes="**/*.sh"/>
-        <chmod dir="dist/multiprocess-example-proprietary" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-file-example" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-file-example-proprietary" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-zk-example" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-zk-example-proprietary" perm="a+x" includes="**/*.sh"/>
         <copy todir="dist">
             <fileset dir="dist-license" includes="*.txt"/>
         </copy>
@@ -3084,7 +3098,8 @@
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
-          <exclude name="/multiprocess-example-proprietary/"/>
+          <exclude name="/multiprocess-file-example-proprietary/"/>
+          <exclude name="/multiprocess-zk-example-proprietary/"/>
           <exclude name="/web-proprietary/"/>
         </zipfileset>
       </zip>
@@ -3098,7 +3113,8 @@
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
-          <exclude name="/multiprocess-example-proprietary/"/>
+          <exclude name="/multiprocess-file-example-proprietary/"/>
+          <exclude name="/multiprocess-zk-example-proprietary/"/>
           <exclude name="/web-proprietary/"/>
         </tarfileset>
       </tar>
