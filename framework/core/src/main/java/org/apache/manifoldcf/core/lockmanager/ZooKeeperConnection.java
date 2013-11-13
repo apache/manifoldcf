@@ -238,15 +238,26 @@ public class ZooKeeperConnection
   {
     try
     {
-      try
+      if (data == null)
       {
-        zookeeper.create(resourcePath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        try
+        {
+          zookeeper.delete(resourcePath, -1);
+        }
+        catch (KeeperException.NoNodeException e)
+        {
+        }
       }
-      catch (KeeperException e)
+      else
       {
-        if (!(e instanceof KeeperException.NodeExistsException))
-          throw e;
-        zookeeper.setData(resourcePath, data, -1);
+        try
+        {
+          zookeeper.create(resourcePath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        }
+        catch (KeeperException.NodeExistsException e)
+        {
+          zookeeper.setData(resourcePath, data, -1);
+        }
       }
     }
     catch (KeeperException e)
@@ -260,12 +271,17 @@ public class ZooKeeperConnection
   {
     try
     {
-      zookeeper.create(flagPath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      try
+      {
+        zookeeper.create(flagPath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      }
+      catch (KeeperException.NodeExistsException e)
+      {
+      }
     }
     catch (KeeperException e)
     {
-      if (!(e instanceof KeeperException.NodeExistsException))
-        throw new ManifoldCFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
@@ -274,12 +290,16 @@ public class ZooKeeperConnection
   {
     try
     {
-      zookeeper.delete(flagPath,-1);
+      try
+      {
+        zookeeper.delete(flagPath,-1);
+      }
+      catch (KeeperException.NoNodeException e)
+      {
+      }
     }
     catch (KeeperException e)
     {
-      if (!(e instanceof KeeperException.NoNodeException))
-        return;
       throw new ManifoldCFException(e.getMessage(),e);
     }
   }
@@ -316,17 +336,24 @@ public class ZooKeeperConnection
   protected String createSequentialChild(String mainNode, String childPrefix)
     throws KeeperException, InterruptedException
   {
-    try
+    // Because zookeeper is so slow, AND reports all exceptions to the log, we do the minimum.
+    while (true)
     {
-      zookeeper.create(mainNode, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      try
+      {
+        return zookeeper.create(mainNode + "/" + childPrefix, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
+      }
+      catch (KeeperException.NoNodeException e)
+      {
+        try
+        {
+          zookeeper.create(mainNode, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        }
+        catch (KeeperException.NodeExistsException e2)
+        {
+        }
+      }
     }
-    catch (KeeperException e)
-    {
-      if (!(e instanceof KeeperException.NodeExistsException))
-        throw e;
-    }
-    
-    return zookeeper.create(mainNode + "/" + childPrefix, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
   }
 
   /** Watcher class for zookeeper, so we get notified about zookeeper events. */

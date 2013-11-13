@@ -53,7 +53,8 @@ public class ZooKeeperInstance
     zookeeperThread = new ZooKeeperThread(configuration);
     zookeeperThread.start();
     // We have no way of knowing whether zookeeper is alive or not, but the
-    // client is supposed to know about that.
+    // client is supposed to know about that.  But it doesn't, so wait for 5 seconds
+    Thread.sleep(5000L);
   }
   
   public void stop()

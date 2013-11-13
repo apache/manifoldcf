@@ -18,6 +18,7 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
+import org.apache.manifoldcf.core.interfaces.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
@@ -83,6 +84,58 @@ public class TestZooKeeperLocks extends ZooKeeperBase
     
   }
   
+  protected static void enterReadLock(LockObject lo)
+    throws Exception
+  {
+    try
+    {
+      lo.enterReadLock();
+    }
+    catch (ExpiredObjectException e)
+    {
+      throw new ManifoldCFException("Unexpected exception: "+e.getMessage(),e);
+    }
+  }
+  
+  protected static void leaveReadLock(LockObject lo)
+    throws Exception
+  {
+    try
+    {
+      lo.leaveReadLock();
+    }
+    catch (ExpiredObjectException e)
+    {
+      throw new ManifoldCFException("Unexpected exception: "+e.getMessage(),e);
+    }
+  }
+
+  protected static void enterWriteLock(LockObject lo)
+    throws Exception
+  {
+    try
+    {
+      lo.enterWriteLock();
+    }
+    catch (ExpiredObjectException e)
+    {
+      throw new ManifoldCFException("Unexpected exception: "+e.getMessage(),e);
+    }
+  }
+  
+  protected static void leaveWriteLock(LockObject lo)
+    throws Exception
+  {
+    try
+    {
+      lo.leaveWriteLock();
+    }
+    catch (ExpiredObjectException e)
+    {
+      throw new ManifoldCFException("Unexpected exception: "+e.getMessage(),e);
+    }
+  }
+  
   /** Reader thread */
   protected static class ReaderThread extends Thread
   {
@@ -107,13 +160,16 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         // Create a new lock pool since that is the best way to insure real
         // zookeeper action.
         LockPool lp = new LockPool(new LockObjectFactory());
-        LockObject lo = new ZooKeeperLockObject(lp, lockKey, pool);
+        LockObject lo;
         // First test: count all reader threads inside read lock.
         // This guarantees that read locks are non-exclusive.
         // Enter read lock
-        lo.enterReadLock();
+        System.out.println("Entering read lock");
+        lo = new ZooKeeperLockObject(lp, lockKey, pool);
+        enterReadLock(lo);
         try
         {
+          System.out.println(" Read lock entered!");
           // Count this thread
           ai.incrementAndGet();
           // Wait until all readers have been counted.  This test will hang if the readers function
@@ -125,12 +181,16 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         }
         finally
         {
-          lo.leaveReadLock();
+          System.out.println("Leaving read lock");
+          leaveReadLock(lo);
+          System.out.println(" Left read lock!");
         }
         // Now, all the writers will get involved; we just need to make sure we never see an inconsistent value
         while (ai.get() < readerThreadCount + 2*writerThreadCount)
         {
-          lo.enterReadLock();
+          System.out.println("Waiting for all read threads to succeed...");
+          lo = new ZooKeeperLockObject(lp, lockKey, pool);
+          enterReadLock(lo);
           try
           {
             // The writer thread will increment the counter twice for every thread, both times within the lock.
@@ -140,9 +200,10 @@ public class TestZooKeeperLocks extends ZooKeeperBase
           }
           finally
           {
-            lo.leaveReadLock();
+            leaveReadLock(lo);
           }
         }
+        System.out.println("Done with reader thread");
       }
       catch (InterruptedException e)
       {
@@ -187,11 +248,12 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         // zookeeper action.
         // LockPool is a dummy
         LockPool lp = new LockPool(new LockObjectFactory());
-        LockObject lo = new ZooKeeperLockObject(lp, lockKey, pool);
+        LockObject lo;
         // Take write locks but free them if read is what's active
         while (true)
         {
-          lo.enterWriteLock();
+          lo = new ZooKeeperLockObject(lp, lockKey, pool);
+          enterWriteLock(lo);
           try
           {
             // Check if we made it in during read cycle... that would be bad.
@@ -202,13 +264,14 @@ public class TestZooKeeperLocks extends ZooKeeperBase
           }
           finally
           {
-            lo.leaveWriteLock();
+            leaveWriteLock(lo);
           }
           Thread.sleep(10L);
         }
         
         // Get write lock, increment twice, and leave write lock
-        lo.enterWriteLock();
+        lo = new ZooKeeperLockObject(lp, lockKey, pool);
+        enterWriteLock(lo);
         try
         {
           if ((ai.get() - readerThreadCount) % 2 == 1)
@@ -221,7 +284,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         }
         finally
         {
-          lo.leaveWriteLock();
+          leaveWriteLock(lo);
         }
         // Completed successfully!
       }
