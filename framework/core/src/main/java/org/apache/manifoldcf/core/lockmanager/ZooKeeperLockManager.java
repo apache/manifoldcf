@@ -284,7 +284,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
 
   // Main method - for loading Zookeeper data
   
-  public void main(String[] argv)
+  public static void main(String[] argv)
   {
     if (argv.length != 1)
     {
