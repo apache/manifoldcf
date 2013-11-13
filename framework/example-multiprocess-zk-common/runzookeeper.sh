@@ -20,7 +20,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
     if [ -f ./properties.xml ] ; then
         # Set the MCF_HOME variable
         export MCF_HOME=$PWD
-        processes/executecommand.sh org.apache.manifoldcf.core.lockmanager.ZooKeeperLockManager properties-global.xml
+        processes/executecommand.sh org.apache.zookeeper.server.quorum.QuorumPeerMain zookeeper.cfg
         exit $?
         
     else

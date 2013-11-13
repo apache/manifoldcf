@@ -20,7 +20,7 @@ if not exist ".\properties.xml" goto nolcfhome
 rem set MCF_HOME
 set MCF_HOME=%CD%
 rem invoke the RegisterAll command
-cmd /c "processes\executecommand.bat org.apache.manifoldcf.core.lockmanager.ZooKeeperLockManager properties-global.xml"
+cmd /c "processes\executecommand.bat org.apache.zookeeper.server.quorum.QuorumPeerMain zookeeper.cfg"
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.
