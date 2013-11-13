@@ -57,7 +57,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       {
         // Initialize the ZooKeeper connection pool
         String connectString = ManifoldCF.getStringProperty(zookeeperConnectStringParameter,null);
-        if (connectString != null)
+        if (connectString == null)
           throw new ManifoldCFException("Zookeeper lock manager requires a valid "+zookeeperConnectStringParameter+" property");
         int sessionTimeout = ManifoldCF.getIntProperty(zookeeperSessionTimeoutParameter,300000);
         ManifoldCF.addShutdownHook(new ZooKeeperShutdown());
