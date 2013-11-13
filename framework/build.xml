@@ -1020,6 +1020,7 @@
             <fileset dir="example-multiprocess-zk-common">
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+                <include name="*.cfg"/>
             </fileset>
             <fileset dir="example-multiprocess-zk">
                 <include name="properties.xml"/>
@@ -1065,6 +1066,7 @@
             <fileset dir="example-multiprocess-zk-common">
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+                <include name="*.cfg"/>
             </fileset>
             <fileset dir="example-multiprocess-zk-proprietary">
                 <include name="properties.xml"/>
