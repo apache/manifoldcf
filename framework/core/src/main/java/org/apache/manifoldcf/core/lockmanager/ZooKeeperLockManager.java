@@ -105,6 +105,52 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
     }
   }
 
+  /** Write shared configuration.  Caller closes the input stream.
+  */
+  public void setSharedConfiguration(InputStream configurationInputStream)
+    throws ManifoldCFException
+  {
+    try
+    {
+      // Read to a byte array
+      ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+      byte[] data = new byte[65536];
+
+      while (true)
+      {
+        int nRead = configurationInputStream.read(data, 0, data.length);
+        if (nRead == -1)
+          break;
+        buffer.write(data, 0, nRead);
+      }
+      buffer.flush();
+
+      byte[] toWrite = buffer.toByteArray();
+      ZooKeeperConnection connection = pool.grab();
+      try
+      {
+        connection.writeData(CONFIGURATION_PATH, toWrite);
+      }
+      finally
+      {
+        pool.release(connection);
+      }
+    }
+    catch (InterruptedIOException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+    catch (IOException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+    catch (InterruptedException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+  }
+  
   /** Raise a flag.  Use this method to assert a condition, or send a global signal.  The flag will be reset when the
   * entire system is restarted.
   *@param flagName is the name of the flag to set.
@@ -236,6 +282,49 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
     }
   }
 
+  // Main method - for loading Zookeeper data
+  
+  public void main(String[] argv)
+  {
+    if (argv.length != 1)
+    {
+      System.err.println("Usage: ZooKeeperLockManager <shared_configuration_file>");
+      System.exit(1);
+    }
+    
+    File file = new File(argv[0]);
+    
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
+
+      try
+      {
+        FileInputStream fis = new FileInputStream(file);
+        try
+        {
+          new ZooKeeperLockManager().setSharedConfiguration(fis);
+        }
+        finally
+        {
+          fis.close();
+        }
+      }
+      finally
+      {
+        ManifoldCF.cleanUpEnvironment(tc);
+      }
+    }
+    catch (Throwable e)
+    {
+      e.printStackTrace(System.err);
+      System.exit(-1);
+    }
+  }
+  
+  // Protected methods and classes
+  
   /** Override this method to change the nature of global locks.
   */
   @Override
