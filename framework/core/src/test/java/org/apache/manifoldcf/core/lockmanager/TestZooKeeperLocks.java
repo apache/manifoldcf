@@ -27,6 +27,8 @@ import static org.junit.Assert.*;
 
 public class TestZooKeeperLocks extends ZooKeeperBase
 {
+  protected File synchDir = null;
+  
   protected final static int readerThreadCount = 10;
   protected final static int writerThreadCount = 5;
 
@@ -36,21 +38,52 @@ public class TestZooKeeperLocks extends ZooKeeperBase
   {
     // First, set off the threads
     ZooKeeperConnectionPool pool = new ZooKeeperConnectionPool("localhost:8348",2000);
+    LockObjectFactory factory = new ZooKeeperLockObjectFactory(pool);
 
+    runTest(factory);
+  }
+  
+  @Before
+  public void createSynchDir()
+    throws Exception
+  {
+    synchDir = new File("synchdir");
+    synchDir.mkdir();
+  }
+
+  @After
+  public void removeSynchDir()
+    throws Exception
+  {
+    if (synchDir != null)
+      deleteRecursively(synchDir);
+    synchDir = null;
+  }
+  
+  @Test
+  public void multiThreadFileLockTest()
+    throws Exception
+  {
+    runTest(new FileLockObjectFactory(synchDir));
+  }
+  
+  protected static void runTest(LockObjectFactory factory)
+    throws Exception
+  {
     String lockKey = "testkey";
     AtomicInteger ai = new AtomicInteger(0);
     
     ReaderThread[] readerThreads = new ReaderThread[readerThreadCount];
     for (int i = 0 ; i < readerThreadCount ; i++)
     {
-      readerThreads[i] = new ReaderThread(pool, lockKey, ai);
+      readerThreads[i] = new ReaderThread(factory, lockKey, ai);
       readerThreads[i].start();
     }
 
     WriterThread[] writerThreads = new WriterThread[writerThreadCount];
     for (int i = 0 ; i < writerThreadCount ; i++)
     {
-      writerThreads[i] = new WriterThread(pool, lockKey, ai);
+      writerThreads[i] = new WriterThread(factory, lockKey, ai);
       writerThreads[i].start();
     }
     
@@ -139,16 +172,16 @@ public class TestZooKeeperLocks extends ZooKeeperBase
   /** Reader thread */
   protected static class ReaderThread extends Thread
   {
-    protected final ZooKeeperConnectionPool pool;
+    protected final LockObjectFactory factory;
     protected final Object lockKey;
     protected final AtomicInteger ai;
     
     protected Throwable exception = null;
     
-    public ReaderThread(ZooKeeperConnectionPool pool, Object lockKey, AtomicInteger ai)
+    public ReaderThread(LockObjectFactory factory, Object lockKey, AtomicInteger ai)
     {
       setName("reader");
-      this.pool = pool;
+      this.factory = factory;
       this.lockKey = lockKey;
       this.ai = ai;
     }
@@ -159,13 +192,13 @@ public class TestZooKeeperLocks extends ZooKeeperBase
       {
         // Create a new lock pool since that is the best way to insure real
         // zookeeper action.
-        LockPool lp = new LockPool(new LockObjectFactory());
+        LockPool lp = new LockPool(factory);
         LockObject lo;
         // First test: count all reader threads inside read lock.
         // This guarantees that read locks are non-exclusive.
         // Enter read lock
         System.out.println("Entering read lock");
-        lo = new ZooKeeperLockObject(lp, lockKey, pool);
+        lo = lp.getObject(lockKey);
         enterReadLock(lo);
         try
         {
@@ -189,7 +222,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         while (ai.get() < readerThreadCount + 2*writerThreadCount)
         {
           System.out.println("Waiting for all write threads to succeed...");
-          lo = new ZooKeeperLockObject(lp, lockKey, pool);
+          lo = lp.getObject(lockKey);
           enterReadLock(lo);
           try
           {
@@ -227,16 +260,16 @@ public class TestZooKeeperLocks extends ZooKeeperBase
   /** Writer thread */
   protected static class WriterThread extends Thread
   {
-    protected final ZooKeeperConnectionPool pool;
+    protected final LockObjectFactory factory;
     protected final Object lockKey;
     protected final AtomicInteger ai;
 
     protected Throwable exception = null;
     
-    public WriterThread(ZooKeeperConnectionPool pool, Object lockKey, AtomicInteger ai)
+    public WriterThread(LockObjectFactory factory, Object lockKey, AtomicInteger ai)
     {
       setName("writer");
-      this.pool = pool;
+      this.factory = factory;
       this.lockKey = lockKey;
       this.ai = ai;
     }
@@ -248,12 +281,12 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         // Create a new lock pool since that is the best way to insure real
         // zookeeper action.
         // LockPool is a dummy
-        LockPool lp = new LockPool(new LockObjectFactory());
+        LockPool lp = new LockPool(factory);
         LockObject lo;
         // Take write locks but free them if read is what's active
         while (true)
         {
-          lo = new ZooKeeperLockObject(lp, lockKey, pool);
+          lo = lp.getObject(lockKey);
           enterWriteLock(lo);
           System.out.println("Made it into write lock");
           try
@@ -272,7 +305,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         }
         
         // Get write lock, increment twice, and leave write lock
-        lo = new ZooKeeperLockObject(lp, lockKey, pool);
+        lo = lp.getObject(lockKey);
         enterWriteLock(lo);
         try
         {
