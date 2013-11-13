@@ -745,9 +745,9 @@
         <copy file="example-common/README.txt" todir="dist/connector-lib-proprietary"/>
     </target>
     
-    <target name="multi-processes" depends="jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/multiprocess-example/processes/lib"/>
-        <copy todir="dist/multiprocess-example/processes/lib">
+    <target name="multi-processes-file" depends="jar-core,jar-agents,jar-pull-agent">
+        <mkdir dir="dist/multiprocess-file-example/processes/lib"/>
+        <copy todir="dist/multiprocess-file-example/processes/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -780,15 +780,15 @@
                 <include name="mcf-pull-agent.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/multiprocess-example/processes">
+        <copy todir="dist/multiprocess-file-example/processes">
             <fileset dir="scripts"/>
         </copy>
-        <mkdir dir="dist/multiprocess-example/syncharea"/>
+        <mkdir dir="dist/multiprocess-file-example/syncharea"/>
     </target>
 
-    <target name="multi-processes-proprietary" depends="jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/multiprocess-example-proprietary/processes/lib"/>
-        <copy todir="dist/multiprocess-example-proprietary/processes/lib">
+    <target name="multi-processes-file-proprietary" depends="jar-core,jar-agents,jar-pull-agent">
+        <mkdir dir="dist/multiprocess-file-example-proprietary/processes/lib"/>
+        <copy todir="dist/multiprocess-file-example-proprietary/processes/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -826,26 +826,117 @@
                 <include name="mcf-pull-agent.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/multiprocess-example-proprietary/processes">
+        <copy todir="dist/multiprocess-file-example-proprietary/processes">
             <fileset dir="scripts"/>
         </copy>
-        <mkdir dir="dist/multiprocess-example-proprietary/syncharea"/>
+        <mkdir dir="dist/multiprocess-file-example-proprietary/syncharea"/>
     </target>
 
-    <target name="multi-process-example" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes">
-        <mkdir dir="dist/multiprocess-example"/>
-        <copy todir="dist/multiprocess-example">
+    <target name="multi-processes-zk" depends="jar-core,jar-agents,jar-pull-agent">
+        <mkdir dir="dist/multiprocess-zk-example/processes/lib"/>
+        <copy todir="dist/multiprocess-zk-example/processes/lib">
+            <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
+                <include name="json*.jar"/>
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl*.jar"/>
+                <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
+            </fileset>
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="dist/multiprocess-zk-example/processes">
+            <fileset dir="scripts"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example/zookeeper"/>
+    </target>
+
+    <target name="multi-processes-zk-proprietary" depends="jar-core,jar-agents,jar-pull-agent">
+        <mkdir dir="dist/multiprocess-zk-example-proprietary/processes/lib"/>
+        <copy todir="dist/multiprocess-zk-example-proprietary/processes/lib">
+            <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
+                <include name="json*.jar"/>
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl*.jar"/>
+                <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
+            </fileset>
+            <fileset dir="../lib-proprietary">
+                <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
+            </fileset>
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="dist/multiprocess-zk-example-proprietary/processes">
+            <fileset dir="scripts"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example-proprietary/zookeeper"/>
+    </target>
+
+    <target name="multi-process-file-example" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-file">
+        <mkdir dir="dist/multiprocess-file-example"/>
+        <copy todir="dist/multiprocess-file-example">
             <fileset dir="example-multiprocess-common">
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
             </fileset>
-            <fileset dir="example-multiprocess">
+            <fileset dir="example-multiprocess-file-common">
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-multiprocess-file">
                 <include name="properties.xml"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/multiprocess-example/lib"/>
-        <copy todir="dist/multiprocess-example/lib">
+        <mkdir dir="dist/multiprocess-file-example/lib"/>
+        <copy todir="dist/multiprocess-file-example/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -869,24 +960,28 @@
                 <include name="jsp-api*.jar"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/multiprocess-example/logs"/>
-        <chmod dir="dist/multiprocess-example" perm="a+x" includes="**/*.sh"/>
+        <mkdir dir="dist/multiprocess-file-example/logs"/>
+        <chmod dir="dist/multiprocess-file-example" perm="a+x" includes="**/*.sh"/>
     </target>
   
-      <target name="multi-process-example-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-proprietary">
-        <mkdir dir="dist/multiprocess-example-proprietary"/>
-        <copy todir="dist/multiprocess-example-proprietary">
+      <target name="multi-process-file-example-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-file-proprietary">
+        <mkdir dir="dist/multiprocess-file-example-proprietary"/>
+        <copy todir="dist/multiprocess-file-example-proprietary">
             <fileset dir="example-multiprocess-common">
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
             </fileset>
-            <fileset dir="example-multiprocess-proprietary">
+            <fileset dir="example-multiprocess-file-common">
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-multiprocess-file-proprietary">
                 <include name="properties.xml"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/multiprocess-example-proprietary/lib"/>
-        <copy todir="dist/multiprocess-example-proprietary/lib">
+        <mkdir dir="dist/multiprocess-file-example-proprietary/lib"/>
+        <copy todir="dist/multiprocess-file-example-proprietary/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -910,8 +1005,98 @@
                 <include name="jsp-api*.jar"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/multiprocess-example-proprietary/logs"/>
-        <chmod dir="dist/multiprocess-example-proprietary" perm="a+x" includes="**/*.sh"/>
+        <mkdir dir="dist/multiprocess-file-example-proprietary/logs"/>
+        <chmod dir="dist/multiprocess-file-example-proprietary" perm="a+x" includes="**/*.sh"/>
+    </target>
+
+    <target name="multi-process-zk-example" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-zk">
+        <mkdir dir="dist/multiprocess-zk-example"/>
+        <copy todir="dist/multiprocess-zk-example">
+            <fileset dir="example-multiprocess-common">
+                <include name="logging.ini"/>
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-multiprocess-zk-common">
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-multiprocess-zk">
+                <include name="properties.xml"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example/lib"/>
+        <copy todir="dist/multiprocess-zk-example/lib">
+            <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
+                <include name="json*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="log4j*.jar"/>
+            </fileset>
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-ui-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-jetty-runner.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="jetty*.jar"/>
+                <include name="slf4j*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="ecj*.jar"/>
+                <include name="jasper*.jar"/>
+                <include name="juli*.jar"/>
+                <include name="jsp-api*.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example/logs"/>
+        <chmod dir="dist/multiprocess-zk-example" perm="a+x" includes="**/*.sh"/>
+    </target>
+  
+      <target name="multi-process-zk-example-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-zk-proprietary">
+        <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
+        <copy todir="dist/multiprocess-zk-example-proprietary">
+            <fileset dir="example-multiprocess-common">
+                <include name="logging.ini"/>
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-multiprocess-zk-common">
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-multiprocess-zk-proprietary">
+                <include name="properties.xml"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example-proprietary/lib"/>
+        <copy todir="dist/multiprocess-zk-example-proprietary/lib">
+            <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
+                <include name="json*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="log4j*.jar"/>
+            </fileset>
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-ui-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-jetty-runner.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="jetty*.jar"/>
+                <include name="slf4j*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="ecj*.jar"/>
+                <include name="jasper*.jar"/>
+                <include name="juli*.jar"/>
+                <include name="jsp-api*.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example-proprietary/logs"/>
+        <chmod dir="dist/multiprocess-zk-example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>
 
     <target name="script-engine" depends="jar-script-engine,jar-core">
@@ -1457,7 +1642,7 @@
         </java>
     </target>
     
-    <target name="build" depends="multi-process-example,multi-process-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine"/>
+    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB,run-tests-HSQLDBext"/>
     
