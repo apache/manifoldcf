@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.4.1 =====================
 
+CONNECTORS-807: Handle the case when there are no documents being
+deleted.
+(Adian Conlon, Karl Wright)
+
 CONNECTORS-806: Web connector session passwords were not being
 handled in the UI properly.
 (Karl Wright)
