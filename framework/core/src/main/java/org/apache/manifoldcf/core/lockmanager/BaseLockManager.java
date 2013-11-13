@@ -219,7 +219,7 @@ public class BaseLockManager implements ILockManager
   public final void enterWriteLock(String lockKey)
     throws ManifoldCFException
   {
-    enterWrite(lockKey, "lock", localLocks, myLocks);
+    enterWrite(lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
