@@ -87,5 +87,10 @@
       <artifactId>velocity</artifactId>
       <version>${velocity.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper</artifactId>
+      <version>${zookeeper.version}</version>
+    </dependency>
   </dependencies>
 </project>

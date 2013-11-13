@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!-- This configuration file contains only non-global configuration information,
+    which is basically limited to file paths and ZooKeeper configuration -->
+<configuration>
+  <!-- Point to the wars and configure Jetty -->
+  <property name="org.apache.manifoldcf.crawleruiwarpath" value="../web-proprietary/war/mcf-crawler-ui.war"/>
+  <property name="org.apache.manifoldcf.authorityservicewarpath" value="../web-proprietary/war/mcf-authority-service.war"/>
+  <property name="org.apache.manifoldcf.apiservicewarpath" value="../web-proprietary/war/mcf-api-service.war"/>
+  <property name="org.apache.manifoldcf.usejettyparentclassloader" value="false"/>
+  <property name="org.apache.manifoldcf.jettyport" value="8345"/>
+  <!-- ZooKeeper lock manager configuration -->
+  <property name="org.apache.manifoldcf.lockmanagerclass" value="org.apache.manifoldcf.core.lockmanager.ZooKeeperLockManager"/>
+  <property name="org.apache.manifoldcf.zookeeper.connectstring" value="localhost:8349"/>
+  <property name="org.apache.manifoldcf.zookeeper.sessiontimeout" value="2000"/>
+  <!-- Point to a specific (common) logging file -->
+  <property name="org.apache.manifoldcf.logconfigfile" value="./logging.ini"/>
+  <!-- Specify the connectors to be loaded -->
+  <property name="org.apache.manifoldcf.connectorsconfigurationfile" value="../connectors-proprietary.xml"/>
+  <!-- Tell MCF where to find the connector jars -->
+  <libdir path="../connector-lib"/>
+  <libdir path="../connector-lib-proprietary"/>
+  <!-- Any additional local properties go here -->
+</configuration>

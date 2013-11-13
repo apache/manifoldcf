@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-13: Provide a ZooKeeper method of coordinating
+various ManifoldCF processes, along with an example.
+(Karl Wright)
+
 CONNECTORS-808: Add raw jdbc string so smart users can override the
 default behavior and supply gobbledegook Oracle connect strings.
 (Marcello Lorenzi, Karl Wright)
