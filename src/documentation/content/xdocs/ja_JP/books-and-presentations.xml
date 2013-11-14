@@ -34,6 +34,8 @@
       <li><a href="http://www.slideshare.net/lucenerevolution/wright-nokia-manifoldcfeurocon-2011" target="_blank">Securing Documents in Solr with ManifoldCF by Karl Wright</a></li>
       <li><a href="http://www.slideshare.net/PiergiorgioLucidi/apache-manifoldcf-9508286" target="_blank">Apache ManifoldCF by Piergiorgio Lucidi</a></li>
       <li><a href="http://www.slideshare.net/ShinichiroAbe/apache-manifoldcf-9231499" target="_blank">Apache ManifoldCF by Shinichiro Abe</a></li>
+      <li><a href="http://www.open4dev.com/journal/2013/11/9/my-two-talks-at-alfresco-summit-2013-in-barcelona.html" target="_blank">Barcelona presentations by Piergiorgio Lucidi</a></li>
+      <li><a href="http://summit.alfresco.com/barcelona/sessions/super-size-your-search" target="_blank">Alfresco Summit presentation by Piergiorgio Lucidi</a></li>
     </ul>
   </section>
   <section id="podcasts"><title>ManifoldCF Videos/Podcasts</title>
@@ -41,6 +43,7 @@
     <ul>
       <li><a title="Teach Me To Code - Karl Wright - ManifoldCF" href="http://teachmetocode.com/podcast/077-tmtc-karl-wright-manifoldcf/" target="_blank">077 TMTC Karl Wright - ManifoldCF</a> (ApacheCON North America, 2011)</li>
       <li><a title="Securing Documents in Solr with ManifoldCF by Karl Wright" href="http://vimeo.com/33082485" target="_blank">Lucene Revolutions Eurocon 2011 - Karl Wright - ManifoldCF</a> (Lucene Revolutions Eurocon, 2011)</li>
+      <li><a title="WAT" href="https://www.destroyallsoftware.com/talks/wat" target="_blank">WAT Lightning Talk</a> (Gary Bernhardt, CodeMash 2012)</li>
     </ul>
   </section>
     </body>
