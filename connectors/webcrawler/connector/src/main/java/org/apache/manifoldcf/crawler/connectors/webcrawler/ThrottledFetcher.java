@@ -111,9 +111,9 @@ public class ThrottledFetcher
 
 
   /** This is the static pool of ConnectionBin's, keyed by bin name. */
-  protected static HashMap connectionBins = new HashMap();
+  protected static Map<String,ConnectionBin> connectionBins = new HashMap<String,ConnectionBin>();
   /** This is the static pool of ThrottleBin's, keyed by bin name. */
-  protected static HashMap throttleBins = new HashMap();
+  protected static Map<String,ThrottleBin> throttleBins = new HashMap<String,ThrottleBin>();
 
   /** This global lock protects the "distributed pool" resource, and insures that a connection
   * can get pulled out of all the right pools and wind up in only the hands of one thread. */
@@ -197,7 +197,7 @@ public class ThrottledFetcher
       ConnectionBin cb;
       synchronized (connectionBins)
       {
-        cb = (ConnectionBin)connectionBins.get(binName);
+        cb = connectionBins.get(binName);
         if (cb == null)
         {
           cb = new ConnectionBin(binName);
@@ -232,11 +232,9 @@ public class ThrottledFetcher
         {
           // Time out connections that have been idle too long.  To do this, we need to go through
           // all connection bins and look at the pool
-          Iterator binIter = connectionBins.keySet().iterator();
-          while (binIter.hasNext())
+          for (String binName : connectionBins.keySet())
           {
-            String binName = (String)binIter.next();
-            ConnectionBin cb = (ConnectionBin)connectionBins.get(binName);
+            ConnectionBin cb = connectionBins.get(binName);
             openCount += cb.countConnections();
           }
         }
@@ -259,11 +257,9 @@ public class ThrottledFetcher
         {
           // Time out connections that have been idle too long.  To do this, we need to go through
           // all connection bins and look at the pool
-          Iterator binIter = connectionBins.keySet().iterator();
-          while (binIter.hasNext())
+          for (String binName : connectionBins.keySet())
           {
-            String binName = (String)binIter.next();
-            ConnectionBin cb = (ConnectionBin)connectionBins.get(binName);
+            ConnectionBin cb = connectionBins.get(binName);
             cb.flushIdleConnections(idleTimeout);
           }
         }
@@ -365,7 +361,7 @@ public class ThrottledFetcher
                 ConnectionBin cb;
                 synchronized (connectionBins)
                 {
-                  cb = (ConnectionBin)connectionBins.get(binName);
+                  cb = connectionBins.get(binName);
                   if (cb == null)
                   {
                     cb = new ConnectionBin(binName);
@@ -449,11 +445,9 @@ public class ThrottledFetcher
       {
         // Time out connections that have been idle too long.  To do this, we need to go through
         // all connection bins and look at the pool
-        Iterator binIter = connectionBins.keySet().iterator();
-        while (binIter.hasNext())
+        for (String binName : connectionBins.keySet())
         {
-          String binName = (String)binIter.next();
-          ConnectionBin cb = (ConnectionBin)connectionBins.get(binName);
+          ConnectionBin cb = connectionBins.get(binName);
           if (cb.flushIdleConnections(60000L))
           {
             // Bin is no longer doing anything; get rid of it.
@@ -1284,7 +1278,7 @@ public class ThrottledFetcher
           ThrottleBin tb;
           synchronized (throttleBins)
           {
-            tb = (ThrottleBin)throttleBins.get(binName);
+            tb = throttleBins.get(binName);
             if (tb == null)
             {
               tb = new ThrottleBin(binName);
@@ -1956,11 +1950,9 @@ public class ThrottledFetcher
         // Verify that all the connections that exist are in fact sane
         synchronized (connectionBins)
         {
-          Iterator iter = connectionBins.keySet().iterator();
-          while (iter.hasNext())
+          for (String connectionName : connectionBins.keySet())
           {
-            String connectionName = (String)iter.next();
-            ConnectionBin cb = (ConnectionBin)connectionBins.get(connectionName);
+            ConnectionBin cb = connectionBins.get(connectionName);
             //cb.sanityCheck();
           }
         }
@@ -1976,11 +1968,9 @@ public class ThrottledFetcher
         // Verify that all the connections that exist are in fact sane
         synchronized (connectionBins)
         {
-          Iterator iter = connectionBins.keySet().iterator();
-          while (iter.hasNext())
+          for (String connectionName : connectionBins.keySet())
           {
-            String connectionName = (String)iter.next();
-            ConnectionBin cb = (ConnectionBin)connectionBins.get(connectionName);
+            ConnectionBin cb = connectionBins.get(connectionName);
             //cb.sanityCheck();
           }
         }
