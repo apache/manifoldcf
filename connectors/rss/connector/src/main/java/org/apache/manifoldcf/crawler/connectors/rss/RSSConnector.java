@@ -3850,6 +3850,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected String titleField = null;
     protected String descriptionField = null;
     protected String authorEmailField = null;
+    protected String authorNameField = null;
     protected ArrayList categoryField = new ArrayList();
     protected File contentsFile = null;
 
@@ -3892,6 +3893,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       else if (localName.equals("author"))
       {
         // "author" tag, which contains email
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
+      }
+      else if (localName.equals("creator"))
+      {
+        // "creator" tag which contains name (like dc:creator)
         return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
@@ -3994,6 +4000,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         authorEmailField = ((XMLStringParsingContext)theContext).getValue();
       }
+      else if (theTag.equals("creator"))
+      {
+        authorNameField = ((XMLStringParsingContext)theContext).getValue();
+      }
       else
       {
         // What we want is: (a) if dechromed mode is NONE, just put the description file in the description field; (b)
@@ -4091,7 +4101,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               if (contentsFile == null && filter.getChromedContentMode() != CHROMED_METADATA_ONLY)
               {
                 // It's a reference!  Add it.
-                String[] dataNames = new String[]{"pubdate","title","source","authoremail","category","description"};
+                String[] dataNames = new String[]{"pubdate","title","source","authoremail","authorname","category","description"};
                 String[][] dataValues = new String[dataNames.length][];
                 if (origDate != null)
                   dataValues[0] = new String[]{origDate.toString()};
@@ -4100,15 +4110,17 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 dataValues[2] = new String[]{documentIdentifier};
                 if (authorEmailField != null)
                   dataValues[3] = new String[]{authorEmailField};
-                dataValues[4] = new String[categoryField.size()];
+                if (authorNameField != null)
+                  dataValues[4] = new String[]{authorNameField};
+                dataValues[5] = new String[categoryField.size()];
                 int q = 0;
                 while (q < categoryField.size())
                 {
-                  (dataValues[4])[q] = (String)categoryField.get(q);
+                  (dataValues[5])[q] = (String)categoryField.get(q);
                   q++;
                 }
                 if (descriptionField != null)
-                  dataValues[5] = new String[]{descriptionField};
+                  dataValues[6] = new String[]{descriptionField};
                 // Add document reference, not including the data to pass down, but including a description
                 activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
               }
@@ -4122,7 +4134,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 // Since the dechromed data is available from the feed, the possibility remains of passing the document
 
                 // Now, set up the carrydown info
-                String[] dataNames = new String[]{"pubdate","title","source","authoremail","category","data","description"};
+                String[] dataNames = new String[]{"pubdate","title","source","authoremail","authorname","category","data","description"};
                 Object[][] dataValues = new Object[dataNames.length][];
                 if (origDate != null)
                   dataValues[0] = new String[]{origDate.toString()};
@@ -4131,23 +4143,25 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 dataValues[2] = new String[]{documentIdentifier};
                 if (authorEmailField != null)
                   dataValues[3] = new String[]{authorEmailField};
-                dataValues[4] = new String[categoryField.size()];
+                if (authorNameField != null)
+                  dataValues[4] = new String[]{authorNameField};
+                dataValues[5] = new String[categoryField.size()];
                 int q = 0;
                 while (q < categoryField.size())
                 {
-                  (dataValues[4])[q] = (String)categoryField.get(q);
+                  (dataValues[5])[q] = (String)categoryField.get(q);
                   q++;
                 }
 
                 if (descriptionField != null)
-                  dataValues[6] = new String[]{descriptionField};
+                  dataValues[7] = new String[]{descriptionField};
                   
                 if (contentsFile == null)
                 {
                   CharacterInput ci = new NullCharacterInput();
                   try
                   {
-                    dataValues[5] = new Object[]{ci};
+                    dataValues[6] = new Object[]{ci};
 
                     // Add document reference, including the data to pass down, and the dechromed content too
                     activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
@@ -4163,7 +4177,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                   try
                   {
                     contentsFile = null;
-                    dataValues[5] = new Object[]{ci};
+                    dataValues[6] = new Object[]{ci};
 
                     // Add document reference, including the data to pass down, and the dechromed content too
                     activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
