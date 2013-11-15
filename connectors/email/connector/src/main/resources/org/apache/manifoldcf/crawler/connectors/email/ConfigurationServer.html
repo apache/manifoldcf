@@ -1,0 +1,194 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TABNAME == 'Server')
+
+<table class="displaytable">
+    <tr>
+        <td class="separator" colspan="2">
+            <hr/>
+        </td>
+    </tr>
+    <tr>
+        <td class="description">
+            <nobr>
+                Protocol:
+            </nobr>
+        </td>
+        <td class="value">
+            <select id="protocol" name="protocol">
+                #if($PROTOCOL == 'POP3')
+                <option value="imap">IMAP</option>
+                <option value="pop3" selected="selected">POP3</option>
+                #else
+                <option value="imap" selected="selected">IMAP</option>
+                <option value="pop3">POP3</option>
+                #end
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td class="description">
+            <nobr>
+                Host Email Server URL:
+            </nobr>
+        </td>
+        <td class="value">
+            <input id="server" name="server" type="text" size="32" value="$Encoder.attributeEscape($SERVER)"/>
+        </td>
+    </tr>
+    <tr>
+        <td class="description">
+            <nobr>
+                Port:
+            </nobr>
+        </td>
+        <td class="value">
+            <input type="text" id="port" name="port" value="$Encoder.attributeEscape($PORT)"/>
+        </td>
+    </tr>
+    <tr>
+        <td class="description">
+            <nobr>
+                User Name:
+            </nobr>
+        </td>
+        <td class="value">
+            <input type="text" id="username" name="username" value="$Encoder.attributeEscape($USERNAME)"/>
+        </td>
+    </tr>
+    <tr>
+        <td class="description">
+            <nobr>
+                Password:
+            </nobr>
+        </td>
+        <td class="value">
+            <input type="password" id="password" name="password" value="$Encoder.attributeEscape($PASSWORD)"/>
+        </td>
+    </tr>
+    <tr>
+        <td class="description">
+            <nobr>Matches:</nobr>
+        </td>
+        <td class="boxcell">
+            <table class="formtable">
+                <tr class="formheaderrow">
+                    <td class="formcolumnheader"></td>
+                    <td class="formcolumnheader">
+                        <nobr>Server Property</nobr>
+                    </td>
+                    <td class="formcolumnheader">
+                        <nobr>Value</nobr>
+                    </td>
+                </tr>
+
+                #set($k = 0)
+                #foreach($property in $PROPERTIES)
+
+                #if(($k % 2) == 0)
+                <tr class="evenformrow">
+                    #else
+                <tr class="oddformrow">
+                    #end
+
+                    <td class="formcolumncell">
+                        <input type="hidden" name="findop_$k" value=""/>
+                        <input type="hidden" name="findname_$k" value="$Encoder.attributeEscape($property.get('name'))"/>
+                        <input type="hidden" name="findvalue_$k" value="$Encoder.attributeEscape($property.get('value'))"/>
+                        <a name="find_$k">
+                            <input type="button" value="Delete" onClick='Javascript:FindDelete("$k")'
+                                   alt="Delete match #$k"/>
+                        </a>
+                    </td>
+                    <td class="formcolumncell">
+                        <nobr>
+                            $Encoder.bodyEscape($property.get('name'))
+                        </nobr>
+                    </td>
+                    <td class="formcolumncell">
+                        <nobr>
+                            $Encoder.bodyEscape($property.get('value'))
+                        </nobr>
+                    </td>
+                </tr>
+
+                #set($k = $k + 1)
+                #end
+
+                #if($k == 0)
+                <tr class="formrow">
+                    <td class="formcolumnmessage" colspan="3">No Server Properties specified</td>
+                </tr>
+                #end
+
+                <tr class="formrow">
+                    <td class="formseparator" colspan="3">
+                        <hr/>
+                    </td>
+                </tr>
+
+                #set($nextk = $k + 1)
+
+                <tr class="formrow">
+                    <td class="formcolumncell">
+                        <nobr>
+                            <a name="find_$k">
+                                <input type="button" value="Add" onClick='Javascript:FindAdd("$nextk")'
+                                       alt="Add new match"/>
+                                <input type="hidden" name="findcount" value="$k"/>
+                                <input type="hidden" name="findop" value=""/>
+                            </a>
+                        </nobr>
+                    </td>
+                    <td class="formcolumncell">
+                        <nobr>
+                            <input type="text" size="32" name="findname" value=""/>
+                        </nobr>
+                    </td>
+                    <td class="formcolumncell">
+                        <nobr>
+                            <input type="text" size="32" name="findvalue" value=""/>
+                        </nobr>
+                    </td>
+                </tr>
+
+
+            </table>
+        </td>
+    </tr>
+
+</table>
+
+ #else
+<input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)"/>
+<input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)"/>
+<input type="hidden" name="protocol" value="$Encoder.attributeEscape($PROTOCOL)"/>
+<input type="hidden" name="server" value="$Encoder.attributeEscape($SERVER)"/>
+<input type="hidden" name="port" value="$Encoder.attributeEscape($PORT)"/>
+#set($k = 0)
+#foreach($property in $PROPERTIES)
+
+<input type="hidden" name="findname_$k" value="$Encoder.attributeEscape($property.get('name'))"/>
+<input type="hidden" name="findvalue_$k" value="$Encoder.attributeEscape($property.get('value'))"/>
+
+#set($k = $k + 1)
+#end
+
+<input type="hidden" name="findcount" value="$k"/>
+
+#end
