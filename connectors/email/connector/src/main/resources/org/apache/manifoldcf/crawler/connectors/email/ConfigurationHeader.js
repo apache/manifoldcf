@@ -17,30 +17,27 @@
 
 <script type="text/javascript">
 <!--
-
-function checkSpecification()
+function checkConfigForSave()
 {
-  if (checkDocumentsTab() == false)
+  if (editconnection.server.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.EnterAMailServerHostName'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.Server'))");
+    editconnection.server.focus();
     return false;
-  if (checkMetadataTab() == false)
-    return false;
+  }
   return true;
 }
- 
+
+function addProperty()
+{
+  postFormSetAnchor("property"); //Repost the form and send the browser to property anchor
+}
+
 function SpecOp(n, opValue, anchorvalue)
 {
-  eval("editjob."+n+".value = \""+opValue+"\"");
+  eval("editconnection."+n+".value = \""+opValue+"\"");
   postFormSetAnchor(anchorvalue);
-}
-
-function checkDocumentsTab()
-{
-  return true;
-}
-
-function checkMetadataTab()
-{
-  return true;
 }
 
 function FindDelete(n)
@@ -50,16 +47,16 @@ function FindDelete(n)
 
 function FindAdd(n)
 {
-  if (editjob.findname.value == "")
+  if (editconnection.findname.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.PleaseSelectAMetadataName'))");
-    editjob.findname.focus();
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.PleaseSelectAConfigurationParameterName'))");
+    editconnection.findname.focus();
     return;
   }
-  if (editjob.findvalue.value == "")
+  if (editconnection.findvalue.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.ValueCannotBeBlank'))");
-    editjob.findvalue.focus();
+    editconnection.findvalue.focus();
     return;
   }
   SpecOp("findop", "Add", "find_"+n);
