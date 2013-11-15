@@ -3,6 +3,8 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-553: Email connector.
+
 ======================= Release 1.4 =====================
 
 CONNECTORS-791: Broken WHERE clause in job status query.
