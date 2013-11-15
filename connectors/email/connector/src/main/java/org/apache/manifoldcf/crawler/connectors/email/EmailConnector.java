@@ -80,7 +80,13 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   private Folder folder;
   private Store store;
 
-
+  private static Map<String,String> providerMap;
+  static
+  {
+    providerMap = new HashMap<String,String>();
+    providerMap.put(EmailConfig.PROTOCOL_POP3, EmailConfig.PROTOCOL_POP3_PROVIDER);
+    providerMap.put(EmailConfig.PROTOCOL_IMAP, EmailConfig.PROTOCOL_IMAP_PROVIDER);
+  }
   //////////////////////////////////Start of Basic Connector Methods/////////////////////////
 
   /**
@@ -159,7 +165,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   protected void checkConnection() throws ManifoldCFException, ServiceInterruption {
     while (true) {
       try {
-        store = getSession().getStore(protocol);
+        store = getSession().getStore(providerMap.get(protocol));
         store.connect(server, username, password);
         Folder defaultFolder = store.getDefaultFolder();
         if (defaultFolder == null) {
@@ -351,10 +357,10 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   }
 
   private void initializeConnection() throws MessagingException {
-    store = getSession().getStore(protocol);
+    store = getSession().getStore(providerMap.get(protocol));
     store.connect(server, username, password);
 
-    if (protocol == EmailConfig.PROTOCOL_IMAP_PROVIDER) {
+    if (protocol.equals(EmailConfig.PROTOCOL_IMAP)) {
       folder = store.getFolder(folderName);
     } else {
       folder = store.getFolder(EmailConfig.FOLDER_INBOX);
