@@ -163,15 +163,14 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         store.connect(server, username, password);
         Folder defaultFolder = store.getDefaultFolder();
         if (defaultFolder == null) {
-          Logging.connectors.error(
-              "Email: Error during checking the connection.");
-          throw new ManifoldCFException("Email: Error during checking the connection.");
+          Logging.connectors.warn("Email: Error checking the connection: No default folder.");
+          throw new ManifoldCFException("Error checking the connection: No default folder.");
         }
 
       } catch (Exception e) {
-        Logging.connectors.error(
-            "Email: Error during checking the connection.");
-        throw new ManifoldCFException("Email: Error during checking the connection.");
+        Logging.connectors.warn(
+            "Email: Error checking the connection: "+e.getMessage(),e);
+        throw new ManifoldCFException("Error checking the connection: "+e.getMessage(),e);
       }
       store = null;
       return;
