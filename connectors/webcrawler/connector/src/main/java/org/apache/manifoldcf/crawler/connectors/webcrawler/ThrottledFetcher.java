@@ -110,6 +110,8 @@ public class ThrottledFetcher
   protected static final long TIME_1DAY = 24L * 60L * 60000L;
 
 
+  // The following static bin pools correspond to global resources that will be managed via ILockManager.
+  
   /** This is the static pool of ConnectionBin's, keyed by bin name. */
   protected static Map<String,ConnectionBin> connectionBins = new HashMap<String,ConnectionBin>();
   /** This is the static pool of ThrottleBin's, keyed by bin name. */
@@ -464,6 +466,8 @@ public class ThrottledFetcher
 
   /** Connection pool for a bin.
   * An instance of this class tracks the connections that are pooled and that are in use for a specific bin.
+  * NOTE WELL: This resource must be constrained globally, across all JVMs!
+  * To do that, we need an ILockManager to handle the global data for each bin.
   */
   protected static class ConnectionBin
   {
@@ -749,6 +753,8 @@ public class ThrottledFetcher
   * 3) For chunks that have started but not finished, we keep track of their size and estimated elapsed time in order to schedule when
   *    new chunks from other connections can start.
   *
+  * NOTE WELL: This resource must be constrained globally, across all JVMs!
+  * To do that, we need an ILockManager to handle the global data for each bin.
   */
   protected static class ThrottleBin
   {
