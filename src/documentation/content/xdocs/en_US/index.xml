@@ -43,7 +43,7 @@
 
     <section>
 	<title>Project status</title>
-	<p>Apache ManifoldCF 1.4 is available!  Download it <a href="download.html">here</a>.</p>
+	<p>Apache ManifoldCF 1.4.1 is available!  Download it <a href="download.html">here</a>.</p>
     </section>
 
     <section>
@@ -59,6 +59,10 @@
 
     <section>
         <title>News</title>
+          <section>
+              <title>16 Nov 2013 - ManifoldCF 1.4.1 is released!</title>
+                <p>Developer community signs off on point bugfix release.</p>
+          </section>
           <section>
               <title>28 Oct 2013 - ManifoldCF 1.4 is released!</title>
                 <p>Developer community signs off on release 1.4.</p>
