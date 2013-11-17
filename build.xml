@@ -4232,6 +4232,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/activedirectory" target="download-dependencies"/>
         <ant dir="connectors/ldap" target="download-dependencies"/>
         <ant dir="connectors/documentum" target="download-dependencies"/>
+        <ant dir="connectors/email" target="download-dependencies"/>
         <ant dir="connectors/filenet" target="download-dependencies"/>
         <ant dir="connectors/filesystem" target="download-dependencies"/>
         <ant dir="connectors/gts" target="download-dependencies"/>

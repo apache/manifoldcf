@@ -33,6 +33,28 @@ limitations under the License.
                 <include name="mail*.jar"/>
             </fileset>
         </copy>
+        <mkdir dir="dist/lib-proprietary-only"/>
+        <copy todir="dist/lib-proprietary-only">
+            <fileset dir="lib-proprietary" includes="*.jar"/>
+        </copy>
+    </target>
+
+    <target name="download-jcifs">
+        <property name="libs-version" value="1.4.7"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="com/sun/mail"/>
+            <param name="artifact-version" value="${libs-version}"/>
+            <param name="target" value="lib-proprietary"/>
+            <param name="artifact-name" value="pop3"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="com/sun/mail"/>
+            <param name="artifact-version" value="${libs-version}"/>
+            <param name="target" value="lib-proprietary"/>
+            <param name="artifact-name" value="imap"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
 
 </project>
