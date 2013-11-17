@@ -39,7 +39,7 @@ limitations under the License.
         </copy>
     </target>
 
-    <target name="download-jcifs">
+    <target name="download-libs">
         <property name="libs-version" value="1.4.7"/>
         <antcall target="download-via-maven">
             <param name="project-path" value="com/sun/mail"/>
@@ -55,6 +55,17 @@ limitations under the License.
             <param name="artifact-name" value="imap"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+    </target>
+
+    <target name="download-dependencies" depends="download-libs"/>
+
+    <target name="download-cleanup">
+        <delete>
+            <fileset dir="lib-proprietary">
+                <exclude name="README.txt"/>
+                <exclude name="*.diffs"/>
+            </fileset>
+        </delete>
     </target>
 
 </project>
