@@ -58,18 +58,18 @@ public class QueueTracker
   protected final static double binReductionFactor = 1.0;
 
   /** These are the accumulated performance averages for all connections etc. */
-  protected PerformanceStatistics performanceStatistics = new PerformanceStatistics();
+  protected final PerformanceStatistics performanceStatistics = new PerformanceStatistics();
 
   /** These are the bin counts for a prioritization pass.
   * This hash table is keyed by bin, and contains DoubleBinCount objects as values */
-  protected HashMap binCounts = new HashMap();
+  protected final Map<String,DoubleBinCount> binCounts = new HashMap<String,DoubleBinCount>();
 
   /** These are the bin counts for tracking the documents that are on
   * the active queue, but are not being processed yet */
-  protected HashMap queuedBinCounts = new HashMap();
+  protected final Map<String,BinCount> queuedBinCounts = new HashMap<String,BinCount>();
 
   /** These are the bin counts for active threads */
-  protected HashMap activeBinCounts = new HashMap();
+  protected final Map<String,BinCount> activeBinCounts = new HashMap<String,BinCount>();
 
   /** The "minimum depth" - which is the smallest bin count of the last document queued.  This helps guarantee that documents that are
   * newly discovered don't wind up with high priority, but instead wind up about the same as the currently active document priority. */
@@ -79,10 +79,11 @@ public class QueueTracker
   protected boolean resetInProgress = false;
 
   /** This hash table is keyed by PriorityKey objects, and contains ArrayList objects containing Doubles, in sorted order. */
-  protected HashMap availablePriorities = new HashMap();
+  protected final Map<PriorityKey,List<Double>> availablePriorities = new HashMap<PriorityKey,List<Double>>();
 
-  /** This hash table is keyed by a String (which is the bin name), and contains a HashMap of PriorityKey objects containing that String as a bin */
-  protected HashMap binDependencies = new HashMap();
+  /** This hash table is keyed by a String (which is the bin name), and contains a Set of PriorityKey objects containing that
+  * String as a bin */
+  protected final Map<String,Set<PriorityKey>> binDependencies = new HashMap<String,Set<PriorityKey>>();
 
 
   /** Constructor */
@@ -140,7 +141,7 @@ public class QueueTracker
       String binName = binNames[i++];
       synchronized (queuedBinCounts)
       {
-        BinCount value = (BinCount)queuedBinCounts.get(binName);
+        BinCount value = queuedBinCounts.get(binName);
         if (value == null)
         {
           value = new BinCount();
@@ -163,10 +164,10 @@ public class QueueTracker
     PriorityKey pk = new PriorityKey(binNames);
     synchronized (binCounts)
     {
-      ArrayList value = (ArrayList)availablePriorities.get(pk);
+      List<Double> value = availablePriorities.get(pk);
       if (value == null)
       {
-        value = new ArrayList();
+        value = new ArrayList<Double>();
         availablePriorities.put(pk,value);
       }
       // Use bisection lookup to file the current priority so that highest priority is at the end (0.0), and lowest is at the beginning
@@ -195,13 +196,13 @@ public class QueueTracker
       while (i < binNames.length)
       {
         String binName = binNames[i++];
-        HashMap hm = (HashMap)binDependencies.get(binName);
+        Set<PriorityKey> hm = binDependencies.get(binName);
         if (hm == null)
         {
-          hm = new HashMap();
+          hm = new HashSet<PriorityKey>();
           binDependencies.put(binName,hm);
         }
-        hm.put(pk,pk);
+        hm.add(pk);
       }
     }
   }
@@ -251,7 +252,7 @@ public class QueueTracker
       // Increment queued bin count for this bin.
       synchronized (queuedBinCounts)
       {
-        BinCount value = (BinCount)queuedBinCounts.get(binName);
+        BinCount value = queuedBinCounts.get(binName);
         if (value != null)
         {
           if (value.decrement())
@@ -262,7 +263,7 @@ public class QueueTracker
       // Decrement active bin count for this bin.
       synchronized (activeBinCounts)
       {
-        BinCount value = (BinCount)activeBinCounts.get(binName);
+        BinCount value = activeBinCounts.get(binName);
         if (value == null)
         {
           value = new BinCount();
@@ -347,7 +348,7 @@ public class QueueTracker
       String binName = binNames[i++];
       synchronized (activeBinCounts)
       {
-        BinCount value = (BinCount)activeBinCounts.get(binName);
+        BinCount value = activeBinCounts.get(binName);
         if (value != null)
         {
           if (value.decrement())
@@ -380,7 +381,7 @@ public class QueueTracker
       int count = 0;
       synchronized (activeBinCounts)
       {
-        BinCount value = (BinCount)activeBinCounts.get(binName);
+        BinCount value = activeBinCounts.get(binName);
         if (value != null)
           count = value.getValue();
       }
@@ -473,7 +474,7 @@ public class QueueTracker
         binCountScaleFactors[i] = binCountScaleFactor;
 
         double thisCount = 0.0;
-        DoubleBinCount bc = (DoubleBinCount)binCounts.get(binName);
+        DoubleBinCount bc = binCounts.get(binName);
         if (bc != null)
         {
           thisCount = bc.getValue();
@@ -488,13 +489,11 @@ public class QueueTracker
             Logging.scheduling.debug("Resetting value of bin '"+binName+"' to "+new Double(weightedMinimumDepth).toString()+"(scale factor is "+new Double(binCountScaleFactor)+")");
 
           // Clear available priorities that depend on this bin
-          HashMap hm = (HashMap)binDependencies.get(binName);
+          Set<PriorityKey> hm = binDependencies.get(binName);
           if (hm != null)
           {
-            Iterator iter = hm.keySet().iterator();
-            while (iter.hasNext())
+            for (PriorityKey pk : hm)
             {
-              PriorityKey pk = (PriorityKey)iter.next();
               availablePriorities.remove(pk);
             }
             binDependencies.remove(binName);
@@ -515,7 +514,7 @@ public class QueueTracker
       double returnValue;
 
       PriorityKey pk2 = new PriorityKey(binNames);
-      ArrayList queuedvalue = (ArrayList)availablePriorities.get(pk2);
+      List<Double> queuedvalue = availablePriorities.get(pk2);
       if (queuedvalue != null && queuedvalue.size() > 0)
       {
         // There's a saved value on the queue, which was calculated but not assigned earlier.  We use these values preferentially.
@@ -526,7 +525,7 @@ public class QueueTracker
           while (i < binNames.length)
           {
             String binName = binNames[i++];
-            HashMap hm = (HashMap)binDependencies.get(binName);
+            Set<PriorityKey> hm = binDependencies.get(binName);
             if (hm != null)
             {
               hm.remove(pk2);
@@ -551,7 +550,7 @@ public class QueueTracker
           double binCountScaleFactor = binCountScaleFactors[i];
 
           double thisCount = 0.0;
-          DoubleBinCount bc = (DoubleBinCount)binCounts.get(binName);
+          DoubleBinCount bc = binCounts.get(binName);
           if (bc != null)
             thisCount = bc.getValue();
 
@@ -579,7 +578,7 @@ public class QueueTracker
         while (j < binNames.length)
         {
           String binName = binNames[j];
-          DoubleBinCount bc = (DoubleBinCount)binCounts.get(binName);
+          DoubleBinCount bc = binCounts.get(binName);
           if (bc == null)
           {
             bc = new DoubleBinCount();
