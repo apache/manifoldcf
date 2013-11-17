@@ -2557,7 +2557,7 @@
         </antcall>
         <antcall target="general-add-repository-connector">
             <param name="connector-name" value="email"/>
-            <param name="connector-label" value="Exchange"/>
+            <param name="connector-label" value="EMail"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.email.EmailConnector"/>
         </antcall>
     </target>
