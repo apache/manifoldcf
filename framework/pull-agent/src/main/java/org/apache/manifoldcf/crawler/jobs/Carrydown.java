@@ -39,6 +39,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
  * <tr><td>datavaluehash</td><td>VARCHAR(40)</td><td></td></tr>
  * <tr><td>datavalue</td><td>LONGTEXT</td><td></td></tr>
  * <tr><td>isnew</td><td>CHAR(1)</td><td></td></tr>
+ * <tr><td>processid</td><td>VARCHAR(16)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -55,6 +56,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
   public static final String dataValueHashField = "datavaluehash";
   public static final String dataValueField = "datavalue";
   public static final String newField = "isnew";
+  public static final String processIDField = "processid";
 
   /** The standard value for the "isnew" field.  Means that the link existed prior to this scan, and no new link
   * was found yet. */
@@ -106,6 +108,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
         map.put(dataValueHashField,new ColumnDescription("VARCHAR(40)",false,true,null,null,false));
         map.put(dataValueField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(newField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
+        map.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
 
         performCreate(map,null);
 
@@ -113,6 +116,12 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       else
       {
         // Upgrade code goes here, if needed.
+        if (existing.get(processIDField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+        }
       }
 
       // Now do index management
@@ -206,14 +215,16 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(newField,statusToString(ISNEW_NEW))});
+      new UnitaryClause(newField,statusToString(ISNEW_NEW)),
+      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
     performDelete("WHERE "+query,list,null);
 
     // Convert "existing" rows to base
     map.put(newField,statusToString(ISNEW_BASE));
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(newField,statusToString(ISNEW_EXISTING))});
+      new UnitaryClause(newField,statusToString(ISNEW_EXISTING)),
+      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
     performUpdate(map,"WHERE "+query,list,null);
   }
 
@@ -340,19 +351,30 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
         }
 
         map.put(newField,statusToString(ISNEW_NEW));
+        map.put(processIDField,ManifoldCF.getProcessID());
         performInsert(map,null);
         noteModifications(1,0,0);
         insertHappened.put(childDocumentIDHash,new Boolean(true));
       }
       else
       {
-        sb = new StringBuilder();
-        sb.append("WHERE ").append(jobIDField).append("=? AND ")
+        sb = new StringBuilder("WHERE ");
+        ArrayList updateList = new ArrayList();
+        sb.append(buildConjunctionClause(updateList,new ClauseDescription[]{
+          new UnitaryClause(jobIDField,jobID),
+          new UnitaryClause(parentIDHashField,parentDocumentIDHash),
+          new UnitaryClause(childIDHashField,childDocumentIDHash),
+          new UnitaryClause(dataNameField,dataName),
+          (dataValueHash==null)?
+            new NullCheckClause(dataValueHashField,true):
+            new UnitaryClause(dataValueHashField,dataValueHash)}));
+
+        /*
+        sb.append(jobIDField).append("=? AND ")
           .append(parentIDHashField).append("=? AND ")
           .append(childIDHashField).append("=? AND ")
           .append(dataNameField).append("=? AND ");
 
-        ArrayList updateList = new ArrayList();
         updateList.add(jobID);
         updateList.add(parentDocumentIDHash);
         updateList.add(childDocumentIDHash);
@@ -366,8 +388,10 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
         {
           sb.append(dataValueHashField).append(" IS NULL");
         }
-
+        */
+            
         map.put(newField,statusToString(ISNEW_EXISTING));
+        map.put(processIDField,ManifoldCF.getProcessID());
         performUpdate(map,sb.toString(),updateList,null);
         noteModifications(0,1,0);
       }
@@ -483,6 +507,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     
     HashMap map = new HashMap();
     map.put(newField,statusToString(ISNEW_BASE));
+    map.put(processIDField,null);
     performUpdate(map,sb.toString(),newList,null);
     
     noteModifications(0,list.size(),0);

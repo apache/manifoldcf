@@ -43,6 +43,8 @@ import java.util.*;
  * <tr><td>docpriority</td><td>FLOAT</td><td></td></tr>
  * <tr><td>priorityset</td><td>BIGINT</td><td></td></tr>
  * <tr><td>checkaction</td><td>CHAR(1)</td><td></td></tr>
+ * <tr><td>processid</td><td>VARCHAR(16)</td><td></td></tr>
+ * <tr><td>seedingprocessid</td><td>VARCHAR(16)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -111,7 +113,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public static final String docPriorityField = "docpriority";
   public static final String prioritySetField = "priorityset";
   public static final String checkActionField = "checkaction";
-
+  public static final String processIDField = "processid";
+  public static final String seedingProcessIDField = "seedingprocessid";
+  
   public static final double noDocPriorityValue = 1e9;
   public static final Double nullDocPriority = new Double(noDocPriorityValue + 1.0);
   
@@ -200,6 +204,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         map.put(docPriorityField,new ColumnDescription("FLOAT",false,true,null,null,false));
         map.put(prioritySetField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(checkActionField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
+        map.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
+        map.put(seedingProcessIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
         performCreate(map,null);
       }
       else
@@ -208,6 +214,22 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         Map map = new HashMap();
         map.put(docPriorityField,nullDocPriority);
         performUpdate(map,"WHERE "+docPriorityField+" IS NULL",null,null);
+        
+        // Also, add processIDField
+        if (existing.get(processIDField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+        }
+        
+        // Add seedingProcessID field too
+        if (existing.get(seedingProcessIDField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(seedingProcessIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+        }
       }
 
       // Secondary table installation
@@ -339,48 +361,59 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Map ACTIVE back to PENDING.
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDING));
+    map.put(processIDField,null);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVE),
-        statusToString(STATUS_ACTIVENEEDRESCAN)})});
+        statusToString(STATUS_ACTIVENEEDRESCAN)}),
+      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+    map.put(processIDField,null);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVEPURGATORY),
-        statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)})});
+        statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)}),
+      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map BEINGDELETED to ELIGIBLEFORDELETE
     map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
+    map.put(processIDField,null);
     map.put(checkTimeField,new Long(0L));
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED))});
+      new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED)),
+      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map BEINGCLEANED to PURGATORY
     map.put(statusField,statusToString(STATUS_PURGATORY));
+    map.put(processIDField,null);
     map.put(checkTimeField,new Long(0L));
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED))});
+      new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED)),
+      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map newseed fields to seed
     map.clear();
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_SEED));
+    map.put(seedingProcessIDField,null);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED))});
+      new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED)),
+      new UnitaryClause(seedingProcessIDField,ManifoldCF.getProcessID())});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Clear out all failtime fields (since we obviously haven't been retrying whilst we were not
     // running)
+    // ??? Figure out how to handle this in a multi-agents environment
     map.clear();
     map.put(failTimeField,null);
     list.clear();
@@ -443,20 +476,24 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Map ACTIVE back to PENDING.
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDING));
+    map.put(processIDField,null);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVE),
-        statusToString(STATUS_ACTIVENEEDRESCAN)})});
+        statusToString(STATUS_ACTIVENEEDRESCAN)}),
+      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+    map.put(processIDField,null);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVEPURGATORY),
-        statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)})});
+        statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)}),
+      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
     performUpdate(map,"WHERE "+query,list,null);
     unconditionallyAnalyzeTables();
         
@@ -471,10 +508,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     // Map BEINGDELETED to ELIGIBLEFORDELETE
     map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
+    map.put(processIDField,null);
     map.put(checkTimeField,new Long(0L));
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED))});
+      new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED)),
+      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
     performUpdate(map,"WHERE "+query,list,null);
     unconditionallyAnalyzeTables();
 
@@ -489,10 +528,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     // Map BEINGCLEANED to PURGATORY
     map.put(statusField,statusToString(STATUS_PURGATORY));
+    map.put(processIDField,null);
     map.put(checkTimeField,new Long(0L));
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED))});
+      new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED)),
+      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
     performUpdate(map,"WHERE "+query,list,null);
     unconditionallyAnalyzeTables();
 
@@ -811,6 +852,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     }
 
     map.put(statusField,statusToString(newStatus));
+    map.put(processIDField,null);
     map.put(checkTimeField,checkTimeValue);
     map.put(checkActionField,actionFieldValue);
     map.put(failTimeField,null);
@@ -861,6 +903,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     }
 
     map.put(statusField,statusToString(newStatus));
+    map.put(processIDField,null);
     map.put(checkTimeField,checkTimeValue);
     map.put(checkActionField,actionFieldValue);
     map.put(failTimeField,null);
@@ -897,6 +940,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
     HashMap map = new HashMap();
     map.put(statusField,statusToString(newStatus));
+    map.put(processIDField,ManifoldCF.getProcessID());
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,id)});
@@ -917,6 +961,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(statusField,statusToString(status));
+    map.put(processIDField,null);
     map.put(checkTimeField,checkTime);
     map.put(checkActionField,actionToString(action));
     if (failTime == -1L)
@@ -944,6 +989,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_BEINGDELETED));
+    map.put(processIDField,ManifoldCF.getProcessID());
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,id)});
@@ -958,6 +1004,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
+    map.put(processIDField,null);
     map.put(checkTimeField,new Long(checkTime));
     map.put(checkActionField,null);
     map.put(failTimeField,null);
@@ -977,6 +1024,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_BEINGCLEANED));
+    map.put(processIDField,ManifoldCF.getProcessID());
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,id)});
@@ -991,6 +1039,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PURGATORY));
+    map.put(processIDField,null);
     map.put(checkTimeField,new Long(checkTime));
     map.put(checkActionField,null);
     map.put(failTimeField,null);
@@ -1141,6 +1190,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
     }
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED));
+    map.put(seedingProcessIDField,ManifoldCF.getProcessID());
     // Delete any existing prereqevent entries first
     prereqEventManager.deleteRows(recordID);
     ArrayList list = new ArrayList();
@@ -1177,6 +1227,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(docIDField,docID);
     map.put(statusField,statusToString(STATUS_PENDING));
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED));
+    map.put(seedingProcessIDField,ManifoldCF.getProcessID());
     // Set the document priority
     map.put(docPriorityField,new Double(desiredDocPriority));
     map.put(prioritySetField,new Long(currentTime));
@@ -1295,6 +1346,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED));
+    map.put(seedingProcessIDField,ManifoldCF.getProcessID());
     ArrayList newList = new ArrayList();
     String query = buildConjunctionClause(newList,new ClauseDescription[]{
       new MultiClause(idField,list)});
@@ -1327,6 +1379,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_SEED)),
       new UnitaryClause(jobIDField,jobID)});
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_SEED));
+    map.put(seedingProcessIDField,null);
     performUpdate(map,"WHERE "+query,list,null);
   }
 

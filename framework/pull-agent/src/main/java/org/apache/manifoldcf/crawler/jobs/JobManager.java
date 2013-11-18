@@ -733,7 +733,44 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting seeding status");
-    jobs.resetSeedingWorkerStatus();
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.resetSeedingWorkerStatus();
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting seeding worker status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
@@ -743,9 +780,44 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting doc deleting status");
-    TrackerClass.notePrecommit();
-    jobQueue.resetDocDeleteWorkerStatus();
-    TrackerClass.noteCommit();
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobQueue.resetDocDeleteWorkerStatus();
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting doc deleting worker status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
@@ -755,9 +827,44 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting doc cleaning status");
-    TrackerClass.notePrecommit();
-    jobQueue.resetDocCleanupWorkerStatus();
-    TrackerClass.noteCommit();
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobQueue.resetDocCleanupWorkerStatus();
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting doc cleaning status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
@@ -767,7 +874,44 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting job delete starting up status");
-    jobs.resetDeleteStartupWorkerStatus();
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.resetDeleteStartupWorkerStatus();
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting job delete starting up status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
@@ -776,8 +920,45 @@ public class JobManager implements IJobManager
   public void resetNotificationWorkerStatus()
     throws ManifoldCFException
   {
-    Logging.jobs.debug("Resetting notification up status");
-    jobs.resetNotificationWorkerStatus();
+    Logging.jobs.debug("Resetting notification worker status");
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.resetNotificationWorkerStatus();
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting notification worker status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
@@ -787,7 +968,44 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting job starting up status");
-    jobs.resetStartupWorkerStatus();
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.resetStartupWorkerStatus();
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting job starting up status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
