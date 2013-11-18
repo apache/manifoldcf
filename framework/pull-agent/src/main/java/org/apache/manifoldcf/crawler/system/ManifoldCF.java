@@ -721,8 +721,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
         Logging.threads.debug("Agents process reprioritizing documents...");
 
-        HashMap connectionMap = new HashMap();
-        HashMap jobDescriptionMap = new HashMap();
+        Map<String,IRepositoryConnection> connectionMap = new HashMap<String,IRepositoryConnection>();
+        Map<Long,IJobDescription> jobDescriptionMap = new HashMap<Long,IJobDescription>();
         // Reprioritize all documents in the jobqueue, 1000 at a time
         long currentTime = System.currentTimeMillis();
 
@@ -740,7 +740,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
             break;
 
           // Calculate new priorities for all these documents
-          writeDocumentPriorities(threadContext,mgr,jobManager,docs,connectionMap,jobDescriptionMap,queueTracker,currentTime);
+          writeDocumentPriorities(threadContext,mgr,jobManager,docs,connectionMap,jobDescriptionMap,
+            queueTracker,currentTime);
 
           Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
         }
@@ -1480,56 +1481,72 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return connector.getBinNames(documentIdentifier);
   }
 
+  protected final static String resetDocPrioritiesLock = "_RESETPRIORITIES_";
+  
   /** Reset all (active) document priorities.  This operation may occur due to various externally-triggered
   * events, such a job abort, pause, resume, wait, or unwait.
   */
   public static void resetAllDocumentPriorities(IThreadContext threadContext, QueueTracker queueTracker, long currentTime)
     throws ManifoldCFException
   {
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
     IJobManager jobManager = JobManagerFactory.make(threadContext);
     IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
     
-    // Reset the queue tracker
-    queueTracker.beginReset();
-    // Perform the reprioritization, for all active documents in active jobs.  During this time,
-    // it is safe to have other threads assign new priorities to documents, but it is NOT safe
-    // for other threads to attempt to change the minimum priority level.  The queuetracker object
-    // will therefore block that from occurring, until the reset is complete.
+    // Only one thread allowed at a time
+    lockManager.enterWriteLock(resetDocPrioritiesLock);
     try
     {
-      // Reprioritize all documents in the jobqueue, 1000 at a time
-
-      HashMap connectionMap = new HashMap();
-      HashMap jobDescriptionMap = new HashMap();
-
-      // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
-      // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
-      // activity.
-      // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
-      // priorities.
-      while (true)
+      // Reset the queue tracker
+      queueTracker.beginReset();
+      // Perform the reprioritization, for all active documents in active jobs.  During this time,
+      // it is safe to have other threads assign new priorities to documents, but it is NOT safe
+      // for other threads to attempt to change the minimum priority level.  The queuetracker object
+      // will therefore block that from occurring, until the reset is complete.
+      try
       {
-        long startTime = System.currentTimeMillis();
+        // Reprioritize all documents in the jobqueue, 1000 at a time
 
-        DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(currentTime, 10000);
-        if (docs.length == 0)
-          break;
+        Map<String,IRepositoryConnection> connectionMap = new HashMap<String,IRepositoryConnection>();
+        Map<Long,IJobDescription> jobDescriptionMap = new HashMap<Long,IJobDescription>();
 
-        // Calculate new priorities for all these documents
-        writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,queueTracker,currentTime);
+        // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
+        // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
+        // activity.
+        // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
+        // priorities.
+        while (true)
+        {
+          long startTime = System.currentTimeMillis();
 
-        Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
+          DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(currentTime, 10000);
+          if (docs.length == 0)
+            break;
+
+          // Calculate new priorities for all these documents
+          writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,
+            queueTracker,currentTime);
+
+          Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
+        }
+      }
+      finally
+      {
+        queueTracker.endReset();
       }
     }
     finally
     {
-      queueTracker.endReset();
+      lockManager.leaveWriteLock(resetDocPrioritiesLock);
     }
   }
   
   /** Write a set of document priorities, based on the current queue tracker.
   */
-  public static void writeDocumentPriorities(IThreadContext threadContext, IRepositoryConnectionManager mgr, IJobManager jobManager, DocumentDescription[] descs, HashMap connectionMap, HashMap jobDescriptionMap, QueueTracker queueTracker, long currentTime)
+  public static void writeDocumentPriorities(IThreadContext threadContext, IRepositoryConnectionManager mgr,
+    IJobManager jobManager, DocumentDescription[] descs,
+    Map<String,IRepositoryConnection> connectionMap, Map<Long,IJobDescription> jobDescriptionMap,
+    QueueTracker queueTracker, long currentTime)
     throws ManifoldCFException
   {
     if (Logging.scheduling.isDebugEnabled())
@@ -1543,14 +1560,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     while (i < descs.length)
     {
       DocumentDescription dd = descs[i];
-      IJobDescription job = (IJobDescription)jobDescriptionMap.get(dd.getJobID());
+      IJobDescription job = jobDescriptionMap.get(dd.getJobID());
       if (job == null)
       {
         job = jobManager.load(dd.getJobID(),true);
         jobDescriptionMap.put(dd.getJobID(),job);
       }
       String connectionName = job.getConnectionName();
-      IRepositoryConnection connection = (IRepositoryConnection)connectionMap.get(connectionName);
+      IRepositoryConnection connection = connectionMap.get(connectionName);
       if (connection == null)
       {
         connection = mgr.load(connectionName);
