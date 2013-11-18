@@ -3,6 +3,13 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-810: Update JDBC connector documentation, and add
+documentation for the JDBC authority connector.
+(Karl Wright)
+
+CONNECTORS-805: Add author name/email support to RSS connector.
+(Benjamin Brandmeier, Karl Wright)
+
 CONNECTORS-13: Provide a ZooKeeper method of coordinating
 various ManifoldCF processes, along with an example.
 (Karl Wright)

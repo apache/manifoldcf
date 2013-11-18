@@ -931,6 +931,65 @@ curl -XGET http://localhost:9200/index/_mapping
                     not accept connections, which is leading to an error status message instead of "Connection working".</p>
             </section>
             
+            <section id="jdbcauthority">
+                <title>Generic Database Authority Connection</title>
+                <p>The generic database connection type allows you to generate access tokens from a database table, served by one of the following databases:</p>
+                <br/>
+                <ul>
+                    <li>Postgresql (via a Postgresql JDBC driver)</li>
+                    <li>SQL Server (via the JTDS JDBC driver)</li>
+                    <li>Oracle (via the Oracle JDBC driver)</li>
+                    <li>Sybase (via the JTDS JDBC driver)</li>
+                    <li>MySQL (via the MySQL JDBC driver)</li>
+                </ul>
+                <br/>
+                <p>This connection type <b>cannot</b> be configured to work with other databases than the ones listed above without software changes.  Depending on your particular installation,
+                       some of the above options may not be available.</p>
+                <p>A generic database authority connection has four special tabs on the repository connection editing screen: the "Database Type" tab, the "Server" tab,
+                      the "Credentials" tab, and the "Queries" tab.  The "Database Type" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/jdbc-authority-configure-database-type.PNG" alt="Generic Database Authority Connection, Database Type tab" width="80%"/>
+                <br/><br/>
+                <p>Select the kind of database you want to connect to, from the pulldown.</p>
+                <p>Also, select the JDBC access method you want from the access method pulldown.  The access method is provided because the JDBC specification has been
+                    recently clarified, and not all JDBC drivers work the same way as far as resultset column name discovery is concerned.  The "by name" option currently works
+                    with all JDBC drivers in the list except for the MySQL driver.  The "by label" works for the current MySQL driver, and may work for some of the others as well.  If
+                    the queries you supply for your generic database jobs do not work correctly, and you see an error message about not being able to find required columns in the
+                    result, you can change your selection on this pulldown and it may correct the problem.</p>
+                <p>The "Server" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/jdbc-authority-configure-server.PNG" alt="Generic Database Authority Connection, Server tab" width="80%"/>
+                <br/><br/>
+                <p>Here you have a choice.  <strong>Either</strong> you can choose to specify the database host and port, and the database name or instance name,
+                      <strong>or</strong> you can provide a raw JDBC connection string that is appropriate for the database type you have chosen.  This latter option
+                      is provided because many JDBC drivers, such as Oracle's, now can connect to an entire cluster of Oracle servers if you specify the appropriate
+                      connection description string.</p>
+                <p>If you choose the second option, just consult your JDBC driver's documentation and supply your string.  If there is anything entered in the raw connection
+                      string field at all, it will take precedence over the database host and database name fields.</p>
+                <p>If you choose the first option, the server name and port must be provided in the "Database host and port" field.  For example, for Oracle, the standard
+                      Oracle installation uses port 1521, so you would enter something like, "my-oracle-server:1521" for this field.  Postgresql uses port 5432 by default, so
+                      "my-postgresql-server:5432" would be required.  SQL Server's standard port is 1433, so use "my-sql-server:1433".</p>
+                <p>The service name or instance name field describes which instance and database to connect to.  For Oracle or Postgresql, provide just the database name.
+                      For SQL Server, use "my-instance-name/my-database-name".  For SQL Server using the default instance, use just the database name.</p>
+                <p>The "Credentials" tab is straightforward:</p>
+                <br/><br/>
+                <figure src="images/en_US/jdbc-authority-configure-credentials.PNG" alt="Generic Database Authority Connection, Credentials tab" width="80%"/>
+                <br/><br/>
+                <p>Enter the database user credentials.</p>
+                <p>The "Queries" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/jdbc-authority-configure-queries.PNG" alt="Generic Database Authority Connection, Queries tab" width="80%"/>
+                <br/><br/>
+                <p>Here you supply two queries.  The first query looks up the user name to find a user id.  The second query looks up access tokens corresponding to the
+                      user id.  Details of what you supply for these queries will depend on your database schema.</p>
+                <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/jdbc-authority-status.PNG" alt="Generic Database Authority Status" width="80%"/>
+                <br/><br/>
+                <p>Note that in this example, the generic database authority connection is not properly authenticated, which is leading to an error status message instead
+                      of "Connection working".</p>
+            </section>
+
             <section id="documentumauthority">
                 <title>EMC Documentum Authority Connection</title>
                 <p>A Documentum authority connection is required for enforcing security for documents retrieved from Documentum repositories.</p>
@@ -1754,11 +1813,17 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <figure src="images/en_US/jdbc-configure-server.PNG" alt="Generic Database Connection, Server tab" width="80%"/>
                 <br/><br/>
-                <p>The server name and port must be provided in the "Database host and port" field.  For example, for Oracle, the standard Oracle installation uses port 1521, so you would
-                       enter something like, "my-oracle-server:1521" for this field.  Postgresql uses port 5432 by default, so "my-postgresql-server:5432" would be required.  SQL Server's
-                       standard port is 1433, so use "my-sql-server:1433".</p>
-                <p>The service name or instance name field describes which instance and database to connect to.  For Oracle or Postgresql, provide just the database name.  For SQL Server, use
-                       "my-instance-name/my-database-name".  For SQL Server using the default instance, use just the database name.</p>
+                <p>Here you have a choice.  <strong>Either</strong> you can choose to specify the database host and port, and the database name or instance name,
+                      <strong>or</strong> you can provide a raw JDBC connection string that is appropriate for the database type you have chosen.  This latter option
+                      is provided because many JDBC drivers, such as Oracle's, now can connect to an entire cluster of Oracle servers if you specify the appropriate
+                      connection description string.</p>
+                <p>If you choose the second option, just consult your JDBC driver's documentation and supply your string.  If there is anything entered in the raw connection
+                      string field at all, it will take precedence over the database host and database name fields.</p>
+                <p>If you choose the first option, the server name and port must be provided in the "Database host and port" field.  For example, for Oracle, the standard
+                      Oracle installation uses port 1521, so you would enter something like, "my-oracle-server:1521" for this field.  Postgresql uses port 5432 by default, so
+                      "my-postgresql-server:5432" would be required.  SQL Server's standard port is 1433, so use "my-sql-server:1433".</p>
+                <p>The service name or instance name field describes which instance and database to connect to.  For Oracle or Postgresql, provide just the database name.
+                      For SQL Server, use "my-instance-name/my-database-name".  For SQL Server using the default instance, use just the database name.</p>
                 <p>The "Credentials" tab is straightforward:</p>
                 <br/><br/>
                 <figure src="images/en_US/jdbc-configure-credentials.PNG" alt="Generic Database Connection, Credentials tab" width="80%"/>
