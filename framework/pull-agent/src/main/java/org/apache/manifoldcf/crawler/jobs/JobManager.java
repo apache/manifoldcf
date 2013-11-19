@@ -3284,7 +3284,7 @@ public class JobManager implements IJobManager
         i = 0;
         while (i < ids.length)
         {
-          jobQueue.setStatus(ids[i],jobQueue.STATUS_PENDINGPURGATORY,executeTimesNew[i],actionsNew[i],-1L,-1);
+          jobQueue.setRequeuedStatus(ids[i],executeTimesNew[i],actionsNew[i],-1L,-1);
           i++;
         }
 
@@ -3411,7 +3411,7 @@ public class JobManager implements IJobManager
         i = 0;
         while (i < ids.length)
         {
-          jobQueue.setStatus(ids[i],jobQueue.STATUS_PENDINGPURGATORY,executeTimes[i],actions[i],(failTimes==null)?-1L:failTimes[i],(failCounts==null)?-1:failCounts[i]);
+          jobQueue.setRequeuedStatus(ids[i],executeTimes[i],actions[i],(failTimes==null)?-1L:failTimes[i],(failCounts==null)?-1:failCounts[i]);
           i++;
         }
 

@@ -950,17 +950,15 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** Set the status on a record, including check time and priority.
-  * The status set MUST be a PENDING or PENDINGPURGATORY status.
   *@param id is the job queue id.
-  *@param status is the desired status
   *@param checkTime is the check time.
   */
-  public void setStatus(Long id, int status,
+  public void setRequeuedStatus(Long id,
     Long checkTime, int action, long failTime, int failCount)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
-    map.put(statusField,statusToString(status));
+    map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     map.put(processIDField,null);
     map.put(checkTimeField,checkTime);
     map.put(checkActionField,actionToString(action));
@@ -979,7 +977,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
-    TrackerClass.noteRecordChange(id, status, "Set status");
+    TrackerClass.noteRecordChange(id, STATUS_PENDINGPURGATORY, "Set requeued status");
   }
 
   /** Set the status of a document to "being deleted".
