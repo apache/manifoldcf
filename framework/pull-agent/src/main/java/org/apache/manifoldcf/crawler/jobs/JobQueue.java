@@ -354,8 +354,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Restart.
   * This method should be called at initial startup time.  It resets the status of all documents to something
   * reasonable, so the jobs can be restarted and work properly to completion.
+  *@param processID is the processID to clean up after.
   */
-  public void restart()
+  public void restart(String processID)
     throws ManifoldCFException
   {
     // Map ACTIVE back to PENDING.
@@ -367,7 +368,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVE),
         statusToString(STATUS_ACTIVENEEDRESCAN)}),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
@@ -378,7 +379,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVEPURGATORY),
         statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)}),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map BEINGDELETED to ELIGIBLEFORDELETE
@@ -388,7 +389,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map BEINGCLEANED to PURGATORY
@@ -398,7 +399,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map newseed fields to seed
@@ -408,18 +409,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED)),
-      new UnitaryClause(seedingProcessIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(seedingProcessIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
 
-    // Clear out all failtime fields (since we obviously haven't been retrying whilst we were not
-    // running)
-    // ??? Figure out how to handle this in a multi-agents environment
-    map.clear();
-    map.put(failTimeField,null);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new NullCheckClause(failTimeField,false)});
-    performUpdate(map,"WHERE "+query,list,null);
     // Reindex the jobqueue table, since we've probably made lots of bad tuples doing the above operations.
     reindexTable();
     unconditionallyAnalyzeTables();
@@ -427,6 +419,75 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     TrackerClass.noteGlobalChange("Restart");
   }
 
+  /** Restart for entire cluster.
+  */
+  public void restartCluster()
+    throws ManifoldCFException
+  {
+    // Map ACTIVE back to PENDING.
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_PENDING));
+    map.put(processIDField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_ACTIVE),
+        statusToString(STATUS_ACTIVENEEDRESCAN)})});
+    performUpdate(map,"WHERE "+query,list,null);
+
+    // Map ACTIVEPURGATORY to PENDINGPURGATORY
+    map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+    map.put(processIDField,null);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_ACTIVEPURGATORY),
+        statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)})});
+    performUpdate(map,"WHERE "+query,list,null);
+
+    // Map BEINGDELETED to ELIGIBLEFORDELETE
+    map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
+    map.put(processIDField,null);
+    map.put(checkTimeField,new Long(0L));
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED))});
+    performUpdate(map,"WHERE "+query,list,null);
+
+    // Map BEINGCLEANED to PURGATORY
+    map.put(statusField,statusToString(STATUS_PURGATORY));
+    map.put(processIDField,null);
+    map.put(checkTimeField,new Long(0L));
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED))});
+    performUpdate(map,"WHERE "+query,list,null);
+
+    // Map newseed fields to seed
+    map.clear();
+    map.put(isSeedField,seedstatusToString(SEEDSTATUS_SEED));
+    map.put(seedingProcessIDField,null);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED))});
+    performUpdate(map,"WHERE "+query,list,null);
+
+    // Clear out all failtime fields (since we obviously haven't been retrying whilst we were not
+    // running)
+    map.clear();
+    map.put(failTimeField,null);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new NullCheckClause(failTimeField,false)});
+    performUpdate(map,"WHERE "+query,list,null);
+
+    // Reindex the jobqueue table, since we've probably made lots of bad tuples doing the above operations.
+    reindexTable();
+    unconditionallyAnalyzeTables();
+
+    TrackerClass.noteGlobalChange("Restart cluster");
+  }
+  
   /** Flip all records for a job that have status HOPCOUNTREMOVED back to PENDING.
   * NOTE: We need to actually schedule these!!!  so the following can't really work.  ???
   */

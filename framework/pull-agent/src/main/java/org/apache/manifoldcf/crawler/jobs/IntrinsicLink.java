@@ -118,7 +118,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       // Indexes
       IndexDescription uniqueIndex = new IndexDescription(true,new String[]{jobIDField,parentIDHashField,linkTypeField,childIDHashField});
       IndexDescription jobChildNewIndex = new IndexDescription(false,new String[]{jobIDField,childIDHashField,newField});
-      IndexDescription newIndex = new IndexDescription(false,new String[]{newField});
+      IndexDescription newIndex = new IndexDescription(false,new String[]{newField,processIDField});
 
       Map indexes = getTableIndexes(null,null);
       Iterator iter = indexes.keySet().iterator();
@@ -188,8 +188,9 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   * of documents, and cached records of hopcount are updated only when requested, it is safest to simply
   * move any "new" or "new existing" links back to base state on startup.  Then, the next time that page
   * is processed, the links will be updated properly.
+  *@param processID is the process to restart.
   */
-  public void reset()
+  public void restart(String processID)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
@@ -199,10 +200,25 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       new MultiClause(newField,new Object[]{
         statusToString(LINKSTATUS_NEW),
         statusToString(LINKSTATUS_EXISTING)}),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
   }
 
+  /** Restart entire cluster.
+  */
+  public void restartCluster()
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    map.put(newField,statusToString(LINKSTATUS_BASE));
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(newField,new Object[]{
+        statusToString(LINKSTATUS_NEW),
+        statusToString(LINKSTATUS_EXISTING)})});
+    performUpdate(map,"WHERE "+query,list,null);
+  }
+  
   /** Record a references from source to targets.  These references will be marked as either "new" or "existing".
   *@return the target document ID's that are considered "new".
   */

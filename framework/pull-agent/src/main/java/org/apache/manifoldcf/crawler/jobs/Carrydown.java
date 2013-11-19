@@ -128,7 +128,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
 
       IndexDescription uniqueIndex = new IndexDescription(true,new String[]{jobIDField,parentIDHashField,childIDHashField,dataNameField,dataValueHashField});
       IndexDescription jobChildDataIndex = new IndexDescription(false,new String[]{jobIDField,childIDHashField,dataNameField});
-      IndexDescription newIndex = new IndexDescription(false,new String[]{newField});
+      IndexDescription newIndex = new IndexDescription(false,new String[]{newField,processIDField});
 
       Map indexes = getTableIndexes(null,null);
       Iterator iter = indexes.keySet().iterator();
@@ -207,8 +207,9 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
   //
 
   /** Reset, at startup time.
+  *@param processID is the process ID.
   */
-  public void reset()
+  public void restart(String processID)
     throws ManifoldCFException
   {
     // Delete "new" rows
@@ -216,7 +217,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(newField,statusToString(ISNEW_NEW)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     performDelete("WHERE "+query,list,null);
 
     // Convert "existing" rows to base
@@ -224,7 +225,27 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(newField,statusToString(ISNEW_EXISTING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
+    performUpdate(map,"WHERE "+query,list,null);
+  }
+
+  /** Reset, at startup time, entire cluster
+  */
+  public void restartCluster()
+    throws ManifoldCFException
+  {
+    // Delete "new" rows
+    HashMap map = new HashMap();
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(newField,statusToString(ISNEW_NEW))});
+    performDelete("WHERE "+query,list,null);
+
+    // Convert "existing" rows to base
+    map.put(newField,statusToString(ISNEW_BASE));
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(newField,statusToString(ISNEW_EXISTING))});
     performUpdate(map,"WHERE "+query,list,null);
   }
 

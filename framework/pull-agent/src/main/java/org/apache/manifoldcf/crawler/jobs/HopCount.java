@@ -302,13 +302,22 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** Reset, at startup time.
+  *@param processID is the process ID.
   */
-  public void reset()
+  public void restart(String processID)
     throws ManifoldCFException
   {
-    intrinsicLinkManager.reset();
+    intrinsicLinkManager.restart(processID);
   }
 
+  /** Restart entire cluster.
+  */
+  public void restartCluster()
+    throws ManifoldCFException
+  {
+    intrinsicLinkManager.restartCluster();
+  }
+  
   /** Record a references from a set of documents to the root.  These will be marked as "new" or "existing", and
   * will have a null linktype.
   */

@@ -620,18 +620,15 @@ public class JobManager implements IJobManager
   // The job queue is maintained underneath this interface, and all threads that perform
   // job activities need to go through this layer.
 
-  /** Reset the job queue immediately after starting up.
-  * If the system was shut down in the middle of a job, sufficient information should
-  * be around in the database to allow it to restart.  However, BEFORE all the job threads
-  * are spun up, there needs to be a pass over the queue to bring things back to a "normal"
-  * state.
-  * Also, if a job's status is in a state that indicates it was being processed by a thread
-  * (which is now dead), then we have to set that status back to previous value.
+  /** Reset the job queue for an individual process ID.
+  * If a node was shut down in the middle of doing something, sufficient information should
+  * be around in the database to allow the node's activities to be cleaned up.
+  *@param processID is the process ID of the node we want to clean up after.
   */
-  public void prepareForStart()
+  public void cleanupProcessData(String processID)
     throws ManifoldCFException
   {
-    Logging.jobs.debug("Resetting due to restart");
+    Logging.jobs.debug("Cleaning up process data for process '"+processID+"'");
     while (true)
     {
       long sleepAmt = 0L;
@@ -639,19 +636,19 @@ public class JobManager implements IJobManager
       try
       {
         // Clean up events
-        eventManager.restart();
+        eventManager.restart(processID);
         // Clean up job queue
-        jobQueue.restart();
+        jobQueue.restart(processID);
         // Clean up jobs
-        jobs.restart();
+        jobs.restart(processID);
         // Clean up hopcount stuff
-        hopCount.reset();
+        hopCount.restart(processID);
         // Clean up carrydown stuff
-        carryDown.reset();
+        carryDown.restart(processID);
         TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
-        Logging.jobs.debug("Reset complete");
+        Logging.jobs.debug("Cleanup complete");
         break;
       }
       catch (ManifoldCFException e)
@@ -679,6 +676,79 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
     }
+  }
+    
+  /** Prepare to start the entire cluster.
+  * If there are no other nodes alive, then at the time the first node comes up, we need to
+  * reset the job queue for ALL processes that had been running before.  This method can
+  * be called in lieu of prepareForStart().
+  */
+  public void prepareForClusterStart()
+    throws ManifoldCFException
+  {
+    Logging.jobs.debug("Starting cluster");
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Clean up events
+        eventManager.restartCluster();
+        // Clean up job queue
+        jobQueue.restartCluster();
+        // Clean up jobs
+        jobs.restartCluster();
+        // Clean up hopcount stuff
+        hopCount.restartCluster();
+        // Clean up carrydown stuff
+        carryDown.restartCluster();
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        Logging.jobs.debug("Cluster start complete");
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction starting cluster: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
+
+  /** Reset the job queue immediately after starting up.
+  * If the system was shut down in the middle of a job, sufficient information should
+  * be around in the database to allow it to restart.  However, BEFORE all the job threads
+  * are spun up, there needs to be a pass over the queue to bring things back to a "normal"
+  * state.
+  * Also, if a job's status is in a state that indicates it was being processed by a thread
+  * (which is now dead), then we have to set that status back to previous value.
+  */
+  public void prepareForStart()
+    throws ManifoldCFException
+  {
+    cleanupProcessData(ManifoldCF.getProcessID());
   }
 
   /** Reset as part of restoring document worker threads.

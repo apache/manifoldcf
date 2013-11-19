@@ -136,6 +136,22 @@ public interface IJobManager
   // The job queue is maintained underneath this interface, and all threads that perform
   // job activities need to go through this layer.
 
+  /** Reset the job queue for an individual process ID.
+  * If a node was shut down in the middle of doing something, sufficient information should
+  * be around in the database to allow the node's activities to be cleaned up.
+  *@param processID is the process ID of the node we want to clean up after.
+  */
+  public void cleanupProcessData(String processID)
+    throws ManifoldCFException;
+    
+  /** Prepare to start the entire cluster.
+  * If there are no other nodes alive, then at the time the first node comes up, we need to
+  * reset the job queue for ALL processes that had been running before.  This method can
+  * be called in lieu of prepareForStart().
+  */
+  public void prepareForClusterStart()
+    throws ManifoldCFException;
+
   /** Reset the job queue immediately before starting up.
   * If the system was shut down in the middle of a job, sufficient information should
   * be around in the database to allow it to restart.  However, BEFORE all the job threads

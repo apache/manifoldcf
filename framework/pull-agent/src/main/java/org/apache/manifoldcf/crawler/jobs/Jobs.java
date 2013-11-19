@@ -368,6 +368,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
       // Index management
       IndexDescription statusIndex = new IndexDescription(false,new String[]{statusField,idField,priorityField});
+      IndexDescription statusProcessIndex = new IndexDescription(false,new String[]{statusField,processIDField});
       IndexDescription connectionIndex = new IndexDescription(false,new String[]{connectionNameField});
       IndexDescription outputIndex = new IndexDescription(false,new String[]{outputNameField});
 
@@ -381,6 +382,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
         if (statusIndex != null && id.equals(statusIndex))
           statusIndex = null;
+        else if (statusProcessIndex != null && id.equals(statusProcessIndex))
+          statusProcessIndex = null;
         else if (connectionIndex != null && id.equals(connectionIndex))
           connectionIndex = null;
         else if (outputIndex != null && id.equals(outputIndex))
@@ -393,6 +396,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       // Add the ones we didn't find
       if (statusIndex != null)
         performAddIndex(null,statusIndex);
+      if (statusProcessIndex != null)
+        performAddIndex(null,statusProcessIndex);
       if (connectionIndex != null)
         performAddIndex(null,connectionIndex);
       if (outputIndex != null)
@@ -885,8 +890,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** This method is called on a restart.
+  *@param processID is the process to be restarting.
   */
-  public void restart()
+  public void restart(String processID)
     throws ManifoldCFException
   {
     StringSet invKey = new StringSet(getJobStatusKey());
@@ -897,7 +903,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     // Starting up delete goes back to just being ready for delete
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_DELETESTARTINGUP)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORDELETE));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
@@ -906,7 +912,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_NOTIFYINGOFCOMPLETION)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
@@ -917,7 +923,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_STARTINGUP),
         statusToString(STATUS_ABORTINGSTARTINGUP)}),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
@@ -928,7 +934,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_STARTINGUPMINIMAL),
         statusToString(STATUS_ABORTINGSTARTINGUPMINIMAL)}),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
@@ -937,7 +943,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUPFORRESTART)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTINGFORRESTART));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
@@ -946,7 +952,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTINGFORRESTARTMINIMAL));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
@@ -955,98 +961,247 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVE));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_PAUSINGSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_PAUSING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVEWAITINGSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVEWAITING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_PAUSINGWAITINGSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_PAUSINGWAITING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_RESUMINGSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_RESUMING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGFORRESTARTSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTINGFORRESTART));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTINGFORRESTARTMINIMAL));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_PAUSEDSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_PAUSED));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVEWAITSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVEWAIT));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_PAUSEDWAITSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_PAUSEDWAIT));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_UNINSTALLED)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NOOUTPUT)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NEITHER)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
+    map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+
+  }
+
+  /** This method is called on a restart of the entire cluster.
+  */
+  public void restartCluster()
+    throws ManifoldCFException
+  {
+    StringSet invKey = new StringSet(getJobStatusKey());
+    ArrayList list = new ArrayList();
+    HashMap map = new HashMap();
+    String query;
+      
+    // Starting up delete goes back to just being ready for delete
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_DELETESTARTINGUP))});
+    map.put(statusField,statusToString(STATUS_READYFORDELETE));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+
+    // Notifying of completion goes back to just being ready for notify
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_NOTIFYINGOFCOMPLETION))});
+    map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+
+    // Starting up or aborting starting up goes back to just being ready
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_STARTINGUP),
+        statusToString(STATUS_ABORTINGSTARTINGUP)})});
+    map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+
+    // Starting up or aborting starting up goes back to just being ready
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_STARTINGUPMINIMAL),
+        statusToString(STATUS_ABORTINGSTARTINGUPMINIMAL)})});
+    map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+
+    // Aborting starting up for restart state goes to ABORTINGFORRESTART
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUPFORRESTART))});
+    map.put(statusField,statusToString(STATUS_ABORTINGFORRESTART));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+
+    // Aborting starting up for restart state goes to ABORTINGFORRESTART
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL))});
+    map.put(statusField,statusToString(STATUS_ABORTINGFORRESTARTMINIMAL));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+
+    // All seeding values return to pre-seeding values
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING))});
+    map.put(statusField,statusToString(STATUS_ACTIVE));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_PAUSINGSEEDING))});
+    map.put(statusField,statusToString(STATUS_PAUSING));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ACTIVEWAITINGSEEDING))});
+    map.put(statusField,statusToString(STATUS_ACTIVEWAITING));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_PAUSINGWAITINGSEEDING))});
+    map.put(statusField,statusToString(STATUS_PAUSINGWAITING));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_RESUMINGSEEDING))});
+    map.put(statusField,statusToString(STATUS_RESUMING));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSEEDING))});
+    map.put(statusField,statusToString(STATUS_ABORTING));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ABORTINGFORRESTARTSEEDING))});
+    map.put(statusField,statusToString(STATUS_ABORTINGFORRESTART));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL))});
+    map.put(statusField,statusToString(STATUS_ABORTINGFORRESTARTMINIMAL));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_PAUSEDSEEDING))});
+    map.put(statusField,statusToString(STATUS_PAUSED));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ACTIVEWAITSEEDING))});
+    map.put(statusField,statusToString(STATUS_ACTIVEWAIT));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_PAUSEDWAITSEEDING))});
+    map.put(statusField,statusToString(STATUS_PAUSEDWAIT));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_UNINSTALLED))});
+    map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NOOUTPUT))});
+    map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,invKey);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NEITHER))});
     map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
