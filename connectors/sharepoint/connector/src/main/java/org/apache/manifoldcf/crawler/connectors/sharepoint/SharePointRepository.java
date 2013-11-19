@@ -2250,24 +2250,29 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           relPath = relPath.substring(sitePath.length());
           
-          // Now, strip "Lists" from relPath
-          if (!relPath.startsWith("/Lists/"))
-            throw new ManifoldCFException("Expected path to start with /Lists/");
-          relPath = sitePath + relPath.substring("/Lists".length());
-          if ( checkIncludeListItem( relPath, spec ) )
+          // Now, strip "Lists" from relPath.  If it doesn't start with /Lists/, ignore it.
+          if (relPath.startsWith("/Lists/"))
           {
-            if (relPath.startsWith(siteListPath))
+            relPath = sitePath + relPath.substring("/Lists".length());
+            if ( checkIncludeListItem( relPath, spec ) )
             {
-              // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
-              // The way I've chosen to do this is to use a triple slash at that point, as a separator.
-              String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
-              
-              activities.addDocumentReference( modifiedPath, documentIdentifier, null, listItemStreamDataNames, dataValues );
+              if (relPath.startsWith(siteListPath))
+              {
+                // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
+                // The way I've chosen to do this is to use a triple slash at that point, as a separator.
+                String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
+                
+                activities.addDocumentReference( modifiedPath, documentIdentifier, null, listItemStreamDataNames, dataValues );
+              }
+              else
+              {
+                Logging.connectors.warn("SharePoint: Unexpected relPath structure; site path is '"+relPath+"', but expected to see something beginning with '"+siteListPath+"'");
+              }
             }
-            else
-            {
-              Logging.connectors.warn("SharePoint: Unexpected relPath structure; site path is '"+relPath+"', but expected to see something beginning with '"+siteListPath+"'");
-            }
+          }
+          else
+          {
+            Logging.connectors.warn("SharePoint: Unexpected relPath structure; rel path is '"+relPath+"', but expected to see something beginning with '/Lists/'");
           }
         }
         else
