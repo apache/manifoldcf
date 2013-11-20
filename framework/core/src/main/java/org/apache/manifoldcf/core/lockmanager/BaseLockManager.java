@@ -56,7 +56,13 @@ public class BaseLockManager implements ILockManager
 
   /** Global resource data.  Used only when ManifoldCF is run entirely out of one process. */
   protected final static Map<String,byte[]> globalData = new HashMap<String,byte[]>();
-    
+  
+  /** Global service registry.  Used only when ManifoldCF is run entirely out of one process. */
+  protected final static Map<String,Set<String>> services = new HashMap<String,Set<String>>();
+  
+  /** Global active service  list.  Used only when ManifoldCF is run entirely out of one process. */
+  protected final static Map<String,Set<String>> activeServices = new HashMap<String,Set<String>>();
+  
   public BaseLockManager()
     throws ManifoldCFException
   {
@@ -77,7 +83,26 @@ public class BaseLockManager implements ILockManager
   public void registerServiceBeginServiceActivity(String serviceType, String serviceName)
     throws ManifoldCFException
   {
-    // MHL
+    // Use services to lock both services and active services
+    synchronized (services)
+    {
+      Set<String> typedActiveServices = activeServices.get(serviceType);
+      if (typedActiveServices != null && typedActiveServices.contains(serviceName))
+        throw new ManifoldCFException("There is already an active service of type '"+serviceType+"' called '"+serviceName+"'");
+      if (typedActiveServices == null)
+      {
+        typedActiveServices = new HashSet<String>();
+        activeServices.put(serviceType, typedActiveServices);
+      }
+      typedActiveServices.add(serviceName);
+      Set<String> typedRegisteredServices = services.get(serviceType);
+      if (typedRegisteredServices == null)
+      {
+        typedRegisteredServices = new HashSet<String>();
+        services.put(serviceType, typedRegisteredServices);
+      }
+      typedRegisteredServices.add(serviceName);
+    }
   }
   
   /** Un-register a service.
@@ -90,7 +115,15 @@ public class BaseLockManager implements ILockManager
   public void unregisterService(String serviceType, String serviceName)
     throws ManifoldCFException
   {
-    // MHL
+    synchronized (services)
+    {
+      Set<String> typedActiveServices = activeServices.get(serviceType);
+      if (typedActiveServices != null && typedActiveServices.contains(serviceName))
+        throw new ManifoldCFException("Cannot unregister an active service; type '"+serviceType+"' name '"+serviceName+"'");
+      Set<String> typedRegisteredServices = services.get(serviceType);
+      if (typedRegisteredServices != null)
+        typedRegisteredServices.remove(serviceName);
+    }
   }
     
   /** List all registered services of a given type.
@@ -101,8 +134,19 @@ public class BaseLockManager implements ILockManager
   public String[] getRegisteredServices(String serviceType)
     throws ManifoldCFException
   {
-    // MHL
-    return new String[0];
+    synchronized (services)
+    {
+      Set<String> typedRegisteredServices = services.get(serviceType);
+      if (typedRegisteredServices == null)
+        return new String[0];
+      String[] rval = new String[typedRegisteredServices.size()];
+      int i = 0;
+      for (String s : typedRegisteredServices)
+      {
+        rval[i++] = s;
+      }
+      return rval;
+    }
   }
     
   /** End service activity.
@@ -115,7 +159,13 @@ public class BaseLockManager implements ILockManager
   public void endServiceActivity(String serviceType, String serviceName)
     throws ManifoldCFException
   {
-    // MHL
+    synchronized (services)
+    {
+      Set<String> typedActiveServices = activeServices.get(serviceType);
+      if (typedActiveServices == null || !typedActiveServices.contains(serviceName))
+        throw new ManifoldCFException("Service of type '"+serviceType+"', name '"+serviceName+"' is not currently active");
+      typedActiveServices.remove(serviceName);
+    }
   }
     
   /** Check whether a service is active or not.
@@ -129,8 +179,16 @@ public class BaseLockManager implements ILockManager
   public boolean checkServiceActive(String serviceType, String serviceName)
     throws ManifoldCFException
   {
-    // MHL
-    return true;
+    synchronized (services)
+    {
+      Set<String> typedRegisteredServices = services.get(serviceType);
+      if (typedRegisteredServices == null || !typedRegisteredServices.contains(serviceName))
+        throw new ManifoldCFException("Service of type '"+serviceType+"' name '"+serviceName+"' does not exist");
+      Set<String> typedActiveServices = activeServices.get(serviceType);
+      if (typedActiveServices == null)
+        return false;
+      return typedActiveServices.contains(serviceName);
+    }
   }
 
   /** Get the current shared configuration.  This configuration is available in common among all nodes,
