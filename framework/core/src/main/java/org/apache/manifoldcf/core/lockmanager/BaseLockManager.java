@@ -62,6 +62,77 @@ public class BaseLockManager implements ILockManager
   {
   }
 
+  /** Register a service and begin service activity.
+  * This atomic operation creates a permanent registration entry for a service.
+  * If the permanent registration entry already exists, this method will not create it or
+  * treat it as an error.  This operation also enters the "active" zone for the service.  The "active" zone will remain in force until it is
+  * canceled, or until the process is interrupted.  Ideally, the corresponding endServiceActivity method will be
+  * called when the service shuts down.  Some ILockManager implementations require that this take place for
+  * proper management.
+  * If the transient registration already exists, it is treated as an error and an exception will be thrown.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to register.
+  */
+  @Override
+  public void registerServiceBeginServiceActivity(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+  
+  /** Un-register a service.
+  * This operation cancels the permanent registration of the specified service.
+  * If the service does not exist, this method will do nothing.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to unregister.
+  */
+  @Override
+  public void unregisterService(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+    
+  /** List all registered services of a given type.
+  *@param serviceType is the service type.
+  *@return the service names.
+  */
+  @Override
+  public String[] getRegisteredServices(String serviceType)
+    throws ManifoldCFException
+  {
+    // MHL
+    return new String[0];
+  }
+    
+  /** End service activity.
+  * This operation exits the "active" zone for the service.  This must take place using the same ILockManager
+  * object that was used to registerServiceBeginServiceActivity() - which implies that it is the same thread.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to exit.
+  */
+  @Override
+  public void endServiceActivity(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+    
+  /** Check whether a service is active or not.
+  * This operation returns true if the specified service is considered active at the moment.  Once a service
+  * is not active anymore, it can only return to activity by calling beginServiceActivity() once more.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to check on.
+  *@return true if the service is considered active.
+  */
+  @Override
+  public boolean checkServiceActive(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    // MHL
+    return true;
+  }
+
   /** Get the current shared configuration.  This configuration is available in common among all nodes,
   * and thus must not be accessed through here for the purpose of finding configuration data that is specific to any one
   * specific node.

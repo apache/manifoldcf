@@ -26,6 +26,66 @@ public interface ILockManager
 {
   public static final String _rcsid = "@(#)$Id: ILockManager.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  // Node synchronization
+  
+  // The node synchronization model involves keeping track of active agents entities, so that other entities
+  // can perform any necessary cleanup if one of the agents processes goes away unexpectedly.  There is a
+  // registration primitive (which can fail if the same guid is used as is already registered and active), a
+  // shutdown primitive (which makes a process id go inactive), and various inspection primitives.
+  // Note well: The transient activity cycle MUST be done within a single thread using a single
+  // ILockManager implementation - much like a lock.
+  
+  /** Register a service and begin service activity.
+  * This atomic operation creates a permanent registration entry for a service.
+  * If the permanent registration entry already exists, this method will not create it or
+  * treat it as an error.  This operation also enters the "active" zone for the service.  The "active" zone will remain in force until it is
+  * canceled, or until the process is interrupted.  Ideally, the corresponding endServiceActivity method will be
+  * called when the service shuts down.  Some ILockManager implementations require that this take place for
+  * proper management.
+  * If the transient registration already exists, it is treated as an error and an exception will be thrown.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to register.
+  */
+  public void registerServiceBeginServiceActivity(String serviceType, String serviceName)
+    throws ManifoldCFException;
+  
+  /** Un-register a service.
+  * This operation cancels the permanent registration of the specified service.
+  * If the service does not exist, this method will do nothing.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to unregister.
+  */
+  public void unregisterService(String serviceType, String serviceName)
+    throws ManifoldCFException;
+    
+  /** List all registered services of a given type.
+  *@param serviceType is the service type.
+  *@return the service names.
+  */
+  public String[] getRegisteredServices(String serviceType)
+    throws ManifoldCFException;
+    
+  /** End service activity.
+  * This operation exits the "active" zone for the service.  This must take place using the same ILockManager
+  * object that was used to registerServiceBeginServiceActivity() - which implies that it is the same thread.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to exit.
+  */
+  public void endServiceActivity(String serviceType, String serviceName)
+    throws ManifoldCFException;
+    
+  /** Check whether a service is active or not.
+  * This operation returns true if the specified service is considered active at the moment.  Once a service
+  * is not active anymore, it can only return to activity by calling beginServiceActivity() once more.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to check on.
+  *@return true if the service is considered active.
+  */
+  public boolean checkServiceActive(String serviceType, String serviceName)
+    throws ManifoldCFException;
+
+  // Configuration
+  
   /** Get the current shared configuration.  This configuration is available in common among all nodes,
   * and thus must not be accessed through here for the purpose of finding configuration data that is specific to any one
   * specific node.
@@ -34,6 +94,8 @@ public interface ILockManager
   public ManifoldCFConfiguration getSharedConfiguration()
     throws ManifoldCFException;
 
+  // Flags
+  
   /** Raise a flag.  Use this method to assert a condition, or send a global signal.  The flag will be reset when the
   * entire system is restarted.
   *@param flagName is the name of the flag to set.
@@ -54,6 +116,8 @@ public interface ILockManager
   public boolean checkGlobalFlag(String flagName)
     throws ManifoldCFException;
 
+  // Shared data
+  
   /** Read data from a shared data resource.  Use this method to read any existing data, or get a null back if there is no such resource.
   * Note well that this is not necessarily an atomic operation, and it must thus be protected by a lock.
   *@param resourceName is the global name of the resource.
@@ -70,6 +134,8 @@ public interface ILockManager
   public void writeData(String resourceName, byte[] data)
     throws ManifoldCFException;
 
+  // Locks
+  
   /** Wait for a time before retrying a lock.  Use this method to wait
   * after a LockException has been thrown.  )If this is not done, the application
   * will wind up busy waiting.)
@@ -198,6 +264,8 @@ public interface ILockManager
   public void clearLocks()
     throws ManifoldCFException;
 
+  // Critical sections
+  
   /** Enter a named, read critical section (NOT a lock).  Critical sections never cross JVM boundaries.
   * Critical section names do not collide with lock names; they have a distinct namespace.
   *@param sectionKey is the name of the section to enter.  Only one thread can be in any given named
