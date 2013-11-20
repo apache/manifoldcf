@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.regex.*;
 
 import java.io.InputStream;
@@ -67,7 +69,7 @@ import org.w3c.dom.Document;
 public class SPSProxyHelper {
 
 
-  public static final String HTTPCLIENT_PROPERTY = "ManifoldCF_HttpClient";
+  public static final String HTTPCLIENT_PROPERTY = org.apache.manifoldcf.sharepoint.CommonsHTTPSender.HTTPCLIENT_PROPERTY;
 
   private String serverUrl;
   private String serverLocation;
@@ -107,7 +109,7 @@ public class SPSProxyHelper {
   * @return array of sids
   * @throws Exception
   */
-  public String[] getACLs(String site, String guid )
+  public String[] getACLs(String site, String guid, boolean activeDirectoryAuthority )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -145,7 +147,7 @@ public class SPSProxyHelper {
       parent = nodeList.get(0);
       nodeList.clear();
       doc.processPath( nodeList, "*", parent );
-      java.util.HashSet sids = new java.util.HashSet();
+      Set<String> sids = new HashSet<String>();
       int i = 0;
       for (; i< nodeList.size(); i++ )
       {
@@ -161,34 +163,33 @@ public class SPSProxyHelper {
           {
             // Use AD user or group
             String userLogin = doc.getValue( node, "UserLogin" );
-            String userSid = getSidForUser( userCall, userLogin );
+            String userSid = getSidForUser( userCall, userLogin, activeDirectoryAuthority );
             sids.add( userSid );
           }
           else
           {
             // Role
-            String[] roleSids;
+            List<String> roleSids;
             String roleName = doc.getValue( node, "RoleName" );
             if ( roleName.length() == 0)
             {
               roleName = doc.getValue(node,"GroupName");
-              roleSids = getSidsForGroup(userCall, roleName);
+              roleSids = getSidsForGroup(userCall, roleName, activeDirectoryAuthority);
             }
             else
             {
-              roleSids = getSidsForRole(userCall, roleName);
+              roleSids = getSidsForRole(userCall, roleName, activeDirectoryAuthority);
             }
 
-            int j = 0;
-            for (; j < roleSids.length; j++ )
+            for (String sid : roleSids)
             {
-              sids.add( roleSids[ j ] );
+              sids.add( sid );
             }
           }
         }
       }
 
-      return (String[]) sids.toArray( new String[0] );
+      return sids.toArray( new String[0] );
     }
     catch (java.net.MalformedURLException e)
     {
@@ -299,7 +300,7 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public String[] getDocumentACLs(String site, String file)
+  public String[] getDocumentACLs(String site, String file, boolean activeDirectoryAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -356,7 +357,7 @@ public class SPSProxyHelper {
       parent = nodeList.get(0);
       nodeList.clear();
       doc.processPath( nodeList, "*", parent );
-      java.util.HashSet sids = new java.util.HashSet();
+      Set<String> sids = new HashSet<String>();
       int i = 0;
       for (; i< nodeList.size(); i++ )
       {
@@ -372,34 +373,33 @@ public class SPSProxyHelper {
           {
             // Use AD user or group
             String userLogin = doc.getValue( node, "UserLogin" );
-            String userSid = getSidForUser( userCall, userLogin );
+            String userSid = getSidForUser( userCall, userLogin, activeDirectoryAuthority );
             sids.add( userSid );
           }
           else
           {
             // Role
-            String[] roleSids;
+            List<String> roleSids;
             String roleName = doc.getValue( node, "RoleName" );
             if ( roleName.length() == 0)
             {
               roleName = doc.getValue(node,"GroupName");
-              roleSids = getSidsForGroup(userCall, roleName);
+              roleSids = getSidsForGroup(userCall, roleName, activeDirectoryAuthority);
             }
             else
             {
-              roleSids = getSidsForRole(userCall, roleName);
+              roleSids = getSidsForRole(userCall, roleName, activeDirectoryAuthority);
             }
 
-            int j = 0;
-            for (; j < roleSids.length; j++ )
+            for (String sid : roleSids)
             {
-              sids.add( roleSids[ j ] );
+              sids.add( sid );
             }
           }
         }
       }
 
-      return (String[]) sids.toArray( new String[0] );
+      return sids.toArray( new String[0] );
     }
     catch (java.net.MalformedURLException e)
     {
@@ -1295,36 +1295,48 @@ public class SPSProxyHelper {
   * @return
   * @throws Exception
   */
-  private String getSidForUser(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String userLogin )
-  throws ManifoldCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException,
-    java.rmi.RemoteException
+  private String getSidForUser(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String userLogin,
+    boolean activeDirectoryAuthority)
+    throws ManifoldCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException, java.rmi.RemoteException
   {
-    com.microsoft.schemas.sharepoint.soap.directory.GetUserInfoResponseGetUserInfoResult userResp = userCall.getUserInfo( userLogin );
-    org.apache.axis.message.MessageElement[] userList = userResp.get_any();
-
-    XMLDoc doc = new XMLDoc( userList[0].toString() );
-    ArrayList nodeList = new ArrayList();
-
-    doc.processPath(nodeList, "*", null);
-    if (nodeList.size() != 1)
+    String rval;
+    
+    if (!activeDirectoryAuthority)
     {
-      throw new ManifoldCFException("Bad xml - missing outer 'ns1:GetUserInfo' node - there are "+Integer.toString(nodeList.size())+" nodes");
+      // Do we want to return user ID via getUserInfo?
+      // MHL
+      rval = "U"+userLogin;
     }
-    Object parent = nodeList.get(0);
-    if (!doc.getNodeName(parent).equals("ns1:GetUserInfo"))
-      throw new ManifoldCFException("Bad xml - outer node is not 'ns1:GetUserInfo'");
-
-    nodeList.clear();
-    doc.processPath(nodeList, "*", parent);  // ns1:User
-
-    if ( nodeList.size() != 1 )
+    else
     {
-      throw new ManifoldCFException( " No User found." );
+      com.microsoft.schemas.sharepoint.soap.directory.GetUserInfoResponseGetUserInfoResult userResp = userCall.getUserInfo( userLogin );
+      org.apache.axis.message.MessageElement[] userList = userResp.get_any();
+
+      if (userList.length != 1)
+        throw new ManifoldCFException("Bad response - expecting one outer 'GetUserInfo' node, saw "+Integer.toString(userList.length));
+      
+      MessageElement users = userList[0];
+      if (!users.getElementName().getLocalName().equals("GetUserInfo"))
+        throw new ManifoldCFException("Bad response - outer node should have been 'GetUserInfo' node");
+          
+      String userID = null;
+      
+      Iterator userIter = users.getChildElements();
+      while (userIter.hasNext())
+      {
+        MessageElement child = (MessageElement)userIter.next();
+        if (child.getElementName().getLocalName().equals("User"))
+        {
+          userID = child.getAttribute("Sid");
+        }
+      }
+      
+      if (userID == null)
+        throw new ManifoldCFException("Could not find user login '"+userLogin+"' so could not get SID");
+
+      rval = userID;
     }
-    parent = nodeList.get(0);
-    nodeList.clear();
-    String sid = doc.getValue( parent, "Sid" );
-    return sid;
+    return rval;
   }
 
   /**
@@ -1334,46 +1346,49 @@ public class SPSProxyHelper {
   * @return
   * @throws Exception
   */
-  private String[] getSidsForGroup(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String groupName)
+  private List<String> getSidsForGroup(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String groupName,
+    boolean activeDirectoryAuthority)
     throws ManifoldCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException, java.rmi.RemoteException
   {
-    com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromGroupResponseGetUserCollectionFromGroupResult roleResp = userCall.getUserCollectionFromGroup(groupName);
-    org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();
-
-    XMLDoc doc = new XMLDoc(roleList[0].toString());
-    ArrayList nodeList = new ArrayList();
-
-    doc.processPath(nodeList, "*", null);
-    if (nodeList.size() != 1)
+    List<String> rval = new ArrayList<String>();
+    if (!activeDirectoryAuthority)
     {
-      throw new ManifoldCFException("Bad xml - missing outer 'ns1:GetUserCollectionFromGroup' node - there are "
-      + Integer.toString(nodeList.size()) + " nodes");
+      // Do we want to map this to an ID using usergroup.getGroupInfo?  Or will we be unable to find the group
+      // then if it is an AD group?
+      // MHL
+      rval.add("G"+groupName);
     }
-    Object parent = nodeList.get(0);
-    if (!doc.getNodeName(parent).equals("ns1:GetUserCollectionFromGroup"))
-      throw new ManifoldCFException("Bad xml - outer node is not 'ns1:GetUserCollectionFromGroup'");
-
-    nodeList.clear();
-    doc.processPath(nodeList, "*", parent); // <ns1:Users>
-
-    if (nodeList.size() != 1)
+    else
     {
-      throw new ManifoldCFException(" No Users collection found.");
-    }
-    parent = nodeList.get(0);
-    nodeList.clear();
-    doc.processPath(nodeList, "*", parent); // <ns1:User>
+      com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromGroupResponseGetUserCollectionFromGroupResult roleResp = userCall.getUserCollectionFromGroup(groupName);
+      org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();
 
-    ArrayList sidsList = new ArrayList();
-    String[] sids = new String[0];
-    int i = 0;
-    while (i < nodeList.size())
-    {
-      Object o = nodeList.get(i++);
-      sidsList.add(doc.getValue(o, "Sid"));
+      if (roleList.length != 1)
+        throw new ManifoldCFException("Bad response - expecting one outer 'GetUserCollectionFromGroup' node, saw "+Integer.toString(roleList.length));
+
+      MessageElement roles = roleList[0];
+      if (!roles.getElementName().getLocalName().equals("GetUserCollectionFromGroup"))
+        throw new ManifoldCFException("Bad response - outer node should have been 'GetUserCollectionFromGroup' node");
+
+      Iterator rolesIter = roles.getChildElements();
+      while (rolesIter.hasNext())
+      {
+        MessageElement child = (MessageElement)rolesIter.next();
+        if (child.getElementName().getLocalName().equals("Users"))
+        {
+          Iterator usersIterator = child.getChildElements();
+          while (usersIterator.hasNext())
+          {
+            MessageElement user = (MessageElement)usersIterator.next();
+            if (user.getElementName().getLocalName().equals("User"))
+            {
+              rval.add(user.getAttribute("Sid"));
+            }
+          }
+        }
+      }      
     }
-    sids = (String[]) sidsList.toArray((Object[]) sids);
-    return sids;
+    return rval;
   }
 
   /**
@@ -1383,47 +1398,48 @@ public class SPSProxyHelper {
   * @return
   * @throws Exception
   */
-  private String[] getSidsForRole( com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String roleName )
-  throws ManifoldCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException,
-    java.rmi.RemoteException
+  private List<String> getSidsForRole( com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String roleName,
+    boolean activeDirectoryAuthority)
+    throws ManifoldCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException, java.rmi.RemoteException
   {
-
-    com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromRoleResponseGetUserCollectionFromRoleResult roleResp = userCall.getUserCollectionFromRole( roleName );
-    org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();
-
-    XMLDoc doc = new XMLDoc( roleList[0].toString() );
-    ArrayList nodeList = new ArrayList();
-
-    doc.processPath(nodeList, "*", null);
-    if (nodeList.size() != 1)
+    List<String> rval = new ArrayList<String>();
+    if (!activeDirectoryAuthority)
     {
-      throw new ManifoldCFException("Bad xml - missing outer 'ns1:GetUserCollectionFromRole' node - there are "+Integer.toString(nodeList.size())+" nodes");
+      // Do we want to look up role ID, using usergroup.getRoleInfo?
+      // MHL
+      rval.add("R"+roleName);
     }
-    Object parent = nodeList.get(0);
-    if (!doc.getNodeName(parent).equals("ns1:GetUserCollectionFromRole"))
-      throw new ManifoldCFException("Bad xml - outer node is not 'ns1:GetUserCollectionFromRole'");
-
-    nodeList.clear();
-    doc.processPath(nodeList, "*", parent);  // <ns1:Users>
-
-    if ( nodeList.size() != 1 )
+    else
     {
-      throw new ManifoldCFException( " No Users collection found." );
-    }
-    parent = nodeList.get(0);
-    nodeList.clear();
-    doc.processPath( nodeList, "*", parent ); // <ns1:User>
+      com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromRoleResponseGetUserCollectionFromRoleResult roleResp = userCall.getUserCollectionFromRole( roleName );
+      org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();
 
-    ArrayList sidsList = new ArrayList();
-    String[] sids = new String[0];
-    int i = 0;
-    while (i < nodeList.size())
-    {
-      Object o = nodeList.get( i++ );
-      sidsList.add( doc.getValue( o, "Sid" ) );
+      if (roleList.length != 1)
+        throw new ManifoldCFException("Bad response - expecting one outer 'GetUserCollectionFromRole' node, saw "+Integer.toString(roleList.length));
+
+      MessageElement roles = roleList[0];
+      if (!roles.getElementName().getLocalName().equals("GetUserCollectionFromRole"))
+        throw new ManifoldCFException("Bad response - outer node should have been 'GetUserCollectionFromRole' node");
+
+      Iterator rolesIter = roles.getChildElements();
+      while (rolesIter.hasNext())
+      {
+        MessageElement child = (MessageElement)rolesIter.next();
+        if (child.getElementName().getLocalName().equals("Users"))
+        {
+          Iterator usersIterator = child.getChildElements();
+          while (usersIterator.hasNext())
+          {
+            MessageElement user = (MessageElement)usersIterator.next();
+            if (user.getElementName().getLocalName().equals("User"))
+            {
+              rval.add(user.getAttribute("Sid"));
+            }
+          }
+        }
+      }      
     }
-    sids = (String[])sidsList.toArray( (Object[])sids );
-    return sids;
+    return rval;
   }
 
   /**
