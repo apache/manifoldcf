@@ -803,6 +803,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   metadataDescription.add("Created");
                   metadataDescription.add("ID");
                   metadataDescription.add("GUID");
+                  metadataDescription.add("EncodedAbsUrl");
                   // The document path includes the library, with no leading slash, and is decoded.
                   String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
                   Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
@@ -810,6 +811,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   String createdDate = values.get("Created");
                   String id = values.get("ID");
                   String guid = values.get("GUID");
+                  String absURL = values.get("EncodedAbsUrl");
                   if (modifiedDate != null)
                   {
                     // Item has a modified date so we presume it exists.
@@ -831,6 +833,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     packDate(sb,createdDateValue);
                     pack(sb,id,'+');
                     pack(sb,guid,'+');
+                    pack(sb,absURL,'+');
                     // The rest of this is unparseable
                     sb.append(versionToken);
                     sb.append(pathNameAttributeVersion);
@@ -1370,6 +1373,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               startPosition = unpack(guidBuffer,version,startPosition,'+');
               String guid = guidBuffer.toString();
               
+              // List item URL
+              StringBuilder absURLBuffer = new StringBuilder();
+              startPosition = unpack(absURLBuffer,version,startPosition,'+');
+              String absURL = absURLBuffer.toString();
+              
               // We need the list ID, which we've already fetched, so grab that from the parent data.
               String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
 
@@ -1484,7 +1492,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     }
                     data.addField("GUID",guid);
                     
-                    activities.ingestDocument( documentIdentifier, version, itemUrl , data );
+                    activities.ingestDocument( documentIdentifier, version, absURL , data );
                   }
                   finally
                   {
