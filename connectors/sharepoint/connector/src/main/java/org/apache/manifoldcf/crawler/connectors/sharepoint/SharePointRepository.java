@@ -2050,7 +2050,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       {
         // Mime type failed
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says mime type is not indexable");
+          Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says mime type '"+((contentType==null)?"null":contentType)+"' is not indexable");
         return false;
       }
     }
@@ -2058,7 +2058,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     {
       // URL failed
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says URL is not indexable");
+        Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says URL '"+fileUrl+"' is not indexable");
       return false;
     }
   }

@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-817: Improve SharePoint logging.
+(Mark Libucha, Karl Wright)
+
 CONNECTORS-813: For list items, obtain the url from the EncodedAbsURL
 metadata field.  This should allow list items to be clicked on in search results.
 (Mark Libucha, Karl Wright)
