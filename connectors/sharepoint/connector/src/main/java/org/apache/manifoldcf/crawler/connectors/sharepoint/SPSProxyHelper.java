@@ -589,7 +589,7 @@ public class SPSProxyHelper {
           Object node = nodeDocs.get(j);
           Logging.connectors.debug( node.toString() );
           String relPath = docs.getData( docs.getElement( node, "FileRef" ) );
-          fileStream.addFile( relPath );
+          fileStream.addFile( relPath, null );
         }
       }
       else
@@ -634,7 +634,8 @@ public class SPSProxyHelper {
                 {
                   resultCount++;
                   String relPath = result.getAttribute("FileRef");
-                  fileStream.addFile( relPath );
+                  String displayURL = result.getAttribute("ListItemURL");
+                  fileStream.addFile( relPath, displayURL );
                 }
               }
               
