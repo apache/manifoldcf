@@ -4287,6 +4287,12 @@ public class JobManager implements IJobManager
         }
         throw e;
       }
+      catch (RuntimeException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
       catch (Error e)
       {
         database.signalRollback();
