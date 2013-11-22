@@ -34,9 +34,44 @@ public class AgentStop extends BaseAgentsInitializationCommand
 
   protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
+    // As part of the work for CONNECTORS-781, this method is now synchronous.
+    // We assert the shutdown signal, and then wait until all active services have shut down.
     ILockManager lockManager = LockManagerFactory.make(tc);
     lockManager.setGlobalFlag(AgentRun.agentShutdownSignal);
-    Logging.root.info("Shutdown signal sent");
+    try
+    {
+      Logging.root.info("Shutdown signal sent");
+      while (true)
+      {
+        // Check to see if services are down yet
+        String[] agents = lockManager.getRegisteredServices(AgentRun.agentServiceType);
+        boolean alive = false;
+        for (String agent : agents)
+        {
+          if (lockManager.checkServiceActive(AgentRun.agentServiceType, agent))
+          {
+            alive = true;
+            break;
+          }
+        }
+        if (!alive)
+          break;
+        try
+        {
+          ManifoldCF.sleep(1000L);
+        }
+        catch (InterruptedException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+      }
+      Logging.root.info("All agents shut down");
+    }
+    finally
+    {
+      // Clear shutdown signal
+      lockManager.clearGlobalFlag(AgentRun.agentShutdownSignal);
+    }
   }
 
 
