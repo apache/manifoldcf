@@ -31,7 +31,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   protected static boolean agentsInitialized = false;
   
   /** This is the place we keep track of the agents we've started. */
-  protected static HashMap runningHash = new HashMap();
+  protected static Map<String,IAgent> runningHash = new HashMap<String,IAgent>();
   /** This flag prevents startAgents() from starting anything once stopAgents() has been called. */
   protected static boolean stopAgentsRun = false;
   
@@ -182,15 +182,15 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   {
     synchronized (runningHash)
     {
-      HashMap iterHash = (HashMap)runningHash.clone();
-      Iterator iter = iterHash.keySet().iterator();
+      // This is supposedly safe; iterator remove is used
+      Iterator<String> iter = runningHash.keySet().iterator();
       while (iter.hasNext())
       {
-        String className = (String)iter.next();
-        IAgent agent = (IAgent)runningHash.get(className);
+        String className = iter.next();
+        IAgent agent = runningHash.get(className);
         // Stop it
         agent.stopAgent();
-        runningHash.remove(className);
+        iter.remove();
       }
     }
     // Done.
