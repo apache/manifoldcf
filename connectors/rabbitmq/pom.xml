@@ -43,6 +43,9 @@
       <resource>
         <directory>${basedir}/connector/src/main/resources</directory>
       </resource>
+            <resource>
+        <directory>${basedir}/connector/src/main/native2ascii</directory>
+      </resource>
     </resources>
     <plugins>
       <plugin>

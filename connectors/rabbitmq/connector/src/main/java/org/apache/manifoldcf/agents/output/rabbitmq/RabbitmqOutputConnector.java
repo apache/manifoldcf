@@ -102,7 +102,7 @@ public class RabbitmqOutputConnector extends BaseOutputConnector {
     @Override
     public boolean checkDocumentIndexable(String outputDescription,
             File localFile) throws ManifoldCFException, ServiceInterruption {
-        System.out.println(outputDescription);
+       // System.out.println(outputDescription);
                 
         return true;
     }
@@ -143,10 +143,7 @@ public class RabbitmqOutputConnector extends BaseOutputConnector {
             IPostParameters variableContext, ConfigParams parameters)
             throws ManifoldCFException {
     	// called each time the tab changes when creating a new output connector, at least
-        System.out.println("ProcessConfigurationPost called.");
-        System.out.println("ConfigParams.size() = " + parameters.getChildCount());
         RabbitmqConfig.contextToConfig(variableContext, parameters);
-        System.out.println("ConfigParams.size() = " + parameters.getChildCount());
         return null;
     }
 
@@ -171,7 +168,25 @@ public class RabbitmqOutputConnector extends BaseOutputConnector {
     @Override
     public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
             throws ManifoldCFException, ServiceInterruption {
-        // Does nothing in the base class
+        if (Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug("Deleting document: " + documentURI);
+                }
+            connectToRabbitInstance();
+             
+            OutboundDocument rawDocument = new OutboundDocument(documentURI);
+            rawDocument.operation = OutboundDocument.Operation.DELETE;
+            try {
+            String bindingName = "";
+            String json = jsonSerialize(rawDocument);
+            byte[] bytes = json.getBytes();
+            channel.basicPublish(bindingName, rabbitconfig.getQueueName(), MessageProperties.PERSISTENT_BASIC, bytes);
+            activities.recordActivity(null, "deletion message sent", 0l, documentURI, "OK", "Deletion message sendt");
+        } catch (Exception e) {
+            Logging.connectors.error(
+                    "Failed to push to rabbitmq (" + rabbitconfig.getHost() + "): ", e);
+            activities.recordActivity(null, "Failed to push to rabbitmq", 0l, documentURI, "ERROR", e.getMessage());
+        }
+        
     }
 
     @Override
@@ -182,9 +197,17 @@ public class RabbitmqOutputConnector extends BaseOutputConnector {
         if (Logging.connectors.isDebugEnabled()) {
             Logging.connectors.debug("New document: " + documentURI);
         }
+        connectToRabbitInstance();
+        if (sendDocument(document, activities, documentURI)) {
+            return 1;
+        }
 
+        return 0;
+    }
+
+    private void connectToRabbitInstance() throws ManifoldCFException {
         factory.setHost(rabbitconfig.getHost());
-
+        
         try {
             if (connection == null || !connection.isOpen()) {
                 connection = factory.newConnection();
@@ -192,33 +215,34 @@ public class RabbitmqOutputConnector extends BaseOutputConnector {
             if (channel == null || !connection.isOpen()) {
                 channel = connection.createChannel();
             }
-            
+            // TODO: problems with shutting down client correctly.
+            //  com.rabbitmq.client.AlreadyClosedException: clean connection shutdown; reason: Attempt to use closed channel
             Map<java.lang.String,java.lang.Object> arguments = null;
-            channel.queueDeclare(rabbitconfig.getQueueName(), 
-                    rabbitconfig.isDurable(), 
-                    rabbitconfig.isExclusive(), 
+            channel.queueDeclare(rabbitconfig.getQueueName(),
+                    rabbitconfig.isDurable(),
+                    rabbitconfig.isExclusive(),
                     rabbitconfig.isAutoDelete(), 
                     arguments);
 
-        } catch (Exception e1) {
-            Logging.connectors.error("Failed to initialize connections to rabbitmq, "+ e1.getMessage());
-            throw new ManifoldCFException("Failed to initialize connections to rabbitmq", e1);
+        } catch (IOException e1) {
+            Logging.connectors.error("Failed to initialize connection to rabbitmq, "+ e1.getMessage());
+            // TODO Log to activities? 
+            throw new ManifoldCFException("Failed to initialize connection to rabbitmq", e1);
         }
+    }
 
+    private boolean sendDocument(RepositoryDocument document, IOutputAddActivity activities, String documentURI) {
         try {
             String bindingName = "";
-            byte[] bytes = writeFile(document);
+            byte[] bytes = convertToRabbitDocument(document);
             channel.basicPublish(bindingName, rabbitconfig.getQueueName(), MessageProperties.PERSISTENT_BASIC, bytes);
-
-            activities.recordActivity(null, "document ingest", new Long(
-                    document.getBinaryLength()), documentURI, "OK", null);
+            activities.recordActivity(null, "document ingest", new Long(document.getBinaryLength()), documentURI, "OK", null);
         } catch (Exception e) {
             Logging.connectors.error(
                     "Failed to push to rabbitmq (" + rabbitconfig.getHost() + "): ", e);
-            return 1;
+            return true;
         }
-
-        return 0;
+        return false;
     }
 
     @Override
@@ -255,26 +279,30 @@ public class RabbitmqOutputConnector extends BaseOutputConnector {
   public boolean checkLengthIndexable(String outputDescription, long length)
     throws ManifoldCFException, ServiceInterruption
   {
-      Logging.connectors.error("Document length:, "+ length);
+      // TODO: inspect outputDescription to parse of length, then check. 
+      // Logging.connectors.error("Document length:, "+ length + " vs " + outputDescription);
     return true;
   }
     
-    private byte[] writeFile(RepositoryDocument document) throws IOException, JSONException,
+    private byte[] convertToRabbitDocument(RepositoryDocument document) throws IOException, JSONException,
             ManifoldCFException {
         if (Logging.connectors.isDebugEnabled()) {
             Logging.connectors.debug("Atempting to serialize " + document.getFileName());
         }
         OutboundDocument rawDocument = new OutboundDocument(document);
-        byte[] bytes;
+        String json = jsonSerialize(rawDocument);
+        return json.getBytes();
+    }
+    
+    private String jsonSerialize(OutboundDocument outbound)  throws IOException, JSONException,
+            ManifoldCFException{
 
         StringWriter sw = new StringWriter();
         BufferedWriter out = new BufferedWriter(sw);
-        String jsons = rawDocument.writeTo(out);
-        
-        bytes = jsons.getBytes();
+        String jsons = outbound.writeTo(out);
         
         out.close();
         sw.close();
-        return bytes;
+        return jsons;
     }
 }

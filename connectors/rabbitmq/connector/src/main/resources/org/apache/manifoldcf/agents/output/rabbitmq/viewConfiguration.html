@@ -15,18 +15,28 @@
  limitations under the License.
 -->
 
+RabbitmqConnector.HostTabName=RabbitMQ
+RabbitmqConnector.HostLabel=Host:
+RabbitmqConnector.QueueLabel=Queue:
+RabbitmqConnector.DurableLabel=Durable:
+RabbitmqConnector.AutodeleteLabel=Auto Delete:
+RabbitmqConnector.ExclusiveLabel=Exclusive:
+RabbitmqConnector.HostCannotBeNull=Host cannot be null
+RabbitmqConnector.QueueNameCannotBeNull=Queue name cannot be null
+
+
 <table class="displaytable">
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ServerLocation'))</nobr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RabbitmqConnector.HostLabel'))</nobr>
     $Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.URLColon'))</td>
-    <td class="value">$Encoder.bodyEscape($SERVERLOCATION)</td>
+    <td class="value">$Encoder.bodyEscape($HOST)</td>
   </tr>
     <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.IndexNameColon'))</nobr></td>
-    <td class="value">$Encoder.bodyEscape($INDEXNAME)</td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RabbitmqConnector.QueueLabel'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($QUEUENAME)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.IndexTypeColon'))</nobr></td>
-    <td class="value">$Encoder.bodyEscape($INDEXTYPE)</td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RabbitmqConnector.DurableLabel'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($DURABLE)</td>
   </tr>
 </table>
