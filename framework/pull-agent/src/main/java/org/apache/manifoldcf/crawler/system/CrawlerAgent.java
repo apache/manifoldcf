@@ -39,6 +39,28 @@ public class CrawlerAgent implements IAgent
     this.threadContext = threadContext;
   }
 
+  /** Initialize agent environment.
+  * This is called before any of the other operations are called, and is meant to insure that
+  * the environment is properly initialized.
+  */
+  public void initialize()
+    throws ManifoldCFException
+  {
+    org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize(threadContext);
+    org.apache.manifoldcf.crawler.system.ManifoldCF.localInitialize(threadContext);
+  }
+  
+  /** Tear down agent environment.
+  * This is called after all the other operations are completed, and is meant to allow
+  * environment resources to be freed.
+  */
+  public void cleanUp()
+    throws ManifoldCFException
+  {
+    org.apache.manifoldcf.crawler.system.ManifoldCF.localCleanup(threadContext);
+    org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup(threadContext);
+  }
+
   /** Install agent.  This usually installs the agent's database tables etc.
   */
   @Override
@@ -91,8 +113,6 @@ public class CrawlerAgent implements IAgent
   public void startAgent()
     throws ManifoldCFException
   {
-    org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize(threadContext);
-    org.apache.manifoldcf.crawler.system.ManifoldCF.localInitialize(threadContext);
     ManifoldCF.startSystem(threadContext);
   }
 
@@ -103,8 +123,6 @@ public class CrawlerAgent implements IAgent
     throws ManifoldCFException
   {
     ManifoldCF.stopSystem(threadContext);
-    org.apache.manifoldcf.crawler.system.ManifoldCF.localCleanup(threadContext);
-    org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup(threadContext);
   }
 
   /** Request permission from agent to delete an output connection.

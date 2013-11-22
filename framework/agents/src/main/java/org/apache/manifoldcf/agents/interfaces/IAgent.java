@@ -31,6 +31,20 @@ public interface IAgent
 {
   public static final String _rcsid = "@(#)$Id: IAgent.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  /** Initialize agent environment.
+  * This is called before any of the other operations are called, and is meant to insure that
+  * the environment is properly initialized.
+  */
+  public void initialize()
+    throws ManifoldCFException;
+  
+  /** Tear down agent environment.
+  * This is called after all the other operations are completed, and is meant to allow
+  * environment resources to be freed.
+  */
+  public void cleanUp()
+    throws ManifoldCFException;
+  
   /** Install agent.  This usually installs the agent's database tables etc.
   */
   public void install()

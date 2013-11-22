@@ -153,12 +153,11 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         {
           // Start this agent
           IAgent agent = AgentFactory.make(threadContext,className);
+          agent.initialize();
           try
           {
             // There is a potential race condition where the agent has been started but hasn't yet appeared in runningHash.
             // But having runningHash be the synchronizer for this activity will prevent any problems.
-            // There is ANOTHER potential race condition, however, that can occur if the process is shut down just before startAgents() is called.
-            // We avoid that problem by means of a flag, which prevents startAgents() from doing anything once stopAgents() has been called.
             agent.startAgent();
             // Successful!
             runningHash.put(className,agent);
@@ -166,6 +165,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
           catch (ManifoldCFException e)
           {
             problem = e;
+            agent.cleanUp();
           }
         }
       }
@@ -191,6 +191,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         // Stop it
         agent.stopAgent();
         iter.remove();
+        agent.cleanUp();
       }
     }
     // Done.
