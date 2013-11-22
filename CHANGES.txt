@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-819: Add missing metadata to JCIFS connector.
+(Graeme Seaton)
+
 CONNECTORS-817: Improve SharePoint logging.
 (Mark Libucha, Karl Wright)
 
