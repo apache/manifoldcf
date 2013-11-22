@@ -57,12 +57,6 @@ public class BaseLockManager implements ILockManager
   /** Global resource data.  Used only when ManifoldCF is run entirely out of one process. */
   protected final static Map<String,byte[]> globalData = new HashMap<String,byte[]>();
   
-  /** Global service registry.  Used only when ManifoldCF is run entirely out of one process. */
-  protected final static Map<String,Set<String>> services = new HashMap<String,Set<String>>();
-  
-  /** Global active service  list.  Used only when ManifoldCF is run entirely out of one process. */
-  protected final static Map<String,Set<String>> activeServices = new HashMap<String,Set<String>>();
-  
   public BaseLockManager()
     throws ManifoldCFException
   {
