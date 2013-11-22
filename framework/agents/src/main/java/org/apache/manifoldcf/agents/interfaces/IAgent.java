@@ -41,6 +41,24 @@ public interface IAgent
   public void deinstall()
     throws ManifoldCFException;
 
+  /** Cleanup after ALL agents processes.
+  * Call this method to clean up dangling persistent state when a cluster is just starting
+  * to come up.  This method CANNOT be called when there are any active agents
+  * processes at all.
+  */
+  public void cleanUpAgentData()
+    throws ManifoldCFException;
+  
+  /** Cleanup after agents process.
+  * Call this method to clean up dangling persistent state after agent has been stopped.
+  * This method CANNOT be called when the agent is active, but it can
+  * be called at any time and by any process in order to guarantee that a terminated
+  * agent does not block other agents from completing their tasks.
+  *@param processID is the process ID of the agent to clean up after.
+  */
+  public void cleanUpAgentData(String processID)
+    throws ManifoldCFException;
+
   /** Start the agent.  This method should spin up the agent threads, and
   * then return.
   */
@@ -77,4 +95,11 @@ public interface IAgent
   public void noteOutputConnectionChange(String connectionName)
     throws ManifoldCFException;
   
+  /** Signal that an output connection needs to be "redone".  This means that all documents sent to that output connection must be sent again,
+  * and the history as to their status must be forgotten.
+  *@param connectionName is the name of the connection being signalled.
+  */
+  public void signalOutputConnectionRedo(String connectionName)
+    throws ManifoldCFException;
+
 }

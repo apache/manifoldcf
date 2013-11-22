@@ -586,7 +586,24 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     org.apache.manifoldcf.authorities.system.ManifoldCF.deinstallSystemTables(threadcontext);
   }
 
-
+  /** Cleanup process data for a process.
+  */
+  public static void cleanupProcessData(IThreadContext threadContext, String processID)
+    throws ManifoldCFException
+  {
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    jobManager.cleanupProcessData(processID);
+  }
+  
+  /** Cleanup process data for ALL processes.
+  */
+  public static void cleanupProcessData(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    jobManager.prepareForClusterStart();
+  }
+  
   /** Start everything.
   */
   public static void startSystem(IThreadContext threadContext)

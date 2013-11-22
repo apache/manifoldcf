@@ -41,6 +41,7 @@ public class CrawlerAgent implements IAgent
 
   /** Install agent.  This usually installs the agent's database tables etc.
   */
+  @Override
   public void install()
     throws ManifoldCFException
   {
@@ -50,15 +51,43 @@ public class CrawlerAgent implements IAgent
 
   /** Uninstall agent.  This must clean up everything the agent is responsible for.
   */
+  @Override
   public void deinstall()
     throws ManifoldCFException
   {
     ManifoldCF.deinstallSystemTables(threadContext);
   }
 
+  /** Cleanup after ALL agents processes.
+  * Call this method to clean up dangling persistent state when a cluster is just starting
+  * to come up.  This method CANNOT be called when there are any active agents
+  * processes at all.
+  */
+  @Override
+  public void cleanUpAgentData()
+    throws ManifoldCFException
+  {
+    ManifoldCF.cleanupProcessData(threadContext);
+  }
+  
+  /** Cleanup after agents process.
+  * Call this method to clean up dangling persistent state after agent has been stopped.
+  * This method CANNOT be called when the agent is active, but it can
+  * be called at any time and by any process in order to guarantee that a terminated
+  * agent does not block other agents from completing their tasks.
+  *@param processID is the process ID of the agent to clean up after.
+  */
+  @Override
+  public void cleanUpAgentData(String processID)
+    throws ManifoldCFException
+  {
+    ManifoldCF.cleanupProcessData(threadContext, processID);
+  }
+
   /** Start the agent.  This method should spin up the agent threads, and
   * then return.
   */
+  @Override
   public void startAgent()
     throws ManifoldCFException
   {
@@ -69,6 +98,7 @@ public class CrawlerAgent implements IAgent
 
   /** Stop the agent.  This should shut down the agent threads.
   */
+  @Override
   public void stopAgent()
     throws ManifoldCFException
   {
@@ -81,6 +111,7 @@ public class CrawlerAgent implements IAgent
   *@param connName is the name of the output connection.
   *@return true if the connection is in use, false otherwise.
   */
+  @Override
   public boolean isOutputConnectionInUse(String connName)
     throws ManifoldCFException
   {
@@ -90,6 +121,7 @@ public class CrawlerAgent implements IAgent
   /** Note the deregistration of a set of output connections.
   *@param connectionNames are the names of the connections being deregistered.
   */
+  @Override
   public void noteOutputConnectorDeregistration(String[] connectionNames)
     throws ManifoldCFException
   {
@@ -99,6 +131,7 @@ public class CrawlerAgent implements IAgent
   /** Note the registration of a set of output connections.
   *@param connectionNames are the names of the connections being registered.
   */
+  @Override
   public void noteOutputConnectorRegistration(String[] connectionNames)
     throws ManifoldCFException
   {
@@ -108,6 +141,7 @@ public class CrawlerAgent implements IAgent
   /** Note a change in configuration for an output connection.
   *@param connectionName is the name of the connections being changed.
   */
+  @Override
   public void noteOutputConnectionChange(String connectionName)
     throws ManifoldCFException
   {
@@ -118,6 +152,7 @@ public class CrawlerAgent implements IAgent
   * and the history as to their status must be forgotten.
   *@param connectionName is the name of the connection being signalled.
   */
+  @Override
   public void signalOutputConnectionRedo(String connectionName)
     throws ManifoldCFException
   {
