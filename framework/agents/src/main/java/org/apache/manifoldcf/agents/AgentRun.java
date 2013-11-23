@@ -29,7 +29,6 @@ public class AgentRun extends BaseAgentsInitializationCommand
   public static final String _rcsid = "@(#)$Id: AgentRun.java 988245 2010-08-23 18:39:35Z kwright $";
 
   public static final String agentServiceType = "AGENT";
-  public static final String agentShutdownSignal = "_AGENTRUN_";
   
   public AgentRun()
   {
@@ -50,35 +49,18 @@ public class AgentRun extends BaseAgentsInitializationCommand
     //
     // Note well that the agents shutdown signal is NEVER modified by this code; it will be set/cleared by
     // AgentStop only, and AgentStop will wait until all services become inactive before exiting.
-    
+    String processID = ManifoldCF.getProcessID();
     ILockManager lockManager = LockManagerFactory.make(tc);
-    // Don't come up at all if shutdown signal in force
-    if (lockManager.checkGlobalFlag(agentShutdownSignal))
-      return;
-    lockManager.registerServiceBeginServiceActivity(agentServiceType, ManifoldCF.getProcessID());
+    lockManager.registerServiceBeginServiceActivity(agentServiceType, processID);
     try
     {
-      ManifoldCF.addShutdownHook(new AgentRunShutdownRunner());
+      // Register a shutdown hook to make sure we signal that the main agents process is going inactive.
+      ManifoldCF.addShutdownHook(new AgentRunShutdownRunner(processID));
       
       Logging.root.info("Running...");
-      while (true)
-      {
-        // Any shutdown signal yet?
-        if (lockManager.checkGlobalFlag(agentShutdownSignal))
-          break;
-
-        // Start whatever agents need to be started
-        ManifoldCF.startAgents(tc);
-
-        try
-        {
-          ManifoldCF.sleep(5000L);
-        }
-        catch (InterruptedException e)
-        {
-          break;
-        }
-      }
+      // Register hook first so stopAgents() not required
+      ManifoldCF.registerAgentsShutdownHook(tc, processID);
+      ManifoldCF.runAgents(tc, processID);
       Logging.root.info("Shutting down...");
     }
     catch (ManifoldCFException e)
@@ -90,7 +72,7 @@ public class AgentRun extends BaseAgentsInitializationCommand
     {
       // Exit service
       // This is a courtesy; some lock managers (i.e. ZooKeeper) manage to do this anyway
-      lockManager.endServiceActivity(agentServiceType, ManifoldCF.getProcessID());
+      lockManager.endServiceActivity(agentServiceType, processID);
     }
   }
 
@@ -120,8 +102,11 @@ public class AgentRun extends BaseAgentsInitializationCommand
   
   protected static class AgentRunShutdownRunner implements IShutdownHook
   {
-    public AgentRunShutdownRunner()
+    protected final String processID;
+    
+    public AgentRunShutdownRunner(String processID)
     {
+      this.processID = processID;
     }
     
     public void doCleanup()
@@ -131,15 +116,9 @@ public class AgentRun extends BaseAgentsInitializationCommand
       ILockManager lockManager = LockManagerFactory.make(tc);
       // We can blast the active flag off here; we may have already exited though and an exception will
       // therefore be thrown.
-      try
+      if (lockManager.checkServiceActive(agentServiceType, processID))
       {
-        lockManager.endServiceActivity(agentServiceType, ManifoldCF.getProcessID());
-      }
-      catch (ManifoldCFException e)
-      {
-        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-          throw e;
-        // Otherwise eat the exception
+        lockManager.endServiceActivity(agentServiceType, processID);
       }
     }
     

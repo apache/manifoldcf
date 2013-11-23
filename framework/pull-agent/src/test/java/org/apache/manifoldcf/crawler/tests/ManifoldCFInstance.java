@@ -56,8 +56,6 @@ import org.apache.http.entity.ContentType;
 /** Tests that run the "agents daemon" should be derived from this */
 public class ManifoldCFInstance
 {
-  public static final String agentShutdownSignal = "agent-process";
-  
   protected boolean singleWar = false;
   protected int testPort = 8346;
   
@@ -548,8 +546,7 @@ public class ManifoldCFInstance
       // If all worked, then we can start the daemon.
       // Clear the agents shutdown signal.
       IThreadContext tc = ThreadContextFactory.make();
-      ILockManager lockManager = LockManagerFactory.make(tc);
-      lockManager.clearGlobalFlag(agentShutdownSignal);
+      ManifoldCF.clearAgentsShutdownSignal(tc);
 
       daemonThread = new DaemonThread();
       daemonThread.start();
@@ -644,8 +641,7 @@ public class ManifoldCFInstance
       if (!singleWar)
       {
         // Shut down daemon
-        ILockManager lockManager = LockManagerFactory.make(tc);
-        lockManager.setGlobalFlag(agentShutdownSignal);
+        ManifoldCF.assertAgentsShutdownSignal(tc);
         
         // Wait for daemon thread to exit.
         while (true)
@@ -692,30 +688,13 @@ public class ManifoldCFInstance
     
     public void run()
     {
+      String processID = ManifoldCF.getProcessID();
       IThreadContext tc = ThreadContextFactory.make();
       // Now, start the server, and then wait for the shutdown signal.  On shutdown, we have to actually do the cleanup,
       // because the JVM isn't going away.
       try
       {
-        ILockManager lockManager = LockManagerFactory.make(tc);
-        while (true)
-        {
-          // Any shutdown signal yet?
-          if (lockManager.checkGlobalFlag(agentShutdownSignal))
-            break;
-            
-          // Start whatever agents need to be started
-          ManifoldCF.startAgents(tc);
-
-          try
-          {
-            ManifoldCF.sleep(5000);
-          }
-          catch (InterruptedException e)
-          {
-            break;
-          }
-        }
+        ManifoldCF.runAgents(tc, processID);
       }
       catch (ManifoldCFException e)
       {
@@ -725,7 +704,7 @@ public class ManifoldCFInstance
       {
         try
         {
-          ManifoldCF.stopAgents(tc);
+          ManifoldCF.stopAgents(tc, processID);
         }
         catch (ManifoldCFException e)
         {

@@ -37,7 +37,7 @@ public class AgentStop extends BaseAgentsInitializationCommand
     // As part of the work for CONNECTORS-781, this method is now synchronous.
     // We assert the shutdown signal, and then wait until all active services have shut down.
     ILockManager lockManager = LockManagerFactory.make(tc);
-    lockManager.setGlobalFlag(AgentRun.agentShutdownSignal);
+    ManifoldCF.assertAgentsShutdownSignal(tc);
     try
     {
       Logging.root.info("Shutdown signal sent");
@@ -70,7 +70,7 @@ public class AgentStop extends BaseAgentsInitializationCommand
     finally
     {
       // Clear shutdown signal
-      lockManager.clearGlobalFlag(AgentRun.agentShutdownSignal);
+      ManifoldCF.clearAgentsShutdownSignal(tc);
     }
   }
 

@@ -54,12 +54,13 @@ public class LockManager implements ILockManager
   * If the transient registration already exists, it is treated as an error and an exception will be thrown.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service to register.
+  *@return true if this is the only active service of this type at this time.
   */
   @Override
-  public void registerServiceBeginServiceActivity(String serviceType, String serviceName)
+  public boolean registerServiceBeginServiceActivity(String serviceType, String serviceName)
     throws ManifoldCFException
   {
-    lockManager.registerServiceBeginServiceActivity(serviceType, serviceName);
+    return lockManager.registerServiceBeginServiceActivity(serviceType, serviceName);
   }
   
   /** Un-register a service.
@@ -85,7 +86,17 @@ public class LockManager implements ILockManager
   {
     return lockManager.getRegisteredServices(serviceType);
   }
-    
+
+  /** List services that are registered but not active.
+  *@param serviceType is the service type.
+  *@return the list of service names.
+  */
+  public String[] getInactiveServices(String serviceType)
+    throws ManifoldCFException
+  {
+    return lockManager.getInactiveServices(serviceType);
+  }
+
   /** End service activity.
   * This operation exits the "active" zone for the service.  This must take place using the same ILockManager
   * object that was used to registerServiceBeginServiceActivity() - which implies that it is the same thread.

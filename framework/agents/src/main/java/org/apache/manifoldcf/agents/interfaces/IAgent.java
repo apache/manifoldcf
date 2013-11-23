@@ -75,13 +75,15 @@ public interface IAgent
 
   /** Start the agent.  This method should spin up the agent threads, and
   * then return.
+  *@param processID is the process ID to start up an agent for.
   */
-  public void startAgent()
+  public void startAgent(String processID)
     throws ManifoldCFException;
 
   /** Stop the agent.  This should shut down the agent threads.
+  *@param processID is the process ID to stop an agent for.
   */
-  public void stopAgent()
+  public void stopAgent(String processID)
     throws ManifoldCFException;
 
   /** Request permission from agent to delete an output connection.

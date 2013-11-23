@@ -110,19 +110,19 @@ public class CrawlerAgent implements IAgent
   * then return.
   */
   @Override
-  public void startAgent()
+  public void startAgent(String processID)
     throws ManifoldCFException
   {
-    ManifoldCF.startSystem(threadContext);
+    ManifoldCF.startSystem(threadContext, processID);
   }
 
   /** Stop the agent.  This should shut down the agent threads.
   */
   @Override
-  public void stopAgent()
+  public void stopAgent(String processID)
     throws ManifoldCFException
   {
-    ManifoldCF.stopSystem(threadContext);
+    ManifoldCF.stopSystem(threadContext, processID);
   }
 
   /** Request permission from agent to delete an output connection.

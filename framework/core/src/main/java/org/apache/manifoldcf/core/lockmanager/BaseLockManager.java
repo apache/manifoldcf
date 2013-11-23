@@ -100,9 +100,10 @@ public class BaseLockManager implements ILockManager
   * If the transient registration already exists, it is treated as an error and an exception will be thrown.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service to register.
+  *@return true if this is the only active service of this type at this time.
   */
   @Override
-  public void registerServiceBeginServiceActivity(String serviceType, String serviceName)
+  public boolean registerServiceBeginServiceActivity(String serviceType, String serviceName)
     throws ManifoldCFException
   {
     enterWriteLock(serviceLock);
@@ -112,7 +113,9 @@ public class BaseLockManager implements ILockManager
       String serviceActiveFlag = makeActiveServiceFlagName(serviceType, serviceName);
       if (checkGlobalFlag(serviceActiveFlag))
         throw new ManifoldCFException("Service '"+serviceName+"' of type '"+serviceType+"' is already active");
-      // First, register the service
+      // First, register the service and find out how many such services are active.
+      boolean foundService = false;
+      boolean foundActiveService = false;
       int i = 0;
       while (true)
       {
@@ -120,31 +123,37 @@ public class BaseLockManager implements ILockManager
         String x = readServiceName(resourceName);
         if (x == null)
         {
-          writeServiceName(resourceName, serviceName);
-          try
+          if (!foundService)
           {
-            setGlobalFlag(makeRegisteredServiceFlagName(serviceType, serviceName));
-          }
-          catch (Throwable e)
-          {
-            writeServiceName(resourceName, null);
-            if (e instanceof Error)
-              throw (Error)e;
-            if (e instanceof RuntimeException)
-              throw (RuntimeException)e;
-            if (e instanceof ManifoldCFException)
-              throw (ManifoldCFException)e;
-            else
-              throw new RuntimeException("Unknown exception of type: "+e.getClass().getName()+": "+e.getMessage(),e);
+            writeServiceName(resourceName, serviceName);
+            try
+            {
+              setGlobalFlag(makeRegisteredServiceFlagName(serviceType, serviceName));
+            }
+            catch (Throwable e)
+            {
+              writeServiceName(resourceName, null);
+              if (e instanceof Error)
+                throw (Error)e;
+              if (e instanceof RuntimeException)
+                throw (RuntimeException)e;
+              if (e instanceof ManifoldCFException)
+                throw (ManifoldCFException)e;
+              else
+                throw new RuntimeException("Unknown exception of type: "+e.getClass().getName()+": "+e.getMessage(),e);
+            }
           }
           break;
         }
         if (x.equals(serviceName))
-          break;
+          foundService = true;
+        else if (checkGlobalFlag(makeActiveServiceFlagName(serviceType, x)))
+          foundActiveService = true;
         i++;
       }
       // Now, set the appropriate active flag
       setGlobalFlag(serviceActiveFlag);
+      return !foundActiveService;
     }
     finally
     {
@@ -250,7 +259,43 @@ public class BaseLockManager implements ILockManager
     }
   }
   
-  
+  /** List services that are registered but not active.
+  *@param serviceType is the service type.
+  *@return the list of service names.
+  */
+  @Override
+  public String[] getInactiveServices(String serviceType)
+    throws ManifoldCFException
+  {
+    enterWriteLock(serviceLock);
+    try
+    {
+      int i = 0;
+      List<String> inactiveServices = new ArrayList<String>();
+      while (true)
+      {
+        String resourceName = buildServiceListEntry(serviceType, i);
+        String x = readServiceName(resourceName);
+        if (x == null)
+          break;
+        if (!checkGlobalFlag(makeActiveServiceFlagName(serviceType, x)))
+          inactiveServices.add(x);
+        i++;
+      }
+      String[] rval = new String[inactiveServices.size()];
+      i = 0;
+      for (String x : inactiveServices)
+      {
+        rval[i++] = x;
+      }
+      return rval;
+    }
+    finally
+    {
+      leaveWriteLock(serviceLock);
+    }
+  }
+
   /** End service activity.
   * This operation exits the "active" zone for the service.  This must take place using the same ILockManager
   * object that was used to registerServiceBeginServiceActivity() - which implies that it is the same thread.

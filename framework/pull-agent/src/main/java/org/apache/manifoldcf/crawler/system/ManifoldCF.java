@@ -592,6 +592,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     throws ManifoldCFException
   {
     IJobManager jobManager = JobManagerFactory.make(threadContext);
+    // This replaces prepareForStart(), and is always called before system starts
     jobManager.cleanupProcessData(processID);
   }
   
@@ -606,7 +607,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Start everything.
   */
-  public static void startSystem(IThreadContext threadContext)
+  public static void startSystem(IThreadContext threadContext, String processID)
     throws ManifoldCFException
   {
     Logging.root.info("Starting up pull-agent...");
@@ -722,7 +723,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       int i;
 
-      // Initialize the database
       try
       {
         IThreadContext threadContext = ThreadContextFactory.make();
@@ -731,11 +731,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         IJobManager jobManager = JobManagerFactory.make(threadContext);
         IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
 
+        /* No longer needed, because IAgents specifically initializes/cleans up.
+        
         Logging.threads.debug("Agents process starting initialization...");
 
         // Call the database to get it ready
         jobManager.prepareForStart();
-
+        */
+        
         Logging.threads.debug("Agents process reprioritizing documents...");
 
         Map<String,IRepositoryConnection> connectionMap = new HashMap<String,IRepositoryConnection>();
@@ -830,7 +833,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Stop the system.
   */
-  public static void stopSystem(IThreadContext threadContext)
+  public static void stopSystem(IThreadContext threadContext, String processID)
     throws ManifoldCFException
   {
     Logging.root.info("Shutting down pull-agent...");
