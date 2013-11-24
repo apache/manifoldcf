@@ -237,25 +237,33 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         {
           // Start this agent
           IAgent agent = AgentFactory.make(className);
+          agent.initialize(threadContext);
           try
           {
             // Throw a lock, so that cleanup processes and startup processes don't collide.
             String lockName = getAgentsClassLockName(className);
+            String serviceType = getAgentsClassServiceType(className);
             boolean firstTime;
             lockManager.enterWriteLock(lockName);
             try
             {
-              firstTime = lockManager.registerServiceBeginServiceActivity(getAgentsClassServiceType(className), processID);
+              firstTime = lockManager.registerServiceBeginServiceActivity(serviceType, processID);
+              if (firstTime)
+              {
+                agent.cleanUpAgentData(threadContext);
+                String[] deadAgents = lockManager.getInactiveServices(serviceType);
+                for (String deadAgent : deadAgents)
+                {
+                  lockManager.unregisterService(serviceType, deadAgent);
+                }
+              }
             }
             finally
             {
               lockManager.leaveWriteLock(lockName);
             }
             // Now initialize agent, being sure to clean up data from previous incarnations
-            agent.initialize(threadContext);
-            if (firstTime)
-              agent.cleanUpAgentData(threadContext);
-            else
+            if (!firstTime)
               agent.cleanUpAgentData(threadContext, processID);
             // There is a potential race condition where the agent has been started but hasn't yet appeared in runningHash.
             // But having runningHash be the synchronizer for this activity will prevent any problems.
