@@ -222,7 +222,8 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   /** Record a references from source to targets.  These references will be marked as either "new" or "existing".
   *@return the target document ID's that are considered "new".
   */
-  public String[] recordReferences(Long jobID, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType)
+  public String[] recordReferences(Long jobID, String sourceDocumentIDHash,
+    String[] targetDocumentIDHashes, String linkType, String processID)
     throws ManifoldCFException
   {
     HashMap duplicateRemoval = new HashMap();
@@ -279,7 +280,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         map.put(childIDHashField,sourceDocumentIDHash);
         map.put(linkTypeField,linkType);
         map.put(newField,statusToString(LINKSTATUS_NEW));
-        map.put(processIDField,ManifoldCF.getProcessID());
+        map.put(processIDField,processID);
         performInsert(map,null);
         noteModifications(1,0,0);
       }
@@ -287,7 +288,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       {
         HashMap map = new HashMap();
         map.put(newField,statusToString(LINKSTATUS_EXISTING));
-        map.put(processIDField,ManifoldCF.getProcessID());
+        map.put(processIDField,processID);
         ArrayList updateList = new ArrayList();
         String query = buildConjunctionClause(updateList,new ClauseDescription[]{
           new UnitaryClause(jobIDField,jobID),

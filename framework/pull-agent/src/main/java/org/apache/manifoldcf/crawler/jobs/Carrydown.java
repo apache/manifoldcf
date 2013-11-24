@@ -254,17 +254,17 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
   *@return true if new carrydown data was recorded; false otherwise.
   */
   public boolean recordCarrydownData(Long jobID, String parentDocumentIDHash, String childDocumentIDHash,
-    String[] documentDataNames, String[][] documentDataValueHashes, Object[][] documentDataValues)
+    String[] documentDataNames, String[][] documentDataValueHashes, Object[][] documentDataValues, String processID)
     throws ManifoldCFException
   {
     return recordCarrydownDataMultiple(jobID,parentDocumentIDHash,new String[]{childDocumentIDHash},
-      new String[][]{documentDataNames},new String[][][]{documentDataValueHashes},new Object[][][]{documentDataValues})[0];
+      new String[][]{documentDataNames},new String[][][]{documentDataValueHashes},new Object[][][]{documentDataValues},processID)[0];
   }
 
   /** Add carrydown data to the table.
   */
   public boolean[] recordCarrydownDataMultiple(Long jobID, String parentDocumentIDHash, String[] childDocumentIDHashes,
-    String[][] dataNames, String[][][] dataValueHashes, Object[][][] dataValues)
+    String[][] dataNames, String[][][] dataValueHashes, Object[][][] dataValues, String processID)
     throws ManifoldCFException
   {
 
@@ -372,7 +372,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
         }
 
         map.put(newField,statusToString(ISNEW_NEW));
-        map.put(processIDField,ManifoldCF.getProcessID());
+        map.put(processIDField,processID);
         performInsert(map,null);
         noteModifications(1,0,0);
         insertHappened.put(childDocumentIDHash,new Boolean(true));
@@ -412,7 +412,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
         */
             
         map.put(newField,statusToString(ISNEW_EXISTING));
-        map.put(processIDField,ManifoldCF.getProcessID());
+        map.put(processIDField,processID);
         performUpdate(map,sb.toString(),updateList,null);
         noteModifications(0,1,0);
       }

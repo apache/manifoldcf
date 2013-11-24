@@ -321,10 +321,10 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   /** Record a references from a set of documents to the root.  These will be marked as "new" or "existing", and
   * will have a null linktype.
   */
-  public void recordSeedReferences(Long jobID, String[] legalLinkTypes, String[] targetDocumentIDHashes, int hopcountMethod)
+  public void recordSeedReferences(Long jobID, String[] legalLinkTypes, String[] targetDocumentIDHashes, int hopcountMethod, String processID)
     throws ManifoldCFException
   {
-    doRecord(jobID,legalLinkTypes,"",targetDocumentIDHashes,"",hopcountMethod);
+    doRecord(jobID,legalLinkTypes,"",targetDocumentIDHashes,"",hopcountMethod,processID);
   }
 
   /** Finish seed references.  Seed references are special in that the only source is the root.
@@ -338,19 +338,19 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   /** Record a reference from source to target.  This reference will be marked as "new" or "existing".
   */
   public boolean recordReference(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String targetDocumentIDHash, String linkType,
-    int hopcountMethod)
+    int hopcountMethod, String processID)
     throws ManifoldCFException
   {
-    return doRecord(jobID,legalLinkTypes,sourceDocumentIDHash,new String[]{targetDocumentIDHash},linkType,hopcountMethod)[0];
+    return doRecord(jobID,legalLinkTypes,sourceDocumentIDHash,new String[]{targetDocumentIDHash},linkType,hopcountMethod,processID)[0];
   }
 
   /** Record a set of references from source to target.  This reference will be marked as "new" or "existing".
   */
   public boolean[] recordReferences(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType,
-    int hopcountMethod)
+    int hopcountMethod, String processID)
     throws ManifoldCFException
   {
-    return doRecord(jobID,legalLinkTypes,sourceDocumentIDHash,targetDocumentIDHashes,linkType,hopcountMethod);
+    return doRecord(jobID,legalLinkTypes,sourceDocumentIDHash,targetDocumentIDHashes,linkType,hopcountMethod,processID);
   }
 
   /** Complete a recalculation pass for a set of source documents.  All child links that are not marked as "new"
@@ -364,7 +364,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Do the work of recording source-target references. */
   protected boolean[] doRecord(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType,
-    int hopcountMethod)
+    int hopcountMethod, String processID)
     throws ManifoldCFException
   {
 
@@ -376,7 +376,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       rval[i] = false;
     }
     
-    String[] newReferences = intrinsicLinkManager.recordReferences(jobID,sourceDocumentIDHash,targetDocumentIDHashes,linkType);
+    String[] newReferences = intrinsicLinkManager.recordReferences(jobID,sourceDocumentIDHash,targetDocumentIDHashes,linkType,processID);
     if (newReferences.length > 0)
     {
       // There are added links.

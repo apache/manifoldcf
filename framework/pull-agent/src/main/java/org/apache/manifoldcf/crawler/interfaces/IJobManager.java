@@ -560,10 +560,11 @@ public interface IJobManager
     throws ManifoldCFException;
 
   /** Begin an event sequence.
+  *@param processID is the current process ID.
   *@param eventName is the name of the event.
   *@return true if the event could be created, or false if it's already there.
   */
-  public boolean beginEventSequence(String eventName)
+  public boolean beginEventSequence(String processID, String eventName)
     throws ManifoldCFException;
 
   /** Complete an event sequence.
@@ -598,6 +599,7 @@ public interface IJobManager
   * This method is called during document processing, when a document reference is discovered.
   * The document reference is passed to this method, which updates the status of the document
   * in the specified job's queue, according to specific state rules.
+  *@param processID is the current process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHash is the local document identifier hash value.
@@ -614,7 +616,8 @@ public interface IJobManager
   *@param prereqEventNames are the events that must be completed before the document can be processed.
   *@return true if the priority value was used, false otherwise.
   */
-  public boolean addDocument(Long jobID, String[] legalLinkTypes,
+  public boolean addDocument(String processID,
+    Long jobID, String[] legalLinkTypes,
     String docIDHash, String docID,
     String parentIdentifierHash,
     String relationshipType,
@@ -626,6 +629,7 @@ public interface IJobManager
   * This method is called during document processing, when a set of document references are discovered.
   * The document references are passed to this method, which updates the status of the document(s)
   * in the specified job's queue, according to specific state rules.
+  *@param processID is the current process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHashes are the hashes of the local document identifiers.
@@ -643,7 +647,8 @@ public interface IJobManager
   *@param prereqEventNames are the events that must be completed before each document can be processed.
   *@return an array of boolean values indicating whether or not the passed-in priority value was used or not for each doc id (true if used).
   */
-  public boolean[] addDocuments(Long jobID, String[] legalLinkTypes,
+  public boolean[] addDocuments(String processID,
+    Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs,
     String parentIdentifierHash,
     String relationshipType,

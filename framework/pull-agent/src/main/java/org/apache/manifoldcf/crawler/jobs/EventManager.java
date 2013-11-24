@@ -139,12 +139,12 @@ public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
   }
   
   /** Atomically create an event - and return false if the event already exists */
-  public void createEvent(String eventName)
+  public void createEvent(String eventName, String processID)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(eventNameField,eventName);
-    map.put(processIDField,ManifoldCF.getProcessID());
+    map.put(processIDField,processID);
     performInsert(map,null);
   }
 

@@ -3914,7 +3914,7 @@ public class JobManager implements IJobManager
           " initial docs for job "+jobID.toString());
 
         if (legalLinkTypes.length > 0)
-          hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod);
+          hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod,processID);
 
         TrackerClass.notePrecommit();
         database.performCommit();
@@ -4006,7 +4006,7 @@ public class JobManager implements IJobManager
 
         jobQueue.addRemainingDocumentsInitial(jobID,reorderedDocIDHashes,processID);
         if (legalLinkTypes.length > 0)
-          hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod);
+          hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod,processID);
 
         database.performCommit();
         
@@ -4314,6 +4314,7 @@ public class JobManager implements IJobManager
   * This method is called during document processing, when a set of document references are discovered.
   * The document references are passed to this method, which updates the status of the document(s)
   * in the specified job's queue, according to specific state rules.
+  *@param processID is the process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHashes are the local document identifier hashes.
@@ -4330,7 +4331,9 @@ public class JobManager implements IJobManager
   *@param prereqEventNames are the events that must be completed before a document can be queued.
   *@return an array of boolean values indicating whether or not the passed-in priority value was used or not for each doc id (true if used).
   */
-  public boolean[] addDocuments(Long jobID, String[] legalLinkTypes,
+  @Override
+  public boolean[] addDocuments(String processID,
+    Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs,
     String parentIdentifierHash, String relationshipType,
     int hopcountMethod, String[][] dataNames, Object[][][] dataValues,
@@ -4517,12 +4520,12 @@ public class JobManager implements IJobManager
         }
 
         // Update all the carrydown data at once, for greatest efficiency.
-        boolean[] carrydownChangesSeen = carryDown.recordCarrydownDataMultiple(jobID,parentIdentifierHash,reorderedDocIDHashes,dataNames,dataHashValues,dataValues);
+        boolean[] carrydownChangesSeen = carryDown.recordCarrydownDataMultiple(jobID,parentIdentifierHash,reorderedDocIDHashes,dataNames,dataHashValues,dataValues,processID);
 
         // Same with hopcount.
         boolean[] hopcountChangesSeen = null;
         if (parentIdentifierHash != null && relationshipType != null)
-          hopcountChangesSeen = hopCount.recordReferences(jobID,legalLinkTypes,parentIdentifierHash,reorderedDocIDHashes,relationshipType,hopcountMethod);
+          hopcountChangesSeen = hopCount.recordReferences(jobID,legalLinkTypes,parentIdentifierHash,reorderedDocIDHashes,relationshipType,hopcountMethod,processID);
 
         // Loop through the document id's again, and perform updates where needed
         boolean[] reorderedRval = new boolean[reorderedDocIDHashes.length];
@@ -4606,6 +4609,7 @@ public class JobManager implements IJobManager
   * This method is called during document processing, when a document reference is discovered.
   * The document reference is passed to this method, which updates the status of the document
   * in the specified job's queue, according to specific state rules.
+  *@param processID is the process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHash is the local document identifier hash value.
@@ -4621,13 +4625,15 @@ public class JobManager implements IJobManager
   *@param prereqEventNames are the events that must be completed before the document can be processed.
   *@return true if the priority value was used, false otherwise.
   */
-  public boolean addDocument(Long jobID, String[] legalLinkTypes, String docIDHash, String docID,
+  @Override
+  public boolean addDocument(String processID,
+    Long jobID, String[] legalLinkTypes, String docIDHash, String docID,
     String parentIdentifierHash, String relationshipType,
     int hopcountMethod, String[] dataNames, Object[][] dataValues,
     long currentTime, double priority, String[] prereqEventNames)
     throws ManifoldCFException
   {
-    return addDocuments(jobID,legalLinkTypes,
+    return addDocuments(processID,jobID,legalLinkTypes,
       new String[]{docIDHash},new String[]{docID},
       parentIdentifierHash,relationshipType,hopcountMethod,new String[][]{dataNames},
       new Object[][][]{dataValues},currentTime,new double[]{priority},new String[][]{prereqEventNames})[0];
@@ -4853,15 +4859,17 @@ public class JobManager implements IJobManager
   }
 
   /** Begin an event sequence.
+  *@param processID is the current process ID.
   *@param eventName is the name of the event.
   *@return true if the event could be created, or false if it's already there.
   */
-  public boolean beginEventSequence(String eventName)
+  @Override
+  public boolean beginEventSequence(String processID, String eventName)
     throws ManifoldCFException
   {
     try
     {
-      eventManager.createEvent(eventName);
+      eventManager.createEvent(eventName,processID);
       return true;
     }
     catch (ManifoldCFException e)
