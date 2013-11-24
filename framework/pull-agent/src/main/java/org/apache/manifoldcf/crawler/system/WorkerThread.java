@@ -35,18 +35,21 @@ public class WorkerThread extends Thread
 
 
   // Local data
-  protected String id;
-  // This is a reference to the static main document queue
-  protected DocumentQueue documentQueue;
+  /** Thread id */
+  protected final String id;
+  /** This is a reference to the static main document queue */
+  protected final DocumentQueue documentQueue;
   /** Worker thread pool reset manager */
-  protected WorkerResetManager resetManager;
+  protected final WorkerResetManager resetManager;
   /** Queue tracker */
-  protected QueueTracker queueTracker;
+  protected final QueueTracker queueTracker;
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   *@param id is the worker thread id.
   */
-  public WorkerThread(String id, DocumentQueue documentQueue, WorkerResetManager resetManager, QueueTracker queueTracker)
+  public WorkerThread(String id, DocumentQueue documentQueue, WorkerResetManager resetManager, QueueTracker queueTracker, String processID)
     throws ManifoldCFException
   {
     super();
@@ -54,6 +57,7 @@ public class WorkerThread extends Thread
     this.documentQueue = documentQueue;
     this.resetManager = resetManager;
     this.queueTracker = queueTracker;
+    this.processID = processID;
     setName("Worker thread '"+id+"'");
     setDaemon(true);
 

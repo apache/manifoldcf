@@ -43,7 +43,7 @@ public class SynchronizeAll extends BaseAgentsInitializationCommand
       String classname = classnames[i++];
       try
       {
-        AgentFactory.make(tc,classname);
+        AgentFactory.make(classname);
       }
       catch (ManifoldCFException e)
       {

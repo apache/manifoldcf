@@ -36,24 +36,27 @@ public class DocumentCleanupStufferThread extends Thread
   public static final String _rcsid = "@(#)$Id$";
 
   // Local data
-  // This is a reference to the static main document queue
-  protected DocumentCleanupQueue documentCleanupQueue;
-  // This is the reset manager
-  protected DocCleanupResetManager resetManager;
-  // This is the number of entries we want to stuff at any one time.
-  int n;
+  /** This is a reference to the static main document queue */
+  protected final DocumentCleanupQueue documentCleanupQueue;
+  /** This is the reset manager */
+  protected final DocCleanupResetManager resetManager;
+  /** This is the number of entries we want to stuff at any one time. */
+  protected final int n;
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   *@param documentCleanupQueue is the document queue we'll be stuffing.
   *@param n is the maximum number of threads that will be doing delete processing.
   */
-  public DocumentCleanupStufferThread(DocumentCleanupQueue documentCleanupQueue, int n, DocCleanupResetManager resetManager)
+  public DocumentCleanupStufferThread(DocumentCleanupQueue documentCleanupQueue, int n, DocCleanupResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     this.documentCleanupQueue = documentCleanupQueue;
     this.n = n;
     this.resetManager = resetManager;
+    this.processID = processID;
     setName("Document cleanup stuffer thread");
     setDaemon(true);
   }
@@ -102,7 +105,7 @@ public class DocumentCleanupStufferThread extends Thread
           // This method will set the status of the documents in question
           // to "beingcleaned".
 
-          DocumentSetAndFlags documentsToClean = jobManager.getNextCleanableDocuments(deleteChunkSize,currentTime);
+          DocumentSetAndFlags documentsToClean = jobManager.getNextCleanableDocuments(processID,deleteChunkSize,currentTime);
           DocumentDescription[] descs = documentsToClean.getDocumentSet();
           boolean[] removeFromIndex = documentsToClean.getFlags();
           

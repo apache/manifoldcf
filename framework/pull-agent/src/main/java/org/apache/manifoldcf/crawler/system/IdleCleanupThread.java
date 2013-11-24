@@ -33,14 +33,16 @@ public class IdleCleanupThread extends Thread
   public static final String _rcsid = "@(#)$Id: IdleCleanupThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   */
-  public IdleCleanupThread()
+  public IdleCleanupThread(String processID)
     throws ManifoldCFException
   {
     super();
+    this.processID = processID;
     setName("Idle cleanup thread");
     setDaemon(true);
   }

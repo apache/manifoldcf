@@ -43,20 +43,23 @@ public class DocumentCleanupThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id$";
 
-
   // Local data
-  protected String id;
-  // This is a reference to the static main document queue
-  protected DocumentCleanupQueue documentCleanupQueue;
+  /** Thread id */
+  protected final String id;
+  /** This is a reference to the static main document queue */
+  protected final DocumentCleanupQueue documentCleanupQueue;
   /** Delete thread pool reset manager */
-  protected DocCleanupResetManager resetManager;
+  protected final DocCleanupResetManager resetManager;
   /** Queue tracker */
-  protected QueueTracker queueTracker;
+  protected final QueueTracker queueTracker;
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   *@param id is the worker thread id.
   */
-  public DocumentCleanupThread(String id, DocumentCleanupQueue documentCleanupQueue, QueueTracker queueTracker, DocCleanupResetManager resetManager)
+  public DocumentCleanupThread(String id, DocumentCleanupQueue documentCleanupQueue,
+    QueueTracker queueTracker, DocCleanupResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
@@ -64,6 +67,7 @@ public class DocumentCleanupThread extends Thread
     this.documentCleanupQueue = documentCleanupQueue;
     this.queueTracker = queueTracker;
     this.resetManager = resetManager;
+    this.processID = processID;
     setName("Document cleanup thread '"+id+"'");
     setDaemon(true);
   }

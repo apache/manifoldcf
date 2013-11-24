@@ -33,28 +33,31 @@ public class StufferThread extends Thread
   public static final String _rcsid = "@(#)$Id: StufferThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-  // This is a reference to the static main document queue
-  protected DocumentQueue documentQueue;
+  
+  /** This is a reference to the static main document queue */
+  protected final DocumentQueue documentQueue;
   /** Worker thread pool reset manager */
-  protected WorkerResetManager resetManager;
-  // This is the lowest number of entries we want ot stuff at any one time
-  protected int lowestStuffAmt;
-  // This is the number of entries we want to stuff at any one time.
+  protected final WorkerResetManager resetManager;
+  /** This is the lowest number of entries we want ot stuff at any one time */
+  protected final int lowestStuffAmt;
+  /** This is the number of entries we want to stuff at any one time. */
   protected int stuffAmt;
-  // This is the low water mark for attempting to restuff
-  protected int lowWaterMark;
-  // This is the queue tracker object.
-  protected QueueTracker queueTracker;
-  // Blocking documents object.
-  protected BlockingDocuments blockingDocuments;
-
+  /** This is the low water mark for attempting to restuff */
+  protected final int lowWaterMark;
+  /** This is the queue tracker object. */
+  protected final QueueTracker queueTracker;
+  /** Blocking documents object. */
+  protected final BlockingDocuments blockingDocuments;
+  /** Process ID */
+  protected final String processID;
+  
   /** Constructor.
   *@param documentQueue is the document queue we'll be stuffing.
   *@param n represents the number of threads that will be processing queued stuff, NOT the
   * number of documents to be done at once!
   */
   public StufferThread(DocumentQueue documentQueue, int n, WorkerResetManager resetManager, QueueTracker qt,
-    BlockingDocuments blockingDocuments, float lowWaterFactor, float stuffSizeFactor)
+    BlockingDocuments blockingDocuments, float lowWaterFactor, float stuffSizeFactor, String processID)
     throws ManifoldCFException
   {
     super();
@@ -65,6 +68,7 @@ public class StufferThread extends Thread
     this.resetManager = resetManager;
     this.queueTracker = qt;
     this.blockingDocuments = blockingDocuments;
+    this.processID = processID;
     setName("Stuffer thread");
     setDaemon(true);
     // The priority of this thread is higher than most others.  We want stuffing to proceed even if the machine
@@ -154,7 +158,7 @@ public class StufferThread extends Thread
           DepthStatistics depthStatistics = new DepthStatistics();
           long currentTime = System.currentTimeMillis();
           lastQueueStart = currentTime;
-          DocumentDescription[] descs = jobManager.getNextDocuments(stuffAmt,currentTime,currentTime-lastTime,
+          DocumentDescription[] descs = jobManager.getNextDocuments(processID,stuffAmt,currentTime,currentTime-lastTime,
             blockingDocuments,queueTracker.getCurrentStatistics(),depthStatistics);
           lastQueueEnd = System.currentTimeMillis();
           lastQueueFullResults = (descs.length == stuffAmt);

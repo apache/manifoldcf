@@ -236,7 +236,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         if (runningHash.get(className) == null)
         {
           // Start this agent
-          IAgent agent = AgentFactory.make(threadContext,className);
+          IAgent agent = AgentFactory.make(className);
           try
           {
             // Throw a lock, so that cleanup processes and startup processes don't collide.
@@ -252,21 +252,21 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
               lockManager.leaveWriteLock(lockName);
             }
             // Now initialize agent, being sure to clean up data from previous incarnations
-            agent.initialize();
+            agent.initialize(threadContext);
             if (firstTime)
-              agent.cleanUpAgentData();
+              agent.cleanUpAgentData(threadContext);
             else
-              agent.cleanUpAgentData(processID);
+              agent.cleanUpAgentData(threadContext, processID);
             // There is a potential race condition where the agent has been started but hasn't yet appeared in runningHash.
             // But having runningHash be the synchronizer for this activity will prevent any problems.
-            agent.startAgent(processID);
+            agent.startAgent(threadContext, processID);
             // Successful!
             runningHash.put(className,agent);
           }
           catch (ManifoldCFException e)
           {
             problem = e;
-            agent.cleanUp();
+            agent.cleanUp(threadContext);
           }
         }
         currentAgentClasses.add(className);
@@ -284,10 +284,10 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
           try
           {
             // Stop it
-            agent.stopAgent(processID);
+            agent.stopAgent(threadContext);
             lockManager.endServiceActivity(getAgentsClassServiceType(runningAgentClass), processID);
             runningAgentsIterator.remove();
-            agent.cleanUp();
+            agent.cleanUp(threadContext);
           }
           catch (ManifoldCFException e)
           {
@@ -313,7 +313,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
           String[] inactiveAgents = lockManager.getInactiveServices(agentsClassServiceType);
           for (String inactiveAgentProcessID : inactiveAgents)
           {
-            agent.cleanUpAgentData(inactiveAgentProcessID);
+            agent.cleanUpAgentData(threadContext, inactiveAgentProcessID);
             // Deregister
             lockManager.unregisterService(agentsClassServiceType, inactiveAgentProcessID);
           }
@@ -349,10 +349,10 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         String className = iter.next();
         IAgent agent = runningHash.get(className);
         // Stop it
-        agent.stopAgent(processID);
+        agent.stopAgent(threadContext);
         lockManager.endServiceActivity(getAgentsClassServiceType(className), processID);
         iter.remove();
-        agent.cleanUp();
+        agent.cleanUp(threadContext);
       }
     }
     // Done.

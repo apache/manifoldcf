@@ -530,8 +530,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   * This will get called if something went wrong that could have screwed up the
   * status of a worker thread.  The threads all die/end, and this method
   * resets any active documents back to the right state (waiting for stuffing).
+  *@param processID is the current processID.
   */
-  public void resetDocumentWorkerStatus()
+  public void resetDocumentWorkerStatus(String processID)
     throws ManifoldCFException
   {
     // Map ACTIVE back to PENDING.
@@ -543,7 +544,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVE),
         statusToString(STATUS_ACTIVENEEDRESCAN)}),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
@@ -554,7 +555,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVEPURGATORY),
         statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)}),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
     unconditionallyAnalyzeTables();
         
@@ -563,7 +564,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Reset doc delete worker status.
   */
-  public void resetDocDeleteWorkerStatus()
+  public void resetDocDeleteWorkerStatus(String processID)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
@@ -574,7 +575,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
     unconditionallyAnalyzeTables();
 
@@ -583,7 +584,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Reset doc cleaning worker status.
   */
-  public void resetDocCleanupWorkerStatus()
+  public void resetDocCleanupWorkerStatus(String processID)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
@@ -594,7 +595,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
     unconditionallyAnalyzeTables();
 
@@ -982,7 +983,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param id is the job queue id.
   *@param currentStatus is the current status
   */
-  public void updateActiveRecord(Long id, int currentStatus)
+  public void updateActiveRecord(Long id, int currentStatus, String processID)
     throws ManifoldCFException
   {
     int newStatus;
@@ -1001,7 +1002,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
     HashMap map = new HashMap();
     map.put(statusField,statusToString(newStatus));
-    map.put(processIDField,ManifoldCF.getProcessID());
+    map.put(processIDField,processID);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,id)});
@@ -1043,12 +1044,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Set the status of a document to "being deleted".
   */
-  public void setDeletingStatus(Long id)
+  public void setDeletingStatus(Long id, String processID)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_BEINGDELETED));
-    map.put(processIDField,ManifoldCF.getProcessID());
+    map.put(processIDField,processID);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,id)});
@@ -1078,12 +1079,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Set the status of a document to "being cleaned".
   */
-  public void setCleaningStatus(Long id)
+  public void setCleaningStatus(Long id, String processID)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_BEINGCLEANED));
-    map.put(processIDField,ManifoldCF.getProcessID());
+    map.put(processIDField,processID);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,id)});
@@ -1171,7 +1172,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   * The record is presumed to exist and have been locked, via "FOR UPDATE".
   */
   public boolean updateExistingRecordInitial(Long recordID, int currentStatus, Long checkTimeValue,
-    long desiredExecuteTime, long currentTime, double desiredPriority, String[] prereqEvents)
+    long desiredExecuteTime, long currentTime, double desiredPriority, String[] prereqEvents,
+    String processID)
     throws ManifoldCFException
   {
     // The general rule here is:
@@ -1249,7 +1251,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
     }
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED));
-    map.put(seedingProcessIDField,ManifoldCF.getProcessID());
+    map.put(seedingProcessIDField,processID);
     // Delete any existing prereqevent entries first
     prereqEventManager.deleteRows(recordID);
     ArrayList list = new ArrayList();
@@ -1269,7 +1271,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param docID is the local document identifier.
   */
   public void insertNewRecordInitial(Long jobID, String docHash, String docID, double desiredDocPriority,
-    long desiredExecuteTime, long currentTime, String[] prereqEvents)
+    long desiredExecuteTime, long currentTime, String[] prereqEvents, String processID)
     throws ManifoldCFException
   {
     // No prerequisites should be possible at this point.
@@ -1286,7 +1288,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(docIDField,docID);
     map.put(statusField,statusToString(STATUS_PENDING));
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED));
-    map.put(seedingProcessIDField,ManifoldCF.getProcessID());
+    map.put(seedingProcessIDField,processID);
     // Set the document priority
     map.put(docPriorityField,new Double(desiredDocPriority));
     map.put(prioritySetField,new Long(currentTime));
@@ -1299,7 +1301,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Note the remaining documents that do NOT need to be queued.  These are noted so that the
   * doneDocumentsInitial() method does not clean up seeds from previous runs wrongly.
   */
-  public void addRemainingDocumentsInitial(Long jobID, String[] docIDHashes)
+  public void addRemainingDocumentsInitial(Long jobID, String[] docIDHashes, String processID)
     throws ManifoldCFException
   {
     if (docIDHashes.length == 0)
@@ -1350,7 +1352,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     {
       if (k == maxClause)
       {
-        updateRemainingDocuments(list);
+        updateRemainingDocuments(list,processID);
         k = 0;
         list.clear();
       }
@@ -1358,7 +1360,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       k++;
     }
     if (k > 0)
-      updateRemainingDocuments(list);
+      updateRemainingDocuments(list,processID);
     noteModifications(0,docIDHashes.length,0);
   }
 
@@ -1400,12 +1402,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   }
   
   /** Update the specified set of documents to be "NEWSEED" */
-  protected void updateRemainingDocuments(ArrayList list)
+  protected void updateRemainingDocuments(ArrayList list, String processID)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED));
-    map.put(seedingProcessIDField,ManifoldCF.getProcessID());
+    map.put(seedingProcessIDField,processID);
     ArrayList newList = new ArrayList();
     String query = buildConjunctionClause(newList,new ClauseDescription[]{
       new MultiClause(idField,list)});

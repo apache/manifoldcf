@@ -32,21 +32,25 @@ public class StartupThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id: StartupThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  /** Worker thread pool reset manager */
-  protected static StartupResetManager resetManager = new StartupResetManager();
-
   // Local data
-  protected QueueTracker queueTracker;
-
+  /** Queue tracker */
+  protected final QueueTracker queueTracker;
+  /** Process ID */
+  protected final String processID;
+  /** Reset manager */
+  protected final StartupResetManager resetManager;
+  
   /** Constructor.
   */
-  public StartupThread(QueueTracker queueTracker)
+  public StartupThread(QueueTracker queueTracker, StartupResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     setName("Startup thread");
     setDaemon(true);
     this.queueTracker = queueTracker;
+    this.resetManager = resetManager;
+    this.processID = processID;
   }
 
   public void run()
@@ -148,7 +152,7 @@ public class StartupThread extends Thread
                   try
                   {
                     SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,jobManager,queueTracker,
-                      connection,connector,jobID,legalLinkTypes,true,hopcountMethod);
+                      connection,connector,jobID,legalLinkTypes,true,hopcountMethod,processID);
 
                     if (Logging.threads.isDebugEnabled())
                       Logging.threads.debug("Adding initial seed documents for job "+jobID.toString()+"...");
@@ -277,35 +281,6 @@ public class StartupThread extends Thread
       Logging.threads.fatal("StartupThread initialization error tossed: "+e.getMessage(),e);
       System.exit(-300);
     }
-  }
-
-  /** Class which handles reset for seeding thread pool (of which there's
-  * typically only one member).  The reset action here
-  * is to move the status of jobs back from "seeding" to normal.
-  */
-  protected static class StartupResetManager extends ResetManager
-  {
-
-    /** Constructor. */
-    public StartupResetManager()
-    {
-      super();
-    }
-
-    /** Reset */
-    protected void performResetLogic(IThreadContext tc)
-      throws ManifoldCFException
-    {
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.resetStartupWorkerStatus();
-    }
-    
-    /** Do the wakeup logic.
-    */
-    protected void performWakeupLogic()
-    {
-    }
-
   }
 
 }

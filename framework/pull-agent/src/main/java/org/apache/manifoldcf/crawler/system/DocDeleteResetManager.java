@@ -31,26 +31,28 @@ public class DocDeleteResetManager extends ResetManager
 {
   public static final String _rcsid = "@(#)$Id: DocDeleteResetManager.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  protected DocumentDeleteQueue ddq;
+  protected final DocumentDeleteQueue ddq;
 
   /** Constructor. */
-  public DocDeleteResetManager(DocumentDeleteQueue ddq)
+  public DocDeleteResetManager(DocumentDeleteQueue ddq, String processID)
   {
-    super();
+    super(processID);
     this.ddq = ddq;
   }
 
   /** Reset */
-  protected void performResetLogic(IThreadContext tc)
+  @Override
+  protected void performResetLogic(IThreadContext tc, String processID)
     throws ManifoldCFException
   {
     IJobManager jobManager = JobManagerFactory.make(tc);
-    jobManager.resetDocDeleteWorkerStatus();
+    jobManager.resetDocDeleteWorkerStatus(processID);
     ddq.clear();
   }
 
   /** Do the wakeup logic.
   */
+  @Override
   protected void performWakeupLogic()
   {
     ddq.reset();

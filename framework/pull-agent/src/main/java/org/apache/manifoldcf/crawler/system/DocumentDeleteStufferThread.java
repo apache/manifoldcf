@@ -36,24 +36,27 @@ public class DocumentDeleteStufferThread extends Thread
   public static final String _rcsid = "@(#)$Id: DocumentDeleteStufferThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-  // This is a reference to the static main document queue
-  protected DocumentDeleteQueue documentDeleteQueue;
-  // This is the reset manager
-  protected DocDeleteResetManager resetManager;
-  // This is the number of entries we want to stuff at any one time.
-  int n;
-
+  /** This is a reference to the static main document queue */
+  protected final DocumentDeleteQueue documentDeleteQueue;
+  /** This is the reset manager */
+  protected final DocDeleteResetManager resetManager;
+  /** This is the number of entries we want to stuff at any one time. */
+  protected final int n;
+  /** Process ID */
+  protected final String processID;
+  
   /** Constructor.
   *@param documentDeleteQueue is the document queue we'll be stuffing.
   *@param n is the maximum number of threads that will be doing delete processing.
   */
-  public DocumentDeleteStufferThread(DocumentDeleteQueue documentDeleteQueue, int n, DocDeleteResetManager resetManager)
+  public DocumentDeleteStufferThread(DocumentDeleteQueue documentDeleteQueue, int n, DocDeleteResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     this.documentDeleteQueue = documentDeleteQueue;
     this.n = n;
     this.resetManager = resetManager;
+    this.processID = processID;
     setName("Document delete stuffer thread");
     setDaemon(true);
   }
@@ -102,7 +105,7 @@ public class DocumentDeleteStufferThread extends Thread
           // This method will set the status of the documents in question
           // to "beingdeleted".
 
-          DocumentDescription[] descs = jobManager.getNextDeletableDocuments(deleteChunkSize,currentTime);
+          DocumentDescription[] descs = jobManager.getNextDeletableDocuments(processID,deleteChunkSize,currentTime);
 
           // If there are no chunks at all, then we can sleep for a while.
           // The theory is that we need to allow stuff to accumulate.
