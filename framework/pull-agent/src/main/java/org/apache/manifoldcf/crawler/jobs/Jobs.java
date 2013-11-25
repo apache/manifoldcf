@@ -257,6 +257,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     hopmodeMap.put("V",new Integer(HOPCOUNT_NEVERDELETE));
   }
 
+  /*
   protected static Set<Integer> transientStates;
   static
   {
@@ -284,6 +285,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     transientStates.add(new Integer(STATUS_ACTIVESEEDING_NOOUTPUT));
     transientStates.add(new Integer(STATUS_ACTIVESEEDING_NEITHER));
   }
+  */
   
   // Local variables
   protected ICacheManager cacheManager;
@@ -1441,7 +1443,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Reset delete startup worker thread status.
   */
-  public void resetDeleteStartupWorkerStatus()
+  public void resetDeleteStartupWorkerStatus(String processID)
     throws ManifoldCFException
   {
     // This handles everything that the delete startup thread would resolve.
@@ -1450,7 +1452,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_DELETESTARTINGUP)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORDELETE));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
@@ -1459,7 +1461,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   
   /** Reset notification worker thread status.
   */
-  public void resetNotificationWorkerStatus()
+  public void resetNotificationWorkerStatus(String processID)
     throws ManifoldCFException
   {
     // This resets everything that the job notification thread would resolve.
@@ -1468,7 +1470,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_NOTIFYINGOFCOMPLETION)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
@@ -1477,7 +1479,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   
   /** Reset startup worker thread status.
   */
-  public void resetStartupWorkerStatus()
+  public void resetStartupWorkerStatus(String processID)
     throws ManifoldCFException
   {
     // We have to handle all states that the startup thread would resolve, and change them to something appropriate.
@@ -1489,7 +1491,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_STARTINGUP)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
@@ -1497,7 +1499,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_STARTINGUPMINIMAL)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
@@ -1507,7 +1509,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ABORTINGSTARTINGUP),
         statusToString(STATUS_ABORTINGSTARTINGUPMINIMAL)}),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
@@ -1515,7 +1517,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUPFORRESTART)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTINGFORRESTART));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
@@ -1523,7 +1525,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTINGFORRESTARTMINIMAL));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
@@ -1532,7 +1534,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Reset as part of restoring seeding worker threads.
   */
-  public void resetSeedingWorkerStatus()
+  public void resetSeedingWorkerStatus(String processID)
     throws ManifoldCFException
   {
     StringSet invKey = new StringSet(getJobStatusKey());
@@ -1543,98 +1545,98 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVE));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_PAUSINGSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_PAUSING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVEWAITINGSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVEWAITING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_PAUSINGWAITINGSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_PAUSINGWAITING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_RESUMINGSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_RESUMING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGFORRESTARTSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTINGFORRESTART));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTINGFORRESTARTMINIMAL));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_PAUSEDSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_PAUSED));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVEWAITSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVEWAIT));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_PAUSEDWAITSEEDING)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_PAUSEDWAIT));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_UNINSTALLED)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NOOUTPUT)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NEITHER)),
-      new UnitaryClause(processIDField,ManifoldCF.getProcessID())});
+      new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
@@ -2222,7 +2224,29 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   *@param status is the desired status.
   *@param reseedTime is the reseed time.
   */
-  public void writeStatus(Long jobID, int status, Long reseedTime)
+  public void writeTransientStatus(Long jobID, int status, Long reseedTime, String processID)
+    throws ManifoldCFException
+  {
+    writeStatus(jobID, status, reseedTime, processID);
+  }
+
+  /** Update a job's status, and its reseed time.
+  *@param jobID is the job id.
+  *@param status is the desired status.
+  *@param reseedTime is the reseed time.
+  */
+  public void writePermanentStatus(Long jobID, int status, Long reseedTime)
+    throws ManifoldCFException
+  {
+    writeStatus(jobID, status, reseedTime, null);
+  }
+
+  /** Update a job's status, and its reseed time.
+  *@param jobID is the job id.
+  *@param status is the desired status.
+  *@param reseedTime is the reseed time.
+  */
+  protected void writeStatus(Long jobID, int status, Long reseedTime, String processID)
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
@@ -2230,7 +2254,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,jobID)});
     HashMap map = new HashMap();
     map.put(statusField,statusToString(status));
-    map.put(processIDField,transientStates.contains(new Integer(status))?ManifoldCF.getProcessID():null);
+    map.put(processIDField,processID);
     map.put(reseedTimeField,reseedTime);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }
@@ -2239,7 +2263,27 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   *@param jobID is the job id.
   *@param status is the desired status.
   */
-  public void writeStatus(Long jobID, int status)
+  public void writeTransientStatus(Long jobID, int status, String processID)
+    throws ManifoldCFException
+  {
+    writeStatus(jobID, status, processID);
+  }
+  
+  /** Update a job's status.
+  *@param jobID is the job id.
+  *@param status is the desired status.
+  */
+  public void writePermanentStatus(Long jobID, int status)
+    throws ManifoldCFException
+  {
+    writeStatus(jobID, status, null);
+  }
+
+  /** Update a job's status.
+  *@param jobID is the job id.
+  *@param status is the desired status.
+  */
+  protected void writeStatus(Long jobID, int status, String processID)
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
@@ -2247,7 +2291,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,jobID)});
     HashMap map = new HashMap();
     map.put(statusField,statusToString(status));
-    map.put(processIDField,transientStates.contains(new Integer(status))?ManifoldCF.getProcessID():null);
+    map.put(processIDField,processID);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }
 

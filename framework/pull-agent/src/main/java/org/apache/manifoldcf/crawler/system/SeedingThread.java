@@ -95,7 +95,7 @@ public class SeedingThread extends Thread
           Logging.threads.debug("Seeding thread woke up");
 
           // Grab active, adaptive jobs (and set their state to xxxSEEDING as a side effect)
-          JobSeedingRecord[] seedJobs = jobManager.getJobsReadyForSeeding(currentTime);
+          JobSeedingRecord[] seedJobs = jobManager.getJobsReadyForSeeding(processID,currentTime);
 
           // Process these jobs, and do the seeding.  The seeding is based on what came back
           // in the job start record for sync time.  If there's an interruption, we just go on

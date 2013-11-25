@@ -772,11 +772,12 @@ public interface IJobManager
     throws ManifoldCFException;
 
   /** Get the list of jobs that are ready for seeding.
+  *@param processID is the current process ID.
   *@param currentTime is the current time in milliseconds since epoch.
   *@return jobs that are active and are running in adaptive mode.  These will be seeded
   * based on what the connector says should be added to the queue.
   */
-  public JobSeedingRecord[] getJobsReadyForSeeding(long currentTime)
+  public JobSeedingRecord[] getJobsReadyForSeeding(String processID, long currentTime)
     throws ManifoldCFException;
 
   /** Reset a seeding job back to "active" state.
@@ -786,21 +787,24 @@ public interface IJobManager
     throws ManifoldCFException;
 
   /** Get the list of jobs that are ready for deletion.
+  *@param processID is the current process ID.
   *@return jobs that were in the "readyfordelete" state.
   */
-  public JobDeleteRecord[] getJobsReadyForDelete()
+  public JobDeleteRecord[] getJobsReadyForDelete(String processID)
     throws ManifoldCFException;
     
   /** Get the list of jobs that are ready for startup.
+  *@param processID is the current process ID.
   *@return jobs that were in the "readyforstartup" state.  These will be marked as being in the "starting up" state.
   */
-  public JobStartRecord[] getJobsReadyForStartup()
+  public JobStartRecord[] getJobsReadyForStartup(String processID)
     throws ManifoldCFException;
 
   /** Find the list of jobs that need to have their connectors notified of job completion.
+  *@param processID is the current process ID.
   *@return the ID's of jobs that need their output connectors notified in order to become inactive.
   */
-  public JobNotifyRecord[] getJobsReadyForInactivity()
+  public JobNotifyRecord[] getJobsReadyForInactivity(String processID)
     throws ManifoldCFException;
 
   /** Inactivate a job, from the notification state.

@@ -70,7 +70,7 @@ public class JobNotificationThread extends Thread
           // Before we begin, conditionally reset
           resetManager.waitForReset(threadContext);
 
-          JobNotifyRecord[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity();
+          JobNotifyRecord[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity(processID);
           try
           {
             HashMap connectionNames = new HashMap();

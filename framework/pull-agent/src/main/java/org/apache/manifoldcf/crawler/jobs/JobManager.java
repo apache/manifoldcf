@@ -534,7 +534,7 @@ public class JobManager implements IJobManager
       throw new ManifoldCFException("Job "+id+" is active; you must shut it down before deleting it");
       if (status != jobs.STATUS_INACTIVE)
         throw new ManifoldCFException("Job "+id+" is busy; you must wait and/or shut it down before deleting it");
-      jobs.writeStatus(id,jobs.STATUS_READYFORDELETE);
+      jobs.writePermanentStatus(id,jobs.STATUS_READYFORDELETE);
       if (Logging.jobs.isDebugEnabled())
         Logging.jobs.debug("Job "+id+" marked for deletion");
     }
@@ -798,7 +798,7 @@ public class JobManager implements IJobManager
       database.beginTransaction();
       try
       {
-        jobs.resetSeedingWorkerStatus();
+        jobs.resetSeedingWorkerStatus(processID);
         TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
@@ -945,7 +945,7 @@ public class JobManager implements IJobManager
       database.beginTransaction();
       try
       {
-        jobs.resetDeleteStartupWorkerStatus();
+        jobs.resetDeleteStartupWorkerStatus(processID);
         TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
@@ -993,7 +993,7 @@ public class JobManager implements IJobManager
       database.beginTransaction();
       try
       {
-        jobs.resetNotificationWorkerStatus();
+        jobs.resetNotificationWorkerStatus(processID);
         TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
@@ -1041,7 +1041,7 @@ public class JobManager implements IJobManager
       database.beginTransaction();
       try
       {
-        jobs.resetStartupWorkerStatus();
+        jobs.resetStartupWorkerStatus(processID);
         TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
@@ -6249,10 +6249,12 @@ public class JobManager implements IJobManager
   }
 
   /** Get the list of jobs that are ready for seeding.
+  *@param processID is the current process ID.
   *@return jobs that are active and are running in adaptive mode.  These will be seeded
   * based on what the connector says should be added to the queue.
   */
-  public JobSeedingRecord[] getJobsReadyForSeeding(long currentTime)
+  @Override
+  public JobSeedingRecord[] getJobsReadyForSeeding(String processID, long currentTime)
     throws ManifoldCFException
   {
     while (true)
@@ -6300,7 +6302,7 @@ public class JobManager implements IJobManager
 
           // Mark status of job as "active/seeding".  Special status is needed so that abort
           // will not complete until seeding is completed.
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVESEEDING,reseedTime);
+          jobs.writeTransientStatus(jobID,jobs.STATUS_ACTIVESEEDING,reseedTime,processID);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Marked job "+jobID+" for seeding");
@@ -6338,9 +6340,11 @@ public class JobManager implements IJobManager
   }
 
   /** Get the list of jobs that are ready for deletion.
+  *@param processID is the current process ID.
   *@return jobs that were in the "readyfordelete" state.
   */
-  public JobDeleteRecord[] getJobsReadyForDelete()
+  @Override
+  public JobDeleteRecord[] getJobsReadyForDelete(String processID)
     throws ManifoldCFException
   {
     while (true)
@@ -6368,7 +6372,7 @@ public class JobManager implements IJobManager
           Long jobID = (Long)row.getValue(jobs.idField);
 
           // Mark status of job as "starting delete"
-          jobs.writeStatus(jobID,jobs.STATUS_DELETESTARTINGUP);
+          jobs.writeTransientStatus(jobID,jobs.STATUS_DELETESTARTINGUP,processID);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Marked job "+jobID+" for delete startup");
@@ -6406,9 +6410,11 @@ public class JobManager implements IJobManager
   }
 
   /** Get the list of jobs that are ready for startup.
+  *@param processID is the current process ID.
   *@return jobs that were in the "readyforstartup" state.  These will be marked as being in the "starting up" state.
   */
-  public JobStartRecord[] getJobsReadyForStartup()
+  @Override
+  public JobStartRecord[] getJobsReadyForStartup(String processID)
     throws ManifoldCFException
   {
     while (true)
@@ -6449,7 +6455,7 @@ public class JobManager implements IJobManager
             synchTime = x.longValue();
 
           // Mark status of job as "starting"
-          jobs.writeStatus(jobID,requestMinimum?jobs.STATUS_STARTINGUPMINIMAL:jobs.STATUS_STARTINGUP);
+          jobs.writeTransientStatus(jobID,requestMinimum?jobs.STATUS_STARTINGUPMINIMAL:jobs.STATUS_STARTINGUP,processID);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Marked job "+jobID+" for startup");
@@ -6586,7 +6592,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForDelete' state");
 
           // Set the state of the job back to "ReadyForStartup"
-          jobs.writeStatus(jobID,jobs.STATUS_READYFORDELETE);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_READYFORDELETE);
           break;
         default:
           throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
@@ -6654,7 +6660,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForNotify' state");
 
           // Set the state of the job back to "ReadyForNotify"
-          jobs.writeStatus(jobID,jobs.STATUS_READYFORNOTIFY);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_READYFORNOTIFY);
           break;
         default:
           throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
@@ -6690,6 +6696,7 @@ public class JobManager implements IJobManager
   /** Reset a starting job back to "ready for startup" state.
   *@param jobID is the job id.
   */
+  @Override
   public void resetStartupJob(Long jobID)
     throws ManifoldCFException
   {
@@ -6721,30 +6728,30 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForStartup' state");
 
           // Set the state of the job back to "ReadyForStartup"
-          jobs.writeStatus(jobID,jobs.STATUS_READYFORSTARTUP);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_READYFORSTARTUP);
           break;
         case Jobs.STATUS_STARTINGUPMINIMAL:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForStartupMinimal' state");
 
           // Set the state of the job back to "ReadyForStartupMinimal"
-          jobs.writeStatus(jobID,jobs.STATUS_READYFORSTARTUPMINIMAL);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_READYFORSTARTUPMINIMAL);
           break;
         case Jobs.STATUS_ABORTINGSTARTINGUP:
         case Jobs.STATUS_ABORTINGSTARTINGUPMINIMAL:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" to 'Aborting' state");
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTING);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTING);
           break;
         case Jobs.STATUS_ABORTINGSTARTINGUPFORRESTART:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" to 'AbortingForRestart' state");
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTART);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTINGFORRESTART);
           break;
         case Jobs.STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" to 'AbortingForRestartMinimal' state");
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTARTMINIMAL);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTINGFORRESTARTMINIMAL);
           break;
 
         case Jobs.STATUS_READYFORSTARTUP:
@@ -6818,56 +6825,56 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active_Uninstalled' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVE_UNINSTALLED);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_UNINSTALLED);
           break;
         case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active_NoOutput' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVE_NOOUTPUT);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_NOOUTPUT);
           break;
         case Jobs.STATUS_ACTIVESEEDING_NEITHER:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active_Neither' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVE_NEITHER);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_NEITHER);
           break;
         case Jobs.STATUS_ACTIVESEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVE);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE);
           break;
         case Jobs.STATUS_ACTIVEWAITSEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'ActiveWait' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVEWAIT);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVEWAIT);
           break;
         case Jobs.STATUS_PAUSEDSEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Paused' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_PAUSED);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_PAUSED);
           break;
         case Jobs.STATUS_PAUSEDWAITSEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'PausedWait' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_PAUSEDWAIT);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_PAUSEDWAIT);
           break;
         case Jobs.STATUS_ABORTINGSEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Aborting' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTING);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTING);
           break;
 
         case Jobs.STATUS_ABORTINGFORRESTARTSEEDING:
@@ -6875,7 +6882,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'AbortingForRestart' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTART);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTINGFORRESTART);
           break;
 
         case Jobs.STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL:
@@ -6883,7 +6890,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'AbortingForRestartMinimal' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTARTMINIMAL);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTINGFORRESTARTMINIMAL);
           break;
 
         case Jobs.STATUS_ABORTING:
@@ -7102,7 +7109,7 @@ public class JobManager implements IJobManager
             continue;
 
           // Mark status of job as "finishing"
-          jobs.writeStatus(jobID,jobs.STATUS_SHUTTINGDOWN);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_SHUTTINGDOWN);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Marked job "+jobID+" for shutdown");
@@ -7138,9 +7145,11 @@ public class JobManager implements IJobManager
   }
 
   /** Find the list of jobs that need to have their connectors notified of job completion.
+  *@param processID is the process ID.
   *@return the ID's of jobs that need their output connectors notified in order to become inactive.
   */
-  public JobNotifyRecord[] getJobsReadyForInactivity()
+  @Override
+  public JobNotifyRecord[] getJobsReadyForInactivity(String processID)
     throws ManifoldCFException
   {
     while (true)
@@ -7167,7 +7176,7 @@ public class JobManager implements IJobManager
           IResultRow row = set.getRow(i);
           Long jobID = (Long)row.getValue(jobs.idField);
           // Mark status of job as "starting delete"
-          jobs.writeStatus(jobID,jobs.STATUS_NOTIFYINGOFCOMPLETION);
+          jobs.writeTransientStatus(jobID,jobs.STATUS_NOTIFYINGOFCOMPLETION,processID);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Found job "+jobID+" in need of notification");

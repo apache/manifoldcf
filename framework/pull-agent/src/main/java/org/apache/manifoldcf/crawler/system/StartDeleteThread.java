@@ -84,7 +84,7 @@ public class StartDeleteThread extends Thread
 
           // See if there are any starting jobs.
           // Note: Since this following call changes the job state, we must be careful to reset it on any kind of failure.
-          JobDeleteRecord[] deleteJobs = jobManager.getJobsReadyForDelete();
+          JobDeleteRecord[] deleteJobs = jobManager.getJobsReadyForDelete(processID);
           try
           {
 

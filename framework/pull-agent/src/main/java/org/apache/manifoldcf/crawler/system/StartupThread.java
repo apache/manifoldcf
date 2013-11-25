@@ -88,7 +88,7 @@ public class StartupThread extends Thread
 
           // See if there are any starting jobs.
           // Note: Since this following call changes the job state, we must be careful to reset it on any kind of failure.
-          JobStartRecord[] startupJobs = jobManager.getJobsReadyForStartup();
+          JobStartRecord[] startupJobs = jobManager.getJobsReadyForStartup(processID);
           try
           {
 
