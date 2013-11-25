@@ -288,7 +288,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         IAgent agent = runningHash.get(agentsClass);
         IServiceCleanup cleanup = new CleanupAgent(threadContext, agent);
         String agentsClassServiceType = getAgentsClassServiceType(agentsClass);
-        while (lockManager.cleanupInactiveService(agentsClassServiceType, cleanup))
+        while (!lockManager.cleanupInactiveService(agentsClassServiceType, cleanup))
         {
           // Loop until no more inactive services
         }
