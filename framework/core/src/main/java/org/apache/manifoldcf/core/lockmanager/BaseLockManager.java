@@ -98,12 +98,14 @@ public class BaseLockManager implements ILockManager
   * called when the service shuts down.  Some ILockManager implementations require that this take place for
   * proper management.
   * If the transient registration already exists, it is treated as an error and an exception will be thrown.
+  * If registration will succeed, then this method may call an appropriate IServiceCleanup method to clean up either the
+  * current service, or all services on the cluster.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service to register.
-  *@return true if this is the only active service of this type at this time.
+  *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists
   */
   @Override
-  public boolean registerServiceBeginServiceActivity(String serviceType, String serviceName)
+  public void registerServiceBeginServiceActivity(String serviceType, String serviceName, IServiceCleanup cleanup)
     throws ManifoldCFException
   {
     enterWriteLock(serviceLock);
@@ -113,145 +115,83 @@ public class BaseLockManager implements ILockManager
       String serviceActiveFlag = makeActiveServiceFlagName(serviceType, serviceName);
       if (checkGlobalFlag(serviceActiveFlag))
         throw new ManifoldCFException("Service '"+serviceName+"' of type '"+serviceType+"' is already active");
-      // First, register the service and find out how many such services are active.
+      
+      // First, see where we stand.
+      // We need to find out whether (a) our service is already registered; (b) how many registered services there are;
+      // (c) whether there are other active services.  But no changes will be made at this time.
       boolean foundService = false;
       boolean foundActiveService = false;
+      String resourceName;
       int i = 0;
       while (true)
       {
-        String resourceName = buildServiceListEntry(serviceType, i);
+        resourceName = buildServiceListEntry(serviceType, i);
         String x = readServiceName(resourceName);
         if (x == null)
-        {
-          if (!foundService)
-          {
-            writeServiceName(resourceName, serviceName);
-            try
-            {
-              setGlobalFlag(makeRegisteredServiceFlagName(serviceType, serviceName));
-            }
-            catch (Throwable e)
-            {
-              writeServiceName(resourceName, null);
-              if (e instanceof Error)
-                throw (Error)e;
-              if (e instanceof RuntimeException)
-                throw (RuntimeException)e;
-              if (e instanceof ManifoldCFException)
-                throw (ManifoldCFException)e;
-              else
-                throw new RuntimeException("Unknown exception of type: "+e.getClass().getName()+": "+e.getMessage(),e);
-            }
-          }
           break;
-        }
         if (x.equals(serviceName))
           foundService = true;
         else if (checkGlobalFlag(makeActiveServiceFlagName(serviceType, x)))
           foundActiveService = true;
         i++;
       }
-      // Now, set the appropriate active flag
-      setGlobalFlag(serviceActiveFlag);
-      return !foundActiveService;
-    }
-    finally
-    {
-      leaveWriteLock(serviceLock);
-    }
-  }
-  
-  /** Un-register a service.
-  * This operation cancels the permanent registration of the specified service.
-  * If the service does not exist, this method will do nothing.
-  *@param serviceType is the type of service.
-  *@param serviceName is the name of the service to unregister.
-  */
-  @Override
-  public void unregisterService(String serviceType, String serviceName)
-    throws ManifoldCFException
-  {
-    enterWriteLock(serviceLock);
-    try
-    {
-      // First, do an active check
-      String serviceActiveFlag = makeActiveServiceFlagName(serviceType, serviceName);
-      if (checkGlobalFlag(serviceActiveFlag))
-        throw new ManifoldCFException("Service '"+serviceName+"' of type '"+serviceType+"' is still active; can't unregister");
-      String serviceRegisteredFlag = makeRegisteredServiceFlagName(serviceType, serviceName);
-      clearGlobalFlag(serviceRegisteredFlag);
-      int i = 0;
-      String removalEntry = null;
-      String lastEntry = null;
-      String lastService = null;
-      while (true)
+
+      // Call the appropriate cleanup.  This will depend on what's actually registered, and what's active.
+      // If there were no services registered at all when we started, then no cleanup is needed, just cluster init.
+      // If this fails, we must revert to having our service not be registered and not be active.
+      boolean unregisterAll = false;
+      if (cleanup != null)
       {
-        String resourceName = buildServiceListEntry(serviceType, i);
-        String x = readServiceName(resourceName);
-        if (x == null)
+        if (i == 0)
+          cleanup.clusterInit();
+        else if (foundService && foundActiveService)
+          cleanup.cleanUpService(serviceName);
+        else if (!foundActiveService)
         {
-          if (lastEntry != null)
-            writeServiceName(lastEntry, null);
-          try
-          {
-            if (removalEntry != null && !lastEntry.equals(removalEntry))
-              writeServiceName(removalEntry, lastService);
-          }
-          catch (Throwable e)
-          {
-            writeServiceName(lastEntry, lastService);
-            if (e instanceof Error)
-              throw (Error)e;
-            if (e instanceof RuntimeException)
-              throw (RuntimeException)e;
-            if (e instanceof ManifoldCFException)
-              throw (ManifoldCFException)e;
-            throw new RuntimeException("Unknown exception of type "+e.getClass().getName()+": "+e.getMessage(),e);
-          }
-          break;
+          cleanup.cleanUpAllServices();
+          cleanup.clusterInit();
+          unregisterAll = true;
         }
-        lastEntry = resourceName;
-        lastService = x;
-        if (x.equals(serviceName))
-          removalEntry = resourceName;
-        i++;
       }
-    }
-    finally
-    {
-      leaveWriteLock(serviceLock);
-    }
-  }
-    
-  /** List all registered services of a given type.
-  *@param serviceType is the service type.
-  *@return the service names.
-  */
-  @Override
-  public String[] getRegisteredServices(String serviceType)
-    throws ManifoldCFException
-  {
-    enterWriteLock(serviceLock);
-    try
-    {
-      int i = 0;
-      List<String> services = new ArrayList<String>();
-      while (true)
+      
+      if (unregisterAll)
       {
-        String resourceName = buildServiceListEntry(serviceType, i);
-        String x = readServiceName(resourceName);
-        if (x == null)
-          break;
-        services.add(x);
-        i++;
+        // Unregister all (since we did a global cleanup)
+        int k = i;
+        while (k > 0)
+        {
+          k--;
+          resourceName = buildServiceListEntry(serviceType, k);
+          String x = readServiceName(resourceName);
+          clearGlobalFlag(makeRegisteredServiceFlagName(serviceType, x));
+          writeServiceName(resourceName, null);
+        }
       }
-      String[] rval = new String[services.size()];
-      i = 0;
-      for (String x : services)
+
+      // Now, register (if needed)
+      if (!foundService)
       {
-        rval[i++] = x;
+        writeServiceName(resourceName, serviceName);
+        try
+        {
+          setGlobalFlag(makeRegisteredServiceFlagName(serviceType, serviceName));
+        }
+        catch (Throwable e)
+        {
+          writeServiceName(resourceName, null);
+          if (e instanceof Error)
+            throw (Error)e;
+          if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          else
+            throw new RuntimeException("Unknown exception of type: "+e.getClass().getName()+": "+e.getMessage(),e);
+        }
       }
-      return rval;
+
+      // Last, set the appropriate active flag
+      setGlobalFlag(serviceActiveFlag);
     }
     finally
     {
@@ -259,36 +199,99 @@ public class BaseLockManager implements ILockManager
     }
   }
   
-  /** List services that are registered but not active.
+  /** Count all active services of a given type.
   *@param serviceType is the service type.
-  *@return the list of service names.
+  *@return the count.
   */
   @Override
-  public String[] getInactiveServices(String serviceType)
+  public int countActiveServices(String serviceType)
     throws ManifoldCFException
   {
     enterWriteLock(serviceLock);
     try
     {
+      int count = 0;
       int i = 0;
-      List<String> inactiveServices = new ArrayList<String>();
       while (true)
       {
         String resourceName = buildServiceListEntry(serviceType, i);
         String x = readServiceName(resourceName);
         if (x == null)
           break;
-        if (!checkGlobalFlag(makeActiveServiceFlagName(serviceType, x)))
-          inactiveServices.add(x);
+        if (checkGlobalFlag(makeActiveServiceFlagName(serviceType, x)))
+          count++;
         i++;
       }
-      String[] rval = new String[inactiveServices.size()];
-      i = 0;
-      for (String x : inactiveServices)
+      return count;
+    }
+    finally
+    {
+      leaveWriteLock(serviceLock);
+    }
+  }
+
+  /** Clean up any inactive services found.
+  * Calling this method will invoke cleanup of one inactive service at a time.
+  * If there are no inactive services around, then false will be returned.
+  * Note that this method will block whatever service it finds from starting up
+  * for the time the cleanup is proceeding.  At the end of the cleanup, if
+  * successful, the service will be atomically unregistered.
+  *@param serviceType is the service type.
+  *@param cleanup is the object to call to clean up an inactive service.
+  *@return true if there were no cleanup operations necessary.
+  */
+  @Override
+  public boolean cleanupInactiveService(String serviceType, IServiceCleanup cleanup)
+    throws ManifoldCFException
+  {
+    enterWriteLock(serviceLock);
+    try
+    {
+      // We find ONE service that is registered but inactive, and clean up after that one.
+      // Presumably the caller will lather, rinse, and repeat.
+      String serviceName;
+      String resourceName;
+      int i = 0;
+      while (true)
       {
-        rval[i++] = x;
+        resourceName = buildServiceListEntry(serviceType, i);
+        serviceName = readServiceName(resourceName);
+        if (serviceName == null)
+          return true;
+        if (!checkGlobalFlag(makeActiveServiceFlagName(serviceType, serviceName)))
+          break;
+        i++;
       }
-      return rval;
+      
+      // Found one, in serviceName, at position i
+      // Ideally, we should signal at this point that we're cleaning up after it, and then leave
+      // the exclusive lock, so that other activity can take place.  MHL
+      cleanup.cleanUpService(serviceName);
+      
+      // Clean up the registration
+      String serviceRegisteredFlag = makeRegisteredServiceFlagName(serviceType, serviceName);
+      
+      // Find the end of the list
+      int k = i + 1;
+      String lastResourceName = null;
+      String lastServiceName = null;
+      while (true)
+      {
+        String rName = buildServiceListEntry(serviceType, k);
+        String x = readServiceName(rName);
+        if (x == null)
+          break;
+        lastResourceName = rName;
+        lastServiceName = x;
+        k++;
+      }
+
+      // Rearrange the registration
+      clearGlobalFlag(serviceRegisteredFlag);
+      if (lastServiceName != null)
+        writeServiceName(resourceName, lastServiceName);
+      writeServiceName(lastResourceName, null);
+      return false;
     }
     finally
     {

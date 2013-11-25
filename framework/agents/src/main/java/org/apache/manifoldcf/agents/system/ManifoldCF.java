@@ -198,13 +198,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     }
   }
 
-  protected final static String agentClassLockPrefix = "_AGENTCLASSLOCK_";
-  
-  protected static String getAgentsClassLockName(String agentClassName)
-  {
-    return agentClassLockPrefix + agentClassName;
-  }
-  
   protected static String getAgentsClassServiceType(String agentClassName)
   {
     return agentServicePrefix + agentClassName;
@@ -241,30 +234,8 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
           try
           {
             // Throw a lock, so that cleanup processes and startup processes don't collide.
-            String lockName = getAgentsClassLockName(className);
             String serviceType = getAgentsClassServiceType(className);
-            boolean firstTime;
-            lockManager.enterWriteLock(lockName);
-            try
-            {
-              firstTime = lockManager.registerServiceBeginServiceActivity(serviceType, processID);
-              if (firstTime)
-              {
-                agent.cleanUpAgentData(threadContext);
-                String[] deadAgents = lockManager.getInactiveServices(serviceType);
-                for (String deadAgent : deadAgents)
-                {
-                  lockManager.unregisterService(serviceType, deadAgent);
-                }
-              }
-            }
-            finally
-            {
-              lockManager.leaveWriteLock(lockName);
-            }
-            // Now initialize agent, being sure to clean up data from previous incarnations
-            if (!firstTime)
-              agent.cleanUpAgentData(threadContext, processID);
+            lockManager.registerServiceBeginServiceActivity(serviceType, processID, new CleanupAgent(threadContext, agent));
             // There is a potential race condition where the agent has been started but hasn't yet appeared in runningHash.
             // But having runningHash be the synchronizer for this activity will prevent any problems.
             agent.startAgent(threadContext, processID);
@@ -279,7 +250,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         }
         currentAgentClasses.add(className);
       }
-      
+
       // Go through running hash and look for agents processes that have left
       Iterator<String> runningAgentsIterator = runningHash.keySet().iterator();
       while (runningAgentsIterator.hasNext())
@@ -303,43 +274,27 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
           }
         }
       }
-      
+    }
+
+    if (problem != null)
+      throw problem;
+    
+    synchronized (runningHash)
+    {
       // For every class we're supposed to be running, find registered but no-longer-active instances and clean
       // up after them.
       for (String agentsClass : runningHash.keySet())
       {
         IAgent agent = runningHash.get(agentsClass);
-        // Look for dead service instances for this class.
-        // This cannot happen at the same time as other processes doing this check, or at the same
-        // time as a service of that class starting up, so we need a lock to prevent those situations.
-        String lockName = getAgentsClassLockName(agentsClass);
-        lockManager.enterWriteLock(lockName);
-        try
+        IServiceCleanup cleanup = new CleanupAgent(threadContext, agent);
+        String agentsClassServiceType = getAgentsClassServiceType(agentsClass);
+        while (lockManager.cleanupInactiveService(agentsClassServiceType, cleanup))
         {
-          // Find the derelict agents of this class, clean them up, and deregister them.
-          String agentsClassServiceType = getAgentsClassServiceType(agentsClass);
-          String[] inactiveAgents = lockManager.getInactiveServices(agentsClassServiceType);
-          for (String inactiveAgentProcessID : inactiveAgents)
-          {
-            agent.cleanUpAgentData(threadContext, inactiveAgentProcessID);
-            // Deregister
-            lockManager.unregisterService(agentsClassServiceType, inactiveAgentProcessID);
-          }
-        }
-        catch (ManifoldCFException e)
-        {
-          problem = e;
-        }
-        finally
-        {
-          lockManager.leaveWriteLock(lockName);
+          // Loop until no more inactive services
         }
       }
-
     }
-    if (problem != null)
-      throw problem;
-    // Done.
+    
   }
 
   /** Stop all started agents.
@@ -364,6 +319,51 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       }
     }
     // Done.
+  }
+  
+  protected static class CleanupAgent implements IServiceCleanup
+  {
+    protected final IAgent agent;
+    protected final IThreadContext threadContext;
+    
+    public CleanupAgent(IThreadContext threadContext, IAgent agent)
+    {
+      this.agent = agent;
+      this.threadContext = threadContext;
+    }
+    
+    /** Clean up after the specified service.  This method will block any startup of the specified
+    * service for as long as it runs.
+    *@param serviceName is the name of the service.
+    */
+    @Override
+    public void cleanUpService(String serviceName)
+      throws ManifoldCFException
+    {
+      agent.cleanUpAgentData(threadContext, serviceName);
+    }
+
+    /** Clean up after ALL services of the type on the cluster.
+    */
+    @Override
+    public void cleanUpAllServices()
+      throws ManifoldCFException
+    {
+      agent.cleanUpAgentData(threadContext);
+    }
+    
+    /** Perform cluster initialization - that is, whatever is needed presuming that the
+    * cluster has been down for an indeterminate period of time, but is otherwise in a clean
+    * state.
+    */
+    @Override
+    public void clusterInit()
+      throws ManifoldCFException
+    {
+      // MHL - we really want a separate clusterInit in agents
+      agent.cleanUpAgentData(threadContext);
+    }
+
   }
   
   /** Signal output connection needs redoing.

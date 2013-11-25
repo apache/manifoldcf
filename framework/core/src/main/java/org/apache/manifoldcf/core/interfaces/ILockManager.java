@@ -43,34 +43,33 @@ public interface ILockManager
   * called when the service shuts down.  Some ILockManager implementations require that this take place for
   * proper management.
   * If the transient registration already exists, it is treated as an error and an exception will be thrown.
+  * If registration will succeed, then this method may call an appropriate IServiceCleanup method to clean up either the
+  * current service, or all services on the cluster.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service to register.
-  *@return true if this is the only active service of this type at this time.
+  *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists
   */
-  public boolean registerServiceBeginServiceActivity(String serviceType, String serviceName)
+  public void registerServiceBeginServiceActivity(String serviceType, String serviceName, IServiceCleanup cleanup)
     throws ManifoldCFException;
   
-  /** Un-register a service.
-  * This operation cancels the permanent registration of the specified service.
-  * If the service does not exist, this method will do nothing.
-  *@param serviceType is the type of service.
-  *@param serviceName is the name of the service to unregister.
-  */
-  public void unregisterService(String serviceType, String serviceName)
-    throws ManifoldCFException;
-    
-  /** List all registered services of a given type.
+  /** Count all active services of a given type.
   *@param serviceType is the service type.
-  *@return the service names.
+  *@return the count.
   */
-  public String[] getRegisteredServices(String serviceType)
+  public int countActiveServices(String serviceType)
     throws ManifoldCFException;
   
-  /** List services that are registered but not active.
+  /** Clean up any inactive services found.
+  * Calling this method will invoke cleanup of one inactive service at a time.
+  * If there are no inactive services around, then false will be returned.
+  * Note that this method will block whatever service it finds from starting up
+  * for the time the cleanup is proceeding.  At the end of the cleanup, if
+  * successful, the service will be atomically unregistered.
   *@param serviceType is the service type.
-  *@return the list of service names.
+  *@param cleanup is the object to call to clean up an inactive service.
+  *@return true if there were no cleanup operations necessary.
   */
-  public String[] getInactiveServices(String serviceType)
+  public boolean cleanupInactiveService(String serviceType, IServiceCleanup cleanup)
     throws ManifoldCFException;
 
   /** End service activity.

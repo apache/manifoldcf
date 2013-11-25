@@ -44,17 +44,8 @@ public class AgentStop extends BaseAgentsInitializationCommand
       while (true)
       {
         // Check to see if services are down yet
-        String[] agents = lockManager.getRegisteredServices(AgentRun.agentServiceType);
-        boolean alive = false;
-        for (String agent : agents)
-        {
-          if (lockManager.checkServiceActive(AgentRun.agentServiceType, agent))
-          {
-            alive = true;
-            break;
-          }
-        }
-        if (!alive)
+        int count = lockManager.countActiveServices(AgentRun.agentServiceType);
+        if (count == 0)
           break;
         try
         {
