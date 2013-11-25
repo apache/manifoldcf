@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-822: Use data size as Long value, not int.
+(David Morana, Karl Wright)
+
 CONNECTORS-819: Add missing metadata to JCIFS connector.
 (Graeme Seaton)
 
