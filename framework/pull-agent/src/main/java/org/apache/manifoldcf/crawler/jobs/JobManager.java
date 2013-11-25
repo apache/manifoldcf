@@ -677,12 +677,71 @@ public class JobManager implements IJobManager
       }
     }
   }
-    
+
+  /** Reset the job queue for all process IDs.
+  * If a node was shut down in the middle of doing something, sufficient information should
+  * be around in the database to allow the node's activities to be cleaned up.
+  */
+  @Override
+  public void cleanupProcessData()
+    throws ManifoldCFException
+  {
+    Logging.jobs.debug("Cleaning up all process data");
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Clean up events
+        eventManager.restart();
+        // Clean up job queue
+        jobQueue.restart();
+        // Clean up jobs
+        jobs.restart();
+        // Clean up hopcount stuff
+        hopCount.restart();
+        // Clean up carrydown stuff
+        carryDown.restart();
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        Logging.jobs.debug("Cleanup complete");
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting for restart: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
   /** Prepare to start the entire cluster.
   * If there are no other nodes alive, then at the time the first node comes up, we need to
-  * reset the job queue for ALL processes that had been running before.  This method can
-  * be called in lieu of prepareForStart().
+  * reset the job queue for ALL processes that had been running before.  This method must
+  * be called in addition to cleanupProcessData().
   */
+  @Override
   public void prepareForClusterStart()
     throws ManifoldCFException
   {

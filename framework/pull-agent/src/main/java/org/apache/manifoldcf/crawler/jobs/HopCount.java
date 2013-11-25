@@ -310,6 +310,14 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     intrinsicLinkManager.restart(processID);
   }
 
+  /** Clean up after all process IDs.
+  */
+  public void restart()
+    throws ManifoldCFException
+  {
+    intrinsicLinkManager.restart();
+  }
+  
   /** Restart entire cluster.
   */
   public void restartCluster()

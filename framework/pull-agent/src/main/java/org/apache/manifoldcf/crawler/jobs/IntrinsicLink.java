@@ -204,9 +204,9 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,"WHERE "+query,list,null);
   }
 
-  /** Restart entire cluster.
+  /** Clean up after all process IDs
   */
-  public void restartCluster()
+  public void restart()
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
@@ -217,6 +217,12 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         statusToString(LINKSTATUS_NEW),
         statusToString(LINKSTATUS_EXISTING)})});
     performUpdate(map,"WHERE "+query,list,null);
+  }
+  
+  public void restartCluster()
+    throws ManifoldCFException
+  {
+    // Does nothing
   }
   
   /** Record a references from source to targets.  These references will be marked as either "new" or "existing".

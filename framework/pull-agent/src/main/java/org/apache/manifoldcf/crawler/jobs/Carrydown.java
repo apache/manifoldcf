@@ -229,9 +229,9 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,"WHERE "+query,list,null);
   }
 
-  /** Reset, at startup time, entire cluster
+  /** Clean up after all process IDs.
   */
-  public void restartCluster()
+  public void restart()
     throws ManifoldCFException
   {
     // Delete "new" rows
@@ -247,6 +247,14 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(newField,statusToString(ISNEW_EXISTING))});
     performUpdate(map,"WHERE "+query,list,null);
+  }
+  
+  /** Reset, at startup time, entire cluster
+  */
+  public void restartCluster()
+    throws ManifoldCFException
+  {
+    // Does nothing
   }
 
   /** Add carrydown data for a given parent/child pair.

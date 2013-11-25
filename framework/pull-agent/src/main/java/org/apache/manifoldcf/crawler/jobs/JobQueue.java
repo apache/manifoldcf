@@ -419,9 +419,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     TrackerClass.noteGlobalChange("Restart");
   }
 
-  /** Restart for entire cluster.
+  /** Cleanup after all processIDs.
   */
-  public void restartCluster()
+  public void restart()
     throws ManifoldCFException
   {
     // Map ACTIVE back to PENDING.
@@ -472,20 +472,26 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED))});
     performUpdate(map,"WHERE "+query,list,null);
 
-    // Clear out all failtime fields (since we obviously haven't been retrying whilst we were not
-    // running)
-    map.clear();
-    map.put(failTimeField,null);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new NullCheckClause(failTimeField,false)});
-    performUpdate(map,"WHERE "+query,list,null);
-
     // Reindex the jobqueue table, since we've probably made lots of bad tuples doing the above operations.
     reindexTable();
     unconditionallyAnalyzeTables();
 
     TrackerClass.noteGlobalChange("Restart cluster");
+  }
+  
+  /** Restart for entire cluster.
+  */
+  public void restartCluster()
+    throws ManifoldCFException
+  {
+    // Clear out all failtime fields (since we obviously haven't been retrying whilst we were not
+    // running)
+    HashMap map = new HashMap();
+    map.put(failTimeField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new NullCheckClause(failTimeField,false)});
+    performUpdate(map,"WHERE "+query,list,null);
   }
   
   /** Flip all records for a job that have status HOPCOUNTREMOVED back to PENDING.

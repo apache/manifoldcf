@@ -60,6 +60,12 @@ public interface IAgent
   public void deinstall(IThreadContext threadContext)
     throws ManifoldCFException;
 
+  /** Called ONLY when no other active services of this kind are running.  Meant to be
+  * used after the cluster has been down for an indeterminate period of time.
+  */
+  public void clusterInit(IThreadContext threadContext)
+    throws ManifoldCFException;
+    
   /** Cleanup after ALL agents processes.
   * Call this method to clean up dangling persistent state when a cluster is just starting
   * to come up.  This method CANNOT be called when there are any active agents

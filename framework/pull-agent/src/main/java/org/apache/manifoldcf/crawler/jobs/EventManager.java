@@ -130,12 +130,20 @@ public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
     performDelete("WHERE "+query,null,null);
   }
 
+  /** Clean up after all processIDs.
+  */
+  public void restart()
+    throws ManifoldCFException
+  {
+    performDelete("",null,null);
+  }
+  
   /** Restart cluster.
   */
   public void restartCluster()
     throws ManifoldCFException
   {
-    performDelete("",null,null);
+    // Does nothing
   }
   
   /** Atomically create an event - and return false if the event already exists */

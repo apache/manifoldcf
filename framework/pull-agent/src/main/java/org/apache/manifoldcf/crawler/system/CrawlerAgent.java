@@ -125,6 +125,17 @@ public class CrawlerAgent implements IAgent
     ManifoldCF.deinstallSystemTables(threadContext);
   }
 
+  /** Called ONLY when no other active services of this kind are running.  Meant to be
+  * used after the cluster has been down for an indeterminate period of time.
+  */
+  @Override
+  public void clusterInit(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    jobManager.prepareForClusterStart();
+  }
+
   /** Cleanup after ALL agents processes.
   * Call this method to clean up dangling persistent state when a cluster is just starting
   * to come up.  This method CANNOT be called when there are any active agents
@@ -135,7 +146,7 @@ public class CrawlerAgent implements IAgent
     throws ManifoldCFException
   {
     IJobManager jobManager = JobManagerFactory.make(threadContext);
-    jobManager.prepareForClusterStart();
+    jobManager.cleanupProcessData();
   }
   
   /** Cleanup after agents process.
@@ -150,7 +161,6 @@ public class CrawlerAgent implements IAgent
     throws ManifoldCFException
   {
     IJobManager jobManager = JobManagerFactory.make(threadContext);
-    // This replaces prepareForStart(), and is always called before system starts
     jobManager.cleanupProcessData(processID);
   }
 

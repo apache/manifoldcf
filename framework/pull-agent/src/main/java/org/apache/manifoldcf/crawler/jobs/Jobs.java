@@ -1061,9 +1061,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
-  /** This method is called on a restart of the entire cluster.
+  /** Clean up after all process IDs.
   */
-  public void restartCluster()
+  public void restart()
     throws ManifoldCFException
   {
     StringSet invKey = new StringSet(getJobStatusKey());
@@ -1208,6 +1208,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
 
+  }
+
+  public void restartCluster()
+    throws ManifoldCFException
+  {
+    // Does nothing
   }
 
   /** Signal to a job that its underlying output connector has gone away.
