@@ -162,7 +162,7 @@ public class OutputConnectorFactory
     catch (NoSuchMethodException e)
     {
       throw new ManifoldCFException("No appropriate constructor for IOutputConnector implementation '"+
-        className+"'.  Need xxx(ConfigParams).",
+        className+"'.  Need xxx().",
         e);
     }
     catch (SecurityException e)

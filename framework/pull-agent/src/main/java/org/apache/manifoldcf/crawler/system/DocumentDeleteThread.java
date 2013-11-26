@@ -44,22 +44,26 @@ public class DocumentDeleteThread extends Thread
 
 
   // Local data
-  protected String id;
-  // This is a reference to the static main document queue
-  protected DocumentDeleteQueue documentDeleteQueue;
+  /** Thread ID */
+  protected final String id;
+  /** This is a reference to the static main document queue */
+  protected final DocumentDeleteQueue documentDeleteQueue;
   /** Delete thread pool reset manager */
-  protected DocDeleteResetManager resetManager;
+  protected final DocDeleteResetManager resetManager;
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   *@param id is the worker thread id.
   */
-  public DocumentDeleteThread(String id, DocumentDeleteQueue documentDeleteQueue, DocDeleteResetManager resetManager)
+  public DocumentDeleteThread(String id, DocumentDeleteQueue documentDeleteQueue, DocDeleteResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     this.id = id;
     this.documentDeleteQueue = documentDeleteQueue;
     this.resetManager = resetManager;
+    this.processID = processID;
     setName("Document delete thread '"+id+"'");
     setDaemon(true);
   }

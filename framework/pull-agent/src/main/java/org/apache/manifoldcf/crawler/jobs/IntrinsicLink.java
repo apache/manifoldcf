@@ -37,6 +37,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
  * <tr><td>parentidhash</td><td>VARCHAR(40)</td><td></td></tr>
  * <tr><td>childidhash</td><td>VARCHAR(40)</td><td></td></tr>
  * <tr><td>isnew</td><td>CHAR(1)</td><td></td></tr>
+ * <tr><td>processid</td><td>VARCHAR(16)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -61,6 +62,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   public static final String parentIDHashField = "parentidhash";
   public static final String childIDHashField = "childidhash";
   public static final String newField = "isnew";
+  public static final String processIDField = "processid";
 
   // Map from string character to link status
   protected static Map linkstatusMap;
@@ -99,17 +101,24 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         map.put(parentIDHashField,new ColumnDescription("VARCHAR(40)",false,false,null,null,false));
         map.put(childIDHashField,new ColumnDescription("VARCHAR(40)",false,true,null,null,false));
         map.put(newField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
+        map.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
         performCreate(map,null);
       }
       else
       {
         // Perform upgrade, if needed.
+        if (existing.get(processIDField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+        }
       }
 
       // Indexes
       IndexDescription uniqueIndex = new IndexDescription(true,new String[]{jobIDField,parentIDHashField,linkTypeField,childIDHashField});
       IndexDescription jobChildNewIndex = new IndexDescription(false,new String[]{jobIDField,childIDHashField,newField});
-      IndexDescription newIndex = new IndexDescription(false,new String[]{newField});
+      IndexDescription newIndex = new IndexDescription(false,new String[]{newField,processIDField});
 
       Map indexes = getTableIndexes(null,null);
       Iterator iter = indexes.keySet().iterator();
@@ -179,8 +188,25 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   * of documents, and cached records of hopcount are updated only when requested, it is safest to simply
   * move any "new" or "new existing" links back to base state on startup.  Then, the next time that page
   * is processed, the links will be updated properly.
+  *@param processID is the process to restart.
   */
-  public void reset()
+  public void restart(String processID)
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    map.put(newField,statusToString(LINKSTATUS_BASE));
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(newField,new Object[]{
+        statusToString(LINKSTATUS_NEW),
+        statusToString(LINKSTATUS_EXISTING)}),
+      new UnitaryClause(processIDField,processID)});
+    performUpdate(map,"WHERE "+query,list,null);
+  }
+
+  /** Clean up after all process IDs
+  */
+  public void restart()
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
@@ -192,11 +218,18 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         statusToString(LINKSTATUS_EXISTING)})});
     performUpdate(map,"WHERE "+query,list,null);
   }
-
+  
+  public void restartCluster()
+    throws ManifoldCFException
+  {
+    // Does nothing
+  }
+  
   /** Record a references from source to targets.  These references will be marked as either "new" or "existing".
   *@return the target document ID's that are considered "new".
   */
-  public String[] recordReferences(Long jobID, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType)
+  public String[] recordReferences(Long jobID, String sourceDocumentIDHash,
+    String[] targetDocumentIDHashes, String linkType, String processID)
     throws ManifoldCFException
   {
     HashMap duplicateRemoval = new HashMap();
@@ -253,6 +286,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         map.put(childIDHashField,sourceDocumentIDHash);
         map.put(linkTypeField,linkType);
         map.put(newField,statusToString(LINKSTATUS_NEW));
+        map.put(processIDField,processID);
         performInsert(map,null);
         noteModifications(1,0,0);
       }
@@ -260,6 +294,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       {
         HashMap map = new HashMap();
         map.put(newField,statusToString(LINKSTATUS_EXISTING));
+        map.put(processIDField,processID);
         ArrayList updateList = new ArrayList();
         String query = buildConjunctionClause(updateList,new ClauseDescription[]{
           new UnitaryClause(jobIDField,jobID),
@@ -470,6 +505,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(newField,statusToString(LINKSTATUS_BASE));
+    map.put(processIDField,null);
     
     StringBuilder sb = new StringBuilder("WHERE ");
     ArrayList newList = new ArrayList();

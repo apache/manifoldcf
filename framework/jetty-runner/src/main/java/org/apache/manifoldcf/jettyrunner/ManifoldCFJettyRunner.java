@@ -50,8 +50,6 @@ public class ManifoldCFJettyRunner
   public static final String useJettyParentClassLoaderProperty = "org.apache.manifoldcf.usejettyparentclassloader";
   public static final String jettyPortProperty = "org.apache.manifoldcf.jettyport";
   
-  public static final String agentShutdownSignal = org.apache.manifoldcf.agents.AgentRun.agentShutdownSignal;
-  
   protected Server server;
   
   public ManifoldCFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath, boolean useParentLoader )
@@ -138,26 +136,10 @@ public class ManifoldCFJettyRunner
   public static void runAgents(IThreadContext tc)
     throws ManifoldCFException
   {
-    ILockManager lockManager = LockManagerFactory.make(tc);
-
-    while (true)
-    {
-      // Any shutdown signal yet?
-      if (lockManager.checkGlobalFlag(agentShutdownSignal))
-        break;
-          
-      // Start whatever agents need to be started
-      ManifoldCF.startAgents(tc);
-
-      try
-      {
-        ManifoldCF.sleep(5000);
-      }
-      catch (InterruptedException e)
-      {
-        break;
-      }
-    }
+    String processID = ManifoldCF.getProcessID();
+    // Do this so we don't have to call stopAgents() ourselves.
+    ManifoldCF.registerAgentsShutdownHook(tc, processID);
+    ManifoldCF.runAgents(tc, processID);
   }
 
   /**
@@ -216,8 +198,7 @@ public class ManifoldCFJettyRunner
       if (useParentClassLoader)
       {
         // Clear the agents shutdown signal.
-        ILockManager lockManager = LockManagerFactory.make(tc);
-        lockManager.clearGlobalFlag(agentShutdownSignal);
+        ManifoldCF.clearAgentsShutdownSignal(tc);
         
         // Do the basic initialization of the database and its schema
         ManifoldCF.createSystemDatabase(tc);

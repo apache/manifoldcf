@@ -534,7 +534,7 @@ public class JobManager implements IJobManager
       throw new ManifoldCFException("Job "+id+" is active; you must shut it down before deleting it");
       if (status != jobs.STATUS_INACTIVE)
         throw new ManifoldCFException("Job "+id+" is busy; you must wait and/or shut it down before deleting it");
-      jobs.writeStatus(id,jobs.STATUS_READYFORDELETE);
+      jobs.writePermanentStatus(id,jobs.STATUS_READYFORDELETE);
       if (Logging.jobs.isDebugEnabled())
         Logging.jobs.debug("Job "+id+" marked for deletion");
     }
@@ -620,18 +620,15 @@ public class JobManager implements IJobManager
   // The job queue is maintained underneath this interface, and all threads that perform
   // job activities need to go through this layer.
 
-  /** Reset the job queue immediately after starting up.
-  * If the system was shut down in the middle of a job, sufficient information should
-  * be around in the database to allow it to restart.  However, BEFORE all the job threads
-  * are spun up, there needs to be a pass over the queue to bring things back to a "normal"
-  * state.
-  * Also, if a job's status is in a state that indicates it was being processed by a thread
-  * (which is now dead), then we have to set that status back to previous value.
+  /** Reset the job queue for an individual process ID.
+  * If a node was shut down in the middle of doing something, sufficient information should
+  * be around in the database to allow the node's activities to be cleaned up.
+  *@param processID is the process ID of the node we want to clean up after.
   */
-  public void prepareForStart()
+  public void cleanupProcessData(String processID)
     throws ManifoldCFException
   {
-    Logging.jobs.debug("Resetting due to restart");
+    Logging.jobs.debug("Cleaning up process data for process '"+processID+"'");
     while (true)
     {
       long sleepAmt = 0L;
@@ -639,19 +636,19 @@ public class JobManager implements IJobManager
       try
       {
         // Clean up events
-        eventManager.restart();
+        eventManager.restart(processID);
         // Clean up job queue
-        jobQueue.restart();
+        jobQueue.restart(processID);
         // Clean up jobs
-        jobs.restart();
+        jobs.restart(processID);
         // Clean up hopcount stuff
-        hopCount.reset();
+        hopCount.restart(processID);
         // Clean up carrydown stuff
-        carryDown.reset();
+        carryDown.restart(processID);
         TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
-        Logging.jobs.debug("Reset complete");
+        Logging.jobs.debug("Cleanup complete");
         break;
       }
       catch (ManifoldCFException e)
@@ -681,9 +678,128 @@ public class JobManager implements IJobManager
     }
   }
 
-  /** Reset as part of restoring document worker threads.
+  /** Reset the job queue for all process IDs.
+  * If a node was shut down in the middle of doing something, sufficient information should
+  * be around in the database to allow the node's activities to be cleaned up.
   */
-  public void resetDocumentWorkerStatus()
+  @Override
+  public void cleanupProcessData()
+    throws ManifoldCFException
+  {
+    Logging.jobs.debug("Cleaning up all process data");
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Clean up events
+        eventManager.restart();
+        // Clean up job queue
+        jobQueue.restart();
+        // Clean up jobs
+        jobs.restart();
+        // Clean up hopcount stuff
+        hopCount.restart();
+        // Clean up carrydown stuff
+        carryDown.restart();
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        Logging.jobs.debug("Cleanup complete");
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting for restart: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
+  /** Prepare to start the entire cluster.
+  * If there are no other nodes alive, then at the time the first node comes up, we need to
+  * reset the job queue for ALL processes that had been running before.  This method must
+  * be called in addition to cleanupProcessData().
+  */
+  @Override
+  public void prepareForClusterStart()
+    throws ManifoldCFException
+  {
+    Logging.jobs.debug("Starting cluster");
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Clean up events
+        eventManager.restartCluster();
+        // Clean up job queue
+        jobQueue.restartCluster();
+        // Clean up jobs
+        jobs.restartCluster();
+        // Clean up hopcount stuff
+        hopCount.restartCluster();
+        // Clean up carrydown stuff
+        carryDown.restartCluster();
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        Logging.jobs.debug("Cluster start complete");
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction starting cluster: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
+  /** Reset as part of restoring document worker threads.
+  *@param processID is the current process ID.
+  */
+  @Override
+  public void resetDocumentWorkerStatus(String processID)
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting document active status");
@@ -693,7 +809,7 @@ public class JobManager implements IJobManager
       database.beginTransaction();
       try
       {
-        jobQueue.resetDocumentWorkerStatus();
+        jobQueue.resetDocumentWorkerStatus(processID);
         TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
@@ -728,66 +844,294 @@ public class JobManager implements IJobManager
   }
 
   /** Reset as part of restoring seeding threads.
+  *@param processID is the current process ID.
   */
-  public void resetSeedingWorkerStatus()
+  @Override
+  public void resetSeedingWorkerStatus(String processID)
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting seeding status");
-    jobs.resetSeedingWorkerStatus();
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.resetSeedingWorkerStatus(processID);
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting seeding worker status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
   /** Reset as part of restoring doc delete threads.
+  *@param processID is the current process ID.
   */
-  public void resetDocDeleteWorkerStatus()
+  @Override
+  public void resetDocDeleteWorkerStatus(String processID)
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting doc deleting status");
-    TrackerClass.notePrecommit();
-    jobQueue.resetDocDeleteWorkerStatus();
-    TrackerClass.noteCommit();
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobQueue.resetDocDeleteWorkerStatus(processID);
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting doc deleting worker status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
   /** Reset as part of restoring doc cleanup threads.
+  *@param processID is the current process ID.
   */
-  public void resetDocCleanupWorkerStatus()
+  @Override
+  public void resetDocCleanupWorkerStatus(String processID)
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting doc cleaning status");
-    TrackerClass.notePrecommit();
-    jobQueue.resetDocCleanupWorkerStatus();
-    TrackerClass.noteCommit();
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobQueue.resetDocCleanupWorkerStatus(processID);
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting doc cleaning status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
   /** Reset as part of restoring delete startup threads.
+  *@param processID is the current process ID.
   */
-  public void resetDeleteStartupWorkerStatus()
+  @Override
+  public void resetDeleteStartupWorkerStatus(String processID)
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting job delete starting up status");
-    jobs.resetDeleteStartupWorkerStatus();
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.resetDeleteStartupWorkerStatus(processID);
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting job delete starting up status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
   /** Reset as part of restoring notification threads.
   */
-  public void resetNotificationWorkerStatus()
+  @Override
+  public void resetNotificationWorkerStatus(String processID)
     throws ManifoldCFException
   {
-    Logging.jobs.debug("Resetting notification up status");
-    jobs.resetNotificationWorkerStatus();
+    Logging.jobs.debug("Resetting notification worker status");
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.resetNotificationWorkerStatus(processID);
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting notification worker status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
   /** Reset as part of restoring startup threads.
   */
-  public void resetStartupWorkerStatus()
+  @Override
+  public void resetStartupWorkerStatus(String processID)
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting job starting up status");
-    jobs.resetStartupWorkerStatus();
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.resetStartupWorkerStatus(processID);
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting job starting up status: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     Logging.jobs.debug("Reset complete");
   }
 
@@ -811,11 +1155,13 @@ public class JobManager implements IJobManager
   * is returned will be transitioned to the "beingcleaned" state.  Documents which are
   * not in transition and are eligible, but are owned by other jobs, will have their
   * jobqueue entries deleted by this method.
+  *@param processID is the current process ID.
   *@param maxCount is the maximum number of documents to return.
   *@param currentTime is the current time; some fetches do not occur until a specific time.
   *@return the document descriptions for these documents.
   */
-  public DocumentSetAndFlags getNextCleanableDocuments(int maxCount, long currentTime)
+  @Override
+  public DocumentSetAndFlags getNextCleanableDocuments(String processID, int maxCount, long currentTime)
     throws ManifoldCFException
   {
     // The query will be built here, because it joins the jobs table against the jobqueue
@@ -1014,7 +1360,7 @@ public class JobManager implements IJobManager
             rvalBoolean[i] = (allowedDocIds.get(compositeDocID) != null);
             // Set the record status to "being cleaned" and return it
             rval[i++] = dd;
-            jobQueue.setCleaningStatus(dd.getID());
+            jobQueue.setCleaningStatus(dd.getID(),processID);
           }
 
           TrackerClass.notePrecommit();
@@ -1072,11 +1418,14 @@ public class JobManager implements IJobManager
   * is returned will be transitioned to the "beingdeleted" state.  Documents which are
   * not in transition and are eligible, but are owned by other jobs, will have their
   * jobqueue entries deleted by this method.
+  *@param processID is the current process ID.
   *@param maxCount is the maximum number of documents to return.
   *@param currentTime is the current time; some fetches do not occur until a specific time.
   *@return the document descriptions for these documents.
   */
-  public DocumentDescription[] getNextDeletableDocuments(int maxCount, long currentTime)
+  @Override
+  public DocumentDescription[] getNextDeletableDocuments(String processID,
+    int maxCount, long currentTime)
     throws ManifoldCFException
   {
     // The query will be built here, because it joins the jobs table against the jobqueue
@@ -1287,7 +1636,7 @@ public class JobManager implements IJobManager
             {
               // Set the record status to "being deleted" and return it
               rval[j++] = dd;
-              jobQueue.setDeletingStatus(dd.getID());
+              jobQueue.setDeletingStatus(dd.getID(),processID);
             }
             i++;
           }
@@ -1662,11 +2011,13 @@ public class JobManager implements IJobManager
   * The same marking is used as is used for documents that have been queued for worker threads.  The model
   * is thus identical.
   *
+  *@param processID is the current process ID.
   *@param n is the maximum number of records desired.
   *@param currentTime is the current time.
   *@return the array of document descriptions to expire.
   */
-  public DocumentSetAndFlags getExpiredDocuments(int n, long currentTime)
+  @Override
+  public DocumentSetAndFlags getExpiredDocuments(String processID, int n, long currentTime)
     throws ManifoldCFException
   {
     // Screening query
@@ -1865,7 +2216,7 @@ public class JobManager implements IJobManager
             rvalBoolean[i] = (allowedDocIds.get(compositeDocID) != null);
             // Set the record status to "being cleaned" and return it
             rval[i++] = dd;
-            jobQueue.updateActiveRecord(dd.getID(),((Integer)statusMap.get(compositeDocID)).intValue());
+            jobQueue.updateActiveRecord(dd.getID(),((Integer)statusMap.get(compositeDocID)).intValue(),processID);
           }
 
           TrackerClass.notePrecommit();
@@ -1915,6 +2266,7 @@ public class JobManager implements IJobManager
   * pertaining to the document's handling (e.g. whether it should be refetched if the version
   * has not changed).
   * This method also marks the documents whose descriptions have be returned as "being processed".
+  *@param processID is the current process ID.
   *@param n is the maximum number of records desired.
   *@param currentTime is the current time; some fetches do not occur until a specific time.
   *@param interval is the number of milliseconds that this set of documents should represent (for throttling).
@@ -1926,7 +2278,9 @@ public class JobManager implements IJobManager
   * to being overcommitted.
   *@return the array of document descriptions to fetch and process.
   */
-  public DocumentDescription[] getNextDocuments(int n, long currentTime, long interval,
+  @Override
+  public DocumentDescription[] getNextDocuments(String processID,
+    int n, long currentTime, long interval,
     BlockingDocuments blockingDocuments, PerformanceStatistics statistics,
     DepthStatistics scanRecord)
     throws ManifoldCFException
@@ -2128,7 +2482,7 @@ public class JobManager implements IJobManager
       if (jobs.hasPriorityJobs(currentPriority))
       {
         Long currentPriorityValue = new Long((long)currentPriority);
-        fetchAndProcessDocuments(answers,currentTimeValue,currentPriorityValue,vList,connections);
+        fetchAndProcessDocuments(answers,currentTimeValue,currentPriorityValue,vList,connections,processID);
         isDone = !vList.checkContinue();
       }
       currentPriority++;
@@ -2205,7 +2559,7 @@ public class JobManager implements IJobManager
 
   /** Fetch and process documents matching the passed-in criteria */
   protected void fetchAndProcessDocuments(ArrayList answers, Long currentTimeValue, Long currentPriorityValue,
-    ThrottleLimit vList, IRepositoryConnection[] connections)
+    ThrottleLimit vList, IRepositoryConnection[] connections, String processID)
     throws ManifoldCFException
   {
 
@@ -2384,7 +2738,7 @@ public class JobManager implements IJobManager
               int status = ((Integer)statusMap.get(docIDHash)).intValue();
 
               // Set status to "ACTIVE".
-              jobQueue.updateActiveRecord(id,status);
+              jobQueue.updateActiveRecord(id,status,processID);
 
               answers.add(dd);
 
@@ -3066,7 +3420,7 @@ public class JobManager implements IJobManager
         i = 0;
         while (i < ids.length)
         {
-          jobQueue.setStatus(ids[i],jobQueue.STATUS_PENDINGPURGATORY,executeTimesNew[i],actionsNew[i],-1L,-1);
+          jobQueue.setRequeuedStatus(ids[i],executeTimesNew[i],actionsNew[i],-1L,-1);
           i++;
         }
 
@@ -3193,7 +3547,7 @@ public class JobManager implements IJobManager
         i = 0;
         while (i < ids.length)
         {
-          jobQueue.setStatus(ids[i],jobQueue.STATUS_PENDINGPURGATORY,executeTimes[i],actions[i],(failTimes==null)?-1L:failTimes[i],(failCounts==null)?-1:failCounts[i]);
+          jobQueue.setRequeuedStatus(ids[i],executeTimes[i],actions[i],(failTimes==null)?-1L:failTimes[i],(failCounts==null)?-1:failCounts[i]);
           i++;
         }
 
@@ -3497,6 +3851,7 @@ public class JobManager implements IJobManager
   * This method is called during job startup, when the queue is being loaded.
   * A set of document references is passed to this method, which updates the status of the document
   * in the specified job's queue, according to specific state rules.
+  *@param processID is the current process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDs are the local document identifiers.
@@ -3507,7 +3862,8 @@ public class JobManager implements IJobManager
   *@param prereqEventNames are the events that must be completed before each document can be processed.
   *@return true if the priority value(s) were used, false otherwise.
   */
-  public boolean[] addDocumentsInitial(Long jobID, String[] legalLinkTypes,
+  @Override
+  public boolean[] addDocumentsInitial(String processID, Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs, boolean overrideSchedule,
     int hopcountMethod, long currentTime, double[] documentPriorities,
     String[][] prereqEventNames)
@@ -3600,12 +3956,12 @@ public class JobManager implements IJobManager
             int status = jobQueue.stringToStatus((String)row.getValue(jobQueue.statusField));
             Long checkTimeValue = (Long)row.getValue(jobQueue.checkTimeField);
 
-            priorityUsed = jobQueue.updateExistingRecordInitial(rowID,status,checkTimeValue,executeTime,currentTime,docPriority,docPrereqs);
+            priorityUsed = jobQueue.updateExistingRecordInitial(rowID,status,checkTimeValue,executeTime,currentTime,docPriority,docPrereqs,processID);
           }
           else
           {
             // Not found.  Attempt an insert instead.  This may fail due to constraints, but if this happens, the whole transaction will be retried.
-            jobQueue.insertNewRecordInitial(jobID,docIDHash,docID,docPriority,executeTime,currentTime,docPrereqs);
+            jobQueue.insertNewRecordInitial(jobID,docIDHash,docID,docPriority,executeTime,currentTime,docPrereqs,processID);
             priorityUsed = true;
           }
 
@@ -3617,7 +3973,7 @@ public class JobManager implements IJobManager
           " initial docs for job "+jobID.toString());
 
         if (legalLinkTypes.length > 0)
-          hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod);
+          hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod,processID);
 
         TrackerClass.notePrecommit();
         database.performCommit();
@@ -3671,12 +4027,15 @@ public class JobManager implements IJobManager
   * This method is called during job startup, when the queue is being loaded, to list documents that
   * were NOT included by calling addDocumentsInitial().  Documents listed here are simply designed to
   * enable the framework to get rid of old, invalid seeds.  They are not queued for processing.
+  *@param processID is the current process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHashes are the local document identifier hashes.
   *@param hopcountMethod is either accurate, nodelete, or neverdelete.
   */
-  public void addRemainingDocumentsInitial(Long jobID, String[] legalLinkTypes, String[] docIDHashes,
+  @Override
+  public void addRemainingDocumentsInitial(String processID,
+    Long jobID, String[] legalLinkTypes, String[] docIDHashes,
     int hopcountMethod)
     throws ManifoldCFException
   {
@@ -3704,9 +4063,9 @@ public class JobManager implements IJobManager
           Logging.perf.debug("Waited "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to start adding "+Integer.toString(reorderedDocIDHashes.length)+
           " remaining docs and hopcounts for job "+jobID.toString());
 
-        jobQueue.addRemainingDocumentsInitial(jobID,reorderedDocIDHashes);
+        jobQueue.addRemainingDocumentsInitial(jobID,reorderedDocIDHashes,processID);
         if (legalLinkTypes.length > 0)
-          hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod);
+          hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod,processID);
 
         database.performCommit();
         
@@ -4014,6 +4373,7 @@ public class JobManager implements IJobManager
   * This method is called during document processing, when a set of document references are discovered.
   * The document references are passed to this method, which updates the status of the document(s)
   * in the specified job's queue, according to specific state rules.
+  *@param processID is the process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHashes are the local document identifier hashes.
@@ -4030,7 +4390,9 @@ public class JobManager implements IJobManager
   *@param prereqEventNames are the events that must be completed before a document can be queued.
   *@return an array of boolean values indicating whether or not the passed-in priority value was used or not for each doc id (true if used).
   */
-  public boolean[] addDocuments(Long jobID, String[] legalLinkTypes,
+  @Override
+  public boolean[] addDocuments(String processID,
+    Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs,
     String parentIdentifierHash, String relationshipType,
     int hopcountMethod, String[][] dataNames, Object[][][] dataValues,
@@ -4217,12 +4579,12 @@ public class JobManager implements IJobManager
         }
 
         // Update all the carrydown data at once, for greatest efficiency.
-        boolean[] carrydownChangesSeen = carryDown.recordCarrydownDataMultiple(jobID,parentIdentifierHash,reorderedDocIDHashes,dataNames,dataHashValues,dataValues);
+        boolean[] carrydownChangesSeen = carryDown.recordCarrydownDataMultiple(jobID,parentIdentifierHash,reorderedDocIDHashes,dataNames,dataHashValues,dataValues,processID);
 
         // Same with hopcount.
         boolean[] hopcountChangesSeen = null;
         if (parentIdentifierHash != null && relationshipType != null)
-          hopcountChangesSeen = hopCount.recordReferences(jobID,legalLinkTypes,parentIdentifierHash,reorderedDocIDHashes,relationshipType,hopcountMethod);
+          hopcountChangesSeen = hopCount.recordReferences(jobID,legalLinkTypes,parentIdentifierHash,reorderedDocIDHashes,relationshipType,hopcountMethod,processID);
 
         // Loop through the document id's again, and perform updates where needed
         boolean[] reorderedRval = new boolean[reorderedDocIDHashes.length];
@@ -4312,6 +4674,7 @@ public class JobManager implements IJobManager
   * This method is called during document processing, when a document reference is discovered.
   * The document reference is passed to this method, which updates the status of the document
   * in the specified job's queue, according to specific state rules.
+  *@param processID is the process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHash is the local document identifier hash value.
@@ -4327,13 +4690,15 @@ public class JobManager implements IJobManager
   *@param prereqEventNames are the events that must be completed before the document can be processed.
   *@return true if the priority value was used, false otherwise.
   */
-  public boolean addDocument(Long jobID, String[] legalLinkTypes, String docIDHash, String docID,
+  @Override
+  public boolean addDocument(String processID,
+    Long jobID, String[] legalLinkTypes, String docIDHash, String docID,
     String parentIdentifierHash, String relationshipType,
     int hopcountMethod, String[] dataNames, Object[][] dataValues,
     long currentTime, double priority, String[] prereqEventNames)
     throws ManifoldCFException
   {
-    return addDocuments(jobID,legalLinkTypes,
+    return addDocuments(processID,jobID,legalLinkTypes,
       new String[]{docIDHash},new String[]{docID},
       parentIdentifierHash,relationshipType,hopcountMethod,new String[][]{dataNames},
       new Object[][][]{dataValues},currentTime,new double[]{priority},new String[][]{prereqEventNames})[0];
@@ -4559,15 +4924,17 @@ public class JobManager implements IJobManager
   }
 
   /** Begin an event sequence.
+  *@param processID is the current process ID.
   *@param eventName is the name of the event.
   *@return true if the event could be created, or false if it's already there.
   */
-  public boolean beginEventSequence(String eventName)
+  @Override
+  public boolean beginEventSequence(String processID, String eventName)
     throws ManifoldCFException
   {
     try
     {
-      eventManager.createEvent(eventName);
+      eventManager.createEvent(eventName,processID);
       return true;
     }
     catch (ManifoldCFException e)
@@ -5947,10 +6314,12 @@ public class JobManager implements IJobManager
   }
 
   /** Get the list of jobs that are ready for seeding.
+  *@param processID is the current process ID.
   *@return jobs that are active and are running in adaptive mode.  These will be seeded
   * based on what the connector says should be added to the queue.
   */
-  public JobSeedingRecord[] getJobsReadyForSeeding(long currentTime)
+  @Override
+  public JobSeedingRecord[] getJobsReadyForSeeding(String processID, long currentTime)
     throws ManifoldCFException
   {
     while (true)
@@ -5998,7 +6367,7 @@ public class JobManager implements IJobManager
 
           // Mark status of job as "active/seeding".  Special status is needed so that abort
           // will not complete until seeding is completed.
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVESEEDING,reseedTime);
+          jobs.writeTransientStatus(jobID,jobs.STATUS_ACTIVESEEDING,reseedTime,processID);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Marked job "+jobID+" for seeding");
@@ -6036,9 +6405,11 @@ public class JobManager implements IJobManager
   }
 
   /** Get the list of jobs that are ready for deletion.
+  *@param processID is the current process ID.
   *@return jobs that were in the "readyfordelete" state.
   */
-  public JobDeleteRecord[] getJobsReadyForDelete()
+  @Override
+  public JobDeleteRecord[] getJobsReadyForDelete(String processID)
     throws ManifoldCFException
   {
     while (true)
@@ -6066,7 +6437,7 @@ public class JobManager implements IJobManager
           Long jobID = (Long)row.getValue(jobs.idField);
 
           // Mark status of job as "starting delete"
-          jobs.writeStatus(jobID,jobs.STATUS_DELETESTARTINGUP);
+          jobs.writeTransientStatus(jobID,jobs.STATUS_DELETESTARTINGUP,processID);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Marked job "+jobID+" for delete startup");
@@ -6104,9 +6475,11 @@ public class JobManager implements IJobManager
   }
 
   /** Get the list of jobs that are ready for startup.
+  *@param processID is the current process ID.
   *@return jobs that were in the "readyforstartup" state.  These will be marked as being in the "starting up" state.
   */
-  public JobStartRecord[] getJobsReadyForStartup()
+  @Override
+  public JobStartRecord[] getJobsReadyForStartup(String processID)
     throws ManifoldCFException
   {
     while (true)
@@ -6147,7 +6520,7 @@ public class JobManager implements IJobManager
             synchTime = x.longValue();
 
           // Mark status of job as "starting"
-          jobs.writeStatus(jobID,requestMinimum?jobs.STATUS_STARTINGUPMINIMAL:jobs.STATUS_STARTINGUP);
+          jobs.writeTransientStatus(jobID,requestMinimum?jobs.STATUS_STARTINGUPMINIMAL:jobs.STATUS_STARTINGUP,processID);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Marked job "+jobID+" for startup");
@@ -6284,7 +6657,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForDelete' state");
 
           // Set the state of the job back to "ReadyForStartup"
-          jobs.writeStatus(jobID,jobs.STATUS_READYFORDELETE);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_READYFORDELETE);
           break;
         default:
           throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
@@ -6352,7 +6725,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForNotify' state");
 
           // Set the state of the job back to "ReadyForNotify"
-          jobs.writeStatus(jobID,jobs.STATUS_READYFORNOTIFY);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_READYFORNOTIFY);
           break;
         default:
           throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
@@ -6388,6 +6761,7 @@ public class JobManager implements IJobManager
   /** Reset a starting job back to "ready for startup" state.
   *@param jobID is the job id.
   */
+  @Override
   public void resetStartupJob(Long jobID)
     throws ManifoldCFException
   {
@@ -6419,30 +6793,30 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForStartup' state");
 
           // Set the state of the job back to "ReadyForStartup"
-          jobs.writeStatus(jobID,jobs.STATUS_READYFORSTARTUP);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_READYFORSTARTUP);
           break;
         case Jobs.STATUS_STARTINGUPMINIMAL:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForStartupMinimal' state");
 
           // Set the state of the job back to "ReadyForStartupMinimal"
-          jobs.writeStatus(jobID,jobs.STATUS_READYFORSTARTUPMINIMAL);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_READYFORSTARTUPMINIMAL);
           break;
         case Jobs.STATUS_ABORTINGSTARTINGUP:
         case Jobs.STATUS_ABORTINGSTARTINGUPMINIMAL:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" to 'Aborting' state");
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTING);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTING);
           break;
         case Jobs.STATUS_ABORTINGSTARTINGUPFORRESTART:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" to 'AbortingForRestart' state");
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTART);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTINGFORRESTART);
           break;
         case Jobs.STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" to 'AbortingForRestartMinimal' state");
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTARTMINIMAL);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTINGFORRESTARTMINIMAL);
           break;
 
         case Jobs.STATUS_READYFORSTARTUP:
@@ -6516,56 +6890,56 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active_Uninstalled' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVE_UNINSTALLED);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_UNINSTALLED);
           break;
         case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active_NoOutput' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVE_NOOUTPUT);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_NOOUTPUT);
           break;
         case Jobs.STATUS_ACTIVESEEDING_NEITHER:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active_Neither' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVE_NEITHER);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_NEITHER);
           break;
         case Jobs.STATUS_ACTIVESEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVE);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE);
           break;
         case Jobs.STATUS_ACTIVEWAITSEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'ActiveWait' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ACTIVEWAIT);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVEWAIT);
           break;
         case Jobs.STATUS_PAUSEDSEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Paused' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_PAUSED);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_PAUSED);
           break;
         case Jobs.STATUS_PAUSEDWAITSEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'PausedWait' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_PAUSEDWAIT);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_PAUSEDWAIT);
           break;
         case Jobs.STATUS_ABORTINGSEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Aborting' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTING);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTING);
           break;
 
         case Jobs.STATUS_ABORTINGFORRESTARTSEEDING:
@@ -6573,7 +6947,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'AbortingForRestart' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTART);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTINGFORRESTART);
           break;
 
         case Jobs.STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL:
@@ -6581,7 +6955,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" back to 'AbortingForRestartMinimal' state");
 
           // Set the state of the job back to "Active"
-          jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTARTMINIMAL);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_ABORTINGFORRESTARTMINIMAL);
           break;
 
         case Jobs.STATUS_ABORTING:
@@ -6800,7 +7174,7 @@ public class JobManager implements IJobManager
             continue;
 
           // Mark status of job as "finishing"
-          jobs.writeStatus(jobID,jobs.STATUS_SHUTTINGDOWN);
+          jobs.writePermanentStatus(jobID,jobs.STATUS_SHUTTINGDOWN);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Marked job "+jobID+" for shutdown");
@@ -6836,9 +7210,11 @@ public class JobManager implements IJobManager
   }
 
   /** Find the list of jobs that need to have their connectors notified of job completion.
+  *@param processID is the process ID.
   *@return the ID's of jobs that need their output connectors notified in order to become inactive.
   */
-  public JobNotifyRecord[] getJobsReadyForInactivity()
+  @Override
+  public JobNotifyRecord[] getJobsReadyForInactivity(String processID)
     throws ManifoldCFException
   {
     while (true)
@@ -6865,7 +7241,7 @@ public class JobManager implements IJobManager
           IResultRow row = set.getRow(i);
           Long jobID = (Long)row.getValue(jobs.idField);
           // Mark status of job as "starting delete"
-          jobs.writeStatus(jobID,jobs.STATUS_NOTIFYINGOFCOMPLETION);
+          jobs.writeTransientStatus(jobID,jobs.STATUS_NOTIFYINGOFCOMPLETION,processID);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Found job "+jobID+" in need of notification");

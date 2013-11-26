@@ -35,13 +35,16 @@ public class JobDeleteThread extends Thread
   public static final String _rcsid = "@(#)$Id: JobDeleteThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-
+  /** Process ID */
+  protected final String processID;
+  
   /** Constructor.
   */
-  public JobDeleteThread()
+  public JobDeleteThread(String processID)
     throws ManifoldCFException
   {
     super();
+    this.processID = processID;
     setName("Job delete thread");
     setDaemon(true);
   }

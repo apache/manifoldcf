@@ -35,24 +35,28 @@ public class SeedingThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id: SeedingThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  /** Worker thread pool reset manager */
-  protected static SeedingResetManager resetManager = new SeedingResetManager();
-
   // Local data
-  protected QueueTracker queueTracker;
+  /** Seeding reset manager */
+  protected final SeedingResetManager resetManager;
+  /** Queue tracker */
+  protected final QueueTracker queueTracker;
+  /** Process ID */
+  protected final String processID;
 
   /** The number of documents that are added to the queue per transaction */
   protected final static int MAX_COUNT = 100;
 
   /** Constructor.
   */
-  public SeedingThread(QueueTracker queueTracker)
+  public SeedingThread(QueueTracker queueTracker, SeedingResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     setName("Seeding thread");
     setDaemon(true);
+    this.resetManager = resetManager;
     this.queueTracker = queueTracker;
+    this.processID = processID;
   }
 
   public void run()
@@ -91,7 +95,7 @@ public class SeedingThread extends Thread
           Logging.threads.debug("Seeding thread woke up");
 
           // Grab active, adaptive jobs (and set their state to xxxSEEDING as a side effect)
-          JobSeedingRecord[] seedJobs = jobManager.getJobsReadyForSeeding(currentTime);
+          JobSeedingRecord[] seedJobs = jobManager.getJobsReadyForSeeding(processID,currentTime);
 
           // Process these jobs, and do the seeding.  The seeding is based on what came back
           // in the job start record for sync time.  If there's an interruption, we just go on
@@ -144,7 +148,7 @@ public class SeedingThread extends Thread
                   {
 
                     SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,jobManager,queueTracker,
-                      connection,connector,jobID,legalLinkTypes,false,hopcountMethod);
+                      connection,connector,jobID,legalLinkTypes,false,hopcountMethod,processID);
 
                     if (Logging.threads.isDebugEnabled())
                       Logging.threads.debug("Seeding thread: Getting seeds for job "+jobID.toString());
@@ -285,35 +289,6 @@ public class SeedingThread extends Thread
       Logging.threads.fatal("SeedingThread initialization error tossed: "+e.getMessage(),e);
       System.exit(-300);
     }
-  }
-
-  /** Class which handles reset for seeding thread pool (of which there's
-  * typically only one member).  The reset action here
-  * is to move the status of jobs back from "seeding" to normal.
-  */
-  protected static class SeedingResetManager extends ResetManager
-  {
-
-    /** Constructor. */
-    public SeedingResetManager()
-    {
-      super();
-    }
-
-    /** Reset */
-    protected void performResetLogic(IThreadContext tc)
-      throws ManifoldCFException
-    {
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.resetSeedingWorkerStatus();
-    }
-    
-    /** Do the wakeup logic.
-    */
-    protected void performWakeupLogic()
-    {
-    }
-
   }
 
 }

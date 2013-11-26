@@ -33,18 +33,21 @@ public class ExpireThread extends Thread
 
 
   // Local data
-  protected String id;
-  // This is a reference to the static main document queue
-  protected DocumentCleanupQueue documentQueue;
+  /** Thread id */
+  protected final String id;
+  /** This is a reference to the static main document queue */
+  protected final DocumentCleanupQueue documentQueue;
   /** Worker thread pool reset manager */
-  protected WorkerResetManager resetManager;
+  protected final WorkerResetManager resetManager;
   /** Queue tracker */
-  protected QueueTracker queueTracker;
-
+  protected final QueueTracker queueTracker;
+  /** Process ID */
+  protected final String processID;
+  
   /** Constructor.
   *@param id is the expire thread id.
   */
-  public ExpireThread(String id, DocumentCleanupQueue documentQueue, QueueTracker queueTracker, WorkerResetManager resetManager)
+  public ExpireThread(String id, DocumentCleanupQueue documentQueue, QueueTracker queueTracker, WorkerResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
@@ -52,6 +55,7 @@ public class ExpireThread extends Thread
     this.documentQueue = documentQueue;
     this.resetManager = resetManager;
     this.queueTracker = queueTracker;
+    this.processID = processID;
     setName("Expiration thread '"+id+"'");
     setDaemon(true);
 

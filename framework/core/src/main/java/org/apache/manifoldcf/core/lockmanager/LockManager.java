@@ -44,6 +44,82 @@ public class LockManager implements ILockManager
       lockManager = new BaseLockManager();
   }
 
+  /** Register a service and begin service activity.
+  * This atomic operation creates a permanent registration entry for a service.
+  * If the permanent registration entry already exists, this method will not create it or
+  * treat it as an error.  This operation also enters the "active" zone for the service.  The "active" zone will remain in force until it is
+  * canceled, or until the process is interrupted.  Ideally, the corresponding endServiceActivity method will be
+  * called when the service shuts down.  Some ILockManager implementations require that this take place for
+  * proper management.
+  * If the transient registration already exists, it is treated as an error and an exception will be thrown.
+  * If registration will succeed, then this method may call an appropriate IServiceCleanup method to clean up either the
+  * current service, or all services on the cluster.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to register.
+  *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists
+  */
+  @Override
+  public void registerServiceBeginServiceActivity(String serviceType, String serviceName, IServiceCleanup cleanup)
+    throws ManifoldCFException
+  {
+    lockManager.registerServiceBeginServiceActivity(serviceType, serviceName, cleanup);
+  }
+  
+  /** Clean up any inactive services found.
+  * Calling this method will invoke cleanup of one inactive service at a time.
+  * If there are no inactive services around, then false will be returned.
+  * Note that this method will block whatever service it finds from starting up
+  * for the time the cleanup is proceeding.  At the end of the cleanup, if
+  * successful, the service will be atomically unregistered.
+  *@param serviceType is the service type.
+  *@param cleanup is the object to call to clean up an inactive service.
+  *@return true if there were no cleanup operations necessary.
+  */
+  @Override
+  public boolean cleanupInactiveService(String serviceType, IServiceCleanup cleanup)
+    throws ManifoldCFException
+  {
+    return lockManager.cleanupInactiveService(serviceType, cleanup);
+  }
+  
+  /** Count all active services of a given type.
+  *@param serviceType is the service type.
+  *@return the count.
+  */
+  @Override
+  public int countActiveServices(String serviceType)
+    throws ManifoldCFException
+  {
+    return lockManager.countActiveServices(serviceType);
+  }
+
+  /** End service activity.
+  * This operation exits the "active" zone for the service.  This must take place using the same ILockManager
+  * object that was used to registerServiceBeginServiceActivity() - which implies that it is the same thread.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to exit.
+  */
+  @Override
+  public void endServiceActivity(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    lockManager.endServiceActivity(serviceType, serviceName);
+  }
+    
+  /** Check whether a service is active or not.
+  * This operation returns true if the specified service is considered active at the moment.  Once a service
+  * is not active anymore, it can only return to activity by calling beginServiceActivity() once more.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to check on.
+  *@return true if the service is considered active.
+  */
+  @Override
+  public boolean checkServiceActive(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    return lockManager.checkServiceActive(serviceType, serviceName);
+  }
+
   /** Get the current shared configuration.  This configuration is available in common among all nodes,
   * and thus must not be accessed through here for the purpose of finding configuration data that is specific to any one
   * specific node.

@@ -27,11 +27,13 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
 {
   public static final String _rcsid = "@(#)$Id: ManifoldCF.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  public static final String agentShutdownSignal = "_AGENTRUN_";
+
   // Agents initialized flag
   protected static boolean agentsInitialized = false;
   
   /** This is the place we keep track of the agents we've started. */
-  protected static HashMap runningHash = new HashMap();
+  protected static Map<String,IAgent> runningHash = new HashMap<String,IAgent>();
   /** This flag prevents startAgents() from starting anything once stopAgents() has been called. */
   protected static boolean stopAgentsRun = false;
   
@@ -68,9 +70,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       if (agentsInitialized)
         return;
 
-      // Create the shutdown hook for agents.  All activity will be keyed off of runningHash, so it is safe to do this under all conditions.
-      org.apache.manifoldcf.core.system.ManifoldCF.addShutdownHook(new AgentsShutdownHook());
-      
       // Initialize the local loggers
       Logging.initializeLoggers();
       Logging.setLogLevels(threadContext);
@@ -129,12 +128,88 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     mgr.deinstall();
   }
 
+  // There are a number of different ways of running the agents framework.
+  // (1) Repeatedly call checkAgents(), and when all done make sure to call stopAgents().
+  // (2) Call registerAgentsShutdownHook(), then repeatedly run checkAgents(),  Agent shutdown happens on JVM exit.
+  // (3) Call runAgents(), which will wait for someone else to call assertAgentsShutdownSignal().  Before exit, stopAgents() must be called.
+  // (4) Call registerAgentsShutdownHook(), then call runAgents(), which will wait for someone else to call assertAgentsShutdownSignal().  Shutdown happens on JVM exit.
+  
+  /** Assert shutdown signal.
+  */
+  public static void assertAgentsShutdownSignal(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    lockManager.setGlobalFlag(agentShutdownSignal);
+  }
+  
+  /** Clear shutdown signal.
+  */
+  public static void clearAgentsShutdownSignal(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    lockManager.clearGlobalFlag(agentShutdownSignal);
+  }
+
+
+  /** Register agents shutdown hook.
+  * Call this ONCE before calling startAgents or checkAgents the first time, if you want automatic cleanup of agents on JVM stop.
+  */
+  public static void registerAgentsShutdownHook(IThreadContext threadContext, String processID)
+    throws ManifoldCFException
+  {
+    // Create the shutdown hook for agents.  All activity will be keyed off of runningHash, so it is safe to do this under all conditions.
+    org.apache.manifoldcf.core.system.ManifoldCF.addShutdownHook(new AgentsShutdownHook(processID));
+  }
+  
+  /** Agent service name prefix (followed by agent class name) */
+  public static final String agentServicePrefix = "AGENT_";
+  
+  /** Run agents process.
+  * This method will not return until a shutdown signal is sent.
+  */
+  public static void runAgents(IThreadContext threadContext, String processID)
+    throws ManifoldCFException
+  {
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+
+    // Don't come up at all if shutdown signal in force
+    if (lockManager.checkGlobalFlag(agentShutdownSignal))
+      return;
+
+    while (true)
+    {
+      // Any shutdown signal yet?
+      if (lockManager.checkGlobalFlag(agentShutdownSignal))
+        break;
+          
+      // Start whatever agents need to be started
+      checkAgents(threadContext, processID);
+
+      try
+      {
+        ManifoldCF.sleep(5000);
+      }
+      catch (InterruptedException e)
+      {
+        break;
+      }
+    }
+  }
+
+  protected static String getAgentsClassServiceType(String agentClassName)
+  {
+    return agentServicePrefix + agentClassName;
+  }
+  
   /** Start all not-running agents.
   *@param threadContext is the thread context.
   */
-  public static void startAgents(IThreadContext threadContext)
+  public static void checkAgents(IThreadContext threadContext, String processID)
     throws ManifoldCFException
   {
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
     // Get agent manager
     IAgentManager manager = AgentManagerFactory.make(threadContext);
     ManifoldCFException problem = null;
@@ -145,6 +220,8 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       if (stopAgentsRun)
         return;
       String[] classes = manager.getAllAgents();
+      Set<String> currentAgentClasses = new HashSet<String>();
+
       int i = 0;
       while (i < classes.length)
       {
@@ -152,16 +229,44 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         if (runningHash.get(className) == null)
         {
           // Start this agent
-          IAgent agent = AgentFactory.make(threadContext,className);
+          IAgent agent = AgentFactory.make(className);
+          agent.initialize(threadContext);
           try
           {
+            // Throw a lock, so that cleanup processes and startup processes don't collide.
+            String serviceType = getAgentsClassServiceType(className);
+            lockManager.registerServiceBeginServiceActivity(serviceType, processID, new CleanupAgent(threadContext, agent));
             // There is a potential race condition where the agent has been started but hasn't yet appeared in runningHash.
             // But having runningHash be the synchronizer for this activity will prevent any problems.
-            // There is ANOTHER potential race condition, however, that can occur if the process is shut down just before startAgents() is called.
-            // We avoid that problem by means of a flag, which prevents startAgents() from doing anything once stopAgents() has been called.
-            agent.startAgent();
+            agent.startAgent(threadContext, processID);
             // Successful!
             runningHash.put(className,agent);
+          }
+          catch (ManifoldCFException e)
+          {
+            problem = e;
+            agent.cleanUp(threadContext);
+          }
+        }
+        currentAgentClasses.add(className);
+      }
+
+      // Go through running hash and look for agents processes that have left
+      Iterator<String> runningAgentsIterator = runningHash.keySet().iterator();
+      while (runningAgentsIterator.hasNext())
+      {
+        String runningAgentClass = runningAgentsIterator.next();
+        if (!currentAgentClasses.contains(runningAgentClass))
+        {
+          // Shut down this one agent.
+          IAgent agent = runningHash.get(runningAgentClass);
+          try
+          {
+            // Stop it
+            agent.stopAgent(threadContext);
+            lockManager.endServiceActivity(getAgentsClassServiceType(runningAgentClass), processID);
+            runningAgentsIterator.remove();
+            agent.cleanUp(threadContext);
           }
           catch (ManifoldCFException e)
           {
@@ -170,30 +275,95 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         }
       }
     }
+
     if (problem != null)
       throw problem;
-    // Done.
+    
+    synchronized (runningHash)
+    {
+      // For every class we're supposed to be running, find registered but no-longer-active instances and clean
+      // up after them.
+      for (String agentsClass : runningHash.keySet())
+      {
+        IAgent agent = runningHash.get(agentsClass);
+        IServiceCleanup cleanup = new CleanupAgent(threadContext, agent);
+        String agentsClassServiceType = getAgentsClassServiceType(agentsClass);
+        while (!lockManager.cleanupInactiveService(agentsClassServiceType, cleanup))
+        {
+          // Loop until no more inactive services
+        }
+      }
+    }
+    
   }
 
   /** Stop all started agents.
   */
-  public static void stopAgents(IThreadContext threadContext)
+  public static void stopAgents(IThreadContext threadContext, String processID)
     throws ManifoldCFException
   {
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
     synchronized (runningHash)
     {
-      HashMap iterHash = (HashMap)runningHash.clone();
-      Iterator iter = iterHash.keySet().iterator();
+      // This is supposedly safe; iterator remove is used
+      Iterator<String> iter = runningHash.keySet().iterator();
       while (iter.hasNext())
       {
-        String className = (String)iter.next();
-        IAgent agent = (IAgent)runningHash.get(className);
+        String className = iter.next();
+        IAgent agent = runningHash.get(className);
         // Stop it
-        agent.stopAgent();
-        runningHash.remove(className);
+        agent.stopAgent(threadContext);
+        lockManager.endServiceActivity(getAgentsClassServiceType(className), processID);
+        iter.remove();
+        agent.cleanUp(threadContext);
       }
     }
     // Done.
+  }
+  
+  protected static class CleanupAgent implements IServiceCleanup
+  {
+    protected final IAgent agent;
+    protected final IThreadContext threadContext;
+    
+    public CleanupAgent(IThreadContext threadContext, IAgent agent)
+    {
+      this.agent = agent;
+      this.threadContext = threadContext;
+    }
+    
+    /** Clean up after the specified service.  This method will block any startup of the specified
+    * service for as long as it runs.
+    *@param serviceName is the name of the service.
+    */
+    @Override
+    public void cleanUpService(String serviceName)
+      throws ManifoldCFException
+    {
+      agent.cleanUpAgentData(threadContext, serviceName);
+    }
+
+    /** Clean up after ALL services of the type on the cluster.
+    */
+    @Override
+    public void cleanUpAllServices()
+      throws ManifoldCFException
+    {
+      agent.cleanUpAgentData(threadContext);
+    }
+    
+    /** Perform cluster initialization - that is, whatever is needed presuming that the
+    * cluster has been down for an indeterminate period of time, but is otherwise in a clean
+    * state.
+    */
+    @Override
+    public void clusterInit()
+      throws ManifoldCFException
+    {
+      // MHL - we really want a separate clusterInit in agents
+      agent.cleanUpAgentData(threadContext);
+    }
+
   }
   
   /** Signal output connection needs redoing.
@@ -216,9 +386,11 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   /** Agents shutdown hook class */
   protected static class AgentsShutdownHook implements IShutdownHook
   {
-    
-    public AgentsShutdownHook()
+    protected final String processID;
+
+    public AgentsShutdownHook(String processID)
     {
+      this.processID = processID;
     }
     
     public void doCleanup()
@@ -230,7 +402,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         stopAgentsRun = true;
       }
       IThreadContext tc = ThreadContextFactory.make();
-      stopAgents(tc);
+      stopAgents(tc,processID);
     }
     
   }

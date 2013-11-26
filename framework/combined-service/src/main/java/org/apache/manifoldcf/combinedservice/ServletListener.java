@@ -29,8 +29,7 @@ public class ServletListener implements ServletContextListener
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  public static final String agentShutdownSignal = org.apache.manifoldcf.agents.AgentRun.agentShutdownSignal;
-  private Thread jobsThread = null;
+  protected static AgentsThread agentsThread = null;
 
   public void contextInitialized(ServletContextEvent sce)
   {
@@ -44,7 +43,8 @@ public class ServletListener implements ServletContextListener
       ManifoldCF.registerThisAgent(tc);
       ManifoldCF.reregisterAllConnectors(tc);
 
-      ManifoldCF.startAgents(tc);
+      agentsThread = new AgentsThread(ManifoldCF.getProcessID());
+      agentsThread.start();
     }
     catch (ManifoldCFException e)
     {
@@ -57,13 +57,74 @@ public class ServletListener implements ServletContextListener
     IThreadContext tc = ThreadContextFactory.make();
     try
     {
-      ManifoldCF.stopAgents(tc);
+      if (agentsThread != null)
+      {
+        ManifoldCF.assertAgentsShutdownSignal(tc);
+        agentsThread.finishUp();
+        agentsThread = null;
+        ManifoldCF.clearAgentsShutdownSignal(tc);
+      }
+    }
+    catch (InterruptedException e)
+    {
     }
     catch (ManifoldCFException e)
     {
-      throw new RuntimeException("Cannot shutdown servlet cleanly; "+e.getMessage(),e);
+      if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
+        throw new RuntimeException("Cannot shutdown servlet cleanly; "+e.getMessage(),e);
     }
     ManifoldCF.cleanUpEnvironment(tc);
   }
 
+  protected static class AgentsThread extends Thread
+  {
+    
+    protected final String processID;
+    
+    protected Throwable exception = null;
+
+    public AgentsThread(String processID)
+    {
+      setName("Agents");
+      this.processID = processID;
+    }
+    
+    public void run()
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      try
+      {
+        ManifoldCF.clearAgentsShutdownSignal(tc);
+        try
+        {
+          ManifoldCF.runAgents(tc, processID);
+        }
+        finally
+        {
+          ManifoldCF.stopAgents(tc, processID);
+        }
+      }
+      catch (Throwable e)
+      {
+        exception = e;
+      }
+    }
+    
+    public void finishUp()
+      throws ManifoldCFException, InterruptedException
+    {
+      join();
+      if (exception != null)
+      {
+        if (exception instanceof RuntimeException)
+          throw (RuntimeException)exception;
+        if (exception instanceof Error)
+          throw (Error)exception;
+        if (exception instanceof ManifoldCFException)
+          throw (ManifoldCFException)exception;
+        throw new RuntimeException("Unknown exception type thrown: "+exception.getClass().getName()+": "+exception.getMessage(),exception);
+      }
+    }
+  }
+  
 }

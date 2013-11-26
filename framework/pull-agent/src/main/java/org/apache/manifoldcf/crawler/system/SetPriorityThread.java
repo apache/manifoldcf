@@ -38,22 +38,25 @@ public class SetPriorityThread extends Thread
   public static final String _rcsid = "@(#)$Id: SetPriorityThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-  // This is the queue tracker object.
-  protected QueueTracker queueTracker;
-  // This is the number of documents per cycle
-  protected int cycleCount;
-  // The blocking documents object
-  protected BlockingDocuments blockingDocuments;
+  /** This is the queue tracker object. */
+  protected final QueueTracker queueTracker;
+  /** This is the number of documents per cycle */
+  protected final int cycleCount;
+  /** The blocking documents object */
+  protected final BlockingDocuments blockingDocuments;
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   *@param qt is the queue tracker object.
   */
-  public SetPriorityThread(QueueTracker qt, int workerThreadCount, BlockingDocuments blockingDocuments)
+  public SetPriorityThread(QueueTracker qt, int workerThreadCount, BlockingDocuments blockingDocuments, String processID)
     throws ManifoldCFException
   {
     super();
     this.queueTracker = qt;
     this.blockingDocuments = blockingDocuments;
+    this.processID = processID;
     cycleCount = workerThreadCount * 10;
     setName("Set priority thread");
     setDaemon(true);

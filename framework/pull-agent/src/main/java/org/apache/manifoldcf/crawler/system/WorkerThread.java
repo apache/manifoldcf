@@ -35,18 +35,21 @@ public class WorkerThread extends Thread
 
 
   // Local data
-  protected String id;
-  // This is a reference to the static main document queue
-  protected DocumentQueue documentQueue;
+  /** Thread id */
+  protected final String id;
+  /** This is a reference to the static main document queue */
+  protected final DocumentQueue documentQueue;
   /** Worker thread pool reset manager */
-  protected WorkerResetManager resetManager;
+  protected final WorkerResetManager resetManager;
   /** Queue tracker */
-  protected QueueTracker queueTracker;
+  protected final QueueTracker queueTracker;
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   *@param id is the worker thread id.
   */
-  public WorkerThread(String id, DocumentQueue documentQueue, WorkerResetManager resetManager, QueueTracker queueTracker)
+  public WorkerThread(String id, DocumentQueue documentQueue, WorkerResetManager resetManager, QueueTracker queueTracker, String processID)
     throws ManifoldCFException
   {
     super();
@@ -54,6 +57,7 @@ public class WorkerThread extends Thread
     this.documentQueue = documentQueue;
     this.resetManager = resetManager;
     this.queueTracker = queueTracker;
+    this.processID = processID;
     setName("Worker thread '"+id+"'");
     setDaemon(true);
 
@@ -306,7 +310,7 @@ public class WorkerThread extends Thread
                     String outputVersion = ingester.getOutputDescription(outputName,outputSpec);
                       
                     HashMap abortSet = new HashMap();
-                    VersionActivity versionActivity = new VersionActivity(connectionName,connMgr,jobManager,job,ingester,abortSet,outputVersion);
+                    VersionActivity versionActivity = new VersionActivity(processID,connectionName,connMgr,jobManager,job,ingester,abortSet,outputVersion);
 
                     String aclAuthority = connection.getACLAuthority();
                     boolean isDefaultAuthority = (aclAuthority == null || aclAuthority.length() == 0);
@@ -522,7 +526,8 @@ public class WorkerThread extends Thread
                         }
 
                         // First, make the things we will need for all subsequent steps.
-                        ProcessActivity activity = new ProcessActivity(threadContext,queueTracker,jobManager,ingester,
+                        ProcessActivity activity = new ProcessActivity(processID,
+                          threadContext,queueTracker,jobManager,ingester,
                           currentTime,job,connection,connector,connMgr,legalLinkTypes,ingestLogger,abortSet,outputVersion,newParameterVersion);
                         try
                         {
@@ -1227,21 +1232,22 @@ public class WorkerThread extends Thread
   */
   protected static class VersionActivity implements IVersionActivity
   {
-    protected String connectionName;
-    protected IRepositoryConnectionManager connMgr;
-    protected IJobManager jobManager;
-    protected Long jobID;
-    protected IJobDescription job;
-    protected IIncrementalIngester ingester;
-    protected HashMap abortSet;
-    protected String outputVersion;
+    protected final String processID;
+    protected final String connectionName;
+    protected final IRepositoryConnectionManager connMgr;
+    protected final IJobManager jobManager;
+    protected final IJobDescription job;
+    protected final IIncrementalIngester ingester;
+    protected final HashMap abortSet;
+    protected final String outputVersion;
 
     /** Constructor.
     */
-    public VersionActivity(String connectionName, IRepositoryConnectionManager connMgr,
+    public VersionActivity(String processID, String connectionName, IRepositoryConnectionManager connMgr,
       IJobManager jobManager, IJobDescription job, IIncrementalIngester ingester, HashMap abortSet,
       String outputVersion)
     {
+      this.processID = processID;
       this.connectionName = connectionName;
       this.connMgr = connMgr;
       this.jobManager = jobManager;
@@ -1360,7 +1366,7 @@ public class WorkerThread extends Thread
     public boolean beginEventSequence(String eventName)
       throws ManifoldCFException
     {
-      return jobManager.beginEventSequence(eventName);
+      return jobManager.beginEventSequence(processID,eventName);
     }
 
     /** Complete an event sequence.
@@ -1413,7 +1419,7 @@ public class WorkerThread extends Thread
     */
     public String createJobSpecificString(String simpleString)
     {
-      return ManifoldCF.createJobSpecificString(jobID,simpleString);
+      return ManifoldCF.createJobSpecificString(job.getID(),simpleString);
     }
 
   }
@@ -1423,6 +1429,7 @@ public class WorkerThread extends Thread
   protected static class ProcessActivity implements IProcessActivity
   {
     // Member variables
+    protected final String processID;
     protected final IThreadContext threadContext;
     protected final IJobManager jobManager;
     protected final IIncrementalIngester ingester;
@@ -1454,10 +1461,11 @@ public class WorkerThread extends Thread
     *@param jobManager is the job manager
     *@param ingester is the ingester
     */
-    public ProcessActivity(IThreadContext threadContext, QueueTracker queueTracker, IJobManager jobManager, IIncrementalIngester ingester,
+    public ProcessActivity(String processID, IThreadContext threadContext, QueueTracker queueTracker, IJobManager jobManager, IIncrementalIngester ingester,
       long currentTime, IJobDescription job, IRepositoryConnection connection, IRepositoryConnector connector, IRepositoryConnectionManager connMgr,
       String[] legalLinkTypes, OutputActivity ingestLogger, HashMap abortSet, String outputVersion, String parameterVersion)
     {
+      this.processID = processID;
       this.threadContext = threadContext;
       this.queueTracker = queueTracker;
       this.jobManager = jobManager;
@@ -2014,7 +2022,8 @@ public class WorkerThread extends Thread
           j++;
         }
 
-        boolean[] trackerNote = jobManager.addDocuments(job.getID(),legalLinkTypes,docidHashes,docids,db.getParentIdentifierHash(),db.getLinkType(),job.getHopcountMode(),
+        boolean[] trackerNote = jobManager.addDocuments(processID,
+          job.getID(),legalLinkTypes,docidHashes,docids,db.getParentIdentifierHash(),db.getLinkType(),job.getHopcountMode(),
           dataNames,dataValues,currentTime,priorities,eventNames);
 
         // Inform queuetracker about what we used and what we didn't
@@ -2058,7 +2067,7 @@ public class WorkerThread extends Thread
     public boolean beginEventSequence(String eventName)
       throws ManifoldCFException
     {
-      return jobManager.beginEventSequence(eventName);
+      return jobManager.beginEventSequence(processID,eventName);
     }
 
     /** Complete an event sequence.
