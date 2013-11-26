@@ -165,7 +165,7 @@ public class SeedingThread extends Thread
                   catch (ServiceInterruption e)
                   {
                     // Note the service interruption
-                    Logging.threads.error("Service interruption for job "+jobID,e);
+                    Logging.threads.warn("Service interruption for job "+jobID,e);
                     long retryInterval = e.getRetryTime() - currentTime;
                     if (retryInterval >= 0L && retryInterval < waitTime)
                       waitTime = retryInterval;

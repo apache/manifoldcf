@@ -3,6 +3,25 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-822: Use data size as Long value, not int.
+(David Morana, Karl Wright)
+
+CONNECTORS-819: Add missing metadata to JCIFS connector.
+(Graeme Seaton)
+
+CONNECTORS-817: Improve SharePoint logging.
+(Mark Libucha, Karl Wright)
+
+CONNECTORS-813: For list items, obtain the url from the EncodedAbsURL
+metadata field.  This should allow list items to be clicked on in search results.
+(Mark Libucha, Karl Wright)
+
+CONNECTORS-812: SharePoint connector needs to ignore constructs
+that it doesn't understand when enumerating list contents, because
+under some configurations, SharePoint lists things that aren't list items
+there.
+(Mark Libucha, Karl Wright)
+
 CONNECTORS-810: Update JDBC connector documentation, and add
 documentation for the JDBC authority connector.
 (Karl Wright)

@@ -5624,7 +5624,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       LLValue elem = getVersionValue();
       if (elem == null)
         return null;
-      return new Long(elem.toInteger("FILEDATASIZE"));
+      return new Long(elem.toLong("FILEDATASIZE"));
     }
 
     /** Get file name.

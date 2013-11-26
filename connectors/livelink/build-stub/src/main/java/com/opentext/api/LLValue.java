@@ -31,6 +31,16 @@ public class LLValue
   {
   }
   
+  public long toLong(int index, String attributeName)
+  {
+    return 0;
+  }
+  
+  public long toLong(String attributeName)
+  {
+    return 0;
+  }
+
   public int toInteger(int index, String attributeName)
   {
     return 0;

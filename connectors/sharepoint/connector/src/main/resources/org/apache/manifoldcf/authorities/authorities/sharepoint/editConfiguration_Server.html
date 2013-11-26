@@ -19,12 +19,12 @@
 <input type="hidden" name="keystoredata" value="$Encoder.attributeEscape($KEYSTORE)"/>
 #end
 
-#if($TabName == $ResourceBundle.getString('SharePointRepository.Server'))
+#if($TabName == $ResourceBundle.getString('SharePointAuthority.Server'))
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.ServerSharePointVersion'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerSharePointVersion'))</nobr></td>
     <td class="value">
       <select name="serverVersion">
   #if($SERVERVERSION == '2.0')
@@ -46,7 +46,7 @@
     </td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.ServerProtocol'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerProtocol'))</nobr></td>
     <td class="value">
       <select name="serverProtocol">
   #if($SERVERPROTOCOL == 'http')
@@ -63,38 +63,38 @@
     </td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.ServerName'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerName'))</nobr></td>
     <td class="value"><input type="text" size="64" name="serverName" value="$Encoder.attributeEscape($SERVERNAME)"/></td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.ServerPort'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerPort'))</nobr></td>
     <td class="value"><input type="text" size="5" name="serverPort" value="$SERVERPORT"/></td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.SitePath'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.SitePath'))</nobr></td>
     <td class="value"><input type="text" size="64" name="serverLocation" value="$Encoder.attributeEscape($SERVERLOCATION)"/></td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.UserName'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.UserName'))</nobr></td>
     <td class="value"><input type="text" size="32" name="userName" value="$Encoder.attributeEscape($USERNAME)"/></td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.Password'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Password'))</nobr></td>
     <td class="value"><input type="password" size="32" name="password" value="$Encoder.attributeEscape($PASSWORD)"/></td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.SSLCertificateList'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.SSLCertificateList'))</nobr></td>
     <td class="value">
       <input type="hidden" name="configop" value="Continue"/>
       <input type="hidden" name="shpkeystorealias" value=""/>
       <table class="displaytable">
   #if($CERTIFICATELIST.size() == 0)
-        <tr><td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.NoCertificatesPresent'))</td></tr>
+        <tr><td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.NoCertificatesPresent'))</td></tr>
   #else
     #foreach($certificate in $CERTIFICATELIST)
         <tr>
           <td class="description">
-            <input type="button" onclick='Javascript:ShpDeleteCertificate("$Encoder.attributeJavascriptEscape($certificate.get('ALIAS'))")' alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.DeleteCert'))$Encoder.attributeEscape($certificate.get('ALIAS'))" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.Delete'))"/>
+            <input type="button" onclick='Javascript:ShpDeleteCertificate("$Encoder.attributeJavascriptEscape($certificate.get('ALIAS'))")' alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointAuthority.DeleteCert'))$Encoder.attributeEscape($certificate.get('ALIAS'))" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointAuthority.Delete'))"/>
           </td>
           <td class="value">
             $Encoder.bodyEscape($certificate.get('DESCRIPTION'))
@@ -103,8 +103,8 @@
     #end
   #end
       </table>
-      <input type="button" onclick='Javascript:ShpAddCertificate()' alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.AddCert'))" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.Add'))"/>&nbsp;
-      $Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.Certificate'))&nbsp;
+      <input type="button" onclick='Javascript:ShpAddCertificate()' alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointAuthority.AddCert'))" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointAuthority.Add'))"/>&nbsp;
+      $Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Certificate'))&nbsp;
       <input name="shpcertificate" size="50" type="file"/>
     </td>
   </tr>
