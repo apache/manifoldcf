@@ -122,7 +122,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           // We need to find out whether (a) our service is already registered; (b) how many registered services there are;
           // (c) whether there are other active services.  But no changes will be made at this time.
           String registrationNodePath = buildServiceTypeRegistrationPath(serviceType);
-          List<String> children = connection.getNodeChildren(registrationNodePath);
+          List<String> children = connection.getChildren(registrationNodePath);
           boolean foundService = false;
           boolean foundActiveService = false;
           for (String registeredServiceName : children)
@@ -156,7 +156,8 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
             // Unregister all (since we did a global cleanup)
             for (String registeredServiceName : children)
             {
-              connection.deleteChild(registrationNodePath, registeredServiceName);
+              if (!registeredServiceName.equals(serviceName))
+                connection.deleteChild(registrationNodePath, registeredServiceName);
             }
           }
 
@@ -202,7 +203,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         try
         {
           String registrationNodePath = buildServiceTypeRegistrationPath(serviceType);
-          List<String> children = connection.getNodeChildren(registrationNodePath);
+          List<String> children = connection.getChildren(registrationNodePath);
           int activeServiceCount = 0;
           for (String registeredServiceName : children)
           {
@@ -252,7 +253,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           // We find ONE service that is registered but inactive, and clean up after that one.
           // Presumably the caller will lather, rinse, and repeat.
           String registrationNodePath = buildServiceTypeRegistrationPath(serviceType);
-          List<String> children = connection.getNodeChildren(registrationNodePath);
+          List<String> children = connection.getChildren(registrationNodePath);
           String serviceName = null;
           for (String registeredServiceName : children)
           {

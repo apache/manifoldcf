@@ -164,6 +164,7 @@ public class BaseLockManager implements ILockManager
           clearGlobalFlag(makeRegisteredServiceFlagName(serviceType, x));
           writeServiceName(resourceName, null);
         }
+        foundService = false;
       }
 
       // Now, register (if needed)

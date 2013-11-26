@@ -42,6 +42,8 @@ public class ZooKeeperConnection
   private static final String NONEXWRITE_PREFIX = "nonexwrite-";
   private static final String WRITE_PREFIX = "write-";
 
+  private static final String CHILD_PREFIX = "child-";
+  
   // Our zookeeper client
   protected ZooKeeper zookeeper = null;
   protected ZooKeeperWatcher zookeeperWatcher = null;
@@ -118,12 +120,21 @@ public class ZooKeeperConnection
   /** Get the relative paths of all node's children.  If the node does not exist,
   * return an empty list.
   */
-  public List<String> getNodeChildren(String nodePath)
+  public List<String> getChildren(String nodePath)
     throws ManifoldCFException, InterruptedException
   {
     try
     {
-      return zookeeper.getChildren(nodePath,false);
+      //System.out.println("Children of '"+nodePath+"':");
+      List<String> children = zookeeper.getChildren(nodePath,false);
+      List<String> rval = new ArrayList<String>();
+      for (String child : children)
+      {
+        //System.out.println(" '"+child+"'");
+        if (child.startsWith(CHILD_PREFIX))
+          rval.add(child.substring(CHILD_PREFIX.length()));
+      }
+      return rval;
     }
     catch (KeeperException.NoNodeException e)
     {
@@ -142,11 +153,13 @@ public class ZooKeeperConnection
   {
     try
     {
+      //System.out.println("Creating child '"+childName+"' of nodepath '"+nodePath+"'");
       while (true)
       {
         try
         {
-          zookeeper.create(nodePath + "/" + childName, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+          zookeeper.create(nodePath + "/" + CHILD_PREFIX + childName, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+          break;
         }
         catch (KeeperException.NoNodeException e)
         {
@@ -159,6 +172,7 @@ public class ZooKeeperConnection
           }
         }
       }
+      System.out.println("...done");
     }
     catch (KeeperException e)
     {
@@ -173,7 +187,9 @@ public class ZooKeeperConnection
   {
     try
     {
-      zookeeper.delete(nodePath + "/" + childName, -1);
+      //System.out.println("Deleting child '"+childName+"' of nodePath '"+nodePath+"'");
+      zookeeper.delete(nodePath + "/" + CHILD_PREFIX + childName, -1);
+      //System.out.println("...done");
     }
     catch (KeeperException e)
     {
