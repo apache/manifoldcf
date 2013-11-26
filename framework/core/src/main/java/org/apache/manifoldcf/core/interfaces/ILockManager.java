@@ -32,8 +32,6 @@ public interface ILockManager
   // can perform any necessary cleanup if one of the agents processes goes away unexpectedly.  There is a
   // registration primitive (which can fail if the same guid is used as is already registered and active), a
   // shutdown primitive (which makes a process id go inactive), and various inspection primitives.
-  // Note well: The transient activity cycle MUST be done within a single thread using a single
-  // ILockManager implementation - much like a lock.
   
   /** Register a service and begin service activity.
   * This atomic operation creates a permanent registration entry for a service.
