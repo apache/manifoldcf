@@ -519,10 +519,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
+    IBinManager binManager = BinManagerFactory.make(threadcontext);
     org.apache.manifoldcf.authorities.system.ManifoldCF.installSystemTables(threadcontext);
     repConnMgr.install();
     repCon.install();
     jobManager.install();
+    binManager.install();
   }
 
   /** Uninstall all the crawler system tables.
@@ -534,6 +536,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
+    IBinManager binManager = BinManagerFactory.make(threadcontext);
+    binManager.deinstall();
     jobManager.deinstall();
     repCon.deinstall();
     repConnMgr.deinstall();
@@ -839,13 +843,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Requeue documents due to carrydown.
   */
-  public static void requeueDocumentsDueToCarrydown(IJobManager jobManager, DocumentDescription[] requeueCandidates,
+  public static void requeueDocumentsDueToCarrydown(IJobManager jobManager, IBinManager binManager,
+    DocumentDescription[] requeueCandidates,
     IRepositoryConnector connector, IRepositoryConnection connection, QueueTracker queueTracker, long currentTime)
     throws ManifoldCFException
   {
     // A list of document descriptions from finishDocuments() above represents those documents that may need to be requeued, for the
     // reason that carrydown information for those documents has changed.  In order to requeue, we need to calculate document priorities, however.
-    double[] docPriorities = new double[requeueCandidates.length];
+    IPriorityCalculator[] docPriorities = new IPriorityCalculator[requeueCandidates.length];
     String[][] binNames = new String[requeueCandidates.length][];
     int q = 0;
     while (q < requeueCandidates.length)
@@ -853,27 +858,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       DocumentDescription dd = requeueCandidates[q];
       String[] bins = calculateBins(connector,dd.getDocumentIdentifier());
       binNames[q] = bins;
-      docPriorities[q] = queueTracker.calculatePriority(bins,connection);
-      if (Logging.scheduling.isDebugEnabled())
-        Logging.scheduling.debug("Document '"+dd.getDocumentIdentifier()+" given priority "+new Double(docPriorities[q]).toString());
+      docPriorities[q] = new PriorityCalculator(queueTracker,connection,bins,binManager);
       q++;
     }
 
     // Now, requeue the documents with the new priorities
-    boolean[] trackerNote = jobManager.carrydownChangeDocumentMultiple(requeueCandidates,currentTime,docPriorities);
-
-    // Free the unused priorities.
-    // Inform queuetracker about what we used and what we didn't
-    q = 0;
-    while (q < trackerNote.length)
-    {
-      if (trackerNote[q] == false)
-      {
-        String[] bins = binNames[q];
-        queueTracker.notePriorityNotUsed(bins,connection,docPriorities[q]);
-      }
-      q++;
-    }
+    jobManager.carrydownChangeDocumentMultiple(requeueCandidates,currentTime,docPriorities);
   }
 
   /** Stuff colons so we can't have conflicts. */
@@ -927,6 +917,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     ILockManager lockManager = LockManagerFactory.make(threadContext);
     IJobManager jobManager = JobManagerFactory.make(threadContext);
+    IBinManager binManager = BinManagerFactory.make(threadContext);
     IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
     
     // Only one thread allowed at a time
@@ -960,7 +951,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
             break;
 
           // Calculate new priorities for all these documents
-          writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,
+          writeDocumentPriorities(threadContext,connectionManager,jobManager,binManager,docs,connectionMap,jobDescriptionMap,
             queueTracker,currentTime);
 
           Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
@@ -980,7 +971,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   /** Write a set of document priorities, based on the current queue tracker.
   */
   public static void writeDocumentPriorities(IThreadContext threadContext, IRepositoryConnectionManager mgr,
-    IJobManager jobManager, DocumentDescription[] descs,
+    IJobManager jobManager, IBinManager binManager, DocumentDescription[] descs,
     Map<String,IRepositoryConnection> connectionMap, Map<Long,IJobDescription> jobDescriptionMap,
     QueueTracker queueTracker, long currentTime)
     throws ManifoldCFException
@@ -989,7 +980,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       Logging.scheduling.debug("Reprioritizing "+Integer.toString(descs.length)+" documents");
 
 
-    double[] priorities = new double[descs.length];
+    IPriorityCalculator[] priorities = new IPriorityCalculator[descs.length];
 
     // Go through the documents and calculate the priorities
     int i = 0;
@@ -1029,9 +1020,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         RepositoryConnectorFactory.release(connector);
       }
 
-      priorities[i] = queueTracker.calculatePriority(binNames,connection);
-      if (Logging.scheduling.isDebugEnabled())
-        Logging.scheduling.debug("Document '"+dd.getDocumentIdentifier()+"' given priority "+new Double(priorities[i]).toString());
+      priorities[i] = new PriorityCalculator(queueTracker,connection,binNames,binManager);
 
       i++;
     }

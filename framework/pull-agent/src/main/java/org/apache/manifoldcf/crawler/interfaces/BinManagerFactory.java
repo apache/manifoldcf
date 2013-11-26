@@ -19,20 +19,40 @@
 package org.apache.manifoldcf.crawler.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.crawler.system.*;
 
-/** This interface represents an object that calculates a document priority
-* value, for inclusion in the jobqueue table.  One of these objects is passed in
-* lieu of a document priority for every document being added to the table.
+/** Factory class for IBinManager.
 */
-public interface IPriorityCalculator
+public class BinManagerFactory
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** Compute the document priority given an actual bincounter value.
-  *@return the document priority.
+  // Name
+  protected final static String binManagerName = "_BinManager_";
+
+  private BinManagerFactory()
+  {
+  }
+
+  /** Create a bin manager handle.
+  *@param threadContext is the thread context.
+  *@return the handle.
   */
-  public double getDocumentPriority()
-    throws ManifoldCFException;
-  
+  public static IBinManager make(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    Object o = threadContext.get(binManagerName);
+    if (o == null || !(o instanceof IBinManager))
+    {
+      IDBInterface database = DBInterfaceFactory.make(threadContext,
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
+
+      o = new org.apache.manifoldcf.crawler.bins.BinManager(database);
+      threadContext.save(binManagerName,o);
+    }
+    return (IBinManager)o;
+  }
+
 }

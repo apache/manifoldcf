@@ -16,23 +16,43 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.interfaces;
+package org.apache.manifoldcf.crawler.system;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.crawler.interfaces.*;
 
-/** This interface represents an object that calculates a document priority
-* value, for inclusion in the jobqueue table.  One of these objects is passed in
-* lieu of a document priority for every document being added to the table.
+/** This class calculates a document priority given all the required inputs.
+* It is not thread safe, but calls classes that are (e.g. QueueTracker).
 */
-public interface IPriorityCalculator
+public class PriorityCalculator implements IPriorityCalculator
 {
   public static final String _rcsid = "@(#)$Id$";
+
+  protected final QueueTracker queueTracker;
+  protected final IRepositoryConnection connection;
+  protected final String[] documentBins;
+  protected final IBinManager binManager;
+  
+  /** Constructor. */
+  public PriorityCalculator(QueueTracker queueTracker, IRepositoryConnection connection, String[] documentBins, IBinManager binManager)
+  {
+    this.queueTracker = queueTracker;
+    this.connection = connection;
+    this.documentBins = documentBins;
+    this.binManager = binManager;
+  }
 
   /** Compute the document priority given an actual bincounter value.
   *@return the document priority.
   */
+  @Override
   public double getDocumentPriority()
-    throws ManifoldCFException;
-  
+    throws ManifoldCFException
+  {
+    // MHL to use database bin tables
+    return queueTracker.calculatePriority(documentBins,connection);
+  }
+
 }
+

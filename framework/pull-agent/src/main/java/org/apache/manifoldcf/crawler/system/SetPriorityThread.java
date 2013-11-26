@@ -72,6 +72,7 @@ public class SetPriorityThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
+      IBinManager binManager = BinManagerFactory.make(threadContext);
 
       Logging.threads.debug("Set priority thread coming up");
 
@@ -129,7 +130,8 @@ public class SetPriorityThread extends Thread
             DocumentDescription desc = blockingDocuments.getBlockingDocument();
             if (desc != null)
             {
-              ManifoldCF.writeDocumentPriorities(threadContext,mgr,jobManager,new DocumentDescription[]{desc},connectionMap,jobDescriptionMap,queueTracker,currentTime);
+              ManifoldCF.writeDocumentPriorities(threadContext,mgr,jobManager,binManager,
+                new DocumentDescription[]{desc},connectionMap,jobDescriptionMap,queueTracker,currentTime);
               processedCount++;
               continue;
             }

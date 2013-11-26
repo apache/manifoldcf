@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.jobs;
+package org.apache.manifoldcf.crawler.bins;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
@@ -39,7 +39,7 @@ import java.util.*;
 * <br><br>
 * 
 */
-public class BinManager extends org.apache.manifoldcf.core.database.BaseTable
+public class BinManager extends org.apache.manifoldcf.core.database.BaseTable implements IBinManager
 {
   public static final String _rcsid = "@(#)$Id$";
 
@@ -58,6 +58,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Install or upgrade this table.
   */
+  @Override
   public void install()
     throws ManifoldCFException
   {
@@ -85,6 +86,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Uninstall.
   */
+  @Override
   public void deinstall()
     throws ManifoldCFException
   {
@@ -92,6 +94,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** Reset all bins */
+  @Override
   public void reset()
     throws ManifoldCFException
   {
@@ -105,6 +108,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable
   * returned; what will be stored will be that value + 1.
   *@return the counter value.
   */
+  @Override
   public long getIncrementBinValue(String binName, long newBinValue)
     throws ManifoldCFException
   {

@@ -19,20 +19,36 @@
 package org.apache.manifoldcf.crawler.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
+import java.util.*;
 
-/** This interface represents an object that calculates a document priority
-* value, for inclusion in the jobqueue table.  One of these objects is passed in
-* lieu of a document priority for every document being added to the table.
+/** This interface represents a class that tracks data in document bins.
 */
-public interface IPriorityCalculator
+public interface IBinManager
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** Compute the document priority given an actual bincounter value.
-  *@return the document priority.
+  /** Install or upgrade this table.
   */
-  public double getDocumentPriority()
+  public void install()
     throws ManifoldCFException;
-  
+
+  /** Uninstall.
+  */
+  public void deinstall()
+    throws ManifoldCFException;
+
+  /** Reset all bins */
+  public void reset()
+    throws ManifoldCFException;
+
+  /** Get a bin value (and set next one).  If the record does not yet exist, create it with a starting value.
+  * We expect this to happen within a transaction!! 
+  *@param binName is the name of the bin (256 char max)
+  *@param newBinValue is the value to use if there is no such bin yet.  This is the value that will be
+  * returned; what will be stored will be that value + 1.
+  *@return the counter value.
+  */
+  public long getIncrementBinValue(String binName, long newBinValue)
+    throws ManifoldCFException;
+
 }

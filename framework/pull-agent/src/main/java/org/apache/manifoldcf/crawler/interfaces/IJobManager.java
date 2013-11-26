@@ -228,7 +228,7 @@ public interface IJobManager
   *@param descriptions are the document descriptions.
   *@param priorities are the desired priorities.
   */
-  public void writeDocumentPriorities(long currentTime, DocumentDescription[] descriptions, double[] priorities)
+  public void writeDocumentPriorities(long currentTime, DocumentDescription[] descriptions, IPriorityCalculator[] priorities)
     throws ManifoldCFException;
 
   // This method supports the "expiration" thread
@@ -410,9 +410,8 @@ public interface IJobManager
   * extent that if one is *already* being processed, it will need to be done over again.
   *@param documentDescriptions is the set of description objects for the documents that have had their parent carrydown information changed.
   *@param docPriorities are the document priorities to assign to the documents, if needed.
-  *@return a flag for each document priority, true if it was used, false otherwise.
   */
-  public boolean[] carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, double[] docPriorities)
+  public void carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, IPriorityCalculator[] docPriorities)
     throws ManifoldCFException;
 
   /** Requeue a document because of carrydown changes.
@@ -420,9 +419,8 @@ public interface IJobManager
   * extent that if it is *already* being processed, it will need to be done over again.
   *@param documentDescription is the description object for the document that has had its parent carrydown information changed.
   *@param docPriority is the document priority to assign to the document, if needed.
-  *@return a flag for the document priority, true if it was used, false otherwise.
   */
-  public boolean carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, double docPriority)
+  public void carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, IPriorityCalculator docPriority)
     throws ManifoldCFException;
 
   /** Requeue a document for further processing in the future.
@@ -528,12 +526,11 @@ public interface IJobManager
   *@param currentTime is the current time in milliseconds since epoch.
   *@param documentPriorities are the document priorities corresponding to the document identifiers.
   *@param prereqEventNames are the events that must be completed before each document can be processed.
-  *@return true if the priority value(s) were used, false otherwise.
   */
-  public boolean[] addDocumentsInitial(String processID,
+  public void addDocumentsInitial(String processID,
     Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs, boolean overrideSchedule,
-    int hopcountMethod, long currentTime, double[] documentPriorities,
+    int hopcountMethod, long currentTime, IPriorityCalculator[] documentPriorities,
     String[][] prereqEventNames)
     throws ManifoldCFException;
 
@@ -621,15 +618,14 @@ public interface IJobManager
   *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
   *@param priority is the desired document priority for the document.
   *@param prereqEventNames are the events that must be completed before the document can be processed.
-  *@return true if the priority value was used, false otherwise.
   */
-  public boolean addDocument(String processID,
+  public void addDocument(String processID,
     Long jobID, String[] legalLinkTypes,
     String docIDHash, String docID,
     String parentIdentifierHash,
     String relationshipType,
     int hopcountMethod, String[] dataNames, Object[][] dataValues,
-    long currentTime, double priority, String[] prereqEventNames)
+    long currentTime, IPriorityCalculator priority, String[] prereqEventNames)
     throws ManifoldCFException;
 
   /** Add documents to the queue in bulk.
@@ -652,15 +648,14 @@ public interface IJobManager
   *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
   *@param priorities are the desired document priorities for the documents.
   *@param prereqEventNames are the events that must be completed before each document can be processed.
-  *@return an array of boolean values indicating whether or not the passed-in priority value was used or not for each doc id (true if used).
   */
-  public boolean[] addDocuments(String processID,
+  public void addDocuments(String processID,
     Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs,
     String parentIdentifierHash,
     String relationshipType,
     int hopcountMethod, String[][] dataNames, Object[][][] dataValues,
-    long currentTime, double[] priorities,
+    long currentTime, IPriorityCalculator[] priorities,
     String[][] prereqEventNames)
     throws ManifoldCFException;
 

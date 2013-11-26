@@ -40,6 +40,7 @@ public class SeedingActivity implements ISeedingActivity
   protected final String connectionName;
   protected final IRepositoryConnectionManager connManager;
   protected final IJobManager jobManager;
+  protected final IBinManager binManager;
   protected final QueueTracker queueTracker;
   protected final IRepositoryConnection connection;
   protected final IRepositoryConnector connector;
@@ -57,7 +58,8 @@ public class SeedingActivity implements ISeedingActivity
 
   /** Constructor.
   */
-  public SeedingActivity(String connectionName, IRepositoryConnectionManager connManager, IJobManager jobManager,
+  public SeedingActivity(String connectionName, IRepositoryConnectionManager connManager,
+    IJobManager jobManager, IBinManager binManager,
     QueueTracker queueTracker, IRepositoryConnection connection, IRepositoryConnector connector,
     Long jobID, String[] legalLinkTypes, boolean overrideSchedule, int hopcountMethod, String processID)
   {
@@ -65,6 +67,7 @@ public class SeedingActivity implements ISeedingActivity
     this.connectionName = connectionName;
     this.connManager = connManager;
     this.jobManager = jobManager;
+    this.binManager = binManager;
     this.queueTracker = queueTracker;
     this.connection = connection;
     this.connector = connector;
@@ -215,38 +218,21 @@ public class SeedingActivity implements ISeedingActivity
   {
     // First, prioritize the documents using the queue tracker
     long prioritizationTime = System.currentTimeMillis();
-    double[] docPriorities = new double[docIDHashes.length];
-    String[][] binNames = new String[docIDHashes.length][];
+    IPriorityCalculator[] docPriorities = new IPriorityCalculator[docIDHashes.length];
 
     int i = 0;
     while (i < docIDHashes.length)
     {
       // Calculate desired document priority based on current queuetracker status.
       String[] bins = connector.getBinNames(docIDs[i]);
-
-      binNames[i] = bins;
-      docPriorities[i] = queueTracker.calculatePriority(bins,connection);
-      if (Logging.scheduling.isDebugEnabled())
-        Logging.scheduling.debug("Giving document '"+docIDs[i]+"' priority "+new Double(docPriorities[i]).toString());
+      docPriorities[i] = new PriorityCalculator(queueTracker,connection,bins,binManager);
 
       i++;
     }
 
-    boolean[] trackerNote = jobManager.addDocumentsInitial(processID,
+    jobManager.addDocumentsInitial(processID,
       jobID,legalLinkTypes,docIDHashes,docIDs,overrideSchedule,hopcountMethod,
       prioritizationTime,docPriorities,prereqEventNames);
-
-    // Inform queuetracker about what we used and what we didn't
-    int j = 0;
-    while (j < trackerNote.length)
-    {
-      if (trackerNote[j] == false)
-      {
-        String[] bins = binNames[j];
-        queueTracker.notePriorityNotUsed(bins,connection,docPriorities[j]);
-      }
-      j++;
-    }
 
   }
 

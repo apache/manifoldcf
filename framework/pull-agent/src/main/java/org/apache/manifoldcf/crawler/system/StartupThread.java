@@ -62,6 +62,7 @@ public class StartupThread extends Thread
       // Create a thread context object.
       IThreadContext threadContext = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(threadContext);
+      IBinManager binManager = BinManagerFactory.make(threadContext);
       IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
 
       IDBInterface database = DBInterfaceFactory.make(threadContext,
@@ -151,7 +152,8 @@ public class StartupThread extends Thread
 
                   try
                   {
-                    SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,jobManager,queueTracker,
+                    SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,
+                      jobManager,binManager,queueTracker,
                       connection,connector,jobID,legalLinkTypes,true,hopcountMethod,processID);
 
                     if (Logging.threads.isDebugEnabled())

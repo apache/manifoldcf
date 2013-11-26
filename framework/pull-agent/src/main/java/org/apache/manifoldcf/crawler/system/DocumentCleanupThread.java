@@ -82,6 +82,7 @@ public class DocumentCleanupThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
+      IBinManager binManager = BinManagerFactory.make(threadContext);
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
 
       // Loop
@@ -238,7 +239,7 @@ public class DocumentCleanupThread extends Thread
                   String[] legalLinkTypes = (String[])arrayRelationshipTypes.get(k);
                   DocumentDescription[] requeueCandidates = jobManager.markDocumentCleanedUp(jobID,legalLinkTypes,ddd,hopcountMethod);
                   // Use the common method for doing the requeuing
-                  ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
+                  ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,binManager, requeueCandidates,
                     connector,connection,queueTracker,currentTime);
                   // Finally, completed expiration of the document.
                   dqd.setProcessed();

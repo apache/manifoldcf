@@ -354,6 +354,7 @@ public class CrawlerAgent implements IAgent
 
         // First, get a job manager
         IJobManager jobManager = JobManagerFactory.make(threadContext);
+        IBinManager binManager = BinManagerFactory.make(threadContext);
         IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
 
         /* No longer needed, because IAgents specifically initializes/cleans up.
@@ -385,7 +386,8 @@ public class CrawlerAgent implements IAgent
             break;
 
           // Calculate new priorities for all these documents
-          ManifoldCF.writeDocumentPriorities(threadContext,mgr,jobManager,docs,connectionMap,jobDescriptionMap,
+          ManifoldCF.writeDocumentPriorities(threadContext,mgr,jobManager,binManager,
+            docs,connectionMap,jobDescriptionMap,
             queueTracker,currentTime);
 
           Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
