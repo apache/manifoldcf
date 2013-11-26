@@ -39,16 +39,17 @@ public class JobManager implements IJobManager
   protected static final String hopLock = "_HOPLOCK_";
 
   // Member variables
-  protected IDBInterface database;
-  protected IOutputConnectionManager outputMgr;
-  protected IRepositoryConnectionManager connectionMgr;
-  protected ILockManager lockManager;
-  protected IThreadContext threadContext;
-  protected JobQueue jobQueue;
-  protected Jobs jobs;
-  protected HopCount hopCount;
-  protected Carrydown carryDown;
-  protected EventManager eventManager;
+  protected final IDBInterface database;
+  protected final IOutputConnectionManager outputMgr;
+  protected final IRepositoryConnectionManager connectionMgr;
+  protected final ILockManager lockManager;
+  protected final IThreadContext threadContext;
+  protected final BinManager binManager;
+  protected final JobQueue jobQueue;
+  protected final Jobs jobs;
+  protected final HopCount hopCount;
+  protected final Carrydown carryDown;
+  protected final EventManager eventManager;
 
 
   protected static Random random = new Random();
@@ -67,10 +68,10 @@ public class JobManager implements IJobManager
     hopCount = new HopCount(threadContext,database);
     carryDown = new Carrydown(database);
     eventManager = new EventManager(database);
+    binManager = new BinManager(database);
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
     connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
     lockManager = LockManagerFactory.make(threadContext);
-
   }
 
   /** Install.
@@ -83,6 +84,7 @@ public class JobManager implements IJobManager
     hopCount.install(jobs.getTableName(),jobs.idField);
     carryDown.install(jobs.getTableName(),jobs.idField);
     eventManager.install();
+    binManager.install();
   }
 
   /** Uninstall.
@@ -90,6 +92,7 @@ public class JobManager implements IJobManager
   public void deinstall()
     throws ManifoldCFException
   {
+    binManager.deinstall();
     eventManager.deinstall();
     carryDown.deinstall();
     hopCount.deinstall();
