@@ -346,8 +346,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         enterServiceRegistryLock(connection, serviceType);
         try
         {
-          // MHL
-          return false;
+          return connection.checkNodeExists(buildServiceTypeActivePath(serviceType, serviceName));
         }
         finally
         {
