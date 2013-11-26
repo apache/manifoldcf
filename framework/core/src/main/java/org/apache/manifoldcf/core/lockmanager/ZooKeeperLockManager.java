@@ -140,7 +140,13 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           if (cleanup != null)
           {
             if (children.size() == 0)
+            {
+              // If we could count on locks never being cleaned up, clusterInit()
+              // would be sufficient here.  But then there's no way to recover from
+              // a lock clean.
+              cleanup.cleanUpAllServices();
               cleanup.clusterInit();
+            }
             else if (foundService && foundActiveService)
               cleanup.cleanUpService(serviceName);
             else if (!foundActiveService)
