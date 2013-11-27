@@ -509,7 +509,7 @@ public class QueueTracker
   /** Calculate the maximum fetch rate for a given set of bins for a given connection.
   * This is used to adjust the final priority of a document.
   */
-  protected double[] calculateMaxFetchRates(String[] binNames, IRepositoryConnection connection)
+  protected static double[] calculateMaxFetchRates(String[] binNames, IRepositoryConnection connection)
   {
     ThrottleLimits tl = new ThrottleLimits(connection);
     return tl.getMaximumRates(binNames);
@@ -518,7 +518,7 @@ public class QueueTracker
   /** This class represents the throttle limits out of the connection specification */
   protected static class ThrottleLimits
   {
-    protected ArrayList specs = new ArrayList();
+    protected List<ThrottleLimitSpec> specs = new ArrayList<ThrottleLimitSpec>();
 
     public ThrottleLimits(IRepositoryConnection connection)
     {
@@ -540,15 +540,12 @@ public class QueueTracker
     public double[] getMaximumRates(String[] binNames)
     {
       double[] rval = new double[binNames.length];
-      int j = 0;
-      while (j < binNames.length)
+      for (int j = 0 ; j < binNames.length ; j++)
       {
         String binName = binNames[j];
         double maxRate = Double.POSITIVE_INFINITY;
-        int i = 0;
-        while (i < specs.size())
+        for (ThrottleLimitSpec spec : specs)
         {
-          ThrottleLimitSpec spec = (ThrottleLimitSpec)specs.get(i++);
           Pattern p = spec.getRegexp();
           Matcher m = p.matcher(binName);
           if (m.find())
@@ -560,7 +557,6 @@ public class QueueTracker
           }
         }
         rval[j] = maxRate;
-        j++;
       }
       return rval;
     }
@@ -571,9 +567,9 @@ public class QueueTracker
   protected static class ThrottleLimitSpec
   {
     /** Regexp */
-    protected Pattern regexp;
+    protected final Pattern regexp;
     /** The fetch limit for all bins matching that regexp, in fetches per millisecond */
-    protected double maxRate;
+    protected final double maxRate;
 
     /** Constructor */
     public ThrottleLimitSpec(String regexp, double maxRate)

@@ -29,7 +29,8 @@ public interface IPriorityCalculator
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** Compute the document priority given an actual bincounter value.
+  /** Compute the document priority.  This MUST be called from within a
+  * a retry-able database transaction!!
   *@return the document priority.
   */
   public double getDocumentPriority()
