@@ -42,6 +42,11 @@
   #else
         <option value="4.0">SharePoint Services 4.0 (2010)</option>
   #end
+  #if($SERVERVERSION == '5.0')
+        <option value="5.0" selected="true">SharePoint Services 5.0 (2013)</option>
+  #else
+        <option value="5.0">SharePoint Services 5.0 (2013)</option>
+  #end
       </select>
     </td>
   </tr>
