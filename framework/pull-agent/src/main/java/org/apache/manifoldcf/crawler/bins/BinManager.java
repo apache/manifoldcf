@@ -122,6 +122,8 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
       IResultRow row = result.getRow(0);
       Double value = (Double)row.getValue(binCounterField);
       double rval = value.doubleValue();
+      if (rval < newBinValue)
+        rval = newBinValue;
       HashMap map = new HashMap();
       map.put(binCounterField,new Double(rval+1.0));
       performUpdate(map," WHERE "+query,params,null);

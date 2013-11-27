@@ -932,6 +932,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       // will therefore block that from occurring, until the reset is complete.
       try
       {
+        // Does this need to be in a transaction??? Can it fail and require retries?
+        binManager.reset();
+
         // Reprioritize all documents in the jobqueue, 1000 at a time
 
         Map<String,IRepositoryConnection> connectionMap = new HashMap<String,IRepositoryConnection>();
