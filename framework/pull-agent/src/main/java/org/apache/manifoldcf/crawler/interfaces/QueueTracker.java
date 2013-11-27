@@ -356,104 +356,90 @@ public class QueueTracker
   */
   public double calculatePriority(String[] binNames, IRepositoryConnection connection)
   {
+
+    // NOTE: We must be sure to adjust the return value by the factor calculated due to performance; a slower throttle rate
+    // should yield a lower priority.  In theory it should be possible to calculate an adjusted priority pretty exactly,
+    // on the basis that the fetch rates of two distinct bins should grant priorities such that:
+    //
+    //  (n documents) / (the rate of fetch (docs/millisecond) of the first bin) = milliseconds for the first bin
+    //
+    //  should equal:
+    //
+    //  (m documents) / (the rate of fetch of the second bin) = milliseconds for the second bin
+    //
+    // ... and then assigning priorities so that after a given number of document priorities are assigned from the first bin, the
+    // corresponding (*m/n) number of document priorities would get assigned for the second bin.
+    //
+    // Suppose the maximum fetch rate for the document is F fetches per millisecond.  If the document priority assigned for the Bth
+    // bin member is -log(1/(1+B)) for a document fetched with no throttling whatsoever,
+    // then we want the priority to be -log(1/(1+k)) for a throttled bin, where k is chosen so that:
+    // k = B * ((T + 1/F)/T) = B * (1 + 1/TF)
+    // ... where T is the time taken to fetch a single document that has no throttling at all.
+    // For the purposes of this exercise, a value of 100 doc/sec, or T=10ms.
+    //
+    // Basically, for F = 0, k should be infinity, and for F = infinity, k should be B.
+
+    // First, calculate the document's max fetch rate, in fetches per millisecond.  This will be used to adjust the priority, and
+    // also when resetting the bin counts.
+    double[] maxFetchRates = calculateMaxFetchRates(binNames,connection);
+
+    // For each bin, we will be calculating the bin count scale factor, which is what we multiply the bincount by to adjust for the
+    // throttling on that bin.
+    double[] binCountScaleFactors = new double[binNames.length];
+    double[] weightedMinimumDepths = new double[binNames.length];
+
+    // Before calculating priority, calculate some factors that will allow us to determine the proper starting value for a bin.
+
+    // First thing to do is to reset the bin values based on the current minimum.
+    for (int i = 0; i < binNames.length; i++)
+    {
+      String binName = binNames[i];
+      // Remember, maxFetchRate is in fetches per ms.
+      double maxFetchRate = maxFetchRates[i];
+
+      // Calculate (and save for later) the scale factor for this bin.
+      double binCountScaleFactor;
+      if (maxFetchRate == 0.0)
+        binCountScaleFactor = Double.POSITIVE_INFINITY;
+      else
+        binCountScaleFactor = 1.0 + 1.0 / (minMsPerFetch * maxFetchRate);
+      binCountScaleFactors[i] = binCountScaleFactor;
+      weightedMinimumDepths[i] = currentMinimumDepth / binCountScaleFactor;
+    }
+
+    double highestAdjustedCount = 0.0;
     synchronized (binCounts)
     {
-
-      // NOTE: We must be sure to adjust the return value by the factor calculated due to performance; a slower throttle rate
-      // should yield a lower priority.  In theory it should be possible to calculate an adjusted priority pretty exactly,
-      // on the basis that the fetch rates of two distinct bins should grant priorities such that:
-      //
-      //  (n documents) / (the rate of fetch (docs/millisecond) of the first bin) = milliseconds for the first bin
-      //
-      //  should equal:
-      //
-      //  (m documents) / (the rate of fetch of the second bin) = milliseconds for the second bin
-      //
-      // ... and then assigning priorities so that after a given number of document priorities are assigned from the first bin, the
-      // corresponding (*m/n) number of document priorities would get assigned for the second bin.
-      //
-      // Suppose the maximum fetch rate for the document is F fetches per millisecond.  If the document priority assigned for the Bth
-      // bin member is -log(1/(1+B)) for a document fetched with no throttling whatsoever,
-      // then we want the priority to be -log(1/(1+k)) for a throttled bin, where k is chosen so that:
-      // k = B * ((T + 1/F)/T) = B * (1 + 1/TF)
-      // ... where T is the time taken to fetch a single document that has no throttling at all.
-      // For the purposes of this exercise, a value of 100 doc/sec, or T=10ms.
-      //
-      // Basically, for F = 0, k should be infinity, and for F = infinity, k should be B.
-
-
-      // First, calculate the document's max fetch rate, in fetches per millisecond.  This will be used to adjust the priority, and
-      // also when resetting the bin counts.
-      double[] maxFetchRates = calculateMaxFetchRates(binNames,connection);
-
-      // For each bin, we will be calculating the bin count scale factor, which is what we multiply the bincount by to adjust for the
-      // throttling on that bin.
-      double[] binCountScaleFactors = new double[binNames.length];
-
-
-      // Before calculating priority, reset any bins to a higher value, if it seems like it is appropriate.  This is how we avoid assigning priorities
-      // higher than the current level at which queuing is currently taking place.
-
-      // First thing to do is to reset the bin values based on the current minimum.
-      int i = 0;
-      while (i < binNames.length)
+      // Find the bin with the largest effective count, and use that for the document's priority.
+      // (This of course assumes that the slowest throttle is the one that wins.)
+      for (int i = 0; i < binNames.length; i++)
       {
         String binName = binNames[i];
-        // Remember, maxFetchRate is in fetches per ms.
-        double maxFetchRate = maxFetchRates[i];
-
-        // Calculate (and save for later) the scale factor for this bin.
-        double binCountScaleFactor;
-        if (maxFetchRate == 0.0)
-          binCountScaleFactor = Double.POSITIVE_INFINITY;
-        else
-          binCountScaleFactor = 1.0 + 1.0 / (minMsPerFetch * maxFetchRate);
-        binCountScaleFactors[i] = binCountScaleFactor;
+        double binCountScaleFactor = binCountScaleFactors[i];
+        double weightedMinimumDepth = weightedMinimumDepths[i];
 
         double thisCount = 0.0;
         DoubleBinCount bc = binCounts.get(binName);
         if (bc != null)
-        {
           thisCount = bc.getValue();
+        else
+        {
+          bc = new DoubleBinCount();
+          binCounts.put(binName,bc);
         }
+
         // Adjust the count, if needed, so that we are not assigning priorities greater than the current level we are
         // grabbing documents at
-        if (thisCount * binCountScaleFactor < currentMinimumDepth)
+        if (thisCount < weightedMinimumDepth)
         {
-          double weightedMinimumDepth = currentMinimumDepth / binCountScaleFactor;
 
           if (Logging.scheduling.isDebugEnabled())
             Logging.scheduling.debug("Resetting value of bin '"+binName+"' to "+new Double(weightedMinimumDepth).toString()+"(scale factor is "+new Double(binCountScaleFactor)+")");
 
           // Set a new bin value
-          if (bc == null)
-          {
-            bc = new DoubleBinCount();
-            binCounts.put(binName,bc);
-          }
           bc.setValue(weightedMinimumDepth);
         }
-
-        i++;
-      }
-
-      double returnValue;
-
-      // There was no previously-calculated value available, so we need to calculate a new value.
-
-      // Find the bin with the largest effective count, and use that for the document's priority.
-      // (This of course assumes that the slowest throttle is the one that wins.)
-      double highestAdjustedCount = 0.0;
-      i = 0;
-      while (i < binNames.length)
-      {
-        String binName = binNames[i];
-        double binCountScaleFactor = binCountScaleFactors[i];
-
-        double thisCount = 0.0;
-        DoubleBinCount bc = binCounts.get(binName);
-        if (bc != null)
-          thisCount = bc.getValue();
+        bc.increment();
 
         double adjustedCount;
         // Use the scale factor already calculated above to yield a priority that is adjusted for the fetch rate.
@@ -463,47 +449,30 @@ public class QueueTracker
           adjustedCount = thisCount * binCountScaleFactor;
         if (adjustedCount > highestAdjustedCount)
           highestAdjustedCount = adjustedCount;
-        i++;
       }
-
-      // Calculate the proper log value
-      if (highestAdjustedCount == Double.POSITIVE_INFINITY)
-        returnValue = Double.POSITIVE_INFINITY;
-      else
-        returnValue = Math.log(1.0 + highestAdjustedCount);
-
-      // Update bins to indicate we used another priority.  If more than one bin is associated with the document,
-      // counts for all bins are nevertheless updated, because we don't wish to arrange scheduling collisions with hypothetical
-      // documents that share any of these bins.
-      int j = 0;
-      while (j < binNames.length)
-      {
-        String binName = binNames[j];
-        DoubleBinCount bc = binCounts.get(binName);
-        if (bc == null)
-        {
-          bc = new DoubleBinCount();
-          binCounts.put(binName,bc);
-        }
-        bc.increment();
-
-        j++;
-      }
-
-      if (Logging.scheduling.isDebugEnabled())
-      {
-        StringBuilder sb = new StringBuilder();
-        int k = 0;
-        while (k < binNames.length)
-        {
-          sb.append(binNames[k++]).append(" ");
-        }
-        Logging.scheduling.debug("Document with bins ["+sb.toString()+"] given priority value "+new Double(returnValue).toString());
-      }
-
-
-      return returnValue;
     }
+    
+    // Calculate the proper log value
+    double returnValue;
+    
+    if (highestAdjustedCount == Double.POSITIVE_INFINITY)
+      returnValue = Double.POSITIVE_INFINITY;
+    else
+      returnValue = Math.log(1.0 + highestAdjustedCount);
+
+    if (Logging.scheduling.isDebugEnabled())
+    {
+      StringBuilder sb = new StringBuilder();
+      int k = 0;
+      while (k < binNames.length)
+      {
+        sb.append(binNames[k++]).append(" ");
+      }
+      Logging.scheduling.debug("Document with bins ["+sb.toString()+"] given priority value "+new Double(returnValue).toString());
+    }
+
+
+    return returnValue;
   }
 
   /** Calculate the maximum fetch rate for a given set of bins for a given connection.
