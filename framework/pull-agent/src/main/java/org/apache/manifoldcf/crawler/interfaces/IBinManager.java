@@ -48,7 +48,7 @@ public interface IBinManager
   * returned; what will be stored will be that value + 1.
   *@return the counter value.
   */
-  public long getIncrementBinValue(String binName, long newBinValue)
+  public double getIncrementBinValue(String binName, double newBinValue)
     throws ManifoldCFException;
 
 }

@@ -70,7 +70,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
       {
         HashMap map = new HashMap();
         map.put(binNameField,new ColumnDescription("VARCHAR(255)",true,true,null,null,false));
-        map.put(binCounterField,new ColumnDescription("BIGINT",false,false,null,null,false));
+        map.put(binCounterField,new ColumnDescription("FLOAT",false,false,null,null,false));
         performCreate(map,null);
       }
       else
@@ -109,7 +109,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
   *@return the counter value.
   */
   @Override
-  public long getIncrementBinValue(String binName, long newBinValue)
+  public double getIncrementBinValue(String binName, double newBinValue)
     throws ManifoldCFException
   {
     // SELECT FOR UPDATE/MODIFY is the most common path
@@ -120,10 +120,10 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
     if (result.getRowCount() > 0)
     {
       IResultRow row = result.getRow(0);
-      Long value = (Long)row.getValue(binCounterField);
-      long rval = value.longValue();
+      Double value = (Double)row.getValue(binCounterField);
+      double rval = value.doubleValue();
       HashMap map = new HashMap();
-      map.put(binCounterField,new Long(rval+1L));
+      map.put(binCounterField,new Double(rval+1.0));
       performUpdate(map," WHERE "+query,params,null);
       return rval;
     }
@@ -131,7 +131,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
     {
       HashMap map = new HashMap();
       map.put(binNameField,binName);
-      map.put(binCounterField,new Long(newBinValue+1L));
+      map.put(binCounterField,new Double(newBinValue+1.0));
       performInsert(map,null);
       return newBinValue;
     }
