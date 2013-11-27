@@ -78,13 +78,6 @@ public class QueueTracker
   /** This flag, when set, indicates that a reset is in progress, so queuetracker bincount updates are ignored. */
   protected boolean resetInProgress = false;
 
-  /** This hash table is keyed by PriorityKey objects, and contains ArrayList objects containing Doubles, in sorted order. */
-  protected final Map<PriorityKey,List<Double>> availablePriorities = new HashMap<PriorityKey,List<Double>>();
-
-  /** This hash table is keyed by a String (which is the bin name), and contains a Set of PriorityKey objects containing that
-  * String as a bin */
-  protected final Map<String,Set<PriorityKey>> binDependencies = new HashMap<String,Set<PriorityKey>>();
-
 
   /** Constructor */
   public QueueTracker()
@@ -101,8 +94,6 @@ public class QueueTracker
     {
       binCounts.clear();
       currentMinimumDepth = 0.0;
-      availablePriorities.clear();
-      binDependencies.clear();
       resetInProgress = true;
     }
 
@@ -151,60 +142,6 @@ public class QueueTracker
       }
     }
 
-  }
-
-  /** Note that a priority which was previously allocated was not used, and needs to be released.
-  */
-  public void notePriorityNotUsed(String[] binNames, IRepositoryConnection connection, double priority)
-  {
-    // If this is called, it means that a calculated document priority was given out but was not used.  As such, this
-    // priority can now be assigned to the next comparable document that has similar characteristics.
-
-    // Since prioritization calculations are not reversible, these unused values are kept in a queue, and are used preferentially.
-    PriorityKey pk = new PriorityKey(binNames);
-    synchronized (binCounts)
-    {
-      List<Double> value = availablePriorities.get(pk);
-      if (value == null)
-      {
-        value = new ArrayList<Double>();
-        availablePriorities.put(pk,value);
-      }
-      // Use bisection lookup to file the current priority so that highest priority is at the end (0.0), and lowest is at the beginning
-      int begin = 0;
-      int end = value.size();
-      while (true)
-      {
-        if (end == begin)
-        {
-          value.add(end,new Double(priority));
-          break;
-        }
-        int middle = (begin + end) >> 1;
-        Double middleValue = (Double)value.get(middle);
-        if (middleValue.doubleValue() < priority)
-        {
-          end = middle;
-        }
-        else
-        {
-          begin = middle + 1;
-        }
-      }
-      // Make sure the key is asserted into the binDependencies map for each bin
-      int i = 0;
-      while (i < binNames.length)
-      {
-        String binName = binNames[i++];
-        Set<PriorityKey> hm = binDependencies.get(binName);
-        if (hm == null)
-        {
-          hm = new HashSet<PriorityKey>();
-          binDependencies.put(binName,hm);
-        }
-        hm.add(pk);
-      }
-    }
   }
 
   /** Note the time required to successfully complete a set of documents.  This allows this module to keep track of
@@ -457,7 +394,7 @@ public class QueueTracker
       // Before calculating priority, reset any bins to a higher value, if it seems like it is appropriate.  This is how we avoid assigning priorities
       // higher than the current level at which queuing is currently taking place.
 
-      // First thing to do is to reset the bin values based on the current minimum.  If we *do* wind up resetting, we also need to ditch any availablePriorities that match.
+      // First thing to do is to reset the bin values based on the current minimum.
       int i = 0;
       while (i < binNames.length)
       {
@@ -488,17 +425,6 @@ public class QueueTracker
           if (Logging.scheduling.isDebugEnabled())
             Logging.scheduling.debug("Resetting value of bin '"+binName+"' to "+new Double(weightedMinimumDepth).toString()+"(scale factor is "+new Double(binCountScaleFactor)+")");
 
-          // Clear available priorities that depend on this bin
-          Set<PriorityKey> hm = binDependencies.get(binName);
-          if (hm != null)
-          {
-            for (PriorityKey pk : hm)
-            {
-              availablePriorities.remove(pk);
-            }
-            binDependencies.remove(binName);
-          }
-
           // Set a new bin value
           if (bc == null)
           {
@@ -513,82 +439,55 @@ public class QueueTracker
 
       double returnValue;
 
-      PriorityKey pk2 = new PriorityKey(binNames);
-      List<Double> queuedvalue = availablePriorities.get(pk2);
-      if (queuedvalue != null && queuedvalue.size() > 0)
+      // There was no previously-calculated value available, so we need to calculate a new value.
+
+      // Find the bin with the largest effective count, and use that for the document's priority.
+      // (This of course assumes that the slowest throttle is the one that wins.)
+      double highestAdjustedCount = 0.0;
+      i = 0;
+      while (i < binNames.length)
       {
-        // There's a saved value on the queue, which was calculated but not assigned earlier.  We use these values preferentially.
-        returnValue = ((Double)queuedvalue.remove(queuedvalue.size()-1)).doubleValue();
-        if (queuedvalue.size() == 0)
-        {
-          i = 0;
-          while (i < binNames.length)
-          {
-            String binName = binNames[i++];
-            Set<PriorityKey> hm = binDependencies.get(binName);
-            if (hm != null)
-            {
-              hm.remove(pk2);
-              if (hm.size() == 0)
-                binDependencies.remove(binName);
-            }
-          }
-          availablePriorities.remove(pk2);
-        }
-      }
-      else
-      {
-        // There was no previously-calculated value available, so we need to calculate a new value.
+        String binName = binNames[i];
+        double binCountScaleFactor = binCountScaleFactors[i];
 
-        // Find the bin with the largest effective count, and use that for the document's priority.
-        // (This of course assumes that the slowest throttle is the one that wins.)
-        double highestAdjustedCount = 0.0;
-        i = 0;
-        while (i < binNames.length)
-        {
-          String binName = binNames[i];
-          double binCountScaleFactor = binCountScaleFactors[i];
+        double thisCount = 0.0;
+        DoubleBinCount bc = binCounts.get(binName);
+        if (bc != null)
+          thisCount = bc.getValue();
 
-          double thisCount = 0.0;
-          DoubleBinCount bc = binCounts.get(binName);
-          if (bc != null)
-            thisCount = bc.getValue();
-
-          double adjustedCount;
-          // Use the scale factor already calculated above to yield a priority that is adjusted for the fetch rate.
-          if (binCountScaleFactor == Double.POSITIVE_INFINITY)
-            adjustedCount = Double.POSITIVE_INFINITY;
-          else
-            adjustedCount = thisCount * binCountScaleFactor;
-          if (adjustedCount > highestAdjustedCount)
-            highestAdjustedCount = adjustedCount;
-          i++;
-        }
-
-        // Calculate the proper log value
-        if (highestAdjustedCount == Double.POSITIVE_INFINITY)
-          returnValue = Double.POSITIVE_INFINITY;
+        double adjustedCount;
+        // Use the scale factor already calculated above to yield a priority that is adjusted for the fetch rate.
+        if (binCountScaleFactor == Double.POSITIVE_INFINITY)
+          adjustedCount = Double.POSITIVE_INFINITY;
         else
-          returnValue = Math.log(1.0 + highestAdjustedCount);
+          adjustedCount = thisCount * binCountScaleFactor;
+        if (adjustedCount > highestAdjustedCount)
+          highestAdjustedCount = adjustedCount;
+        i++;
+      }
 
-        // Update bins to indicate we used another priority.  If more than one bin is associated with the document,
-        // counts for all bins are nevertheless updated, because we don't wish to arrange scheduling collisions with hypothetical
-        // documents that share any of these bins.
-        int j = 0;
-        while (j < binNames.length)
+      // Calculate the proper log value
+      if (highestAdjustedCount == Double.POSITIVE_INFINITY)
+        returnValue = Double.POSITIVE_INFINITY;
+      else
+        returnValue = Math.log(1.0 + highestAdjustedCount);
+
+      // Update bins to indicate we used another priority.  If more than one bin is associated with the document,
+      // counts for all bins are nevertheless updated, because we don't wish to arrange scheduling collisions with hypothetical
+      // documents that share any of these bins.
+      int j = 0;
+      while (j < binNames.length)
+      {
+        String binName = binNames[j];
+        DoubleBinCount bc = binCounts.get(binName);
+        if (bc == null)
         {
-          String binName = binNames[j];
-          DoubleBinCount bc = binCounts.get(binName);
-          if (bc == null)
-          {
-            bc = new DoubleBinCount();
-            binCounts.put(binName,bc);
-          }
-          bc.increment();
-
-          j++;
+          bc = new DoubleBinCount();
+          binCounts.put(binName,bc);
         }
+        bc.increment();
 
+        j++;
       }
 
       if (Logging.scheduling.isDebugEnabled())
@@ -694,54 +593,6 @@ public class QueueTracker
     public double getMaxRate()
     {
       return maxRate;
-    }
-  }
-
-  /** This is the key class for the availablePriorities table */
-  protected static class PriorityKey
-  {
-    // The bins, in sorted order
-    protected String[] binNames;
-
-    /** Constructor */
-    public PriorityKey(String[] binNames)
-    {
-      this.binNames = new String[binNames.length];
-      int i = 0;
-      while (i < binNames.length)
-      {
-        this.binNames[i] = binNames[i];
-        i++;
-      }
-      java.util.Arrays.sort(this.binNames);
-    }
-
-    public int hashCode()
-    {
-      int rval = 0;
-      int i = 0;
-      while (i < binNames.length)
-      {
-        rval += binNames[i++].hashCode();
-      }
-      return rval;
-    }
-
-    public boolean equals(Object o)
-    {
-      if (!(o instanceof PriorityKey))
-        return false;
-      PriorityKey p = (PriorityKey)o;
-      if (binNames.length != p.binNames.length)
-        return false;
-      int i = 0;
-      while (i < binNames.length)
-      {
-        if (!binNames[i].equals(p.binNames[i]))
-          return false;
-        i++;
-      }
-      return true;
     }
   }
 
