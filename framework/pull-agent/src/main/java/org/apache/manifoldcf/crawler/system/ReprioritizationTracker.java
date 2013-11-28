@@ -36,9 +36,11 @@ public class ReprioritizationTracker
   protected final static String trackerWriteLock = "_REPR_TRACKER_LOCK_";
   protected final static String trackerProcessIDResource = "_REPR_TRACKER_PID_";
   protected final static String trackerTimestampResource = "_REPR_TIMESTAMP_";
+  protected final static String trackerMinimumDepthResource = "_REPR_MINDEPTH_";
   
   /** Lock manager */
   protected final ILockManager lockManager;
+  protected final IBinManager binManager;
   
   /** Constructor.
   */
@@ -46,6 +48,7 @@ public class ReprioritizationTracker
     throws ManifoldCFException
   {
     lockManager = LockManagerFactory.make(threadContext);
+    binManager = BinManagerFactory.make(threadContext);
   }
   
   /** Start a reprioritization activity.
@@ -69,6 +72,24 @@ public class ReprioritizationTracker
       }
       writeTime(new Long(prioritizationTime));
       writeProcessID(processID);
+      try
+      {
+        binManager.reset();
+      }
+      catch (Throwable e)
+      {
+        writeTime(null);
+        writeProcessID(null);
+        if (e instanceof Error)
+          throw (Error)e;
+        else if (e instanceof RuntimeException)
+          throw (RuntimeException)e;
+        else if (e instanceof ManifoldCFException)
+          throw (ManifoldCFException)e;
+        else
+          throw new RuntimeException("Unknown exception: "+e.getClass().getName()+": "+e.getMessage(),e);
+      }
+      writeMinimumDepth(0.0);
     }
     finally
     {
@@ -142,6 +163,78 @@ public class ReprioritizationTracker
     finally
     {
       lockManager.leaveWriteLock(trackerWriteLock);
+    }
+  }
+  
+  /** Assess the current minimum depth.
+  * This method is called to provide information about the priorities of the documents being currently
+  * queued.  It is the case that it is unoptimal to assign document priorities that are fundamentally higher than this value,
+  * because then the new documents will be preferentially queued, and the goal of distributing documents across bins will not be
+  * adequately met.
+  *@param binNamesSet is the current set of priorities we see on the queuing operation.
+  */
+  public void assessMinimumDepth(Double[] binNamesSet)
+    throws ManifoldCFException
+  {
+    double newMinPriority = Double.MAX_VALUE;
+    for (Double binValue : binNamesSet)
+    {
+      if (binValue.doubleValue() < newMinPriority)
+        newMinPriority = binValue.doubleValue();
+    }
+
+    if (newMinPriority != Double.MAX_VALUE)
+    {
+
+      lockManager.enterWriteLock(trackerWriteLock);
+      try
+      {
+        Long reproTime = readTime();
+        String processID = readProcessID();
+        if (reproTime == null || processID == null)
+        {
+          double currentMinimumDepth = readMinimumDepth();
+
+          // Convert minPriority to minDepth.
+          // Note that this calculation does not take into account anything having to do with connection rates, throttling,
+          // or other adjustment factors.  It allows us only to obtain the "raw" minimum depth: the depth without any
+          // adjustments.
+          double newMinDepth = Math.exp(newMinPriority)-1.0;
+
+          if (newMinDepth > currentMinimumDepth)
+          {
+            writeMinimumDepth(newMinDepth);
+            if (Logging.scheduling.isDebugEnabled())
+              Logging.scheduling.debug("Setting new minimum depth value to "+new Double(currentMinimumDepth).toString());
+          }
+          else
+          {
+            if (newMinDepth < currentMinimumDepth && Logging.scheduling.isDebugEnabled())
+              Logging.scheduling.debug("Minimum depth value seems to have been set too high too early! currentMin = "+new Double(currentMinimumDepth).toString()+"; queue value = "+new Double(newMinDepth).toString());
+          }
+        }
+      }
+      finally
+      {
+        lockManager.leaveWriteLock(trackerWriteLock);
+      }
+    }
+  }
+
+  /** Retrieve current minimum depth.
+  *@return the current minimum depth to use.
+  */
+  public double getMinimumDepth()
+    throws ManifoldCFException
+  {
+    lockManager.enterReadLock(trackerWriteLock);
+    try
+    {
+      return readMinimumDepth();
+    }
+    finally
+    {
+      lockManager.leaveReadLock(trackerWriteLock);
     }
   }
   
@@ -234,5 +327,45 @@ public class ReprioritizationTracker
     }
   }
 
+  /** Read minimum depth.
+  *@return the minimum depth.
+  */
+  protected double readMinimumDepth()
+    throws ManifoldCFException
+  {
+    byte[] data = lockManager.readData(trackerMinimumDepthResource);
+    if (data == null || data.length != 8)
+      return 0.0;
+    long dataLong = ((long)data[0]) & 0xffL +
+      (((long)data[1]) << 8) & 0xff00L +
+      (((long)data[2]) << 16) & 0xff0000L +
+      (((long)data[3]) << 24) & 0xff000000L +
+      (((long)data[4]) << 32) & 0xff00000000L +
+      (((long)data[5]) << 40) & 0xff0000000000L +
+      (((long)data[6]) << 48) & 0xff000000000000L +
+      (((long)data[7]) << 56) & 0xff00000000000000L;
+
+    return Double.longBitsToDouble(dataLong);
+  }
+  
+  /** Write minimum depth.
+  *@param the minimum depth.
+  */
+  protected void writeMinimumDepth(double depth)
+    throws ManifoldCFException
+  {
+    long dataLong = Double.doubleToLongBits(depth);
+    byte[] data = new byte[8];
+    data[0] = (byte)(dataLong & 0xffL);
+    data[1] = (byte)((dataLong >> 8) & 0xffL);
+    data[2] = (byte)((dataLong >> 16) & 0xffL);
+    data[3] = (byte)((dataLong >> 24) & 0xffL);
+    data[4] = (byte)((dataLong >> 32) & 0xffL);
+    data[5] = (byte)((dataLong >> 40) & 0xffL);
+    data[6] = (byte)((dataLong >> 48) & 0xffL);
+    data[7] = (byte)((dataLong >> 56) & 0xffL);
+    lockManager.writeData(trackerMinimumDepthResource,data);
+  }
+  
 }
 
