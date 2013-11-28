@@ -67,43 +67,9 @@ public class QueueTracker
   /** These are the bin counts for active threads */
   protected final Map<String,BinCount> activeBinCounts = new HashMap<String,BinCount>();
 
-  /** The locker for the minimum depth calculation */
-  protected final Integer minimumDepthLock = new Integer(0);
-  
-  /** The "minimum depth" - which is the smallest bin count of the last document queued.  This helps guarantee that documents that are
-  * newly discovered don't wind up with high priority, but instead wind up about the same as the currently active document priority. */
-  protected double currentMinimumDepth = 0.0;
-
-  /** This flag, when set, indicates that a reset is in progress, so queuetracker bincount updates are ignored. */
-  protected boolean resetInProgress = false;
-
-
   /** Constructor */
   public QueueTracker()
   {
-  }
-
-  /** Reset the queue tracker.
-  * This occurs ONLY when we are about to reprioritize all active documents.  It does not affect the portion of the queue tracker that
-  * tracks the active queue.
-  */
-  public void beginReset()
-  {
-    synchronized (minimumDepthLock)
-    {
-      currentMinimumDepth = 0.0;
-      resetInProgress = true;
-    }
-
-  }
-
-  /** Finish the reset operation */
-  public void endReset()
-  {
-    synchronized (minimumDepthLock)
-    {
-      resetInProgress = false;
-    }
   }
 
   /** Add an access record to the queue tracker.  This happens when a document
@@ -209,55 +175,6 @@ public class QueueTracker
     }
   }
 
-  /** Assess the current minimum depth.
-  * This method is called to provide to the QueueTracker information about the priorities of the documents being currently
-  * queued.  It is the case that it is unoptimal to assign document priorities that are fundamentally higher than this value,
-  * because then the new documents will be preferentially queued, and the goal of distributing documents across bins will not be
-  * adequately met.
-  *@param binNamesSet is the current set of priorities we see on the queuing operation.
-  */
-  public void assessMinimumDepth(Double[] binNamesSet)
-  {
-    synchronized (minimumDepthLock)
-    {
-      // Ignore all numbers until reset is complete
-      if (!resetInProgress)
-      {
-        //Logging.scheduling.debug("In assessMinimumDepth");
-        int j = 0;
-        double newMinPriority = Double.MAX_VALUE;
-        while (j < binNamesSet.length)
-        {
-          Double binValue = binNamesSet[j++];
-          if (binValue.doubleValue() < newMinPriority)
-            newMinPriority = binValue.doubleValue();
-        }
-
-        if (newMinPriority != Double.MAX_VALUE)
-        {
-          // Convert minPriority to minDepth.
-          // Note that this calculation does not take into account anything having to do with connection rates, throttling,
-          // or other adjustment factors.  It allows us only to obtain the "raw" minimum depth: the depth without any
-          // adjustments.
-          double newMinDepth = Math.exp(newMinPriority)-1.0;
-
-          if (newMinDepth > currentMinimumDepth)
-          {
-            currentMinimumDepth = newMinDepth;
-            if (Logging.scheduling.isDebugEnabled())
-              Logging.scheduling.debug("Setting new minimum depth value to "+new Double(currentMinimumDepth).toString());
-          }
-          else
-          {
-            if (newMinDepth < currentMinimumDepth && Logging.scheduling.isDebugEnabled())
-              Logging.scheduling.debug("Minimum depth value seems to have been set too high too early! currentMin = "+new Double(currentMinimumDepth).toString()+"; queue value = "+new Double(newMinDepth).toString());
-          }
-        }
-      }
-    }
-
-  }
-
 
   /** Note that we have completed processing of a document with a given set of bins.
   * This method gets called when a Worker Thread has finished with a document.
@@ -341,16 +258,6 @@ public class QueueTracker
     return rval;
   }
 
-  /** Get the minimum depth.
-  */
-  public double getMinimumDepth()
-  {
-    synchronized (minimumDepthLock)
-    {
-      return currentMinimumDepth;
-    }
-  }
-  
 
   /** This is the class which allows a mutable integer count value to be saved in the bincount table.
   */

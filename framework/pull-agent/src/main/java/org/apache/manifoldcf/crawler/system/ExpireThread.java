@@ -39,22 +39,19 @@ public class ExpireThread extends Thread
   protected final DocumentCleanupQueue documentQueue;
   /** Worker thread pool reset manager */
   protected final WorkerResetManager resetManager;
-  /** Queue tracker */
-  protected final QueueTracker queueTracker;
   /** Process ID */
   protected final String processID;
   
   /** Constructor.
   *@param id is the expire thread id.
   */
-  public ExpireThread(String id, DocumentCleanupQueue documentQueue, QueueTracker queueTracker, WorkerResetManager resetManager, String processID)
+  public ExpireThread(String id, DocumentCleanupQueue documentQueue, WorkerResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     this.id = id;
     this.documentQueue = documentQueue;
     this.resetManager = resetManager;
-    this.queueTracker = queueTracker;
     this.processID = processID;
     setName("Expiration thread '"+id+"'");
     setDaemon(true);
@@ -72,8 +69,8 @@ public class ExpireThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
-      IBinManager binManager = BinManagerFactory.make(threadContext);
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
+      ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
 
       // Loop
       while (true)
@@ -242,8 +239,8 @@ public class ExpireThread extends Thread
                   String[] legalLinkTypes = (String[])arrayRelationshipTypes.get(k);
                   DocumentDescription[] requeueCandidates = jobManager.markDocumentExpired(jobID,legalLinkTypes,ddd,hopcountMethod);
                   // Use the common method for doing the requeuing
-                  ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,binManager,requeueCandidates,
-                    connector,connection,queueTracker,currentTime);
+                  ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
+                    connector,connection,rt,currentTime);
                   // Finally, completed expiration of the document.
                   dqd.setProcessed();
                 }

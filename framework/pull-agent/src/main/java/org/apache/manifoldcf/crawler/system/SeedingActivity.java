@@ -40,8 +40,7 @@ public class SeedingActivity implements ISeedingActivity
   protected final String connectionName;
   protected final IRepositoryConnectionManager connManager;
   protected final IJobManager jobManager;
-  protected final IBinManager binManager;
-  protected final QueueTracker queueTracker;
+  protected final ReprioritizationTracker rt;
   protected final IRepositoryConnection connection;
   protected final IRepositoryConnector connector;
   protected final Long jobID;
@@ -59,16 +58,15 @@ public class SeedingActivity implements ISeedingActivity
   /** Constructor.
   */
   public SeedingActivity(String connectionName, IRepositoryConnectionManager connManager,
-    IJobManager jobManager, IBinManager binManager,
-    QueueTracker queueTracker, IRepositoryConnection connection, IRepositoryConnector connector,
+    IJobManager jobManager,
+    ReprioritizationTracker rt, IRepositoryConnection connection, IRepositoryConnector connector,
     Long jobID, String[] legalLinkTypes, boolean overrideSchedule, int hopcountMethod, String processID)
   {
     this.processID = processID;
     this.connectionName = connectionName;
     this.connManager = connManager;
     this.jobManager = jobManager;
-    this.binManager = binManager;
-    this.queueTracker = queueTracker;
+    this.rt = rt;
     this.connection = connection;
     this.connector = connector;
     this.jobID = jobID;
@@ -225,7 +223,7 @@ public class SeedingActivity implements ISeedingActivity
     {
       // Calculate desired document priority based on current queuetracker status.
       String[] bins = connector.getBinNames(docIDs[i]);
-      docPriorities[i] = new PriorityCalculator(queueTracker,connection,bins,binManager);
+      docPriorities[i] = new PriorityCalculator(rt,connection,bins);
 
       i++;
     }

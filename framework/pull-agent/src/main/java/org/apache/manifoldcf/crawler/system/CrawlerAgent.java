@@ -277,14 +277,14 @@ public class CrawlerAgent implements IAgent
     docCleanupResetManager = new DocCleanupResetManager(documentCleanupQueue,processID);
 
     jobStartThread = new JobStartThread(processID);
-    startupThread = new StartupThread(queueTracker,new StartupResetManager(processID),processID);
+    startupThread = new StartupThread(new StartupResetManager(processID),processID);
     startDeleteThread = new StartDeleteThread(new DeleteStartupResetManager(processID),processID);
     finisherThread = new FinisherThread(processID);
     notificationThread = new JobNotificationThread(new NotificationResetManager(processID),processID);
     jobDeleteThread = new JobDeleteThread(processID);
     stufferThread = new StufferThread(documentQueue,numWorkerThreads,workerResetManager,queueTracker,blockingDocuments,lowWaterFactor,stuffAmtFactor,processID);
     expireStufferThread = new ExpireStufferThread(expireQueue,numExpireThreads,workerResetManager,processID);
-    setPriorityThread = new SetPriorityThread(queueTracker,numWorkerThreads,blockingDocuments,processID);
+    setPriorityThread = new SetPriorityThread(numWorkerThreads,blockingDocuments,processID);
     historyCleanupThread = new HistoryCleanupThread(processID);
 
     workerThreads = new WorkerThread[numWorkerThreads];
@@ -299,7 +299,7 @@ public class CrawlerAgent implements IAgent
     i = 0;
     while (i < numExpireThreads)
     {
-      expireThreads[i] = new ExpireThread(Integer.toString(i),expireQueue,queueTracker,workerResetManager,processID);
+      expireThreads[i] = new ExpireThread(Integer.toString(i),expireQueue,workerResetManager,processID);
       i++;
     }
 
@@ -317,12 +317,12 @@ public class CrawlerAgent implements IAgent
     i = 0;
     while (i < numCleanupThreads)
     {
-      cleanupThreads[i] = new DocumentCleanupThread(Integer.toString(i),documentCleanupQueue,queueTracker,docCleanupResetManager,processID);
+      cleanupThreads[i] = new DocumentCleanupThread(Integer.toString(i),documentCleanupQueue,docCleanupResetManager,processID);
       i++;
     }
 
-    jobResetThread = new JobResetThread(queueTracker,processID);
-    seedingThread = new SeedingThread(queueTracker,new SeedingResetManager(processID),processID);
+    jobResetThread = new JobResetThread(processID);
+    seedingThread = new SeedingThread(new SeedingResetManager(processID),processID);
     idleCleanupThread = new IdleCleanupThread(processID);
 
     initializationThread = new InitializationThread(queueTracker);
@@ -356,6 +356,7 @@ public class CrawlerAgent implements IAgent
         IJobManager jobManager = JobManagerFactory.make(threadContext);
         IBinManager binManager = BinManagerFactory.make(threadContext);
         IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
+        ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
 
         /* No longer needed, because IAgents specifically initializes/cleans up.
         
@@ -386,9 +387,9 @@ public class CrawlerAgent implements IAgent
             break;
 
           // Calculate new priorities for all these documents
-          ManifoldCF.writeDocumentPriorities(threadContext,mgr,jobManager,binManager,
+          ManifoldCF.writeDocumentPriorities(threadContext,mgr,jobManager,
             docs,connectionMap,jobDescriptionMap,
-            queueTracker,currentTime);
+            rt,currentTime);
 
           Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
         }

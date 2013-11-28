@@ -35,18 +35,16 @@ public class PriorityCalculator implements IPriorityCalculator
   */
   private final static double minMsPerFetch = 50.0;
 
-  protected final QueueTracker queueTracker;
   protected final IRepositoryConnection connection;
   protected final String[] binNames;
-  protected final IBinManager binManager;
+  protected final ReprioritizationTracker rt;
   
   /** Constructor. */
-  public PriorityCalculator(QueueTracker queueTracker, IRepositoryConnection connection, String[] documentBins, IBinManager binManager)
+  public PriorityCalculator(ReprioritizationTracker rt, IRepositoryConnection connection, String[] documentBins)
   {
-    this.queueTracker = queueTracker;
     this.connection = connection;
     this.binNames = documentBins;
-    this.binManager = binManager;
+    this.rt = rt;
   }
 
   /** Calculate a document priority value.  Priorities are reversed, and in log space, so that
@@ -93,7 +91,7 @@ public class PriorityCalculator implements IPriorityCalculator
     double[] weightedMinimumDepths = new double[binNames.length];
 
     // Before calculating priority, calculate some factors that will allow us to determine the proper starting value for a bin.
-    double currentMinimumDepth = queueTracker.getMinimumDepth();
+    double currentMinimumDepth = rt.getMinimumDepth();
 
     // First thing to do is to reset the bin values based on the current minimum.
     for (int i = 0; i < binNames.length; i++)
@@ -121,7 +119,7 @@ public class PriorityCalculator implements IPriorityCalculator
       double binCountScaleFactor = binCountScaleFactors[i];
       double weightedMinimumDepth = weightedMinimumDepths[i];
 
-      double thisCount = binManager.getIncrementBinValue(binName,weightedMinimumDepth);
+      double thisCount = rt.getIncrementBinValue(binName,weightedMinimumDepth);
       double adjustedCount;
       // Use the scale factor already calculated above to yield a priority that is adjusted for the fetch rate.
       if (binCountScaleFactor == Double.POSITIVE_INFINITY)

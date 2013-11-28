@@ -87,6 +87,7 @@ public class StufferThread extends Thread
       IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
       IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
+      ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
 
       Logging.threads.debug("Stuffer thread: Low water mark is "+Integer.toString(lowWaterMark)+"; amount per stuffing is "+Integer.toString(stuffAmt));
 
@@ -166,7 +167,7 @@ public class StufferThread extends Thread
           if (Thread.currentThread().isInterrupted())
             throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
-          queueTracker.assessMinimumDepth(depthStatistics.getBins());
+          rt.assessMinimumDepth(depthStatistics.getBins());
 
           // Set the last time to be the current time
           lastTime = currentTime;

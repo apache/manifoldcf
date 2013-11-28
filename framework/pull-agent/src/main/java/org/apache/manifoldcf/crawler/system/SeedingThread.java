@@ -38,8 +38,6 @@ public class SeedingThread extends Thread
   // Local data
   /** Seeding reset manager */
   protected final SeedingResetManager resetManager;
-  /** Queue tracker */
-  protected final QueueTracker queueTracker;
   /** Process ID */
   protected final String processID;
 
@@ -48,14 +46,13 @@ public class SeedingThread extends Thread
 
   /** Constructor.
   */
-  public SeedingThread(QueueTracker queueTracker, SeedingResetManager resetManager, String processID)
+  public SeedingThread(SeedingResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     setName("Seeding thread");
     setDaemon(true);
     this.resetManager = resetManager;
-    this.queueTracker = queueTracker;
     this.processID = processID;
   }
 
@@ -68,8 +65,8 @@ public class SeedingThread extends Thread
       // Create a thread context object.
       IThreadContext threadContext = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(threadContext);
-      IBinManager binManager = BinManagerFactory.make(threadContext);
       IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+      ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
 
       IDBInterface database = DBInterfaceFactory.make(threadContext,
         ManifoldCF.getMasterDatabaseName(),
@@ -149,7 +146,7 @@ public class SeedingThread extends Thread
                   {
 
                     SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,
-                      jobManager,binManager,queueTracker,
+                      jobManager,rt,
                       connection,connector,jobID,legalLinkTypes,false,hopcountMethod,processID);
 
                     if (Logging.threads.isDebugEnabled())

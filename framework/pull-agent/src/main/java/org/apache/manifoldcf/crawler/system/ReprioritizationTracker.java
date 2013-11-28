@@ -35,6 +35,7 @@ public class ReprioritizationTracker
 
   protected final static String trackerWriteLock = "_REPR_TRACKER_LOCK_";
   protected final static String trackerProcessIDResource = "_REPR_TRACKER_PID_";
+  protected final static String trackerReproIDResource = "_REPR_TRACKER_RID_";
   protected final static String trackerTimestampResource = "_REPR_TIMESTAMP_";
   protected final static String trackerMinimumDepthResource = "_REPR_MINDEPTH_";
   
@@ -55,8 +56,9 @@ public class ReprioritizationTracker
   *@param prioritizationTime is the timestamp of the prioritization.
   *@param processID is the process ID of the process performing/waiting for the prioritization
   * to complete.
+  *@param reproID is the reprocessing thread ID
   */
-  public void startReprioritization(long prioritizationTime, String processID)
+  public void startReprioritization(long prioritizationTime, String processID, String reproID)
     throws ManifoldCFException
   {
     lockManager.enterWriteLock(trackerWriteLock);
@@ -72,6 +74,7 @@ public class ReprioritizationTracker
       }
       writeTime(new Long(prioritizationTime));
       writeProcessID(processID);
+      writeReproID(reproID);
       try
       {
         binManager.reset();
@@ -80,6 +83,7 @@ public class ReprioritizationTracker
       {
         writeTime(null);
         writeProcessID(null);
+        writeReproID(null);
         if (e instanceof Error)
           throw (Error)e;
         else if (e instanceof RuntimeException)
@@ -110,7 +114,8 @@ public class ReprioritizationTracker
     {
       Long currentTime = readTime();
       String currentProcessID = readProcessID();
-      if (currentTime == null || currentProcessID == null)
+      String currentReproID = readReproID();
+      if (currentTime == null || currentProcessID == null || currentReproID == null)
         return null;
       return currentTime;
     }
@@ -124,7 +129,7 @@ public class ReprioritizationTracker
   * only if the processID matches the one that started the current reprioritization.
   *@param processID is the process ID of the process completing the prioritization.
   */
-  public void doneReprioritization(String processID)
+  public void doneReprioritization(String reproID)
     throws ManifoldCFException
   {
     lockManager.enterWriteLock(trackerWriteLock);
@@ -132,11 +137,13 @@ public class ReprioritizationTracker
     {
       Long currentTime = readTime();
       String currentProcessID = readProcessID();
-      if (currentTime != null && currentProcessID != null && currentProcessID.equals(processID))
+      String currentReproID = readReproID();
+      if (currentTime != null && currentProcessID != null && currentReproID != null && currentReproID.equals(reproID))
       {
         // Null out the fields
         writeTime(null);
         writeProcessID(null);
+        writeReproID(null);
       }
     }
     finally
@@ -158,7 +165,8 @@ public class ReprioritizationTracker
     {
       Long currentTime = readTime();
       String currentProcessID = readProcessID();
-      return (currentTime != null && currentProcessID != null && currentProcessID.equals(processID));
+      String currentReproID = readReproID();
+      return (currentTime != null && currentProcessID != null && currentReproID != null && currentProcessID.equals(processID));
     }
     finally
     {
@@ -236,6 +244,17 @@ public class ReprioritizationTracker
     {
       lockManager.leaveReadLock(trackerWriteLock);
     }
+  }
+  
+  /** Get a bin value.
+  *@param binName is the bin name.
+  *@param weightedMinimumDepth is the minimum depth to use.
+  *@return the bin value.
+  */
+  public double getIncrementBinValue(String binName, double weightedMinimumDepth)
+    throws ManifoldCFException
+  {
+    return binManager.getIncrementBinValue(binName, weightedMinimumDepth);
   }
   
   // Protected methods
@@ -319,6 +338,47 @@ public class ReprioritizationTracker
       {
         byte[] processIDData = processID.getBytes("utf-8");
         lockManager.writeData(trackerProcessIDResource, processIDData);
+      }
+      catch (UnsupportedEncodingException e)
+      {
+        throw new RuntimeException(e.getMessage(),e);
+      }
+    }
+  }
+
+  /** Read repriotization ID.
+  *@return reproID, or null if none.
+  */
+  protected String readReproID()
+    throws ManifoldCFException
+  {
+    byte[] reproIDData = lockManager.readData(trackerReproIDResource);
+    if (reproIDData == null)
+      return null;
+    try
+    {
+      return new String(reproIDData, "utf-8");
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      throw new RuntimeException(e.getMessage(),e);
+    }
+  }
+  
+  /** Write repro ID.
+  *@param reproID is the repro ID to write.
+  */
+  protected void writeReproID(String reproID)
+    throws ManifoldCFException
+  {
+    if (reproID == null)
+      lockManager.writeData(trackerReproIDResource, null);
+    else
+    {
+      try
+      {
+        byte[] reproIDData = reproID.getBytes("utf-8");
+        lockManager.writeData(trackerReproIDResource, reproIDData);
       }
       catch (UnsupportedEncodingException e)
       {
