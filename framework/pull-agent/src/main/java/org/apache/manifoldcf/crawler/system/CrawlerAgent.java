@@ -325,7 +325,7 @@ public class CrawlerAgent implements IAgent
     seedingThread = new SeedingThread(new SeedingResetManager(processID),processID);
     idleCleanupThread = new IdleCleanupThread(processID);
 
-    initializationThread = new InitializationThread(queueTracker);
+    initializationThread = new InitializationThread();
     // Start the initialization thread.  This does the initialization work and starts all the other threads when that's done.  It then exits.
     initializationThread.start();
     Logging.root.info("Pull-agent started");
@@ -334,12 +334,9 @@ public class CrawlerAgent implements IAgent
   protected class InitializationThread extends Thread
   {
 
-    protected final QueueTracker queueTracker;
-
-    public InitializationThread(QueueTracker queueTracker)
+    public InitializationThread()
     {
       super();
-      this.queueTracker = queueTracker;
       setName("Initialization thread");
       setDaemon(true);
     }
@@ -367,33 +364,8 @@ public class CrawlerAgent implements IAgent
         */
         
         Logging.threads.debug("Agents process reprioritizing documents...");
-
-        Map<String,IRepositoryConnection> connectionMap = new HashMap<String,IRepositoryConnection>();
-        Map<Long,IJobDescription> jobDescriptionMap = new HashMap<Long,IJobDescription>();
-        // Reprioritize all documents in the jobqueue, 1000 at a time
-        long currentTime = System.currentTimeMillis();
-
-        // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
-        // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
-        // activity.
-        // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
-        // priorities.
-        while (true)
-        {
-          long startTime = System.currentTimeMillis();
-
-          DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(currentTime, 10000);
-          if (docs.length == 0)
-            break;
-
-          // Calculate new priorities for all these documents
-          ManifoldCF.writeDocumentPriorities(threadContext,mgr,jobManager,
-            docs,connectionMap,jobDescriptionMap,
-            rt,currentTime);
-
-          Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
-        }
-
+        // This needs to be moved to cleanup method(s)
+        ManifoldCF.resetAllDocumentPriorities(threadContext,System.currentTimeMillis(),processID);
         Logging.threads.debug("Agents process initialization complete!");
 
         // Start all the threads
