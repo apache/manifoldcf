@@ -235,7 +235,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
           {
             // Throw a lock, so that cleanup processes and startup processes don't collide.
             String serviceType = getAgentsClassServiceType(className);
-            lockManager.registerServiceBeginServiceActivity(serviceType, processID, new CleanupAgent(threadContext, agent));
+            lockManager.registerServiceBeginServiceActivity(serviceType, processID, new CleanupAgent(threadContext, agent, processID));
             // There is a potential race condition where the agent has been started but hasn't yet appeared in runningHash.
             // But having runningHash be the synchronizer for this activity will prevent any problems.
             agent.startAgent(threadContext, processID);
@@ -286,7 +286,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       for (String agentsClass : runningHash.keySet())
       {
         IAgent agent = runningHash.get(agentsClass);
-        IServiceCleanup cleanup = new CleanupAgent(threadContext, agent);
+        IServiceCleanup cleanup = new CleanupAgent(threadContext, agent, processID);
         String agentsClassServiceType = getAgentsClassServiceType(agentsClass);
         while (!lockManager.cleanupInactiveService(agentsClassServiceType, cleanup))
         {
@@ -325,11 +325,13 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   {
     protected final IAgent agent;
     protected final IThreadContext threadContext;
-    
-    public CleanupAgent(IThreadContext threadContext, IAgent agent)
+    protected final String processID;
+
+    public CleanupAgent(IThreadContext threadContext, IAgent agent, String processID)
     {
       this.agent = agent;
       this.threadContext = threadContext;
+      this.processID = processID;
     }
     
     /** Clean up after the specified service.  This method will block any startup of the specified
@@ -340,7 +342,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     public void cleanUpService(String serviceName)
       throws ManifoldCFException
     {
-      agent.cleanUpAgentData(threadContext, serviceName);
+      agent.cleanUpAgentData(threadContext, processID, serviceName);
     }
 
     /** Clean up after ALL services of the type on the cluster.
@@ -349,7 +351,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     public void cleanUpAllServices()
       throws ManifoldCFException
     {
-      agent.cleanUpAgentData(threadContext);
+      agent.cleanUpAllAgentData(threadContext, processID);
     }
     
     /** Perform cluster initialization - that is, whatever is needed presuming that the
@@ -360,8 +362,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     public void clusterInit()
       throws ManifoldCFException
     {
-      // MHL - we really want a separate clusterInit in agents
-      agent.cleanUpAgentData(threadContext);
+      agent.clusterInit(threadContext);
     }
 
   }

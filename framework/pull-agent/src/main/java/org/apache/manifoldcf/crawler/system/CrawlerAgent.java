@@ -140,13 +140,18 @@ public class CrawlerAgent implements IAgent
   * Call this method to clean up dangling persistent state when a cluster is just starting
   * to come up.  This method CANNOT be called when there are any active agents
   * processes at all.
+  *@param processID is the current process ID.
   */
   @Override
-  public void cleanUpAgentData(IThreadContext threadContext)
+  public void cleanUpAllAgentData(IThreadContext threadContext, String currentProcessID)
     throws ManifoldCFException
   {
     IJobManager jobManager = JobManagerFactory.make(threadContext);
     jobManager.cleanupProcessData();
+    // What kind of reprioritization should be done here?
+    // There may be a dangling reprioritization, or even worse, someone may have blown
+    // away the lockmanager info.  So we need to do a complete reprioritization.
+    ManifoldCF.resetAllDocumentPriorities(threadContext,System.currentTimeMillis(),currentProcessID);
   }
   
   /** Cleanup after agents process.
@@ -154,14 +159,58 @@ public class CrawlerAgent implements IAgent
   * This method CANNOT be called when the agent is active, but it can
   * be called at any time and by any process in order to guarantee that a terminated
   * agent does not block other agents from completing their tasks.
-  *@param processID is the process ID of the agent to clean up after.
+  *@param currentProcessID is the current process ID.
+  *@param cleanupProcessID is the process ID of the agent to clean up after.
   */
   @Override
-  public void cleanUpAgentData(IThreadContext threadContext, String processID)
+  public void cleanUpAgentData(IThreadContext threadContext, String currentProcessID, String cleanupProcessID)
     throws ManifoldCFException
   {
     IJobManager jobManager = JobManagerFactory.make(threadContext);
-    jobManager.cleanupProcessData(processID);
+    jobManager.cleanupProcessData(cleanupProcessID);
+    ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
+    String reproID = rt.isSpecifiedProcessReprioritizing(cleanupProcessID);
+    if (reproID != null)
+    {
+      // We have to take over the prioritization for the process, which apparently died
+      // in the middle.
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
+
+      // Reprioritize all documents in the jobqueue, 1000 at a time
+
+      Map<String,IRepositoryConnection> connectionMap = new HashMap<String,IRepositoryConnection>();
+      Map<Long,IJobDescription> jobDescriptionMap = new HashMap<Long,IJobDescription>();
+      
+      // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
+      // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
+      // activity.
+      // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
+      // priorities.
+      while (true)
+      {
+        long startTime = System.currentTimeMillis();
+
+        Long currentTimeValue = rt.checkReprioritizationInProgress();
+        if (currentTimeValue == null)
+        {
+          // Some other process or thread superceded us.
+          return;
+        }
+        long updateTime = currentTimeValue.longValue();
+        
+        DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(updateTime, 10000);
+        if (docs.length == 0)
+          break;
+
+        // Calculate new priorities for all these documents
+        ManifoldCF.writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,
+          rt,updateTime);
+
+        Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
+      }
+      
+      rt.doneReprioritization(reproID);
+    }
   }
 
   /** Start the agent.  This method should spin up the agent threads, and
@@ -361,13 +410,13 @@ public class CrawlerAgent implements IAgent
 
         // Call the database to get it ready
         jobManager.prepareForStart();
-        */
         
         Logging.threads.debug("Agents process reprioritizing documents...");
         // This needs to be moved to cleanup method(s)
         ManifoldCF.resetAllDocumentPriorities(threadContext,System.currentTimeMillis(),processID);
         Logging.threads.debug("Agents process initialization complete!");
-
+        */
+        
         // Start all the threads
         jobStartThread.start();
         startupThread.start();

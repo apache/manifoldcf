@@ -154,10 +154,9 @@ public class ReprioritizationTracker
   
   /** Check if the specified processID is the one performing reprioritization.
   *@param processID is the process ID to check.
-  *@return true if the specified processID is declared as being responsible for the
-  * current reprioritization, false if no prioritization in progress or a different process is involved.
+  *@return the repro ID if the processID is confirmed to be the one.
   */
-  public boolean isSpecifiedProcessReprioritizing(String processID)
+  public String isSpecifiedProcessReprioritizing(String processID)
     throws ManifoldCFException
   {
     lockManager.enterWriteLock(trackerWriteLock);
@@ -166,7 +165,9 @@ public class ReprioritizationTracker
       Long currentTime = readTime();
       String currentProcessID = readProcessID();
       String currentReproID = readReproID();
-      return (currentTime != null && currentProcessID != null && currentReproID != null && currentProcessID.equals(processID));
+      if (currentTime != null && currentProcessID != null && currentReproID != null && currentProcessID.equals(processID))
+        return currentReproID;
+      return null;
     }
     finally
     {
