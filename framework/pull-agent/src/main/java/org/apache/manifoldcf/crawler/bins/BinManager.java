@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.CacheKeyFactory;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.apache.manifoldcf.crawler.system.Logging;
 import java.util.*;
 
 /** This class manages the docbins table.
@@ -101,17 +102,18 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
     performDelete("", null, null);
   }
 
-  /** Get a bin value (and set next one).  If the record does not yet exist, create it with a starting value.
-  * We expect this to happen within a transaction!! 
+  /** Get N bin values (and set next one).  If the record does not yet exist, create it with a starting value.
+  * We expect this to happen within a transaction!!.
   *@param binName is the name of the bin (256 char max)
   *@param newBinValue is the value to use if there is no such bin yet.  This is the value that will be
   * returned; what will be stored will be that value + 1.
-  *@return the counter value.
+  *@param count is the number of values desired.
+  *@return the counter values.
   */
-  @Override
-  public double getIncrementBinValue(String binName, double newBinValue)
+  public double[] getIncrementBinValues(String binName, double newBinValue, int count)
     throws ManifoldCFException
   {
+    double[] returnValues = new double[count];
     // SELECT FOR UPDATE/MODIFY is the most common path
     ArrayList params = new ArrayList();
     String query = buildConjunctionClause(params,new ClauseDescription[]{
@@ -124,18 +126,78 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
       double rval = value.doubleValue();
       if (rval < newBinValue)
         rval = newBinValue;
+      // rval is the starting value; compute the entire array based on it.
+      for (int i = 0; i < count; i++)
+      {
+        returnValues[i] = rval;
+        rval += 1.0;
+      }
       HashMap map = new HashMap();
-      map.put(binCounterField,new Double(rval+1.0));
+      map.put(binCounterField,new Double(rval));
       performUpdate(map," WHERE "+query,params,null);
-      return rval;
     }
     else
     {
+      for (int i = 0; i < count; i++)
+      {
+        returnValues[i] = newBinValue;
+        newBinValue += 1.0;
+      }
       HashMap map = new HashMap();
       map.put(binNameField,binName);
-      map.put(binCounterField,new Double(newBinValue+1.0));
+      map.put(binCounterField,new Double(newBinValue));
       performInsert(map,null);
-      return newBinValue;
+    }
+    return returnValues;
+  }
+
+  /** Get N bin values (and set next one).  If the record does not yet exist, create it with a starting value.
+  * This method invokes its own retry-able transaction.
+  *@param binName is the name of the bin (256 char max)
+  *@param newBinValue is the value to use if there is no such bin yet.  This is the value that will be
+  * returned; what will be stored will be that value + 1.
+  *@param count is the number of values desired.
+  *@return the counter values.
+  */
+  @Override
+  public double[] getIncrementBinValuesInTransaction(String binName, double newBinValue, int count)
+    throws ManifoldCFException
+  {
+    while (true)
+    {
+      long sleepAmt = 0L;
+      beginTransaction();
+      try
+      {
+        return getIncrementBinValues(binName, newBinValue, count);
+      }
+      catch (Error e)
+      {
+        signalRollback();
+        throw e;
+      }
+      catch (RuntimeException e)
+      {
+        signalRollback();
+        throw e;
+      }
+      catch (ManifoldCFException e)
+      {
+        signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction obtaining docpriorities: "+e.getMessage());
+          sleepAmt = getSleepAmt();
+          continue;
+        }
+        throw e;
+      }
+      finally
+      {
+        endTransaction();
+        sleepFor(sleepAmt);
+      }
     }
   }
 

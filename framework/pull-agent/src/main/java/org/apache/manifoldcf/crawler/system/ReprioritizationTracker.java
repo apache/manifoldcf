@@ -255,7 +255,7 @@ public class ReprioritizationTracker
   public double getIncrementBinValue(String binName, double weightedMinimumDepth)
     throws ManifoldCFException
   {
-    return binManager.getIncrementBinValue(binName, weightedMinimumDepth);
+    return binManager.getIncrementBinValues(binName, weightedMinimumDepth,1)[0];
   }
   
   // Protected methods

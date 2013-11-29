@@ -41,14 +41,26 @@ public interface IBinManager
   public void reset()
     throws ManifoldCFException;
 
-  /** Get a bin value (and set next one).  If the record does not yet exist, create it with a starting value.
+  /** Get N bin values (and set next one).  If the record does not yet exist, create it with a starting value.
   * We expect this to happen within a transaction!! 
   *@param binName is the name of the bin (256 char max)
   *@param newBinValue is the value to use if there is no such bin yet.  This is the value that will be
   * returned; what will be stored will be that value + 1.
-  *@return the counter value.
+  *@param count is the number of values desired.
+  *@return the counter values.
   */
-  public double getIncrementBinValue(String binName, double newBinValue)
+  public double[] getIncrementBinValues(String binName, double newBinValue, int count)
+    throws ManifoldCFException;
+
+  /** Get N bin values (and set next one).  If the record does not yet exist, create it with a starting value.
+  * This method invokes its own retry-able transaction.
+  *@param binName is the name of the bin (256 char max)
+  *@param newBinValue is the value to use if there is no such bin yet.  This is the value that will be
+  * returned; what will be stored will be that value + 1.
+  *@param count is the number of values desired.
+  *@return the counter values.
+  */
+  public double[] getIncrementBinValuesInTransaction(String binName, double newBinValue, int count)
     throws ManifoldCFException;
 
 }

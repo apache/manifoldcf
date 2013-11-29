@@ -4536,8 +4536,6 @@ public class JobManager implements IJobManager
               
           IResultSet set = database.performQuery(sb.toString(),list,null,null);
 
-          boolean priorityUsed;
-
           if (set.getRowCount() > 0)
           {
             // Found a row, and it is now locked.
