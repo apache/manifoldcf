@@ -2006,8 +2006,8 @@ public class WorkerThread extends Thread
 
         long currentTime = System.currentTimeMillis();
 
-        int j = 0;
-        while (j < docidHashes.length)
+        rt.clearPreloadRequests();
+        for (int j = 0; j < docidHashes.length; j++)
         {
           DocumentReference dr = (DocumentReference)set.get(j);
           docidHashes[j] = dr.getLocalIdentifierHash();
@@ -2018,17 +2018,17 @@ public class WorkerThread extends Thread
 
           // Calculate desired document priority based on current queuetracker status.
           String[] bins = ManifoldCF.calculateBins(connector,dr.getLocalIdentifier());
-          priorities[j] = new PriorityCalculator(rt,connection,bins);
-
-          // No longer used; the functionality is folded atomically into calculatePriority above:
-          //queueTracker.notePrioritySet(currentTime,job.getID(),bins,connection);
-
-          j++;
+          PriorityCalculator p = new PriorityCalculator(rt,connection,bins);
+          priorities[j] = p;
+          p.makePreloadRequest();
         }
+        rt.preloadBinValues();
 
         jobManager.addDocuments(processID,
           job.getID(),legalLinkTypes,docidHashes,docids,db.getParentIdentifierHash(),db.getLinkType(),job.getHopcountMode(),
           dataNames,dataValues,currentTime,priorities,eventNames);
+        
+        rt.clearPreloadedValues();
       }
 
       discard();
