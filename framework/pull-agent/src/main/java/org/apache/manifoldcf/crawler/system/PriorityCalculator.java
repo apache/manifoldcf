@@ -39,25 +39,25 @@ public class PriorityCalculator implements IPriorityCalculator
   protected final String[] binNames;
   protected final ReprioritizationTracker rt;
   
+  protected final double[] binCountScaleFactors;
+  protected final double[] weightedMinimumDepths;
+  
+  protected Double cachedValue = null;
+  
   /** Constructor. */
   public PriorityCalculator(ReprioritizationTracker rt, IRepositoryConnection connection, String[] documentBins)
+    throws ManifoldCFException
   {
     this.connection = connection;
     this.binNames = documentBins;
     this.rt = rt;
-  }
-
-  /** Calculate a document priority value.  Priorities are reversed, and in log space, so that
-  * zero (0.0) is considered the highest possible priority, and larger priority values are considered lower in actual priority.
-  *@param binNames are the global bins to which the document belongs.
-  *@param connection is the connection, from which the throttles may be obtained.  More highly throttled connections are given
-  *          less favorable priority.
-  *@return the priority value, based on recent history.  Also updates statistics atomically.
-  */
-  @Override
-  public double getDocumentPriority()
-    throws ManifoldCFException
-  {
+    
+    // Now, precompute the weightedMinimumDepths etc; we'll need it whether we preload or not.
+    
+    // For each bin, we will be calculating the bin count scale factor, which is what we multiply the bincount by to adjust for the
+    // throttling on that bin.
+    binCountScaleFactors = new double[binNames.length];
+    weightedMinimumDepths = new double[binNames.length];
 
     // NOTE: We must be sure to adjust the return value by the factor calculated due to performance; a slower throttle rate
     // should yield a lower priority.  In theory it should be possible to calculate an adjusted priority pretty exactly,
@@ -85,11 +85,6 @@ public class PriorityCalculator implements IPriorityCalculator
     // also when resetting the bin counts.
     double[] maxFetchRates = calculateMaxFetchRates(binNames,connection);
 
-    // For each bin, we will be calculating the bin count scale factor, which is what we multiply the bincount by to adjust for the
-    // throttling on that bin.
-    double[] binCountScaleFactors = new double[binNames.length];
-    double[] weightedMinimumDepths = new double[binNames.length];
-
     // Before calculating priority, calculate some factors that will allow us to determine the proper starting value for a bin.
     double currentMinimumDepth = rt.getMinimumDepth();
 
@@ -109,6 +104,34 @@ public class PriorityCalculator implements IPriorityCalculator
       binCountScaleFactors[i] = binCountScaleFactor;
       weightedMinimumDepths[i] = currentMinimumDepth / binCountScaleFactor;
     }
+    
+  }
+  
+  /** Log a preload request for this priority value.
+  */
+  public void makePreloadRequest()
+  {
+    for (int i = 0; i < binNames.length; i++)
+    {
+      String binName = binNames[i];
+      rt.addPreloadRequest(binName, weightedMinimumDepths[i]);
+    }
+
+  }
+
+  /** Calculate a document priority value.  Priorities are reversed, and in log space, so that
+  * zero (0.0) is considered the highest possible priority, and larger priority values are considered lower in actual priority.
+  *@param binNames are the global bins to which the document belongs.
+  *@param connection is the connection, from which the throttles may be obtained.  More highly throttled connections are given
+  *          less favorable priority.
+  *@return the priority value, based on recent history.  Also updates statistics atomically.
+  */
+  @Override
+  public double getDocumentPriority()
+    throws ManifoldCFException
+  {
+     if (cachedValue != null)
+       return cachedValue.doubleValue();
 
     double highestAdjustedCount = 0.0;
     // Find the bin with the largest effective count, and use that for the document's priority.
@@ -149,6 +172,7 @@ public class PriorityCalculator implements IPriorityCalculator
       Logging.scheduling.debug("Document with bins ["+sb.toString()+"] given priority value "+new Double(returnValue).toString());
     }
 
+    cachedValue = new Double(returnValue);
 
     return returnValue;
   }

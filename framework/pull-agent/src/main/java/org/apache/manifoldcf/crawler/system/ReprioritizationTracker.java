@@ -42,7 +42,12 @@ public class ReprioritizationTracker
   /** Lock manager */
   protected final ILockManager lockManager;
   protected final IBinManager binManager;
-  
+
+  /** Preload requests */
+  protected final Map<String,PreloadRequest> preloadRequests = new HashMap<String,PreloadRequest>();
+  /** Preload values */
+  protected final Map<String,PreloadedValues> preloadedValues = new HashMap<String,PreloadedValues>();
+    
   /** Constructor.
   */
   public ReprioritizationTracker(IThreadContext threadContext)
@@ -247,6 +252,50 @@ public class ReprioritizationTracker
     }
   }
   
+  /** Note preload amounts.
+  */
+  public void addPreloadRequest(String binName, double weightedMinimumDepth)
+  {
+    PreloadRequest pr = preloadRequests.get(binName);
+    if (pr == null)
+    {
+      pr = new PreloadRequest(weightedMinimumDepth);
+      preloadRequests.put(binName,pr);
+    }
+    else
+      pr.updateRequest(weightedMinimumDepth);
+  }
+  
+  
+  /** Preload bin values.  Call this OUTSIDE of a transaction.
+  */
+  public void preloadBinValues()
+    throws ManifoldCFException
+  {
+    for (String binName : preloadRequests.keySet())
+    {
+      PreloadRequest pr = preloadRequests.get(binName);
+      double[] newValues = binManager.getIncrementBinValuesInTransaction(binName, pr.getWeightedMinimumDepth(), pr.getRequestCount());
+      PreloadedValues pv = new PreloadedValues(newValues);
+      preloadedValues.put(binName,pv);
+    }
+    preloadRequests.clear();
+  }
+  
+  /** Clear any preload requests.
+  */
+  public void clearPreloadRequests()
+  {
+    preloadRequests.clear();
+  }
+  
+  /** Clear remaining preloaded values.
+  */
+  public void clearPreloadedValues()
+  {
+    preloadedValues.clear();
+  }
+
   /** Get a bin value.
   *@param binName is the bin name.
   *@param weightedMinimumDepth is the minimum depth to use.
@@ -255,6 +304,13 @@ public class ReprioritizationTracker
   public double getIncrementBinValue(String binName, double weightedMinimumDepth)
     throws ManifoldCFException
   {
+    PreloadedValues pv = preloadedValues.get(binName);
+    if (pv != null)
+    {
+      Double rval = pv.getNextValue();
+      if (rval != null)
+        return rval.doubleValue();
+    }
     return binManager.getIncrementBinValues(binName, weightedMinimumDepth,1)[0];
   }
   
@@ -428,5 +484,56 @@ public class ReprioritizationTracker
     lockManager.writeData(trackerMinimumDepthResource,data);
   }
   
+  /** A preload request */
+  protected static class PreloadRequest
+  {
+    protected double weightedMinimumDepth;
+    protected int requestCount;
+    
+    public PreloadRequest(double weightedMinimumDepth)
+    {
+      this.weightedMinimumDepth = weightedMinimumDepth;
+      this.requestCount = 1;
+    }
+    
+    public void updateRequest(double weightedMinimumDepth)
+    {
+      if (this.weightedMinimumDepth < weightedMinimumDepth)
+        this.weightedMinimumDepth = weightedMinimumDepth;
+      requestCount++;
+    }
+    
+    public double getWeightedMinimumDepth()
+    {
+      return weightedMinimumDepth;
+    }
+    
+    public int getRequestCount()
+    {
+      return requestCount;
+    }
+  }
+  
+  /** A set of preloaded values */
+  protected static class PreloadedValues
+  {
+    protected double[] values;
+    protected int valueIndex;
+    
+    public PreloadedValues(double[] values)
+    {
+      this.values = values;
+      this.valueIndex = valueIndex;
+    }
+    
+    public Double getNextValue()
+    {
+      if (valueIndex == values.length)
+        return null;
+      return new Double(values[valueIndex++]);
+    }
+  }
+  
+
 }
 
