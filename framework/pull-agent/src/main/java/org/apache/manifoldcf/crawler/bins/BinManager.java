@@ -70,7 +70,8 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
       if (existing == null)
       {
         HashMap map = new HashMap();
-        map.put(binNameField,new ColumnDescription("VARCHAR(255)",true,true,null,null,false));
+        // HSQLDB does not like null primary keys!!
+        map.put(binNameField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
         map.put(binCounterField,new ColumnDescription("FLOAT",false,false,null,null,false));
         performCreate(map,null);
       }
@@ -80,6 +81,26 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
       }
 
       // Index management goes here
+      IndexDescription binIndex = new IndexDescription(true,new String[]{binNameField});
+
+      // Get rid of indexes that shouldn't be there
+      Map indexes = getTableIndexes(null,null);
+      Iterator iter = indexes.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String indexName = (String)iter.next();
+        IndexDescription id = (IndexDescription)indexes.get(indexName);
+
+        if (binIndex != null && id.equals(binIndex))
+          binIndex = null;
+        else if (indexName.indexOf("_pkey") == -1)
+          // This index shouldn't be here; drop it
+          performRemoveIndex(indexName);
+      }
+
+      // Add the ones we didn't find
+      if (binIndex != null)
+        performAddIndex(null,binIndex);
 
       break;
     }
