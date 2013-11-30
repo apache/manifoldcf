@@ -321,7 +321,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     ILockManager lockManager = LockManagerFactory.make(threadContext);
     // Get agent manager
     IAgentManager manager = AgentManagerFactory.make(threadContext);
-    ManifoldCFException problem = null;
     synchronized (runningHash)
     {
       String[] classes = manager.getAllAgents();
@@ -349,8 +348,9 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
           }
           catch (ManifoldCFException e)
           {
-            problem = e;
-            agent.cleanUp(threadContext);
+            if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
+              agent.cleanUp(threadContext);
+            throw e;
           }
         }
         currentAgentClasses.add(className);
@@ -365,25 +365,15 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         {
           // Shut down this one agent.
           IAgent agent = runningHash.get(runningAgentClass);
-          try
-          {
-            // Stop it
-            agent.stopAgent(threadContext);
-            lockManager.endServiceActivity(getAgentsClassServiceType(runningAgentClass), processID);
-            runningAgentsIterator.remove();
-            agent.cleanUp(threadContext);
-          }
-          catch (ManifoldCFException e)
-          {
-            problem = e;
-          }
+          // Stop it
+          agent.stopAgent(threadContext);
+          lockManager.endServiceActivity(getAgentsClassServiceType(runningAgentClass), processID);
+          runningAgentsIterator.remove();
+          agent.cleanUp(threadContext);
         }
       }
     }
 
-    if (problem != null)
-      throw problem;
-    
     synchronized (runningHash)
     {
       // For every class we're supposed to be running, find registered but no-longer-active instances and clean

@@ -31,7 +31,6 @@ public class CrawlerAgent implements IAgent
 
   // Thread objects.
   // These get filled in as threads are created.
-  protected InitializationThread initializationThread = null;
   protected JobStartThread jobStartThread = null;
   protected StufferThread stufferThread = null;
   protected FinisherThread finisherThread = null;
@@ -149,8 +148,10 @@ public class CrawlerAgent implements IAgent
     IJobManager jobManager = JobManagerFactory.make(threadContext);
     jobManager.cleanupProcessData();
     // What kind of reprioritization should be done here?
-    // There may be a dangling reprioritization, or even worse, someone may have blown
-    // away the lockmanager info.  So we need to do a complete reprioritization.
+    // Answer: since we basically keep everything in the database now, the only kind of reprioritization we need
+    // to take care of are dangling ones that won't get done because the process that was doing them went
+    // away.  BUT: somebody may have blown away lock info, in which case we won't know anything at all.
+    // So we do everything in that case.
     ManifoldCF.resetAllDocumentPriorities(threadContext,System.currentTimeMillis(),currentProcessID);
   }
   
@@ -374,110 +375,53 @@ public class CrawlerAgent implements IAgent
     seedingThread = new SeedingThread(new SeedingResetManager(processID),processID);
     idleCleanupThread = new IdleCleanupThread(processID);
 
-    initializationThread = new InitializationThread();
-    // Start the initialization thread.  This does the initialization work and starts all the other threads when that's done.  It then exits.
-    initializationThread.start();
+    // Start all the threads
+    jobStartThread.start();
+    startupThread.start();
+    startDeleteThread.start();
+    finisherThread.start();
+    notificationThread.start();
+    jobDeleteThread.start();
+    stufferThread.start();
+    expireStufferThread.start();
+    setPriorityThread.start();
+    historyCleanupThread.start();
+
+    i = 0;
+    while (i < numWorkerThreads)
+    {
+      workerThreads[i].start();
+      i++;
+    }
+
+    i = 0;
+    while (i < numExpireThreads)
+    {
+      expireThreads[i].start();
+      i++;
+    }
+
+    cleanupStufferThread.start();
+    i = 0;
+    while (i < numCleanupThreads)
+    {
+      cleanupThreads[i].start();
+      i++;
+    }
+
+    deleteStufferThread.start();
+    i = 0;
+    while (i < numDeleteThreads)
+    {
+      deleteThreads[i].start();
+      i++;
+    }
+
+    jobResetThread.start();
+    seedingThread.start();
+    idleCleanupThread.start();
+
     Logging.root.info("Pull-agent started");
-  }
-
-  protected class InitializationThread extends Thread
-  {
-
-    public InitializationThread()
-    {
-      super();
-      setName("Initialization thread");
-      setDaemon(true);
-    }
-
-    public void run()
-    {
-      int i;
-
-      try
-      {
-        IThreadContext threadContext = ThreadContextFactory.make();
-
-        // First, get a job manager
-        IJobManager jobManager = JobManagerFactory.make(threadContext);
-        IBinManager binManager = BinManagerFactory.make(threadContext);
-        IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
-        ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
-
-        /* No longer needed, because IAgents specifically initializes/cleans up.
-        
-        Logging.threads.debug("Agents process starting initialization...");
-
-        // Call the database to get it ready
-        jobManager.prepareForStart();
-        
-        Logging.threads.debug("Agents process reprioritizing documents...");
-        // This needs to be moved to cleanup method(s)
-        ManifoldCF.resetAllDocumentPriorities(threadContext,System.currentTimeMillis(),processID);
-        Logging.threads.debug("Agents process initialization complete!");
-        */
-        
-        // Start all the threads
-        jobStartThread.start();
-        startupThread.start();
-        startDeleteThread.start();
-        finisherThread.start();
-        notificationThread.start();
-        jobDeleteThread.start();
-        stufferThread.start();
-        expireStufferThread.start();
-        setPriorityThread.start();
-        historyCleanupThread.start();
-
-        i = 0;
-        while (i < numWorkerThreads)
-        {
-          workerThreads[i].start();
-          i++;
-        }
-
-        i = 0;
-        while (i < numExpireThreads)
-        {
-          expireThreads[i].start();
-          i++;
-        }
-
-        cleanupStufferThread.start();
-        i = 0;
-        while (i < numCleanupThreads)
-        {
-          cleanupThreads[i].start();
-          i++;
-        }
-
-        deleteStufferThread.start();
-        i = 0;
-        while (i < numDeleteThreads)
-        {
-          deleteThreads[i].start();
-          i++;
-        }
-
-        jobResetThread.start();
-        seedingThread.start();
-        idleCleanupThread.start();
-        // exit!
-      }
-      catch (Throwable e)
-      {
-        // Severe error on initialization
-        if (e instanceof ManifoldCFException)
-        {
-          // Deal with interrupted exception gracefully, because it means somebody is trying to shut us down before we got started.
-          if (((ManifoldCFException)e).getErrorCode() == ManifoldCFException.INTERRUPTED)
-            return;
-        }
-        System.err.println("agents process could not start - shutting down");
-        Logging.threads.fatal("Startup initialization error tossed: "+e.getMessage(),e);
-        System.exit(-300);
-      }
-    }
   }
 
   /** Stop the system.
@@ -486,7 +430,7 @@ public class CrawlerAgent implements IAgent
     throws ManifoldCFException
   {
     Logging.root.info("Shutting down pull-agent...");
-    while (initializationThread != null || jobDeleteThread != null || startupThread != null || startDeleteThread != null ||
+    while (jobDeleteThread != null || startupThread != null || startDeleteThread != null ||
       jobStartThread != null || stufferThread != null ||
       finisherThread != null || notificationThread != null || workerThreads != null || expireStufferThread != null || expireThreads != null ||
       deleteStufferThread != null || deleteThreads != null ||
@@ -496,10 +440,6 @@ public class CrawlerAgent implements IAgent
       // Send an interrupt to all threads that are still there.
       // In theory, this only needs to be done once.  In practice, I have seen cases where the thread loses track of the fact that it has been
       // interrupted (which may be a JVM bug - who knows?), but in any case there's no harm in doing it again.
-      if (initializationThread != null)
-      {
-        initializationThread.interrupt();
-      }
       if (historyCleanupThread != null)
       {
         historyCleanupThread.interrupt();
@@ -611,11 +551,6 @@ public class CrawlerAgent implements IAgent
       }
 
       // Check to see which died.
-      if (initializationThread != null)
-      {
-        if (!initializationThread.isAlive())
-          initializationThread = null;
-      }
       if (historyCleanupThread != null)
       {
         if (!historyCleanupThread.isAlive())
