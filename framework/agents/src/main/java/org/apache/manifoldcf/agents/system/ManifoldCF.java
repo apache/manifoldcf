@@ -166,6 +166,8 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   /** Agent service name prefix (followed by agent class name) */
   public static final String agentServicePrefix = "AGENT_";
   
+  protected static AgentsThread agentsThread = null;
+
   /** Run agents process.
   * This method will not return until a shutdown signal is sent.
   */
@@ -178,24 +180,68 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     if (lockManager.checkGlobalFlag(agentShutdownSignal))
       return;
 
+    // Create and start agents thread.
+    startAgents(threadContext, processID);
+    
     while (true)
     {
       // Any shutdown signal yet?
       if (lockManager.checkGlobalFlag(agentShutdownSignal))
         break;
           
-      // Start whatever agents need to be started
-      checkAgents(threadContext, processID);
-
       try
       {
-        ManifoldCF.sleep(5000);
+        ManifoldCF.sleep(5000L);
       }
       catch (InterruptedException e)
       {
         break;
       }
     }
+    
+  }
+
+  /** Start agents thread.
+  */
+  public static void startAgents(IThreadContext threadContext, String processID)
+    throws ManifoldCFException
+  {
+    // Create and start agents thread.
+    agentsThread = new AgentsThread(processID);
+    agentsThread.start();
+  }
+  
+  /** Stop all started agents.
+  */
+  public static void stopAgents(IThreadContext threadContext, String processID)
+    throws ManifoldCFException
+  {
+    // Shut down agents background thread.
+    while (agentsThread != null)
+    {
+      agentsThread.interrupt();
+      if (!agentsThread.isAlive())
+        agentsThread = null;
+    }
+    
+    // Shut down running agents services directly.
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    synchronized (runningHash)
+    {
+      // This is supposedly safe; iterator remove is used
+      Iterator<String> iter = runningHash.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String className = iter.next();
+        IAgent agent = runningHash.get(className);
+        // Stop it
+        agent.stopAgent(threadContext);
+        lockManager.endServiceActivity(getAgentsClassServiceType(className), processID);
+        iter.remove();
+        agent.cleanUp(threadContext);
+      }
+    }
+    // Done.
   }
 
   protected static String getAgentsClassServiceType(String agentClassName)
@@ -203,10 +249,73 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     return agentServicePrefix + agentClassName;
   }
   
+  /** Agents thread.  This runs in background until interrupted, at which point
+  * it shuts down.  Its responsibilities include cleaning up after dead processes,
+  * as well as starting newly-registered agent processes, and terminating ones that disappear.
+  */
+  protected static class AgentsThread extends Thread
+  {
+    protected final String processID;
+    
+    public AgentsThread(String processID)
+    {
+      super();
+      this.processID = processID;
+      setName("Agents thread");
+      setDaemon(true);
+    }
+    
+    public void run()
+    {
+      try
+      {
+        IThreadContext threadContext = ThreadContextFactory.make();
+        while (true)
+        {
+          try
+          {
+            if (Thread.currentThread().isInterrupted())
+              throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+
+            checkAgents(threadContext, processID);
+            ManifoldCF.sleep(5000L);
+          }
+          catch (InterruptedException e)
+          {
+            break;
+          }
+          catch (ManifoldCFException e)
+          {
+            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+              break;
+            Logging.agents.error("Exception tossed: "+e.getMessage(),e);
+          }
+          catch (OutOfMemoryError e)
+          {
+            System.err.println("Agents process ran out of memory - shutting down");
+            e.printStackTrace(System.err);
+            System.exit(-200);
+          }
+          catch (Throwable e)
+          {
+            Logging.agents.fatal("Error tossed: "+e.getMessage(),e);
+          }
+        }
+      }
+      catch (Throwable e)
+      {
+        // Severe error on initialization
+        System.err.println("Agents process could not start - shutting down");
+        Logging.agents.fatal("AgentThread initialization error tossed: "+e.getMessage(),e);
+        System.exit(-300);
+      }
+    }
+  }
+
   /** Start all not-running agents.
   *@param threadContext is the thread context.
   */
-  public static void checkAgents(IThreadContext threadContext, String processID)
+  protected static void checkAgents(IThreadContext threadContext, String processID)
     throws ManifoldCFException
   {
     ILockManager lockManager = LockManagerFactory.make(threadContext);
@@ -215,10 +324,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     ManifoldCFException problem = null;
     synchronized (runningHash)
     {
-      // DO NOT permit this method to do anything if stopAgents() has ever been called for this JVM! 
-      // (If it has, it means that the JVM is trying to shut down.)
-      if (stopAgentsRun)
-        return;
       String[] classes = manager.getAllAgents();
       Set<String> currentAgentClasses = new HashSet<String>();
 
@@ -297,29 +402,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     
   }
 
-  /** Stop all started agents.
-  */
-  public static void stopAgents(IThreadContext threadContext, String processID)
-    throws ManifoldCFException
-  {
-    ILockManager lockManager = LockManagerFactory.make(threadContext);
-    synchronized (runningHash)
-    {
-      // This is supposedly safe; iterator remove is used
-      Iterator<String> iter = runningHash.keySet().iterator();
-      while (iter.hasNext())
-      {
-        String className = iter.next();
-        IAgent agent = runningHash.get(className);
-        // Stop it
-        agent.stopAgent(threadContext);
-        lockManager.endServiceActivity(getAgentsClassServiceType(className), processID);
-        iter.remove();
-        agent.cleanUp(threadContext);
-      }
-    }
-    // Done.
-  }
   
   protected static class CleanupAgent implements IServiceCleanup
   {
