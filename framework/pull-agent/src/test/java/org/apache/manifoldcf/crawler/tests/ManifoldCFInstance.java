@@ -56,6 +56,7 @@ import org.apache.http.entity.ContentType;
 /** Tests that run the "agents daemon" should be derived from this */
 public class ManifoldCFInstance
 {
+  protected boolean webapps = true;
   protected boolean singleWar = false;
   protected int testPort = 8346;
   
@@ -68,16 +69,27 @@ public class ManifoldCFInstance
   
   public ManifoldCFInstance(boolean singleWar)
   {
-    this(8346,singleWar);
+    this(8346,singleWar,true);
+  }
+
+  public ManifoldCFInstance(boolean singleWar, boolean webapps)
+  {
+    this(8346,singleWar,webapps);
   }
   
   public ManifoldCFInstance(int testPort)
   {
-    this(testPort,false);
+    this(testPort,false,true);
   }
 
   public ManifoldCFInstance(int testPort, boolean singleWar)
   {
+    this(testPort,singleWar,true);
+  }
+
+  public ManifoldCFInstance(int testPort, boolean singleWar, boolean webapps)
+  {
+    this.webapps = webapps;
     this.testPort = testPort;
     this.singleWar = singleWar;
   }
@@ -277,11 +289,17 @@ public class ManifoldCFInstance
   /** Construct a command url.
   */
   public String makeAPIURL(String command)
+    throws Exception
   {
-    if (singleWar)
-      return "http://localhost:"+Integer.toString(testPort)+"/mcf/api/json/"+command;
+    if (webapps)
+    {
+      if (singleWar)
+        return "http://localhost:"+Integer.toString(testPort)+"/mcf/api/json/"+command;
+      else
+        return "http://localhost:"+Integer.toString(testPort)+"/mcf-api-service/json/"+command;
+    }
     else
-      return "http://localhost:"+Integer.toString(testPort)+"/mcf-api-service/json/"+command;
+      throw new Exception("No API servlet running");
   }
 
   public static String convertToString(HttpResponse httpResponse)
@@ -495,53 +513,64 @@ public class ManifoldCFInstance
   public void start()
     throws Exception
   {
-    // Start jetty
-    server = new Server( testPort );    
-    server.setStopAtShutdown( true );
-    // Initialize the servlets
     ContextHandlerCollection contexts = new ContextHandlerCollection();
-    server.setHandler(contexts);
+    if (webapps)
+    {
+      // Start jetty
+      server = new Server( testPort );    
+      server.setStopAtShutdown( true );
+      // Initialize the servlets
+      server.setHandler(contexts);
+    }
 
     if (singleWar)
     {
-      // Start the single combined war
-      String combinedWarPath = "../../framework/build/war-proprietary/mcf-combined-service.war";
-      if (System.getProperty("combinedWarPath") != null)
-        combinedWarPath = System.getProperty("combinedWarPath");
-      
-      // Initialize the servlet
-      WebAppContext lcfCombined = new WebAppContext(combinedWarPath,"/mcf");
-      // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
-      lcfCombined.setParentLoaderPriority(true);
-      contexts.addHandler(lcfCombined);
-      server.start();
+      if (webapps)
+      {
+        // Start the single combined war
+        String combinedWarPath = "../../framework/build/war-proprietary/mcf-combined-service.war";
+        if (System.getProperty("combinedWarPath") != null)
+          combinedWarPath = System.getProperty("combinedWarPath");
+        
+        // Initialize the servlet
+        WebAppContext lcfCombined = new WebAppContext(combinedWarPath,"/mcf");
+        // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
+        lcfCombined.setParentLoaderPriority(true);
+        contexts.addHandler(lcfCombined);
+        server.start();
+      }
+      else
+        throw new Exception("Can't run singleWar without webapps");
     }
     else
     {
-      String crawlerWarPath = "../../framework/build/war-proprietary/mcf-crawler-ui.war";
-      String authorityserviceWarPath = "../../framework/build/war-proprietary/mcf-authority-service.war";
-      String apiWarPath = "../../framework/build/war-proprietary/mcf-api-service.war";
+      if (webapps)
+      {
+        String crawlerWarPath = "../../framework/build/war-proprietary/mcf-crawler-ui.war";
+        String authorityserviceWarPath = "../../framework/build/war-proprietary/mcf-authority-service.war";
+        String apiWarPath = "../../framework/build/war-proprietary/mcf-api-service.war";
 
-      if (System.getProperty("crawlerWarPath") != null)
-          crawlerWarPath = System.getProperty("crawlerWarPath");
-      if (System.getProperty("authorityserviceWarPath") != null)
-          authorityserviceWarPath = System.getProperty("authorityserviceWarPath");
-      if (System.getProperty("apiWarPath") != null)
-          apiWarPath = System.getProperty("apiWarPath");
+        if (System.getProperty("crawlerWarPath") != null)
+            crawlerWarPath = System.getProperty("crawlerWarPath");
+        if (System.getProperty("authorityserviceWarPath") != null)
+            authorityserviceWarPath = System.getProperty("authorityserviceWarPath");
+        if (System.getProperty("apiWarPath") != null)
+            apiWarPath = System.getProperty("apiWarPath");
 
-      // Initialize the servlets
-      WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
-      // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
-      lcfCrawlerUI.setParentLoaderPriority(true);
-      contexts.addHandler(lcfCrawlerUI);
-      WebAppContext lcfAuthorityService = new WebAppContext(authorityserviceWarPath,"/mcf-authority-service");
-      // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
-      lcfAuthorityService.setParentLoaderPriority(true);
-      contexts.addHandler(lcfAuthorityService);
-      WebAppContext lcfApi = new WebAppContext(apiWarPath,"/mcf-api-service");
-      lcfApi.setParentLoaderPriority(true);
-      contexts.addHandler(lcfApi);
-      server.start();
+        // Initialize the servlets
+        WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
+        // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
+        lcfCrawlerUI.setParentLoaderPriority(true);
+        contexts.addHandler(lcfCrawlerUI);
+        WebAppContext lcfAuthorityService = new WebAppContext(authorityserviceWarPath,"/mcf-authority-service");
+        // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
+        lcfAuthorityService.setParentLoaderPriority(true);
+        contexts.addHandler(lcfAuthorityService);
+        WebAppContext lcfApi = new WebAppContext(apiWarPath,"/mcf-api-service");
+        lcfApi.setParentLoaderPriority(true);
+        contexts.addHandler(lcfApi);
+        server.start();
+      }
 
       // If all worked, then we can start the daemon.
       // Clear the agents shutdown signal.

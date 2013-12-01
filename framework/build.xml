@@ -1486,6 +1486,25 @@
         </junit>
     </target>
 
+    <target name="run-pull-agent-tests" depends="compile-pull-agent,compile-pull-agent-tests">
+        <mkdir dir="test-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <path refid="framework-classpath"/>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/core-tests/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/agents-tests/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/pull-agent-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.crawler.tests.SchedulerHSQLDBTest" todir="test-output"/>
+
+        </junit>
+    </target>
+
     <target name="run-script-engine-tests" depends="compile-core,compile-script-engine,compile-script-engine-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -1519,7 +1538,7 @@
         </junit>
     </target>
 
-    <target name="run-tests" depends="compile-tests,run-core-tests,run-script-engine-tests"/>
+    <target name="run-tests" depends="compile-tests,run-core-tests,run-pull-agent-tests,run-script-engine-tests"/>
 
     <target name="run-tests-derby" depends="compile-tests">
         <mkdir dir="test-derby-output"/>
