@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.apache.manifoldcf.agents.system.AgentsDaemon;
 
 import java.io.*;
 import java.util.*;
@@ -56,39 +57,57 @@ import org.apache.http.entity.ContentType;
 /** Tests that run the "agents daemon" should be derived from this */
 public class ManifoldCFInstance
 {
-  protected boolean webapps = true;
-  protected boolean singleWar = false;
-  protected int testPort = 8346;
+  protected final boolean webapps;
+  protected final boolean singleWar;
+  protected final int testPort;
+  protected final String processID;
   
   protected DaemonThread daemonThread = null;
   protected Server server = null;
 
   public ManifoldCFInstance()
   {
+    this(ManifoldCF.getProcessID(), 8346, false, true);
   }
   
+  public ManifoldCFInstance(String processID)
+  {
+    this(processID, 8346, false, true);
+  }
+
   public ManifoldCFInstance(boolean singleWar)
   {
-    this(8346,singleWar,true);
+    this(ManifoldCF.getProcessID(), 8346, singleWar, true);
+  }
+  
+  public ManifoldCFInstance(String processID, boolean singleWar)
+  {
+    this(processID, 8346, singleWar, true);
   }
 
   public ManifoldCFInstance(boolean singleWar, boolean webapps)
   {
-    this(8346,singleWar,webapps);
+    this(ManifoldCF.getProcessID(), 8346, singleWar, webapps);
+  }
+
+  public ManifoldCFInstance(String processID, boolean singleWar, boolean webapps)
+  {
+    this(processID, 8346, singleWar, webapps);
   }
   
-  public ManifoldCFInstance(int testPort)
+  public ManifoldCFInstance(String processID, int testPort)
   {
-    this(testPort,false,true);
+    this(processID, testPort, false, true);
   }
 
-  public ManifoldCFInstance(int testPort, boolean singleWar)
+  public ManifoldCFInstance(String processID, int testPort, boolean singleWar)
   {
-    this(testPort,singleWar,true);
+    this(processID, testPort, singleWar, true);
   }
 
-  public ManifoldCFInstance(int testPort, boolean singleWar, boolean webapps)
+  public ManifoldCFInstance(String processID, int testPort, boolean singleWar, boolean webapps)
   {
+    this.processID = processID;
     this.webapps = webapps;
     this.testPort = testPort;
     this.singleWar = singleWar;
@@ -575,9 +594,9 @@ public class ManifoldCFInstance
       // If all worked, then we can start the daemon.
       // Clear the agents shutdown signal.
       IThreadContext tc = ThreadContextFactory.make();
-      ManifoldCF.clearAgentsShutdownSignal(tc);
+      AgentsDaemon.clearAgentsShutdownSignal(tc);
 
-      daemonThread = new DaemonThread();
+      daemonThread = new DaemonThread(processID);
       daemonThread.start();
     }
   }
@@ -667,30 +686,48 @@ public class ManifoldCFInstance
         }
       }
 
-      if (!singleWar)
+      try
       {
-        // Shut down daemon
-        ManifoldCF.assertAgentsShutdownSignal(tc);
-        
-        // Wait for daemon thread to exit.
-        while (true)
-        {
-          if (daemonThread.isAlive())
-          {
-            Thread.sleep(1000L);
-            continue;
-          }
-          break;
-        }
-
-        Exception e = daemonThread.getDaemonException();
-        if (e != null)
+        stopNoCleanup();
+      }
+      catch (Exception e)
+      {
+        if (currentException == null)
           currentException = e;
       }
+    }
+  }
+  
+  public void stopNoCleanup()
+    throws Exception
+  {
+    if (daemonThread != null)
+    {
+      Exception currentException = null;
+      
+      // Shut down daemon - but only ONE daemon
+      //AgentsDaemon.assertAgentsShutdownSignal(tc);
         
+      // Wait for daemon thread to exit.
+      while (true)
+      {
+        daemonThread.interrupt();
+        if (daemonThread.isAlive())
+        {
+          Thread.sleep(1000L);
+          continue;
+        }
+        break;
+      }
+
+      Exception e = daemonThread.getDaemonException();
+      if (e != null || !(e instanceof InterruptedException))
+        currentException = e;
+
       if (currentException != null)
         throw currentException;
     }
+        
   }
   
   public void unload()
@@ -708,22 +745,24 @@ public class ManifoldCFInstance
   
   protected static class DaemonThread extends Thread
   {
+    protected final String processID;
     protected Exception daemonException = null;
     
-    public DaemonThread()
+    public DaemonThread(String processID)
     {
+      this.processID = processID;
       setName("Daemon thread");
     }
     
     public void run()
     {
-      String processID = ManifoldCF.getProcessID();
       IThreadContext tc = ThreadContextFactory.make();
       // Now, start the server, and then wait for the shutdown signal.  On shutdown, we have to actually do the cleanup,
       // because the JVM isn't going away.
+      AgentsDaemon ad = new AgentsDaemon(processID);
       try
       {
-        ManifoldCF.runAgents(tc, processID);
+        ad.runAgents(tc);
       }
       catch (ManifoldCFException e)
       {
@@ -733,7 +772,7 @@ public class ManifoldCFInstance
       {
         try
         {
-          ManifoldCF.stopAgents(tc, processID);
+          ad.stopAgents(tc);
         }
         catch (ManifoldCFException e)
         {

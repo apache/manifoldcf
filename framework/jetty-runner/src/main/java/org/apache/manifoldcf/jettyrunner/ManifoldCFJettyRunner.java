@@ -21,6 +21,7 @@ import java.io.*;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.system.*;
 import org.apache.manifoldcf.crawler.*;
+import org.apache.manifoldcf.agents.system.AgentsDaemon;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -138,8 +139,9 @@ public class ManifoldCFJettyRunner
   {
     String processID = ManifoldCF.getProcessID();
     // Do this so we don't have to call stopAgents() ourselves.
-    ManifoldCF.registerAgentsShutdownHook(tc, processID);
-    ManifoldCF.runAgents(tc, processID);
+    AgentsDaemon ad = new AgentsDaemon(processID);
+    ad.registerAgentsShutdownHook(tc);
+    ad.runAgents(tc);
   }
 
   /**
@@ -198,7 +200,7 @@ public class ManifoldCFJettyRunner
       if (useParentClassLoader)
       {
         // Clear the agents shutdown signal.
-        ManifoldCF.clearAgentsShutdownSignal(tc);
+        AgentsDaemon.clearAgentsShutdownSignal(tc);
         
         // Do the basic initialization of the database and its schema
         ManifoldCF.createSystemDatabase(tc);

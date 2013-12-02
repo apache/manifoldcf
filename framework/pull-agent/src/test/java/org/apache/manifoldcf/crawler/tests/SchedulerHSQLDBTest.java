@@ -28,15 +28,18 @@ import org.junit.*;
 
 /** This is a test of the scheduler.  If the test succeeds, it is because
 * the scheduler has properly distributed requests for all bins evenly. */
-public class SchedulerHSQLDBTest extends BaseITHSQLDB
+public class SchedulerHSQLDBTest extends ConnectorBaseHSQLDB
 {
-  
+  protected final ManifoldCFInstance mcfInstance1;
+  protected final ManifoldCFInstance mcfInstance2;
   protected SchedulerTester tester;
 
   public SchedulerHSQLDBTest()
   {
-    super(false,false);
-    tester = new SchedulerTester(mcfInstance);
+    super();
+    mcfInstance1 = new ManifoldCFInstance("A",false,false);
+    mcfInstance2 = new ManifoldCFInstance("B",false,false);
+    tester = new SchedulerTester(mcfInstance1,mcfInstance2);
   }
   
   @Override
@@ -68,6 +71,69 @@ public class SchedulerHSQLDBTest extends BaseITHSQLDB
     throws Exception
   {
     tester.executeTest();
+  }
+  
+  @Before
+  public void setUp()
+    throws Exception
+  {
+    initializeSystem();
+    try
+    {
+      localReset();
+    }
+    catch (Exception e)
+    {
+      System.out.println("Warning: Preclean failed: "+e.getMessage());
+    }
+    try
+    {
+      localSetUp();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
+  }
+  
+  @After
+  public void cleanUp()
+    throws Exception
+  {
+    Exception currentException = null;
+    // Last, shut down the web applications.
+    // If this is done too soon it closes the database before the rest of the cleanup happens.
+    try
+    {
+      mcfInstance1.unload();
+    }
+    catch (Exception e)
+    {
+      if (currentException == null)
+        currentException = e;
+    }
+    try
+    {
+      mcfInstance2.unload();
+    }
+    catch (Exception e)
+    {
+      if (currentException == null)
+        currentException = e;
+    }
+    try
+    {
+      localCleanUp();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
+    if (currentException != null)
+      throw currentException;
+    cleanupSystem();
   }
   
 
