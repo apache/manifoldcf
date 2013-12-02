@@ -85,8 +85,8 @@ public class SchedulerTester
     long startTime = System.currentTimeMillis();
     instance.waitJobInactiveNative(jobManager,job.getID(),150000L);
     long endTime = System.currentTimeMillis();
-    if (jobManager.getStatus(job.getID()).getDocumentsProcessed() != 10+10*100)
-      throw new Exception("Expected 1010 documents, saw "+jobManager.getStatus(job.getID()).getDocumentsProcessed());
+    if (jobManager.getStatus(job.getID()).getDocumentsProcessed() != 10+10*200)
+      throw new Exception("Expected 2010 documents, saw "+jobManager.getStatus(job.getID()).getDocumentsProcessed());
     if (endTime-startTime < 96000L)
       throw new Exception("Job finished too quickly; throttling clearly failed");
     System.out.println("Crawl took "+(endTime-startTime)+" milliseconds");

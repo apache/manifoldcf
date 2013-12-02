@@ -80,11 +80,11 @@ public class SchedulingRepositoryConnector extends org.apache.manifoldcf.crawler
   {
     String documentsPerSeedString = params.getParameter("documentsperseed");
     if (documentsPerSeedString == null)
-      documentsPerSeedString = "100";
+      documentsPerSeedString = "200";
     int documentsPerSeed = Integer.parseInt(documentsPerSeedString);
     String timePerDocumentString = params.getParameter("timeperdocument");
     if (timePerDocumentString == null)
-      timePerDocumentString = "1000";
+      timePerDocumentString = "500";
     int timePerDocument = Integer.parseInt(timePerDocumentString);
 
     // Seeds process instantly; other documents have a throttle based on the bin.
