@@ -33,8 +33,6 @@ public class StartupThread extends Thread
   public static final String _rcsid = "@(#)$Id: StartupThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-  /** Queue tracker */
-  protected final QueueTracker queueTracker;
   /** Process ID */
   protected final String processID;
   /** Reset manager */
@@ -42,13 +40,12 @@ public class StartupThread extends Thread
   
   /** Constructor.
   */
-  public StartupThread(QueueTracker queueTracker, StartupResetManager resetManager, String processID)
+  public StartupThread(StartupResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     setName("Startup thread");
     setDaemon(true);
-    this.queueTracker = queueTracker;
     this.resetManager = resetManager;
     this.processID = processID;
   }
@@ -63,6 +60,7 @@ public class StartupThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+      ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
 
       IDBInterface database = DBInterfaceFactory.make(threadContext,
         ManifoldCF.getMasterDatabaseName(),
@@ -151,7 +149,8 @@ public class StartupThread extends Thread
 
                   try
                   {
-                    SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,jobManager,queueTracker,
+                    SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,
+                      jobManager,rt,
                       connection,connector,jobID,legalLinkTypes,true,hopcountMethod,processID);
 
                     if (Logging.threads.isDebugEnabled())

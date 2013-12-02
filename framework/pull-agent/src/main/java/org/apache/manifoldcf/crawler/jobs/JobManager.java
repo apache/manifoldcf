@@ -39,16 +39,16 @@ public class JobManager implements IJobManager
   protected static final String hopLock = "_HOPLOCK_";
 
   // Member variables
-  protected IDBInterface database;
-  protected IOutputConnectionManager outputMgr;
-  protected IRepositoryConnectionManager connectionMgr;
-  protected ILockManager lockManager;
-  protected IThreadContext threadContext;
-  protected JobQueue jobQueue;
-  protected Jobs jobs;
-  protected HopCount hopCount;
-  protected Carrydown carryDown;
-  protected EventManager eventManager;
+  protected final IDBInterface database;
+  protected final IOutputConnectionManager outputMgr;
+  protected final IRepositoryConnectionManager connectionMgr;
+  protected final ILockManager lockManager;
+  protected final IThreadContext threadContext;
+  protected final JobQueue jobQueue;
+  protected final Jobs jobs;
+  protected final HopCount hopCount;
+  protected final Carrydown carryDown;
+  protected final EventManager eventManager;
 
 
   protected static Random random = new Random();
@@ -70,7 +70,6 @@ public class JobManager implements IJobManager
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
     connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
     lockManager = LockManagerFactory.make(threadContext);
-
   }
 
   /** Install.
@@ -1933,7 +1932,7 @@ public class JobManager implements IJobManager
   *@param documentDescriptions are the document descriptions.
   *@param priorities are the desired priorities.
   */
-  public void writeDocumentPriorities(long currentTime, DocumentDescription[] documentDescriptions, double[] priorities)
+  public void writeDocumentPriorities(long currentTime, DocumentDescription[] documentDescriptions, IPriorityCalculator[] priorities)
     throws ManifoldCFException
   {
 
@@ -1972,10 +1971,8 @@ public class JobManager implements IJobManager
             throw new ManifoldCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
           int index = x.intValue();
           DocumentDescription dd = documentDescriptions[index];
-          double priority = priorities[index];
-          jobQueue.writeDocPriority(currentTime,dd.getID(),priorities[index]);
-          if (Logging.perf.isDebugEnabled())
-            Logging.perf.debug("Setting document priority for '"+dd.getDocumentIdentifier()+"' to "+new Double(priority).toString()+", set time "+new Long(currentTime).toString());
+          IPriorityCalculator priority = priorities[index];
+          jobQueue.writeDocPriority(currentTime,dd.getID(),priority);
           i++;
         }
         database.performCommit();
@@ -3860,27 +3857,25 @@ public class JobManager implements IJobManager
   *@param currentTime is the current time in milliseconds since epoch.
   *@param documentPriorities are the document priorities corresponding to the document identifiers.
   *@param prereqEventNames are the events that must be completed before each document can be processed.
-  *@return true if the priority value(s) were used, false otherwise.
   */
   @Override
-  public boolean[] addDocumentsInitial(String processID, Long jobID, String[] legalLinkTypes,
+  public void addDocumentsInitial(String processID, Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs, boolean overrideSchedule,
-    int hopcountMethod, long currentTime, double[] documentPriorities,
+    int hopcountMethod, long currentTime, IPriorityCalculator[] documentPriorities,
     String[][] prereqEventNames)
     throws ManifoldCFException
   {
     if (docIDHashes.length == 0)
-      return new boolean[0];
+      return;
 
     // The document identifiers need to be sorted in a consistent fashion to reduce deadlock, and have duplicates removed, before going ahead.
     // But, the documentPriorities and the return booleans need to correspond to the initial array.  So, after we come up with
     // our internal order, we need to construct a map that takes an original index and maps it to the reduced, reordered index.
     String[] reorderedDocIDHashes = eliminateDuplicates(docIDHashes);
     HashMap reorderMap = buildReorderMap(docIDHashes,reorderedDocIDHashes);
-    double[] reorderedDocumentPriorities = new double[reorderedDocIDHashes.length];
+    IPriorityCalculator[] reorderedDocumentPriorities = new IPriorityCalculator[reorderedDocIDHashes.length];
     String[][] reorderedDocumentPrerequisites = new String[reorderedDocIDHashes.length][];
     String[] reorderedDocumentIdentifiers = new String[reorderedDocIDHashes.length];
-    boolean[] rval = new boolean[docIDHashes.length];
     int i = 0;
     while (i < docIDHashes.length)
     {
@@ -3894,7 +3889,6 @@ public class JobManager implements IJobManager
           reorderedDocumentPrerequisites[newPosition.intValue()] = null;
         reorderedDocumentIdentifiers[newPosition.intValue()] = docIDs[i];
       }
-      rval[i] = false;
       i++;
     }
 
@@ -3919,12 +3913,11 @@ public class JobManager implements IJobManager
           " initial docs and hopcounts for job "+jobID.toString());
 
         // Go through document id's one at a time, in order - mainly to prevent deadlock as much as possible.  Search for any existing row in jobqueue first (for update)
-        boolean[] reorderedRval = new boolean[reorderedDocIDHashes.length];
         int z = 0;
         while (z < reorderedDocIDHashes.length)
         {
           String docIDHash = reorderedDocIDHashes[z];
-          double docPriority = reorderedDocumentPriorities[z];
+          IPriorityCalculator docPriority = reorderedDocumentPriorities[z];
           String docID = reorderedDocumentIdentifiers[z];
           String[] docPrereqs = reorderedDocumentPrerequisites[z];
 
@@ -3943,7 +3936,6 @@ public class JobManager implements IJobManager
 
           IResultSet set = database.performQuery(sb.toString(),list,null,null);
 
-          boolean priorityUsed;
           long executeTime = overrideSchedule?0L:-1L;
 
           if (set.getRowCount() > 0)
@@ -3956,16 +3948,15 @@ public class JobManager implements IJobManager
             int status = jobQueue.stringToStatus((String)row.getValue(jobQueue.statusField));
             Long checkTimeValue = (Long)row.getValue(jobQueue.checkTimeField);
 
-            priorityUsed = jobQueue.updateExistingRecordInitial(rowID,status,checkTimeValue,executeTime,currentTime,docPriority,docPrereqs,processID);
+            jobQueue.updateExistingRecordInitial(rowID,status,checkTimeValue,executeTime,currentTime,docPriority,docPrereqs,processID);
           }
           else
           {
             // Not found.  Attempt an insert instead.  This may fail due to constraints, but if this happens, the whole transaction will be retried.
             jobQueue.insertNewRecordInitial(jobID,docIDHash,docID,docPriority,executeTime,currentTime,docPrereqs,processID);
-            priorityUsed = true;
           }
 
-          reorderedRval[z++] = priorityUsed;
+          z++;
         }
 
         if (Logging.perf.isDebugEnabled())
@@ -3983,17 +3974,7 @@ public class JobManager implements IJobManager
           Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to add "+Integer.toString(reorderedDocIDHashes.length)+
           " initial docs and hopcounts for job "+jobID.toString());
 
-        // Rejigger to correspond with calling order
-        i = 0;
-        while (i < docIDs.length)
-        {
-          Integer finalPosition = (Integer)reorderMap.get(new Integer(i));
-          if (finalPosition != null)
-            rval[i] = reorderedRval[finalPosition.intValue()];
-          i++;
-        }
-
-        return rval;
+        return;
       }
       catch (ManifoldCFException e)
       {
@@ -4388,20 +4369,19 @@ public class JobManager implements IJobManager
   *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
   *@param documentPriorities are the desired document priorities for the documents.
   *@param prereqEventNames are the events that must be completed before a document can be queued.
-  *@return an array of boolean values indicating whether or not the passed-in priority value was used or not for each doc id (true if used).
   */
   @Override
-  public boolean[] addDocuments(String processID,
+  public void addDocuments(String processID,
     Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs,
     String parentIdentifierHash, String relationshipType,
     int hopcountMethod, String[][] dataNames, Object[][][] dataValues,
-    long currentTime, double[] documentPriorities,
+    long currentTime, IPriorityCalculator[] documentPriorities,
     String[][] prereqEventNames)
     throws ManifoldCFException
   {
     if (docIDs.length == 0)
-      return new boolean[0];
+      return;
 
     // Sort the id hashes and eliminate duplicates.  This will help avoid deadlock conditions.
     // However, we also need to keep the carrydown data in synch, so track that around as well, and merge if there are
@@ -4458,7 +4438,7 @@ public class JobManager implements IJobManager
 
     String[] reorderedDocIDHashes = eliminateDuplicates(docIDHashes);
     HashMap reorderMap = buildReorderMap(docIDHashes,reorderedDocIDHashes);
-    double[] reorderedDocumentPriorities = new double[reorderedDocIDHashes.length];
+    IPriorityCalculator[] reorderedDocumentPriorities = new IPriorityCalculator[reorderedDocIDHashes.length];
     String[][] reorderedDocumentPrerequisites = new String[reorderedDocIDHashes.length][];
     String[] reorderedDocumentIdentifiers = new String[reorderedDocIDHashes.length];
     boolean[] rval = new boolean[docIDHashes.length];
@@ -4556,8 +4536,6 @@ public class JobManager implements IJobManager
               
           IResultSet set = database.performQuery(sb.toString(),list,null,null);
 
-          boolean priorityUsed;
-
           if (set.getRowCount() > 0)
           {
             // Found a row, and it is now locked.
@@ -4586,25 +4564,19 @@ public class JobManager implements IJobManager
         if (parentIdentifierHash != null && relationshipType != null)
           hopcountChangesSeen = hopCount.recordReferences(jobID,legalLinkTypes,parentIdentifierHash,reorderedDocIDHashes,relationshipType,hopcountMethod,processID);
 
-        // Loop through the document id's again, and perform updates where needed
-        boolean[] reorderedRval = new boolean[reorderedDocIDHashes.length];
-
         boolean reactivateRemovedHopcountRecords = false;
         
         for (int z = 0; z < reorderedDocIDHashes.length; z++)
         {
           String docIDHash = reorderedDocIDHashes[z];
           JobqueueRecord jr = (JobqueueRecord)existingRows.get(docIDHash);
-          if (jr == null)
-            // It was an insert
-            reorderedRval[z] = true;
-          else
+          if (jr != null)
           {
             // It was an existing row; do the update logic
             // The hopcountChangesSeen array describes whether each reference is a new one.  This
             // helps us determine whether we're going to need to "flip" HOPCOUNTREMOVED documents
             // to the PENDING state.  If the new link ended in an existing record, THEN we need to flip them all!
-            reorderedRval[z] = jobQueue.updateExistingRecord(jr.getRecordID(),jr.getStatus(),jr.getCheckTimeValue(),
+            jobQueue.updateExistingRecord(jr.getRecordID(),jr.getStatus(),jr.getCheckTimeValue(),
               0L,currentTime,carrydownChangesSeen[z] || (hopcountChangesSeen!=null && hopcountChangesSeen[z]),
               reorderedDocumentPriorities[z],reorderedDocumentPrerequisites[z]);
             // Signal if we need to perform the flip
@@ -4624,16 +4596,7 @@ public class JobManager implements IJobManager
           Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to add "+Integer.toString(reorderedDocIDHashes.length)+
           " docs and hopcounts for job "+jobID.toString()+" parent identifier hash "+parentIdentifierHash);
 
-        i = 0;
-        while (i < docIDHashes.length)
-        {
-          Integer finalPosition = (Integer)reorderMap.get(new Integer(i));
-          if (finalPosition != null)
-            rval[i] = reorderedRval[finalPosition.intValue()];
-          i++;
-        }
-
-        return rval;
+        return;
       }
       catch (ManifoldCFException e)
       {
@@ -4688,20 +4651,19 @@ public class JobManager implements IJobManager
   *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
   *@param priority is the desired document priority for the document.
   *@param prereqEventNames are the events that must be completed before the document can be processed.
-  *@return true if the priority value was used, false otherwise.
   */
   @Override
-  public boolean addDocument(String processID,
+  public void addDocument(String processID,
     Long jobID, String[] legalLinkTypes, String docIDHash, String docID,
     String parentIdentifierHash, String relationshipType,
     int hopcountMethod, String[] dataNames, Object[][] dataValues,
-    long currentTime, double priority, String[] prereqEventNames)
+    long currentTime, IPriorityCalculator priority, String[] prereqEventNames)
     throws ManifoldCFException
   {
-    return addDocuments(processID,jobID,legalLinkTypes,
+    addDocuments(processID,jobID,legalLinkTypes,
       new String[]{docIDHash},new String[]{docID},
       parentIdentifierHash,relationshipType,hopcountMethod,new String[][]{dataNames},
-      new Object[][][]{dataValues},currentTime,new double[]{priority},new String[][]{prereqEventNames})[0];
+      new Object[][][]{dataValues},currentTime,new IPriorityCalculator[]{priority},new String[][]{prereqEventNames});
   }
 
   /** Complete adding child documents to the queue, for a set of documents.
@@ -4713,6 +4675,7 @@ public class JobManager implements IJobManager
   *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
   *  to be requeued as a result of the change.
   */
+  @Override
   public DocumentDescription[] finishDocuments(Long jobID, String[] legalLinkTypes, String[] parentIdentifierHashes, int hopcountMethod)
     throws ManifoldCFException
   {
@@ -4948,6 +4911,7 @@ public class JobManager implements IJobManager
   /** Complete an event sequence.
   *@param eventName is the name of the event.
   */
+  @Override
   public void completeEventSequence(String eventName)
     throws ManifoldCFException
   {
@@ -4960,13 +4924,13 @@ public class JobManager implements IJobManager
   * extent that if one is *already* being processed, it will need to be done over again.
   *@param documentDescriptions is the set of description objects for the documents that have had their parent carrydown information changed.
   *@param docPriorities are the document priorities to assign to the documents, if needed.
-  *@return a flag for each document priority, true if it was used, false otherwise.
   */
-  public boolean[] carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, double[] docPriorities)
+  @Override
+  public void carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, IPriorityCalculator[] docPriorities)
     throws ManifoldCFException
   {
     if (documentDescriptions.length == 0)
-      return new boolean[0];
+      return;
 
     // Order the updates by document hash, to prevent deadlock as much as possible.
 
@@ -4984,8 +4948,6 @@ public class JobManager implements IJobManager
 
     // Sort the hashes
     java.util.Arrays.sort(docIDHashes);
-
-    boolean[] rval = new boolean[docIDHashes.length];
 
     // Enter transaction and prepare to look up document states in dochash order
     while (true)
@@ -5041,13 +5003,10 @@ public class JobManager implements IJobManager
           int originalIndex = ((Integer)docHashMap.get(docIDHash)).intValue();
 
           JobqueueRecord jr = (JobqueueRecord)existingRows.get(docIDHash);
-          if (jr == null)
-            // It wasn't found, so the doc priority wasn't used.
-            rval[originalIndex] = false;
-          else
+          if (jr != null)
             // It was an existing row; do the update logic; use the 'carrydown changes' flag = true all the time.
-            rval[originalIndex] = jobQueue.updateExistingRecord(jr.getRecordID(),jr.getStatus(),jr.getCheckTimeValue(),
-            0L,currentTime,true,docPriorities[originalIndex],null);
+            jobQueue.updateExistingRecord(jr.getRecordID(),jr.getStatus(),jr.getCheckTimeValue(),
+              0L,currentTime,true,docPriorities[originalIndex],null);
           j++;
         }
         database.performCommit();
@@ -5076,7 +5035,6 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
     }
-    return rval;
   }
 
   /** Requeue a document because of carrydown changes.
@@ -5084,12 +5042,12 @@ public class JobManager implements IJobManager
   * extent that if it is *already* being processed, it will need to be done over again.
   *@param documentDescription is the description object for the document that has had its parent carrydown information changed.
   *@param docPriority is the document priority to assign to the document, if needed.
-  *@return a flag for the document priority, true if it was used, false otherwise.
   */
-  public boolean carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, double docPriority)
+  @Override
+  public void carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, IPriorityCalculator docPriority)
     throws ManifoldCFException
   {
-    return carrydownChangeDocumentMultiple(new DocumentDescription[]{documentDescription},currentTime,new double[]{docPriority})[0];
+    carrydownChangeDocumentMultiple(new DocumentDescription[]{documentDescription},currentTime,new IPriorityCalculator[]{docPriority});
   }
 
   /** Sleep a random amount of time after a transaction abort.

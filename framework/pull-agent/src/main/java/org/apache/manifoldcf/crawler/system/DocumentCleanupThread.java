@@ -50,8 +50,6 @@ public class DocumentCleanupThread extends Thread
   protected final DocumentCleanupQueue documentCleanupQueue;
   /** Delete thread pool reset manager */
   protected final DocCleanupResetManager resetManager;
-  /** Queue tracker */
-  protected final QueueTracker queueTracker;
   /** Process ID */
   protected final String processID;
 
@@ -59,13 +57,12 @@ public class DocumentCleanupThread extends Thread
   *@param id is the worker thread id.
   */
   public DocumentCleanupThread(String id, DocumentCleanupQueue documentCleanupQueue,
-    QueueTracker queueTracker, DocCleanupResetManager resetManager, String processID)
+    DocCleanupResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     this.id = id;
     this.documentCleanupQueue = documentCleanupQueue;
-    this.queueTracker = queueTracker;
     this.resetManager = resetManager;
     this.processID = processID;
     setName("Document cleanup thread '"+id+"'");
@@ -83,6 +80,7 @@ public class DocumentCleanupThread extends Thread
       IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
+      ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
 
       // Loop
       while (true)
@@ -239,7 +237,7 @@ public class DocumentCleanupThread extends Thread
                   DocumentDescription[] requeueCandidates = jobManager.markDocumentCleanedUp(jobID,legalLinkTypes,ddd,hopcountMethod);
                   // Use the common method for doing the requeuing
                   ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
-                    connector,connection,queueTracker,currentTime);
+                    connector,connection,rt,currentTime);
                   // Finally, completed expiration of the document.
                   dqd.setProcessed();
                 }
