@@ -127,7 +127,7 @@ public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(processIDField,processID)});
-    performDelete("WHERE "+query,null,null);
+    performDelete("WHERE "+query,list,null);
   }
 
   /** Clean up after all processIDs.
