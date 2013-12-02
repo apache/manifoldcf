@@ -29,16 +29,20 @@ import java.util.*;
 /** This is a very basic sanity check */
 public class SchedulerTester
 {
-  protected ManifoldCFInstance instance;
+  protected final ManifoldCFInstance instance1;
+  protected final ManifoldCFInstance instance2;
   
-  public SchedulerTester(ManifoldCFInstance instance)
+  public SchedulerTester(ManifoldCFInstance instance1, ManifoldCFInstance instance2)
   {
-    this.instance = instance;
+    this.instance1 = instance1;
+    this.instance2 = instance2;
   }
   
   public void executeTest()
     throws Exception
   {
+    instance1.start();
+    
     // Hey, we were able to install the file system connector etc.
     // Now, create a local test job and run it.
     IThreadContext tc = ThreadContextFactory.make();
@@ -78,20 +82,31 @@ public class SchedulerTester
 
     // Now, start the job, and wait until it is running.
     jobManager.manualStart(job.getID());
-    instance.waitJobRunningNative(jobManager,job.getID(),30000L);
+    instance1.waitJobRunningNative(jobManager,job.getID(),30000L);
+    
+    // Start the second instance.
+    instance2.start();
+    // Wait long enough for the stuffing etc to take place once
+    Thread.sleep(5000L);
+    // Terminate instance1.  Instance2 should keep going.
+    instance1.stopNoCleanup();
     
     // Wait for the job to become inactive.  The time should be at least long enough to handle
     // 100 documents per bin, but not significantly greater than that.  Let's say 120 seconds.
     long startTime = System.currentTimeMillis();
-    instance.waitJobInactiveNative(jobManager,job.getID(),150000L);
+    instance2.waitJobInactiveNative(jobManager,job.getID(),150000L);
     long endTime = System.currentTimeMillis();
     if (jobManager.getStatus(job.getID()).getDocumentsProcessed() != 10+10*200)
       throw new Exception("Expected 2010 documents, saw "+jobManager.getStatus(job.getID()).getDocumentsProcessed());
     if (endTime-startTime < 96000L)
       throw new Exception("Job finished too quickly; throttling clearly failed");
     System.out.println("Crawl took "+(endTime-startTime)+" milliseconds");
+    
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
-    instance.waitJobDeletedNative(jobManager,job.getID(),120000L);
+    instance2.waitJobDeletedNative(jobManager,job.getID(),120000L);
+
+    // Shut down instance2
+    instance2.stop();
   }
 }

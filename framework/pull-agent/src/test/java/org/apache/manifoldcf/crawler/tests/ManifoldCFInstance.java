@@ -686,30 +686,48 @@ public class ManifoldCFInstance
         }
       }
 
-      if (!singleWar)
+      try
       {
-        // Shut down daemon
-        AgentsDaemon.assertAgentsShutdownSignal(tc);
-        
-        // Wait for daemon thread to exit.
-        while (true)
-        {
-          if (daemonThread.isAlive())
-          {
-            Thread.sleep(1000L);
-            continue;
-          }
-          break;
-        }
-
-        Exception e = daemonThread.getDaemonException();
-        if (e != null)
+        stopNoCleanup();
+      }
+      catch (Exception e)
+      {
+        if (currentException == null)
           currentException = e;
       }
+    }
+  }
+  
+  public void stopNoCleanup()
+    throws Exception
+  {
+    if (daemonThread != null)
+    {
+      Exception currentException = null;
+      
+      // Shut down daemon - but only ONE daemon
+      //AgentsDaemon.assertAgentsShutdownSignal(tc);
         
+      // Wait for daemon thread to exit.
+      while (true)
+      {
+        daemonThread.interrupt();
+        if (daemonThread.isAlive())
+        {
+          Thread.sleep(1000L);
+          continue;
+        }
+        break;
+      }
+
+      Exception e = daemonThread.getDaemonException();
+      if (e != null || !(e instanceof InterruptedException))
+        currentException = e;
+
       if (currentException != null)
         throw currentException;
     }
+        
   }
   
   public void unload()
