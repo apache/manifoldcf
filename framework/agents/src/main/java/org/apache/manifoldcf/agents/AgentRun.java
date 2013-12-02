@@ -59,8 +59,9 @@ public class AgentRun extends BaseAgentsInitializationCommand
       
       Logging.root.info("Running...");
       // Register hook first so stopAgents() not required
-      ManifoldCF.registerAgentsShutdownHook(tc, processID);
-      ManifoldCF.runAgents(tc, processID);
+      AgentsDaemon ad = new AgentsDaemon(processID);
+      ad.registerAgentsShutdownHook(tc);
+      ad.runAgents(tc);
       Logging.root.info("Shutting down...");
     }
     catch (ManifoldCFException e)

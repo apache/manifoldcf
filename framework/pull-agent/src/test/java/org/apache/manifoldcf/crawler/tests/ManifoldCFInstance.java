@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.apache.manifoldcf.agents.system.AgentsDaemon;
 
 import java.io.*;
 import java.util.*;
@@ -575,7 +576,7 @@ public class ManifoldCFInstance
       // If all worked, then we can start the daemon.
       // Clear the agents shutdown signal.
       IThreadContext tc = ThreadContextFactory.make();
-      ManifoldCF.clearAgentsShutdownSignal(tc);
+      AgentsDaemon.clearAgentsShutdownSignal(tc);
 
       daemonThread = new DaemonThread();
       daemonThread.start();
@@ -670,7 +671,7 @@ public class ManifoldCFInstance
       if (!singleWar)
       {
         // Shut down daemon
-        ManifoldCF.assertAgentsShutdownSignal(tc);
+        AgentsDaemon.assertAgentsShutdownSignal(tc);
         
         // Wait for daemon thread to exit.
         while (true)
@@ -721,9 +722,10 @@ public class ManifoldCFInstance
       IThreadContext tc = ThreadContextFactory.make();
       // Now, start the server, and then wait for the shutdown signal.  On shutdown, we have to actually do the cleanup,
       // because the JVM isn't going away.
+      AgentsDaemon ad = new AgentsDaemon(processID);
       try
       {
-        ManifoldCF.runAgents(tc, processID);
+        ad.runAgents(tc);
       }
       catch (ManifoldCFException e)
       {
@@ -733,7 +735,7 @@ public class ManifoldCFInstance
       {
         try
         {
-          ManifoldCF.stopAgents(tc, processID);
+          ad.stopAgents(tc);
         }
         catch (ManifoldCFException e)
         {
