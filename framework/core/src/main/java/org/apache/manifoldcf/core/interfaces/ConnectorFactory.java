@@ -273,11 +273,11 @@ public abstract class ConnectorFactory<T extends IConnector>
   /** Get multiple connectors, all at once.  Do this in a particular order
   * so that any connector exhaustion will not cause a deadlock.
   */
-  protected T[] grabThisMultiple(IThreadContext threadContext,
+  protected T[] grabThisMultiple(IThreadContext threadContext, Class<T> clazz,
     String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
     throws ManifoldCFException
   {
-    T[] rval = (T[])new IConnector[classNames.length];
+    T[] rval = (T[])Array.newInstance(clazz,classNames.length);
     Map<String,Integer> orderMap = new HashMap<String,Integer>();
     for (int i = 0; i < orderingKeys.length; i++)
     {
@@ -367,11 +367,10 @@ public abstract class ConnectorFactory<T extends IConnector>
   protected void releaseThisMultiple(T[] connectors)
     throws ManifoldCFException
   {
-    int i = 0;
     ManifoldCFException currentException = null;
-    while (i < connectors.length)
+    for (int i = 0; i < connectors.length; i++)
     {
-      T c = connectors[i++];
+      T c = connectors[i];
       try
       {
         releaseThis(c);
@@ -398,19 +397,13 @@ public abstract class ConnectorFactory<T extends IConnector>
 
     // Figure out which pool this goes on, and put it there
     PoolKey pk = new PoolKey(connector.getClass().getName(),connector.getConfiguration());
-    Pool p;
+    Pool<T> p;
     synchronized (poolHash)
     {
       p = poolHash.get(pk);
     }
 
     p.releaseConnector(connector);
-
-    // synchronized (checkedOutConnectors)
-    // {
-    //      checkedOutConnectors.remove(connector.toString());
-    // }
-
   }
 
   /** Idle notification for inactive output connector handles.

@@ -142,7 +142,7 @@ public class OutputConnectorFactory extends ConnectorFactory<IOutputConnector>
     String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
     throws ManifoldCFException
   {
-    return thisFactory.grabThisMultiple(threadContext,orderingKeys,classNames,configInfos,maxPoolSizes);
+    return thisFactory.grabThisMultiple(threadContext,IOutputConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
   }
 
   /** Get an output connector.

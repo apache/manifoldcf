@@ -188,7 +188,7 @@ public class RepositoryConnectorFactory extends ConnectorFactory<IRepositoryConn
     String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
     throws ManifoldCFException
   {
-    return thisFactory.grabThisMultiple(threadContext,orderingKeys,classNames,configInfos,maxPoolSizes);
+    return thisFactory.grabThisMultiple(threadContext,IRepositoryConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
   }
 
   /** Get a repository connector.
