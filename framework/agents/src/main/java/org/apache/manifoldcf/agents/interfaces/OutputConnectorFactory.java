@@ -32,12 +32,13 @@ public class OutputConnectorFactory extends ConnectorFactory<IOutputConnector>
   public static final String _rcsid = "@(#)$Id: OutputConnectorFactory.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Static factory
-  protected static OutputConnectorFactory thisFactory = new OutputConnectorFactory();
+  protected final static OutputConnectorFactory thisFactory = new OutputConnectorFactory();
 
   protected OutputConnectorFactory()
   {
   }
 
+  @Override
   protected boolean isInstalled(IThreadContext tc, String className)
     throws ManifoldCFException
   {
