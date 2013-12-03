@@ -26,45 +26,45 @@ import java.lang.reflect.*;
 
 /** This is the base factory class for all IConnector objects.
 */
-public class ConnectorFactory
+public abstract class ConnectorFactory<T extends IConnector>
 {
   public static final String _rcsid = "@(#)$Id: OutputConnectorFactory.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Pool hash table.
   // Keyed by PoolKey; value is Pool
-  protected final static Map<PoolKey,Pool> poolHash = new HashMap<PoolKey,Pool>();
+  protected final Map<PoolKey,Pool> poolHash = new HashMap<PoolKey,Pool>();
 
-  private ConnectorFactory()
+  protected ConnectorFactory()
   {
   }
 
   /** Install connector.
   *@param className is the class name.
   */
-  public static void install(IThreadContext threadContext, String className)
+  protected void installThis(IThreadContext threadContext, String className)
     throws ManifoldCFException
   {
-    IConnector connector = getConnectorNoCheck(className);
+    T connector = getThisConnectorNoCheck(className);
     connector.install(threadContext);
   }
 
   /** Uninstall connector.
   *@param className is the class name.
   */
-  public static void deinstall(IThreadContext threadContext, String className)
+  protected void deinstallThis(IThreadContext threadContext, String className)
     throws ManifoldCFException
   {
-    IConnector connector = getConnectorNoCheck(className);
+    T connector = getThisConnectorNoCheck(className);
     connector.deinstall(threadContext);
   }
 
   /** Output the configuration header section.
   */
-  public static void outputConfigurationHeader(IThreadContext threadContext, String className,
+  protected void outputThisConfigurationHeader(IThreadContext threadContext, String className,
     IHTTPOutput out, Locale locale, ConfigParams parameters, ArrayList tabsArray)
     throws ManifoldCFException, IOException
   {
-    IConnector connector = getConnector(threadContext, className);
+    T connector = getThisConnector(threadContext, className);
     if (connector == null)
       return;
     connector.outputConfigurationHeader(threadContext,out,locale,parameters,tabsArray);
@@ -72,11 +72,11 @@ public class ConnectorFactory
 
   /** Output the configuration body section.
   */
-  public static void outputConfigurationBody(IThreadContext threadContext, String className,
+  protected void outputThisConfigurationBody(IThreadContext threadContext, String className,
     IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    IConnector connector = getConnector(threadContext, className);
+    T connector = getThisConnector(threadContext, className);
     if (connector == null)
       return;
     connector.outputConfigurationBody(threadContext,out,locale,parameters,tabName);
@@ -84,11 +84,11 @@ public class ConnectorFactory
 
   /** Process configuration post data for a connector.
   */
-  public static String processConfigurationPost(IThreadContext threadContext, String className,
+  protected String processThisConfigurationPost(IThreadContext threadContext, String className,
     IPostParameters variableContext, Locale locale, ConfigParams configParams)
     throws ManifoldCFException
   {
-    IConnector connector = getConnector(threadContext, className);
+    T connector = getThisConnector(threadContext, className);
     if (connector == null)
       return null;
     return connector.processConfigurationPost(threadContext,variableContext,locale,configParams);
@@ -96,11 +96,11 @@ public class ConnectorFactory
   
   /** View connector configuration.
   */
-  public static void viewConfiguration(IThreadContext threadContext, String className,
+  protected void viewThisConfiguration(IThreadContext threadContext, String className,
     IHTTPOutput out, Locale locale, ConfigParams configParams)
     throws ManifoldCFException, IOException
   {
-    IConnector connector = getConnector(threadContext, className);
+    T connector = getThisConnector(threadContext, className);
     // We want to be able to view connections even if they have unregistered connectors.
     if (connector == null)
       return;
@@ -111,7 +111,7 @@ public class ConnectorFactory
   *@param className is the class name.
   *@return the instance.
   */
-  public static IConnector getConnectorNoCheck(String className)
+  protected T getThisConnectorNoCheck(String className)
     throws ManifoldCFException
   {
     try
@@ -122,9 +122,14 @@ public class ConnectorFactory
       Constructor c = theClass.getConstructor(argumentClasses);
       Object[] arguments = new Object[0];
       Object o = c.newInstance(arguments);
-      if (!(o instanceof IConnector))
+      try
+      {
+        return (T)o;
+      }
+      catch (ClassCastException e)
+      {
         throw new ManifoldCFException("Class '"+className+"' does not implement IConnector.");
-      return (IConnector)o;
+      }
     }
     catch (InvocationTargetException e)
     {
@@ -180,17 +185,14 @@ public class ConnectorFactory
   
   /** Override this method to hook into a connector manager.
   */
-  protected static boolean isInstalled(IThreadContext tc, String className)
-    throws ManifoldCFException
-  {
-    return false;
-  }
+  protected abstract boolean isInstalled(IThreadContext tc, String className)
+    throws ManifoldCFException;
   
   /** Get a connector instance.
   *@param className is the class name.
   *@return the instance.
   */
-  protected static IConnector getConnector(IThreadContext threadContext, String className)
+  protected T getThisConnector(IThreadContext threadContext, String className)
     throws ManifoldCFException
   {
     if (!isInstalled(threadContext,className))
@@ -204,9 +206,14 @@ public class ConnectorFactory
       Constructor c = theClass.getConstructor(argumentClasses);
       Object[] arguments = new Object[0];
       Object o = c.newInstance(arguments);
-      if (!(o instanceof IConnector))
+      try
+      {
+        return (T)o;
+      }
+      catch (ClassCastException e)
+      {
         throw new ManifoldCFException("Class '"+className+"' does not implement IConnector.");
-      return (IConnector)o;
+      }
     }
     catch (InvocationTargetException e)
     {
@@ -266,11 +273,11 @@ public class ConnectorFactory
   /** Get multiple connectors, all at once.  Do this in a particular order
   * so that any connector exhaustion will not cause a deadlock.
   */
-  public static IConnector[] grabMultiple(IThreadContext threadContext,
+  protected T[] grabThisMultiple(IThreadContext threadContext,
     String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
     throws ManifoldCFException
   {
-    IConnector[] rval = new IConnector[classNames.length];
+    T[] rval = (T[])new IConnector[classNames.length];
     Map<String,Integer> orderMap = new HashMap<String,Integer>();
     for (int i = 0; i < orderingKeys.length; i++)
     {
@@ -288,7 +295,7 @@ public class ConnectorFactory
       int maxPoolSize = maxPoolSizes[index];
       try
       {
-        IConnector connector = grab(threadContext,className,cp,maxPoolSize);
+        T connector = grabThis(threadContext,className,cp,maxPoolSize);
         rval[index] = connector;
       }
       catch (Throwable e)
@@ -300,7 +307,7 @@ public class ConnectorFactory
           index = orderMap.get(orderingKey).intValue();
           try
           {
-            release(rval[index]);
+            releaseThis(rval[index]);
           }
           catch (ManifoldCFException e2)
           {
@@ -326,7 +333,7 @@ public class ConnectorFactory
   *@param configInfo are the name/value pairs constituting configuration info
   * for this class.
   */
-  public static IConnector grab(IThreadContext threadContext,
+  protected T grabThis(IThreadContext threadContext,
     String className, ConfigParams configInfo, int maxPoolSize)
     throws ManifoldCFException
   {
@@ -337,19 +344,19 @@ public class ConnectorFactory
     // key will be discarded if we actually have to save a key persistently,
     // since we avoid copying the configInfo unnecessarily.
     PoolKey pk = new PoolKey(className,configInfo);
-    Pool p;
+    Pool<T> p;
     synchronized (poolHash)
     {
       p = poolHash.get(pk);
       if (p == null)
       {
         pk = new PoolKey(className,configInfo.duplicate());
-        p = new Pool(pk,maxPoolSize);
+        p = new Pool<T>(pk,maxPoolSize);
         poolHash.put(pk,p);
       }
     }
 
-    IConnector rval = p.getConnector(threadContext);
+    T rval = p.getConnector(threadContext);
 
     return rval;
 
@@ -357,17 +364,17 @@ public class ConnectorFactory
 
   /** Release multiple output connectors.
   */
-  public static void releaseMultiple(IConnector[] connectors)
+  protected void releaseThisMultiple(T[] connectors)
     throws ManifoldCFException
   {
     int i = 0;
     ManifoldCFException currentException = null;
     while (i < connectors.length)
     {
-      IConnector c = connectors[i++];
+      T c = connectors[i++];
       try
       {
-        release(c);
+        releaseThis(c);
       }
       catch (ManifoldCFException e)
       {
@@ -382,7 +389,7 @@ public class ConnectorFactory
   /** Release an output connector.
   *@param connector is the connector to release.
   */
-  public static void release(IConnector connector)
+  protected void releaseThis(T connector)
     throws ManifoldCFException
   {
     // If the connector is null, skip the release, because we never really got the connector in the first place.
@@ -409,7 +416,7 @@ public class ConnectorFactory
   /** Idle notification for inactive output connector handles.
   * This method polls all inactive handles.
   */
-  public static void pollAllConnectors(IThreadContext threadContext)
+  protected void pollThisAllConnectors(IThreadContext threadContext)
     throws ManifoldCFException
   {
     // System.out.println("Pool stats:");
@@ -434,7 +441,7 @@ public class ConnectorFactory
   * to free resources.
   *@param threadContext is the local thread context.
   */
-  public static void closeAllConnectors(IThreadContext threadContext)
+  protected void closeThisAllConnectors(IThreadContext threadContext)
     throws ManifoldCFException
   {
     // Go through the whole pool and clean it out
@@ -508,9 +515,9 @@ public class ConnectorFactory
 
   /** This class represents a value in the pool hash, which corresponds to a given key.
   */
-  public static class Pool
+  public class Pool<T extends IConnector>
   {
-    protected final List<IConnector> stack = new ArrayList<IConnector>();
+    protected final List<T> stack = new ArrayList<T>();
     protected final PoolKey key;
     protected int numFree;
 
@@ -526,7 +533,7 @@ public class ConnectorFactory
     * If none exists, construct it using the information in the pool key.
     *@return the connector, or null if no connector could be connected.
     */
-    public synchronized IConnector getConnector(IThreadContext threadContext)
+    public synchronized T getConnector(IThreadContext threadContext)
       throws ManifoldCFException
     {
       while (numFree == 0)
@@ -557,9 +564,15 @@ public class ConnectorFactory
           Constructor c = theClass.getConstructor(argumentClasses);
           Object[] arguments = new Object[0];
           Object o = c.newInstance(arguments);
-          if (!(o instanceof IConnector))
+          T newrc;
+          try
+          {
+            newrc = (T)o;
+          }
+          catch (ClassCastException e)
+          {
             throw new ManifoldCFException("Class '"+className+"' does not implement IConnector.");
-          IConnector newrc = (IConnector)o;
+          }
           newrc.connect(configParams);
           stack.add(newrc);
         }
@@ -619,7 +632,7 @@ public class ConnectorFactory
       }
       
       // Since thread context set can fail, do that before we remove it from the pool.
-      IConnector rc = (IConnector)stack.get(stack.size()-1);
+      T rc = stack.get(stack.size()-1);
       rc.setThreadContext(threadContext);
       stack.remove(stack.size()-1);
       numFree--;
@@ -630,7 +643,7 @@ public class ConnectorFactory
     /** Release a connector to the pool.
     *@param connector is the connector.
     */
-    public synchronized void releaseConnector(IConnector connector)
+    public synchronized void releaseConnector(T connector)
       throws ManifoldCFException
     {
       if (connector == null)
@@ -652,7 +665,7 @@ public class ConnectorFactory
       int i = 0;
       while (i < stack.size())
       {
-        IConnector rc = (IConnector)stack.get(i++);
+        T rc = stack.get(i++);
         // Notify
         rc.setThreadContext(threadContext);
         try
@@ -674,7 +687,7 @@ public class ConnectorFactory
       while (stack.size() > 0)
       {
         // Disconnect
-        IConnector rc = stack.get(stack.size()-1);
+        T rc = stack.get(stack.size()-1);
         rc.setThreadContext(threadContext);
         try
         {
