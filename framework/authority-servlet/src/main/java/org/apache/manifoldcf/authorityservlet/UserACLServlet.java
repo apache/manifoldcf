@@ -268,8 +268,7 @@ public class UserACLServlet extends HttpServlet
           identifyingString = connectionName;
 
         // Create a request
-        MappingRequest mr = new MappingRequest(
-          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+        MappingRequest mr = new MappingRequest(thisConnection,identifyingString);
         mappingRequests.put(mapperDesc, mr);
 
         // Either start up a thread, or just fire it off immediately.

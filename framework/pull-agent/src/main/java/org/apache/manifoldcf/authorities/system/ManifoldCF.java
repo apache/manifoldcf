@@ -96,7 +96,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     }
     try
     {
-      MappingConnectorFactory.closeAllConnectors(tc);
+      MappingConnectorPoolFactory.make(tc).closeAllConnectors();
     }
     catch (ManifoldCFException e)
     {
@@ -271,7 +271,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     AuthorityConnectorPoolFactory.make(threadContext).flushUnusedConnectors();
     numAuthCheckThreads = 0;
     requestQueue = null;
-    MappingConnectorFactory.flushUnusedConnectors(threadContext);
+    MappingConnectorPoolFactory.make(threadContext).flushUnusedConnectors();
     numMappingThreads = 0;
     mappingRequestQueue = null;
   }
