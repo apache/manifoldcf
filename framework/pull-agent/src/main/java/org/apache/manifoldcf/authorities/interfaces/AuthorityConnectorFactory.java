@@ -122,7 +122,17 @@ public class AuthorityConnectorFactory extends ConnectorFactory<IAuthorityConnec
     return thisFactory.getThisConnectorNoCheck(className);
   }
 
-  /** Get a repository connector.
+  /** Get multiple authority connectors, all at once.  Do this in a particular order
+  * so that any connector exhaustion will not cause a deadlock.
+  */
+  public static IAuthorityConnector[] grabMultiple(IThreadContext threadContext,
+    String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+    throws ManifoldCFException
+  {
+    return thisFactory.grabThisMultiple(threadContext,IAuthorityConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
+  }
+
+  /** Get an authority connector.
   * The connector is specified by its class and its parameters.
   *@param threadContext is the current thread context.
   *@param className is the name of the class to get a connector for.
@@ -136,7 +146,15 @@ public class AuthorityConnectorFactory extends ConnectorFactory<IAuthorityConnec
     return thisFactory.grabThis(threadContext,className,configInfo,maxPoolSize);
   }
 
-  /** Release a repository connector.
+  /** Release multiple authority connectors.
+  */
+  public static void releaseMultiple(IAuthorityConnector[] connectors)
+    throws ManifoldCFException
+  {
+    thisFactory.releaseThisMultiple(connectors);
+  }
+
+  /** Release an authority connector.
   *@param connector is the connector to release.
   */
   public static void release(IAuthorityConnector connector)
