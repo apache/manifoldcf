@@ -104,6 +104,16 @@ public class MappingConnectorFactory extends ConnectorFactory<IMappingConnector>
     return thisFactory.getThisConnectorNoCheck(className);
   }
 
+  /** Get multiple mapping connectors, all at once.  Do this in a particular order
+  * so that any connector exhaustion will not cause a deadlock.
+  */
+  public static IMappingConnector[] grabMultiple(IThreadContext threadContext,
+    String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+    throws ManifoldCFException
+  {
+    return thisFactory.grabThisMultiple(threadContext,IMappingConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
+  }
+
   /** Get a mapping connector.
   * The connector is specified by its class and its parameters.
   *@param threadContext is the current thread context.
@@ -116,6 +126,14 @@ public class MappingConnectorFactory extends ConnectorFactory<IMappingConnector>
     throws ManifoldCFException
   {
     return thisFactory.grabThis(threadContext,className,configInfo,maxPoolSize);
+  }
+
+  /** Release multiple mapping connectors.
+  */
+  public static void releaseMultiple(IMappingConnector[] connectors)
+    throws ManifoldCFException
+  {
+    thisFactory.releaseThisMultiple(connectors);
   }
 
   /** Release a repository connector.
