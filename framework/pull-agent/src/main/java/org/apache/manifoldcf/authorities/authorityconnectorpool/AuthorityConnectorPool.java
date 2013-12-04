@@ -112,6 +112,15 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
     AuthorityConnectorFactory.pollAllConnectors(threadContext);
   }
 
+  /** Flush only those connector handles that are currently unused.
+  */
+  @Override
+  public void flushUnusedConnectors()
+    throws ManifoldCFException
+  {
+    AuthorityConnectorFactory.flushUnusedConnectors(threadContext);
+  }
+
   /** Clean up all open authority connector handles.
   * This method is called when the connector pool needs to be flushed,
   * to free resources.

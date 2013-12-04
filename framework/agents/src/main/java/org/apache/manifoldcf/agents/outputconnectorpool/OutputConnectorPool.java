@@ -50,6 +50,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   *@param orderingKeys are the keys which determine in what order the connectors are obtained.
   *@param outputConnections are the connections to use the build the connector instances.
   */
+  @Override
   public IOutputConnector[] grabMultiple(String[] orderingKeys, IOutputConnection[] outputConnections)
     throws ManifoldCFException
   {
@@ -73,6 +74,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   * The connector is specified by an output connection object.
   *@param outputConnection is the output connection to base the connector instance on.
   */
+  @Override
   public IOutputConnector grab(IOutputConnection outputConnection)
     throws ManifoldCFException
   {
@@ -83,6 +85,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   /** Release multiple output connectors.
   *@param connectors are the connector instances to release.
   */
+  @Override
   public void releaseMultiple(IOutputConnector[] connectors)
     throws ManifoldCFException
   {
@@ -92,6 +95,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   /** Release an output connector.
   *@param connector is the connector to release.
   */
+  @Override
   public void release(IOutputConnector connector)
     throws ManifoldCFException
   {
@@ -101,16 +105,27 @@ public class OutputConnectorPool implements IOutputConnectorPool
   /** Idle notification for inactive output connector handles.
   * This method polls all inactive handles.
   */
+  @Override
   public void pollAllConnectors()
     throws ManifoldCFException
   {
     OutputConnectorFactory.pollAllConnectors(threadContext);
   }
 
+  /** Flush only those connector handles that are currently unused.
+  */
+  @Override
+  public void flushUnusedConnectors()
+    throws ManifoldCFException
+  {
+    OutputConnectorFactory.flushUnusedConnectors(threadContext);
+  }
+
   /** Clean up all open output connector handles.
   * This method is called when the connector pool needs to be flushed,
   * to free resources.
   */
+  @Override
   public void closeAllConnectors()
     throws ManifoldCFException
   {

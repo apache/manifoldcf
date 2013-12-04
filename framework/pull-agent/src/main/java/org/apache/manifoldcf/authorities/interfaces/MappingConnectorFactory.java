@@ -136,6 +136,14 @@ public class MappingConnectorFactory extends ConnectorFactory<IMappingConnector>
     thisFactory.pollThisAllConnectors(threadContext);
   }
 
+  /** Flush only those connector handles that are currently unused.
+  */
+  public static void flushUnusedConnectors(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    thisFactory.flushThisUnusedConnectors(threadContext);
+  }
+
   /** Clean up all open mapping connector handles.
   * This method is called when the connector pool needs to be flushed,
   * to free resources.

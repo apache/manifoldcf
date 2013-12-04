@@ -429,6 +429,14 @@ public abstract class ConnectorFactory<T extends IConnector>
     // checkConnectors(System.currentTimeMillis());
   }
 
+  /** Flush only those connector handles that are currently unused.
+  */
+  protected void flushThisUnusedConnectors(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    closeThisAllConnectors(threadContext);
+  }
+
   /** Clean up all open output connector handles.
   * This method is called when the connector pool needs to be flushed,
   * to free resources.

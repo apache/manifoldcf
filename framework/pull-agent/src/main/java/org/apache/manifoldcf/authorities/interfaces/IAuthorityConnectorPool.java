@@ -64,6 +64,11 @@ public interface IAuthorityConnectorPool
   public void pollAllConnectors()
     throws ManifoldCFException;
 
+  /** Flush only those connector handles that are currently unused.
+  */
+  public void flushUnusedConnectors()
+    throws ManifoldCFException;
+
   /** Clean up all open authority connector handles.
   * This method is called when the connector pool needs to be flushed,
   * to free resources.

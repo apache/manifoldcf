@@ -83,6 +83,26 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   
   public static void localCleanup(IThreadContext tc)
   {
+    // Since pools are a shared resource, we clean them up only
+    // when we are certain nothing else is using them in the JVM.
+    try
+    {
+      AuthorityConnectorPoolFactory.make(tc).closeAllConnectors();
+    }
+    catch (ManifoldCFException e)
+    {
+      if (Logging.authorityService != null)
+        Logging.authorityService.warn("Exception closing authority connection pool: "+e.getMessage(),e);
+    }
+    try
+    {
+      MappingConnectorFactory.closeAllConnectors(tc);
+    }
+    catch (ManifoldCFException e)
+    {
+      if (Logging.authorityService != null)
+        Logging.authorityService.warn("Exception closing mapping connection pool: "+e.getMessage(),e);
+    }
   }
   
   /** Install all the authority manager system tables.
@@ -248,10 +268,10 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     }
 
     // Release all authority connectors
-    AuthorityConnectorPoolFactory.make(threadContext).closeAllConnectors();
+    AuthorityConnectorPoolFactory.make(threadContext).flushUnusedConnectors();
     numAuthCheckThreads = 0;
     requestQueue = null;
-    MappingConnectorFactory.closeAllConnectors(threadContext);
+    MappingConnectorFactory.flushUnusedConnectors(threadContext);
     numMappingThreads = 0;
     mappingRequestQueue = null;
   }

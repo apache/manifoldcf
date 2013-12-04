@@ -81,6 +81,8 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     }
     catch (ManifoldCFException e)
     {
+      if (Logging.agents != null)
+        Logging.agents.warn("Exception shutting down output connector pool: "+e.getMessage(),e);
     }
   }
   
