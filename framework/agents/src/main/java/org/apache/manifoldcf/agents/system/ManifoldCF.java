@@ -74,6 +74,14 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
 
   public static void localCleanup(IThreadContext threadContext)
   {
+    // Close all pools
+    try
+    {
+      OutputConnectorPoolFactory.make(threadContext).closeAllConnectors();
+    }
+    catch (ManifoldCFException e)
+    {
+    }
   }
   
   /** Reset the environment.
