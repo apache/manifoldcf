@@ -230,8 +230,7 @@ public class UserACLServlet extends HttpServlet
             identifyingString = thisConnection.getName();
           
           // Create a request
-          AuthRequest ar = new AuthRequest(
-            thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+          AuthRequest ar = new AuthRequest(thisConnection,identifyingString);
           authRequests.put(thisConnection.getName(), ar);
           
           // We create an auth thread if there are prerequisites to meet.

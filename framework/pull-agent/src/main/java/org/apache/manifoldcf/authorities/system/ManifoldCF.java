@@ -248,7 +248,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     }
 
     // Release all authority connectors
-    AuthorityConnectorFactory.closeAllConnectors(threadContext);
+    AuthorityConnectorPoolFactory.make(threadContext).closeAllConnectors();
     numAuthCheckThreads = 0;
     requestQueue = null;
     MappingConnectorFactory.closeAllConnectors(threadContext);

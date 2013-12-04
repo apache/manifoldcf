@@ -52,6 +52,7 @@ public class IdleCleanupThread extends Thread
       // Create a thread context object.
       IThreadContext threadContext = ThreadContextFactory.make();
       ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
+      IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(threadContext);
       
       // Loop
       while (true)
@@ -60,7 +61,7 @@ public class IdleCleanupThread extends Thread
         try
         {
           // Do the cleanup
-          AuthorityConnectorFactory.pollAllConnectors(threadContext);
+          authorityConnectorPool.pollAllConnectors();
           cacheManager.expireObjects(System.currentTimeMillis());
           
           // Sleep for the retry interval.
