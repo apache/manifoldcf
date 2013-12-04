@@ -190,7 +190,7 @@ public class OutputConnectorFactory extends ConnectorFactory<IOutputConnector>
   public static void flushUnusedConnectors(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    thisFactory.flushUnusedConnectors(threadContext);
+    thisFactory.flushThisUnusedConnectors(threadContext);
   }
 
   /** Clean up all open output connector handles.
