@@ -1,4 +1,4 @@
-/* $Id: IdleCleanupThread.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,21 +16,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.system;
+package org.apache.manifoldcf.agents.system;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.Logging;
 import java.util.*;
-import java.lang.reflect.*;
 
-/** This thread periodically calls the cleanup method in all connected repository connectors.  The ostensible purpose
+/** This thread periodically calls the cleanup method in all connected output connectors.  The ostensible purpose
 * is to allow the connectors to shutdown idle connections etc.
 */
 public class IdleCleanupThread extends Thread
 {
-  public static final String _rcsid = "@(#)$Id: IdleCleanupThread.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Local data
   /** Process ID */
@@ -49,13 +46,15 @@ public class IdleCleanupThread extends Thread
 
   public void run()
   {
-    Logging.threads.debug("Start up idle cleanup thread");
+    Logging.agents.debug("Start up idle cleanup thread");
     try
     {
       // Create a thread context object.
       IThreadContext threadContext = ThreadContextFactory.make();
       // Get the cache handle.
       ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
+      // Get the output connector pool handle
+      IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
       
       // Loop
       while (true)
@@ -64,7 +63,7 @@ public class IdleCleanupThread extends Thread
         try
         {
           // Do the cleanup
-          RepositoryConnectorFactory.pollAllConnectors(threadContext);
+          outputConnectorPool.pollAllConnectors();
           cacheManager.expireObjects(System.currentTimeMillis());
           
           // Sleep for the retry interval.
@@ -77,7 +76,7 @@ public class IdleCleanupThread extends Thread
 
           if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
-            Logging.threads.error("Idle cleanup thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
+            Logging.agents.error("Idle cleanup thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
             {
               // Give the database a chance to catch up/wake up
@@ -91,7 +90,7 @@ public class IdleCleanupThread extends Thread
           }
 
           // Log it, but keep the thread alive
-          Logging.threads.error("Exception tossed: "+e.getMessage(),e);
+          Logging.agents.error("Exception tossed: "+e.getMessage(),e);
 
           if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
@@ -114,7 +113,7 @@ public class IdleCleanupThread extends Thread
         catch (Throwable e)
         {
           // A more severe error - but stay alive
-          Logging.threads.fatal("Error tossed: "+e.getMessage(),e);
+          Logging.agents.fatal("Error tossed: "+e.getMessage(),e);
         }
       }
     }
@@ -122,7 +121,7 @@ public class IdleCleanupThread extends Thread
     {
       // Severe error on initialization
       System.err.println("agents process could not start - shutting down");
-      Logging.threads.fatal("IdleCleanupThread initialization error tossed: "+e.getMessage(),e);
+      Logging.agents.fatal("IdleCleanupThread initialization error tossed: "+e.getMessage(),e);
       System.exit(-300);
     }
 

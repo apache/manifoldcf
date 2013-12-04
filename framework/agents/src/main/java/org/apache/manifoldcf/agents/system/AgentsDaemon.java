@@ -36,6 +36,9 @@ public class AgentsDaemon
   * also takes on process cleanup where necessary. */
   protected AgentsThread agentsThread = null;
 
+  /** The idle cleanup thread. */
+  protected IdleCleanupThread idleCleanupThread = null;
+  
   /** Process ID for this agents daemon. */
   protected final String processID;
   
@@ -124,8 +127,11 @@ public class AgentsDaemon
   public void startAgents(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    // Create and start agents thread.
+    // Create idle cleanup thread.
+    idleCleanupThread = new IdleCleanupThread(processID);
     agentsThread = new AgentsThread();
+    // Create and start agents thread.
+    idleCleanupThread.start();
     agentsThread.start();
   }
   
@@ -135,11 +141,17 @@ public class AgentsDaemon
     throws ManifoldCFException
   {
     // Shut down agents background thread.
-    while (agentsThread != null)
+    while (agentsThread != null || idleCleanupThread != null)
     {
-      agentsThread.interrupt();
-      if (!agentsThread.isAlive())
+      if (agentsThread != null)
+        agentsThread.interrupt();
+      if (idleCleanupThread != null)
+        idleCleanupThread.interrupt();
+      
+      if (agentsThread != null && !agentsThread.isAlive())
         agentsThread = null;
+      if (idleCleanupThread != null && !idleCleanupThread.isAlive())
+        idleCleanupThread = null;
     }
     
     // Shut down running agents services directly.
