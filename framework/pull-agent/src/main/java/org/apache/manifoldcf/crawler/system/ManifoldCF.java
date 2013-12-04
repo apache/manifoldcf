@@ -105,6 +105,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   public static void localCleanup(IThreadContext tc)
   {
+    try
+    {
+      RepositoryConnectorPoolFactory.make(tc).closeAllConnectors();
+    }
+    catch (ManifoldCFException e)
+    {
+      if (Logging.root != null)
+        Logging.root.warn("Exception tossed on repository connector pool cleanup: "+e.getMessage(),e);
+    }
   }
   
   /** Create system database using superuser properties from properties.xml.
@@ -948,8 +957,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         break;
 
       // Calculate new priorities for all these documents
-      writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,
-        rt,updateTime);
+      writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,rt,updateTime);
 
       Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
     }
@@ -959,12 +967,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Write a set of document priorities, based on the current queue tracker.
   */
-  public static void writeDocumentPriorities(IThreadContext threadContext, IRepositoryConnectionManager mgr,
-    IJobManager jobManager, DocumentDescription[] descs,
+  public static void writeDocumentPriorities(IThreadContext threadContext, DocumentDescription[] descs,
     Map<String,IRepositoryConnection> connectionMap, Map<Long,IJobDescription> jobDescriptionMap,
     ReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
+    IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+    IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    
     if (Logging.scheduling.isDebugEnabled())
       Logging.scheduling.debug("Reprioritizing "+Integer.toString(descs.length)+" documents");
 
@@ -992,10 +1003,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
       String[] binNames;
       // Grab a connector handle
-      IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
-        connection.getClassName(),
-        connection.getConfigParams(),
-        connection.getMaxConnections());
+      IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
       try
       {
         if (connector == null)
@@ -1006,7 +1014,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        RepositoryConnectorFactory.release(connector);
+        repositoryConnectorPool.release(connector);
       }
 
       priorities[i] = new PriorityCalculator(rt,connection,binNames);
@@ -1341,6 +1349,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(tc);
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       IRepositoryConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1351,7 +1360,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1362,7 +1371,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        RepositoryConnectorFactory.release(connector);
+        repositoryConnectorPool.release(connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1416,6 +1425,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(tc);
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       IRepositoryConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1425,14 +1435,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
 
       // Grab a connection handle, and call the test method
-      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
       try
       {
         return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
       }
       finally
       {
-        RepositoryConnectorFactory.release(connector);
+        repositoryConnectorPool.release(connector);
       }
     }
     catch (ManifoldCFException e)

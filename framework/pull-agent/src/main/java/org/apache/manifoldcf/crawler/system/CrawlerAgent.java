@@ -204,8 +204,7 @@ public class CrawlerAgent implements IAgent
           break;
 
         // Calculate new priorities for all these documents
-        ManifoldCF.writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,
-          rt,updateTime);
+        ManifoldCF.writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,rt,updateTime);
 
         Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
       }
@@ -708,7 +707,7 @@ public class CrawlerAgent implements IAgent
     }
 
     // Threads are down; release connectors
-    RepositoryConnectorFactory.closeAllConnectors(threadContext);
+    RepositoryConnectorPoolFactory.make(threadContext).flushUnusedConnectors();
     numWorkerThreads = 0;
     numDeleteThreads = 0;
     numExpireThreads = 0;

@@ -79,6 +79,8 @@ public class WorkerThread extends Thread
       IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(threadContext);
       ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
 
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       List<DocumentToProcess> fetchList = new ArrayList<DocumentToProcess>();
       Map<String,String> versionMap = new HashMap<String,String>();
       List<QueuedDocument> finishList = new ArrayList<QueuedDocument>();
@@ -257,10 +259,7 @@ public class WorkerThread extends Thread
               IRepositoryConnector connector = null;
               if (activeDocuments.size() > 0 || hopcountremoveList.size() > 0)
               {
-                connector = RepositoryConnectorFactory.grab(threadContext,
-                  connection.getClassName(),
-                  connection.getConfigParams(),
-                  connection.getMaxConnections());
+                connector = repositoryConnectorPool.grab(connection);
 
                 // If we wind up with a null here, it means that a document got queued for a connector which is now gone.
                 // Basically, what we want to do in that case is to treat this kind of like a service interruption - the document
@@ -832,7 +831,7 @@ public class WorkerThread extends Thread
                 }
                 finally
                 {
-                  RepositoryConnectorFactory.release(connector);
+                  repositoryConnectorPool.release(connector);
                 }
               
               }

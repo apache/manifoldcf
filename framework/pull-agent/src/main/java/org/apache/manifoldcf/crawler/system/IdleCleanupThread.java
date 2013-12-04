@@ -57,6 +57,8 @@ public class IdleCleanupThread extends Thread
       // Get the cache handle.
       ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
       
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -64,7 +66,7 @@ public class IdleCleanupThread extends Thread
         try
         {
           // Do the cleanup
-          RepositoryConnectorFactory.pollAllConnectors(threadContext);
+          repositoryConnectorPool.pollAllConnectors();
           cacheManager.expireObjects(System.currentTimeMillis());
           
           // Sleep for the retry interval.
