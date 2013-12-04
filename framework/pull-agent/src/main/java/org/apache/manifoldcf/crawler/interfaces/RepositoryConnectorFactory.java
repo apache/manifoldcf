@@ -231,6 +231,12 @@ public class RepositoryConnectorFactory extends ConnectorFactory<IRepositoryConn
     thisFactory.pollThisAllConnectors(threadContext);
   }
 
+  public static void flushUnusedConnectors(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    thisFactory.flushThisUnusedConnectors(threadContext);
+  }
+
   /** Clean up all open repository connector handles.
   * This method is called when the connector pool needs to be flushed,
   * to free resources.
