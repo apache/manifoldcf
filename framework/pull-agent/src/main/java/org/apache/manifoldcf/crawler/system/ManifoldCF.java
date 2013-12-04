@@ -1217,6 +1217,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(tc);
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
       IOutputConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1227,7 +1228,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IOutputConnector connector = outputConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1238,7 +1239,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        OutputConnectorFactory.release(connector);
+        outputConnectorPool.release(connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1382,6 +1383,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(tc);
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
       IOutputConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1391,14 +1393,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
 
       // Grab a connection handle, and call the test method
-      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IOutputConnector connector = outputConnectorPool.grab(connection);
       try
       {
         return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
       }
       finally
       {
-        OutputConnectorFactory.release(connector);
+        outputConnectorPool.release(connector);
       }
     }
     catch (ManifoldCFException e)
