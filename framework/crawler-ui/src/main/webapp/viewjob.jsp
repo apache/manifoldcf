@@ -70,6 +70,9 @@
 	IJobManager manager = JobManagerFactory.make(threadContext);
         IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
 	IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
+	
+	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+	
 	String jobID = variableContext.getParameter("jobid");
 	IJobDescription job = manager.load(new Long(jobID));
 	if (job == null)
@@ -631,8 +634,7 @@
 <%
 		if (outputConnection != null)
 		{
-			IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
-				outputConnection.getMaxConnections());
+			IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 			if (outputConnector != null)
 			{
 				try
@@ -641,7 +643,7 @@
 				}
 				finally
 				{
-					OutputConnectorFactory.release(outputConnector);
+					outputConnectorPool.release(outputConnector);
 				}
 			}
 		}

@@ -32,6 +32,9 @@ public class OutputConnectorPool implements IOutputConnectorPool
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /** Local connector pool */
+  protected final static LocalPool localPool = new LocalPool();
+
   // This implementation is a place-holder for the real one, which will likely fold in the pooling code
   // as we strip it out of OutputConnectorFactory.
 
@@ -66,7 +69,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
       configInfos[i] = outputConnections[i].getConfigParams();
       maxPoolSizes[i] = outputConnections[i].getMaxConnections();
     }
-    return OutputConnectorFactory.grabMultiple(threadContext,
+    return localPool.grabMultiple(threadContext,
       orderingKeys, classNames, configInfos, maxPoolSizes);
   }
 
@@ -78,7 +81,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   public IOutputConnector grab(IOutputConnection outputConnection)
     throws ManifoldCFException
   {
-    return OutputConnectorFactory.grab(threadContext, outputConnection.getClassName(),
+    return localPool.grab(threadContext, outputConnection.getClassName(),
       outputConnection.getConfigParams(), outputConnection.getMaxConnections());
   }
 
@@ -89,7 +92,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   public void releaseMultiple(IOutputConnector[] connectors)
     throws ManifoldCFException
   {
-    OutputConnectorFactory.releaseMultiple(connectors);
+    localPool.releaseMultiple(connectors);
   }
 
   /** Release an output connector.
@@ -99,7 +102,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   public void release(IOutputConnector connector)
     throws ManifoldCFException
   {
-    OutputConnectorFactory.release(connector);
+    localPool.release(connector);
   }
 
   /** Idle notification for inactive output connector handles.
@@ -109,7 +112,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   public void pollAllConnectors()
     throws ManifoldCFException
   {
-    OutputConnectorFactory.pollAllConnectors(threadContext);
+    localPool.pollAllConnectors(threadContext);
   }
 
   /** Flush only those connector handles that are currently unused.
@@ -118,7 +121,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   public void flushUnusedConnectors()
     throws ManifoldCFException
   {
-    OutputConnectorFactory.flushUnusedConnectors(threadContext);
+    localPool.flushUnusedConnectors(threadContext);
   }
 
   /** Clean up all open output connector handles.
@@ -129,7 +132,30 @@ public class OutputConnectorPool implements IOutputConnectorPool
   public void closeAllConnectors()
     throws ManifoldCFException
   {
-    OutputConnectorFactory.closeAllConnectors(threadContext);
+    localPool.closeAllConnectors(threadContext);
   }
 
+  /** Actual static output connector pool */
+  protected static class LocalPool extends org.apache.manifoldcf.core.connectorpool.ConnectorPool<IOutputConnector>
+  {
+    public LocalPool()
+    {
+    }
+    
+    @Override
+    protected boolean isInstalled(IThreadContext tc, String className)
+      throws ManifoldCFException
+    {
+      IOutputConnectorManager connectorManager = OutputConnectorManagerFactory.make(tc);
+      return connectorManager.isInstalled(className);
+    }
+
+    public IOutputConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+      throws ManifoldCFException
+    {
+      return grabMultiple(tc,IOutputConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
+    }
+
+  }
+  
 }

@@ -78,6 +78,7 @@
 	IOutputConnectorManager connectorManager = OutputConnectorManagerFactory.make(threadContext);
 	// Get the connection manager handle
 	IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(threadContext);
+	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
 	String connectionName = variableContext.getParameter("connname");
 	IOutputConnection connection = connManager.load(connectionName);
 	if (connection == null)
@@ -104,7 +105,7 @@
 		String connectionStatus;
 		try
 		{
-			IOutputConnector c = OutputConnectorFactory.grab(threadContext,className,parameters,maxCount);
+			IOutputConnector c = outputConnectorPool.grab(connection);
 			if (c == null)
 				connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.Connectorisnotinstalled");
 			else
@@ -115,7 +116,7 @@
 				}
 				finally
 				{
-					OutputConnectorFactory.release(c);
+					outputConnectorPool.release(c);
 				}
 			}
 		}

@@ -36,6 +36,8 @@
 	IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(threadContext);
 	IOutputConnection[] outputList = outputMgr.getAllConnections();
 
+	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+
 	// Figure out tab name
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
@@ -404,8 +406,7 @@
 <%
 	if (outputConnection != null)
 	{
-		IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
-			outputConnection.getMaxConnections());
+		IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 		if (outputConnector != null)
 		{
 			try
@@ -414,7 +415,7 @@
 			}
 			finally
 			{
-				OutputConnectorFactory.release(outputConnector);
+				outputConnectorPool.release(outputConnector);
 			}
 		}
 	}
@@ -1272,8 +1273,7 @@
 
 	if (outputConnection != null)
 	{
-		IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
-			outputConnection.getMaxConnections());
+		IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 		if (outputConnector != null)
 		{
 			try
@@ -1282,7 +1282,7 @@
 			}
 			finally
 			{
-				OutputConnectorFactory.release(outputConnector);
+				outputConnectorPool.release(outputConnector);
 			}
 %>
 		  <input type="hidden" name="outputpresent" value="true"/>

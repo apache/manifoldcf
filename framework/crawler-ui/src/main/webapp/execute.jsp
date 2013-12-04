@@ -51,6 +51,8 @@
 		IMappingConnectionManager mappingConnManager = MappingConnectionManagerFactory.make(threadContext);
 		IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
 		
+		IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+		
 		String type = variableContext.getParameter("type");
 		String op = variableContext.getParameter("op");
 		if (type != null && op != null && type.equals("connection"))
@@ -1028,8 +1030,7 @@
 					
 					if (outputPresent && outputConnection != null)
 					{
-						IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,
-							outputConnection.getClassName(),outputConnection.getConfigParams(),outputConnection.getMaxConnections());
+						IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 						if (outputConnector != null)
 						{
 							try
@@ -1046,7 +1047,7 @@
 							}
 							finally
 							{
-								OutputConnectorFactory.release(outputConnector);
+								outputConnectorPool.release(outputConnector);
 							}
 						}
 					}
