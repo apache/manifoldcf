@@ -72,12 +72,12 @@ public class ZooKeeperConnection
 
   /** Create a transient node.
   */
-  public void createNode(String nodePath)
+  public void createNode(String nodePath, byte[] nodeData)
     throws ManifoldCFException, InterruptedException
   {
     try
     {
-      zookeeper.create(nodePath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+      zookeeper.create(nodePath, nodeData, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
     }
     catch (KeeperException e)
     {
@@ -87,14 +87,49 @@ public class ZooKeeperConnection
   
   /** Check whether a node exists.
   *@param nodePath is the path of the node.
-  *@return true if exists.
+  *@return the data, if the node if exists, otherwise null.
   */
   public boolean checkNodeExists(String nodePath)
     throws ManifoldCFException, InterruptedException
   {
     try
     {
-      return zookeeper.exists(nodePath,false) != null;
+      return (zookeeper.exists(nodePath,false) != null);
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+
+  /** Get node data.
+  *@param nodePath is the path of the node.
+  *@return the data, if the node if exists, otherwise null.
+  */
+  public byte[] getNodeData(String nodePath)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      Stat s = zookeeper.exists(nodePath,false);
+      if (s == null)
+        return null;
+      return zookeeper.getData(nodePath,false,s);
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Set node data.
+  */
+  public void setNodeData(String nodePath, byte[] data)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      zookeeper.setData(nodePath,data,-1);
     }
     catch (KeeperException e)
     {

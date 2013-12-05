@@ -57,17 +57,44 @@ public class LockManager implements ILockManager
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service to register.  If null is passed, a transient unique service name will be
   *    created, and will be returned to the caller.
+  *@param serviceData is the initial value of the service's transient data, or null if none.
   *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists.
   *    May be null.  Local service cleanup is never called if the serviceName argument is null.
   *@return the actual service name.
   */
   @Override
-  public String registerServiceBeginServiceActivity(String serviceType, String serviceName, IServiceCleanup cleanup)
+  public String registerServiceBeginServiceActivity(String serviceType, String serviceName, byte[] serviceData,
+    IServiceCleanup cleanup)
     throws ManifoldCFException
   {
-    return lockManager.registerServiceBeginServiceActivity(serviceType, serviceName, cleanup);
+    return lockManager.registerServiceBeginServiceActivity(serviceType, serviceName, serviceData, cleanup);
   }
   
+  /** Update service data for a service.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service.
+  *@param serviceData is the data to update to (may be null).
+  * This updates the service's transient data (or deletes it).  If the service is not active, an exception is thrown.
+  */
+  @Override
+  public void updateServiceData(String serviceType, String serviceName, byte[] serviceData)
+    throws ManifoldCFException
+  {
+    lockManager.updateServiceData(serviceType, serviceName, serviceData);
+  }
+
+  /** Retrieve service data for a service.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service.
+  *@return the service's transient data.
+  */
+  @Override
+  public byte[] retrieveServiceData(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    return lockManager.retrieveServiceData(serviceType, serviceName);
+  }
+
   /** Clean up any inactive services found.
   * Calling this method will invoke cleanup of one inactive service at a time.
   * If there are no inactive services around, then false will be returned.

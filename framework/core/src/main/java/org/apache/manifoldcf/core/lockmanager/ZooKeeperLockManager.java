@@ -107,12 +107,14 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service to register.  If null is passed, a transient unique service name will be
   *    created, and will be returned to the caller.
+  *@param serviceData is the initial value of the service's transient data, or null if none.
   *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists.
   *    May be null.  Local service cleanup is never called if the serviceName argument is null.
   *@return the actual service name.
   */
   @Override
-  public String registerServiceBeginServiceActivity(String serviceType, String serviceName, IServiceCleanup cleanup)
+  public String registerServiceBeginServiceActivity(String serviceType, String serviceName, byte[] serviceData,
+    IServiceCleanup cleanup)
     throws ManifoldCFException
   {
     try
@@ -185,7 +187,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           }
           
           // Last, set the appropriate active flag
-          connection.createNode(activePath);
+          connection.createNode(activePath, (serviceData==null)?new byte[0]:serviceData);
           return serviceName;
         }
         finally
@@ -204,6 +206,75 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
     }
   }
   
+  /** Update service data for a service.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service.
+  *@param serviceData is the data to update to (may be null).
+  * This updates the service's transient data (or deletes it).  If the service is not active, an exception is thrown.
+  */
+  public void updateServiceData(String serviceType, String serviceName, byte[] serviceData)
+    throws ManifoldCFException
+  {
+    try
+    {
+      ZooKeeperConnection connection = pool.grab();
+      try
+      {
+        enterServiceRegistryLock(connection, serviceType);
+        try
+        {
+          connection.setNodeData(buildServiceTypeActivePath(serviceType, serviceName), (serviceData==null)?new byte[0]:serviceData);
+        }
+        finally
+        {
+          leaveServiceRegistryLock(connection);
+        }
+      }
+      finally
+      {
+        pool.release(connection);
+      }
+    }
+    catch (InterruptedException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+  }
+
+  /** Retrieve service data for a service.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service.
+  *@return the service's transient data.
+  */
+  public byte[] retrieveServiceData(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      ZooKeeperConnection connection = pool.grab();
+      try
+      {
+        enterServiceRegistryLock(connection, serviceType);
+        try
+        {
+          return connection.getNodeData(buildServiceTypeActivePath(serviceType, serviceName));
+        }
+        finally
+        {
+          leaveServiceRegistryLock(connection);
+        }
+      }
+      finally
+      {
+        pool.release(connection);
+      }
+    }
+    catch (InterruptedException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+  }
+
   /** Count all active services of a given type.
   *@param serviceType is the service type.
   *@return the count.

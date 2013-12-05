@@ -37,20 +37,8 @@ public class OutputConnectorPool implements IOutputConnectorPool
 
   // How global connector allocation works:
   // (1) There is a lock-manager "service" associated with this connector pool.  This allows us to clean
-  // up after local pools that have died without being released.  There's one service instance per local pool,
-  // and thus one service instance per JVM.  NOTE WELL: This means that we need distinct process id's
-  // for non-agent services as well!!  How do we do that??
-  // A: -D always overrides processID, but in addition there's a default describing the kind of process it is,
-  // e.g. "" for agents, "AUTH" for authority service, "API" for api service, "UI" for crawler UI, "CL" for
-  // command line.
-  // Next question; how does the process ID get set for these?
-  // A: Good question...
-  // Alternative: SINCE the pools are in-memory-only and static, maybe we can just mint a unique ID for
-  // each pool on each instantiation.
-  // Problem: Guaranteeing uniqueness
-  // Solution: Zookeeper sequential nodes will do that for us, but is there a local/file equivalent?  Must be, but lock manager
-  // needs extension, clearly.  But given that, it should be possible to have a globally-unique, transient "pool ID".
-  // The transient globally-unique ID seems like the best solution.
+  // up after local pools that have died without being released.  There's one anonymous service instance per local pool,
+  // and thus one service instance per JVM.
   // (2) Each local pool knows how many connector instances of each type (keyed by class name and config info) there
   // are.
   // (3) Each local pool/connector instance type has a local authorization count.  This is the amount it's

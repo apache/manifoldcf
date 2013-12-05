@@ -51,7 +51,7 @@ public class AgentRun extends BaseAgentsInitializationCommand
     // AgentStop only, and AgentStop will wait until all services become inactive before exiting.
     String processID = ManifoldCF.getProcessID();
     ILockManager lockManager = LockManagerFactory.make(tc);
-    lockManager.registerServiceBeginServiceActivity(agentServiceType, processID, null);
+    lockManager.registerServiceBeginServiceActivity(agentServiceType, processID, null, null);
     try
     {
       // Register a shutdown hook to make sure we signal that the main agents process is going inactive.
