@@ -1309,6 +1309,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(tc);
       IMappingConnectionManager connectionManager = MappingConnectionManagerFactory.make(tc);
       IMappingConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1319,7 +1320,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IMappingConnector connector = MappingConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IMappingConnector connector = mappingConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1330,7 +1331,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        MappingConnectorFactory.release(connector);
+        mappingConnectorPool.release(connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);

@@ -32,6 +32,9 @@ public class MappingConnectorPool implements IMappingConnectorPool
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /** Local connector pool */
+  protected final static LocalPool localPool = new LocalPool();
+
   // This implementation is a place-holder for the real one, which will likely fold in the pooling code
   // as we strip it out of MappingConnectorFactory.
 
@@ -66,7 +69,7 @@ public class MappingConnectorPool implements IMappingConnectorPool
       configInfos[i] = mappingConnections[i].getConfigParams();
       maxPoolSizes[i] = mappingConnections[i].getMaxConnections();
     }
-    return MappingConnectorFactory.grabMultiple(threadContext,
+    return localPool.grabMultiple(threadContext,
       orderingKeys, classNames, configInfos, maxPoolSizes);
   }
 
@@ -78,7 +81,7 @@ public class MappingConnectorPool implements IMappingConnectorPool
   public IMappingConnector grab(IMappingConnection mappingConnection)
     throws ManifoldCFException
   {
-    return MappingConnectorFactory.grab(threadContext, mappingConnection.getClassName(),
+    return localPool.grab(threadContext, mappingConnection.getClassName(),
       mappingConnection.getConfigParams(), mappingConnection.getMaxConnections());
   }
 
@@ -89,7 +92,7 @@ public class MappingConnectorPool implements IMappingConnectorPool
   public void releaseMultiple(IMappingConnector[] connectors)
     throws ManifoldCFException
   {
-    MappingConnectorFactory.releaseMultiple(connectors);
+    localPool.releaseMultiple(connectors);
   }
 
   /** Release a mapping connector.
@@ -99,7 +102,7 @@ public class MappingConnectorPool implements IMappingConnectorPool
   public void release(IMappingConnector connector)
     throws ManifoldCFException
   {
-    MappingConnectorFactory.release(connector);
+    localPool.release(connector);
   }
 
   /** Idle notification for inactive mapping connector handles.
@@ -109,7 +112,7 @@ public class MappingConnectorPool implements IMappingConnectorPool
   public void pollAllConnectors()
     throws ManifoldCFException
   {
-    MappingConnectorFactory.pollAllConnectors(threadContext);
+    localPool.pollAllConnectors(threadContext);
   }
 
   /** Flush only those connector handles that are currently unused.
@@ -118,7 +121,7 @@ public class MappingConnectorPool implements IMappingConnectorPool
   public void flushUnusedConnectors()
     throws ManifoldCFException
   {
-    MappingConnectorFactory.flushUnusedConnectors(threadContext);
+    localPool.flushUnusedConnectors(threadContext);
   }
 
   /** Clean up all open mapping connector handles.
@@ -129,7 +132,30 @@ public class MappingConnectorPool implements IMappingConnectorPool
   public void closeAllConnectors()
     throws ManifoldCFException
   {
-    MappingConnectorFactory.closeAllConnectors(threadContext);
+    localPool.closeAllConnectors(threadContext);
+  }
+
+  /** Actual static mapping connector pool */
+  protected static class LocalPool extends org.apache.manifoldcf.core.connectorpool.ConnectorPool<IMappingConnector>
+  {
+    public LocalPool()
+    {
+    }
+    
+    @Override
+    protected boolean isInstalled(IThreadContext tc, String className)
+      throws ManifoldCFException
+    {
+      IMappingConnectorManager connectorManager = MappingConnectorManagerFactory.make(tc);
+      return connectorManager.isInstalled(className);
+    }
+
+    public IMappingConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+      throws ManifoldCFException
+    {
+      return grabMultiple(tc,IMappingConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
+    }
+
   }
 
 }
