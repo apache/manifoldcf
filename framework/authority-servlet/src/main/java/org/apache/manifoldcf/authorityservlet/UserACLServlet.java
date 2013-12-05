@@ -129,6 +129,7 @@ public class UserACLServlet extends HttpServlet
         if (enumDomain == null)
           enumDomain = "";
         domainMap.put(enumDomain,enumUserName);
+        q++;
       }
       
       if (domainMap.size() == 0)
