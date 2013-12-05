@@ -126,7 +126,7 @@ public class SetPriorityThread extends Thread
             DocumentDescription desc = blockingDocuments.getBlockingDocument();
             if (desc != null)
             {
-              ManifoldCF.writeDocumentPriorities(threadContext,mgr,jobManager,
+              ManifoldCF.writeDocumentPriorities(threadContext,
                 new DocumentDescription[]{desc},connectionMap,jobDescriptionMap,rt,currentTime);
               processedCount++;
               continue;

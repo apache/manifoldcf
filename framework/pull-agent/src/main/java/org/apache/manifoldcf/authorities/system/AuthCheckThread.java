@@ -50,113 +50,122 @@ public class AuthCheckThread extends Thread
   {
     // Create a thread context object.
     IThreadContext threadContext = ThreadContextFactory.make();
-
-    // Loop
-    while (true)
+    try
     {
-      // Do another try/catch around everything in the loop
-      try
+      // Create an authority connection pool object.
+      IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(threadContext);
+      
+      // Loop
+      while (true)
       {
-        if (Thread.currentThread().isInterrupted())
-          throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-
-        // Wait for a request.
-        AuthRequest theRequest = requestQueue.getRequest();
-
-        // Try to fill the request before going back to sleep.
-        if (Logging.authorityService.isDebugEnabled())
+        // Do another try/catch around everything in the loop
+        try
         {
-          Logging.authorityService.debug(" Calling connector class '"+theRequest.getClassName()+"'");
-        }
+          if (Thread.currentThread().isInterrupted())
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
-        AuthorizationResponse response = null;
-        Throwable exception = null;
+          // Wait for a request.
+          AuthRequest theRequest = requestQueue.getRequest();
 
-        // Grab an authorization response only if there's a user
-        if (theRequest.getUserID() != null)
-        {
-          try
+          // Try to fill the request before going back to sleep.
+          if (Logging.authorityService.isDebugEnabled())
           {
-            IAuthorityConnector connector = AuthorityConnectorFactory.grab(threadContext,
-              theRequest.getClassName(),
-              theRequest.getConfigurationParams(),
-              theRequest.getMaxConnections());
-            // If this is null, we MUST treat this as an "unauthorized" condition!!
-            // We signal that by setting the exception value.
+            Logging.authorityService.debug(" Calling connector class '"+theRequest.getAuthorityConnection().getClassName()+"'");
+          }
+
+          AuthorizationResponse response = null;
+          Throwable exception = null;
+
+          // Grab an authorization response only if there's a user
+          if (theRequest.getUserID() != null)
+          {
             try
             {
-              if (connector == null)
-                exception = new ManifoldCFException("Authority connector "+theRequest.getClassName()+" is not registered.");
-              else
+              IAuthorityConnector connector = authorityConnectorPool.grab(theRequest.getAuthorityConnection());
+              // If this is null, we MUST treat this as an "unauthorized" condition!!
+              // We signal that by setting the exception value.
+              try
               {
-                // Get the acl for the user
-                try
+                if (connector == null)
+                  exception = new ManifoldCFException("Authority connector "+theRequest.getAuthorityConnection().getClassName()+" is not registered.");
+                else
                 {
-                  response = connector.getAuthorizationResponse(theRequest.getUserID());
-                }
-                catch (ManifoldCFException e)
-                {
-                  if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                    throw e;
-                  Logging.authorityService.warn("Authority error: "+e.getMessage(),e);
-                  response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
-                }
+                  // Get the acl for the user
+                  try
+                  {
+                    response = connector.getAuthorizationResponse(theRequest.getUserID());
+                  }
+                  catch (ManifoldCFException e)
+                  {
+                    if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                      throw e;
+                    Logging.authorityService.warn("Authority error: "+e.getMessage(),e);
+                    response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getAuthorityConnection().getClassName(),theRequest.getUserID());
+                  }
 
+                }
+              }
+              finally
+              {
+                authorityConnectorPool.release(connector);
               }
             }
-            finally
+            catch (ManifoldCFException e)
             {
-              AuthorityConnectorFactory.release(connector);
+              if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                throw e;
+              Logging.authorityService.warn("Authority connection exception: "+e.getMessage(),e);
+              response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getAuthorityConnection().getClassName(),theRequest.getUserID());
+              if (response == null)
+                exception = e;
+            }
+            catch (Throwable e)
+            {
+              Logging.authorityService.warn("Authority connection error: "+e.getMessage(),e);
+              response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getAuthorityConnection().getClassName(),theRequest.getUserID());
+              if (response == null)
+                exception = e;
             }
           }
-          catch (ManifoldCFException e)
-          {
-            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-              throw e;
-            Logging.authorityService.warn("Authority connection exception: "+e.getMessage(),e);
-            response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
-            if (response == null)
-              exception = e;
-          }
-          catch (Throwable e)
-          {
-            Logging.authorityService.warn("Authority connection error: "+e.getMessage(),e);
-            response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
-            if (response == null)
-              exception = e;
-          }
+
+          // The request is complete
+          theRequest.completeRequest(response,exception);
+
+          // Repeat, and only go to sleep if there are no more requests.
         }
-
-        // The request is complete
-        theRequest.completeRequest(response,exception);
-
-        // Repeat, and only go to sleep if there are no more requests.
-      }
-      catch (ManifoldCFException e)
-      {
-        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-          break;
-
-        // Log it, but keep the thread alive
-        Logging.authorityService.error("Exception tossed: "+e.getMessage(),e);
-
-        if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
+        catch (ManifoldCFException e)
         {
-          // Shut the whole system down!
-          System.exit(1);
-        }
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+            break;
 
+          // Log it, but keep the thread alive
+          Logging.authorityService.error("Exception tossed: "+e.getMessage(),e);
+
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
+          {
+            // Shut the whole system down!
+            System.exit(1);
+          }
+
+        }
+        catch (InterruptedException e)
+        {
+          // We're supposed to quit
+          break;
+        }
+        catch (Throwable e)
+        {
+          // A more severe error - but stay alive
+          Logging.authorityService.fatal("Error tossed: "+e.getMessage(),e);
+        }
       }
-      catch (InterruptedException e)
-      {
-        // We're supposed to quit
-        break;
-      }
-      catch (Throwable e)
-      {
-        // A more severe error - but stay alive
-        Logging.authorityService.fatal("Error tossed: "+e.getMessage(),e);
-      }
+    }
+    catch (ManifoldCFException e)
+    {
+      // Severe error on initialization
+      System.err.println("Authority service auth check thread could not start - shutting down");
+      Logging.authorityService.fatal("AuthCheckThread initialization error tossed: "+e.getMessage(),e);
+      System.exit(-300);
     }
   }
 

@@ -72,6 +72,8 @@ public class ExpireThread extends Thread
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
       ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
 
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -136,7 +138,7 @@ public class ExpireThread extends Thread
             }
 
             // Grab one connection for the connectionName.  If we fail, nothing is lost and retries are possible.
-            IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+            IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
             try
             {
 
@@ -250,7 +252,7 @@ public class ExpireThread extends Thread
             finally
             {
               // Free up the reserved connector instance
-              RepositoryConnectorFactory.release(connector);
+              repositoryConnectorPool.release(connector);
             }
           }
           catch (ManifoldCFException e)

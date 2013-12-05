@@ -79,7 +79,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected ILockManager lockManager;
   // Output connection manager
   protected IOutputConnectionManager connectionManager;
-
+  // Output connector pool manager
+  protected IOutputConnectorPool outputConnectorPool;
+  
   /** Constructor.
   */
   public IncrementalIngester(IThreadContext threadContext, IDBInterface database)
@@ -89,6 +91,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     this.threadContext = threadContext;
     lockManager = LockManagerFactory.make(threadContext);
     connectionManager = OutputConnectionManagerFactory.make(threadContext);
+    outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
   }
 
   /** Install the incremental ingestion manager.
@@ -203,7 +206,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
-    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    IOutputConnector connector = outputConnectorPool.grab(connection);
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Output connector not installed",0L);
@@ -213,7 +216,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      OutputConnectorFactory.release(connector);
+      outputConnectorPool.release(connector);
     }
   }
 
@@ -228,7 +231,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
-    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    IOutputConnector connector = outputConnectorPool.grab(connection);
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Output connector not installed",0L);
@@ -238,7 +241,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      OutputConnectorFactory.release(connector);
+      outputConnectorPool.release(connector);
     }
   }
 
@@ -254,7 +257,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
-    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    IOutputConnector connector = outputConnectorPool.grab(connection);
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Output connector not installed",0L);
@@ -264,7 +267,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      OutputConnectorFactory.release(connector);
+      outputConnectorPool.release(connector);
     }
   }
 
@@ -280,7 +283,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
-    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    IOutputConnector connector = outputConnectorPool.grab(connection);
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Output connector not installed",0L);
@@ -290,7 +293,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      OutputConnectorFactory.release(connector);
+      outputConnectorPool.release(connector);
     }
   }
 
@@ -304,7 +307,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
-    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    IOutputConnector connector = outputConnectorPool.grab(connection);
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Output connector not installed",0L);
@@ -314,7 +317,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      OutputConnectorFactory.release(connector);
+      outputConnectorPool.release(connector);
     }
 
   }
@@ -1649,7 +1652,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   {
     // Set indexing date
     document.setIndexingDate(new Date());
-    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    IOutputConnector connector = outputConnectorPool.grab(connection);
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Output connector not installed",0L);
@@ -1659,7 +1662,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      OutputConnectorFactory.release(connector);
+      outputConnectorPool.release(connector);
     }
   }
 
@@ -1668,7 +1671,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected void removeDocument(IOutputConnection connection, String documentURI, String outputDescription, IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    IOutputConnector connector = outputConnectorPool.grab(connection);
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Output connector not installed",0L);
@@ -1678,7 +1681,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      OutputConnectorFactory.release(connector);
+      outputConnectorPool.release(connector);
     }
   }
 

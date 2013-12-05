@@ -62,11 +62,8 @@ public class StartupThread extends Thread
       IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
       ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
 
-      IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ManifoldCF.getMasterDatabaseName(),
-        ManifoldCF.getMasterDatabaseUsername(),
-        ManifoldCF.getMasterDatabasePassword());
-
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -117,22 +114,19 @@ public class StartupThread extends Thread
                 int hopcountMethod = jobDescription.getHopcountMode();
 
                 IRepositoryConnection connection = connectionMgr.load(jobDescription.getConnectionName());
-                IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
-                  connection.getClassName(),
-                  connection.getConfigParams(),
-                  connection.getMaxConnections());
+                IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
 
                 // If the attempt to grab a connector instance failed, don't start the job, of course.
                 if (connector == null)
                   continue;
 
-                // Only now record the fact that we are trying to start the job.
-                connectionMgr.recordHistory(jobDescription.getConnectionName(),
-                  null,connectionMgr.ACTIVITY_JOBSTART,null,
-                  jobID.toString()+"("+jobDescription.getDescription()+")",null,null,null);
-
                 try
                 {
+                  // Only now record the fact that we are trying to start the job.
+                  connectionMgr.recordHistory(jobDescription.getConnectionName(),
+                    null,connectionMgr.ACTIVITY_JOBSTART,null,
+                    jobID.toString()+"("+jobDescription.getDescription()+")",null,null,null);
+
                   int model = connector.getConnectorModel();
                   // Get the number of link types.
                   String[] legalLinkTypes = connector.getRelationshipTypes();
@@ -175,7 +169,7 @@ public class StartupThread extends Thread
                 }
                 finally
                 {
-                  RepositoryConnectorFactory.release(connector);
+                  repositoryConnectorPool.release(connector);
                 }
 
                 // Start this job!

@@ -49,106 +49,113 @@ public class MappingThread extends Thread
   {
     // Create a thread context object.
     IThreadContext threadContext = ThreadContextFactory.make();
-
-    // Loop
-    while (true)
+    try
     {
-      // Do another try/catch around everything in the loop
-      try
+      IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(threadContext);
+      // Loop
+      while (true)
       {
-        if (Thread.currentThread().isInterrupted())
-          throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-
-        // Wait for a request.
-        MappingRequest theRequest = requestQueue.getRequest();
-
-        // Try to fill the request before going back to sleep.
-        if (Logging.authorityService.isDebugEnabled())
+        // Do another try/catch around everything in the loop
+        try
         {
-          Logging.authorityService.debug(" Calling mapping connector class '"+theRequest.getClassName()+"'");
-        }
+          if (Thread.currentThread().isInterrupted())
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
-	String outputUserID = null;
-        Throwable exception = null;
+          // Wait for a request.
+          MappingRequest theRequest = requestQueue.getRequest();
 
-        // Only try a mapping if we have a user to map...
-        if (theRequest.getUserID() != null)
-        {
-          try
+          // Try to fill the request before going back to sleep.
+          if (Logging.authorityService.isDebugEnabled())
           {
-            IMappingConnector connector = MappingConnectorFactory.grab(threadContext,
-              theRequest.getClassName(),
-              theRequest.getConfigurationParams(),
-              theRequest.getMaxConnections());
+            Logging.authorityService.debug(" Calling mapping connector class '"+theRequest.getMappingConnection().getClassName()+"'");
+          }
+
+          String outputUserID = null;
+          Throwable exception = null;
+
+          // Only try a mapping if we have a user to map...
+          if (theRequest.getUserID() != null)
+          {
             try
             {
-              if (connector == null)
-                exception = new ManifoldCFException("Mapping connector "+theRequest.getClassName()+" is not registered.");
-              else
+              IMappingConnector connector = mappingConnectorPool.grab(theRequest.getMappingConnection());
+              try
               {
-                // Do the mapping
-                try
+                if (connector == null)
+                  exception = new ManifoldCFException("Mapping connector "+theRequest.getMappingConnection().getClassName()+" is not registered.");
+                else
                 {
-                  outputUserID = connector.mapUser(theRequest.getUserID());
-                }
-                catch (ManifoldCFException e)
-                {
-                  if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                    throw e;
-                  Logging.authorityService.warn("Mapping error: "+e.getMessage(),e);
-                }
+                  // Do the mapping
+                  try
+                  {
+                    outputUserID = connector.mapUser(theRequest.getUserID());
+                  }
+                  catch (ManifoldCFException e)
+                  {
+                    if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                      throw e;
+                    Logging.authorityService.warn("Mapping error: "+e.getMessage(),e);
+                  }
 
+                }
+              }
+              finally
+              {
+                mappingConnectorPool.release(connector);
               }
             }
-            finally
+            catch (ManifoldCFException e)
             {
-              MappingConnectorFactory.release(connector);
+              if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                throw e;
+              Logging.authorityService.warn("Mapping connection exception: "+e.getMessage(),e);
+              exception = e;
+            }
+            catch (Throwable e)
+            {
+              Logging.authorityService.warn("Mapping connection error: "+e.getMessage(),e);
+              exception = e;
             }
           }
-          catch (ManifoldCFException e)
-          {
-            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-              throw e;
-            Logging.authorityService.warn("Mapping connection exception: "+e.getMessage(),e);
-            exception = e;
-          }
-          catch (Throwable e)
-          {
-            Logging.authorityService.warn("Mapping connection error: "+e.getMessage(),e);
-            exception = e;
-          }
+
+          // The request is complete
+          theRequest.completeRequest(outputUserID, exception);
+
+          // Repeat, and only go to sleep if there are no more requests.
         }
-
-        // The request is complete
-        theRequest.completeRequest(outputUserID, exception);
-
-        // Repeat, and only go to sleep if there are no more requests.
-      }
-      catch (ManifoldCFException e)
-      {
-        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-          break;
-
-        // Log it, but keep the thread alive
-        Logging.authorityService.error("Exception tossed: "+e.getMessage(),e);
-
-        if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
+        catch (ManifoldCFException e)
         {
-          // Shut the whole system down!
-          System.exit(1);
-        }
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+            break;
 
+          // Log it, but keep the thread alive
+          Logging.authorityService.error("Exception tossed: "+e.getMessage(),e);
+
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
+          {
+            // Shut the whole system down!
+            System.exit(1);
+          }
+
+        }
+        catch (InterruptedException e)
+        {
+          // We're supposed to quit
+          break;
+        }
+        catch (Throwable e)
+        {
+          // A more severe error - but stay alive
+          Logging.authorityService.fatal("Error tossed: "+e.getMessage(),e);
+        }
       }
-      catch (InterruptedException e)
-      {
-        // We're supposed to quit
-        break;
-      }
-      catch (Throwable e)
-      {
-        // A more severe error - but stay alive
-        Logging.authorityService.fatal("Error tossed: "+e.getMessage(),e);
-      }
+    }
+    catch (ManifoldCFException e)
+    {
+      // Severe error on initialization
+      System.err.println("Authority service mapping thread could not start - shutting down");
+      Logging.authorityService.fatal("MappingThread initialization error tossed: "+e.getMessage(),e);
+      System.exit(-300);
     }
   }
 

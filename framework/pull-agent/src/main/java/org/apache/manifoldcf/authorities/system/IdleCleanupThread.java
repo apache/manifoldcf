@@ -52,6 +52,8 @@ public class IdleCleanupThread extends Thread
       // Create a thread context object.
       IThreadContext threadContext = ThreadContextFactory.make();
       ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
+      IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(threadContext);
+      IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(threadContext);
       
       // Loop
       while (true)
@@ -60,7 +62,8 @@ public class IdleCleanupThread extends Thread
         try
         {
           // Do the cleanup
-          AuthorityConnectorFactory.pollAllConnectors(threadContext);
+          authorityConnectorPool.pollAllConnectors();
+          mappingConnectorPool.pollAllConnectors();
           cacheManager.expireObjects(System.currentTimeMillis());
           
           // Sleep for the retry interval.
@@ -72,7 +75,7 @@ public class IdleCleanupThread extends Thread
             break;
 
           // Log it, but keep the thread alive
-          Logging.authorityService.error("Exception tossed",e);
+          Logging.authorityService.error("Exception tossed: "+e.getMessage(),e);
 
           if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {

@@ -89,6 +89,8 @@ public class StufferThread extends Thread
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
 
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       Logging.threads.debug("Stuffer thread: Low water mark is "+Integer.toString(lowWaterMark)+"; amount per stuffing is "+Integer.toString(stuffAmt));
 
       // This is used to adjust the number of records returned for jobs
@@ -250,10 +252,7 @@ public class StufferThread extends Thread
             try
             {
               // Grab a connector handle
-              IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
-                connection.getClassName(),
-                connection.getConfigParams(),
-                connection.getMaxConnections());
+              IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
               if (connector == null)
               {
                 maxDocuments = 1;
@@ -270,7 +269,7 @@ public class StufferThread extends Thread
                 }
                 finally
                 {
-                  RepositoryConnectorFactory.release(connector);
+                  repositoryConnectorPool.release(connector);
                 }
               }
             }

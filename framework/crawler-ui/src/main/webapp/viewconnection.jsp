@@ -78,6 +78,7 @@
 	IConnectorManager connectorManager = ConnectorManagerFactory.make(threadContext);
 	// Get the connection manager handle
 	IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
+	IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
 	String connectionName = variableContext.getParameter("connname");
 	IRepositoryConnection connection = connManager.load(connectionName);
 	if (connection == null)
@@ -108,7 +109,7 @@
 		String connectionStatus;
 		try
 		{
-			IRepositoryConnector c = RepositoryConnectorFactory.grab(threadContext,className,parameters,maxCount);
+			IRepositoryConnector c = repositoryConnectorPool.grab(connection);
 			if (c == null)
 				connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.Connectorisnotinstalled");
 			else
@@ -119,7 +120,7 @@
 				}
 				finally
 				{
-					RepositoryConnectorFactory.release(c);
+					repositoryConnectorPool.release(c);
 				}
 			}
 		}

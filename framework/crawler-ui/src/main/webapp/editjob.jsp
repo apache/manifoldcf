@@ -36,6 +36,9 @@
 	IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(threadContext);
 	IOutputConnection[] outputList = outputMgr.getAllConnections();
 
+	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+	IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+
 	// Figure out tab name
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
@@ -404,8 +407,7 @@
 <%
 	if (outputConnection != null)
 	{
-		IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
-			outputConnection.getMaxConnections());
+		IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 		if (outputConnector != null)
 		{
 			try
@@ -414,7 +416,7 @@
 			}
 			finally
 			{
-				OutputConnectorFactory.release(outputConnector);
+				outputConnectorPool.release(outputConnector);
 			}
 		}
 	}
@@ -423,8 +425,7 @@
 <%
 	if (connection != null)
 	{
-		IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
-			connection.getMaxConnections());
+		IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 		if (repositoryConnector != null)
 		{
 			try
@@ -433,7 +434,7 @@
 			}
 			finally
 			{
-				RepositoryConnectorFactory.release(repositoryConnector);
+				repositoryConnectorPool.release(repositoryConnector);
 			}
 		}
 	}
@@ -1272,8 +1273,7 @@
 
 	if (outputConnection != null)
 	{
-		IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
-			outputConnection.getMaxConnections());
+		IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 		if (outputConnector != null)
 		{
 			try
@@ -1282,7 +1282,7 @@
 			}
 			finally
 			{
-				OutputConnectorFactory.release(outputConnector);
+				outputConnectorPool.release(outputConnector);
 			}
 %>
 		  <input type="hidden" name="outputpresent" value="true"/>
@@ -1292,8 +1292,7 @@
 
 	if (connection != null)
 	{
-		IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
-			connection.getMaxConnections());
+		IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 		if (repositoryConnector != null)
 		{
 			try
@@ -1302,7 +1301,7 @@
 			}
 			finally
 			{
-				RepositoryConnectorFactory.release(repositoryConnector);
+				repositoryConnectorPool.release(repositoryConnector);
 			}
 %>
 		  <input type="hidden" name="connectionpresent" value="true"/>
