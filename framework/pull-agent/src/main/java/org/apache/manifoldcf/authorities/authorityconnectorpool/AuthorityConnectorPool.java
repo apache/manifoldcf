@@ -32,6 +32,9 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /** Local connector pool */
+  protected final static LocalPool localPool = new LocalPool();
+
   // This implementation is a place-holder for the real one, which will likely fold in the pooling code
   // as we strip it out of AuthorityConnectorFactory.
 
@@ -66,7 +69,7 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
       configInfos[i] = authorityConnections[i].getConfigParams();
       maxPoolSizes[i] = authorityConnections[i].getMaxConnections();
     }
-    return AuthorityConnectorFactory.grabMultiple(threadContext,
+    return localPool.grabMultiple(threadContext,
       orderingKeys, classNames, configInfos, maxPoolSizes);
   }
 
@@ -78,7 +81,7 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
   public IAuthorityConnector grab(IAuthorityConnection authorityConnection)
     throws ManifoldCFException
   {
-    return AuthorityConnectorFactory.grab(threadContext, authorityConnection.getClassName(),
+    return localPool.grab(threadContext, authorityConnection.getClassName(),
       authorityConnection.getConfigParams(), authorityConnection.getMaxConnections());
   }
 
@@ -89,7 +92,7 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
   public void releaseMultiple(IAuthorityConnector[] connectors)
     throws ManifoldCFException
   {
-    AuthorityConnectorFactory.releaseMultiple(connectors);
+    localPool.releaseMultiple(connectors);
   }
 
   /** Release an authority connector.
@@ -99,7 +102,7 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
   public void release(IAuthorityConnector connector)
     throws ManifoldCFException
   {
-    AuthorityConnectorFactory.release(connector);
+    localPool.release(connector);
   }
 
   /** Idle notification for inactive authority connector handles.
@@ -109,7 +112,7 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
   public void pollAllConnectors()
     throws ManifoldCFException
   {
-    AuthorityConnectorFactory.pollAllConnectors(threadContext);
+    localPool.pollAllConnectors(threadContext);
   }
 
   /** Flush only those connector handles that are currently unused.
@@ -118,7 +121,7 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
   public void flushUnusedConnectors()
     throws ManifoldCFException
   {
-    AuthorityConnectorFactory.flushUnusedConnectors(threadContext);
+    localPool.flushUnusedConnectors(threadContext);
   }
 
   /** Clean up all open authority connector handles.
@@ -129,7 +132,30 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
   public void closeAllConnectors()
     throws ManifoldCFException
   {
-    AuthorityConnectorFactory.closeAllConnectors(threadContext);
+    localPool.closeAllConnectors(threadContext);
+  }
+
+  /** Actual static output connector pool */
+  protected static class LocalPool extends org.apache.manifoldcf.core.connectorpool.ConnectorPool<IAuthorityConnector>
+  {
+    public LocalPool()
+    {
+    }
+    
+    @Override
+    protected boolean isInstalled(IThreadContext tc, String className)
+      throws ManifoldCFException
+    {
+      IAuthorityConnectorManager connectorManager = AuthorityConnectorManagerFactory.make(tc);
+      return connectorManager.isInstalled(className);
+    }
+
+    public IAuthorityConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+      throws ManifoldCFException
+    {
+      return grabMultiple(tc,IAuthorityConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
+    }
+
   }
 
 }

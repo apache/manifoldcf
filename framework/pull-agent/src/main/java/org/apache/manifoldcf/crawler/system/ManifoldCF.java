@@ -1267,6 +1267,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(tc);
       IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
       IAuthorityConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1277,7 +1278,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IAuthorityConnector connector = authorityConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1288,7 +1289,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        AuthorityConnectorFactory.release(connector);
+        authorityConnectorPool.release(connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
