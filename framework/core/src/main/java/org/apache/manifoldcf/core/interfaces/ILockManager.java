@@ -44,10 +44,13 @@ public interface ILockManager
   * If registration will succeed, then this method may call an appropriate IServiceCleanup method to clean up either the
   * current service, or all services on the cluster.
   *@param serviceType is the type of service.
-  *@param serviceName is the name of the service to register.
-  *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists
+  *@param serviceName is the name of the service to register.  If null is passed, a transient unique service name will be
+  *    created, and will be returned to the caller.
+  *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists.
+  *    May be null.  Local service cleanup is never called if the serviceName argument is null.
+  *@return the actual service name.
   */
-  public void registerServiceBeginServiceActivity(String serviceType, String serviceName, IServiceCleanup cleanup)
+  public String registerServiceBeginServiceActivity(String serviceType, String serviceName, IServiceCleanup cleanup)
     throws ManifoldCFException;
   
   /** Count all active services of a given type.

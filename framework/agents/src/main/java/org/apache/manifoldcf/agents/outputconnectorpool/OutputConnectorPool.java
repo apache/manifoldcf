@@ -35,8 +35,32 @@ public class OutputConnectorPool implements IOutputConnectorPool
   /** Local connector pool */
   protected final static LocalPool localPool = new LocalPool();
 
-  // This implementation is a place-holder for the real one, which will likely fold in the pooling code
-  // as we strip it out of OutputConnectorFactory.
+  // How global connector allocation works:
+  // (1) There is a lock-manager "service" associated with this connector pool.  This allows us to clean
+  // up after local pools that have died without being released.  There's one service instance per local pool,
+  // and thus one service instance per JVM.  NOTE WELL: This means that we need distinct process id's
+  // for non-agent services as well!!  How do we do that??
+  // A: -D always overrides processID, but in addition there's a default describing the kind of process it is,
+  // e.g. "" for agents, "AUTH" for authority service, "API" for api service, "UI" for crawler UI, "CL" for
+  // command line.
+  // Next question; how does the process ID get set for these?
+  // A: Good question...
+  // Alternative: SINCE the pools are in-memory-only and static, maybe we can just mint a unique ID for
+  // each pool on each instantiation.
+  // Problem: Guaranteeing uniqueness
+  // Solution: Zookeeper sequential nodes will do that for us, but is there a local/file equivalent?  Must be, but lock manager
+  // needs extension, clearly.  But given that, it should be possible to have a globally-unique, transient "pool ID".
+  // The transient globally-unique ID seems like the best solution.
+  // (2) Each local pool knows how many connector instances of each type (keyed by class name and config info) there
+  // are.
+  // (3) Each local pool/connector instance type has a local authorization count.  This is the amount it's
+  // allowed to actually keep.  If the pool has more connectors of a type than the local authorization count permits,
+  // then every connector release operation will destroy the released connector until the local authorization count
+  // is met.
+  // (4) Each local pool/connector instance type needs a global variable describing how many CURRENT instances
+  // the local pool has allocated.  This is a transient value which should automatically go to zero if the service becomes inactive.
+  // The lock manager will need to be extended in order to provide this functionality - essentially, transient service-associated data.
+  // There also needs to be a fast way to sum the data for all active services (but that does not need to be a lock-manager primitive)
 
   /** Thread context */
   protected final IThreadContext threadContext;
