@@ -37,6 +37,7 @@
 	IOutputConnection[] outputList = outputMgr.getAllConnections();
 
 	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+	IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
 
 	// Figure out tab name
 	String tabName = variableContext.getParameter("tabname");
@@ -424,8 +425,7 @@
 <%
 	if (connection != null)
 	{
-		IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
-			connection.getMaxConnections());
+		IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 		if (repositoryConnector != null)
 		{
 			try
@@ -434,7 +434,7 @@
 			}
 			finally
 			{
-				RepositoryConnectorFactory.release(repositoryConnector);
+				repositoryConnectorPool.release(repositoryConnector);
 			}
 		}
 	}
@@ -1292,8 +1292,7 @@
 
 	if (connection != null)
 	{
-		IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
-			connection.getMaxConnections());
+		IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 		if (repositoryConnector != null)
 		{
 			try
@@ -1302,7 +1301,7 @@
 			}
 			finally
 			{
-				RepositoryConnectorFactory.release(repositoryConnector);
+				repositoryConnectorPool.release(repositoryConnector);
 			}
 %>
 		  <input type="hidden" name="connectionpresent" value="true"/>

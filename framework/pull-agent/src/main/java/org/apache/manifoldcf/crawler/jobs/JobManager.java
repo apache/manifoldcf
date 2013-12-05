@@ -42,6 +42,7 @@ public class JobManager implements IJobManager
   protected final IDBInterface database;
   protected final IOutputConnectionManager outputMgr;
   protected final IRepositoryConnectionManager connectionMgr;
+  protected final IRepositoryConnectorPool repositoryConnectorPool;
   protected final ILockManager lockManager;
   protected final IThreadContext threadContext;
   protected final JobQueue jobQueue;
@@ -69,6 +70,7 @@ public class JobManager implements IJobManager
     eventManager = new EventManager(database);
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
     connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+    repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
     lockManager = LockManagerFactory.make(threadContext);
   }
 
@@ -2630,17 +2632,11 @@ public class JobManager implements IJobManager
     // at the connector factory level to make sure these requests are properly ordered.
 
     String[] orderingKeys = new String[connections.length];
-    String[] classNames = new String[connections.length];
-    ConfigParams[] configParams = new ConfigParams[connections.length];
-    int[] maxConnections = new int[connections.length];
     int k = 0;
     while (k < connections.length)
     {
       IRepositoryConnection connection = connections[k];
       orderingKeys[k] = connection.getName();
-      classNames[k] = connection.getClassName();
-      configParams[k] = connection.getConfigParams();
-      maxConnections[k] = connection.getMaxConnections();
       k++;
     }
     
@@ -2654,7 +2650,7 @@ public class JobManager implements IJobManager
       try
       {
     
-        IRepositoryConnector[] connectors = RepositoryConnectorFactory.grabMultiple(threadContext,orderingKeys,classNames,configParams,maxConnections);
+        IRepositoryConnector[] connectors = repositoryConnectorPool.grabMultiple(orderingKeys,connections);
         try
         {
           // Hand the connectors off to the ThrottleLimit instance
@@ -2770,7 +2766,7 @@ public class JobManager implements IJobManager
         }
         finally
         {
-          RepositoryConnectorFactory.releaseMultiple(connectors);
+          repositoryConnectorPool.releaseMultiple(connectors);
         }
       }
       finally

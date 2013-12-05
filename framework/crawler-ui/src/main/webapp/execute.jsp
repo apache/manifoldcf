@@ -52,6 +52,7 @@
 		IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
 		
 		IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+		IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
 		
 		String type = variableContext.getParameter("type");
 		String op = variableContext.getParameter("op");
@@ -1054,8 +1055,7 @@
 					
 					if (connectionPresent && connection != null)
 					{
-						IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,
-							connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+						IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 						if (repositoryConnector != null)
 						{
 							try
@@ -1072,7 +1072,7 @@
 							}
 							finally
 							{
-								RepositoryConnectorFactory.release(repositoryConnector);
+								repositoryConnectorPool.release(repositoryConnector);
 							}
 						}
 					}

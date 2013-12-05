@@ -32,6 +32,9 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /** Local connector pool */
+  protected final static LocalPool localPool = new LocalPool();
+
   // This implementation is a place-holder for the real one, which will likely fold in the pooling code
   // as we strip it out of RepositoryConnectorFactory.
 
@@ -66,7 +69,7 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
       configInfos[i] = repositoryConnections[i].getConfigParams();
       maxPoolSizes[i] = repositoryConnections[i].getMaxConnections();
     }
-    return RepositoryConnectorFactory.grabMultiple(threadContext,
+    return localPool.grabMultiple(threadContext,
       orderingKeys, classNames, configInfos, maxPoolSizes);
   }
 
@@ -78,7 +81,7 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
   public IRepositoryConnector grab(IRepositoryConnection repositoryConnection)
     throws ManifoldCFException
   {
-    return RepositoryConnectorFactory.grab(threadContext, repositoryConnection.getClassName(),
+    return localPool.grab(threadContext, repositoryConnection.getClassName(),
       repositoryConnection.getConfigParams(), repositoryConnection.getMaxConnections());
   }
 
@@ -89,7 +92,7 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
   public void releaseMultiple(IRepositoryConnector[] connectors)
     throws ManifoldCFException
   {
-    RepositoryConnectorFactory.releaseMultiple(connectors);
+    localPool.releaseMultiple(connectors);
   }
 
   /** Release a repository connector.
@@ -99,7 +102,7 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
   public void release(IRepositoryConnector connector)
     throws ManifoldCFException
   {
-    RepositoryConnectorFactory.release(connector);
+    localPool.release(connector);
   }
 
   /** Idle notification for inactive repository connector handles.
@@ -109,7 +112,7 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
   public void pollAllConnectors()
     throws ManifoldCFException
   {
-    RepositoryConnectorFactory.pollAllConnectors(threadContext);
+    localPool.pollAllConnectors(threadContext);
   }
 
   /** Flush only those connector handles that are currently unused.
@@ -118,7 +121,7 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
   public void flushUnusedConnectors()
     throws ManifoldCFException
   {
-    RepositoryConnectorFactory.flushUnusedConnectors(threadContext);
+    localPool.flushUnusedConnectors(threadContext);
   }
 
   /** Clean up all open repository connector handles.
@@ -129,7 +132,30 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
   public void closeAllConnectors()
     throws ManifoldCFException
   {
-    RepositoryConnectorFactory.closeAllConnectors(threadContext);
+    localPool.closeAllConnectors(threadContext);
+  }
+
+  /** Actual static mapping connector pool */
+  protected static class LocalPool extends org.apache.manifoldcf.core.connectorpool.ConnectorPool<IRepositoryConnector>
+  {
+    public LocalPool()
+    {
+    }
+    
+    @Override
+    protected boolean isInstalled(IThreadContext tc, String className)
+      throws ManifoldCFException
+    {
+      IConnectorManager connectorManager = ConnectorManagerFactory.make(tc);
+      return connectorManager.isInstalled(className);
+    }
+
+    public IRepositoryConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+      throws ManifoldCFException
+    {
+      return grabMultiple(tc,IRepositoryConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
+    }
+
   }
 
 }

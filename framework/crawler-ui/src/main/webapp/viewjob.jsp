@@ -72,6 +72,7 @@
 	IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
 	
 	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+	IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
 	
 	String jobID = variableContext.getParameter("jobid");
 	IJobDescription job = manager.load(new Long(jobID));
@@ -658,9 +659,7 @@
 <%
 		if (connection != null)
 		{
-			IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
-
-				connection.getMaxConnections());
+			IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 			if (repositoryConnector != null)
 			{
 				try
@@ -669,7 +668,7 @@
 				}
 				finally
 				{
-					RepositoryConnectorFactory.release(repositoryConnector);
+					repositoryConnectorPool.release(repositoryConnector);
 				}
 			}
 		}
