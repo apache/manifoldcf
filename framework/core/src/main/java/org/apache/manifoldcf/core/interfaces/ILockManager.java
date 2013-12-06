@@ -46,30 +46,31 @@ public interface ILockManager
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service to register.  If null is passed, a transient unique service name will be
   *    created, and will be returned to the caller.
-  *@param serviceData is the initial value of the service's transient data, or null if none.
   *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists.
   *    May be null.  Local service cleanup is never called if the serviceName argument is null.
   *@return the actual service name.
   */
-  public String registerServiceBeginServiceActivity(String serviceType, String serviceName, byte[] serviceData,
+  public String registerServiceBeginServiceActivity(String serviceType, String serviceName,
     IServiceCleanup cleanup)
     throws ManifoldCFException;
   
-  /** Update service data for a service.
+  /** Set service data for a service.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service.
+  *@param dataType is the type of data.
   *@param serviceData is the data to update to (may be null).
   * This updates the service's transient data (or deletes it).  If the service is not active, an exception is thrown.
   */
-  public void updateServiceData(String serviceType, String serviceName, byte[] serviceData)
+  public void updateServiceData(String serviceType, String serviceName, String dataType, byte[] serviceData)
     throws ManifoldCFException;
 
   /** Retrieve service data for a service.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service.
+  *@param dataType is the type of data.
   *@return the service's transient data.
   */
-  public byte[] retrieveServiceData(String serviceType, String serviceName)
+  public byte[] retrieveServiceData(String serviceType, String serviceName, String dataType)
     throws ManifoldCFException;
     
   /** Count all active services of a given type.

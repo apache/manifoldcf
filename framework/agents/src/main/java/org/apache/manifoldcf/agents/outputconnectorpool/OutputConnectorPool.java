@@ -47,6 +47,11 @@ public class OutputConnectorPool implements IOutputConnectorPool
   // is met.
   // (4) Each local pool/connector instance type needs a global variable describing how many CURRENT instances
   // the local pool has allocated.  This is a transient value which should automatically go to zero if the service becomes inactive.
+  // This is attached to the service as part of the transient service data for the service.
+  // Q: How do we separate instance counts based on pool classname/config??
+  // A: This seems challenging because (a) multiple transient variables seem to be needed, and (b) the variable names are VERY long
+  // (the entire length of the config!!)  Alternatively we could use the name of the connection, but then when the connection info changes,
+  // we would need to address this somehow in the pool.  How??
   // The lock manager will need to be extended in order to provide this functionality - essentially, transient service-associated data.
   // There also needs to be a fast way to sum the data for all active services (but that does not need to be a lock-manager primitive)
 

@@ -43,6 +43,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   private final static String SERVICETYPE_LOCK_PATH_PREFIX = "/org.apache.manifoldcf.servicelock-";
   private final static String SERVICETYPE_ACTIVE_PATH_PREFIX = "/org.apache.manifoldcf.serviceactive-";
   private final static String SERVICETYPE_REGISTER_PATH_PREFIX = "/org.apache.manifoldcf.service-";
+  private final static String SERVICETYPE_DATA_PATH_PREFIX = "/org.apache.manifoldcf.servicedata-";
   
   /** Anonymous service name prefix, to be followed by an integer */
   protected final static String anonymousServiceNamePrefix = "_ANON_";
@@ -107,13 +108,12 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service to register.  If null is passed, a transient unique service name will be
   *    created, and will be returned to the caller.
-  *@param serviceData is the initial value of the service's transient data, or null if none.
   *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists.
   *    May be null.  Local service cleanup is never called if the serviceName argument is null.
   *@return the actual service name.
   */
   @Override
-  public String registerServiceBeginServiceActivity(String serviceType, String serviceName, byte[] serviceData,
+  public String registerServiceBeginServiceActivity(String serviceType, String serviceName,
     IServiceCleanup cleanup)
     throws ManifoldCFException
   {
@@ -187,7 +187,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           }
           
           // Last, set the appropriate active flag
-          connection.createNode(activePath, (serviceData==null)?new byte[0]:serviceData);
+          connection.createNode(activePath, null);
           return serviceName;
         }
         finally
@@ -206,13 +206,15 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
     }
   }
   
-  /** Update service data for a service.
+  /** Set service data for a service.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service.
+  *@param dataType is the type of data.
   *@param serviceData is the data to update to (may be null).
   * This updates the service's transient data (or deletes it).  If the service is not active, an exception is thrown.
   */
-  public void updateServiceData(String serviceType, String serviceName, byte[] serviceData)
+  @Override
+  public void updateServiceData(String serviceType, String serviceName, String dataType, byte[] serviceData)
     throws ManifoldCFException
   {
     try
@@ -223,7 +225,8 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         enterServiceRegistryLock(connection, serviceType);
         try
         {
-          connection.setNodeData(buildServiceTypeActivePath(serviceType, serviceName), (serviceData==null)?new byte[0]:serviceData);
+          String dataRootPath = buildServiceTypeDataPath(serviceType, serviceName);
+          connection.setNodeData(dataRootPath, dataType, (serviceData==null)?new byte[0]:serviceData);
         }
         finally
         {
@@ -244,9 +247,11 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   /** Retrieve service data for a service.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service.
+  *@param dataType is the type of data.
   *@return the service's transient data.
   */
-  public byte[] retrieveServiceData(String serviceType, String serviceName)
+  @Override
+  public byte[] retrieveServiceData(String serviceType, String serviceName, String dataType)
     throws ManifoldCFException
   {
     try
@@ -257,7 +262,8 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         enterServiceRegistryLock(connection, serviceType);
         try
         {
-          return connection.getNodeData(buildServiceTypeActivePath(serviceType, serviceName));
+          String dataRootPath = buildServiceTypeDataPath(serviceType, serviceName);
+          return connection.getNodeData(dataRootPath, dataType);
         }
         finally
         {
@@ -399,6 +405,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         enterServiceRegistryLock(connection, serviceType);
         try
         {
+          connection.deleteNodeChildren(buildServiceTypeDataPath(serviceType,serviceName));
           connection.deleteNode(buildServiceTypeActivePath(serviceType, serviceName));
         }
         finally
@@ -537,6 +544,12 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   protected static String buildServiceTypeRegistrationPath(String serviceType)
   {
     return SERVICETYPE_REGISTER_PATH_PREFIX + serviceType;
+  }
+  
+  /** Build a zk path of a node to have child nodes with service data */
+  protected static String buildServiceTypeDataPath(String serviceType, String serviceName)
+  {
+    return SERVICETYPE_DATA_PATH_PREFIX + serviceType + "-" + serviceName;
   }
   
   // Shared configuration

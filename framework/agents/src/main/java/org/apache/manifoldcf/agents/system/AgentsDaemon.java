@@ -267,7 +267,7 @@ public class AgentsDaemon
           {
             // Throw a lock, so that cleanup processes and startup processes don't collide.
             String serviceType = getAgentsClassServiceType(className);
-            lockManager.registerServiceBeginServiceActivity(serviceType, processID, null, new CleanupAgent(threadContext, agent, processID));
+            lockManager.registerServiceBeginServiceActivity(serviceType, processID, new CleanupAgent(threadContext, agent, processID));
             // There is a potential race condition where the agent has been started but hasn't yet appeared in runningHash.
             // But having runningHash be the synchronizer for this activity will prevent any problems.
             agent.startAgent(threadContext, processID);
