@@ -291,6 +291,41 @@ public class BaseLockManager implements ILockManager
     }
   }
 
+  /** Scan service data for a service type.  Only active service data will be considered.
+  *@param serviceType is the type of service.
+  *@param dataType is the type of data.
+  *@param dataAcceptor is the object that will be notified of each item of data for each service name found.
+  */
+  @Override
+  public void scanServiceData(String serviceType, String dataType, IServiceDataAcceptor dataAcceptor)
+    throws ManifoldCFException
+  {
+    String serviceTypeLockName = buildServiceTypeLockName(serviceType);
+    enterReadLock(serviceTypeLockName);
+    try
+    {
+      int i = 0;
+      while (true)
+      {
+        String resourceName = buildServiceListEntry(serviceType, i);
+        String x = readServiceName(resourceName);
+        if (x == null)
+          break;
+        if (checkGlobalFlag(makeActiveServiceFlagName(serviceType, x)))
+        {
+          byte[] serviceData = readServiceData(serviceType, x, dataType);
+          if (dataAcceptor.acceptServiceData(x, serviceData))
+            break;
+        }
+        i++;
+      }
+    }
+    finally
+    {
+      leaveReadLock(serviceTypeLockName);
+    }
+  }
+
   /** Count all active services of a given type.
   *@param serviceType is the service type.
   *@return the count.

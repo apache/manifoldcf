@@ -72,7 +72,15 @@ public interface ILockManager
   */
   public byte[] retrieveServiceData(String serviceType, String serviceName, String dataType)
     throws ManifoldCFException;
-    
+  
+  /** Scan service data for a service type.  Only active service data will be considered.
+  *@param serviceType is the type of service.
+  *@param dataType is the type of data.
+  *@param dataAcceptor is the object that will be notified of each item of data for each service name found.
+  */
+  public void scanServiceData(String serviceType, String dataType, IServiceDataAcceptor dataAcceptor)
+    throws ManifoldCFException;
+
   /** Count all active services of a given type.
   *@param serviceType is the service type.
   *@return the count.

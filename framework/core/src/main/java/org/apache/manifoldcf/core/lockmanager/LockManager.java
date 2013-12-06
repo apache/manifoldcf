@@ -96,6 +96,18 @@ public class LockManager implements ILockManager
     return lockManager.retrieveServiceData(serviceType, serviceName, dataType);
   }
 
+  /** Scan service data for a service type.  Only active service data will be considered.
+  *@param serviceType is the type of service.
+  *@param dataType is the type of data.
+  *@param dataAcceptor is the object that will be notified of each item of data for each service name found.
+  */
+  @Override
+  public void scanServiceData(String serviceType, String dataType, IServiceDataAcceptor dataAcceptor)
+    throws ManifoldCFException
+  {
+    lockManager.scanServiceData(serviceType, dataType, dataAcceptor);
+  }
+
   /** Clean up any inactive services found.
   * Calling this method will invoke cleanup of one inactive service at a time.
   * If there are no inactive services around, then false will be returned.

@@ -122,7 +122,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        enterServiceRegistryLock(connection, serviceType);
+        enterServiceRegistryWriteLock(connection, serviceType);
         try
         {
           if (serviceName == null)
@@ -222,7 +222,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        enterServiceRegistryLock(connection, serviceType);
+        enterServiceRegistryWriteLock(connection, serviceType);
         try
         {
           String dataRootPath = buildServiceTypeDataPath(serviceType, serviceName);
@@ -259,7 +259,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        enterServiceRegistryLock(connection, serviceType);
+        enterServiceRegistryReadLock(connection, serviceType);
         try
         {
           String dataRootPath = buildServiceTypeDataPath(serviceType, serviceName);
@@ -281,6 +281,52 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
     }
   }
 
+  /** Scan service data for a service type.  Only active service data will be considered.
+  *@param serviceType is the type of service.
+  *@param dataType is the type of data.
+  *@param dataAcceptor is the object that will be notified of each item of data for each service name found.
+  */
+  @Override
+  public void scanServiceData(String serviceType, String dataType, IServiceDataAcceptor dataAcceptor)
+    throws ManifoldCFException
+  {
+    try
+    {
+      ZooKeeperConnection connection = pool.grab();
+      try
+      {
+        enterServiceRegistryReadLock(connection, serviceType);
+        try
+        {
+          String registrationNodePath = buildServiceTypeRegistrationPath(serviceType);
+          List<String> children = connection.getChildren(registrationNodePath);
+          for (String registeredServiceName : children)
+          {
+            if (connection.checkNodeExists(buildServiceTypeActivePath(serviceType, registeredServiceName)))
+            {
+              byte[] serviceData = connection.getNodeData(buildServiceTypeDataPath(serviceType, registeredServiceName), dataType);
+              if (dataAcceptor.acceptServiceData(registeredServiceName, serviceData))
+                break;
+            }
+          }
+        }
+        finally
+        {
+          leaveServiceRegistryLock(connection);
+        }
+      }
+      finally
+      {
+        pool.release(connection);
+      }
+    }
+    catch (InterruptedException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+
+  }
+
   /** Count all active services of a given type.
   *@param serviceType is the service type.
   *@return the count.
@@ -294,7 +340,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        enterServiceRegistryLock(connection, serviceType);
+        enterServiceRegistryReadLock(connection, serviceType);
         try
         {
           String registrationNodePath = buildServiceTypeRegistrationPath(serviceType);
@@ -342,7 +388,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        enterServiceRegistryLock(connection, serviceType);
+        enterServiceRegistryWriteLock(connection, serviceType);
         try
         {
           // We find ONE service that is registered but inactive, and clean up after that one.
@@ -402,7 +448,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        enterServiceRegistryLock(connection, serviceType);
+        enterServiceRegistryWriteLock(connection, serviceType);
         try
         {
           connection.deleteNodeChildren(buildServiceTypeDataPath(serviceType,serviceName));
@@ -440,7 +486,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        enterServiceRegistryLock(connection, serviceType);
+        enterServiceRegistryReadLock(connection, serviceType);
         try
         {
           return connection.checkNodeExists(buildServiceTypeActivePath(serviceType, serviceName));
@@ -461,13 +507,27 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
     }
   }
 
-  /** Enter service registry lock */
-  protected void enterServiceRegistryLock(ZooKeeperConnection connection, String serviceType)
+  /** Enter service registry read lock */
+  protected void enterServiceRegistryReadLock(ZooKeeperConnection connection, String serviceType)
     throws ManifoldCFException, InterruptedException
   {
+    String serviceTypeLock = buildServiceTypeLockPath(serviceType);
     while (true)
     {
-      if (connection.obtainWriteLockNoWait(buildServiceTypeLockPath(serviceType)))
+      if (connection.obtainReadLockNoWait(serviceTypeLock))
+        return;
+      ManifoldCF.sleep(100L);
+    }
+  }
+  
+  /** Enter service registry write lock */
+  protected void enterServiceRegistryWriteLock(ZooKeeperConnection connection, String serviceType)
+    throws ManifoldCFException, InterruptedException
+  {
+    String serviceTypeLock = buildServiceTypeLockPath(serviceType);
+    while (true)
+    {
+      if (connection.obtainWriteLockNoWait(serviceTypeLock))
         return;
       ManifoldCF.sleep(100L);
     }
