@@ -100,7 +100,7 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
     {
       connectionNames[i] = connections[i].getName();
     }
-    localPool.releaseMultiple(connectionNames, connectors);
+    localPool.releaseMultiple(threadContext, connectionNames, connectors);
   }
 
   /** Release a repository connector.
@@ -111,7 +111,7 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
   public void release(IRepositoryConnection connection, IRepositoryConnector connector)
     throws ManifoldCFException
   {
-    localPool.release(connection.getName(), connector);
+    localPool.release(threadContext, connection.getName(), connector);
   }
 
   /** Idle notification for inactive repository connector handles.

@@ -35,22 +35,6 @@ public class OutputConnectorPool implements IOutputConnectorPool
   /** Local connector pool */
   protected final static LocalPool localPool = new LocalPool();
 
-  // How global connector allocation works:
-  // (1) There is a lock-manager "service" associated with this connector pool.  This allows us to clean
-  // up after local pools that have died without being released.  There's one anonymous service instance per local pool,
-  // and thus one service instance per JVM.
-  // (2) Each local pool knows how many connector instances of each type (keyed by class name and config info) there
-  // are.
-  // (3) Each local pool/connector instance type has a local authorization count.  This is the amount it's
-  // allowed to actually keep.  If the pool has more connectors of a type than the local authorization count permits,
-  // then every connector release operation will destroy the released connector until the local authorization count
-  // is met.
-  // (4) Each local pool/connector instance type needs a global variable describing how many CURRENT instances
-  // the local pool has allocated.  This is a transient value which should automatically go to zero if the service becomes inactive.
-  // The lock manager has primitives now that allow data to be set this way.  We will use the connection name as the
-  // "data type" name - only in the local pool will we pay any attention to config info and class name, and flush those handles
-  // that get returned that have the wrong info attached.
-
   /** Thread context */
   protected final IThreadContext threadContext;
   
@@ -113,7 +97,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
     {
       connectionNames[i] = connections[i].getName();
     }
-    localPool.releaseMultiple(connectionNames, connectors);
+    localPool.releaseMultiple(threadContext, connectionNames, connectors);
   }
 
   /** Release an output connector.
@@ -124,7 +108,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   public void release(IOutputConnection connection, IOutputConnector connector)
     throws ManifoldCFException
   {
-    localPool.release(connection.getName(),connector);
+    localPool.release(threadContext,connection.getName(),connector);
   }
 
   /** Idle notification for inactive output connector handles.

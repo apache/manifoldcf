@@ -31,6 +31,23 @@ public abstract class ConnectorPool<T extends IConnector>
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  // How global connector allocation works:
+  // (1) There is a lock-manager "service" associated with this connector pool.  This allows us to clean
+  // up after local pools that have died without being released.  There's one anonymous service instance per local pool,
+  // and thus one service instance per JVM.
+  // (2) Each local pool knows how many connector instances of each type (keyed by connection name) there
+  // are.
+  // (3) Each local pool/connector instance type has a local authorization count.  This is the amount it's
+  // allowed to actually keep.  If the pool has more connectors of a type than the local authorization count permits,
+  // then every connector release operation will destroy the released connector until the local authorization count
+  // is met.
+  // (4) Each local pool/connector instance type needs a global variable describing how many CURRENT instances
+  // the local pool has allocated.  This is a transient value which should automatically go to zero if the service becomes inactive.
+  // The lock manager has primitives now that allow data to be set this way.  We will use the connection name as the
+  // "data type" name - only in the local pool will we pay any attention to config info and class name, and flush those handles
+  // that get returned that have the wrong info attached.
+
+
   /** Service type prefix */
   protected final String serviceTypePrefix;
 
@@ -171,7 +188,7 @@ public abstract class ConnectorPool<T extends IConnector>
           index = orderMap.get(orderingKey).intValue();
           try
           {
-            release(connectionName,rval[index]);
+            release(threadContext,connectionName,rval[index]);
           }
           catch (ManifoldCFException e2)
           {
@@ -217,6 +234,10 @@ public abstract class ConnectorPool<T extends IConnector>
         p = new Pool(threadContext, maxPoolSize, connectionName);
         poolHash.put(connectionName,p);
       }
+      else
+      {
+        p.updateMaximumPoolSize(threadContext, maxPoolSize);
+      }
     }
 
     T rval = p.getConnector(threadContext,className,configInfo);
@@ -227,7 +248,7 @@ public abstract class ConnectorPool<T extends IConnector>
 
   /** Release multiple output connectors.
   */
-  public void releaseMultiple(String[] connectionNames, T[] connectors)
+  public void releaseMultiple(IThreadContext threadContext, String[] connectionNames, T[] connectors)
     throws ManifoldCFException
   {
     ManifoldCFException currentException = null;
@@ -237,7 +258,7 @@ public abstract class ConnectorPool<T extends IConnector>
       T c = connectors[i];
       try
       {
-        release(connectionName,c);
+        release(threadContext,connectionName,c);
       }
       catch (ManifoldCFException e)
       {
@@ -253,7 +274,7 @@ public abstract class ConnectorPool<T extends IConnector>
   *@param connectionName is the connection name.
   *@param connector is the connector to release.
   */
-  public void release(String connectionName, T connector)
+  public void release(IThreadContext threadContext, String connectionName, T connector)
     throws ManifoldCFException
   {
     // If the connector is null, skip the release, because we never really got the connector in the first place.
@@ -267,7 +288,7 @@ public abstract class ConnectorPool<T extends IConnector>
       p = poolHash.get(connectionName);
     }
 
-    p.releaseConnector(connector);
+    p.releaseConnector(threadContext, connector);
   }
 
   /** Idle notification for inactive output connector handles.
@@ -349,6 +370,7 @@ public abstract class ConnectorPool<T extends IConnector>
     protected final String serviceTypeName;
     protected final String serviceName;
     protected final List<T> stack = new ArrayList<T>();
+    protected int globalMax;
     protected int numFree;
 
     /** Constructor
@@ -356,11 +378,27 @@ public abstract class ConnectorPool<T extends IConnector>
     public Pool(IThreadContext threadContext, int maxCount, String connectionName)
       throws ManifoldCFException
     {
+      this.globalMax = globalMax;
       this.numFree = maxCount;
       this.serviceTypeName = buildServiceTypeName(connectionName);
       // Now, register and activate service anonymously, and record the service name we get.
       ILockManager lockManager = LockManagerFactory.make(threadContext);
       this.serviceName = lockManager.registerServiceBeginServiceActivity(serviceTypeName, null, null);
+    }
+
+    /** Update the maximum pool size.
+    *@param maxPoolSize is the new global maximum pool size.
+    */
+    public synchronized void updateMaximumPoolSize(IThreadContext threadContext, int maxPoolSize)
+      throws ManifoldCFException
+    {
+      // Compute the number of instances in use locally
+      int localInUse = globalMax - numFree;
+      globalMax = maxPoolSize;
+      // numFree may turn out to be negative here!!  That's okay; we'll just free released connectors
+      // until we enter positive territory again.
+      numFree = globalMax - localInUse;
+      notifyAll();
     }
 
     /** Grab a connector.
@@ -372,7 +410,7 @@ public abstract class ConnectorPool<T extends IConnector>
     {
       // numFree represents the number of available connector instances that have not been given out at this moment.
       // So it's the max minus the pool count minus the number in use.
-      while (numFree == 0)
+      while (numFree <= 0)
       {
         try
         {
@@ -425,7 +463,7 @@ public abstract class ConnectorPool<T extends IConnector>
     /** Release a connector to the pool.
     *@param connector is the connector.
     */
-    public synchronized void releaseConnector(T connector)
+    public synchronized void releaseConnector(IThreadContext threadContext, T connector)
       throws ManifoldCFException
     {
       if (connector == null)
@@ -433,9 +471,31 @@ public abstract class ConnectorPool<T extends IConnector>
 
       // Make sure connector knows it's released
       connector.clearThreadContext();
-      // Append
+      // Return it to the pool, and note that it is no longer in use.
       stack.add(connector);
       numFree++;
+      // Determine if we need to free some connectors.  If the number
+      // of allocated connectors exceeds the target, we unload some
+      // off the stack.
+      // The question is whether the stack has too many connector instances
+      // on it.  Obviously, if it stack.size() > max, it does - but remember
+      // that the number of outstanding connectors is max - numFree.
+      // So, we have an excess if stack.size() > max - (max-numFree).
+      // Simplifying: excess is when stack.size() > numFree.
+      while (stack.size() > 0 && stack.size() > numFree)
+      {
+        T rc = stack.remove(stack.size()-1);
+        rc.setThreadContext(threadContext);
+        try
+        {
+          rc.disconnect();
+        }
+        finally
+        {
+          rc.clearThreadContext();
+        }
+      }
+
       notifyAll();
     }
 

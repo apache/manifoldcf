@@ -101,7 +101,7 @@ public class MappingConnectorPool implements IMappingConnectorPool
     {
       connectionNames[i] = connections[i].getName();
     }
-    localPool.releaseMultiple(connectionNames, connectors);
+    localPool.releaseMultiple(threadContext, connectionNames, connectors);
   }
 
   /** Release a mapping connector.
@@ -112,7 +112,7 @@ public class MappingConnectorPool implements IMappingConnectorPool
   public void release(IMappingConnection connection, IMappingConnector connector)
     throws ManifoldCFException
   {
-    localPool.release(connection.getName(), connector);
+    localPool.release(threadContext, connection.getName(), connector);
   }
 
   /** Idle notification for inactive mapping connector handles.

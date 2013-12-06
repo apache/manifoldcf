@@ -100,7 +100,7 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
     {
       connectionNames[i] = connections[i].getName();
     }
-    localPool.releaseMultiple(connectionNames, connectors);
+    localPool.releaseMultiple(threadContext, connectionNames, connectors);
   }
 
   /** Release an output connector.
@@ -111,7 +111,7 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
   public void release(IAuthorityConnection connection, IAuthorityConnector connector)
     throws ManifoldCFException
   {
-    localPool.release(connection.getName(), connector);
+    localPool.release(threadContext, connection.getName(), connector);
   }
 
   /** Idle notification for inactive authority connector handles.
