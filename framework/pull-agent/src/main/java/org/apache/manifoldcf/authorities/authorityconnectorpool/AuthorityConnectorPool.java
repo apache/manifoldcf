@@ -149,6 +149,7 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
   {
     public LocalPool()
     {
+      super("_AUTHORITYCONNECTORPOOL_");
     }
     
     @Override

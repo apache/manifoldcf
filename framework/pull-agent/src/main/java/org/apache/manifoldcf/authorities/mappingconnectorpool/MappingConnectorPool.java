@@ -150,6 +150,7 @@ public class MappingConnectorPool implements IMappingConnectorPool
   {
     public LocalPool()
     {
+      super("_MAPPINGCONNECTORPOOL_");
     }
     
     @Override

@@ -31,12 +31,15 @@ public abstract class ConnectorPool<T extends IConnector>
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  // Pool hash table.
-  // Keyed by connection name; value is Pool
+  /** Service type prefix */
+  protected final String serviceTypePrefix;
+
+  /** Pool hash table. Keyed by connection name; value is Pool */
   protected final Map<String,Pool> poolHash = new HashMap<String,Pool>();
 
-  protected ConnectorPool()
+  protected ConnectorPool(String serviceTypePrefix)
   {
+    this.serviceTypePrefix = serviceTypePrefix;
   }
 
   // Protected methods
@@ -211,7 +214,7 @@ public abstract class ConnectorPool<T extends IConnector>
       p = poolHash.get(connectionName);
       if (p == null)
       {
-        p = new Pool(maxPoolSize);
+        p = new Pool(threadContext, maxPoolSize, connectionName);
         poolHash.put(connectionName,p);
       }
     }
@@ -300,7 +303,16 @@ public abstract class ConnectorPool<T extends IConnector>
   public void flushUnusedConnectors(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    closeAllConnectors(threadContext);
+    // Go through the whole pool and clean it out
+    synchronized (poolHash)
+    {
+      Iterator<Pool> iter = poolHash.values().iterator();
+      while (iter.hasNext())
+      {
+        Pool p = iter.next();
+        p.flushUnused(threadContext);
+      }
+    }
   }
 
   /** Clean up all open output connector handles.
@@ -323,18 +335,32 @@ public abstract class ConnectorPool<T extends IConnector>
     }
   }
 
+  // Protected methods and classes
+  
+  protected String buildServiceTypeName(String connectionName)
+  {
+    return serviceTypePrefix + connectionName;
+  }
+  
   /** This class represents a value in the pool hash, which corresponds to a given key.
   */
-  public class Pool
+  protected class Pool
   {
+    protected final String serviceTypeName;
+    protected final String serviceName;
     protected final List<T> stack = new ArrayList<T>();
     protected int numFree;
 
     /** Constructor
     */
-    public Pool(int maxCount)
+    public Pool(IThreadContext threadContext, int maxCount, String connectionName)
+      throws ManifoldCFException
     {
-      numFree = maxCount;
+      this.numFree = maxCount;
+      this.serviceTypeName = buildServiceTypeName(connectionName);
+      // Now, register and activate service anonymously, and record the service name we get.
+      ILockManager lockManager = LockManagerFactory.make(threadContext);
+      this.serviceName = lockManager.registerServiceBeginServiceActivity(serviceTypeName, null, null);
     }
 
     /** Grab a connector.
@@ -435,9 +461,9 @@ public abstract class ConnectorPool<T extends IConnector>
       }
     }
 
-    /** Release all free connectors.
+    /** Flush unused connectors.
     */
-    public synchronized void releaseAll(IThreadContext threadContext)
+    public synchronized void flushUnused(IThreadContext threadContext)
       throws ManifoldCFException
     {
       while (stack.size() > 0)
@@ -454,6 +480,17 @@ public abstract class ConnectorPool<T extends IConnector>
           rc.clearThreadContext();
         }
       }
+    }
+
+    /** Release all free connectors.
+    */
+    public synchronized void releaseAll(IThreadContext threadContext)
+      throws ManifoldCFException
+    {
+      flushUnused(threadContext);
+      // End service activity
+      ILockManager lockManager = LockManagerFactory.make(threadContext);
+      lockManager.endServiceActivity(serviceTypeName, serviceName);
     }
 
   }

@@ -149,6 +149,7 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
   {
     public LocalPool()
     {
+      super("_REPOSITORYCONNECTORPOOL_");
     }
     
     @Override

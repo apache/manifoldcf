@@ -162,6 +162,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   {
     public LocalPool()
     {
+      super("_OUTPUTCONNECTORPOOL_");
     }
     
     @Override
