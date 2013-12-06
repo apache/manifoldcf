@@ -59,18 +59,20 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
   {
     // For now, use the RepositoryConnectorFactory method.  This will require us to extract info
     // from each repository connection, however.
+    String[] connectionNames = new String[repositoryConnections.length];
     String[] classNames = new String[repositoryConnections.length];
     ConfigParams[] configInfos = new ConfigParams[repositoryConnections.length];
     int[] maxPoolSizes = new int[repositoryConnections.length];
     
     for (int i = 0; i < repositoryConnections.length; i++)
     {
+      connectionNames[i] = repositoryConnections[i].getName();
       classNames[i] = repositoryConnections[i].getClassName();
       configInfos[i] = repositoryConnections[i].getConfigParams();
       maxPoolSizes[i] = repositoryConnections[i].getMaxConnections();
     }
     return localPool.grabMultiple(threadContext,
-      orderingKeys, classNames, configInfos, maxPoolSizes);
+      orderingKeys, connectionNames, classNames, configInfos, maxPoolSizes);
   }
 
   /** Get a repository connector.
@@ -81,28 +83,35 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
   public IRepositoryConnector grab(IRepositoryConnection repositoryConnection)
     throws ManifoldCFException
   {
-    return localPool.grab(threadContext, repositoryConnection.getClassName(),
+    return localPool.grab(threadContext, repositoryConnection.getName(), repositoryConnection.getClassName(),
       repositoryConnection.getConfigParams(), repositoryConnection.getMaxConnections());
   }
 
   /** Release multiple repository connectors.
+  *@param connections are the connections describing the instances to release.
   *@param connectors are the connector instances to release.
   */
   @Override
-  public void releaseMultiple(IRepositoryConnector[] connectors)
+  public void releaseMultiple(IRepositoryConnection[] connections, IRepositoryConnector[] connectors)
     throws ManifoldCFException
   {
-    localPool.releaseMultiple(connectors);
+    String[] connectionNames = new String[connections.length];
+    for (int i = 0; i < connections.length; i++)
+    {
+      connectionNames[i] = connections[i].getName();
+    }
+    localPool.releaseMultiple(connectionNames, connectors);
   }
 
   /** Release a repository connector.
+  *@param connection is the connection describing the instance to release.
   *@param connector is the connector to release.
   */
   @Override
-  public void release(IRepositoryConnector connector)
+  public void release(IRepositoryConnection connection, IRepositoryConnector connector)
     throws ManifoldCFException
   {
-    localPool.release(connector);
+    localPool.release(connection.getName(), connector);
   }
 
   /** Idle notification for inactive repository connector handles.
@@ -150,10 +159,10 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
       return connectorManager.isInstalled(className);
     }
 
-    public IRepositoryConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+    public IRepositoryConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] connectionNames, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
       throws ManifoldCFException
     {
-      return grabMultiple(tc,IRepositoryConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
+      return grabMultiple(tc,IRepositoryConnector.class,orderingKeys,connectionNames,classNames,configInfos,maxPoolSizes);
     }
 
   }

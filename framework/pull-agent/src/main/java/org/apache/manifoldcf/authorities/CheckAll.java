@@ -80,7 +80,7 @@ public class CheckAll
             }
             finally
             {
-              authorityConnectorPool.release(c);
+              authorityConnectorPool.release(connection,c);
             }
           }
           else

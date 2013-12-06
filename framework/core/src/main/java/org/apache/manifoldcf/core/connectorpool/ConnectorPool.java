@@ -32,8 +32,8 @@ public abstract class ConnectorPool<T extends IConnector>
   public static final String _rcsid = "@(#)$Id$";
 
   // Pool hash table.
-  // Keyed by PoolKey; value is Pool
-  protected final Map<PoolKey,Pool> poolHash = new HashMap<PoolKey,Pool>();
+  // Keyed by connection name; value is Pool
+  protected final Map<String,Pool> poolHash = new HashMap<String,Pool>();
 
   protected ConnectorPool()
   {
@@ -128,7 +128,8 @@ public abstract class ConnectorPool<T extends IConnector>
   * so that any connector exhaustion will not cause a deadlock.
   */
   public T[] grabMultiple(IThreadContext threadContext, Class<T> clazz,
-    String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+    String[] orderingKeys, String[] connectionNames,
+    String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
     throws ManifoldCFException
   {
     T[] rval = (T[])Array.newInstance(clazz,classNames.length);
@@ -144,12 +145,13 @@ public abstract class ConnectorPool<T extends IConnector>
     {
       String orderingKey = orderingKeys[i];
       int index = orderMap.get(orderingKey).intValue();
+      String connectionName = connectionNames[index];
       String className = classNames[index];
       ConfigParams cp = configInfos[index];
       int maxPoolSize = maxPoolSizes[index];
       try
       {
-        T connector = grab(threadContext,className,cp,maxPoolSize);
+        T connector = grab(threadContext,connectionName,className,cp,maxPoolSize);
         rval[index] = connector;
       }
       catch (Throwable e)
@@ -161,7 +163,7 @@ public abstract class ConnectorPool<T extends IConnector>
           index = orderMap.get(orderingKey).intValue();
           try
           {
-            release(rval[index]);
+            release(connectionName,rval[index]);
           }
           catch (ManifoldCFException e2)
           {
@@ -181,36 +183,35 @@ public abstract class ConnectorPool<T extends IConnector>
   }
 
   /** Get a connector.
-  * The connector is specified by its class and its parameters.
+  * The connector is specified by its connection name, class, and parameters.  If the
+  * class and parameters corresponding to a connection name change, then this code
+  * will destroy any old connector instance that does not correspond, and create a new
+  * one using the new class and parameters.
   *@param threadContext is the current thread context.
+  *@param connectionName is the name of the connection.  This functions as a pool key.
   *@param className is the name of the class to get a connector for.
   *@param configInfo are the name/value pairs constituting configuration info
   * for this class.
   */
-  public T grab(IThreadContext threadContext,
+  public T grab(IThreadContext threadContext, String connectionName,
     String className, ConfigParams configInfo, int maxPoolSize)
     throws ManifoldCFException
   {
     // We want to get handles off the pool and use them.  But the
     // handles we fetch have to have the right config information.
 
-    // Use the classname and config info to build a pool key.  This
-    // key will be discarded if we actually have to save a key persistently,
-    // since we avoid copying the configInfo unnecessarily.
-    PoolKey pk = new PoolKey(className,configInfo);
     Pool p;
     synchronized (poolHash)
     {
-      p = poolHash.get(pk);
+      p = poolHash.get(connectionName);
       if (p == null)
       {
-        pk = new PoolKey(className,configInfo.duplicate());
-        p = new Pool(pk,maxPoolSize);
-        poolHash.put(pk,p);
+        p = new Pool(maxPoolSize);
+        poolHash.put(connectionName,p);
       }
     }
 
-    T rval = p.getConnector(threadContext);
+    T rval = p.getConnector(threadContext,className,configInfo);
 
     return rval;
 
@@ -218,16 +219,17 @@ public abstract class ConnectorPool<T extends IConnector>
 
   /** Release multiple output connectors.
   */
-  public void releaseMultiple(T[] connectors)
+  public void releaseMultiple(String[] connectionNames, T[] connectors)
     throws ManifoldCFException
   {
     ManifoldCFException currentException = null;
     for (int i = 0; i < connectors.length; i++)
     {
+      String connectionName = connectionNames[i];
       T c = connectors[i];
       try
       {
-        release(c);
+        release(connectionName,c);
       }
       catch (ManifoldCFException e)
       {
@@ -240,9 +242,10 @@ public abstract class ConnectorPool<T extends IConnector>
   }
 
   /** Release an output connector.
+  *@param connectionName is the connection name.
   *@param connector is the connector to release.
   */
-  public void release(T connector)
+  public void release(String connectionName, T connector)
     throws ManifoldCFException
   {
     // If the connector is null, skip the release, because we never really got the connector in the first place.
@@ -250,11 +253,10 @@ public abstract class ConnectorPool<T extends IConnector>
       return;
 
     // Figure out which pool this goes on, and put it there
-    PoolKey pk = new PoolKey(connector.getClass().getName(),connector.getConfiguration());
     Pool p;
     synchronized (poolHash)
     {
-      p = poolHash.get(pk);
+      p = poolHash.get(connectionName);
     }
 
     p.releaseConnector(connector);
@@ -309,76 +311,17 @@ public abstract class ConnectorPool<T extends IConnector>
     }
   }
 
-  /** This is an immutable pool key class, which describes a pool in terms of two independent keys.
-  */
-  public static class PoolKey
-  {
-    protected final String className;
-    protected final ConfigParams configInfo;
-
-    /** Constructor.
-    */
-    public PoolKey(String className, Map configInfo)
-    {
-      this.className = className;
-      this.configInfo = new ConfigParams(configInfo);
-    }
-
-    public PoolKey(String className, ConfigParams configInfo)
-    {
-      this.className = className;
-      this.configInfo = configInfo;
-    }
-
-    /** Get the class name.
-    *@return the class name.
-    */
-    public String getClassName()
-    {
-      return className;
-    }
-
-    /** Get the config info.
-    *@return the params
-    */
-    public ConfigParams getParams()
-    {
-      return configInfo;
-    }
-
-    /** Hash code.
-    */
-    public int hashCode()
-    {
-      return className.hashCode() + configInfo.hashCode();
-    }
-
-    /** Equals operator.
-    */
-    public boolean equals(Object o)
-    {
-      if (!(o instanceof PoolKey))
-        return false;
-
-      PoolKey pk = (PoolKey)o;
-      return pk.className.equals(className) && pk.configInfo.equals(configInfo);
-    }
-
-  }
-
   /** This class represents a value in the pool hash, which corresponds to a given key.
   */
   public class Pool
   {
     protected final List<T> stack = new ArrayList<T>();
-    protected final PoolKey key;
     protected int numFree;
 
     /** Constructor
     */
-    public Pool(PoolKey pk, int maxCount)
+    public Pool(int maxCount)
     {
-      key = pk;
       numFree = maxCount;
     }
 
@@ -386,9 +329,11 @@ public abstract class ConnectorPool<T extends IConnector>
     * If none exists, construct it using the information in the pool key.
     *@return the connector, or null if no connector could be connected.
     */
-    public synchronized T getConnector(IThreadContext threadContext)
+    public synchronized T getConnector(IThreadContext threadContext, String className, ConfigParams configParams)
       throws ManifoldCFException
     {
+      // numFree represents the number of available connector instances that have not been given out at this moment.
+      // So it's the max minus the pool count minus the number in use.
       while (numFree == 0)
       {
         try
@@ -401,23 +346,42 @@ public abstract class ConnectorPool<T extends IConnector>
         }
       }
 
-      if (stack.size() == 0)
+      // We decrement numFree when we hand out a connector instance; we increment numFree when we
+      // throw away a connector instance from the pool.
+      while (true)
       {
-        String className = key.getClassName();
-        ConfigParams configParams = key.getParams();
-
-        T newrc = createConnectorInstance(threadContext,className);
-        newrc.connect(configParams);
-        stack.add(newrc);
+        if (stack.size() == 0)
+        {
+          T newrc = createConnectorInstance(threadContext,className);
+          newrc.connect(configParams);
+          stack.add(newrc);
+        }
+        
+        // Since thread context set can fail, do that before we remove it from the pool.
+        T rc = stack.remove(stack.size()-1);
+        // Set the thread context.  This can throw an exception!!  We need to be sure our bookkeeping
+        // is resilient against that possibility.  Losing a connector instance that was just sitting
+        // in the pool does NOT affect numFree, so no change needed here; we just can't disconnect the
+        // connector instance if this fails.
+        rc.setThreadContext(threadContext);
+        // Verify that the connector is in fact compatible
+        if (!(rc.getClass().getName().equals(className) && rc.getConfiguration().equals(configParams)))
+        {
+          // Looks like parameters have changed, so discard old instance.
+          try
+          {
+            rc.disconnect();
+          }
+          finally
+          {
+            rc.clearThreadContext();
+          }
+          continue;
+        }
+        // About to return a connector instance; decrement numFree accordingly.
+        numFree--;
+        return rc;
       }
-      
-      // Since thread context set can fail, do that before we remove it from the pool.
-      T rc = stack.get(stack.size()-1);
-      rc.setThreadContext(threadContext);
-      stack.remove(stack.size()-1);
-      numFree--;
-      
-      return rc;
     }
 
     /** Release a connector to the pool.
@@ -467,12 +431,11 @@ public abstract class ConnectorPool<T extends IConnector>
       while (stack.size() > 0)
       {
         // Disconnect
-        T rc = stack.get(stack.size()-1);
+        T rc = stack.remove(stack.size()-1);
         rc.setThreadContext(threadContext);
         try
         {
           rc.disconnect();
-          stack.remove(stack.size()-1);
         }
         finally
         {

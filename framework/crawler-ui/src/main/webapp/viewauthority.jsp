@@ -115,7 +115,7 @@
 				}
 				finally
 				{
-					authorityConnectorPool.release(c);
+					authorityConnectorPool.release(connection,c);
 				}
 			}
 		}

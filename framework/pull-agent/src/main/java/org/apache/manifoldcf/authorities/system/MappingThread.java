@@ -101,7 +101,7 @@ public class MappingThread extends Thread
               }
               finally
               {
-                mappingConnectorPool.release(connector);
+                mappingConnectorPool.release(theRequest.getMappingConnection(),connector);
               }
             }
             catch (ManifoldCFException e)

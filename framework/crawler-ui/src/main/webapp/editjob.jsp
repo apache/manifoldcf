@@ -416,7 +416,7 @@
 			}
 			finally
 			{
-				outputConnectorPool.release(outputConnector);
+				outputConnectorPool.release(outputConnection,outputConnector);
 			}
 		}
 	}
@@ -434,7 +434,7 @@
 			}
 			finally
 			{
-				repositoryConnectorPool.release(repositoryConnector);
+				repositoryConnectorPool.release(connection,repositoryConnector);
 			}
 		}
 	}
@@ -1282,7 +1282,7 @@
 			}
 			finally
 			{
-				outputConnectorPool.release(outputConnector);
+				outputConnectorPool.release(outputConnection,outputConnector);
 			}
 %>
 		  <input type="hidden" name="outputpresent" value="true"/>
@@ -1301,7 +1301,7 @@
 			}
 			finally
 			{
-				repositoryConnectorPool.release(repositoryConnector);
+				repositoryConnectorPool.release(connection,repositoryConnector);
 			}
 %>
 		  <input type="hidden" name="connectionpresent" value="true"/>

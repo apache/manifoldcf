@@ -1014,7 +1014,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        repositoryConnectorPool.release(connector);
+        repositoryConnectorPool.release(connection,connector);
       }
 
       priorities[i] = new PriorityCalculator(rt,connection,binNames);
@@ -1247,7 +1247,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        outputConnectorPool.release(connector);
+        outputConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1289,7 +1289,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        authorityConnectorPool.release(connector);
+        authorityConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1331,7 +1331,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        mappingConnectorPool.release(connector);
+        mappingConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1373,7 +1373,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        repositoryConnectorPool.release(connector);
+        repositoryConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1411,7 +1411,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        outputConnectorPool.release(connector);
+        outputConnectorPool.release(connection,connector);
       }
     }
     catch (ManifoldCFException e)
@@ -1444,7 +1444,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        repositoryConnectorPool.release(connector);
+        repositoryConnectorPool.release(connection,connector);
       }
     }
     catch (ManifoldCFException e)

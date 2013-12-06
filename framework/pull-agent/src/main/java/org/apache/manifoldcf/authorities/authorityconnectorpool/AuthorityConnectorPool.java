@@ -59,18 +59,20 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
   {
     // For now, use the AuthorityConnectorFactory method.  This will require us to extract info
     // from each authority connection, however.
+    String[] connectionNames = new String[authorityConnections.length];
     String[] classNames = new String[authorityConnections.length];
     ConfigParams[] configInfos = new ConfigParams[authorityConnections.length];
     int[] maxPoolSizes = new int[authorityConnections.length];
     
     for (int i = 0; i < authorityConnections.length; i++)
     {
+      connectionNames[i] = authorityConnections[i].getName();
       classNames[i] = authorityConnections[i].getClassName();
       configInfos[i] = authorityConnections[i].getConfigParams();
       maxPoolSizes[i] = authorityConnections[i].getMaxConnections();
     }
     return localPool.grabMultiple(threadContext,
-      orderingKeys, classNames, configInfos, maxPoolSizes);
+      orderingKeys, connectionNames, classNames, configInfos, maxPoolSizes);
   }
 
   /** Get an authority connector.
@@ -81,28 +83,35 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
   public IAuthorityConnector grab(IAuthorityConnection authorityConnection)
     throws ManifoldCFException
   {
-    return localPool.grab(threadContext, authorityConnection.getClassName(),
+    return localPool.grab(threadContext, authorityConnection.getName(), authorityConnection.getClassName(),
       authorityConnection.getConfigParams(), authorityConnection.getMaxConnections());
   }
 
   /** Release multiple authority connectors.
+  *@param connections are the connections describing the instances to release.
   *@param connectors are the connector instances to release.
   */
   @Override
-  public void releaseMultiple(IAuthorityConnector[] connectors)
+  public void releaseMultiple(IAuthorityConnection[] connections, IAuthorityConnector[] connectors)
     throws ManifoldCFException
   {
-    localPool.releaseMultiple(connectors);
+    String[] connectionNames = new String[connections.length];
+    for (int i = 0; i < connections.length; i++)
+    {
+      connectionNames[i] = connections[i].getName();
+    }
+    localPool.releaseMultiple(connectionNames, connectors);
   }
 
-  /** Release an authority connector.
+  /** Release an output connector.
+  *@param connection is the connection describing the instance to release.
   *@param connector is the connector to release.
   */
   @Override
-  public void release(IAuthorityConnector connector)
+  public void release(IAuthorityConnection connection, IAuthorityConnector connector)
     throws ManifoldCFException
   {
-    localPool.release(connector);
+    localPool.release(connection.getName(), connector);
   }
 
   /** Idle notification for inactive authority connector handles.
@@ -150,10 +159,10 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
       return connectorManager.isInstalled(className);
     }
 
-    public IAuthorityConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+    public IAuthorityConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String connectionNames[], String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
       throws ManifoldCFException
     {
-      return grabMultiple(tc,IAuthorityConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
+      return grabMultiple(tc,IAuthorityConnector.class,orderingKeys,connectionNames,classNames,configInfos,maxPoolSizes);
     }
 
   }

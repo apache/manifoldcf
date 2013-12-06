@@ -269,7 +269,7 @@ public class StufferThread extends Thread
                 }
                 finally
                 {
-                  repositoryConnectorPool.release(connector);
+                  repositoryConnectorPool.release(connection,connector);
                 }
               }
             }

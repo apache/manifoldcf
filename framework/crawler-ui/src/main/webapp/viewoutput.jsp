@@ -116,7 +116,7 @@
 				}
 				finally
 				{
-					outputConnectorPool.release(c);
+					outputConnectorPool.release(connection,c);
 				}
 			}
 		}

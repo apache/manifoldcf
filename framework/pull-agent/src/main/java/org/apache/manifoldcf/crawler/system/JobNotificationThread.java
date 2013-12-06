@@ -140,7 +140,7 @@ public class JobNotificationThread extends Thread
                   }
                   finally
                   {
-                    outputConnectorPool.release(connector);
+                    outputConnectorPool.release(connection,connector);
                   }
                 }
               }
