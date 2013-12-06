@@ -158,6 +158,14 @@ public class AuthorityConnectorPool implements IAuthorityConnectorPool
       IAuthorityConnectorManager connectorManager = AuthorityConnectorManagerFactory.make(tc);
       return connectorManager.isInstalled(className);
     }
+    
+    @Override
+    protected boolean isConnectionNameValid(IThreadContext tc, String connectionName)
+      throws ManifoldCFException
+    {
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      return connectionManager.load(connectionName) != null;
+    }
 
     public IAuthorityConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String connectionNames[], String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
       throws ManifoldCFException

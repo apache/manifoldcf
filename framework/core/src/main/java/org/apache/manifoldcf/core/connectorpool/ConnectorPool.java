@@ -46,6 +46,11 @@ public abstract class ConnectorPool<T extends IConnector>
   protected abstract boolean isInstalled(IThreadContext tc, String className)
     throws ManifoldCFException;
   
+  /** Override this method to check if a connection name is still valid.
+  */
+  protected abstract boolean isConnectionNameValid(IThreadContext tc, String connectionName)
+    throws ManifoldCFException;
+  
   /** Get a connector instance.
   *@param className is the class name.
   *@return the instance.
@@ -273,11 +278,18 @@ public abstract class ConnectorPool<T extends IConnector>
     // Go through the whole pool and notify everyone
     synchronized (poolHash)
     {
-      Iterator<Pool> iter = poolHash.values().iterator();
+      Iterator<String> iter = poolHash.keySet().iterator();
       while (iter.hasNext())
       {
-        Pool p = iter.next();
-        p.pollAll(threadContext);
+        String connectionName = iter.next();
+        Pool p = poolHash.get(connectionName);
+        if (isConnectionNameValid(threadContext,connectionName))
+          p.pollAll(threadContext);
+        else
+        {
+          p.releaseAll(threadContext);
+          iter.remove();
+        }
       }
     }
 

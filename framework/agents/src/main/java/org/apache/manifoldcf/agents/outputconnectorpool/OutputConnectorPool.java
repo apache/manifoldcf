@@ -172,6 +172,14 @@ public class OutputConnectorPool implements IOutputConnectorPool
       return connectorManager.isInstalled(className);
     }
 
+    @Override
+    protected boolean isConnectionNameValid(IThreadContext tc, String connectionName)
+      throws ManifoldCFException
+    {
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      return connectionManager.load(connectionName) != null;
+    }
+
     public IOutputConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] connectionNames, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
       throws ManifoldCFException
     {

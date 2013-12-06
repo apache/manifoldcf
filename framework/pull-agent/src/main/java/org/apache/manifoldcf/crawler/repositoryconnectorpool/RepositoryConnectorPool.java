@@ -159,6 +159,14 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
       return connectorManager.isInstalled(className);
     }
 
+    @Override
+    protected boolean isConnectionNameValid(IThreadContext tc, String connectionName)
+      throws ManifoldCFException
+    {
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      return connectionManager.load(connectionName) != null;
+    }
+
     public IRepositoryConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] connectionNames, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
       throws ManifoldCFException
     {
