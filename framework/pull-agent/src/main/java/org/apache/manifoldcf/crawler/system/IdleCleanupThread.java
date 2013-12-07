@@ -66,7 +66,9 @@ public class IdleCleanupThread extends Thread
         try
         {
           // Do the cleanup
+          System.out.println("Polling...");
           repositoryConnectorPool.pollAllConnectors();
+          System.out.println("...done");
           cacheManager.expireObjects(System.currentTimeMillis());
           
           // Sleep for the retry interval.

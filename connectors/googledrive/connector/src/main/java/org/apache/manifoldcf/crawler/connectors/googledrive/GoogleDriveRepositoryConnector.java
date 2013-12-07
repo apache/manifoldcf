@@ -384,6 +384,16 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return session != null;
+  }
+
   /**
    * Get the maximum number of documents to amalgamate together into one
    * batch, for this connector.

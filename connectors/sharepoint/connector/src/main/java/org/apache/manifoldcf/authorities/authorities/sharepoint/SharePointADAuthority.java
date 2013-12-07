@@ -220,6 +220,21 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
     super.poll();
   }
   
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    for (Map.Entry<String,DCSessionInfo> sessionEntry : sessionInfo.entrySet())
+    {
+      if (sessionEntry.getValue().isOpen())
+        return true;
+    }
+    return false;
+  }
+
   /** Close the connection.  Call this before discarding the repository connector.
   */
   @Override
@@ -940,6 +955,12 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
     {
       if (expiration != -1L && currentTime > expiration)
         closeConnection();
+    }
+
+    /** Check if open */
+    protected boolean isOpen()
+    {
+      return ctx != null;
     }
 
   }

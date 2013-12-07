@@ -243,7 +243,17 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       connectionManager.closeIdleConnections(60000L,TimeUnit.MILLISECONDS);
     super.poll();
   }
-  
+
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return connectionManager != null;
+  }
+
   /** Close the connection.  Call this before discarding the repository connector.
   */
   @Override
