@@ -120,7 +120,7 @@
 				}
 				finally
 				{
-					repositoryConnectorPool.release(c);
+					repositoryConnectorPool.release(connection,c);
 				}
 			}
 		}

@@ -107,7 +107,7 @@ public class AuthCheckThread extends Thread
               }
               finally
               {
-                authorityConnectorPool.release(connector);
+                authorityConnectorPool.release(theRequest.getAuthorityConnection(),connector);
               }
             }
             catch (ManifoldCFException e)

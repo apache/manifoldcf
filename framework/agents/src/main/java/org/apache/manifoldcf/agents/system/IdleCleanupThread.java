@@ -67,7 +67,7 @@ public class IdleCleanupThread extends Thread
           cacheManager.expireObjects(System.currentTimeMillis());
           
           // Sleep for the retry interval.
-          ManifoldCF.sleep(15000L);
+          ManifoldCF.sleep(5000L);
         }
         catch (ManifoldCFException e)
         {

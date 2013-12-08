@@ -704,6 +704,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
   }
+  
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return hasConnected;
+  }
 
   /** Close the connection.  Call this before discarding the repository connector.
   */

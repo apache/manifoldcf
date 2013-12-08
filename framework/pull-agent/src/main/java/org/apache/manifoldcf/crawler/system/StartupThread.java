@@ -169,7 +169,7 @@ public class StartupThread extends Thread
                 }
                 finally
                 {
-                  repositoryConnectorPool.release(connector);
+                  repositoryConnectorPool.release(connection,connector);
                 }
 
                 // Start this job!

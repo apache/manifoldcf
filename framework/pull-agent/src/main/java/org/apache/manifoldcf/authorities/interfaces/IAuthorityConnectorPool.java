@@ -47,15 +47,17 @@ public interface IAuthorityConnectorPool
     throws ManifoldCFException;
 
   /** Release multiple authority connectors.
+  *@param connections are the connections describing the instances to release.
   *@param connectors are the connector instances to release.
   */
-  public void releaseMultiple(IAuthorityConnector[] connectors)
+  public void releaseMultiple(IAuthorityConnection[] connections, IAuthorityConnector[] connectors)
     throws ManifoldCFException;
 
   /** Release an authority connector.
+  *@param connection is the connection describing the instance to release.
   *@param connector is the connector to release.
   */
-  public void release(IAuthorityConnector connector)
+  public void release(IAuthorityConnection connection, IAuthorityConnector connector)
     throws ManifoldCFException;
 
   /** Idle notification for inactive authority connector handles.

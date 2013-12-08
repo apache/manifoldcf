@@ -47,15 +47,17 @@ public interface IOutputConnectorPool
     throws ManifoldCFException;
 
   /** Release multiple output connectors.
+  *@param connections are the connections describing the instances to release.
   *@param connectors are the connector instances to release.
   */
-  public void releaseMultiple(IOutputConnector[] connectors)
+  public void releaseMultiple(IOutputConnection[] connections, IOutputConnector[] connectors)
     throws ManifoldCFException;
 
   /** Release an output connector.
+  *@param connection is the connection describing the instance to release.
   *@param connector is the connector to release.
   */
-  public void release(IOutputConnector connector)
+  public void release(IOutputConnection connection, IOutputConnector connector)
     throws ManifoldCFException;
 
   /** Idle notification for inactive output connector handles.

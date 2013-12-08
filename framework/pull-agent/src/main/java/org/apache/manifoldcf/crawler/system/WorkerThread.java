@@ -831,7 +831,7 @@ public class WorkerThread extends Thread
                 }
                 finally
                 {
-                  repositoryConnectorPool.release(connector);
+                  repositoryConnectorPool.release(connection,connector);
                 }
               
               }

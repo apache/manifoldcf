@@ -216,7 +216,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      outputConnectorPool.release(connector);
+      outputConnectorPool.release(connection,connector);
     }
   }
 
@@ -241,7 +241,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      outputConnectorPool.release(connector);
+      outputConnectorPool.release(connection,connector);
     }
   }
 
@@ -267,7 +267,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      outputConnectorPool.release(connector);
+      outputConnectorPool.release(connection,connector);
     }
   }
 
@@ -293,7 +293,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      outputConnectorPool.release(connector);
+      outputConnectorPool.release(connection,connector);
     }
   }
 
@@ -317,7 +317,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      outputConnectorPool.release(connector);
+      outputConnectorPool.release(connection,connector);
     }
 
   }
@@ -1662,7 +1662,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      outputConnectorPool.release(connector);
+      outputConnectorPool.release(connection,connector);
     }
   }
 
@@ -1681,7 +1681,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      outputConnectorPool.release(connector);
+      outputConnectorPool.release(connection,connector);
     }
   }
 

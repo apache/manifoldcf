@@ -105,7 +105,7 @@
 				}
 				finally
 				{
-					mappingConnectorPool.release(c);
+					mappingConnectorPool.release(connection,c);
 				}
 			}
 		}

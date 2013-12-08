@@ -35,9 +35,6 @@ public class OutputConnectorPool implements IOutputConnectorPool
   /** Local connector pool */
   protected final static LocalPool localPool = new LocalPool();
 
-  // This implementation is a place-holder for the real one, which will likely fold in the pooling code
-  // as we strip it out of OutputConnectorFactory.
-
   /** Thread context */
   protected final IThreadContext threadContext;
   
@@ -59,18 +56,20 @@ public class OutputConnectorPool implements IOutputConnectorPool
   {
     // For now, use the OutputConnectorFactory method.  This will require us to extract info
     // from each output connection, however.
+    String[] connectionNames = new String[outputConnections.length];
     String[] classNames = new String[outputConnections.length];
     ConfigParams[] configInfos = new ConfigParams[outputConnections.length];
     int[] maxPoolSizes = new int[outputConnections.length];
     
     for (int i = 0; i < outputConnections.length; i++)
     {
+      connectionNames[i] = outputConnections[i].getName();
       classNames[i] = outputConnections[i].getClassName();
       configInfos[i] = outputConnections[i].getConfigParams();
       maxPoolSizes[i] = outputConnections[i].getMaxConnections();
     }
     return localPool.grabMultiple(threadContext,
-      orderingKeys, classNames, configInfos, maxPoolSizes);
+      orderingKeys, connectionNames, classNames, configInfos, maxPoolSizes);
   }
 
   /** Get an output connector.
@@ -81,28 +80,35 @@ public class OutputConnectorPool implements IOutputConnectorPool
   public IOutputConnector grab(IOutputConnection outputConnection)
     throws ManifoldCFException
   {
-    return localPool.grab(threadContext, outputConnection.getClassName(),
+    return localPool.grab(threadContext, outputConnection.getName(), outputConnection.getClassName(),
       outputConnection.getConfigParams(), outputConnection.getMaxConnections());
   }
 
   /** Release multiple output connectors.
+  *@param connections are the connections describing the instances to release.
   *@param connectors are the connector instances to release.
   */
   @Override
-  public void releaseMultiple(IOutputConnector[] connectors)
+  public void releaseMultiple(IOutputConnection[] connections, IOutputConnector[] connectors)
     throws ManifoldCFException
   {
-    localPool.releaseMultiple(connectors);
+    String[] connectionNames = new String[connections.length];
+    for (int i = 0; i < connections.length; i++)
+    {
+      connectionNames[i] = connections[i].getName();
+    }
+    localPool.releaseMultiple(threadContext, connectionNames, connectors);
   }
 
   /** Release an output connector.
+  *@param connection is the connection describing the instance to release.
   *@param connector is the connector to release.
   */
   @Override
-  public void release(IOutputConnector connector)
+  public void release(IOutputConnection connection, IOutputConnector connector)
     throws ManifoldCFException
   {
-    localPool.release(connector);
+    localPool.release(threadContext,connection.getName(),connector);
   }
 
   /** Idle notification for inactive output connector handles.
@@ -140,6 +146,7 @@ public class OutputConnectorPool implements IOutputConnectorPool
   {
     public LocalPool()
     {
+      super("_OUTPUTCONNECTORPOOL_");
     }
     
     @Override
@@ -150,10 +157,18 @@ public class OutputConnectorPool implements IOutputConnectorPool
       return connectorManager.isInstalled(className);
     }
 
-    public IOutputConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+    @Override
+    protected boolean isConnectionNameValid(IThreadContext tc, String connectionName)
       throws ManifoldCFException
     {
-      return grabMultiple(tc,IOutputConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      return connectionManager.load(connectionName) != null;
+    }
+
+    public IOutputConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] connectionNames, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+      throws ManifoldCFException
+    {
+      return grabMultiple(tc,IOutputConnector.class,orderingKeys,connectionNames,classNames,configInfos,maxPoolSizes);
     }
 
   }

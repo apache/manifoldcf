@@ -644,7 +644,7 @@
 				}
 				finally
 				{
-					outputConnectorPool.release(outputConnector);
+					outputConnectorPool.release(outputConnection,outputConnector);
 				}
 			}
 		}
@@ -668,7 +668,7 @@
 				}
 				finally
 				{
-					repositoryConnectorPool.release(repositoryConnector);
+					repositoryConnectorPool.release(connection,repositoryConnector);
 				}
 			}
 		}

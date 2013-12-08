@@ -47,15 +47,17 @@ public interface IRepositoryConnectorPool
     throws ManifoldCFException;
 
   /** Release multiple repository connectors.
+  *@param connections are the connections describing the instances to release.
   *@param connectors are the connector instances to release.
   */
-  public void releaseMultiple(IRepositoryConnector[] connectors)
+  public void releaseMultiple(IRepositoryConnection[] connections, IRepositoryConnector[] connectors)
     throws ManifoldCFException;
 
   /** Release a repository connector.
+  *@param connection is the connection describing the instance to release.
   *@param connector is the connector to release.
   */
-  public void release(IRepositoryConnector connector)
+  public void release(IRepositoryConnection connection, IRepositoryConnector connector)
     throws ManifoldCFException;
 
   /** Idle notification for inactive repository connector handles.

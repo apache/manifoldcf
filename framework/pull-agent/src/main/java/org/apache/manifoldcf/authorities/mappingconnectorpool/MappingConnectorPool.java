@@ -59,18 +59,20 @@ public class MappingConnectorPool implements IMappingConnectorPool
   {
     // For now, use the MappingConnectorFactory method.  This will require us to extract info
     // from each mapping connection, however.
+    String[] connectionNames = new String[mappingConnections.length];
     String[] classNames = new String[mappingConnections.length];
     ConfigParams[] configInfos = new ConfigParams[mappingConnections.length];
     int[] maxPoolSizes = new int[mappingConnections.length];
     
     for (int i = 0; i < mappingConnections.length; i++)
     {
+      connectionNames[i] = mappingConnections[i].getName();
       classNames[i] = mappingConnections[i].getClassName();
       configInfos[i] = mappingConnections[i].getConfigParams();
       maxPoolSizes[i] = mappingConnections[i].getMaxConnections();
     }
     return localPool.grabMultiple(threadContext,
-      orderingKeys, classNames, configInfos, maxPoolSizes);
+      orderingKeys, connectionNames, classNames, configInfos, maxPoolSizes);
   }
 
   /** Get a mapping connector.
@@ -81,28 +83,36 @@ public class MappingConnectorPool implements IMappingConnectorPool
   public IMappingConnector grab(IMappingConnection mappingConnection)
     throws ManifoldCFException
   {
-    return localPool.grab(threadContext, mappingConnection.getClassName(),
+    return localPool.grab(threadContext, mappingConnection.getName(),
+      mappingConnection.getClassName(),
       mappingConnection.getConfigParams(), mappingConnection.getMaxConnections());
   }
 
   /** Release multiple mapping connectors.
+  *@param connections are the connections describing the instances to release.
   *@param connectors are the connector instances to release.
   */
   @Override
-  public void releaseMultiple(IMappingConnector[] connectors)
+  public void releaseMultiple(IMappingConnection[] connections, IMappingConnector[] connectors)
     throws ManifoldCFException
   {
-    localPool.releaseMultiple(connectors);
+    String[] connectionNames = new String[connections.length];
+    for (int i = 0; i < connections.length; i++)
+    {
+      connectionNames[i] = connections[i].getName();
+    }
+    localPool.releaseMultiple(threadContext, connectionNames, connectors);
   }
 
   /** Release a mapping connector.
+  *@param connection is the connection describing the instance to release.
   *@param connector is the connector to release.
   */
   @Override
-  public void release(IMappingConnector connector)
+  public void release(IMappingConnection connection, IMappingConnector connector)
     throws ManifoldCFException
   {
-    localPool.release(connector);
+    localPool.release(threadContext, connection.getName(), connector);
   }
 
   /** Idle notification for inactive mapping connector handles.
@@ -140,6 +150,7 @@ public class MappingConnectorPool implements IMappingConnectorPool
   {
     public LocalPool()
     {
+      super("_MAPPINGCONNECTORPOOL_");
     }
     
     @Override
@@ -150,10 +161,18 @@ public class MappingConnectorPool implements IMappingConnectorPool
       return connectorManager.isInstalled(className);
     }
 
-    public IMappingConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+    @Override
+    protected boolean isConnectionNameValid(IThreadContext tc, String connectionName)
       throws ManifoldCFException
     {
-      return grabMultiple(tc,IMappingConnector.class,orderingKeys,classNames,configInfos,maxPoolSizes);
+      IMappingConnectionManager connectionManager = MappingConnectionManagerFactory.make(tc);
+      return connectionManager.load(connectionName) != null;
+    }
+
+    public IMappingConnector[] grabMultiple(IThreadContext tc, String[] orderingKeys, String[] connectionNames, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
+      throws ManifoldCFException
+    {
+      return grabMultiple(tc,IMappingConnector.class,orderingKeys,connectionNames,classNames,configInfos,maxPoolSizes);
     }
 
   }

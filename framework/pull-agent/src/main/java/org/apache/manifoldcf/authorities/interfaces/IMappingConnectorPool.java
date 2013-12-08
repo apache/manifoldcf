@@ -47,15 +47,17 @@ public interface IMappingConnectorPool
     throws ManifoldCFException;
 
   /** Release multiple mapping connectors.
+  *@param connections are the connections describing the instances to release.
   *@param connectors are the connector instances to release.
   */
-  public void releaseMultiple(IMappingConnector[] connectors)
+  public void releaseMultiple(IMappingConnection[] connections, IMappingConnector[] connectors)
     throws ManifoldCFException;
 
   /** Release a mapping connector.
+  *@param connection is the connection describing the instance to release.
   *@param connector is the connector to release.
   */
-  public void release(IMappingConnector connector)
+  public void release(IMappingConnection connection, IMappingConnector connector)
     throws ManifoldCFException;
 
   /** Idle notification for inactive mapping connector handles.

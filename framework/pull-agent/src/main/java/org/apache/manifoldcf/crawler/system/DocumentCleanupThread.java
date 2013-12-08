@@ -249,7 +249,7 @@ public class DocumentCleanupThread extends Thread
             finally
             {
               // Free up the reserved connector instance
-              repositoryConnectorPool.release(connector);
+              repositoryConnectorPool.release(connection,connector);
             }
           }
           catch (ManifoldCFException e)

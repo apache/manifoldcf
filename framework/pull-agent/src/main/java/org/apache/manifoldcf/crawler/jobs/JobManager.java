@@ -2766,7 +2766,7 @@ public class JobManager implements IJobManager
         }
         finally
         {
-          repositoryConnectorPool.releaseMultiple(connectors);
+          repositoryConnectorPool.releaseMultiple(connections,connectors);
         }
       }
       finally
