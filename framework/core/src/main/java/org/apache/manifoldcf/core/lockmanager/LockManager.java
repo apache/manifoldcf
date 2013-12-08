@@ -69,43 +69,66 @@ public class LockManager implements ILockManager
     return lockManager.registerServiceBeginServiceActivity(serviceType, serviceName, cleanup);
   }
   
+  /** Register a service and begin service activity.
+  * This atomic operation creates a permanent registration entry for a service.
+  * If the permanent registration entry already exists, this method will not create it or
+  * treat it as an error.  This operation also enters the "active" zone for the service.  The "active" zone will remain in force until it is
+  * canceled, or until the process is interrupted.  Ideally, the corresponding endServiceActivity method will be
+  * called when the service shuts down.  Some ILockManager implementations require that this take place for
+  * proper management.
+  * If the transient registration already exists, it is treated as an error and an exception will be thrown.
+  * If registration will succeed, then this method may call an appropriate IServiceCleanup method to clean up either the
+  * current service, or all services on the cluster.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to register.  If null is passed, a transient unique service name will be
+  *    created, and will be returned to the caller.
+  *@param initialData is the initial service data for this service.
+  *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists.
+  *    May be null.  Local service cleanup is never called if the serviceName argument is null.
+  *@return the actual service name.
+  */
+  @Override
+  public String registerServiceBeginServiceActivity(String serviceType, String serviceName,
+    byte[] initialData, IServiceCleanup cleanup)
+    throws ManifoldCFException
+  {
+    return lockManager.registerServiceBeginServiceActivity(serviceType, serviceName, initialData, cleanup);
+  }
+
   /** Set service data for a service.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service.
-  *@param dataType is the type of data.
   *@param serviceData is the data to update to (may be null).
   * This updates the service's transient data (or deletes it).  If the service is not active, an exception is thrown.
   */
   @Override
-  public void updateServiceData(String serviceType, String serviceName, String dataType, byte[] serviceData)
+  public void updateServiceData(String serviceType, String serviceName, byte[] serviceData)
     throws ManifoldCFException
   {
-    lockManager.updateServiceData(serviceType, serviceName, dataType, serviceData);
+    lockManager.updateServiceData(serviceType, serviceName, serviceData);
   }
 
   /** Retrieve service data for a service.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service.
-  *@param dataType is the type of data.
   *@return the service's transient data.
   */
   @Override
-  public byte[] retrieveServiceData(String serviceType, String serviceName, String dataType)
+  public byte[] retrieveServiceData(String serviceType, String serviceName)
     throws ManifoldCFException
   {
-    return lockManager.retrieveServiceData(serviceType, serviceName, dataType);
+    return lockManager.retrieveServiceData(serviceType, serviceName);
   }
 
   /** Scan service data for a service type.  Only active service data will be considered.
   *@param serviceType is the type of service.
-  *@param dataType is the type of data.
   *@param dataAcceptor is the object that will be notified of each item of data for each service name found.
   */
   @Override
-  public void scanServiceData(String serviceType, String dataType, IServiceDataAcceptor dataAcceptor)
+  public void scanServiceData(String serviceType, IServiceDataAcceptor dataAcceptor)
     throws ManifoldCFException
   {
-    lockManager.scanServiceData(serviceType, dataType, dataAcceptor);
+    lockManager.scanServiceData(serviceType, dataAcceptor);
   }
 
   /** Clean up any inactive services found.

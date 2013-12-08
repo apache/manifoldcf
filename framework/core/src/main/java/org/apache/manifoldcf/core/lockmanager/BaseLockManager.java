@@ -89,12 +89,11 @@ public class BaseLockManager implements ILockManager
   protected final static String activePrefix = "_ACTIVE_";
   /** A data name prefix, followed by the service type, and then followed by "_" and the service name and "_" and the datatype */
   protected final static String serviceDataPrefix = "_SERVICEDATA_";
-  /** A data name prefix, followed by the service type, and then followed by "_" and the service name, finally by "_" and the instance number */
-  protected final static String serviceDataListPrefix = "_SERVICEDATALIST_";
   /** Anonymous service name prefix, to be followed by an integer */
   protected final static String anonymousServiceNamePrefix = "_ANON_";
   /** Anonymous global variable name prefix, to be followed by the service type */
   protected final static String anonymousServiceTypeCounter = "_SERVICECOUNTER_";
+  
   
   /** Register a service and begin service activity.
   * This atomic operation creates a permanent registration entry for a service.
@@ -116,6 +115,32 @@ public class BaseLockManager implements ILockManager
   @Override
   public String registerServiceBeginServiceActivity(String serviceType, String serviceName,
     IServiceCleanup cleanup)
+    throws ManifoldCFException
+  {
+    return registerServiceBeginServiceActivity(serviceType, serviceName, null, cleanup);
+  }
+
+  /** Register a service and begin service activity.
+  * This atomic operation creates a permanent registration entry for a service.
+  * If the permanent registration entry already exists, this method will not create it or
+  * treat it as an error.  This operation also enters the "active" zone for the service.  The "active" zone will remain in force until it is
+  * canceled, or until the process is interrupted.  Ideally, the corresponding endServiceActivity method will be
+  * called when the service shuts down.  Some ILockManager implementations require that this take place for
+  * proper management.
+  * If the transient registration already exists, it is treated as an error and an exception will be thrown.
+  * If registration will succeed, then this method may call an appropriate IServiceCleanup method to clean up either the
+  * current service, or all services on the cluster.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to register.  If null is passed, a transient unique service name will be
+  *    created, and will be returned to the caller.
+  *@param initialData is the initial service data for this service.
+  *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists.
+  *    May be null.  Local service cleanup is never called if the serviceName argument is null.
+  *@return the actual service name.
+  */
+  @Override
+  public String registerServiceBeginServiceActivity(String serviceType, String serviceName,
+    byte[] initialData, IServiceCleanup cleanup)
     throws ManifoldCFException
   {
     String serviceTypeLockName = buildServiceTypeLockName(serviceType);
@@ -213,6 +238,8 @@ public class BaseLockManager implements ILockManager
 
       // Last, set the appropriate active flag
       setGlobalFlag(serviceActiveFlag);
+      writeServiceData(serviceType, serviceName, initialData);
+
       return serviceName;
     }
     finally
@@ -224,12 +251,11 @@ public class BaseLockManager implements ILockManager
   /** Set service data for a service.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service.
-  *@param dataType is the type of data.
   *@param serviceData is the data to update to (may be null).
   * This updates the service's transient data (or deletes it).  If the service is not active, an exception is thrown.
   */
   @Override
-  public void updateServiceData(String serviceType, String serviceName, String dataType, byte[] serviceData)
+  public void updateServiceData(String serviceType, String serviceName, byte[] serviceData)
     throws ManifoldCFException
   {
     String serviceTypeLockName = buildServiceTypeLockName(serviceType);
@@ -239,23 +265,7 @@ public class BaseLockManager implements ILockManager
       String serviceActiveFlag = makeActiveServiceFlagName(serviceType, serviceName);
       if (!checkGlobalFlag(serviceActiveFlag))
         throw new ManifoldCFException("Service '"+serviceName+"' of type '"+serviceType+"' is not active");
-      // This implementation is pretty lame - need to replace it with something which doesn't degrade with the
-      // number of data types being used, since they'll be a data type for each connection name.
-      // MHL
-      int i = 0;
-      while (true)
-      {
-        String dataTypeCandidate = readDataType(serviceType, serviceName, i);
-        if (dataTypeCandidate == null)
-        {
-          writeDataType(serviceType, serviceName, i, dataType);
-          break;
-        }
-        if (dataTypeCandidate.equals(dataType))
-          break;
-        i++;
-      }
-      writeServiceData(serviceType, serviceName, dataType, serviceData);
+      writeServiceData(serviceType, serviceName, serviceData);
     }
     finally
     {
@@ -266,11 +276,10 @@ public class BaseLockManager implements ILockManager
   /** Retrieve service data for a service.
   *@param serviceType is the type of service.
   *@param serviceName is the name of the service.
-  *@param dataType is the type of data.
   *@return the service's transient data.
   */
   @Override
-  public byte[] retrieveServiceData(String serviceType, String serviceName, String dataType)
+  public byte[] retrieveServiceData(String serviceType, String serviceName)
     throws ManifoldCFException
   {
     String serviceTypeLockName = buildServiceTypeLockName(serviceType);
@@ -280,7 +289,7 @@ public class BaseLockManager implements ILockManager
       String serviceActiveFlag = makeActiveServiceFlagName(serviceType, serviceName);
       if (!checkGlobalFlag(serviceActiveFlag))
         return null;
-      byte[] rval = readServiceData(serviceType, serviceName, dataType);
+      byte[] rval = readServiceData(serviceType, serviceName);
       if (rval == null)
         rval = new byte[0];
       return rval;
@@ -297,7 +306,7 @@ public class BaseLockManager implements ILockManager
   *@param dataAcceptor is the object that will be notified of each item of data for each service name found.
   */
   @Override
-  public void scanServiceData(String serviceType, String dataType, IServiceDataAcceptor dataAcceptor)
+  public void scanServiceData(String serviceType, IServiceDataAcceptor dataAcceptor)
     throws ManifoldCFException
   {
     String serviceTypeLockName = buildServiceTypeLockName(serviceType);
@@ -313,7 +322,7 @@ public class BaseLockManager implements ILockManager
           break;
         if (checkGlobalFlag(makeActiveServiceFlagName(serviceType, x)))
         {
-          byte[] serviceData = readServiceData(serviceType, x, dataType);
+          byte[] serviceData = readServiceData(serviceType, x);
           if (dataAcceptor.acceptServiceData(x, serviceData))
             break;
         }
@@ -522,82 +531,27 @@ public class BaseLockManager implements ILockManager
     writeData(serviceCounterName,serviceCounterData);
   }
   
-  protected void writeServiceData(String serviceType, String serviceName, String dataType, byte[] serviceData)
+  protected void writeServiceData(String serviceType, String serviceName, byte[] serviceData)
     throws ManifoldCFException
   {
-    writeData(makeServiceDataName(serviceType, serviceName, dataType), serviceData);
+    writeData(makeServiceDataName(serviceType, serviceName), serviceData);
   }
   
-  protected byte[] readServiceData(String serviceType, String serviceName, String dataType)
+  protected byte[] readServiceData(String serviceType, String serviceName)
     throws ManifoldCFException
   {
-    return readData(makeServiceDataName(serviceType, serviceName, dataType));
+    return readData(makeServiceDataName(serviceType, serviceName));
   }
   
   protected void deleteServiceData(String serviceType, String serviceName)
     throws ManifoldCFException
   {
-    List<String> dataTypes = new ArrayList<String>();
-    int i = 0;
-    while (true)
-    {
-      String dataType = readDataType(serviceType, serviceName, i);
-      if (dataType == null)
-        break;
-      dataTypes.add(dataType);
-      i++;
-    }
-    for (String dataType : dataTypes)
-    {
-      writeServiceData(serviceType, serviceName, dataType, null);
-    }
-    while (i > 0)
-    {
-      i--;
-      writeDataType(serviceType, serviceName, i, null);
-    }
+    writeServiceData(serviceType, serviceName, null);
   }
   
-  protected String readDataType(String serviceType, String serviceName, int i)
-    throws ManifoldCFException
+  protected static String makeServiceDataName(String serviceType, String serviceName)
   {
-    String listEntry = buildServiceDataListEntry(serviceType, serviceName, i);
-    byte[] data = readData(listEntry);
-    if (data == null)
-      return null;
-    try
-    {
-      return new String(data, "utf-8");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new RuntimeException("utf-8 not supported");
-    }
-  }
-  
-  protected void writeDataType(String serviceType, String serviceName, int i, String dataType)
-    throws ManifoldCFException
-  {
-    String listEntry = buildServiceDataListEntry(serviceType, serviceName, i);
-    if (dataType == null)
-      writeData(listEntry, null);
-    else
-    {
-      try
-      {
-        byte[] data = dataType.getBytes("utf-8");
-        writeData(listEntry,data);
-      }
-      catch (UnsupportedEncodingException e)
-      {
-        throw new RuntimeException("utf-8 not supported");
-      }
-    }
-  }
-  
-  protected static String makeServiceDataName(String serviceType, String serviceName, String dataType)
-  {
-    return serviceDataPrefix + serviceType + "_" + serviceName + "_" + dataType;
+    return serviceDataPrefix + serviceType + "_" + serviceName;
   }
   
   protected static String makeActiveServiceFlagName(String serviceType, String serviceName)
@@ -644,11 +598,6 @@ public class BaseLockManager implements ILockManager
     return serviceListPrefix + serviceType + "_" + i;
   }
 
-  protected static String buildServiceDataListEntry(String serviceType, String serviceName, int i)
-  {
-    return serviceDataListPrefix + serviceType + "_" + serviceName + "_" + i;
-  }
-  
   protected static String buildServiceTypeLockName(String serviceType)
   {
     return serviceTypeLockPrefix + serviceType;

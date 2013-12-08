@@ -47,45 +47,9 @@ public abstract class ConnectorPool<T extends IConnector>
   // "data type" name - only in the local pool will we pay any attention to config info and class name, and flush those handles
   // that get returned that have the wrong info attached.
 
-  // Gating whether a connector instance should be created occurs when someone tries to grab a connector instance.
-  // When it comes time to get a handle in the local pool, there are two situations:
-  // (1) We know that the handle is available locally.
-  // (2) The handle is not available locally, but may be available globally.
-  // In case (2), we wait until the allocated global handle count is less than the maximum, and only then do we grab a handle
-  // (incrementing the service counter when we do that).  This requires polling - but we will poll relatively infrequently.
-
-  // Determining how many connections THIS pool instance should hold on to locally is done at the time a connector
-  // instance is freed.  A decision is made whether to discard the instance (or another that we're keeping around),
-  // or keep it.  The main factors that go into that decision are the following:
-  // - Are we in excess of the local fixed quota?
-  // - Are we in excess of the local transient quota?
-  // The quotas are determined at polling time (?).  The transient quota is calculated by each instance, and uses the
-  // following information: (a) how many registered services are there; (b) how many total handles are allowed; (c)
-  // how many handles are actually connected at the time for each of services.  The goal is to apportion handles to the
-  // services that are actually using them; this can change dynamically over time.
+  /** Target calc lock prefix */
+  protected final static String targetCalcLockPrefix = "_POOLTARGET_";
   
-  // Two numbers each service posts: "in-use" and "target".  At no time does a service *ever* post either a "target"
-  // that, together with all other active service targets, is in excess of the max.  Also, at no time a service post
-  // a target that, when added to the other "in-use" values, exceeds the max.  If the "in-use" values everywhere else
-  // already equal or exceed the max, then the target will be zero.
-  // The target quota is calculated as follows:
-  // (1) Target is summed, excluding ours.  This is GlobalTarget.
-  // (2) In-use is summed, excluding ours.  This is GlobalInUse.
-  // (3) Our MaximumTarget is computed, which is Maximum - GlobalTarget or Maximum - GlobalInUse, whichever is
-  //     smaller, but never less than zero.
-  // (4) Our FairTarget is computed.  The FairTarget divides the Maximum by the number of services, and adds
-  //     1 randomly based on the remainder.
-  // (5) We compute OptimalTarget as follows: We start with current local target.  If current local target
-  //    exceeds current local in-use count, we adjust OptimalTarget downward by one.  Otherwise we increase it
-  //    by one.
-  // (6) Finally, we compute Target by taking the minimum of MaximumTarget, FairTarget, and OptimalTarget.
-  
-  /** Target data name */
-  protected final String targetDataType = "target";
-  
-  /** In-use data name */
-  protected final String inUseDataType = "in-use";
-
   /** Service type prefix */
   protected final String serviceTypePrefix;
 
@@ -266,24 +230,32 @@ public abstract class ConnectorPool<T extends IConnector>
     // We want to get handles off the pool and use them.  But the
     // handles we fetch have to have the right config information.
 
-    Pool p;
-    synchronized (poolHash)
+    // Loop until we successfully get a connector.  This is necessary because the
+    // pool may vanish because it has been closed.
+    while (true)
     {
-      p = poolHash.get(connectionName);
-      if (p == null)
+      Pool p;
+      synchronized (poolHash)
       {
-        p = new Pool(threadContext, maxPoolSize, connectionName);
-        poolHash.put(connectionName,p);
+        p = poolHash.get(connectionName);
+        if (p == null)
+        {
+          p = new Pool(threadContext, maxPoolSize, connectionName);
+          poolHash.put(connectionName,p);
+          // Do an initial poll right away, so we don't have to wait 5 seconds to 
+          // get a connector instance unless they're already all in use.
+          p.pollAll(threadContext);
+        }
+        else
+        {
+          p.updateMaximumPoolSize(threadContext, maxPoolSize);
+        }
       }
-      else
-      {
-        p.updateMaximumPoolSize(threadContext, maxPoolSize);
-      }
+
+      T rval = p.getConnector(threadContext,className,configInfo);
+      if (rval != null)
+        return rval;
     }
-
-    T rval = p.getConnector(threadContext,className,configInfo);
-
-    return rval;
 
   }
 
@@ -393,6 +365,7 @@ public abstract class ConnectorPool<T extends IConnector>
       {
         Pool p = iter.next();
         p.releaseAll(threadContext);
+        iter.remove();
       }
     }
   }
@@ -404,11 +377,16 @@ public abstract class ConnectorPool<T extends IConnector>
     return serviceTypePrefix + connectionName;
   }
   
+  protected String buildTargetCalcLockName(String connectionName)
+  {
+    return targetCalcLockPrefix + serviceTypePrefix + connectionName;
+  }
+  
   /** This class represents a value in the pool hash, which corresponds to a given key.
   */
   protected class Pool
   {
-    /** Whether the pool has been shut down or not */
+    /** Whether this pool is alive */
     protected boolean isAlive = true;
     /** The global maximum for this pool */
     protected int globalMax;
@@ -416,6 +394,8 @@ public abstract class ConnectorPool<T extends IConnector>
     protected final String serviceTypeName;
     /** The (anonymous) service name */
     protected final String serviceName;
+    /** The target calculation lock name */
+    protected final String targetCalcLockName;
     /** Place where we keep unused connector instances */
     protected final List<T> stack = new ArrayList<T>();
     /** The number of local instances we can currently pass out to requesting threads.  Initially zero until pool is apportioned */
@@ -431,6 +411,7 @@ public abstract class ConnectorPool<T extends IConnector>
       throws ManifoldCFException
     {
       this.globalMax = maxCount;
+      this.targetCalcLockName = buildTargetCalcLockName(connectionName);
       this.serviceTypeName = buildServiceTypeName(connectionName);
       // Now, register and activate service anonymously, and record the service name we get.
       ILockManager lockManager = LockManagerFactory.make(threadContext);
@@ -458,7 +439,7 @@ public abstract class ConnectorPool<T extends IConnector>
     {
       // numFree represents the number of available connector instances that have not been given out at this moment.
       // So it's the max minus the pool count minus the number in use.
-      while (numFree <= 0)
+      while (isAlive && numFree <= 0)
       {
         try
         {
@@ -469,7 +450,9 @@ public abstract class ConnectorPool<T extends IConnector>
           throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
       }
-
+      if (!isAlive)
+        return null;
+      
       // We decrement numFree when we hand out a connector instance; we increment numFree when we
       // throw away a connector instance from the pool.
       while (true)
@@ -582,86 +565,90 @@ public abstract class ConnectorPool<T extends IConnector>
       //    by one.
       // (6) Finally, we compute Target by taking the minimum of MaximumTarget, FairTarget, and OptimalTarget.
 
-      System.out.println("In pollAll for "+serviceTypeName+" "+serviceName);
-      if (!isAlive)
-        return;
-
-      System.out.println("Is alive in pollAll for "+serviceTypeName+" "+serviceName);
-
       ILockManager lockManager = LockManagerFactory.make(threadContext);
-
-      int numServices = lockManager.countActiveServices(serviceTypeName);
-      if (numServices == 0)
-        // Should never happen, but if it does just give up.
-        return;
-      
-      System.out.println("Has active services in pollAll for "+serviceTypeName+" "+serviceName);
-
-      // Compute MaximumTarget
-      int globalTarget = computeGlobalSum(lockManager, targetDataType);
-      int globalInUse = computeGlobalSum(lockManager, inUseDataType);
-      int maximumTarget = globalMax - globalTarget;
-      if (maximumTarget > globalMax - globalInUse)
-        maximumTarget = globalMax - globalInUse;
-      if (maximumTarget < 0)
-        maximumTarget = 0;
-      
-      // Compute FairTarget
-      int fairTarget = globalMax / numServices;
-      int remainder = globalMax % numServices;
-      // Randomly choose whether we get an addition to the FairTarget
-      if (randomNumberGenerator.nextInt(numServices) <= remainder)
-        fairTarget++;
-      
-      // Compute OptimalTarget (and poll connectors while we are at it)
-      int localInUse = localMax - numFree;      // These are the connectors that have been handed out
-      for (T rc : stack)
+      lockManager.enterWriteLock(targetCalcLockName);
+      try
       {
-        // Notify
-        rc.setThreadContext(threadContext);
-        try
+        // Compute MaximumTarget
+        SumClass sumClass = new SumClass(serviceName);
+        lockManager.scanServiceData(serviceTypeName, sumClass);
+        int numServices = sumClass.getNumServices();
+        if (numServices == 0)
+          return;
+        int globalTarget = sumClass.getGlobalTarget();
+        int globalInUse = sumClass.getGlobalInUse();
+        int maximumTarget = globalMax - globalTarget;
+        if (maximumTarget > globalMax - globalInUse)
+          maximumTarget = globalMax - globalInUse;
+        if (maximumTarget < 0)
+          maximumTarget = 0;
+        
+        // Compute FairTarget
+        int fairTarget = globalMax / numServices;
+        int remainder = globalMax % numServices;
+        // Randomly choose whether we get an addition to the FairTarget
+        if (randomNumberGenerator.nextInt(numServices) < remainder)
+          fairTarget++;
+        
+        // Compute OptimalTarget (and poll connectors while we are at it)
+        int localInUse = localMax - numFree;      // These are the connectors that have been handed out
+        for (T rc : stack)
         {
-          rc.poll();
-          if (rc.isConnected())
-            localInUse++;       // Count every pooled connector that is still connected
+          // Notify
+          rc.setThreadContext(threadContext);
+          try
+          {
+            rc.poll();
+            if (rc.isConnected())
+              localInUse++;       // Count every pooled connector that is still connected
+          }
+          finally
+          {
+            rc.clearThreadContext();
+          }
         }
-        finally
+        int optimalTarget = localMax;
+        if (localMax > localInUse)
+          optimalTarget--;
+        else
         {
-          rc.clearThreadContext();
+          // We want a fast ramp up, so make this proportional to globalMax
+          int increment = globalMax >> 2;
+          if (increment < 0)
+            increment = 1;
+          optimalTarget += increment;
         }
+        
+        // Now compute actual target
+        int target = maximumTarget;
+        if (target > fairTarget)
+          target = fairTarget;
+        if (target > optimalTarget)
+          target = optimalTarget;
+        
+        // Write these values to the service data variables.
+        // NOTE that there is a race condition here; the target value depends on all the calculations above being accurate, and not changing out from under us.
+        // So, that's why we have a write lock around the pool calculations.
+        
+        lockManager.updateServiceData(serviceTypeName, serviceName, pack(target, localInUse));
+        
+        // Now, update our localMax
+        if (target == localMax)
+          return;
+        // Compute the number of instances in use locally
+        localInUse = localMax - numFree;
+        localMax = target;
+        // numFree may turn out to be negative here!!  That's okay; we'll just free released connectors
+        // until we enter positive territory again.
+        numFree = localMax - localInUse;
+        notifyAll();
       }
-      int optimalTarget = localMax;
-      if (localMax > localInUse)
-        optimalTarget--;
-      else
-        optimalTarget++;
-      
-      // Now compute actual target
-      int target = maximumTarget;
-      if (target > fairTarget)
-        target = fairTarget;
-      if (target > optimalTarget)
-        target = optimalTarget;
-      
-      System.out.println("Max target: "+maximumTarget+"; fair target: "+fairTarget+"; optimal target: "+optimalTarget+"; localInUse: "+localInUse);
-      
-      // Write these values to the service data variables
-      // NOTE that these can be combined to one, for significant efficiencies MHL
-      lockManager.updateServiceData(serviceTypeName, serviceName, inUseDataType, packInt(localInUse));
-      lockManager.updateServiceData(serviceTypeName, serviceName, targetDataType, packInt(target));
-      
-      // Now, update our localMax
-      changeLocalMaxValue(target);
+      finally
+      {
+        lockManager.leaveWriteLock(targetCalcLockName);
+      }
     }
 
-    protected int computeGlobalSum(ILockManager lockManager, String dataType)
-      throws ManifoldCFException
-    {
-      SumClass sumClass = new SumClass(serviceName);
-      lockManager.scanServiceData(serviceTypeName, dataType, sumClass);
-      return sumClass.getSum();
-    }
-    
     /** Flush unused connectors.
     */
     public synchronized void flushUnused(IThreadContext threadContext)
@@ -689,32 +676,12 @@ public abstract class ConnectorPool<T extends IConnector>
       throws ManifoldCFException
     {
       flushUnused(threadContext);
-      System.out.println("ENDING SERVICE ACTIVITY!! for "+serviceTypeName+" "+serviceName);
-      new Exception("Bad stuff").printStackTrace();
       
       // End service activity
       isAlive = false;
+      notifyAll();
       ILockManager lockManager = LockManagerFactory.make(threadContext);
       lockManager.endServiceActivity(serviceTypeName, serviceName);
-    }
-
-    // Protected methods
-
-    /** Change the localMax value.
-    *@param newLocalMax is the new local max value.
-    */
-    protected synchronized void changeLocalMaxValue(int newLocalMax)
-    {
-      if (newLocalMax == localMax)
-        return;
-      System.out.println("Changing local max for "+serviceTypeName+" "+serviceName+" to "+newLocalMax);
-      // Compute the number of instances in use locally
-      int localInUse = localMax - numFree;
-      localMax = newLocalMax;
-      // numFree may turn out to be negative here!!  That's okay; we'll just free released connectors
-      // until we enter positive territory again.
-      numFree = localMax - localInUse;
-      notifyAll();
     }
 
   }
@@ -722,7 +689,9 @@ public abstract class ConnectorPool<T extends IConnector>
   protected static class SumClass implements IServiceDataAcceptor
   {
     protected final String serviceName;
-    protected int tally = 0;
+    protected int numServices = 0;
+    protected int globalTargetTally = 0;
+    protected int globalInUseTally = 0;
     
     public SumClass(String serviceName)
     {
@@ -733,34 +702,64 @@ public abstract class ConnectorPool<T extends IConnector>
     public boolean acceptServiceData(String serviceName, byte[] serviceData)
       throws ManifoldCFException
     {
+      numServices++;
+
       if (!serviceName.equals(this.serviceName))
-        tally += unpackInt(serviceData);
+      {
+        globalTargetTally += unpackTarget(serviceData);
+        globalInUseTally += unpackInUse(serviceData);
+      }
       return false;
     }
 
-    public int getSum()
+    public int getNumServices()
     {
-      return tally;
+      return numServices;
     }
+    
+    public int getGlobalTarget()
+    {
+      return globalTargetTally;
+    }
+    
+    public int getGlobalInUse()
+    {
+      return globalInUseTally;
+    }
+    
   }
   
-  protected static int unpackInt(byte[] data)
+  protected static int unpackTarget(byte[] data)
   {
-    if (data == null || data.length != 4)
+    if (data == null || data.length != 8)
       return 0;
     return ((int)data[0]) & 0xff +
       (((int)data[1]) >> 8) & 0xff +
       (((int)data[2]) >> 16) & 0xff +
       (((int)data[3]) >> 24) & 0xff;
   }
-  
-  protected static byte[] packInt(int value)
+
+  protected static int unpackInUse(byte[] data)
   {
-    byte[] rval = new byte[4];
-    rval[0] = (byte)(value & 0xff);
-    rval[1] = (byte)((value >> 8) & 0xff);
-    rval[2] = (byte)((value >> 16) & 0xff);
-    rval[3] = (byte)((value >> 24) & 0xff);
+    if (data == null || data.length != 8)
+      return 0;
+    return ((int)data[4]) & 0xff +
+      (((int)data[5]) >> 8) & 0xff +
+      (((int)data[6]) >> 16) & 0xff +
+      (((int)data[7]) >> 24) & 0xff;
+  }
+
+  protected static byte[] pack(int target, int inUse)
+  {
+    byte[] rval = new byte[8];
+    rval[0] = (byte)(target & 0xff);
+    rval[1] = (byte)((target >> 8) & 0xff);
+    rval[2] = (byte)((target >> 16) & 0xff);
+    rval[3] = (byte)((target >> 24) & 0xff);
+    rval[4] = (byte)(inUse & 0xff);
+    rval[5] = (byte)((inUse >> 8) & 0xff);
+    rval[6] = (byte)((inUse >> 16) & 0xff);
+    rval[7] = (byte)((inUse >> 24) & 0xff);
     return rval;
   }
   

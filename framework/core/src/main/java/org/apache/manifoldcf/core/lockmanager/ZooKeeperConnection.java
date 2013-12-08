@@ -106,16 +106,15 @@ public class ZooKeeperConnection
   *@param nodePath is the path of the node.
   *@return the data, if the node if exists, otherwise null.
   */
-  public byte[] getNodeData(String nodePath, String childName)
+  public byte[] getNodeData(String nodePath)
     throws ManifoldCFException, InterruptedException
   {
     try
     {
-      String combinedPath = nodePath + "/" + childName;
-      Stat s = zookeeper.exists(combinedPath,false);
+      Stat s = zookeeper.exists(nodePath,false);
       if (s == null)
         return null;
-      return zookeeper.getData(combinedPath,false,s);
+      return zookeeper.getData(nodePath,false,s);
     }
     catch (KeeperException e)
     {
@@ -125,39 +124,12 @@ public class ZooKeeperConnection
   
   /** Set node data.
   */
-  public void setNodeData(String nodePath, String childName, byte[] data)
+  public void setNodeData(String nodePath, byte[] data)
     throws ManifoldCFException, InterruptedException
   {
     try
     {
-      String combinedPath = nodePath + "/" + childName;
-      while (true)
-      {
-        try
-        {
-          zookeeper.setData(combinedPath, data, -1);
-          return;
-        }
-        catch (KeeperException.NoNodeException e1)
-        {
-          // Create parent unless it already exists
-          try
-          {
-            zookeeper.create(combinedPath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-            return;
-          }
-          catch (KeeperException.NoNodeException e)
-          {
-            try
-            {
-              zookeeper.create(nodePath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-            }
-            catch (KeeperException.NodeExistsException e2)
-            {
-            }
-          }
-        }
-      }
+      zookeeper.setData(nodePath, data, -1);
     }
     catch (KeeperException e)
     {
