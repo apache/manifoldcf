@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-831: Refactor ReprioritizationTracker so that it uses
+the interface/factory paradigm.
+(Karl Wright)
+
 CONNECTORS-830: Stuffer thread throttling now works globally, not
 just locally.
 (Karl Wright)

@@ -37,7 +37,7 @@ public class PriorityCalculator implements IPriorityCalculator
 
   protected final IRepositoryConnection connection;
   protected final String[] binNames;
-  protected final ReprioritizationTracker rt;
+  protected final IReprioritizationTracker rt;
   
   protected final double[] binCountScaleFactors;
   protected final double[] weightedMinimumDepths;
@@ -45,7 +45,7 @@ public class PriorityCalculator implements IPriorityCalculator
   protected Double cachedValue = null;
   
   /** Constructor. */
-  public PriorityCalculator(ReprioritizationTracker rt, IRepositoryConnection connection, String[] documentBins)
+  public PriorityCalculator(IReprioritizationTracker rt, IRepositoryConnection connection, String[] documentBins)
     throws ManifoldCFException
   {
     this.connection = connection;

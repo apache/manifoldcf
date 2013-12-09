@@ -40,7 +40,7 @@ public class SeedingActivity implements ISeedingActivity
   protected final String connectionName;
   protected final IRepositoryConnectionManager connManager;
   protected final IJobManager jobManager;
-  protected final ReprioritizationTracker rt;
+  protected final IReprioritizationTracker rt;
   protected final IRepositoryConnection connection;
   protected final IRepositoryConnector connector;
   protected final Long jobID;
@@ -59,7 +59,7 @@ public class SeedingActivity implements ISeedingActivity
   */
   public SeedingActivity(String connectionName, IRepositoryConnectionManager connManager,
     IJobManager jobManager,
-    ReprioritizationTracker rt, IRepositoryConnection connection, IRepositoryConnector connector,
+    IReprioritizationTracker rt, IRepositoryConnection connection, IRepositoryConnector connector,
     Long jobID, String[] legalLinkTypes, boolean overrideSchedule, int hopcountMethod, String processID)
   {
     this.processID = processID;

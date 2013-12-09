@@ -16,11 +16,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.system;
+package org.apache.manifoldcf.crawler.reprioritizationtracker;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
+import org.apache.manifoldcf.crawler.system.Logging;
 import java.util.*;
 import java.io.*;
 
@@ -29,7 +30,7 @@ import java.io.*;
 * and are completed if those processes die by the threads that clean up
 * after the original process.
 */
-public class ReprioritizationTracker
+public class ReprioritizationTracker implements IReprioritizationTracker
 {
   public static final String _rcsid = "@(#)$Id$";
 
@@ -63,6 +64,7 @@ public class ReprioritizationTracker
   * to complete.
   *@param reproID is the reprocessing thread ID
   */
+  @Override
   public void startReprioritization(long prioritizationTime, String processID, String reproID)
     throws ManifoldCFException
   {
@@ -111,6 +113,7 @@ public class ReprioritizationTracker
   * performing any prioritization steps.
   *@return the current prioritization timestamp, or null if no prioritization is in effect.
   */
+  @Override
   public Long checkReprioritizationInProgress()
     throws ManifoldCFException
   {
@@ -134,6 +137,7 @@ public class ReprioritizationTracker
   * only if the processID matches the one that started the current reprioritization.
   *@param processID is the process ID of the process completing the prioritization.
   */
+  @Override
   public void doneReprioritization(String reproID)
     throws ManifoldCFException
   {
@@ -161,6 +165,7 @@ public class ReprioritizationTracker
   *@param processID is the process ID to check.
   *@return the repro ID if the processID is confirmed to be the one.
   */
+  @Override
   public String isSpecifiedProcessReprioritizing(String processID)
     throws ManifoldCFException
   {
@@ -187,6 +192,7 @@ public class ReprioritizationTracker
   * adequately met.
   *@param binNamesSet is the current set of priorities we see on the queuing operation.
   */
+  @Override
   public void assessMinimumDepth(Double[] binNamesSet)
     throws ManifoldCFException
   {
@@ -238,6 +244,7 @@ public class ReprioritizationTracker
   /** Retrieve current minimum depth.
   *@return the current minimum depth to use.
   */
+  @Override
   public double getMinimumDepth()
     throws ManifoldCFException
   {
@@ -254,6 +261,7 @@ public class ReprioritizationTracker
   
   /** Note preload amounts.
   */
+  @Override
   public void addPreloadRequest(String binName, double weightedMinimumDepth)
   {
     PreloadRequest pr = preloadRequests.get(binName);
@@ -269,6 +277,7 @@ public class ReprioritizationTracker
   
   /** Preload bin values.  Call this OUTSIDE of a transaction.
   */
+  @Override
   public void preloadBinValues()
     throws ManifoldCFException
   {
@@ -284,6 +293,7 @@ public class ReprioritizationTracker
   
   /** Clear any preload requests.
   */
+  @Override
   public void clearPreloadRequests()
   {
     preloadRequests.clear();
@@ -291,6 +301,7 @@ public class ReprioritizationTracker
   
   /** Clear remaining preloaded values.
   */
+  @Override
   public void clearPreloadedValues()
   {
     preloadedValues.clear();
@@ -301,6 +312,7 @@ public class ReprioritizationTracker
   *@param weightedMinimumDepth is the minimum depth to use.
   *@return the bin value.
   */
+  @Override
   public double getIncrementBinValue(String binName, double weightedMinimumDepth)
     throws ManifoldCFException
   {

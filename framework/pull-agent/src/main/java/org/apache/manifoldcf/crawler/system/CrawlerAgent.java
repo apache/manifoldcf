@@ -169,7 +169,7 @@ public class CrawlerAgent implements IAgent
   {
     IJobManager jobManager = JobManagerFactory.make(threadContext);
     jobManager.cleanupProcessData(cleanupProcessID);
-    ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
+    IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
     String reproID = rt.isSpecifiedProcessReprioritizing(cleanupProcessID);
     if (reproID != null)
     {
@@ -204,7 +204,7 @@ public class CrawlerAgent implements IAgent
           break;
 
         // Calculate new priorities for all these documents
-        ManifoldCF.writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,rt,updateTime);
+        ManifoldCF.writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,updateTime);
 
         Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
       }

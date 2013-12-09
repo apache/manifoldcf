@@ -77,7 +77,7 @@ public class WorkerThread extends Thread
       IBinManager binManager = BinManagerFactory.make(threadContext);
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
       IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(threadContext);
-      ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
+      IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
       
@@ -981,7 +981,7 @@ public class WorkerThread extends Thread
     List<QueuedDocument> hopcountremoveList,
     IIncrementalIngester ingester,
     Long jobID, String[] legalLinkTypes, OutputActivity ingestLogger,
-    int hopcountMethod, ReprioritizationTracker rt, long currentTime)
+    int hopcountMethod, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // Remove from index
@@ -1003,7 +1003,7 @@ public class WorkerThread extends Thread
     List<QueuedDocument> deleteList,
     IIncrementalIngester ingester,
     Long jobID, String[] legalLinkTypes, OutputActivity ingestLogger,
-    int hopcountMethod, ReprioritizationTracker rt, long currentTime)
+    int hopcountMethod, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // Remove from index
@@ -1090,7 +1090,7 @@ public class WorkerThread extends Thread
   */
   protected static void processJobQueueDeletions(List<QueuedDocument> jobmanagerDeleteList,
     IRepositoryConnector connector, IRepositoryConnection connection, IJobManager jobManager,
-    Long jobID, String[] legalLinkTypes, int hopcountMethod, ReprioritizationTracker rt, long currentTime)
+    Long jobID, String[] legalLinkTypes, int hopcountMethod, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // Now, do the document queue cleanup for deletions.
@@ -1123,7 +1123,7 @@ public class WorkerThread extends Thread
   */
   protected static void processJobQueueHopcountRemovals(List<QueuedDocument> jobmanagerRemovalList,
     IRepositoryConnector connector, IRepositoryConnection connection, IJobManager jobManager,
-    Long jobID, String[] legalLinkTypes, int hopcountMethod, ReprioritizationTracker rt, long currentTime)
+    Long jobID, String[] legalLinkTypes, int hopcountMethod, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // Now, do the document queue cleanup for deletions.
@@ -1446,7 +1446,7 @@ public class WorkerThread extends Thread
     protected final IRepositoryConnectionManager connMgr;
     protected final String[] legalLinkTypes;
     protected final OutputActivity ingestLogger;
-    protected final ReprioritizationTracker rt;
+    protected final IReprioritizationTracker rt;
     protected final HashMap abortSet;
     protected final String outputVersion;
     protected final String parameterVersion;
@@ -1468,7 +1468,7 @@ public class WorkerThread extends Thread
     *@param ingester is the ingester
     */
     public ProcessActivity(String processID, IThreadContext threadContext,
-      ReprioritizationTracker rt, IJobManager jobManager,
+      IReprioritizationTracker rt, IJobManager jobManager,
       IIncrementalIngester ingester, long currentTime,
       IJobDescription job, IRepositoryConnection connection, IRepositoryConnector connector,
       IRepositoryConnectionManager connMgr, String[] legalLinkTypes, OutputActivity ingestLogger,

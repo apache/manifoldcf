@@ -854,7 +854,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   */
   public static void requeueDocumentsDueToCarrydown(IJobManager jobManager,
     DocumentDescription[] requeueCandidates,
-    IRepositoryConnector connector, IRepositoryConnection connection, ReprioritizationTracker rt, long currentTime)
+    IRepositoryConnector connector, IRepositoryConnection connection, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // A list of document descriptions from finishDocuments() above represents those documents that may need to be requeued, for the
@@ -925,7 +925,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     ILockManager lockManager = LockManagerFactory.make(threadContext);
     IJobManager jobManager = JobManagerFactory.make(threadContext);
     IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
-    ReprioritizationTracker rt = new ReprioritizationTracker(threadContext);
+    IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
     String reproID = IDFactory.make(threadContext);
 
@@ -957,7 +957,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         break;
 
       // Calculate new priorities for all these documents
-      writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,rt,updateTime);
+      writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,updateTime);
 
       Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
     }
@@ -969,12 +969,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   */
   public static void writeDocumentPriorities(IThreadContext threadContext, DocumentDescription[] descs,
     Map<String,IRepositoryConnection> connectionMap, Map<Long,IJobDescription> jobDescriptionMap,
-    ReprioritizationTracker rt, long currentTime)
+    long currentTime)
     throws ManifoldCFException
   {
     IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
     IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
     IJobManager jobManager = JobManagerFactory.make(threadContext);
+    IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
     
     if (Logging.scheduling.isDebugEnabled())
       Logging.scheduling.debug("Reprioritizing "+Integer.toString(descs.length)+" documents");
