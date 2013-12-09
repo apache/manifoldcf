@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-832: Add example second agents process to all
+multiprocess examples.
+(Karl Wright)
+
 CONNECTORS-831: Refactor ReprioritizationTracker so that it uses
 the interface/factory paradigm.
 (Karl Wright)

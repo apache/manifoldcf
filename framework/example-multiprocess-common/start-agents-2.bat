@@ -20,7 +20,7 @@ if not exist ".\properties.xml" goto nolcfhome
 rem set MCF_HOME
 set MCF_HOME=%CD%
 rem invoke the AgentRun command
-cmd /c "processes\executecommand.bat -Dorg.apache.manifoldcf.processid=A org.apache.manifoldcf.agents.AgentRun"
+cmd /c "processes\executecommand.bat -Dorg.apache.manifoldcf.processid=B org.apache.manifoldcf.agents.AgentRun"
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.
