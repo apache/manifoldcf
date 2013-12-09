@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-795, CONNECTORS-821: Release new versions of
+Solr 3.x, Solr 4.x, ElasticSearch, and SharePoint 2010 plugins.
+(Karl Wright)
+
 CONNECTORS-832: Add example second agents process to all
 multiprocess examples.
 (Karl Wright)
