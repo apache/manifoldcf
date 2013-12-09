@@ -3411,7 +3411,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="target" value="hsqldb"/>
         </antcall>
         <copy todir="lib" file="build/download/hsqldb/lib/hsqldb.jar"/ -->
-        <antcall target="download-via-mvn">
+        <antcall target="download-via-maven">
             <param name="project-path" value="org/hsqldb"/>
             <param name="artifact-version" value="2.3.1"/>
             <param name="target" value="lib"/>
