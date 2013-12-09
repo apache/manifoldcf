@@ -734,9 +734,9 @@ public abstract class ConnectorPool<T extends IConnector>
     if (data == null || data.length != 8)
       return 0;
     return ((int)data[0]) & 0xff +
-      (((int)data[1]) >> 8) & 0xff +
-      (((int)data[2]) >> 16) & 0xff +
-      (((int)data[3]) >> 24) & 0xff;
+      (((int)data[1]) << 8) & 0xff00 +
+      (((int)data[2]) << 16) & 0xff0000 +
+      (((int)data[3]) << 24) & 0xff000000;
   }
 
   protected static int unpackInUse(byte[] data)
@@ -744,9 +744,9 @@ public abstract class ConnectorPool<T extends IConnector>
     if (data == null || data.length != 8)
       return 0;
     return ((int)data[4]) & 0xff +
-      (((int)data[5]) >> 8) & 0xff +
-      (((int)data[6]) >> 16) & 0xff +
-      (((int)data[7]) >> 24) & 0xff;
+      (((int)data[5]) << 8) & 0xff00 +
+      (((int)data[6]) << 16) & 0xff0000 +
+      (((int)data[7]) << 24) & 0xff000000;
   }
 
   protected static byte[] pack(int target, int inUse)
