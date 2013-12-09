@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-830: Stuffer thread throttling now works globally, not
+just locally.
+(Karl Wright)
+
 CONNECTORS-781: Add support for multiple agents processes.  This
 ticket involved changing much of the underlying infrastructure for
 the framework, including adding lock manager features, revamping the
