@@ -56,12 +56,36 @@ public class IdleCleanupThread extends Thread
       // Get the output connector pool handle
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
       
+      /* For HSQLDB debugging...
+      IDBInterface database = DBInterfaceFactory.make(threadContext,
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
+      */
+      
       // Loop
       while (true)
       {
         // Do another try/catch around everything in the loop
         try
         {
+          /*
+          System.out.println("+++++++++");
+          IResultSet results = database.performQuery("SELECT * FROM information_schema.system_sessions",null,null,null);
+          for (int i = 0; i < results.getRowCount(); i++)
+          {
+            IResultRow row = results.getRow(i);
+            Iterator<String> iter = row.getColumns();
+            while (iter.hasNext())
+            {
+              String columnName = iter.next();
+              System.out.println(columnName+": "+row.getValue(columnName).toString());
+            }
+            System.out.println("--------");
+          }
+          System.out.println("++++++++++");
+          */
+          
           // Do the cleanup
           outputConnectorPool.pollAllConnectors();
           cacheManager.expireObjects(System.currentTimeMillis());
