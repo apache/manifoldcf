@@ -96,6 +96,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   /** Install the incremental ingestion manager.
   */
+  @Override
   public void install()
     throws ManifoldCFException
   {
@@ -180,6 +181,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   /** Uninstall the incremental ingestion manager.
   */
+  @Override
   public void deinstall()
     throws ManifoldCFException
   {
@@ -410,6 +412,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
   *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
   */
+  @Override
   public boolean documentIngest(String outputConnectionName,
     String identifierClass, String identifierHash,
     String documentVersion,
@@ -673,6 +676,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param identifierHash is the hashed document identifier.
   *@param checkTime is the time at which the check took place, in milliseconds since epoch.
   */
+  @Override
   public void documentCheck(String outputConnectionName,
     String identifierClass, String identifierHash,
     long checkTime)
@@ -1370,6 +1374,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   * they are checked.
   *@param outputConnectionName is the name of the output connection associated with this action.
   */
+  @Override
   public void resetOutputConnection(String outputConnectionName)
     throws ManifoldCFException
   {
