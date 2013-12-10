@@ -1388,6 +1388,21 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     performUpdate(map,"WHERE "+query,list,null);
   }
 
+  /** Remove all knowledge of an output index from the system.  This is appropriate
+  * when the output index no longer exists and you wish to delete the associated job.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  */
+  @Override
+  public void removeOutputConnection(String outputConnectionName)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+      
+    performDelete("WHERE "+query,list,null);
+  }
+  
   /** Note the ingestion of a document, or the "update" of a document.
   *@param outputConnectionName is the name of the output connection.
   *@param docKey is the key string describing the document.

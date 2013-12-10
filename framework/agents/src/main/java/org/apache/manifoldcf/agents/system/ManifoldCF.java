@@ -145,6 +145,23 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     // resulting from this signal that find themselves "unchanged".
     AgentManagerFactory.noteOutputConnectionChange(threadContext,connectionName);
   }
+
+  /** Signal output connection has been deleted.
+  * This is called when the target of an output connection has been removed,
+  * therefore all associated documents were also already removed.
+  *@param threadContext is the thread context.
+  *@param connectionName is the connection name.
+  */
+  public static void signalOutputConnectionRemoved(IThreadContext threadContext, String connectionName)
+    throws ManifoldCFException
+  {
+    // Blow away the incremental ingestion table first
+    IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
+    ingester.removeOutputConnection(connectionName);
+    // Now, signal to all agents that the output connection configuration has changed.  Do this second, so that there cannot be documents
+    // resulting from this signal that find themselves "unchanged".
+    AgentManagerFactory.noteOutputConnectionChange(threadContext,connectionName);
+  }
   
   // Helper methods for API support.  These are made public so connectors can use them to implement the executeCommand method.
   

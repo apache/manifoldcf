@@ -55,6 +55,16 @@
 		}
 	}
 	
+	function RemoveAll(connectionName)
+	{
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewoutput.Thiscommandwillcause")%> '"+connectionName+"' <%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewoutput.tobeforgotten")%>"))
+		{
+			document.viewconnection.op.value="RemoveAll";
+			document.viewconnection.connname.value=connectionName;
+			document.viewconnection.submit();
+		}
+	}
+
 	//-->
 	</script>
 
@@ -163,7 +173,7 @@
 			<tr>
 				<td class="message" colspan="4">
 					<nobr><a href='<%="viewoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.Refresh")%></a>&nbsp;<a href='<%="editoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.EditThisOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.DeleteThisOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.Delete")%></a></nobr><br/>
-					<nobr><a href="javascript:void()" onclick='<%="javascript:ReingestAll(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.ReIngestAllDocumentsAssociatedWithThisOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.ReIngestAllAssociatedDocuments")%></a></nobr>
+					<nobr><a href="javascript:void()" onclick='<%="javascript:ReingestAll(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.ReIngestAllDocumentsAssociatedWithThisOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.ReIngestAllAssociatedDocuments")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:RemoveAll(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.RemoveAllDocumentsAssociatedWithThisOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.RemoveAllAssociatedDocuments")%></a></nobr>
 				</td>
 			</tr>
 		</table>

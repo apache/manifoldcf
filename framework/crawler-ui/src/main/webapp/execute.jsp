@@ -716,6 +716,28 @@
 <%
 				}
 			}
+			else if (op.equals("RemoveAll"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new ManifoldCFException("Missing connection parameter");
+					org.apache.manifoldcf.agents.system.ManifoldCF.signalOutputConnectionRemoved(threadContext,connectionName);
+%>
+					<jsp:forward page="listoutputs.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listoutputs.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
 			else
 			{
 				// Error
