@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-828: New stylesheet!  Apparently brings the
+crawler UI into the modern world.
+(Eranda Bandaranaike)
+
 CONNECTORS-827: Add a feature which removes all ingeststatus
 records for an output connection, in case that the target index
 is gone forever and is inaccessible.
