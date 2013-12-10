@@ -50,7 +50,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   @Override
   public String[] getActivitiesList()
   {
-    return new String[]{INGEST_ACTIVITY,REMOVE_ACTIVITY};
+    return new String[]{INGEST_ACTIVITY,REMOVE_ACTIVITY,JOB_COMPLETE_ACTIVITY};
   }
 
   /** Connect.
