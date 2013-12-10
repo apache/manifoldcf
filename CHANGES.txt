@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-833: Fix Null Pointer exception in LiveLink connector.
+(David Morana, Karl Wright)
+
 CONNECTORS-828: New stylesheet!  Apparently brings the
 crawler UI into the modern world.
 (Eranda Bandaranaike)
