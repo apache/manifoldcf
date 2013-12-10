@@ -35,6 +35,8 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public final static String INGEST_ACTIVITY = "document ingest";
   /** Document removal activity */
   public final static String REMOVE_ACTIVITY = "document deletion";
+  /** Job notify activity */
+  public final static String JOB_COMPLETE_ACTIVITY = "output notification";
 
   /** Constructor.
   */
@@ -153,5 +155,16 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,"OK",null);
   }
 
+  /** Notify the connector of a completed job.
+  * This is meant to allow the connector to flush any internal data structures it has been keeping around, or to tell the output repository that this
+  * is a good time to synchronize things.  It is called whenever a job is either completed or aborted.
+  *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
+  */
+  @Override
+  public void noteJobComplete(IOutputNotifyActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    activities.recordActivity(null,JOB_COMPLETE_ACTIVITY,null,"","OK",null);
+  }
 
 }
