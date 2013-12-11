@@ -72,6 +72,7 @@
         <ant dir="connectors/jcifs" target="clean"/>
         <ant dir="connectors/jdbc" target="clean"/>
         <ant dir="connectors/livelink" target="clean"/>
+		<ant dir="connectors/rabbitmq" target="clean"/>
         <ant dir="connectors/solr" target="clean"/>
         <ant dir="connectors/memex" target="clean"/>
         <ant dir="connectors/meridio" target="clean"/>
@@ -2073,6 +2074,33 @@
         </antcall>
     </target>
 
+    <target name="setup-rabbitmq-connector" depends="build-framework" if="downloaded"/>
+	
+	<target name="build-rabbitmq-connector" depends="setup-rabbitmq-connector" if="downloaded">
+        <ant dir="connectors/rabbitmq" target="build"/>
+    </target>
+
+    <target name="calculate-rabbitmq-condition" depends="build-rabbitmq-connector">
+        <available file="connectors/rabbitmq/dist/lib" type="dir" property="rabbitmq.exists"/>
+        <condition property="rabbitmq.include">
+            <and>
+                <isset property="rabbitmq.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+	
+    <target name="deliver-rabbitmq-connector" depends="calculate-rabbitmq-condition" if="rabbitmq.include">
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="rabbitmq"/>
+        </antcall>
+        <antcall target="general-add-output-connector">
+            <param name="connector-name" value="rabbitmq"/>
+            <param name="connector-label" value="RabbitMQ"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.rabbitmq.RabbitmqOutputConnector"/>
+        </antcall>
+    </target>
+	
     <target name="calculate-memex-condition" depends="build-memex-connector">
         <available file="connectors/memex/dist/lib" type="dir" property="memex.exists"/>
         <condition property="memex.include">
@@ -2998,7 +3026,7 @@
     <target name="deliver-open-connectors" depends="deliver-generic-connector,deliver-jira-connector,deliver-googledrive-connector,deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-hdfs-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
     <target name="deliver-open-connectors-doc" depends="deliver-generic-connector-doc,deliver-jira-connector-doc,deliver-googledrive-connector-doc,deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-hdfs-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
 
-    <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector"/>
+    <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector,deliver-rabbitmq-connector"/>
     <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc,deliver-elasticsearch-connector-doc"/>
     
     <target name="deliver-mapping-connectors" depends="deliver-regexp-mapper"/>
@@ -4033,6 +4061,17 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
+	<target name="download-rabbitmq-client">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+			<param name="target" value="lib"/>
+            <param name="project-path" value="com/rabbitmq"/>
+            <param name="artifact-version" value="3.1.4"/>
+            <param name="artifact-name" value="amqp-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+	
    <target name="download-google-api-client">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
@@ -4148,7 +4187,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop">
+    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-rabbitmq-client">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
@@ -4191,6 +4230,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/jcifs" target="download-dependencies"/>
         <ant dir="connectors/jdbc" target="download-dependencies"/>
         <ant dir="connectors/livelink" target="download-dependencies"/>
+		<ant dir="connectors/rabbitmq" target="download-dependencies"/>
         <ant dir="connectors/solr" target="download-dependencies"/>
         <ant dir="connectors/memex" target="download-dependencies"/>
         <ant dir="connectors/meridio" target="download-dependencies"/>
@@ -4232,6 +4272,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/jcifs" target="download-cleanup"/>
         <ant dir="connectors/jdbc" target="download-cleanup"/>
         <ant dir="connectors/livelink" target="download-cleanup"/>
+        <ant dir="connectors/rabbitmq" target="download-cleanup"/>
         <ant dir="connectors/solr" target="download-cleanup"/>
         <ant dir="connectors/memex" target="download-cleanup"/>
         <ant dir="connectors/meridio" target="download-cleanup"/>

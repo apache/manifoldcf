@@ -43,7 +43,6 @@
     <module>nullauthority</module>
     <module>nulloutput</module>
     <module>rss</module>
-    <module>sharepoint</module>
     <module>solr</module>
     <module>webcrawler</module>
     <module>cmis</module>
@@ -56,6 +55,7 @@
     <module>jira</module>
     <module>generic</module>
     <module>regexpmapper</module>
+    <module>rabbitmq</module>
   </modules>
 
 </project>
