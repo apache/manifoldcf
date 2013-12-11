@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-835: Fix busted ZooKeeper implementation.
+(Karl Wright)
+
 CONNECTORS-833: Fix Null Pointer exception in LiveLink connector.
 (David Morana, Karl Wright)
 

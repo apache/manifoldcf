@@ -435,14 +435,14 @@ public class StufferThread extends Thread
     byte[] data = lockManager.readData(stufferThreadLastTimeDatumName);
     if (data == null || data.length != 8)
       return System.currentTimeMillis();
-    long value = ((long)data[0]) & 0xffL +
-      (((long)data[1]) << 8) & 0xff00L +
-      (((long)data[2]) << 16) & 0xff0000L +
-      (((long)data[3]) << 24) & 0xff000000L +
-      (((long)data[4]) << 32) & 0xff00000000L +
-      (((long)data[5]) << 40) & 0xff0000000000L +
-      (((long)data[6]) << 48) & 0xff000000000000L +
-      (((long)data[7]) << 56) & 0xff00000000000000L;
+    long value = (((long)data[0]) & 0xffL) +
+      ((((long)data[1]) << 8) & 0xff00L) +
+      ((((long)data[2]) << 16) & 0xff0000L) +
+      ((((long)data[3]) << 24) & 0xff000000L) +
+      ((((long)data[4]) << 32) & 0xff00000000L) +
+      ((((long)data[5]) << 40) & 0xff0000000000L) +
+      ((((long)data[6]) << 48) & 0xff000000000000L) +
+      ((((long)data[7]) << 56) & 0xff00000000000000L);
     return value;
   }
 

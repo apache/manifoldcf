@@ -587,13 +587,19 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
     int rval;
     byte[] serviceCounterData = connection.readData(serviceCounterName);
     if (serviceCounterData == null || serviceCounterData.length != 4)
+    {
       rval = 0;
+      //System.out.println(" Null or bad data length for service counter '"+serviceCounterName+"'");
+    }
     else
-      rval = ((int)serviceCounterData[0]) & 0xff +
-        (((int)serviceCounterData[1]) << 8) & 0xff00 +
-        (((int)serviceCounterData[2]) << 16) & 0xff0000 +
-        (((int)serviceCounterData[3]) << 24) & 0xff000000;
-    System.out.println("Read service counter '"+serviceCounterName+"'; value = "+rval);
+    {
+      rval = (((int)serviceCounterData[0]) & 0xff) +
+        ((((int)serviceCounterData[1]) << 8) & 0xff00) +
+        ((((int)serviceCounterData[2]) << 16) & 0xff0000) +
+        ((((int)serviceCounterData[3]) << 24) & 0xff000000);
+      //System.out.println(" Read actual data from service counter '"+serviceCounterName+"': "+java.util.Arrays.toString(serviceCounterData));
+    }
+    //System.out.println("Read service counter '"+serviceCounterName+"'; value = "+rval);
     return rval;
   }
   
@@ -608,7 +614,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
     serviceCounterData[2] = (byte)((counter >> 16) & 0xff);
     serviceCounterData[3] = (byte)((counter >> 24) & 0xff);
     connection.writeData(serviceCounterName,serviceCounterData);
-    System.out.println("Wrote service counter '"+serviceCounterName+"'; value = "+counter);
+    //System.out.println("Wrote service counter '"+serviceCounterName+"'; value = "+counter+": "+java.util.Arrays.toString(serviceCounterData));
   }
 
   /** Build a zk path for the lock for a specific service type.
