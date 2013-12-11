@@ -423,6 +423,16 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       connectionManager.closeIdleConnections(60000L,TimeUnit.MILLISECONDS);
   }
 
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return connectionManager != null;
+  }
+
   /** Request arbitrary connector information.
   * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
   * queries.
@@ -782,12 +792,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
                 String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
                 String[] listFields = activities.retrieveParentData(documentIdentifier, "fields");
-
+                String[] displayURLs = activities.retrieveParentData(documentIdentifier, "displayURLs");
+                
                 String listID;
                 if (listIDs.length >= 1)
                   listID = listIDs[0];
                 else
                   listID = null;
+
+                String displayURL;
+                if (displayURLs.length >= 1)
+                  displayURL = displayURLs[0];
+                else
+                  displayURL = null;
 
                 if (listID != null)
                 {
@@ -803,7 +820,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   metadataDescription.add("Created");
                   metadataDescription.add("ID");
                   metadataDescription.add("GUID");
-                  metadataDescription.add("EncodedAbsUrl");
                   // The document path includes the library, with no leading slash, and is decoded.
                   String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
                   Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
@@ -811,7 +827,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   String createdDate = values.get("Created");
                   String id = values.get("ID");
                   String guid = values.get("GUID");
-                  String absURL = values.get("EncodedAbsUrl");
                   if (modifiedDate != null)
                   {
                     // Item has a modified date so we presume it exists.
@@ -833,7 +848,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     packDate(sb,createdDateValue);
                     pack(sb,id,'+');
                     pack(sb,guid,'+');
-                    pack(sb,absURL,'+');
+                    pack(sb,displayURL,'+');
                     // The rest of this is unparseable
                     sb.append(versionToken);
                     sb.append(pathNameAttributeVersion);
@@ -1374,9 +1389,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               String guid = guidBuffer.toString();
               
               // List item URL
-              StringBuilder absURLBuffer = new StringBuilder();
-              startPosition = unpack(absURLBuffer,version,startPosition,'+');
-              String absURL = absURLBuffer.toString();
+              StringBuilder relURLBuffer = new StringBuilder();
+              startPosition = unpack(relURLBuffer,version,startPosition,'+');
+              String relURL = relURLBuffer.toString();
               
               // We need the list ID, which we've already fetched, so grab that from the parent data.
               String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
@@ -1441,9 +1456,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 // Convert the modified document path to an unmodified one, plus a library path.
                 String encodedItemPath = encodePath(decodedListPath.substring(0,listCutoff) + "/Lists/" + decodedItemPath.substring(listCutoff+1));
                 
-                
                 // Generate the URL we are going to use
-                String itemUrl = fileBaseUrl + encodedItemPath;
+                String itemUrl = fileBaseUrl + relURL;  //fileBaseUrl + encodedItemPath;
+                
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug( "SharePoint: Processing list item '"+documentIdentifier+"'; url: '" + itemUrl + "'" );
 
@@ -1492,7 +1507,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     }
                     data.addField("GUID",guid);
                     
-                    activities.ingestDocument( documentIdentifier, version, absURL , data );
+                    activities.ingestDocument( documentIdentifier, version, itemUrl , data );
                   }
                   finally
                   {
@@ -2179,7 +2194,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       this.dataValues[3] = fields;
     }
     
-    public void addFile(String relPath)
+    @Override
+    public void addFile(String relPath, String displayURL)
       throws ManifoldCFException
     {
 
@@ -2217,7 +2233,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
   
-  protected final static String[] listItemStreamDataNames = new String[]{"accessTokens", "denyTokens", "guids", "fields"};
+  protected final static String[] listItemStreamDataNames = new String[]{"accessTokens", "denyTokens", "guids", "fields", "displayURLs"};
 
   protected class ListItemStream implements IFileStream
   {
@@ -2247,7 +2263,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       this.dataValues[3] = fields;
     }
     
-    public void addFile(String relPath)
+    @Override
+    public void addFile(String relPath, String displayURL)
       throws ManifoldCFException
     {
       // First, convert the relative path to a full path
@@ -2255,6 +2272,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       {
         relPath = rootPath + sitePath + "/" + relPath;
       }
+
+      String fullPath = relPath;
 
       // Now, strip away what we don't want - namely, the root path.  This makes the path relative to the root.
       if ( relPath.startsWith(rootPath) )
@@ -2277,6 +2296,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 // The way I've chosen to do this is to use a triple slash at that point, as a separator.
                 String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
                 
+                if (displayURL != null)
+                  dataValues[4] = new String[]{displayURL};
+                else
+                  dataValues[4] = new String[]{fullPath};
+
                 activities.addDocumentReference( modifiedPath, documentIdentifier, null, listItemStreamDataNames, dataValues );
               }
               else

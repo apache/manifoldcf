@@ -3,6 +3,49 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-833: Fix Null Pointer exception in LiveLink connector.
+(David Morana, Karl Wright)
+
+CONNECTORS-828: New stylesheet!  Apparently brings the
+crawler UI into the modern world.
+(Eranda Bandaranaike)
+
+CONNECTORS-827: Add a feature which removes all ingeststatus
+records for an output connection, in case that the target index
+is gone forever and is inaccessible.
+(Swami Rajamohan, Karl Wright)
+
+CONNECTORS-795, CONNECTORS-821: Release new versions of
+Solr 3.x, Solr 4.x, ElasticSearch, and SharePoint 2010 plugins.
+(Karl Wright)
+
+CONNECTORS-832: Add example second agents process to all
+multiprocess examples.
+(Karl Wright)
+
+CONNECTORS-831: Refactor ReprioritizationTracker so that it uses
+the interface/factory paradigm.
+(Karl Wright)
+
+CONNECTORS-830: Stuffer thread throttling now works globally, not
+just locally.
+(Karl Wright)
+
+CONNECTORS-781: Add support for multiple agents processes.  This
+ticket involved changing much of the underlying infrastructure for
+the framework, including adding lock manager features, revamping the
+agents framework, building tests, and adding schema features that
+allow for an agents process failure.  All in all, a very significant change,
+which could well have introduced various instabilities.  Please don't
+hesitate to note any issues.
+(Graeme Seaton, Karl Wright)
+
+CONNECTORS-822: Use data size as Long value, not int.
+(David Morana, Karl Wright)
+
+CONNECTORS-819: Add missing metadata to JCIFS connector.
+(Graeme Seaton)
+
 CONNECTORS-817: Improve SharePoint logging.
 (Mark Libucha, Karl Wright)
 

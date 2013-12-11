@@ -43,27 +43,28 @@ public class DocumentCleanupThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id$";
 
-
   // Local data
-  protected String id;
-  // This is a reference to the static main document queue
-  protected DocumentCleanupQueue documentCleanupQueue;
+  /** Thread id */
+  protected final String id;
+  /** This is a reference to the static main document queue */
+  protected final DocumentCleanupQueue documentCleanupQueue;
   /** Delete thread pool reset manager */
-  protected DocCleanupResetManager resetManager;
-  /** Queue tracker */
-  protected QueueTracker queueTracker;
+  protected final DocCleanupResetManager resetManager;
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   *@param id is the worker thread id.
   */
-  public DocumentCleanupThread(String id, DocumentCleanupQueue documentCleanupQueue, QueueTracker queueTracker, DocCleanupResetManager resetManager)
+  public DocumentCleanupThread(String id, DocumentCleanupQueue documentCleanupQueue,
+    DocCleanupResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     this.id = id;
     this.documentCleanupQueue = documentCleanupQueue;
-    this.queueTracker = queueTracker;
     this.resetManager = resetManager;
+    this.processID = processID;
     setName("Document cleanup thread '"+id+"'");
     setDaemon(true);
   }
@@ -79,7 +80,10 @@ public class DocumentCleanupThread extends Thread
       IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
+      IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -142,7 +146,7 @@ public class DocumentCleanupThread extends Thread
             }
 
             // Grab one connection for each connectionName.  If we fail, nothing is lost and retries are possible.
-            IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+            IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
             try
             {
 
@@ -235,7 +239,7 @@ public class DocumentCleanupThread extends Thread
                   DocumentDescription[] requeueCandidates = jobManager.markDocumentCleanedUp(jobID,legalLinkTypes,ddd,hopcountMethod);
                   // Use the common method for doing the requeuing
                   ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
-                    connector,connection,queueTracker,currentTime);
+                    connector,connection,rt,currentTime);
                   // Finally, completed expiration of the document.
                   dqd.setProcessed();
                 }
@@ -245,7 +249,7 @@ public class DocumentCleanupThread extends Thread
             finally
             {
               // Free up the reserved connector instance
-              RepositoryConnectorFactory.release(connector);
+              repositoryConnectorPool.release(connection,connector);
             }
           }
           catch (ManifoldCFException e)

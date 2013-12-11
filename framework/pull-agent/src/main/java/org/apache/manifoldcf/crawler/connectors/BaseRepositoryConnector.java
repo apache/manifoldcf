@@ -64,6 +64,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   * This must return a model value as specified above.
   *@return the model type value.
   */
+  @Override
   public int getConnectorModel()
   {
     // Return the simplest model - full everything
@@ -73,6 +74,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return new String[0];
@@ -81,6 +83,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   /** Return the list of relationship types that this connector recognizes.
   *@return the list.
   */
+  @Override
   public String[] getRelationshipTypes()
   {
     // The base situation is that there are no relationships.
@@ -97,6 +100,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@return the set of bin names.  If an empty array is returned, it is equivalent to there being no request
   * rate throttling available for this identifier.
   */
+  @Override
   public String[] getBinNames(String documentIdentifier)
   {
     // Base version has one bin for all documents.  Use empty string for this since "*" would make
@@ -111,6 +115,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param command is the command, which is taken directly from the API request.
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
+  @Override
   public boolean requestInfo(Configuration output, String command)
     throws ManifoldCFException
   {
@@ -143,6 +148,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param endTime is the end of the time range to consider, exclusive.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
+  @Override
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
@@ -285,6 +291,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
   * will always be processed.
   */
+  @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
@@ -387,6 +394,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param documentIdentifiers is the set of document identifiers.
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
+  @Override
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
     throws ManifoldCFException
   {
@@ -396,6 +404,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   *@return the maximum number. 0 indicates "unlimited".
   */
+  @Override
   public int getMaxDocumentRequest()
   {
     // Base implementation does one at a time.
@@ -416,6 +425,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   * should only find other references, and should not actually call the ingestion methods.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
+  @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     DocumentSpecification spec, boolean[] scanOnly, int jobMode)
     throws ManifoldCFException, ServiceInterruption
@@ -461,6 +471,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
+  @Override
   public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
@@ -502,6 +513,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -532,6 +544,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@return null if all is well, or a string error message if there is an error that should prevent saving of
   * the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
@@ -561,6 +574,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {

@@ -98,8 +98,8 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
       {
         IResultRow row = set.getRow(i++);
         String className = row.getValue(classNameField).toString();
-        IAgent agent = AgentFactory.make(threadContext,className);
-        agent.deinstall();
+        IAgent agent = AgentFactory.make(className);
+        agent.deinstall(threadContext);
       }
       performDrop(null);
     }
@@ -142,8 +142,8 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
         performInsert(map,null);
       }
       // In any case, call the install/upgrade method
-      IAgent agent = AgentFactory.make(threadContext,className);
-      agent.install();
+      IAgent agent = AgentFactory.make(className);
+      agent.install(threadContext);
     }
     catch (ManifoldCFException e)
     {
@@ -173,8 +173,8 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
     try
     {
       // First, deregister agent
-      IAgent agent = AgentFactory.make(threadContext,className);
-      agent.deinstall();
+      IAgent agent = AgentFactory.make(className);
+      agent.deinstall(threadContext);
 
       // Remove from table
       removeAgent(className);

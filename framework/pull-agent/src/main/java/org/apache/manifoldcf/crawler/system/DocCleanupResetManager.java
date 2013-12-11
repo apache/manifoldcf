@@ -31,26 +31,28 @@ public class DocCleanupResetManager extends ResetManager
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  protected DocumentCleanupQueue ddq;
+  protected final DocumentCleanupQueue ddq;
 
   /** Constructor. */
-  public DocCleanupResetManager(DocumentCleanupQueue ddq)
+  public DocCleanupResetManager(DocumentCleanupQueue ddq, String processID)
   {
-    super();
+    super(processID);
     this.ddq = ddq;
   }
 
   /** Reset */
-  protected void performResetLogic(IThreadContext tc)
+  @Override
+  protected void performResetLogic(IThreadContext tc, String processID)
     throws ManifoldCFException
   {
     IJobManager jobManager = JobManagerFactory.make(tc);
-    jobManager.resetDocCleanupWorkerStatus();
+    jobManager.resetDocCleanupWorkerStatus(processID);
     ddq.clear();
   }
   
   /** Do the wakeup logic.
   */
+  @Override
   protected void performWakeupLogic()
   {
     ddq.reset();

@@ -20,6 +20,6 @@ import org.apache.manifoldcf.core.interfaces.*;
 
 public interface IFileStream
 {
-  public void addFile(String relPath)
+  public void addFile(String relPath, String displayURI)
     throws ManifoldCFException;
 }

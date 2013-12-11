@@ -100,6 +100,7 @@ public class BaseITDerby extends ConnectorBaseDerby
   /** Construct a command url.
   */
   protected String makeAPIURL(String command)
+    throws Exception
   {
     return mcfInstance.makeAPIURL(command);
   }

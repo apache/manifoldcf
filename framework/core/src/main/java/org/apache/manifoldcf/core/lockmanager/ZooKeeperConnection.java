@@ -42,6 +42,8 @@ public class ZooKeeperConnection
   private static final String NONEXWRITE_PREFIX = "nonexwrite-";
   private static final String WRITE_PREFIX = "write-";
 
+  private static final String CHILD_PREFIX = "child-";
+  
   // Our zookeeper client
   protected ZooKeeper zookeeper = null;
   protected ZooKeeperWatcher zookeeperWatcher = null;
@@ -68,6 +70,190 @@ public class ZooKeeperConnection
     }
   }
 
+  /** Create a transient node.
+  */
+  public void createNode(String nodePath, byte[] nodeData)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      zookeeper.create(nodePath, nodeData, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Check whether a node exists.
+  *@param nodePath is the path of the node.
+  *@return the data, if the node if exists, otherwise null.
+  */
+  public boolean checkNodeExists(String nodePath)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      return (zookeeper.exists(nodePath,false) != null);
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+
+  /** Get node data.
+  *@param nodePath is the path of the node.
+  *@return the data, if the node if exists, otherwise null.
+  */
+  public byte[] getNodeData(String nodePath)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      Stat s = zookeeper.exists(nodePath,false);
+      if (s == null)
+        return null;
+      return zookeeper.getData(nodePath,false,s);
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Set node data.
+  */
+  public void setNodeData(String nodePath, byte[] data)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      zookeeper.setData(nodePath, data, -1);
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Delete a node.
+  */
+  public void deleteNode(String nodePath)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      zookeeper.delete(nodePath,-1);
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Delete all a node's children.
+  */
+  public void deleteNodeChildren(String nodePath)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      List<String> children = zookeeper.getChildren(nodePath,false);
+      for (String child : children)
+      {
+        zookeeper.delete(nodePath + "/" + child,-1);
+      }
+    }
+    catch (KeeperException.NoNodeException e)
+    {
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Get the relative paths of all node's children.  If the node does not exist,
+  * return an empty list.
+  */
+  public List<String> getChildren(String nodePath)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      //System.out.println("Children of '"+nodePath+"':");
+      List<String> children = zookeeper.getChildren(nodePath,false);
+      List<String> rval = new ArrayList<String>();
+      for (String child : children)
+      {
+        //System.out.println(" '"+child+"'");
+        if (child.startsWith(CHILD_PREFIX))
+          rval.add(child.substring(CHILD_PREFIX.length()));
+      }
+      return rval;
+    }
+    catch (KeeperException.NoNodeException e)
+    {
+      return new ArrayList<String>();
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Create a persistent child of a node.
+  */
+  public void createChild(String nodePath, String childName)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      //System.out.println("Creating child '"+childName+"' of nodepath '"+nodePath+"'");
+      while (true)
+      {
+        try
+        {
+          zookeeper.create(nodePath + "/" + CHILD_PREFIX + childName, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+          break;
+        }
+        catch (KeeperException.NoNodeException e)
+        {
+          try
+          {
+            zookeeper.create(nodePath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+          }
+          catch (KeeperException.NodeExistsException e2)
+          {
+          }
+        }
+      }
+      System.out.println("...done");
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Delete the child of a node.
+  */
+  public void deleteChild(String nodePath, String childName)
+    throws ManifoldCFException, InterruptedException
+  {
+    try
+    {
+      //System.out.println("Deleting child '"+childName+"' of nodePath '"+nodePath+"'");
+      zookeeper.delete(nodePath + "/" + CHILD_PREFIX + childName, -1);
+      //System.out.println("...done");
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
   /** Obtain a write lock, with no wait.
   *@param lockPath is the lock node path.
   *@return true if the lock was obtained, false otherwise.

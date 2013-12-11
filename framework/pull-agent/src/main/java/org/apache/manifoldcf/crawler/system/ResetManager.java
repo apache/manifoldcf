@@ -37,6 +37,9 @@ public abstract class ResetManager
 {
   public static final String _rcsid = "@(#)$Id: ResetManager.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  /** Process ID */
+  protected final String processID;
+  
   /** Boolean which describes whether an event requiring reset has occurred. */
   protected boolean resetRequired = false;
   /** This is the count of the threads that care about this resource. */
@@ -46,8 +49,9 @@ public abstract class ResetManager
 
   /** Constructor.
   */
-  public ResetManager()
+  public ResetManager(String processID)
   {
+    this.processID = processID;
   }
 
   /** Register a thread with this reset manager.
@@ -90,7 +94,7 @@ public abstract class ResetManager
       // is tracked.
       try
       {
-        performResetLogic(tc);
+        performResetLogic(tc, processID);
       }
       finally
       {
@@ -112,7 +116,7 @@ public abstract class ResetManager
 
   /** Do the reset logic.
   */
-  protected abstract void performResetLogic(IThreadContext tc)
+  protected abstract void performResetLogic(IThreadContext tc, String processID)
     throws ManifoldCFException;
 
   /** Do the wakeup logic.

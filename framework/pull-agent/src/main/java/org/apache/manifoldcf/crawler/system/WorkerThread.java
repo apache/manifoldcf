@@ -35,18 +35,21 @@ public class WorkerThread extends Thread
 
 
   // Local data
-  protected String id;
-  // This is a reference to the static main document queue
-  protected DocumentQueue documentQueue;
+  /** Thread id */
+  protected final String id;
+  /** This is a reference to the static main document queue */
+  protected final DocumentQueue documentQueue;
   /** Worker thread pool reset manager */
-  protected WorkerResetManager resetManager;
+  protected final WorkerResetManager resetManager;
   /** Queue tracker */
-  protected QueueTracker queueTracker;
+  protected final QueueTracker queueTracker;
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   *@param id is the worker thread id.
   */
-  public WorkerThread(String id, DocumentQueue documentQueue, WorkerResetManager resetManager, QueueTracker queueTracker)
+  public WorkerThread(String id, DocumentQueue documentQueue, WorkerResetManager resetManager, QueueTracker queueTracker, String processID)
     throws ManifoldCFException
   {
     super();
@@ -54,6 +57,7 @@ public class WorkerThread extends Thread
     this.documentQueue = documentQueue;
     this.resetManager = resetManager;
     this.queueTracker = queueTracker;
+    this.processID = processID;
     setName("Worker thread '"+id+"'");
     setDaemon(true);
 
@@ -70,9 +74,13 @@ public class WorkerThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
+      IBinManager binManager = BinManagerFactory.make(threadContext);
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
       IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(threadContext);
+      IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       List<DocumentToProcess> fetchList = new ArrayList<DocumentToProcess>();
       Map<String,String> versionMap = new HashMap<String,String>();
       List<QueuedDocument> finishList = new ArrayList<QueuedDocument>();
@@ -251,10 +259,7 @@ public class WorkerThread extends Thread
               IRepositoryConnector connector = null;
               if (activeDocuments.size() > 0 || hopcountremoveList.size() > 0)
               {
-                connector = RepositoryConnectorFactory.grab(threadContext,
-                  connection.getClassName(),
-                  connection.getConfigParams(),
-                  connection.getMaxConnections());
+                connector = repositoryConnectorPool.grab(connection);
 
                 // If we wind up with a null here, it means that a document got queued for a connector which is now gone.
                 // Basically, what we want to do in that case is to treat this kind of like a service interruption - the document
@@ -306,7 +311,7 @@ public class WorkerThread extends Thread
                     String outputVersion = ingester.getOutputDescription(outputName,outputSpec);
                       
                     HashMap abortSet = new HashMap();
-                    VersionActivity versionActivity = new VersionActivity(connectionName,connMgr,jobManager,job,ingester,abortSet,outputVersion);
+                    VersionActivity versionActivity = new VersionActivity(processID,connectionName,connMgr,jobManager,job,ingester,abortSet,outputVersion);
 
                     String aclAuthority = connection.getACLAuthority();
                     boolean isDefaultAuthority = (aclAuthority == null || aclAuthority.length() == 0);
@@ -522,7 +527,8 @@ public class WorkerThread extends Thread
                         }
 
                         // First, make the things we will need for all subsequent steps.
-                        ProcessActivity activity = new ProcessActivity(threadContext,queueTracker,jobManager,ingester,
+                        ProcessActivity activity = new ProcessActivity(processID,
+                          threadContext,rt,jobManager,ingester,
                           currentTime,job,connection,connector,connMgr,legalLinkTypes,ingestLogger,abortSet,outputVersion,newParameterVersion);
                         try
                         {
@@ -564,7 +570,8 @@ public class WorkerThread extends Thread
                               // "Finish" the documents (removing unneeded carrydown info, etc.)
                               DocumentDescription[] requeueCandidates = jobManager.finishDocuments(job.getID(),legalLinkTypes,processIDHashes,job.getHopcountMode());
 
-                              ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,queueTracker,currentTime);
+                              ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,
+                                requeueCandidates,connector,connection,rt,currentTime);
 
                               if (Logging.threads.isDebugEnabled())
                                 Logging.threads.debug("Worker thread done processing "+Integer.toString(processIDs.length)+" documents");
@@ -814,17 +821,17 @@ public class WorkerThread extends Thread
                   // Now, handle the delete list
                   processDeleteLists(outputName,connector,connection,jobManager,
                     deleteList,ingester,
-                    job.getID(),legalLinkTypes,ingestLogger,job.getHopcountMode(),queueTracker,currentTime);
+                    job.getID(),legalLinkTypes,ingestLogger,job.getHopcountMode(),rt,currentTime);
 
                   // Handle hopcount removal
                   processHopcountRemovalLists(outputName,connector,connection,jobManager,
                     hopcountremoveList,ingester,
-                    job.getID(),legalLinkTypes,ingestLogger,job.getHopcountMode(),queueTracker,currentTime);
+                    job.getID(),legalLinkTypes,ingestLogger,job.getHopcountMode(),rt,currentTime);
 
                 }
                 finally
                 {
-                  RepositoryConnectorFactory.release(connector);
+                  repositoryConnectorPool.release(connection,connector);
                 }
               
               }
@@ -970,17 +977,18 @@ public class WorkerThread extends Thread
   * documents from the index should they be already present.
   */
   protected static void processHopcountRemovalLists(String outputName, IRepositoryConnector connector,
-    IRepositoryConnection connection, IJobManager jobManager, List<QueuedDocument> hopcountremoveList,
+    IRepositoryConnection connection, IJobManager jobManager,
+    List<QueuedDocument> hopcountremoveList,
     IIncrementalIngester ingester,
     Long jobID, String[] legalLinkTypes, OutputActivity ingestLogger,
-    int hopcountMethod, QueueTracker queueTracker, long currentTime)
+    int hopcountMethod, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // Remove from index
     hopcountremoveList = removeFromIndex(outputName,connection.getName(),jobManager,hopcountremoveList,ingester,ingestLogger);
     // Mark as 'hopcountremoved' in the job queue
     processJobQueueHopcountRemovals(hopcountremoveList,connector,connection,
-      jobManager,jobID,legalLinkTypes,hopcountMethod,queueTracker,currentTime);
+      jobManager,jobID,legalLinkTypes,hopcountMethod,rt,currentTime);
   }
 
   /** Clear specified documents out of the job queue and from the appliance.
@@ -991,17 +999,18 @@ public class WorkerThread extends Thread
   *@param ingesterDeleteList is a list of document id's to delete.
   */
   protected static void processDeleteLists(String outputName, IRepositoryConnector connector,
-    IRepositoryConnection connection, IJobManager jobManager, List<QueuedDocument> deleteList,
+    IRepositoryConnection connection, IJobManager jobManager,
+    List<QueuedDocument> deleteList,
     IIncrementalIngester ingester,
     Long jobID, String[] legalLinkTypes, OutputActivity ingestLogger,
-    int hopcountMethod, QueueTracker queueTracker, long currentTime)
+    int hopcountMethod, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // Remove from index
     deleteList = removeFromIndex(outputName,connection.getName(),jobManager,deleteList,ingester,ingestLogger);
     // Delete from the job queue
     processJobQueueDeletions(deleteList,connector,connection,
-      jobManager,jobID,legalLinkTypes,hopcountMethod,queueTracker,currentTime);
+      jobManager,jobID,legalLinkTypes,hopcountMethod,rt,currentTime);
   }
 
   /** Remove a specified set of documents from the index.
@@ -1081,7 +1090,7 @@ public class WorkerThread extends Thread
   */
   protected static void processJobQueueDeletions(List<QueuedDocument> jobmanagerDeleteList,
     IRepositoryConnector connector, IRepositoryConnection connection, IJobManager jobManager,
-    Long jobID, String[] legalLinkTypes, int hopcountMethod, QueueTracker queueTracker, long currentTime)
+    Long jobID, String[] legalLinkTypes, int hopcountMethod, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // Now, do the document queue cleanup for deletions.
@@ -1098,7 +1107,8 @@ public class WorkerThread extends Thread
       DocumentDescription[] requeueCandidates = jobManager.markDocumentDeletedMultiple(jobID,legalLinkTypes,deleteDescriptions,hopcountMethod);
 
       // Requeue those documents that had carrydown data modifications
-      ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,queueTracker,currentTime);
+      ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,
+        requeueCandidates,connector,connection,rt,currentTime);
 
       // Mark all these as done
       for (int i = 0; i < jobmanagerDeleteList.size(); i++)
@@ -1113,7 +1123,7 @@ public class WorkerThread extends Thread
   */
   protected static void processJobQueueHopcountRemovals(List<QueuedDocument> jobmanagerRemovalList,
     IRepositoryConnector connector, IRepositoryConnection connection, IJobManager jobManager,
-    Long jobID, String[] legalLinkTypes, int hopcountMethod, QueueTracker queueTracker, long currentTime)
+    Long jobID, String[] legalLinkTypes, int hopcountMethod, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // Now, do the document queue cleanup for deletions.
@@ -1130,7 +1140,8 @@ public class WorkerThread extends Thread
       DocumentDescription[] requeueCandidates = jobManager.markDocumentHopcountRemovalMultiple(jobID,legalLinkTypes,removalDescriptions,hopcountMethod);
 
       // Requeue those documents that had carrydown data modifications
-      ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,queueTracker,currentTime);
+      ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,
+        requeueCandidates,connector,connection,rt,currentTime);
 
       // Mark all these as done
       for (int i = 0; i < jobmanagerRemovalList.size(); i++)
@@ -1227,21 +1238,22 @@ public class WorkerThread extends Thread
   */
   protected static class VersionActivity implements IVersionActivity
   {
-    protected String connectionName;
-    protected IRepositoryConnectionManager connMgr;
-    protected IJobManager jobManager;
-    protected Long jobID;
-    protected IJobDescription job;
-    protected IIncrementalIngester ingester;
-    protected HashMap abortSet;
-    protected String outputVersion;
+    protected final String processID;
+    protected final String connectionName;
+    protected final IRepositoryConnectionManager connMgr;
+    protected final IJobManager jobManager;
+    protected final IJobDescription job;
+    protected final IIncrementalIngester ingester;
+    protected final HashMap abortSet;
+    protected final String outputVersion;
 
     /** Constructor.
     */
-    public VersionActivity(String connectionName, IRepositoryConnectionManager connMgr,
+    public VersionActivity(String processID, String connectionName, IRepositoryConnectionManager connMgr,
       IJobManager jobManager, IJobDescription job, IIncrementalIngester ingester, HashMap abortSet,
       String outputVersion)
     {
+      this.processID = processID;
       this.connectionName = connectionName;
       this.connMgr = connMgr;
       this.jobManager = jobManager;
@@ -1360,7 +1372,7 @@ public class WorkerThread extends Thread
     public boolean beginEventSequence(String eventName)
       throws ManifoldCFException
     {
-      return jobManager.beginEventSequence(eventName);
+      return jobManager.beginEventSequence(processID,eventName);
     }
 
     /** Complete an event sequence.
@@ -1413,7 +1425,7 @@ public class WorkerThread extends Thread
     */
     public String createJobSpecificString(String simpleString)
     {
-      return ManifoldCF.createJobSpecificString(jobID,simpleString);
+      return ManifoldCF.createJobSpecificString(job.getID(),simpleString);
     }
 
   }
@@ -1423,6 +1435,7 @@ public class WorkerThread extends Thread
   protected static class ProcessActivity implements IProcessActivity
   {
     // Member variables
+    protected final String processID;
     protected final IThreadContext threadContext;
     protected final IJobManager jobManager;
     protected final IIncrementalIngester ingester;
@@ -1433,7 +1446,7 @@ public class WorkerThread extends Thread
     protected final IRepositoryConnectionManager connMgr;
     protected final String[] legalLinkTypes;
     protected final OutputActivity ingestLogger;
-    protected final QueueTracker queueTracker;
+    protected final IReprioritizationTracker rt;
     protected final HashMap abortSet;
     protected final String outputVersion;
     protected final String parameterVersion;
@@ -1454,12 +1467,16 @@ public class WorkerThread extends Thread
     *@param jobManager is the job manager
     *@param ingester is the ingester
     */
-    public ProcessActivity(IThreadContext threadContext, QueueTracker queueTracker, IJobManager jobManager, IIncrementalIngester ingester,
-      long currentTime, IJobDescription job, IRepositoryConnection connection, IRepositoryConnector connector, IRepositoryConnectionManager connMgr,
-      String[] legalLinkTypes, OutputActivity ingestLogger, HashMap abortSet, String outputVersion, String parameterVersion)
+    public ProcessActivity(String processID, IThreadContext threadContext,
+      IReprioritizationTracker rt, IJobManager jobManager,
+      IIncrementalIngester ingester, long currentTime,
+      IJobDescription job, IRepositoryConnection connection, IRepositoryConnector connector,
+      IRepositoryConnectionManager connMgr, String[] legalLinkTypes, OutputActivity ingestLogger,
+      HashMap abortSet, String outputVersion, String parameterVersion)
     {
+      this.processID = processID;
       this.threadContext = threadContext;
-      this.queueTracker = queueTracker;
+      this.rt = rt;
       this.jobManager = jobManager;
       this.ingester = ingester;
       this.currentTime = currentTime;
@@ -1981,16 +1998,15 @@ public class WorkerThread extends Thread
 
         String[] docidHashes = new String[set.size()];
         String[] docids = new String[set.size()];
-        double[] priorities = new double[set.size()];
-        String[][] binNames = new String[set.size()][];
+        IPriorityCalculator[] priorities = new IPriorityCalculator[set.size()];
         String[][] dataNames = new String[docids.length][];
         Object[][][] dataValues = new Object[docids.length][][];
         String[][] eventNames = new String[docids.length][];
 
         long currentTime = System.currentTimeMillis();
 
-        int j = 0;
-        while (j < docidHashes.length)
+        rt.clearPreloadRequests();
+        for (int j = 0; j < docidHashes.length; j++)
         {
           DocumentReference dr = (DocumentReference)set.get(j);
           docidHashes[j] = dr.getLocalIdentifierHash();
@@ -2001,34 +2017,17 @@ public class WorkerThread extends Thread
 
           // Calculate desired document priority based on current queuetracker status.
           String[] bins = ManifoldCF.calculateBins(connector,dr.getLocalIdentifier());
-
-
-          binNames[j] = bins;
-          priorities[j] = queueTracker.calculatePriority(bins,connection);
-          if (Logging.scheduling.isDebugEnabled())
-            Logging.scheduling.debug("Assigning '"+docids[j]+"' priority "+new Double(priorities[j]).toString());
-
-          // No longer used; the functionality is folded atomically into calculatePriority above:
-          //queueTracker.notePrioritySet(currentTime,job.getID(),bins,connection);
-
-          j++;
+          PriorityCalculator p = new PriorityCalculator(rt,connection,bins);
+          priorities[j] = p;
+          p.makePreloadRequest();
         }
+        rt.preloadBinValues();
 
-        boolean[] trackerNote = jobManager.addDocuments(job.getID(),legalLinkTypes,docidHashes,docids,db.getParentIdentifierHash(),db.getLinkType(),job.getHopcountMode(),
+        jobManager.addDocuments(processID,
+          job.getID(),legalLinkTypes,docidHashes,docids,db.getParentIdentifierHash(),db.getLinkType(),job.getHopcountMode(),
           dataNames,dataValues,currentTime,priorities,eventNames);
-
-        // Inform queuetracker about what we used and what we didn't
-        j = 0;
-        while (j < trackerNote.length)
-        {
-          if (trackerNote[j] == false)
-          {
-            String[] bins = binNames[j];
-            queueTracker.notePriorityNotUsed(bins,connection,priorities[j]);
-          }
-          j++;
-        }
-
+        
+        rt.clearPreloadedValues();
       }
 
       discard();
@@ -2058,7 +2057,7 @@ public class WorkerThread extends Thread
     public boolean beginEventSequence(String eventName)
       throws ManifoldCFException
     {
-      return jobManager.beginEventSequence(eventName);
+      return jobManager.beginEventSequence(processID,eventName);
     }
 
     /** Complete an event sequence.

@@ -297,4 +297,11 @@ public interface IIncrementalIngester
   public void resetOutputConnection(String outputConnectionName)
     throws ManifoldCFException;
     
+  /** Remove all knowledge of an output index from the system.  This is appropriate
+  * when the output index no longer exists and you wish to delete the associated job.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  */
+  public void removeOutputConnection(String outputConnectionName)
+    throws ManifoldCFException;
+
 }

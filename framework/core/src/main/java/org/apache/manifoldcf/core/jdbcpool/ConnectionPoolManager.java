@@ -68,6 +68,7 @@ public class ConnectionPoolManager
   
   public void shutdown()
   {
+    //System.out.println("JDBC POOL SHUTDOWN CALLED");
     shuttingDown.set(true);
     while (connectionCloserThread.isAlive())
     {

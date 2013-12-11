@@ -33,14 +33,18 @@ public class JobNotificationThread extends Thread
   public static final String _rcsid = "@(#)$Id: JobNotificationThread.java 998081 2010-09-17 11:33:15Z kwright $";
 
   /** Notification reset manager */
-  protected static NotificationResetManager resetManager = new NotificationResetManager();
-
+  protected final NotificationResetManager resetManager;
+  /** Process ID */
+  protected final String processID;
+  
   /** Constructor.
   */
-  public JobNotificationThread()
+  public JobNotificationThread(NotificationResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
+    this.resetManager = resetManager;
+    this.processID = processID;
     setName("Job notification thread");
     setDaemon(true);
   }
@@ -57,6 +61,8 @@ public class JobNotificationThread extends Thread
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(threadContext);
       IRepositoryConnectionManager repositoryConnectionManager = RepositoryConnectionManagerFactory.make(threadContext);
 
+      IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -66,7 +72,7 @@ public class JobNotificationThread extends Thread
           // Before we begin, conditionally reset
           resetManager.waitForReset(threadContext);
 
-          JobNotifyRecord[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity();
+          JobNotifyRecord[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity(processID);
           try
           {
             HashMap connectionNames = new HashMap();
@@ -104,7 +110,7 @@ public class JobNotificationThread extends Thread
               if (connection != null)
               {
                 // Grab an appropriate connection instance
-                IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+                IOutputConnector connector = outputConnectorPool.grab(connection);
                 if (connector != null)
                 {
                   try
@@ -134,7 +140,7 @@ public class JobNotificationThread extends Thread
                   }
                   finally
                   {
-                    OutputConnectorFactory.release(connector);
+                    outputConnectorPool.release(connection,connector);
                   }
                 }
               }
@@ -329,33 +335,4 @@ public class JobNotificationThread extends Thread
 
   }
   
-  /** Class which handles reset for seeding thread pool (of which there's
-  * typically only one member).  The reset action here
-  * is to move the status of jobs back from "seeding" to normal.
-  */
-  protected static class NotificationResetManager extends ResetManager
-  {
-
-    /** Constructor. */
-    public NotificationResetManager()
-    {
-      super();
-    }
-
-    /** Reset */
-    protected void performResetLogic(IThreadContext tc)
-      throws ManifoldCFException
-    {
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.resetNotificationWorkerStatus();
-    }
-
-    /** Do the wakeup logic.
-    */
-    protected void performWakeupLogic()
-    {
-    }
-
-  }
-
 }

@@ -36,33 +36,37 @@ public class SeedingActivity implements ISeedingActivity
   protected static final int MAX_COUNT = 100;
 
   // Variables
-  protected String connectionName;
-  protected IRepositoryConnectionManager connManager;
-  protected IJobManager jobManager;
-  protected QueueTracker queueTracker;
-  protected IRepositoryConnection connection;
-  protected IRepositoryConnector connector;
-  protected Long jobID;
-  protected String[] legalLinkTypes;
-  protected boolean overrideSchedule;
-  protected int hopcountMethod;
-  protected String[] documentHashList = new String[MAX_COUNT];
-  protected String[] documentList = new String[MAX_COUNT];
-  protected String[][] documentPrereqList = new String[MAX_COUNT][];
+  protected final String processID;
+  protected final String connectionName;
+  protected final IRepositoryConnectionManager connManager;
+  protected final IJobManager jobManager;
+  protected final IReprioritizationTracker rt;
+  protected final IRepositoryConnection connection;
+  protected final IRepositoryConnector connector;
+  protected final Long jobID;
+  protected final String[] legalLinkTypes;
+  protected final boolean overrideSchedule;
+  protected final int hopcountMethod;
+  
+  protected final String[] documentHashList = new String[MAX_COUNT];
+  protected final String[] documentList = new String[MAX_COUNT];
+  protected final String[][] documentPrereqList = new String[MAX_COUNT][];
   protected int documentCount = 0;
-  protected String[] remainingDocumentHashList = new String[MAX_COUNT];
+  protected final String[] remainingDocumentHashList = new String[MAX_COUNT];
   protected int remainingDocumentCount = 0;
 
   /** Constructor.
   */
-  public SeedingActivity(String connectionName, IRepositoryConnectionManager connManager, IJobManager jobManager,
-    QueueTracker queueTracker, IRepositoryConnection connection, IRepositoryConnector connector,
-    Long jobID, String[] legalLinkTypes, boolean overrideSchedule, int hopcountMethod)
+  public SeedingActivity(String connectionName, IRepositoryConnectionManager connManager,
+    IJobManager jobManager,
+    IReprioritizationTracker rt, IRepositoryConnection connection, IRepositoryConnector connector,
+    Long jobID, String[] legalLinkTypes, boolean overrideSchedule, int hopcountMethod, String processID)
   {
+    this.processID = processID;
     this.connectionName = connectionName;
     this.connManager = connManager;
     this.jobManager = jobManager;
-    this.queueTracker = queueTracker;
+    this.rt = rt;
     this.connection = connection;
     this.connector = connector;
     this.jobID = jobID;
@@ -139,7 +143,7 @@ public class SeedingActivity implements ISeedingActivity
     if (remainingDocumentCount == MAX_COUNT)
     {
       // Flush the remaining documents
-      jobManager.addRemainingDocumentsInitial(jobID,legalLinkTypes,remainingDocumentHashList,hopcountMethod);
+      jobManager.addRemainingDocumentsInitial(processID,jobID,legalLinkTypes,remainingDocumentHashList,hopcountMethod);
       remainingDocumentCount = 0;
     }
     remainingDocumentHashList[remainingDocumentCount++] = ManifoldCF.hash(documentIdentifier);
@@ -174,7 +178,7 @@ public class SeedingActivity implements ISeedingActivity
         documents[i] = remainingDocumentHashList[i];
         i++;
       }
-      jobManager.addRemainingDocumentsInitial(jobID,legalLinkTypes,documents,hopcountMethod);
+      jobManager.addRemainingDocumentsInitial(processID,jobID,legalLinkTypes,documents,hopcountMethod);
       remainingDocumentCount = 0;
     }
 
@@ -212,37 +216,21 @@ public class SeedingActivity implements ISeedingActivity
   {
     // First, prioritize the documents using the queue tracker
     long prioritizationTime = System.currentTimeMillis();
-    double[] docPriorities = new double[docIDHashes.length];
-    String[][] binNames = new String[docIDHashes.length][];
+    IPriorityCalculator[] docPriorities = new IPriorityCalculator[docIDHashes.length];
 
     int i = 0;
     while (i < docIDHashes.length)
     {
       // Calculate desired document priority based on current queuetracker status.
       String[] bins = connector.getBinNames(docIDs[i]);
-
-      binNames[i] = bins;
-      docPriorities[i] = queueTracker.calculatePriority(bins,connection);
-      if (Logging.scheduling.isDebugEnabled())
-        Logging.scheduling.debug("Giving document '"+docIDs[i]+"' priority "+new Double(docPriorities[i]).toString());
+      docPriorities[i] = new PriorityCalculator(rt,connection,bins);
 
       i++;
     }
 
-    boolean[] trackerNote = jobManager.addDocumentsInitial(jobID,legalLinkTypes,docIDHashes,docIDs,overrideSchedule,hopcountMethod,
+    jobManager.addDocumentsInitial(processID,
+      jobID,legalLinkTypes,docIDHashes,docIDs,overrideSchedule,hopcountMethod,
       prioritizationTime,docPriorities,prereqEventNames);
-
-    // Inform queuetracker about what we used and what we didn't
-    int j = 0;
-    while (j < trackerNote.length)
-    {
-      if (trackerNote[j] == false)
-      {
-        String[] bins = binNames[j];
-        queueTracker.notePriorityNotUsed(bins,connection,docPriorities[j]);
-      }
-      j++;
-    }
 
   }
 

@@ -21,6 +21,7 @@ import java.io.*;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.system.*;
 import org.apache.manifoldcf.crawler.*;
+import org.apache.manifoldcf.agents.system.AgentsDaemon;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,8 +50,6 @@ public class ManifoldCFJettyRunner
   public static final String apiServiceWarPathProperty = "org.apache.manifoldcf.apiservicewarpath";
   public static final String useJettyParentClassLoaderProperty = "org.apache.manifoldcf.usejettyparentclassloader";
   public static final String jettyPortProperty = "org.apache.manifoldcf.jettyport";
-  
-  public static final String agentShutdownSignal = org.apache.manifoldcf.agents.AgentRun.agentShutdownSignal;
   
   protected Server server;
   
@@ -138,26 +137,11 @@ public class ManifoldCFJettyRunner
   public static void runAgents(IThreadContext tc)
     throws ManifoldCFException
   {
-    ILockManager lockManager = LockManagerFactory.make(tc);
-
-    while (true)
-    {
-      // Any shutdown signal yet?
-      if (lockManager.checkGlobalFlag(agentShutdownSignal))
-        break;
-          
-      // Start whatever agents need to be started
-      ManifoldCF.startAgents(tc);
-
-      try
-      {
-        ManifoldCF.sleep(5000);
-      }
-      catch (InterruptedException e)
-      {
-        break;
-      }
-    }
+    String processID = ManifoldCF.getProcessID();
+    // Do this so we don't have to call stopAgents() ourselves.
+    AgentsDaemon ad = new AgentsDaemon(processID);
+    ad.registerAgentsShutdownHook(tc);
+    ad.runAgents(tc);
   }
 
   /**
@@ -216,8 +200,7 @@ public class ManifoldCFJettyRunner
       if (useParentClassLoader)
       {
         // Clear the agents shutdown signal.
-        ILockManager lockManager = LockManagerFactory.make(tc);
-        lockManager.clearGlobalFlag(agentShutdownSignal);
+        AgentsDaemon.clearAgentsShutdownSignal(tc);
         
         // Do the basic initialization of the database and its schema
         ManifoldCF.createSystemDatabase(tc);

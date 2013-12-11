@@ -44,6 +44,12 @@ public class BaseITHSQLDB extends ConnectorBaseHSQLDB
     mcfInstance = new ManifoldCFInstance(singleWar);
   }
   
+  public BaseITHSQLDB(boolean singleWar, boolean webapps)
+  {
+    super();
+    mcfInstance = new ManifoldCFInstance(singleWar, webapps);
+  }
+  
   // Basic job support
   
   protected void waitJobInactiveNative(IJobManager jobManager, Long jobID, long maxTime)
@@ -101,6 +107,7 @@ public class BaseITHSQLDB extends ConnectorBaseHSQLDB
   /** Construct a command url.
   */
   protected String makeAPIURL(String command)
+    throws Exception
   {
     return mcfInstance.makeAPIURL(command);
   }

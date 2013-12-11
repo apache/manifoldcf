@@ -27,13 +27,10 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
 {
   public static final String _rcsid = "@(#)$Id: ManifoldCF.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  public static final String agentShutdownSignal = "_AGENTRUN_";
+
   // Agents initialized flag
   protected static boolean agentsInitialized = false;
-  
-  /** This is the place we keep track of the agents we've started. */
-  protected static HashMap runningHash = new HashMap();
-  /** This flag prevents startAgents() from starting anything once stopAgents() has been called. */
-  protected static boolean stopAgentsRun = false;
   
   /** Initialize environment.
   */
@@ -68,9 +65,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       if (agentsInitialized)
         return;
 
-      // Create the shutdown hook for agents.  All activity will be keyed off of runningHash, so it is safe to do this under all conditions.
-      org.apache.manifoldcf.core.system.ManifoldCF.addShutdownHook(new AgentsShutdownHook());
-      
       // Initialize the local loggers
       Logging.initializeLoggers();
       Logging.setLogLevels(threadContext);
@@ -80,6 +74,16 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
 
   public static void localCleanup(IThreadContext threadContext)
   {
+    // Close all pools
+    try
+    {
+      OutputConnectorPoolFactory.make(threadContext).closeAllConnectors();
+    }
+    catch (ManifoldCFException e)
+    {
+      if (Logging.agents != null)
+        Logging.agents.warn("Exception shutting down output connector pool: "+e.getMessage(),e);
+    }
   }
   
   /** Reset the environment.
@@ -89,10 +93,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     synchronized (initializeFlagLock)
     {
       org.apache.manifoldcf.core.system.ManifoldCF.resetEnvironment(threadContext);
-      synchronized (runningHash)
-      {
-        stopAgentsRun = false;
-      }
     }
   }
 
@@ -129,73 +129,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     mgr.deinstall();
   }
 
-  /** Start all not-running agents.
-  *@param threadContext is the thread context.
-  */
-  public static void startAgents(IThreadContext threadContext)
-    throws ManifoldCFException
-  {
-    // Get agent manager
-    IAgentManager manager = AgentManagerFactory.make(threadContext);
-    ManifoldCFException problem = null;
-    synchronized (runningHash)
-    {
-      // DO NOT permit this method to do anything if stopAgents() has ever been called for this JVM! 
-      // (If it has, it means that the JVM is trying to shut down.)
-      if (stopAgentsRun)
-        return;
-      String[] classes = manager.getAllAgents();
-      int i = 0;
-      while (i < classes.length)
-      {
-        String className = classes[i++];
-        if (runningHash.get(className) == null)
-        {
-          // Start this agent
-          IAgent agent = AgentFactory.make(threadContext,className);
-          try
-          {
-            // There is a potential race condition where the agent has been started but hasn't yet appeared in runningHash.
-            // But having runningHash be the synchronizer for this activity will prevent any problems.
-            // There is ANOTHER potential race condition, however, that can occur if the process is shut down just before startAgents() is called.
-            // We avoid that problem by means of a flag, which prevents startAgents() from doing anything once stopAgents() has been called.
-            agent.startAgent();
-            // Successful!
-            runningHash.put(className,agent);
-          }
-          catch (ManifoldCFException e)
-          {
-            problem = e;
-          }
-        }
-      }
-    }
-    if (problem != null)
-      throw problem;
-    // Done.
-  }
-
-  /** Stop all started agents.
-  */
-  public static void stopAgents(IThreadContext threadContext)
-    throws ManifoldCFException
-  {
-    synchronized (runningHash)
-    {
-      HashMap iterHash = (HashMap)runningHash.clone();
-      Iterator iter = iterHash.keySet().iterator();
-      while (iter.hasNext())
-      {
-        String className = (String)iter.next();
-        IAgent agent = (IAgent)runningHash.get(className);
-        // Stop it
-        agent.stopAgent();
-        runningHash.remove(className);
-      }
-    }
-    // Done.
-  }
-  
   /** Signal output connection needs redoing.
   * This is called when something external changed on an output connection, and
   * therefore all associated documents must be reindexed.
@@ -212,27 +145,22 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     // resulting from this signal that find themselves "unchanged".
     AgentManagerFactory.noteOutputConnectionChange(threadContext,connectionName);
   }
-  
-  /** Agents shutdown hook class */
-  protected static class AgentsShutdownHook implements IShutdownHook
+
+  /** Signal output connection has been deleted.
+  * This is called when the target of an output connection has been removed,
+  * therefore all associated documents were also already removed.
+  *@param threadContext is the thread context.
+  *@param connectionName is the connection name.
+  */
+  public static void signalOutputConnectionRemoved(IThreadContext threadContext, String connectionName)
+    throws ManifoldCFException
   {
-    
-    public AgentsShutdownHook()
-    {
-    }
-    
-    public void doCleanup()
-      throws ManifoldCFException
-    {
-      // Shutting down in this way must prevent startup from taking place.
-      synchronized (runningHash)
-      {
-        stopAgentsRun = true;
-      }
-      IThreadContext tc = ThreadContextFactory.make();
-      stopAgents(tc);
-    }
-    
+    // Blow away the incremental ingestion table first
+    IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
+    ingester.removeOutputConnection(connectionName);
+    // Now, signal to all agents that the output connection configuration has changed.  Do this second, so that there cannot be documents
+    // resulting from this signal that find themselves "unchanged".
+    AgentManagerFactory.noteOutputConnectionChange(threadContext,connectionName);
   }
   
   // Helper methods for API support.  These are made public so connectors can use them to implement the executeCommand method.

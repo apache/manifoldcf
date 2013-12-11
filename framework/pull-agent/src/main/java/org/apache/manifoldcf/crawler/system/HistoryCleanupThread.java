@@ -32,12 +32,17 @@ public class HistoryCleanupThread extends Thread
 
   protected static final String historyCleanupIntervalProperty = "org.apache.manifoldcf.crawler.historycleanupinterval";
   
+  // Local data
+  /** Process ID */
+  protected final String processID;
+
   /** Constructor.
   */
-  public HistoryCleanupThread()
+  public HistoryCleanupThread(String processID)
     throws ManifoldCFException
   {
     super();
+    this.processID = processID;
     setName("History cleanup thread");
     setDaemon(true);
   }

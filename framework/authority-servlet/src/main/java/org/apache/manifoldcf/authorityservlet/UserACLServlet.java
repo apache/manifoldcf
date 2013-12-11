@@ -129,6 +129,7 @@ public class UserACLServlet extends HttpServlet
         if (enumDomain == null)
           enumDomain = "";
         domainMap.put(enumDomain,enumUserName);
+        q++;
       }
       
       if (domainMap.size() == 0)
@@ -230,8 +231,7 @@ public class UserACLServlet extends HttpServlet
             identifyingString = thisConnection.getName();
           
           // Create a request
-          AuthRequest ar = new AuthRequest(
-            thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+          AuthRequest ar = new AuthRequest(thisConnection,identifyingString);
           authRequests.put(thisConnection.getName(), ar);
           
           // We create an auth thread if there are prerequisites to meet.
@@ -269,8 +269,7 @@ public class UserACLServlet extends HttpServlet
           identifyingString = connectionName;
 
         // Create a request
-        MappingRequest mr = new MappingRequest(
-          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+        MappingRequest mr = new MappingRequest(thisConnection,identifyingString);
         mappingRequests.put(mapperDesc, mr);
 
         // Either start up a thread, or just fire it off immediately.

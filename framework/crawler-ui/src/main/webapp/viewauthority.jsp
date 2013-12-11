@@ -67,6 +67,7 @@
     {
 	IAuthorityConnectionManager manager = AuthorityConnectionManagerFactory.make(threadContext);
 	IAuthorityConnectorManager connectorManager = AuthorityConnectorManagerFactory.make(threadContext);
+	IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(threadContext);
 	String connectionName = variableContext.getParameter("connname");
 	IAuthorityConnection connection = manager.load(connectionName);
 	if (connection == null)
@@ -101,7 +102,7 @@
 		String connectionStatus;
 		try
 		{
-			IAuthorityConnector c = AuthorityConnectorFactory.grab(threadContext,className,parameters,maxCount);
+			IAuthorityConnector c = authorityConnectorPool.grab(connection);
 			if (c == null)
 			{
 				connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewauthority.Connectorisnotinstalled");
@@ -114,7 +115,7 @@
 				}
 				finally
 				{
-					AuthorityConnectorFactory.release(c);
+					authorityConnectorPool.release(connection,c);
 				}
 			}
 		}

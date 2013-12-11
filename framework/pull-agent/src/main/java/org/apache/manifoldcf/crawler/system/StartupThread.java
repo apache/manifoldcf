@@ -32,21 +32,22 @@ public class StartupThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id: StartupThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  /** Worker thread pool reset manager */
-  protected static StartupResetManager resetManager = new StartupResetManager();
-
   // Local data
-  protected QueueTracker queueTracker;
-
+  /** Process ID */
+  protected final String processID;
+  /** Reset manager */
+  protected final StartupResetManager resetManager;
+  
   /** Constructor.
   */
-  public StartupThread(QueueTracker queueTracker)
+  public StartupThread(StartupResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     setName("Startup thread");
     setDaemon(true);
-    this.queueTracker = queueTracker;
+    this.resetManager = resetManager;
+    this.processID = processID;
   }
 
   public void run()
@@ -59,12 +60,10 @@ public class StartupThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+      IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
-      IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ManifoldCF.getMasterDatabaseName(),
-        ManifoldCF.getMasterDatabaseUsername(),
-        ManifoldCF.getMasterDatabasePassword());
-
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -84,7 +83,7 @@ public class StartupThread extends Thread
 
           // See if there are any starting jobs.
           // Note: Since this following call changes the job state, we must be careful to reset it on any kind of failure.
-          JobStartRecord[] startupJobs = jobManager.getJobsReadyForStartup();
+          JobStartRecord[] startupJobs = jobManager.getJobsReadyForStartup(processID);
           try
           {
 
@@ -115,22 +114,19 @@ public class StartupThread extends Thread
                 int hopcountMethod = jobDescription.getHopcountMode();
 
                 IRepositoryConnection connection = connectionMgr.load(jobDescription.getConnectionName());
-                IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
-                  connection.getClassName(),
-                  connection.getConfigParams(),
-                  connection.getMaxConnections());
+                IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
 
                 // If the attempt to grab a connector instance failed, don't start the job, of course.
                 if (connector == null)
                   continue;
 
-                // Only now record the fact that we are trying to start the job.
-                connectionMgr.recordHistory(jobDescription.getConnectionName(),
-                  null,connectionMgr.ACTIVITY_JOBSTART,null,
-                  jobID.toString()+"("+jobDescription.getDescription()+")",null,null,null);
-
                 try
                 {
+                  // Only now record the fact that we are trying to start the job.
+                  connectionMgr.recordHistory(jobDescription.getConnectionName(),
+                    null,connectionMgr.ACTIVITY_JOBSTART,null,
+                    jobID.toString()+"("+jobDescription.getDescription()+")",null,null,null);
+
                   int model = connector.getConnectorModel();
                   // Get the number of link types.
                   String[] legalLinkTypes = connector.getRelationshipTypes();
@@ -147,8 +143,9 @@ public class StartupThread extends Thread
 
                   try
                   {
-                    SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,jobManager,queueTracker,
-                      connection,connector,jobID,legalLinkTypes,true,hopcountMethod);
+                    SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,
+                      jobManager,rt,
+                      connection,connector,jobID,legalLinkTypes,true,hopcountMethod,processID);
 
                     if (Logging.threads.isDebugEnabled())
                       Logging.threads.debug("Adding initial seed documents for job "+jobID.toString()+"...");
@@ -172,7 +169,7 @@ public class StartupThread extends Thread
                 }
                 finally
                 {
-                  RepositoryConnectorFactory.release(connector);
+                  repositoryConnectorPool.release(connection,connector);
                 }
 
                 // Start this job!
@@ -277,35 +274,6 @@ public class StartupThread extends Thread
       Logging.threads.fatal("StartupThread initialization error tossed: "+e.getMessage(),e);
       System.exit(-300);
     }
-  }
-
-  /** Class which handles reset for seeding thread pool (of which there's
-  * typically only one member).  The reset action here
-  * is to move the status of jobs back from "seeding" to normal.
-  */
-  protected static class StartupResetManager extends ResetManager
-  {
-
-    /** Constructor. */
-    public StartupResetManager()
-    {
-      super();
-    }
-
-    /** Reset */
-    protected void performResetLogic(IThreadContext tc)
-      throws ManifoldCFException
-    {
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.resetStartupWorkerStatus();
-    }
-    
-    /** Do the wakeup logic.
-    */
-    protected void performWakeupLogic()
-    {
-    }
-
   }
 
 }

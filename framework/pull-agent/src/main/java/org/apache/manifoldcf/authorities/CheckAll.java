@@ -46,6 +46,7 @@ public class CheckAll
     {
       IThreadContext tc = ThreadContextFactory.make();
       ManifoldCF.initializeEnvironment(tc);
+      IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(tc);
       // Now, get a list of the authority connections
       IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
       IAuthorityConnection[] connections = mgr.getAllConnections();
@@ -70,7 +71,7 @@ public class CheckAll
         String connectionStatus;
         try
         {
-          IAuthorityConnector c = AuthorityConnectorFactory.grab(tc,className,parameters,maxCount);
+          IAuthorityConnector c = authorityConnectorPool.grab(connection);
           if (c != null)
           {
             try
@@ -79,7 +80,7 @@ public class CheckAll
             }
             finally
             {
-              AuthorityConnectorFactory.release(c);
+              authorityConnectorPool.release(connection,c);
             }
           }
           else
