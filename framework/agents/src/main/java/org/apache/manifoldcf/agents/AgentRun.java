@@ -110,10 +110,10 @@ public class AgentRun extends BaseAgentsInitializationCommand
       this.processID = processID;
     }
     
-    public void doCleanup()
+    @Override
+    public void doCleanup(IThreadContext tc)
       throws ManifoldCFException
     {
-      IThreadContext tc = ThreadContextFactory.make();
       ILockManager lockManager = LockManagerFactory.make(tc);
       // We can blast the active flag off here; we may have already exited though and an exception will
       // therefore be thrown.

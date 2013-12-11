@@ -931,7 +931,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
     /** Do the requisite cleanup.
     */
     @Override
-    public void doCleanup()
+    public void doCleanup(IThreadContext threadContext)
       throws ManifoldCFException
     {
       shutdownPool();
