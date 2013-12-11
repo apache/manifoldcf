@@ -43,11 +43,11 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   private final static String SERVICETYPE_LOCK_PATH_PREFIX = "/org.apache.manifoldcf.servicelock-";
   private final static String SERVICETYPE_ACTIVE_PATH_PREFIX = "/org.apache.manifoldcf.serviceactive-";
   private final static String SERVICETYPE_REGISTER_PATH_PREFIX = "/org.apache.manifoldcf.service-";
+  /** Anonymous global variable name prefix, to be followed by the service type */
+  private final static String SERVICETYPE_ANONYMOUS_COUNTER_PREFIX = "/org.apache.manifoldcf.serviceanon-";
   
   /** Anonymous service name prefix, to be followed by an integer */
   protected final static String anonymousServiceNamePrefix = "_ANON_";
-  /** Anonymous global variable name prefix, to be followed by the service type */
-  protected final static String anonymousServiceTypeCounter = "_SERVICECOUNTER_";
 
   // ZooKeeper connection pool
   protected static Integer connectionPoolLock = new Integer(0);
@@ -150,7 +150,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         try
         {
           if (serviceName == null)
-            serviceName = constructUniqueServiceName(serviceType);
+            serviceName = constructUniqueServiceName(connection, serviceType);
 
           String activePath = buildServiceTypeActivePath(serviceType, serviceName);
           if (connection.checkNodeExists(activePath))
@@ -563,12 +563,12 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   
   /** Construct a unique service name given the service type.
   */
-  protected String constructUniqueServiceName(String serviceType)
-    throws ManifoldCFException
+  protected String constructUniqueServiceName(ZooKeeperConnection connection, String serviceType)
+    throws ManifoldCFException, InterruptedException
   {
     String serviceCounterName = makeServiceCounterName(serviceType);
-    int serviceUID = readServiceCounter(serviceCounterName);
-    writeServiceCounter(serviceCounterName,serviceUID+1);
+    int serviceUID = readServiceCounter(connection, serviceCounterName);
+    writeServiceCounter(connection, serviceCounterName,serviceUID+1);
     return anonymousServiceNamePrefix + serviceUID;
   }
   
@@ -576,34 +576,39 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   */
   protected static String makeServiceCounterName(String serviceType)
   {
-    return anonymousServiceTypeCounter + serviceType;
+    return SERVICETYPE_ANONYMOUS_COUNTER_PREFIX + serviceType;
   }
   
   /** Read service counter.
   */
-  protected int readServiceCounter(String serviceCounterName)
-    throws ManifoldCFException
+  protected int readServiceCounter(ZooKeeperConnection connection, String serviceCounterName)
+    throws ManifoldCFException, InterruptedException
   {
-    byte[] serviceCounterData = readData(serviceCounterName);
+    int rval;
+    byte[] serviceCounterData = connection.readData(serviceCounterName);
     if (serviceCounterData == null || serviceCounterData.length != 4)
-      return 0;
-    return ((int)serviceCounterData[0]) & 0xff +
-      (((int)serviceCounterData[1]) << 8) & 0xff00 +
-      (((int)serviceCounterData[2]) << 16) & 0xff0000 +
-      (((int)serviceCounterData[3]) << 24) & 0xff000000;
+      rval = 0;
+    else
+      rval = ((int)serviceCounterData[0]) & 0xff +
+        (((int)serviceCounterData[1]) << 8) & 0xff00 +
+        (((int)serviceCounterData[2]) << 16) & 0xff0000 +
+        (((int)serviceCounterData[3]) << 24) & 0xff000000;
+    System.out.println("Read service counter '"+serviceCounterName+"'; value = "+rval);
+    return rval;
   }
   
   /** Write service counter.
   */
-  protected void writeServiceCounter(String serviceCounterName, int counter)
-    throws ManifoldCFException
+  protected void writeServiceCounter(ZooKeeperConnection connection, String serviceCounterName, int counter)
+    throws ManifoldCFException, InterruptedException
   {
     byte[] serviceCounterData = new byte[4];
     serviceCounterData[0] = (byte)(counter & 0xff);
     serviceCounterData[1] = (byte)((counter >> 8) & 0xff);
     serviceCounterData[2] = (byte)((counter >> 16) & 0xff);
     serviceCounterData[3] = (byte)((counter >> 24) & 0xff);
-    writeData(serviceCounterName,serviceCounterData);
+    connection.writeData(serviceCounterName,serviceCounterData);
+    System.out.println("Wrote service counter '"+serviceCounterName+"'; value = "+counter);
   }
 
   /** Build a zk path for the lock for a specific service type.
