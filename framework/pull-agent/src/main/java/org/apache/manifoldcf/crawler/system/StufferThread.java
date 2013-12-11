@@ -32,6 +32,12 @@ public class StufferThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id: StufferThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  /** Write lock which allows us to keep track of the last time ANY stuffer thread stuffed data */
+  protected final static String stufferThreadLockName = "_STUFFERTHREAD_LOCK";
+  /** Datum which contains the last time, in milliseconds since epoch, that any stuffer thread in the cluster
+      successfully fired. */
+  protected final static String stufferThreadLastTimeDatumName = "_STUFFERTHREAD_LASTTIME";
+  
   // Local data
   
   /** This is a reference to the static main document queue */
@@ -87,12 +93,12 @@ public class StufferThread extends Thread
       IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
       IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
+      ILockManager lockManager = LockManagerFactory.make(threadContext);
+      IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       Logging.threads.debug("Stuffer thread: Low water mark is "+Integer.toString(lowWaterMark)+"; amount per stuffing is "+Integer.toString(stuffAmt));
-
-      // This is used to adjust the number of records returned for jobs
-      // that are throttled.
-      long lastTime = System.currentTimeMillis();
 
       // Hashmap keyed by jobid and containing ArrayLists.
       // This way we can guarantee priority will do the right thing, because the
@@ -155,21 +161,40 @@ public class StufferThread extends Thread
           // What we want to do is load enough documents to completely fill n queued document sets.
           // The number n passed in here thus cannot be used in a query to limit the number of returned
           // results.  Instead, it must be factored into the limit portion of the query.
+          
+          // Note well: the stuffer code stuffs based on intervals, so it is perfectly OK to 
+          // compute the interval for this request AND update the global "last time" even
+          // before actually firing off the query.  The worst that can happen is if the query
+          // fails, the interval will be "lost", and thus fewer documents will be stuffed than could
+          // be.
+          long stuffingStartTime;
+          long stuffingEndTime;
+          lockManager.enterWriteLock(stufferThreadLockName);
+          try
+          {
+            stuffingStartTime = readLastTime(lockManager);
+            stuffingEndTime = System.currentTimeMillis();
+            // Set the last time to be the current time
+            writeLastTime(lockManager,stuffingEndTime);
+          }
+          finally
+          {
+            lockManager.leaveWriteLock(stufferThreadLockName);
+          }
+
+          lastQueueStart = System.currentTimeMillis();
           DepthStatistics depthStatistics = new DepthStatistics();
-          long currentTime = System.currentTimeMillis();
-          lastQueueStart = currentTime;
-          DocumentDescription[] descs = jobManager.getNextDocuments(processID,stuffAmt,currentTime,currentTime-lastTime,
+          DocumentDescription[] descs = jobManager.getNextDocuments(processID,stuffAmt,stuffingEndTime,stuffingEndTime-stuffingStartTime,
             blockingDocuments,queueTracker.getCurrentStatistics(),depthStatistics);
           lastQueueEnd = System.currentTimeMillis();
           lastQueueFullResults = (descs.length == stuffAmt);
+          
+          // Assess what we've done.
+          rt.assessMinimumDepth(depthStatistics.getBins());
 
           if (Thread.currentThread().isInterrupted())
             throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
-          queueTracker.assessMinimumDepth(depthStatistics.getBins());
-
-          // Set the last time to be the current time
-          lastTime = currentTime;
           if (Logging.threads.isDebugEnabled())
           {
             Logging.threads.debug("Stuffer thread: Found "+Integer.toString(descs.length)+" documents to queue");
@@ -249,10 +274,7 @@ public class StufferThread extends Thread
             try
             {
               // Grab a connector handle
-              IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
-                connection.getClassName(),
-                connection.getConfigParams(),
-                connection.getMaxConnections());
+              IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
               if (connector == null)
               {
                 maxDocuments = 1;
@@ -269,7 +291,7 @@ public class StufferThread extends Thread
                 }
                 finally
                 {
-                  RepositoryConnectorFactory.release(connector);
+                  repositoryConnectorPool.release(connection,connector);
                 }
               }
             }
@@ -407,4 +429,36 @@ public class StufferThread extends Thread
     }
   }
 
+  protected static long readLastTime(ILockManager lockManager)
+    throws ManifoldCFException
+  {
+    byte[] data = lockManager.readData(stufferThreadLastTimeDatumName);
+    if (data == null || data.length != 8)
+      return System.currentTimeMillis();
+    long value = ((long)data[0]) & 0xffL +
+      (((long)data[1]) << 8) & 0xff00L +
+      (((long)data[2]) << 16) & 0xff0000L +
+      (((long)data[3]) << 24) & 0xff000000L +
+      (((long)data[4]) << 32) & 0xff00000000L +
+      (((long)data[5]) << 40) & 0xff0000000000L +
+      (((long)data[6]) << 48) & 0xff000000000000L +
+      (((long)data[7]) << 56) & 0xff00000000000000L;
+    return value;
+  }
+
+  protected static void writeLastTime(ILockManager lockManager, long lastTime)
+    throws ManifoldCFException
+  {
+    byte[] data = new byte[8];
+    data[0] = (byte)(lastTime & 0xffL);
+    data[1] = (byte)((lastTime >> 8) & 0xffL);
+    data[2] = (byte)((lastTime >> 16) & 0xffL);
+    data[3] = (byte)((lastTime >> 24) & 0xffL);
+    data[4] = (byte)((lastTime >> 32) & 0xffL);
+    data[5] = (byte)((lastTime >> 40) & 0xffL);
+    data[6] = (byte)((lastTime >> 48) & 0xffL);
+    data[7] = (byte)((lastTime >> 56) & 0xffL);
+    lockManager.writeData(stufferThreadLastTimeDatumName,data);
+  }
+  
 }

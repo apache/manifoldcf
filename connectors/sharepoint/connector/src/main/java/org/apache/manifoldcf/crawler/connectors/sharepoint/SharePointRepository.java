@@ -423,6 +423,16 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       connectionManager.closeIdleConnections(60000L,TimeUnit.MILLISECONDS);
   }
 
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return connectionManager != null;
+  }
+
   /** Request arbitrary connector information.
   * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
   * queries.

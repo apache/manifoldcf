@@ -79,14 +79,46 @@ public class BaseLockManager implements ILockManager
   // By building on other primitives in this way, the same implementation will suffice for many derived
   // lockmanager implementations - although ZooKeeper will want a native form.
 
-  /** The global write lock to control sync */
-  protected final static String serviceLock = "_SERVICELOCK_";
+  /** The service-type global write lock to control sync, followed by the service type */
+  protected final static String serviceTypeLockPrefix = "_SERVICELOCK_";
   /** A data name prefix, followed by the service type, and then followed by "_" and the instance number */
   protected final static String serviceListPrefix = "_SERVICELIST_";
   /** A flag prefix, followed by the service type, and then followed by "_" and the service name */
   protected final static String servicePrefix = "_SERVICE_";
   /** A flag prefix, followed by the service type, and then followed by "_" and the service name */
   protected final static String activePrefix = "_ACTIVE_";
+  /** A data name prefix, followed by the service type, and then followed by "_" and the service name and "_" and the datatype */
+  protected final static String serviceDataPrefix = "_SERVICEDATA_";
+  /** Anonymous service name prefix, to be followed by an integer */
+  protected final static String anonymousServiceNamePrefix = "_ANON_";
+  /** Anonymous global variable name prefix, to be followed by the service type */
+  protected final static String anonymousServiceTypeCounter = "_SERVICECOUNTER_";
+  
+  
+  /** Register a service and begin service activity.
+  * This atomic operation creates a permanent registration entry for a service.
+  * If the permanent registration entry already exists, this method will not create it or
+  * treat it as an error.  This operation also enters the "active" zone for the service.  The "active" zone will remain in force until it is
+  * canceled, or until the process is interrupted.  Ideally, the corresponding endServiceActivity method will be
+  * called when the service shuts down.  Some ILockManager implementations require that this take place for
+  * proper management.
+  * If the transient registration already exists, it is treated as an error and an exception will be thrown.
+  * If registration will succeed, then this method may call an appropriate IServiceCleanup method to clean up either the
+  * current service, or all services on the cluster.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service to register.  If null is passed, a transient unique service name will be
+  *    created, and will be returned to the caller.
+  *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists.
+  *    May be null.  Local service cleanup is never called if the serviceName argument is null.
+  *@return the actual service name.
+  */
+  @Override
+  public String registerServiceBeginServiceActivity(String serviceType, String serviceName,
+    IServiceCleanup cleanup)
+    throws ManifoldCFException
+  {
+    return registerServiceBeginServiceActivity(serviceType, serviceName, null, cleanup);
+  }
 
   /** Register a service and begin service activity.
   * This atomic operation creates a permanent registration entry for a service.
@@ -99,16 +131,25 @@ public class BaseLockManager implements ILockManager
   * If registration will succeed, then this method may call an appropriate IServiceCleanup method to clean up either the
   * current service, or all services on the cluster.
   *@param serviceType is the type of service.
-  *@param serviceName is the name of the service to register.
-  *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists
+  *@param serviceName is the name of the service to register.  If null is passed, a transient unique service name will be
+  *    created, and will be returned to the caller.
+  *@param initialData is the initial service data for this service.
+  *@param cleanup is called to clean up either the current service, or all services of this type, if no other active service exists.
+  *    May be null.  Local service cleanup is never called if the serviceName argument is null.
+  *@return the actual service name.
   */
   @Override
-  public void registerServiceBeginServiceActivity(String serviceType, String serviceName, IServiceCleanup cleanup)
+  public String registerServiceBeginServiceActivity(String serviceType, String serviceName,
+    byte[] initialData, IServiceCleanup cleanup)
     throws ManifoldCFException
   {
-    enterWriteLock(serviceLock);
+    String serviceTypeLockName = buildServiceTypeLockName(serviceType);
+    enterWriteLock(serviceTypeLockName);
     try
     {
+      if (serviceName == null)
+        serviceName = constructUniqueServiceName(serviceType);
+      
       // First, do an active check
       String serviceActiveFlag = makeActiveServiceFlagName(serviceType, serviceName);
       if (checkGlobalFlag(serviceActiveFlag))
@@ -197,13 +238,103 @@ public class BaseLockManager implements ILockManager
 
       // Last, set the appropriate active flag
       setGlobalFlag(serviceActiveFlag);
+      writeServiceData(serviceType, serviceName, initialData);
+
+      return serviceName;
     }
     finally
     {
-      leaveWriteLock(serviceLock);
+      leaveWriteLock(serviceTypeLockName);
     }
   }
   
+  /** Set service data for a service.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service.
+  *@param serviceData is the data to update to (may be null).
+  * This updates the service's transient data (or deletes it).  If the service is not active, an exception is thrown.
+  */
+  @Override
+  public void updateServiceData(String serviceType, String serviceName, byte[] serviceData)
+    throws ManifoldCFException
+  {
+    String serviceTypeLockName = buildServiceTypeLockName(serviceType);
+    enterWriteLock(serviceTypeLockName);
+    try
+    {
+      String serviceActiveFlag = makeActiveServiceFlagName(serviceType, serviceName);
+      if (!checkGlobalFlag(serviceActiveFlag))
+        throw new ManifoldCFException("Service '"+serviceName+"' of type '"+serviceType+"' is not active");
+      writeServiceData(serviceType, serviceName, serviceData);
+    }
+    finally
+    {
+      leaveWriteLock(serviceTypeLockName);
+    }
+  }
+
+  /** Retrieve service data for a service.
+  *@param serviceType is the type of service.
+  *@param serviceName is the name of the service.
+  *@return the service's transient data.
+  */
+  @Override
+  public byte[] retrieveServiceData(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    String serviceTypeLockName = buildServiceTypeLockName(serviceType);
+    enterReadLock(serviceTypeLockName);
+    try
+    {
+      String serviceActiveFlag = makeActiveServiceFlagName(serviceType, serviceName);
+      if (!checkGlobalFlag(serviceActiveFlag))
+        return null;
+      byte[] rval = readServiceData(serviceType, serviceName);
+      if (rval == null)
+        rval = new byte[0];
+      return rval;
+    }
+    finally
+    {
+      leaveReadLock(serviceTypeLockName);
+    }
+  }
+
+  /** Scan service data for a service type.  Only active service data will be considered.
+  *@param serviceType is the type of service.
+  *@param dataType is the type of data.
+  *@param dataAcceptor is the object that will be notified of each item of data for each service name found.
+  */
+  @Override
+  public void scanServiceData(String serviceType, IServiceDataAcceptor dataAcceptor)
+    throws ManifoldCFException
+  {
+    String serviceTypeLockName = buildServiceTypeLockName(serviceType);
+    enterReadLock(serviceTypeLockName);
+    try
+    {
+      int i = 0;
+      while (true)
+      {
+        String resourceName = buildServiceListEntry(serviceType, i);
+        String x = readServiceName(resourceName);
+        if (x == null)
+          break;
+        if (checkGlobalFlag(makeActiveServiceFlagName(serviceType, x)))
+        {
+          byte[] serviceData = readServiceData(serviceType, x);
+          if (dataAcceptor.acceptServiceData(x, serviceData))
+            break;
+        }
+        i++;
+      }
+    }
+    finally
+    {
+      leaveReadLock(serviceTypeLockName);
+    }
+  }
+
   /** Count all active services of a given type.
   *@param serviceType is the service type.
   *@return the count.
@@ -212,7 +343,8 @@ public class BaseLockManager implements ILockManager
   public int countActiveServices(String serviceType)
     throws ManifoldCFException
   {
-    enterWriteLock(serviceLock);
+    String serviceTypeLockName = buildServiceTypeLockName(serviceType);
+    enterReadLock(serviceTypeLockName);
     try
     {
       int count = 0;
@@ -231,7 +363,7 @@ public class BaseLockManager implements ILockManager
     }
     finally
     {
-      leaveWriteLock(serviceLock);
+      leaveReadLock(serviceTypeLockName);
     }
   }
 
@@ -249,7 +381,8 @@ public class BaseLockManager implements ILockManager
   public boolean cleanupInactiveService(String serviceType, IServiceCleanup cleanup)
     throws ManifoldCFException
   {
-    enterWriteLock(serviceLock);
+    String serviceTypeLockName = buildServiceTypeLockName(serviceType);
+    enterWriteLock(serviceTypeLockName);
     try
     {
       // We find ONE service that is registered but inactive, and clean up after that one.
@@ -300,7 +433,7 @@ public class BaseLockManager implements ILockManager
     }
     finally
     {
-      leaveWriteLock(serviceLock);
+      leaveWriteLock(serviceTypeLockName);
     }
   }
 
@@ -314,17 +447,19 @@ public class BaseLockManager implements ILockManager
   public void endServiceActivity(String serviceType, String serviceName)
     throws ManifoldCFException
   {
-    enterWriteLock(serviceLock);
+    String serviceTypeLockName = buildServiceTypeLockName(serviceType);
+    enterWriteLock(serviceTypeLockName);
     try
     {
       String serviceActiveFlag = makeActiveServiceFlagName(serviceType, serviceName);
       if (!checkGlobalFlag(serviceActiveFlag))
         throw new ManifoldCFException("Service '"+serviceName+"' of type '"+serviceType+" is not active");
+      deleteServiceData(serviceType, serviceName);
       clearGlobalFlag(serviceActiveFlag);
     }
     finally
     {
-      leaveWriteLock(serviceLock);
+      leaveWriteLock(serviceTypeLockName);
     }
   }
     
@@ -339,17 +474,86 @@ public class BaseLockManager implements ILockManager
   public boolean checkServiceActive(String serviceType, String serviceName)
     throws ManifoldCFException
   {
-    enterWriteLock(serviceLock);
+    String serviceTypeLockName = buildServiceTypeLockName(serviceType);
+    enterReadLock(serviceTypeLockName);
     try
     {
       return checkGlobalFlag(makeActiveServiceFlagName(serviceType, serviceName));
     }
     finally
     {
-      leaveWriteLock(serviceLock);
+      leaveReadLock(serviceTypeLockName);
     }
   }
 
+  /** Construct a unique service name given the service type.
+  */
+  protected String constructUniqueServiceName(String serviceType)
+    throws ManifoldCFException
+  {
+    String serviceCounterName = makeServiceCounterName(serviceType);
+    int serviceUID = readServiceCounter(serviceCounterName);
+    writeServiceCounter(serviceCounterName,serviceUID+1);
+    return anonymousServiceNamePrefix + serviceUID;
+  }
+  
+  /** Make the service counter name for a service type.
+  */
+  protected static String makeServiceCounterName(String serviceType)
+  {
+    return anonymousServiceTypeCounter + serviceType;
+  }
+  
+  /** Read service counter.
+  */
+  protected int readServiceCounter(String serviceCounterName)
+    throws ManifoldCFException
+  {
+    byte[] serviceCounterData = readData(serviceCounterName);
+    if (serviceCounterData == null || serviceCounterData.length != 4)
+      return 0;
+    return ((int)serviceCounterData[0]) & 0xff +
+      (((int)serviceCounterData[1]) << 8) & 0xff00 +
+      (((int)serviceCounterData[2]) << 16) & 0xff0000 +
+      (((int)serviceCounterData[3]) << 24) & 0xff000000;
+  }
+  
+  /** Write service counter.
+  */
+  protected void writeServiceCounter(String serviceCounterName, int counter)
+    throws ManifoldCFException
+  {
+    byte[] serviceCounterData = new byte[4];
+    serviceCounterData[0] = (byte)(counter & 0xff);
+    serviceCounterData[1] = (byte)((counter >> 8) & 0xff);
+    serviceCounterData[2] = (byte)((counter >> 16) & 0xff);
+    serviceCounterData[3] = (byte)((counter >> 24) & 0xff);
+    writeData(serviceCounterName,serviceCounterData);
+  }
+  
+  protected void writeServiceData(String serviceType, String serviceName, byte[] serviceData)
+    throws ManifoldCFException
+  {
+    writeData(makeServiceDataName(serviceType, serviceName), serviceData);
+  }
+  
+  protected byte[] readServiceData(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    return readData(makeServiceDataName(serviceType, serviceName));
+  }
+  
+  protected void deleteServiceData(String serviceType, String serviceName)
+    throws ManifoldCFException
+  {
+    writeServiceData(serviceType, serviceName, null);
+  }
+  
+  protected static String makeServiceDataName(String serviceType, String serviceName)
+  {
+    return serviceDataPrefix + serviceType + "_" + serviceName;
+  }
+  
   protected static String makeActiveServiceFlagName(String serviceType, String serviceName)
   {
     return activePrefix + serviceType + "_" + serviceName;
@@ -394,6 +598,11 @@ public class BaseLockManager implements ILockManager
     return serviceListPrefix + serviceType + "_" + i;
   }
 
+  protected static String buildServiceTypeLockName(String serviceType)
+  {
+    return serviceTypeLockPrefix + serviceType;
+  }
+  
   /** Get the current shared configuration.  This configuration is available in common among all nodes,
   * and thus must not be accessed through here for the purpose of finding configuration data that is specific to any one
   * specific node.

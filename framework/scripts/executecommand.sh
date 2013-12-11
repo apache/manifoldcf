@@ -35,7 +35,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
             fi
         done
 
-        # Build the options
+        # Build the global options
 	OPTIONS=$(cat "$MCF_HOME"/processes/options.env)
         
         # Build the defines
@@ -47,7 +47,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
             done
         fi
 
-        "$JAVA_HOME/bin/java" $OPTIONS $DEFINES -cp "$CLASSPATH" "$@"
+        "$JAVA_HOME/bin/java" $OPTIONS $DEFINES -cp "$CLASSPATH" $@
         exit $?
         
     else

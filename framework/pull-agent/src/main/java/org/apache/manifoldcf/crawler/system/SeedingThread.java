@@ -38,8 +38,6 @@ public class SeedingThread extends Thread
   // Local data
   /** Seeding reset manager */
   protected final SeedingResetManager resetManager;
-  /** Queue tracker */
-  protected final QueueTracker queueTracker;
   /** Process ID */
   protected final String processID;
 
@@ -48,14 +46,13 @@ public class SeedingThread extends Thread
 
   /** Constructor.
   */
-  public SeedingThread(QueueTracker queueTracker, SeedingResetManager resetManager, String processID)
+  public SeedingThread(SeedingResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     setName("Seeding thread");
     setDaemon(true);
     this.resetManager = resetManager;
-    this.queueTracker = queueTracker;
     this.processID = processID;
   }
 
@@ -69,12 +66,10 @@ public class SeedingThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+      IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
-      IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ManifoldCF.getMasterDatabaseName(),
-        ManifoldCF.getMasterDatabaseUsername(),
-        ManifoldCF.getMasterDatabasePassword());
-
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       String[] identifiers = new String[MAX_COUNT];
       // Loop
       while (true)
@@ -128,17 +123,12 @@ public class SeedingThread extends Thread
                 int hopcountMethod = jobDescription.getHopcountMode();
 
                 IRepositoryConnection connection = connectionMgr.load(jobDescription.getConnectionName());
-                IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
-                  connection.getClassName(),
-                  connection.getConfigParams(),
-                  connection.getMaxConnections());
+                IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
                 // Null will come back if the connector instance could not be obtained, so just skip in that case.
                 if (connector == null)
                   continue;
                 try
                 {
-
-
                   // Get the number of link types.
                   String[] legalLinkTypes = connector.getRelationshipTypes();
 
@@ -147,7 +137,8 @@ public class SeedingThread extends Thread
                   try
                   {
 
-                    SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,jobManager,queueTracker,
+                    SeedingActivity activity = new SeedingActivity(connection.getName(),connectionMgr,
+                      jobManager,rt,
                       connection,connector,jobID,legalLinkTypes,false,hopcountMethod,processID);
 
                     if (Logging.threads.isDebugEnabled())
@@ -175,7 +166,7 @@ public class SeedingThread extends Thread
                 }
                 finally
                 {
-                  RepositoryConnectorFactory.release(connector);
+                  repositoryConnectorPool.release(connection,connector);
                 }
 
 

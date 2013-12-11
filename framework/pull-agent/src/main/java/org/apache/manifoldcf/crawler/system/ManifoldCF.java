@@ -105,6 +105,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   public static void localCleanup(IThreadContext tc)
   {
+    try
+    {
+      RepositoryConnectorPoolFactory.make(tc).closeAllConnectors();
+    }
+    catch (ManifoldCFException e)
+    {
+      if (Logging.root != null)
+        Logging.root.warn("Exception tossed on repository connector pool cleanup: "+e.getMessage(),e);
+    }
   }
   
   /** Create system database using superuser properties from properties.xml.
@@ -519,10 +528,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
+    IBinManager binManager = BinManagerFactory.make(threadcontext);
     org.apache.manifoldcf.authorities.system.ManifoldCF.installSystemTables(threadcontext);
     repConnMgr.install();
     repCon.install();
     jobManager.install();
+    binManager.install();
   }
 
   /** Uninstall all the crawler system tables.
@@ -534,6 +545,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
+    IBinManager binManager = BinManagerFactory.make(threadcontext);
+    binManager.deinstall();
     jobManager.deinstall();
     repCon.deinstall();
     repConnMgr.deinstall();
@@ -839,13 +852,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Requeue documents due to carrydown.
   */
-  public static void requeueDocumentsDueToCarrydown(IJobManager jobManager, DocumentDescription[] requeueCandidates,
-    IRepositoryConnector connector, IRepositoryConnection connection, QueueTracker queueTracker, long currentTime)
+  public static void requeueDocumentsDueToCarrydown(IJobManager jobManager,
+    DocumentDescription[] requeueCandidates,
+    IRepositoryConnector connector, IRepositoryConnection connection, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // A list of document descriptions from finishDocuments() above represents those documents that may need to be requeued, for the
     // reason that carrydown information for those documents has changed.  In order to requeue, we need to calculate document priorities, however.
-    double[] docPriorities = new double[requeueCandidates.length];
+    IPriorityCalculator[] docPriorities = new IPriorityCalculator[requeueCandidates.length];
     String[][] binNames = new String[requeueCandidates.length][];
     int q = 0;
     while (q < requeueCandidates.length)
@@ -853,27 +867,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       DocumentDescription dd = requeueCandidates[q];
       String[] bins = calculateBins(connector,dd.getDocumentIdentifier());
       binNames[q] = bins;
-      docPriorities[q] = queueTracker.calculatePriority(bins,connection);
-      if (Logging.scheduling.isDebugEnabled())
-        Logging.scheduling.debug("Document '"+dd.getDocumentIdentifier()+" given priority "+new Double(docPriorities[q]).toString());
+      docPriorities[q] = new PriorityCalculator(rt,connection,bins);
       q++;
     }
 
     // Now, requeue the documents with the new priorities
-    boolean[] trackerNote = jobManager.carrydownChangeDocumentMultiple(requeueCandidates,currentTime,docPriorities);
-
-    // Free the unused priorities.
-    // Inform queuetracker about what we used and what we didn't
-    q = 0;
-    while (q < trackerNote.length)
-    {
-      if (trackerNote[q] == false)
-      {
-        String[] bins = binNames[q];
-        queueTracker.notePriorityNotUsed(bins,connection,docPriorities[q]);
-      }
-      q++;
-    }
+    jobManager.carrydownChangeDocumentMultiple(requeueCandidates,currentTime,docPriorities);
   }
 
   /** Stuff colons so we can't have conflicts. */
@@ -917,79 +916,72 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return connector.getBinNames(documentIdentifier);
   }
 
-  protected final static String resetDocPrioritiesLock = "_RESETPRIORITIES_";
-  
   /** Reset all (active) document priorities.  This operation may occur due to various externally-triggered
   * events, such a job abort, pause, resume, wait, or unwait.
   */
-  public static void resetAllDocumentPriorities(IThreadContext threadContext, QueueTracker queueTracker, long currentTime)
+  public static void resetAllDocumentPriorities(IThreadContext threadContext, long currentTime, String processID)
     throws ManifoldCFException
   {
     ILockManager lockManager = LockManagerFactory.make(threadContext);
     IJobManager jobManager = JobManagerFactory.make(threadContext);
     IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
+    IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
+
+    String reproID = IDFactory.make(threadContext);
+
+    rt.startReprioritization(System.currentTimeMillis(),processID,reproID);
+    // Reprioritize all documents in the jobqueue, 1000 at a time
+
+    Map<String,IRepositoryConnection> connectionMap = new HashMap<String,IRepositoryConnection>();
+    Map<Long,IJobDescription> jobDescriptionMap = new HashMap<Long,IJobDescription>();
     
-    // Only one thread allowed at a time
-    lockManager.enterWriteLock(resetDocPrioritiesLock);
-    try
+    // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
+    // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
+    // activity.
+    // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
+    // priorities.
+    while (true)
     {
-      // Reset the queue tracker
-      queueTracker.beginReset();
-      // Perform the reprioritization, for all active documents in active jobs.  During this time,
-      // it is safe to have other threads assign new priorities to documents, but it is NOT safe
-      // for other threads to attempt to change the minimum priority level.  The queuetracker object
-      // will therefore block that from occurring, until the reset is complete.
-      try
+      long startTime = System.currentTimeMillis();
+
+      Long currentTimeValue = rt.checkReprioritizationInProgress();
+      if (currentTimeValue == null)
       {
-        // Reprioritize all documents in the jobqueue, 1000 at a time
-
-        Map<String,IRepositoryConnection> connectionMap = new HashMap<String,IRepositoryConnection>();
-        Map<Long,IJobDescription> jobDescriptionMap = new HashMap<Long,IJobDescription>();
-
-        // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
-        // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
-        // activity.
-        // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
-        // priorities.
-        while (true)
-        {
-          long startTime = System.currentTimeMillis();
-
-          DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(currentTime, 10000);
-          if (docs.length == 0)
-            break;
-
-          // Calculate new priorities for all these documents
-          writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,
-            queueTracker,currentTime);
-
-          Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
-        }
+        // Some other process or thread superceded us.
+        return;
       }
-      finally
-      {
-        queueTracker.endReset();
-      }
+      long updateTime = currentTimeValue.longValue();
+      
+      DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(updateTime, 10000);
+      if (docs.length == 0)
+        break;
+
+      // Calculate new priorities for all these documents
+      writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,updateTime);
+
+      Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
     }
-    finally
-    {
-      lockManager.leaveWriteLock(resetDocPrioritiesLock);
-    }
+    
+    rt.doneReprioritization(reproID);
   }
   
   /** Write a set of document priorities, based on the current queue tracker.
   */
-  public static void writeDocumentPriorities(IThreadContext threadContext, IRepositoryConnectionManager mgr,
-    IJobManager jobManager, DocumentDescription[] descs,
+  public static void writeDocumentPriorities(IThreadContext threadContext, DocumentDescription[] descs,
     Map<String,IRepositoryConnection> connectionMap, Map<Long,IJobDescription> jobDescriptionMap,
-    QueueTracker queueTracker, long currentTime)
+    long currentTime)
     throws ManifoldCFException
   {
+    IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+    IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
+    
     if (Logging.scheduling.isDebugEnabled())
       Logging.scheduling.debug("Reprioritizing "+Integer.toString(descs.length)+" documents");
 
 
-    double[] priorities = new double[descs.length];
+    IPriorityCalculator[] priorities = new IPriorityCalculator[descs.length];
 
     // Go through the documents and calculate the priorities
     int i = 0;
@@ -1012,10 +1004,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
       String[] binNames;
       // Grab a connector handle
-      IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
-        connection.getClassName(),
-        connection.getConfigParams(),
-        connection.getMaxConnections());
+      IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
       try
       {
         if (connector == null)
@@ -1026,12 +1015,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        RepositoryConnectorFactory.release(connector);
+        repositoryConnectorPool.release(connection,connector);
       }
 
-      priorities[i] = queueTracker.calculatePriority(binNames,connection);
-      if (Logging.scheduling.isDebugEnabled())
-        Logging.scheduling.debug("Document '"+dd.getDocumentIdentifier()+"' given priority "+new Double(priorities[i]).toString());
+      priorities[i] = new PriorityCalculator(rt,connection,binNames);
 
       i++;
     }
@@ -1239,6 +1226,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(tc);
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
       IOutputConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1249,7 +1237,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IOutputConnector connector = outputConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1260,7 +1248,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        OutputConnectorFactory.release(connector);
+        outputConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1280,6 +1268,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(tc);
       IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
       IAuthorityConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1290,7 +1279,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IAuthorityConnector connector = authorityConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1301,7 +1290,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        AuthorityConnectorFactory.release(connector);
+        authorityConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1321,6 +1310,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(tc);
       IMappingConnectionManager connectionManager = MappingConnectionManagerFactory.make(tc);
       IMappingConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1331,7 +1321,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IMappingConnector connector = MappingConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IMappingConnector connector = mappingConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1342,7 +1332,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        MappingConnectorFactory.release(connector);
+        mappingConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1362,6 +1352,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(tc);
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       IRepositoryConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1372,7 +1363,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1383,7 +1374,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        RepositoryConnectorFactory.release(connector);
+        repositoryConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1404,6 +1395,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(tc);
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
       IOutputConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1413,14 +1405,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
 
       // Grab a connection handle, and call the test method
-      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IOutputConnector connector = outputConnectorPool.grab(connection);
       try
       {
         return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
       }
       finally
       {
-        OutputConnectorFactory.release(connector);
+        outputConnectorPool.release(connection,connector);
       }
     }
     catch (ManifoldCFException e)
@@ -1436,6 +1428,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(tc);
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       IRepositoryConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1445,14 +1438,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
 
       // Grab a connection handle, and call the test method
-      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
       try
       {
         return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
       }
       finally
       {
-        RepositoryConnectorFactory.release(connector);
+        repositoryConnectorPool.release(connection,connector);
       }
     }
     catch (ManifoldCFException e)

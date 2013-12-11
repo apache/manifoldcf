@@ -61,6 +61,8 @@ public class JobNotificationThread extends Thread
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(threadContext);
       IRepositoryConnectionManager repositoryConnectionManager = RepositoryConnectionManagerFactory.make(threadContext);
 
+      IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -108,7 +110,7 @@ public class JobNotificationThread extends Thread
               if (connection != null)
               {
                 // Grab an appropriate connection instance
-                IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+                IOutputConnector connector = outputConnectorPool.grab(connection);
                 if (connector != null)
                 {
                   try
@@ -138,7 +140,7 @@ public class JobNotificationThread extends Thread
                   }
                   finally
                   {
-                    OutputConnectorFactory.release(connector);
+                    outputConnectorPool.release(connection,connector);
                   }
                 }
               }

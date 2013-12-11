@@ -118,6 +118,16 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     user = configParams.getParameter(ParameterEnum.user.name());
   }
 
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return session != null;
+  }
+
   /** Close the connection.  Call this before discarding the connection.
    */
   @Override

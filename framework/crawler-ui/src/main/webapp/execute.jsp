@@ -51,6 +51,9 @@
 		IMappingConnectionManager mappingConnManager = MappingConnectionManagerFactory.make(threadContext);
 		IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
 		
+		IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+		IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+		
 		String type = variableContext.getParameter("type");
 		String op = variableContext.getParameter("op");
 		if (type != null && op != null && type.equals("connection"))
@@ -713,6 +716,28 @@
 <%
 				}
 			}
+			else if (op.equals("RemoveAll"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new ManifoldCFException("Missing connection parameter");
+					org.apache.manifoldcf.agents.system.ManifoldCF.signalOutputConnectionRemoved(threadContext,connectionName);
+%>
+					<jsp:forward page="listoutputs.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listoutputs.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
 			else
 			{
 				// Error
@@ -1028,8 +1053,7 @@
 					
 					if (outputPresent && outputConnection != null)
 					{
-						IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,
-							outputConnection.getClassName(),outputConnection.getConfigParams(),outputConnection.getMaxConnections());
+						IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 						if (outputConnector != null)
 						{
 							try
@@ -1046,15 +1070,14 @@
 							}
 							finally
 							{
-								OutputConnectorFactory.release(outputConnector);
+								outputConnectorPool.release(outputConnection,outputConnector);
 							}
 						}
 					}
 					
 					if (connectionPresent && connection != null)
 					{
-						IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,
-							connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+						IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 						if (repositoryConnector != null)
 						{
 							try
@@ -1071,7 +1094,7 @@
 							}
 							finally
 							{
-								RepositoryConnectorFactory.release(repositoryConnector);
+								repositoryConnectorPool.release(connection,repositoryConnector);
 							}
 						}
 					}

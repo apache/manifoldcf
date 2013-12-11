@@ -67,6 +67,7 @@
     {
 	IMappingConnectionManager manager = MappingConnectionManagerFactory.make(threadContext);
 	IMappingConnectorManager connectorManager = MappingConnectorManagerFactory.make(threadContext);
+	IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(threadContext);
 	String connectionName = variableContext.getParameter("connname");
 	IMappingConnection connection = manager.load(connectionName);
 	if (connection == null)
@@ -91,7 +92,7 @@
 		String connectionStatus;
 		try
 		{
-			IMappingConnector c = MappingConnectorFactory.grab(threadContext,className,parameters,maxCount);
+			IMappingConnector c = mappingConnectorPool.grab(connection);
 			if (c == null)
 			{
 				connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewmapper.Connectorisnotinstalled");
@@ -104,7 +105,7 @@
 				}
 				finally
 				{
-					MappingConnectorFactory.release(c);
+					mappingConnectorPool.release(connection,c);
 				}
 			}
 		}

@@ -947,6 +947,16 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
   }
 
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return session != null;
+  }
+
   /** Disconnect from Documentum.
   */
   @Override

@@ -20,6 +20,7 @@ package org.apache.manifoldcf.combinedservice;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.apache.manifoldcf.agents.system.AgentsDaemon;
 import javax.servlet.*;
 
 /** This class furnishes a servlet shutdown hook for ManifoldCF.  It should be referenced in the
@@ -59,10 +60,10 @@ public class ServletListener implements ServletContextListener
     {
       if (agentsThread != null)
       {
-        ManifoldCF.assertAgentsShutdownSignal(tc);
+        AgentsDaemon.assertAgentsShutdownSignal(tc);
         agentsThread.finishUp();
         agentsThread = null;
-        ManifoldCF.clearAgentsShutdownSignal(tc);
+        AgentsDaemon.clearAgentsShutdownSignal(tc);
       }
     }
     catch (InterruptedException e)
@@ -94,14 +95,15 @@ public class ServletListener implements ServletContextListener
       IThreadContext tc = ThreadContextFactory.make();
       try
       {
-        ManifoldCF.clearAgentsShutdownSignal(tc);
+        AgentsDaemon.clearAgentsShutdownSignal(tc);
+        AgentsDaemon ad = new AgentsDaemon(processID);
         try
         {
-          ManifoldCF.runAgents(tc, processID);
+          ad.runAgents(tc);
         }
         finally
         {
-          ManifoldCF.stopAgents(tc, processID);
+          ad.stopAgents(tc);
         }
       }
       catch (Throwable e)
