@@ -161,15 +161,27 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   *@param owner is the name of the owner.
   *@param invKeys are the invalidation keys.
   */
-  public void deleteOwner(String owner, StringSet invKeys)
+  public void deleteOwner(String owner)
     throws ManifoldCFException
   {
     ArrayList params = new ArrayList();
     String query = buildConjunctionClause(params,new ClauseDescription[]{
       new UnitaryClause(ownerNameField,owner)});
-    performDelete("WHERE "+query,params,invKeys);
+    performDelete("WHERE "+query,params,null);
   }
 
+  /** Delete records older than a specified time.
+  *@param timeCutoff is the time, earlier than which records are removed.
+  */
+  public void deleteOldRows(long timeCutoff)
+    throws ManifoldCFException
+  {
+    ArrayList params = new ArrayList();
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(startTimeField,"<",new Long(timeCutoff))});
+    performDelete("WHERE "+query,params,null);
+  }
+  
   /** Add row to table, and reanalyze if necessary.
   */
   public Long addRow(String connectionName, long startTime, long endTime, long dataSize, String activityType,

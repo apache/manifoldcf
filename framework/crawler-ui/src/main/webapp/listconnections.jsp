@@ -75,7 +75,11 @@
 				<td class="separator" colspan="6"><hr/></td>
 			</tr>
 			<tr class="headerrow">
-				<td class="columnheader"></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Name")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Description")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.ConnectionType")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Authority")%></td>
+				<td class="columnheader"></td>
+				<td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Name")%></td>
+				<td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Description")%></td>
+				<td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.ConnectionType")%></td>
+				<td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.AuthorityGroup")%></td>
 				<td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Max")%></td>
 			</tr>
 <%

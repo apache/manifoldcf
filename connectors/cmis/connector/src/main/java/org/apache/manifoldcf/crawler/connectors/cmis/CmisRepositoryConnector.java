@@ -603,6 +603,16 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return session != null;
+  }
+
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
    * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
    *

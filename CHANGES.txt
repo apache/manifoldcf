@@ -3,7 +3,118 @@ $Id$
 
 ======================= 1.5-dev =====================
 
-CONNECTORS-553: Email connector.
+CONNECTORS-833: Fix Null Pointer exception in LiveLink connector.
+(David Morana, Karl Wright)
+
+CONNECTORS-828: New stylesheet!  Apparently brings the
+crawler UI into the modern world.
+(Eranda Bandaranaike)
+
+CONNECTORS-827: Add a feature which removes all ingeststatus
+records for an output connection, in case that the target index
+is gone forever and is inaccessible.
+(Swami Rajamohan, Karl Wright)
+
+CONNECTORS-795, CONNECTORS-821: Release new versions of
+Solr 3.x, Solr 4.x, ElasticSearch, and SharePoint 2010 plugins.
+(Karl Wright)
+
+CONNECTORS-832: Add example second agents process to all
+multiprocess examples.
+(Karl Wright)
+
+CONNECTORS-831: Refactor ReprioritizationTracker so that it uses
+the interface/factory paradigm.
+(Karl Wright)
+
+CONNECTORS-830: Stuffer thread throttling now works globally, not
+just locally.
+(Karl Wright)
+
+CONNECTORS-781: Add support for multiple agents processes.  This
+ticket involved changing much of the underlying infrastructure for
+the framework, including adding lock manager features, revamping the
+agents framework, building tests, and adding schema features that
+allow for an agents process failure.  All in all, a very significant change,
+which could well have introduced various instabilities.  Please don't
+hesitate to note any issues.
+(Graeme Seaton, Karl Wright)
+
+CONNECTORS-822: Use data size as Long value, not int.
+(David Morana, Karl Wright)
+
+CONNECTORS-819: Add missing metadata to JCIFS connector.
+(Graeme Seaton)
+
+CONNECTORS-817: Improve SharePoint logging.
+(Mark Libucha, Karl Wright)
+
+CONNECTORS-813: For list items, obtain the url from the EncodedAbsURL
+metadata field.  This should allow list items to be clicked on in search results.
+(Mark Libucha, Karl Wright)
+
+CONNECTORS-812: SharePoint connector needs to ignore constructs
+that it doesn't understand when enumerating list contents, because
+under some configurations, SharePoint lists things that aren't list items
+there.
+(Mark Libucha, Karl Wright)
+
+CONNECTORS-810: Update JDBC connector documentation, and add
+documentation for the JDBC authority connector.
+(Karl Wright)
+
+CONNECTORS-805: Add author name/email support to RSS connector.
+(Benjamin Brandmeier, Karl Wright)
+
+CONNECTORS-13: Provide a ZooKeeper method of coordinating
+various ManifoldCF processes, along with an example.
+(Karl Wright)
+
+CONNECTORS-808: Add raw jdbc string so smart users can override the
+default behavior and supply gobbledegook Oracle connect strings.
+(Marcello Lorenzi, Karl Wright)
+
+CONNECTORS-807: Handle the case when there are no documents being
+deleted.
+(Adrian Conlon, Karl Wright)
+
+CONNECTORS-804: Web connector documentation is out of date.
+(Shigeki Kobayashi, Karl Wright)
+
+CONNECTORS-806: Web connector session passwords were not being
+handled in the UI properly.
+(Karl Wright)
+
+CONNECTORS-803: Add automatic and manual ability to clean out
+repohistory rows.
+(Marcello Lorenzi, Karl Wright)
+
+CONNECTORS-801: Refactor JDBC authority to bring it into compliance with current
+conventions in JDBC connector.  Warning: this change is not backwards
+compatible!  JDBC authority queries now require explicit return column
+names for the user id and token queries!
+(Karl Wright)
+
+CONNECTORS-798: Bring JDBC connector support for CLOBs into the
+modern era.  This also required extension of the CharacterInputFile
+paradigm slightly - a new method to find the utf8 byte length was needed.
+(Karl Wright)
+
+CONNECTORS-797: Bad query when maxcount was exceeded in the
+database table for the jobstatus screen.
+(Graeme Seaton, Karl Wright)
+
+CONNECTORS-796: Fix NPE in RSS connector having to do with
+tags that aren't nested as expected.  CDATA parsing was also broken.
+(Benjamin Brandmeier, Karl Wright)
+
+CONNECTORS-792: Introduce concepts of authorization domain
+and authority group, and appropriate UI, API, etc. changes.  This
+is to support federated authorization models such as what SharePoint
+Claim Space fundamentally does, where there are multiple authorities
+per repository.
+WARNING: Schema change!
+(Karl Wright)
 
 ======================= Release 1.4 =====================
 

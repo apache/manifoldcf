@@ -37,6 +37,8 @@ public class AuthorityConnection implements IAuthorityConnection
   protected ConfigParams configParams = new ConfigParams();
   protected int maxCount = 100;
   protected String prerequisiteMapping = null;
+  protected String authDomain = null;
+  protected String authGroup = null;
 
   /** Constructor.
   */
@@ -57,6 +59,8 @@ public class AuthorityConnection implements IAuthorityConnection
     rval.maxCount = maxCount;
     rval.configParams = configParams.duplicate();
     rval.prerequisiteMapping = prerequisiteMapping;
+    rval.authDomain = authDomain;
+    rval.authGroup = authGroup;
     return rval;
   }
 
@@ -163,6 +167,38 @@ public class AuthorityConnection implements IAuthorityConnection
   public String getPrerequisiteMapping()
   {
     return prerequisiteMapping;
+  }
+
+  /** Set the authorization domain.
+  *@param domain is the authorization domain.
+  */
+  public void setAuthDomain(String domain)
+  {
+    authDomain = domain;
+  }
+  
+  /** Get the authorization domain.
+  *@return the authorization domain.
+  */
+  public String getAuthDomain()
+  {
+    return authDomain;
+  }
+
+  /** Set authorization group.
+  *@param groupName is the name of the group.
+  */
+  public void setAuthGroup(String groupName)
+  {
+    authGroup = groupName;
+  }
+  
+  /** Get the authorization group.
+  *@return the group.
+  */
+  public String getAuthGroup()
+  {
+    return authGroup;
   }
 
 }

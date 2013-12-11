@@ -110,7 +110,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     System.setProperty("jcifs.smb.client.responseTimeout","120000");
     System.setProperty("jcifs.resolveOrder","LMHOSTS,DNS,WINS");
     System.setProperty("jcifs.smb.client.listCount","20");
-    System.setProperty("jcifs.sm.client.dfs.strictView","true");
+    System.setProperty("jcifs.smb.client.dfs.strictView","true");
   }
   
   private String smbconnectionPath = null;
@@ -994,6 +994,13 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   {
     String fileNameString = file.getName();
     Date lastModifiedDate = new Date(file.lastModified());
+    Date creationDate = new Date(file.createTime());
+    //If using the lastAccess patched/Google version of jcifs then this can be uncommented
+    //Date lastAccessDate = new Date(file.lastAccess());
+    Integer attributes = file.getAttributes();
+    String shareName = file.getShare();
+
+    
     String contentType = mapExtensionToMimeType(fileNameString);
 
     rd.setFileName(fileNameString);
@@ -1001,6 +1008,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       rd.setMimeType(contentType);
     rd.addField("lastModified", lastModifiedDate.toString());
     rd.setModifiedDate(lastModifiedDate);
+    
+    // Add extra obtainable fields to the field map
+    rd.addField("createdOn", creationDate.toString());
+    rd.setCreatedDate(creationDate);
+
+    //rd.addField("lastAccess", lastModifiedDate.toString());
+    rd.addField("attributes", Integer.toString(attributes));
+    rd.addField("shareName", shareName);
+
 
     int index = 0;
     index = setDocumentSecurity(rd,version,index);

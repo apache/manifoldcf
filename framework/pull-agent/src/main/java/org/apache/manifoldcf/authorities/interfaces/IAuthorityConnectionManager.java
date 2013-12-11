@@ -45,10 +45,24 @@ public interface IAuthorityConnectionManager
   public void importConfiguration(java.io.InputStream is)
     throws java.io.IOException, ManifoldCFException;
 
+  /** Return true if the specified authority group name is referenced.
+  *@param authorityGroup is the authority group name.
+  *@return true if referenced, false otherwise.
+  */
+  public boolean isGroupReferenced(String authorityGroup)
+    throws ManifoldCFException;
+
   /** Obtain a list of the authority connections, ordered by name.
   *@return an array of connection objects.
   */
   public IAuthorityConnection[] getAllConnections()
+    throws ManifoldCFException;
+
+  /** Obtain a list of the authority connections which correspond to an auth domain.
+  *@param authDomain is the domain to get connections for.
+  *@return an array of connection objects.
+  */
+  public IAuthorityConnection[] getDomainConnections(String authDomain)
     throws ManifoldCFException;
 
   /** Load a authority connection by name.

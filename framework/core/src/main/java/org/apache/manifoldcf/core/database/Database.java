@@ -688,13 +688,26 @@ public abstract class Database
       }
     }
 
-    public Throwable getException()
+    public IResultSet finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public IResultSet getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof ManifoldCFException)
+        {
+          // Nest the exceptions so there is a hope we actually see the context, while preserving the kind of error it is
+          ManifoldCFException me = (ManifoldCFException)thr;
+          throw new ManifoldCFException("Database exception: "+me.getMessage(),me.getCause(),me.getErrorCode());
+        }
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else
+          throw new RuntimeException("Unknown exception: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
   }
@@ -712,24 +725,22 @@ public abstract class Database
     try
     {
       t.start();
-      t.join();
-      Throwable thr = t.getException();
-      if (thr != null)
-      {
-        if (thr instanceof ManifoldCFException)
-        {
-          // Nest the exceptions so there is a hope we actually see the context, while preserving the kind of error it is
-          ManifoldCFException me = (ManifoldCFException)thr;
-          throw new ManifoldCFException("Database exception: "+me.getMessage(),me.getCause(),me.getErrorCode());
-        }
-        else
-          throw (Error)thr;
-      }
-      return t.getResponse();
+      return t.finishUp();
     }
     catch (InterruptedException e)
     {
+      // Try to kill the background thread - but we can't wait for it...
       t.interrupt();
+      // VERY IMPORTANT: Try to close the connection, so nothing is left dangling.  The connection will be abandoned anyhow.
+      try
+      {
+        if (!connection.getAutoCommit())
+          connection.rollback();
+        connection.close();
+      }
+      catch (Exception e2)
+      {
+      }
       // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
       throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
@@ -993,10 +1004,8 @@ public abstract class Database
                 {
                   String columnName = (String)iter.next();
                   Object colValue = m.getValue(columnName);
-                  if (colValue instanceof BinaryInput)
-                    ((BinaryInput)colValue).discard();
-                  else if (colValue instanceof CharacterInput)
-                    ((CharacterInput)colValue).discard();
+                  if (colValue instanceof PersistentDatabaseObject)
+                    ((PersistentDatabaseObject)colValue).discard();
                 }
               }
             }
@@ -1021,10 +1030,8 @@ public abstract class Database
         {
           String colName = (String)iter.next();
           Object o = row.getValue(colName);
-          if (o instanceof BinaryInput)
-            ((BinaryInput)o).discard();
-          else if (o instanceof CharacterInput)
-            ((CharacterInput)o).discard();
+          if (o instanceof PersistentDatabaseObject)
+            ((PersistentDatabaseObject)o).discard();
         }
       }
       if (e instanceof ManifoldCFException)
@@ -1103,18 +1110,11 @@ public abstract class Database
   {
     if (data != null)
     {
-      for (int i = 0; i < data.size(); i++)
+      for (Object x : data)
       {
-        // If the input type is a string, then set it as such.
-        // Otherwise, if it's an input stream, we make a blob out of it.
-        Object x = data.get(i);
-        if (x instanceof BinaryInput)
+        if (x instanceof PersistentDatabaseObject)
         {
-          ((BinaryInput)x).doneWithStream();
-        }
-        else if (x instanceof CharacterInput)
-        {
-          ((CharacterInput)x).doneWithStream();
+          ((PersistentDatabaseObject)x).doneWithStream();
         }
       }
     }
@@ -1362,10 +1362,8 @@ public abstract class Database
     }
     catch (Throwable e)
     {
-      if (result instanceof CharacterInput)
-        ((CharacterInput)result).discard();
-      else if (result instanceof BinaryInput)
-        ((BinaryInput)result).discard();
+      if (result instanceof PersistentDatabaseObject)
+        ((PersistentDatabaseObject)result).discard();
       if (e instanceof ManifoldCFException)
         throw (ManifoldCFException)e;
       if (e instanceof RuntimeException)

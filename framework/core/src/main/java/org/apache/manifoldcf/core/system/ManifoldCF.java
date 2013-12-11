@@ -31,6 +31,11 @@ public class ManifoldCF
   public static final String NODE_LIBDIR = "libdir";
   public static final String ATTRIBUTE_PATH = "path";
   
+  // This is the unique process identifier, which has to be unique and repeatable within a cluster
+  
+  /** Process ID (no more than 16 characters) */
+  protected static String processID = null;
+  
   // "Working directory"
   
   /** This is the working directory file object. */
@@ -94,6 +99,10 @@ public class ManifoldCF
 
   // System property/config file property names
   
+  // Process ID property
+  /** Process ID - cannot exceed 16 characters */
+  public static final String processIDProperty = "org.apache.manifoldcf.processid";
+  
   // Admin properties
   /** UI login user name */
   public static final String loginUserNameProperty = "org.apache.manifoldcf.login.name";
@@ -155,6 +164,7 @@ public class ManifoldCF
       {
         // Clean up the system doing the same thing the shutdown thread would have if the process was killed
         cleanUpEnvironment(threadContext);
+        processID = null;
         loginUserName = null;
         loginPassword = null;
         masterDatabaseName = null;
@@ -214,6 +224,11 @@ public class ManifoldCF
           // Read configuration!
           localConfiguration = new OverrideableManifoldCFConfiguration();
           checkProperties();
+
+          // Process ID is always local
+          processID = getStringProperty(processIDProperty,"");
+          if (processID.length() > 16)
+            throw new ManifoldCFException("Process ID cannot exceed 16 characters!");
 
           // Log file is always local
           File logConfigFile = getFileProperty(logConfigFileProperty);
@@ -277,6 +292,12 @@ public class ManifoldCF
     
   }
 
+  /** Get process ID */
+  public static final String getProcessID()
+  {
+    return processID;
+  }
+  
   /** Get current properties.  Makes no attempt to reread or interpret them.
   */
   public static final ManifoldCFConfiguration getConfiguration()
@@ -391,6 +412,14 @@ public class ManifoldCF
     throws ManifoldCFException
   {
     return localConfiguration.getIntProperty(s, defaultValue);
+  }
+
+  /** Read a long property, either from the system properties, or from the local configuration file.
+  */
+  public static long getLongProperty(String s, long defaultValue)
+    throws ManifoldCFException
+  {
+    return localConfiguration.getLongProperty(s, defaultValue);
   }
 
   /** Read a float property, either from the system properties, or from the local configuration file.

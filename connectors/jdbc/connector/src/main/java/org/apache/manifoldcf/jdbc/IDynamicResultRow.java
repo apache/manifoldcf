@@ -1,4 +1,4 @@
-/* $Id: IDynamicResultSet.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,28 +16,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.jdbc;
+package org.apache.manifoldcf.jdbc;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 
-/** This object describes an (open) jdbc resultset.  Semantics are identical to
-* org.apache.manifoldcf.core.interfaces.IResultSet, EXCEPT that a close() method is
-* provided and must be called, and there is no method to get the entire resultset
-* at once.
+/** This object describes an (open) jdbc resultrow.  Semantics are identical to
+* org.apache.manifoldcf.core.interfaces.IResultRow, EXCEPT that a close() method is
+* provided and must be called, in order to clean up any blobs or clobs in the set that
+* were unused.
 */
-public interface IDynamicResultSet
+public interface IDynamicResultRow extends IResultRow
 {
-  public static final String _rcsid = "@(#)$Id: IDynamicResultSet.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
-  /** Get the next row from the resultset.
-  *@return the immutable row description, or null if there is no such row.
-  */
-  public IResultRow getNextRow()
-    throws ManifoldCFException, ServiceInterruption;
-
-  /** Close this resultset.
+  /** Close this resultrow.
   */
   public void close()
-    throws ManifoldCFException, ServiceInterruption;
+    throws ManifoldCFException;
 }

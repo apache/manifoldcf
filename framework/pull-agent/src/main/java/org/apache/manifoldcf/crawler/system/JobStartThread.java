@@ -30,12 +30,16 @@ public class JobStartThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id: JobStartThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  /** Process ID */
+  protected final String processID;
+  
   /** Constructor.
   */
-  public JobStartThread()
+  public JobStartThread(String processID)
     throws ManifoldCFException
   {
     super();
+    this.processID = processID;
     setName("Job start thread");
     setDaemon(true);
   }

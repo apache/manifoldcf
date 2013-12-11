@@ -101,6 +101,7 @@ public class BaseITPostgresql extends ConnectorBasePostgresql
   /** Construct a command url.
   */
   protected String makeAPIURL(String command)
+    throws Exception
   {
     return mcfInstance.makeAPIURL(command);
   }

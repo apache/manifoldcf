@@ -25,7 +25,7 @@ import java.io.*;
 * There are no implied semantics in this class around managing the stream itself.
 * These semantics must be handled by a derived class.
 */
-public abstract class CharacterInput
+public abstract class CharacterInput extends PersistentDatabaseObject
 {
   public static final String _rcsid = "@(#)$Id: CharacterInput.java 988245 2010-08-23 18:39:35Z kwright $";
 
@@ -49,6 +49,7 @@ public abstract class CharacterInput
     return stream;
   }
 
+  @Override
   public void doneWithStream()
     throws ManifoldCFException
   {
@@ -76,10 +77,15 @@ public abstract class CharacterInput
   public abstract InputStream getUtf8Stream()
     throws ManifoldCFException;
 
+  /** Get binary UTF8 stream length directly */
+  public abstract long getUtf8StreamLength()
+    throws ManifoldCFException;
+
   /** Transfer to a new object; this causes the current object to become "already discarded" */
   public abstract CharacterInput transfer();
 
   /** Discard this object permanently */
+  @Override
   public void discard()
     throws ManifoldCFException
   {

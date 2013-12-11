@@ -16,14 +16,23 @@
  limitations under the License.
 -->
 
-<!-- The connectors registry file permits registration of connectors upon the
-      startup of the jetty-based LCF example.  In a real installation, this registration
+<!-- The connectors registry file permits registration of domains and connectors upon the
+      startup of the jetty-based ManifoldCF example.  In a real installation, this registration
       step would be done ideally just once, but in the example the connectors
       are all reregistered on every startup.
 -->
 <connectors>
+    <!-- Add any authorization domains here -->
+    <!-- authorizationdomain domain="AD" name="ActiveDirectory"/-->
+    <!-- authorizationdomain domain="SHP" name="SharePoint"/-->
+    <!-- authorizationdomain domain="FB" name="FaceBook"/-->
+
     <!-- Add your output connectors here -->
+    
     <!-- Add your mapping connectors here -->
+    
     <!-- Add your authority connectors here -->
+    
     <!-- Add your repository connectors here -->
+    
 </connectors>

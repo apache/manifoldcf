@@ -39,6 +39,7 @@ public abstract class BaseConnector implements IConnector
   * It is called when the connector is registered.
   *@param threadContext is the current thread context.
   */
+  @Override
   public void install(IThreadContext threadContext)
     throws ManifoldCFException
   {
@@ -50,6 +51,7 @@ public abstract class BaseConnector implements IConnector
   * It is called when the connector is deregistered.
   *@param threadContext is the current thread context.
   */
+  @Override
   public void deinstall(IThreadContext threadContext)
     throws ManifoldCFException
   {
@@ -59,6 +61,7 @@ public abstract class BaseConnector implements IConnector
   /** Connect.  The configuration parameters are included.
   *@param configParams are the configuration parameters for this connection.
   */
+  @Override
   public void connect(ConfigParams configParams)
   {
     params = configParams;
@@ -70,6 +73,7 @@ public abstract class BaseConnector implements IConnector
   /** Test the connection.  Returns a string describing the connection integrity.
   *@return the connection's status as a displayable string.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -80,14 +84,27 @@ public abstract class BaseConnector implements IConnector
   /** This method is periodically called for all connectors that are connected but not
   * in active use.
   */
+  @Override
   public void poll()
     throws ManifoldCFException
   {
     // Base version does nothing
   }
 
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    // Consider it connected.
+    return true;
+  }
+
   /** Close the connection.  Call this before discarding the repository connector.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -97,6 +114,7 @@ public abstract class BaseConnector implements IConnector
   /** Clear out any state information specific to a given thread.
   * This method is called when this object is returned to the connection pool.
   */
+  @Override
   public void clearThreadContext()
   {
     currentContext = null;
@@ -105,6 +123,7 @@ public abstract class BaseConnector implements IConnector
   /** Attach to a new thread.
   *@param threadContext is the new thread context.
   */
+  @Override
   public void setThreadContext(IThreadContext threadContext)
     throws ManifoldCFException
   {
@@ -114,6 +133,7 @@ public abstract class BaseConnector implements IConnector
   /** Get configuration information.
   *@return the configuration information for this class.
   */
+  @Override
   public ConfigParams getConfiguration()
   {
     return params;
@@ -128,6 +148,7 @@ public abstract class BaseConnector implements IConnector
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
+  @Override
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
@@ -169,6 +190,7 @@ public abstract class BaseConnector implements IConnector
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -199,6 +221,7 @@ public abstract class BaseConnector implements IConnector
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -228,6 +251,7 @@ public abstract class BaseConnector implements IConnector
   *@param locale is the locale that the output should use.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {

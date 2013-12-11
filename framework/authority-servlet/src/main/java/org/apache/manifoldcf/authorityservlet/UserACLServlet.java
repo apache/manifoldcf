@@ -106,13 +106,38 @@ public class UserACLServlet extends HttpServlet
 
       Logging.authorityService.debug("Received request");
 
+      Map<String,String> domainMap = new HashMap<String,String>();
+
+      // Legacy mode: single user name with optional domain
       String userID = request.getParameter("username");
-      if (userID == null)
+      if (userID != null)
+      {
+        String domain = request.getParameter("domain");
+        if (domain == null)
+          domain = "";
+        domainMap.put(domain,userID);
+      }
+      
+      // Now, go through enumerated username/domain pairs
+      int q = 0;
+      while (true)
+      {
+        String enumUserName = request.getParameter("username_"+q);
+        if (enumUserName == null)
+          break;
+        String enumDomain = request.getParameter("domain_"+q);
+        if (enumDomain == null)
+          enumDomain = "";
+        domainMap.put(enumDomain,enumUserName);
+        q++;
+      }
+      
+      if (domainMap.size() == 0)
       {
         response.sendError(response.SC_BAD_REQUEST);
         return;
       }
-
+      
       boolean idneeded = false;
       boolean aclneeded = true;
 
@@ -135,7 +160,18 @@ public class UserACLServlet extends HttpServlet
 
       if (Logging.authorityService.isDebugEnabled())
       {
-        Logging.authorityService.debug("Received authority request for user '"+userID+"'");
+        StringBuilder sb2 = new StringBuilder("[");
+        boolean first = true;
+        for (String domain : domainMap.keySet())
+        {
+          if (first)
+            first = false;
+          else
+            sb2.append(",");
+          sb2.append("'").append(domain).append("':'").append(domainMap.get(domain)).append("'");
+        }
+        sb2.append("]");
+        Logging.authorityService.debug("Received authority request for domain:user set "+sb2.toString());
       }
 
       RequestQueue<MappingRequest> mappingQueue = ManifoldCF.getMappingRequestQueue();
@@ -158,15 +194,15 @@ public class UserACLServlet extends HttpServlet
       IMappingConnectionManager mappingConnManager = MappingConnectionManagerFactory.make(itc);
       IAuthorityConnectionManager authConnManager = AuthorityConnectionManagerFactory.make(itc);
 
+      // Get all mapping connections; we may not need them all but we do need to be able to look them all up
       IMappingConnection[] mappingConnections = mappingConnManager.getAllConnections();
-      IAuthorityConnection[] connections = authConnManager.getAllConnections();
       
       // One thread per connection, which is responsible for starting the mapping process when it is ready.
       List<MappingOrderThread> mappingThreads = new ArrayList<MappingOrderThread>();
       // One thread per authority, which is responsible for starting the auth request when it is ready.
       List<AuthOrderThread> authThreads = new ArrayList<AuthOrderThread>();
 
-      Map<String,MappingRequest> mappingRequests = new HashMap<String,MappingRequest>();
+      Map<MapperDescription,MappingRequest> mappingRequests = new HashMap<MapperDescription,MappingRequest>();
       Map<String,AuthRequest> authRequests = new HashMap<String,AuthRequest>();
 
       Map<String,IMappingConnection> mappingConnMap = new HashMap<String,IMappingConnection>();
@@ -178,73 +214,81 @@ public class UserACLServlet extends HttpServlet
       }
 
       // Set of connections we need to fire off
-      Set<String> activeConnections = new HashSet<String>();
+      Set<MapperDescription> activeConnections = new HashSet<MapperDescription>();
 
       // We do the minimal set of mapping requests and authorities.  Since it is the authority tokens we are
       // looking for, we start there, and build authority requests first, then mapping requests that support them,
       // etc.
       // Create auth requests
-      for (int i = 0; i < connections.length; i++)
+      for (String authDomain : domainMap.keySet())
       {
-        IAuthorityConnection thisConnection = connections[i];
-        String identifyingString = thisConnection.getDescription();
-        if (identifyingString == null || identifyingString.length() == 0)
-          identifyingString = thisConnection.getName();
-        
-        // Create a request
-        AuthRequest ar = new AuthRequest(
-          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
-        authRequests.put(thisConnection.getName(), ar);
-        
-        // We create an auth thread if there are prerequisites to meet.
-        // Otherwise, we just fire off the request
-        if (thisConnection.getPrerequisiteMapping() == null)
+        IAuthorityConnection[] connections = authConnManager.getDomainConnections(authDomain);
+        for (int i = 0; i < connections.length; i++)
         {
-          ar.setUserID(userID);
-          queue.addRequest(ar);
-        }
-        else
-        {
-          AuthOrderThread thread = new AuthOrderThread(identifyingString,
-            ar, thisConnection.getPrerequisiteMapping(),
-            queue, mappingRequests);
-          authThreads.add(thread);
-          activeConnections.add(thisConnection.getPrerequisiteMapping());
+          IAuthorityConnection thisConnection = connections[i];
+          String identifyingString = thisConnection.getDescription();
+          if (identifyingString == null || identifyingString.length() == 0)
+            identifyingString = thisConnection.getName();
+          
+          // Create a request
+          AuthRequest ar = new AuthRequest(thisConnection,identifyingString);
+          authRequests.put(thisConnection.getName(), ar);
+          
+          // We create an auth thread if there are prerequisites to meet.
+          // Otherwise, we just fire off the request
+          String domainUserID = domainMap.get(authDomain);
+          if (thisConnection.getPrerequisiteMapping() == null)
+          {
+            ar.setUserID(domainUserID);
+            queue.addRequest(ar);
+          }
+          else
+          {
+            MapperDescription md = new MapperDescription(thisConnection.getPrerequisiteMapping(),authDomain);
+            AuthOrderThread thread = new AuthOrderThread(identifyingString,
+              ar, md,
+              queue, mappingRequests);
+            authThreads.add(thread);
+            // The same mapper can be used for multiple domains, although this is likely to be uncommon.  Nevertheless,
+            // mapper invocations need to be segregated to prevent trouble
+            activeConnections.add(md);
+          }
         }
       }
 
       // Create mapping requests
       while (!activeConnections.isEmpty())
       {
-        Iterator<String> connectionIter = activeConnections.iterator();
-        String connectionName = connectionIter.next();
+        Iterator<MapperDescription> connectionIter = activeConnections.iterator();
+        MapperDescription mapperDesc = connectionIter.next();
+        String connectionName = mapperDesc.mapperName;
+        String authDomain = mapperDesc.authDomain;
         IMappingConnection thisConnection = mappingConnMap.get(connectionName);
         String identifyingString = thisConnection.getDescription();
         if (identifyingString == null || identifyingString.length() == 0)
           identifyingString = connectionName;
 
         // Create a request
-        MappingRequest mr = new MappingRequest(
-          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
-        mappingRequests.put(connectionName, mr);
+        MappingRequest mr = new MappingRequest(thisConnection,identifyingString);
+        mappingRequests.put(mapperDesc, mr);
 
         // Either start up a thread, or just fire it off immediately.
         if (thisConnection.getPrerequisiteMapping() == null)
         {
-          mr.setUserID(userID);
+          mr.setUserID(domainMap.get(authDomain));
           mappingQueue.addRequest(mr);
         }
         else
         {
           //System.out.println("Mapper: prerequisite found: '"+thisConnection.getPrerequisiteMapping()+"'");
+          MapperDescription p = new MapperDescription(thisConnection.getPrerequisiteMapping(),authDomain);
           MappingOrderThread thread = new MappingOrderThread(identifyingString,
-            mr, thisConnection.getPrerequisiteMapping(), mappingQueue, mappingRequests);
+            mr, p, mappingQueue, mappingRequests);
           mappingThreads.add(thread);
-          String p = thisConnection.getPrerequisiteMapping();
           if (mappingRequests.get(p) == null)
             activeConnections.add(p);
         }
-        activeConnections.remove(connectionName);
+        activeConnections.remove(mapperDesc);
       }
       
       // Start threads.  We have to wait until all the requests have been
@@ -287,25 +331,24 @@ public class UserACLServlet extends HttpServlet
       
       // Now, work through the returning answers.
 
-      // Ask all the registered authorities for their ACLs, and merge the final list together.
+      // Ask all the interrogated authorities for their ACLs, and merge the final list together.
       StringBuilder sb = new StringBuilder();
       // Set response mime type
       response.setContentType("text/plain; charset=ISO8859-1");
       ServletOutputStream out = response.getOutputStream();
       try
       {
-        for (int i = 0; i < connections.length; i++)
+        for (String connectionName : authRequests.keySet())
         {
-          IAuthorityConnection ac = connections[i];
-          AuthRequest ar = authRequests.get(ac.getName());
+          AuthRequest ar = authRequests.get(connectionName);
 
           if (Logging.authorityService.isDebugEnabled())
-            Logging.authorityService.debug("Waiting for answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
+            Logging.authorityService.debug("Waiting for answer from authority connection "+ar.getIdentifyingString()+" for user '"+ar.getUserID()+"'");
 
           ar.waitForComplete();
 
           if (Logging.authorityService.isDebugEnabled())
-            Logging.authorityService.debug("Received answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
+            Logging.authorityService.debug("Received answer from authority connection "+ar.getIdentifyingString()+" for user '"+ar.getUserID()+"'");
 
           Throwable exception = ar.getAnswerException();
           AuthorizationResponse reply = ar.getAnswerResponse();
@@ -324,24 +367,24 @@ public class UserACLServlet extends HttpServlet
           if (reply == null)
           {
             if (Logging.authorityService.isDebugEnabled())
-              Logging.authorityService.debug("User '"+userID+"' mapping failed for authority '"+ar.getIdentifyingString()+"'");
+              Logging.authorityService.debug("User '"+ar.getUserID()+"' mapping failed for authority '"+ar.getIdentifyingString()+"'");
             sb.append(USERNOTFOUND_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
           }
           else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_UNREACHABLE)
           {
-            Logging.authorityService.warn("Authority '"+ar.getIdentifyingString()+"' is unreachable for user '"+userID+"'");
+            Logging.authorityService.warn("Authority '"+ar.getIdentifyingString()+"' is unreachable for user '"+ar.getUserID()+"'");
             sb.append(UNREACHABLE_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
           }
           else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERUNAUTHORIZED)
           {
             if (Logging.authorityService.isDebugEnabled())
-              Logging.authorityService.debug("Authority '"+ar.getIdentifyingString()+"' does not authorize user '"+userID+"'");
+              Logging.authorityService.debug("Authority '"+ar.getIdentifyingString()+"' does not authorize user '"+ar.getUserID()+"'");
             sb.append(UNAUTHORIZED_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
           }
           else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERNOTFOUND)
           {
             if (Logging.authorityService.isDebugEnabled())
-              Logging.authorityService.debug("User '"+userID+"' unknown to authority '"+ar.getIdentifyingString()+"'");
+              Logging.authorityService.debug("User '"+ar.getUserID()+"' unknown to authority '"+ar.getIdentifyingString()+"'");
             sb.append(USERNOTFOUND_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
           }
           else
@@ -356,14 +399,15 @@ public class UserACLServlet extends HttpServlet
               while (j < acl.length)
               {
                 if (Logging.authorityService.isDebugEnabled())
-                  Logging.authorityService.debug("  User '"+userID+"' has Acl = '"+acl[j]+"' from authority '"+ar.getIdentifyingString()+"'");
-                sb.append(TOKEN_PREFIX).append(java.net.URLEncoder.encode(ac.getName(),"UTF-8")).append(":").append(java.net.URLEncoder.encode(acl[j++],"UTF-8")).append("\n");
+                  Logging.authorityService.debug("  User '"+ar.getUserID()+"' has Acl = '"+acl[j]+"' from authority '"+ar.getIdentifyingString()+"'");
+                sb.append(TOKEN_PREFIX).append(java.net.URLEncoder.encode(connectionName,"UTF-8")).append(":").append(java.net.URLEncoder.encode(acl[j++],"UTF-8")).append("\n");
               }
             }
           }
         }
 
-        if (idneeded)
+        // Maintained for backwards compatibility only; no practical use that I can determine here
+        if (idneeded && userID != null)
           sb.append(ID_PREFIX).append(java.net.URLEncoder.encode(userID,"UTF-8")).append("\n");
 
         byte[] responseValue = sb.toString().getBytes("ISO8859-1");
@@ -378,7 +422,20 @@ public class UserACLServlet extends HttpServlet
       }
 
       if (Logging.authorityService.isDebugEnabled())
-        Logging.authorityService.debug("Done with request for '"+userID+"'");
+      {
+        StringBuilder sb2 = new StringBuilder("[");
+        boolean first = true;
+        for (String domain : domainMap.keySet())
+        {
+          if (first)
+            first = false;
+          else
+            sb2.append(",");
+          sb2.append("'").append(domain).append("':'").append(domainMap.get(domain)).append("'");
+        }
+        sb2.append("]");
+        Logging.authorityService.debug("Done with request for domain:user set "+sb2.toString());
+      }
     }
     catch (InterruptedException e)
     {
@@ -396,6 +453,34 @@ public class UserACLServlet extends HttpServlet
     }
   }
 
+  /** This class represents a tuple of (mapper_name, auth_domain).
+  */
+  protected static class MapperDescription
+  {
+    public final String mapperName;
+    public final String authDomain;
+    
+    public MapperDescription(String mapperName, String authDomain)
+    {
+      this.mapperName = mapperName;
+      this.authDomain = authDomain;
+    }
+    
+    public int hashCode()
+    {
+      return mapperName.hashCode() + authDomain.hashCode();
+    }
+    
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof MapperDescription))
+        return false;
+      MapperDescription other = (MapperDescription)o;
+      return this.mapperName.equals(other.mapperName) &&
+        this.authDomain.equals(other.authDomain);
+    }
+  }
+  
   /** This thread is responsible for making sure that the constraints for a given mapping connection
   * are met, and then when they are, firing off a MappingRequest.  One of these threads is spun up
   * for every IMappingConnection being handled.
@@ -406,8 +491,8 @@ public class UserACLServlet extends HttpServlet
   protected static class MappingOrderThread extends Thread
   {
     protected final MappingRequest request;
-    protected final String prerequisite;
-    protected final Map<String,MappingRequest> requests;
+    protected final MapperDescription prerequisite;
+    protected final Map<MapperDescription,MappingRequest> requests;
     protected final RequestQueue<MappingRequest> mappingRequestQueue;
 
     protected Throwable exception = null;
@@ -415,9 +500,9 @@ public class UserACLServlet extends HttpServlet
     public MappingOrderThread(
       String identifyingString,
       MappingRequest request,
-      String prerequisite,
+      MapperDescription prerequisite,
       RequestQueue<MappingRequest> mappingRequestQueue,
-      Map<String, MappingRequest> requests)
+      Map<MapperDescription, MappingRequest> requests)
     {
       super();
       this.request = request;
@@ -469,8 +554,8 @@ public class UserACLServlet extends HttpServlet
   protected static class AuthOrderThread extends Thread
   {
     protected final AuthRequest request;
-    protected final String prerequisite;
-    protected final Map<String,MappingRequest> mappingRequests;
+    protected final MapperDescription prerequisite;
+    protected final Map<MapperDescription,MappingRequest> mappingRequests;
     protected final RequestQueue<AuthRequest> authRequestQueue;
     
     protected Throwable exception = null;
@@ -478,9 +563,9 @@ public class UserACLServlet extends HttpServlet
     public AuthOrderThread(
       String identifyingString,
       AuthRequest request,
-      String prerequisite,
+      MapperDescription prerequisite,
       RequestQueue<AuthRequest> authRequestQueue,
-      Map<String, MappingRequest> mappingRequests)
+      Map<MapperDescription, MappingRequest> mappingRequests)
     {
       super();
       this.request = request;

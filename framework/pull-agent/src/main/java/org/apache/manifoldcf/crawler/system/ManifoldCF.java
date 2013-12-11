@@ -51,49 +51,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   // Initialization flag.
   protected static boolean crawlerInitialized = false;
-  
-  // Thread objects.
-  // These get filled in as threads are created.
-  protected static InitializationThread initializationThread = null;
-  protected static JobStartThread jobStartThread = null;
-  protected static StufferThread stufferThread = null;
-  protected static FinisherThread finisherThread = null;
-  protected static JobNotificationThread notificationThread = null;
-  protected static StartupThread startupThread = null;
-  protected static StartDeleteThread startDeleteThread = null;
-  protected static JobDeleteThread jobDeleteThread = null;
-  protected static WorkerThread[] workerThreads = null;
-  protected static ExpireStufferThread expireStufferThread = null;
-  protected static ExpireThread[] expireThreads = null;
-  protected static DocumentDeleteStufferThread deleteStufferThread = null;
-  protected static DocumentDeleteThread[] deleteThreads = null;
-  protected static DocumentCleanupStufferThread cleanupStufferThread = null;
-  protected static DocumentCleanupThread[] cleanupThreads = null;
-  protected static JobResetThread jobResetThread = null;
-  protected static SeedingThread seedingThread = null;
-  protected static IdleCleanupThread idleCleanupThread = null;
-  protected static SetPriorityThread setPriorityThread = null;
-
-  // Reset managers
-  /** Worker thread pool reset manager */
-  protected static WorkerResetManager workerResetManager = null;
-  /** Delete thread pool reset manager */
-  protected static DocDeleteResetManager docDeleteResetManager = null;
-  /** Cleanup thread pool reset manager */
-  protected static DocCleanupResetManager docCleanupResetManager = null;
-
-  // Number of worker threads
-  protected static int numWorkerThreads = 0;
-  // Number of delete threads
-  protected static int numDeleteThreads = 0;
-  // Number of cleanup threads
-  protected static int numCleanupThreads = 0;
-  // Number of expiration threads
-  protected static int numExpireThreads = 0;
-  // Factor for low water level in queueing
-  protected static float lowWaterFactor = 5.0f;
-  // Factor in amount to stuff
-  protected static float stuffAmtFactor = 0.5f;
 
   // Properties
   protected static final String workerThreadCountProperty = "org.apache.manifoldcf.crawler.threads";
@@ -107,8 +64,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String databaseSuperuserPasswordProperty = "org.apache.manifoldcf.dbsuperuserpassword";
   protected static final String saltProperty = "org.apache.manifoldcf.salt";
 
-  /** This object is used to make sure the initialization sequence is atomic.  Shutdown cannot occur until the system is in a known state. */
-  protected static Integer startupLock = new Integer(0);
   
   /** Initialize environment.
   */
@@ -150,6 +105,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   public static void localCleanup(IThreadContext tc)
   {
+    try
+    {
+      RepositoryConnectorPoolFactory.make(tc).closeAllConnectors();
+    }
+    catch (ManifoldCFException e)
+    {
+      if (Logging.root != null)
+        Logging.root.warn("Exception tossed on repository connector pool cleanup: "+e.getMessage(),e);
+    }
   }
   
   /** Create system database using superuser properties from properties.xml.
@@ -230,12 +194,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   // Connectors configuration file
+  protected static final String NODE_AUTHORIZATIONDOMAIN = "authorizationdomain";
   protected static final String NODE_OUTPUTCONNECTOR = "outputconnector";
   protected static final String NODE_MAPPINGCONNECTOR = "mappingconnector";
   protected static final String NODE_AUTHORITYCONNECTOR = "authorityconnector";
   protected static final String NODE_REPOSITORYCONNECTOR = "repositoryconnector";
   protected static final String ATTRIBUTE_NAME = "name";
   protected static final String ATTRIBUTE_CLASS = "class";
+  protected static final String ATTRIBUTE_DOMAIN = "domain";
   
   /** Unregister all connectors which don't match a specified connector list.
   */
@@ -249,12 +215,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     Map<String,String> desiredAuthorityConnectors = new HashMap<String,String>();
     Map<String,String> desiredRepositoryConnectors = new HashMap<String,String>();
 
+    Map<String,String> desiredDomains = new HashMap<String,String>();
+
     if (c != null)
     {
       for (int i = 0; i < c.getChildCount(); i++)
       {
         ConfigurationNode cn = c.findChild(i);
-        if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
+        if (cn.getType().equals(NODE_AUTHORIZATIONDOMAIN))
+        {
+          String domainName = cn.getAttributeValue(ATTRIBUTE_DOMAIN);
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          desiredDomains.put(domainName,name);
+        }
+        else if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
         {
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
           String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
@@ -287,6 +261,23 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabaseUsername(),
       ManifoldCF.getMasterDatabasePassword());
 
+    // Domains...
+    {
+      IAuthorizationDomainManager mgr = AuthorizationDomainManagerFactory.make(tc);
+      IResultSet domains = mgr.getDomains();
+      for (int i = 0; i < domains.getRowCount(); i++)
+      {
+        IResultRow row = domains.getRow(i);
+        String domainName = (String)row.getValue("domainname");
+        String description = (String)row.getValue("description");
+        if (desiredDomains.get(domainName) == null || !desiredDomains.get(domainName).equals(description))
+        {
+          mgr.unregisterDomain(domainName);
+        }
+      }
+      System.err.println("Successfully unregistered all domains");
+    }
+    
     // Output connectors...
     {
       IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
@@ -430,7 +421,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       while (i < c.getChildCount())
       {
         ConfigurationNode cn = c.findChild(i++);
-        if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
+        if (cn.getType().equals(NODE_AUTHORIZATIONDOMAIN))
+        {
+          String domainName = cn.getAttributeValue(ATTRIBUTE_DOMAIN);
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          IAuthorizationDomainManager mgr = AuthorizationDomainManagerFactory.make(tc);
+          mgr.registerDomain(name,domainName);
+        }
+        else if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
         {
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
           String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
@@ -530,10 +528,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
+    IBinManager binManager = BinManagerFactory.make(threadcontext);
     org.apache.manifoldcf.authorities.system.ManifoldCF.installSystemTables(threadcontext);
     repConnMgr.install();
     repCon.install();
     jobManager.install();
+    binManager.install();
   }
 
   /** Uninstall all the crawler system tables.
@@ -542,535 +542,16 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static void deinstallSystemTables(IThreadContext threadcontext)
     throws ManifoldCFException
   {
-    ManifoldCFException se = null;
-
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
+    IBinManager binManager = BinManagerFactory.make(threadcontext);
+    binManager.deinstall();
     jobManager.deinstall();
     repCon.deinstall();
     repConnMgr.deinstall();
     org.apache.manifoldcf.authorities.system.ManifoldCF.deinstallSystemTables(threadcontext);
-    if (se != null)
-      throw se;
   }
-
-
-  /** Start everything.
-  */
-  public static void startSystem(IThreadContext threadContext)
-    throws ManifoldCFException
-  {
-    Logging.root.info("Starting up pull-agent...");
-    synchronized (startupLock)
-    {
-      // Now, start all the threads
-      numWorkerThreads = LockManagerFactory.getIntProperty(threadContext,workerThreadCountProperty,100);
-      if (numWorkerThreads < 1 || numWorkerThreads > 300)
-        throw new ManifoldCFException("Illegal value for the number of worker threads");
-      numDeleteThreads = LockManagerFactory.getIntProperty(threadContext,deleteThreadCountProperty,10);
-      numCleanupThreads = LockManagerFactory.getIntProperty(threadContext,cleanupThreadCountProperty,10);
-      numExpireThreads = LockManagerFactory.getIntProperty(threadContext,expireThreadCountProperty,10);
-      if (numDeleteThreads < 1 || numDeleteThreads > 300)
-        throw new ManifoldCFException("Illegal value for the number of delete threads");
-      if (numCleanupThreads < 1 || numCleanupThreads > 300)
-        throw new ManifoldCFException("Illegal value for the number of cleanup threads");
-      if (numExpireThreads < 1 || numExpireThreads > 300)
-        throw new ManifoldCFException("Illegal value for the number of expire threads");
-      lowWaterFactor = (float)LockManagerFactory.getDoubleProperty(threadContext,lowWaterFactorProperty,5.0);
-      if (lowWaterFactor < 1.0 || lowWaterFactor > 1000.0)
-        throw new ManifoldCFException("Illegal value for the low water factor");
-      stuffAmtFactor = (float)LockManagerFactory.getDoubleProperty(threadContext,stuffAmtFactorProperty,2.0);
-      if (stuffAmtFactor < 0.1 || stuffAmtFactor > 1000.0)
-        throw new ManifoldCFException("Illegal value for the stuffing amount factor");
-
-
-      // Create the threads and objects.  This MUST be completed before there is any chance of "shutdownSystem" getting called.
-
-      QueueTracker queueTracker = new QueueTracker();
-
-
-      DocumentQueue documentQueue = new DocumentQueue();
-      DocumentDeleteQueue documentDeleteQueue = new DocumentDeleteQueue();
-      DocumentCleanupQueue documentCleanupQueue = new DocumentCleanupQueue();
-      DocumentCleanupQueue expireQueue = new DocumentCleanupQueue();
-
-      BlockingDocuments blockingDocuments = new BlockingDocuments();
-
-      workerResetManager = new WorkerResetManager(documentQueue,expireQueue);
-      docDeleteResetManager = new DocDeleteResetManager(documentDeleteQueue);
-      docCleanupResetManager = new DocCleanupResetManager(documentCleanupQueue);
-
-      jobStartThread = new JobStartThread();
-      startupThread = new StartupThread(queueTracker);
-      startDeleteThread = new StartDeleteThread();
-      finisherThread = new FinisherThread();
-      notificationThread = new JobNotificationThread();
-      jobDeleteThread = new JobDeleteThread();
-      stufferThread = new StufferThread(documentQueue,numWorkerThreads,workerResetManager,queueTracker,blockingDocuments,lowWaterFactor,stuffAmtFactor);
-      expireStufferThread = new ExpireStufferThread(expireQueue,numExpireThreads,workerResetManager);
-      setPriorityThread = new SetPriorityThread(queueTracker,numWorkerThreads,blockingDocuments);
-
-      workerThreads = new WorkerThread[numWorkerThreads];
-      int i = 0;
-      while (i < numWorkerThreads)
-      {
-        workerThreads[i] = new WorkerThread(Integer.toString(i),documentQueue,workerResetManager,queueTracker);
-        i++;
-      }
-
-      expireThreads = new ExpireThread[numExpireThreads];
-      i = 0;
-      while (i < numExpireThreads)
-      {
-        expireThreads[i] = new ExpireThread(Integer.toString(i),expireQueue,queueTracker,workerResetManager);
-        i++;
-      }
-
-      deleteStufferThread = new DocumentDeleteStufferThread(documentDeleteQueue,numDeleteThreads,docDeleteResetManager);
-      deleteThreads = new DocumentDeleteThread[numDeleteThreads];
-      i = 0;
-      while (i < numDeleteThreads)
-      {
-        deleteThreads[i] = new DocumentDeleteThread(Integer.toString(i),documentDeleteQueue,docDeleteResetManager);
-        i++;
-      }
-      
-      cleanupStufferThread = new DocumentCleanupStufferThread(documentCleanupQueue,numCleanupThreads,docCleanupResetManager);
-      cleanupThreads = new DocumentCleanupThread[numCleanupThreads];
-      i = 0;
-      while (i < numCleanupThreads)
-      {
-        cleanupThreads[i] = new DocumentCleanupThread(Integer.toString(i),documentCleanupQueue,queueTracker,docCleanupResetManager);
-        i++;
-      }
-
-      jobResetThread = new JobResetThread(queueTracker);
-      seedingThread = new SeedingThread(queueTracker);
-      idleCleanupThread = new IdleCleanupThread();
-
-      initializationThread = new InitializationThread(queueTracker);
-      // Start the initialization thread.  This does the initialization work and starts all the other threads when that's done.  It then exits.
-      initializationThread.start();
-    }
-    Logging.root.info("Pull-agent started");
-  }
-
-  protected static class InitializationThread extends Thread
-  {
-
-    protected final QueueTracker queueTracker;
-
-    public InitializationThread(QueueTracker queueTracker)
-    {
-      super();
-      this.queueTracker = queueTracker;
-      setName("Initialization thread");
-      setDaemon(true);
-    }
-
-    public void run()
-    {
-      int i;
-
-      // Initialize the database
-      try
-      {
-        IThreadContext threadContext = ThreadContextFactory.make();
-
-        // First, get a job manager
-        IJobManager jobManager = JobManagerFactory.make(threadContext);
-        IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
-
-        Logging.threads.debug("Agents process starting initialization...");
-
-        // Call the database to get it ready
-        jobManager.prepareForStart();
-
-        Logging.threads.debug("Agents process reprioritizing documents...");
-
-        HashMap connectionMap = new HashMap();
-        HashMap jobDescriptionMap = new HashMap();
-        // Reprioritize all documents in the jobqueue, 1000 at a time
-        long currentTime = System.currentTimeMillis();
-
-        // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
-        // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
-        // activity.
-        // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
-        // priorities.
-        while (true)
-        {
-          long startTime = System.currentTimeMillis();
-
-          DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(currentTime, 10000);
-          if (docs.length == 0)
-            break;
-
-          // Calculate new priorities for all these documents
-          writeDocumentPriorities(threadContext,mgr,jobManager,docs,connectionMap,jobDescriptionMap,queueTracker,currentTime);
-
-          Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
-        }
-
-        Logging.threads.debug("Agents process initialization complete!");
-
-        // Start all the threads
-        jobStartThread.start();
-        startupThread.start();
-        startDeleteThread.start();
-        finisherThread.start();
-        notificationThread.start();
-        jobDeleteThread.start();
-        stufferThread.start();
-        expireStufferThread.start();
-        setPriorityThread.start();
-
-        i = 0;
-        while (i < numWorkerThreads)
-        {
-          workerThreads[i].start();
-          i++;
-        }
-
-        i = 0;
-        while (i < numExpireThreads)
-        {
-          expireThreads[i].start();
-          i++;
-        }
-
-        cleanupStufferThread.start();
-        i = 0;
-        while (i < numCleanupThreads)
-        {
-          cleanupThreads[i].start();
-          i++;
-        }
-
-        deleteStufferThread.start();
-        i = 0;
-        while (i < numDeleteThreads)
-        {
-          deleteThreads[i].start();
-          i++;
-        }
-
-        jobResetThread.start();
-        seedingThread.start();
-        idleCleanupThread.start();
-        // exit!
-      }
-      catch (Throwable e)
-      {
-        // Severe error on initialization
-        if (e instanceof ManifoldCFException)
-        {
-          // Deal with interrupted exception gracefully, because it means somebody is trying to shut us down before we got started.
-          if (((ManifoldCFException)e).getErrorCode() == ManifoldCFException.INTERRUPTED)
-            return;
-        }
-        System.err.println("agents process could not start - shutting down");
-        Logging.threads.fatal("Startup initialization error tossed: "+e.getMessage(),e);
-        System.exit(-300);
-      }
-    }
-  }
-
-  /** Stop the system.
-  */
-  public static void stopSystem(IThreadContext threadContext)
-    throws ManifoldCFException
-  {
-    Logging.root.info("Shutting down pull-agent...");
-    synchronized (startupLock)
-    {
-      while (initializationThread != null || jobDeleteThread != null || startupThread != null || startDeleteThread != null ||
-        jobStartThread != null || stufferThread != null ||
-        finisherThread != null || notificationThread != null || workerThreads != null || expireStufferThread != null || expireThreads != null ||
-        deleteStufferThread != null || deleteThreads != null ||
-        cleanupStufferThread != null || cleanupThreads != null ||
-        jobResetThread != null || seedingThread != null || idleCleanupThread != null || setPriorityThread != null)
-      {
-        // Send an interrupt to all threads that are still there.
-        // In theory, this only needs to be done once.  In practice, I have seen cases where the thread loses track of the fact that it has been
-        // interrupted (which may be a JVM bug - who knows?), but in any case there's no harm in doing it again.
-        if (initializationThread != null)
-        {
-          initializationThread.interrupt();
-        }
-        if (setPriorityThread != null)
-        {
-          setPriorityThread.interrupt();
-        }
-        if (jobStartThread != null)
-        {
-          jobStartThread.interrupt();
-        }
-        if (jobDeleteThread != null)
-        {
-          jobDeleteThread.interrupt();
-        }
-        if (startupThread != null)
-        {
-          startupThread.interrupt();
-        }
-        if (startDeleteThread != null)
-        {
-          startDeleteThread.interrupt();
-        }
-        if (stufferThread != null)
-        {
-          stufferThread.interrupt();
-        }
-        if (expireStufferThread != null)
-        {
-          expireStufferThread.interrupt();
-        }
-        if (finisherThread != null)
-        {
-          finisherThread.interrupt();
-        }
-        if (notificationThread != null)
-        {
-          notificationThread.interrupt();
-        }
-        if (workerThreads != null)
-        {
-          int i = 0;
-          while (i < workerThreads.length)
-          {
-            Thread workerThread = workerThreads[i++];
-            if (workerThread != null)
-              workerThread.interrupt();
-          }
-        }
-        if (expireThreads != null)
-        {
-          int i = 0;
-          while (i < expireThreads.length)
-          {
-            Thread expireThread = expireThreads[i++];
-            if (expireThread != null)
-              expireThread.interrupt();
-          }
-        }
-        if (cleanupStufferThread != null)
-        {
-          cleanupStufferThread.interrupt();
-        }
-        if (cleanupThreads != null)
-        {
-          int i = 0;
-          while (i < cleanupThreads.length)
-          {
-            Thread cleanupThread = cleanupThreads[i++];
-            if (cleanupThread != null)
-              cleanupThread.interrupt();
-          }
-        }
-        if (deleteStufferThread != null)
-        {
-          deleteStufferThread.interrupt();
-        }
-        if (deleteThreads != null)
-        {
-          int i = 0;
-          while (i < deleteThreads.length)
-          {
-            Thread deleteThread = deleteThreads[i++];
-            if (deleteThread != null)
-              deleteThread.interrupt();
-          }
-        }
-        if (jobResetThread != null)
-        {
-          jobResetThread.interrupt();
-        }
-        if (seedingThread != null)
-        {
-          seedingThread.interrupt();
-        }
-        if (idleCleanupThread != null)
-        {
-          idleCleanupThread.interrupt();
-        }
-
-        // Now, wait for all threads to die.
-        try
-        {
-          ManifoldCF.sleep(1000L);
-        }
-        catch (InterruptedException e)
-        {
-        }
-
-        // Check to see which died.
-        if (initializationThread != null)
-        {
-          if (!initializationThread.isAlive())
-            initializationThread = null;
-        }
-        if (setPriorityThread != null)
-        {
-          if (!setPriorityThread.isAlive())
-            setPriorityThread = null;
-        }
-        if (jobDeleteThread != null)
-        {
-          if (!jobDeleteThread.isAlive())
-            jobDeleteThread = null;
-        }
-        if (startupThread != null)
-        {
-          if (!startupThread.isAlive())
-            startupThread = null;
-        }
-        if (startDeleteThread != null)
-        {
-          if (!startDeleteThread.isAlive())
-            startDeleteThread = null;
-        }
-        if (jobStartThread != null)
-        {
-          if (!jobStartThread.isAlive())
-            jobStartThread = null;
-        }
-        if (stufferThread != null)
-        {
-          if (!stufferThread.isAlive())
-            stufferThread = null;
-        }
-        if (expireStufferThread != null)
-        {
-          if (!expireStufferThread.isAlive())
-            expireStufferThread = null;
-        }
-        if (finisherThread != null)
-        {
-          if (!finisherThread.isAlive())
-            finisherThread = null;
-        }
-        if (notificationThread != null)
-        {
-          if (!notificationThread.isAlive())
-            notificationThread = null;
-        }
-        if (workerThreads != null)
-        {
-          int i = 0;
-          boolean isAlive = false;
-          while (i < workerThreads.length)
-          {
-            Thread workerThread = workerThreads[i];
-            if (workerThread != null)
-            {
-              if (!workerThread.isAlive())
-                workerThreads[i] = null;
-              else
-                isAlive = true;
-            }
-            i++;
-          }
-          if (!isAlive)
-            workerThreads = null;
-        }
-
-        if (expireThreads != null)
-        {
-          int i = 0;
-          boolean isAlive = false;
-          while (i < expireThreads.length)
-          {
-            Thread expireThread = expireThreads[i];
-            if (expireThread != null)
-            {
-              if (!expireThread.isAlive())
-                expireThreads[i] = null;
-              else
-                isAlive = true;
-            }
-            i++;
-          }
-          if (!isAlive)
-            expireThreads = null;
-        }
-
-        if (cleanupStufferThread != null)
-        {
-          if (!cleanupStufferThread.isAlive())
-            cleanupStufferThread = null;
-        }
-        if (cleanupThreads != null)
-        {
-          int i = 0;
-          boolean isAlive = false;
-          while (i < cleanupThreads.length)
-          {
-            Thread cleanupThread = cleanupThreads[i];
-            if (cleanupThread != null)
-            {
-              if (!cleanupThread.isAlive())
-                cleanupThreads[i] = null;
-              else
-                isAlive = true;
-            }
-            i++;
-          }
-          if (!isAlive)
-            cleanupThreads = null;
-        }
-
-        if (deleteStufferThread != null)
-        {
-          if (!deleteStufferThread.isAlive())
-            deleteStufferThread = null;
-        }
-        if (deleteThreads != null)
-        {
-          int i = 0;
-          boolean isAlive = false;
-          while (i < deleteThreads.length)
-          {
-            Thread deleteThread = deleteThreads[i];
-            if (deleteThread != null)
-            {
-              if (!deleteThread.isAlive())
-                deleteThreads[i] = null;
-              else
-                isAlive = true;
-            }
-            i++;
-          }
-          if (!isAlive)
-            deleteThreads = null;
-        }
-        if (jobResetThread != null)
-        {
-          if (!jobResetThread.isAlive())
-            jobResetThread = null;
-        }
-        if (seedingThread != null)
-        {
-          if (!seedingThread.isAlive())
-            seedingThread = null;
-        }
-        if (idleCleanupThread != null)
-        {
-          if (!idleCleanupThread.isAlive())
-            idleCleanupThread = null;
-        }
-      }
-
-      // Threads are down; release connectors
-      RepositoryConnectorFactory.closeAllConnectors(threadContext);
-      numWorkerThreads = 0;
-      numDeleteThreads = 0;
-      numExpireThreads = 0;
-    }
-    Logging.root.info("Pull-agent successfully shut down");
-  }
-  
 
   /** Atomically export the crawler configuration */
   public static void exportConfiguration(IThreadContext threadContext, String exportFilename, String passCode)
@@ -1084,6 +565,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of writing configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+    IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
@@ -1145,6 +627,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
             java.util.zip.ZipEntry outputEntry = new java.util.zip.ZipEntry("outputs");
             zos.putNextEntry(outputEntry);
             outputManager.exportConfiguration(zos);
+            zos.closeEntry();
+
+            java.util.zip.ZipEntry groupEntry = new java.util.zip.ZipEntry("groups");
+            zos.putNextEntry(groupEntry);
+            groupManager.exportConfiguration(zos);
             zos.closeEntry();
 
             java.util.zip.ZipEntry mappingEntry = new java.util.zip.ZipEntry("mappings");
@@ -1218,6 +705,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of reading configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+    IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
@@ -1275,6 +763,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
               String name = z.getName();
               if (name.equals("outputs"))
                 outputManager.importConfiguration(zis);
+              else if (name.equals("groups"))
+                groupManager.importConfiguration(zis);
               else if (name.equals("mappings"))
                 mappingManager.importConfiguration(zis);
               else if (name.equals("authorities"))
@@ -1330,34 +820,46 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Get the maximum number of worker threads.
   */
-  public static int getMaxWorkerThreads()
+  public static int getMaxWorkerThreads(IThreadContext threadContext)
+    throws ManifoldCFException
   {
-    return numWorkerThreads;
+    return LockManagerFactory.getIntProperty(threadContext,workerThreadCountProperty,100);
   }
 
   /** Get the maximum number of delete threads.
   */
-  public static int getMaxDeleteThreads()
+  public static int getMaxDeleteThreads(IThreadContext threadContext)
+    throws ManifoldCFException
   {
-    return numDeleteThreads;
+    return LockManagerFactory.getIntProperty(threadContext,deleteThreadCountProperty,10);
   }
 
   /** Get the maximum number of expire threads.
   */
-  public static int getMaxExpireThreads()
+  public static int getMaxExpireThreads(IThreadContext threadContext)
+    throws ManifoldCFException
   {
-    return numExpireThreads;
+    return LockManagerFactory.getIntProperty(threadContext,expireThreadCountProperty,10);
   }
 
+  /** Get the maximum number of cleanup threads.
+  */
+  public static int getMaxCleanupThreads(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    return LockManagerFactory.getIntProperty(threadContext,cleanupThreadCountProperty,10);
+  }
+  
   /** Requeue documents due to carrydown.
   */
-  public static void requeueDocumentsDueToCarrydown(IJobManager jobManager, DocumentDescription[] requeueCandidates,
-    IRepositoryConnector connector, IRepositoryConnection connection, QueueTracker queueTracker, long currentTime)
+  public static void requeueDocumentsDueToCarrydown(IJobManager jobManager,
+    DocumentDescription[] requeueCandidates,
+    IRepositoryConnector connector, IRepositoryConnection connection, IReprioritizationTracker rt, long currentTime)
     throws ManifoldCFException
   {
     // A list of document descriptions from finishDocuments() above represents those documents that may need to be requeued, for the
     // reason that carrydown information for those documents has changed.  In order to requeue, we need to calculate document priorities, however.
-    double[] docPriorities = new double[requeueCandidates.length];
+    IPriorityCalculator[] docPriorities = new IPriorityCalculator[requeueCandidates.length];
     String[][] binNames = new String[requeueCandidates.length][];
     int q = 0;
     while (q < requeueCandidates.length)
@@ -1365,27 +867,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       DocumentDescription dd = requeueCandidates[q];
       String[] bins = calculateBins(connector,dd.getDocumentIdentifier());
       binNames[q] = bins;
-      docPriorities[q] = queueTracker.calculatePriority(bins,connection);
-      if (Logging.scheduling.isDebugEnabled())
-        Logging.scheduling.debug("Document '"+dd.getDocumentIdentifier()+" given priority "+new Double(docPriorities[q]).toString());
+      docPriorities[q] = new PriorityCalculator(rt,connection,bins);
       q++;
     }
 
     // Now, requeue the documents with the new priorities
-    boolean[] trackerNote = jobManager.carrydownChangeDocumentMultiple(requeueCandidates,currentTime,docPriorities);
-
-    // Free the unused priorities.
-    // Inform queuetracker about what we used and what we didn't
-    q = 0;
-    while (q < trackerNote.length)
-    {
-      if (trackerNote[q] == false)
-      {
-        String[] bins = binNames[q];
-        queueTracker.notePriorityNotUsed(bins,connection,docPriorities[q]);
-      }
-      q++;
-    }
+    jobManager.carrydownChangeDocumentMultiple(requeueCandidates,currentTime,docPriorities);
   }
 
   /** Stuff colons so we can't have conflicts. */
@@ -1432,74 +919,83 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   /** Reset all (active) document priorities.  This operation may occur due to various externally-triggered
   * events, such a job abort, pause, resume, wait, or unwait.
   */
-  public static void resetAllDocumentPriorities(IThreadContext threadContext, QueueTracker queueTracker, long currentTime)
+  public static void resetAllDocumentPriorities(IThreadContext threadContext, long currentTime, String processID)
     throws ManifoldCFException
   {
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
     IJobManager jobManager = JobManagerFactory.make(threadContext);
     IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
+    IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
+
+    String reproID = IDFactory.make(threadContext);
+
+    rt.startReprioritization(System.currentTimeMillis(),processID,reproID);
+    // Reprioritize all documents in the jobqueue, 1000 at a time
+
+    Map<String,IRepositoryConnection> connectionMap = new HashMap<String,IRepositoryConnection>();
+    Map<Long,IJobDescription> jobDescriptionMap = new HashMap<Long,IJobDescription>();
     
-    // Reset the queue tracker
-    queueTracker.beginReset();
-    // Perform the reprioritization, for all active documents in active jobs.  During this time,
-    // it is safe to have other threads assign new priorities to documents, but it is NOT safe
-    // for other threads to attempt to change the minimum priority level.  The queuetracker object
-    // will therefore block that from occurring, until the reset is complete.
-    try
+    // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
+    // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
+    // activity.
+    // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
+    // priorities.
+    while (true)
     {
-      // Reprioritize all documents in the jobqueue, 1000 at a time
+      long startTime = System.currentTimeMillis();
 
-      HashMap connectionMap = new HashMap();
-      HashMap jobDescriptionMap = new HashMap();
-
-      // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
-      // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
-      // activity.
-      // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
-      // priorities.
-      while (true)
+      Long currentTimeValue = rt.checkReprioritizationInProgress();
+      if (currentTimeValue == null)
       {
-        long startTime = System.currentTimeMillis();
-
-        DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(currentTime, 10000);
-        if (docs.length == 0)
-          break;
-
-        // Calculate new priorities for all these documents
-        writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,queueTracker,currentTime);
-
-        Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
+        // Some other process or thread superceded us.
+        return;
       }
+      long updateTime = currentTimeValue.longValue();
+      
+      DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(updateTime, 10000);
+      if (docs.length == 0)
+        break;
+
+      // Calculate new priorities for all these documents
+      writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,updateTime);
+
+      Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
     }
-    finally
-    {
-      queueTracker.endReset();
-    }
+    
+    rt.doneReprioritization(reproID);
   }
   
   /** Write a set of document priorities, based on the current queue tracker.
   */
-  public static void writeDocumentPriorities(IThreadContext threadContext, IRepositoryConnectionManager mgr, IJobManager jobManager, DocumentDescription[] descs, HashMap connectionMap, HashMap jobDescriptionMap, QueueTracker queueTracker, long currentTime)
+  public static void writeDocumentPriorities(IThreadContext threadContext, DocumentDescription[] descs,
+    Map<String,IRepositoryConnection> connectionMap, Map<Long,IJobDescription> jobDescriptionMap,
+    long currentTime)
     throws ManifoldCFException
   {
+    IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+    IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
+    
     if (Logging.scheduling.isDebugEnabled())
       Logging.scheduling.debug("Reprioritizing "+Integer.toString(descs.length)+" documents");
 
 
-    double[] priorities = new double[descs.length];
+    IPriorityCalculator[] priorities = new IPriorityCalculator[descs.length];
 
     // Go through the documents and calculate the priorities
     int i = 0;
     while (i < descs.length)
     {
       DocumentDescription dd = descs[i];
-      IJobDescription job = (IJobDescription)jobDescriptionMap.get(dd.getJobID());
+      IJobDescription job = jobDescriptionMap.get(dd.getJobID());
       if (job == null)
       {
         job = jobManager.load(dd.getJobID(),true);
         jobDescriptionMap.put(dd.getJobID(),job);
       }
       String connectionName = job.getConnectionName();
-      IRepositoryConnection connection = (IRepositoryConnection)connectionMap.get(connectionName);
+      IRepositoryConnection connection = connectionMap.get(connectionName);
       if (connection == null)
       {
         connection = mgr.load(connectionName);
@@ -1508,10 +1004,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
       String[] binNames;
       // Grab a connector handle
-      IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
-        connection.getClassName(),
-        connection.getConfigParams(),
-        connection.getMaxConnections());
+      IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
       try
       {
         if (connector == null)
@@ -1522,12 +1015,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        RepositoryConnectorFactory.release(connector);
+        repositoryConnectorPool.release(connection,connector);
       }
 
-      priorities[i] = queueTracker.calculatePriority(binNames,connection);
-      if (Logging.scheduling.isDebugEnabled())
-        Logging.scheduling.debug("Document '"+dd.getDocumentIdentifier()+"' given priority "+new Double(priorities[i]).toString());
+      priorities[i] = new PriorityCalculator(rt,connection,binNames);
 
       i++;
     }
@@ -1538,55 +1029,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   }
 
-  /** Request permission from agent to delete an output connection.
-  *@param threadContext is the thread context.
-  *@param connName is the name of the output connection.
-  *@return true if the connection is in use, false otherwise.
-  */
-  public static boolean isOutputConnectionInUse(IThreadContext threadContext, String connName)
-    throws ManifoldCFException
-  {
-    // Check with job manager.
-    IJobManager jobManager = JobManagerFactory.make(threadContext);
-    return jobManager.checkIfOutputReference(connName);
-  }
-
-  /** Note the deregistration of a set of output connections.
-  *@param threadContext is the thread context.
-  *@param connectionNames are the names of the connections being deregistered.
-  */
-  public static void noteOutputConnectorDeregistration(IThreadContext threadContext, String[] connectionNames)
-    throws ManifoldCFException
-  {
-    // Notify job manager
-    IJobManager jobManager = JobManagerFactory.make(threadContext);
-    jobManager.noteOutputConnectorDeregistration(connectionNames);
-  }
-
-  /** Note the registration of a set of output connections.
-  *@param threadContext is the thread context.
-  *@param connectionNames are the names of the connections being registered.
-  */
-  public static void noteOutputConnectorRegistration(IThreadContext threadContext, String[] connectionNames)
-    throws ManifoldCFException
-  {
-    // Notify job manager
-    IJobManager jobManager = JobManagerFactory.make(threadContext);
-    jobManager.noteOutputConnectorRegistration(connectionNames);
-  }
-
-  /** Note the change in configuration of an output connection.
-  *@param threadContext is the thread context.
-  *@param connectionName is the output connection name.
-  */
-  public static void noteOutputConnectionChange(IThreadContext threadContext, String connectionName)
-    throws ManifoldCFException
-  {
-    // Notify job manager
-    IJobManager jobManager = JobManagerFactory.make(threadContext);
-    jobManager.noteOutputConnectionChange(connectionName);
-  }
-  
   /** Qualify output activity name.
   *@param outputActivityName is the name of the output activity.
   *@param outputConnectionName is the corresponding name of the output connection.
@@ -1663,6 +1105,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   protected static final String API_JOBNODE = "job";
   protected static final String API_JOBSTATUSNODE = "jobstatus";
+  protected static final String API_AUTHORIZATIONDOMAINNODE = "authorizationdomain";
+  protected static final String API_AUTHORITYGROUPNODE = "authoritygroup";
   protected static final String API_REPOSITORYCONNECTORNODE = "repositoryconnector";
   protected static final String API_OUTPUTCONNECTORNODE = "outputconnector";
   protected static final String API_AUTHORITYCONNECTORNODE = "authorityconnector";
@@ -1683,6 +1127,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   // Connector nodes
   protected static final String CONNECTORNODE_DESCRIPTION = "description";
   protected static final String CONNECTORNODE_CLASSNAME = "class_name";
+  
+  // Authorization domain nodes
+  protected static final String AUTHORIZATIONDOMAINNODE_DESCRIPTION = "description";
+  protected static final String AUTHORIZATIONDOMAINNODE_DOMAINNAME = "domain_name";
   
   /** Decode path element.
   * Path elements in the API world cannot have "/" characters, or they become impossible to parse.  This method undoes
@@ -1778,6 +1226,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(tc);
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
       IOutputConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1788,7 +1237,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IOutputConnector connector = outputConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1799,7 +1248,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        OutputConnectorFactory.release(connector);
+        outputConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1819,6 +1268,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(tc);
       IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
       IAuthorityConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1829,7 +1279,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IAuthorityConnector connector = authorityConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1840,7 +1290,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        AuthorityConnectorFactory.release(connector);
+        authorityConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1860,6 +1310,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(tc);
       IMappingConnectionManager connectionManager = MappingConnectionManagerFactory.make(tc);
       IMappingConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1870,7 +1321,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IMappingConnector connector = MappingConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IMappingConnector connector = mappingConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1881,7 +1332,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        MappingConnectorFactory.release(connector);
+        mappingConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1901,6 +1352,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(tc);
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       IRepositoryConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1911,7 +1363,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           
       String results;
       // Grab a connection handle, and call the test method
-      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
       try
       {
         results = connector.check();
@@ -1922,7 +1374,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       finally
       {
-        RepositoryConnectorFactory.release(connector);
+        repositoryConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1936,12 +1388,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
   
+  
   /** Read an output connection's info */
   protected static int apiReadOutputConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
     throws ManifoldCFException
   {
     try
     {
+      IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(tc);
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
       IOutputConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1951,14 +1405,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
 
       // Grab a connection handle, and call the test method
-      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IOutputConnector connector = outputConnectorPool.grab(connection);
       try
       {
         return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
       }
       finally
       {
-        OutputConnectorFactory.release(connector);
+        outputConnectorPool.release(connection,connector);
       }
     }
     catch (ManifoldCFException e)
@@ -1974,6 +1428,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     try
     {
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(tc);
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       IRepositoryConnection connection = connectionManager.load(connectionName);
       if (connection == null)
@@ -1983,14 +1438,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
 
       // Grab a connection handle, and call the test method
-      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
       try
       {
         return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
       }
       finally
       {
-        RepositoryConnectorFactory.release(connector);
+        repositoryConnectorPool.release(connection,connector);
       }
     }
     catch (ManifoldCFException e)
@@ -2112,6 +1567,57 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
   
+  /** Get authority groups */
+  protected static int apiReadAuthorityGroups(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
+      IAuthorityGroup[] groups = groupManager.getAllGroups();
+      int i = 0;
+      while (i < groups.length)
+      {
+        ConfigurationNode groupNode = new ConfigurationNode(API_AUTHORITYGROUPNODE);
+        formatAuthorityGroup(groupNode,groups[i++]);
+        output.addChild(output.getChildCount(),groupNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read authority group */
+  protected static int apiReadAuthorityGroup(IThreadContext tc, Configuration output, String groupName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
+      IAuthorityGroup group = groupManager.load(groupName);
+      if (group != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode groupNode = new ConfigurationNode(API_AUTHORITYGROUPNODE);
+        formatAuthorityGroup(groupNode,group);
+        output.addChild(output.getChildCount(),groupNode);
+      }
+      else
+      {
+        createErrorNode(output,"Authority group '"+groupName+"' does not exist.");
+        return READRESULT_NOTFOUND;
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
   /** Get output connections */
   protected static int apiReadOutputConnections(IThreadContext tc, Configuration output)
     throws ManifoldCFException
@@ -2427,6 +1933,44 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
 
+  /** List authorization domains */
+  protected static int apiReadAuthorizationDomains(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    // List registered authorization domains
+    try
+    {
+      IAuthorizationDomainManager manager = AuthorizationDomainManagerFactory.make(tc);
+      IResultSet resultSet = manager.getDomains();
+      int j = 0;
+      while (j < resultSet.getRowCount())
+      {
+        IResultRow row = resultSet.getRow(j++);
+        ConfigurationNode child = new ConfigurationNode(API_AUTHORIZATIONDOMAINNODE);
+        String description = (String)row.getValue("description");
+        String domainName = (String)row.getValue("domainname");
+        ConfigurationNode node;
+        if (description != null)
+        {
+          node = new ConfigurationNode(AUTHORIZATIONDOMAINNODE_DESCRIPTION);
+          node.setValue(description);
+          child.addChild(child.getChildCount(),node);
+        }
+        node = new ConfigurationNode(AUTHORIZATIONDOMAINNODE_DOMAINNAME);
+        node.setValue(domainName);
+        child.addChild(child.getChildCount(),node);
+
+        output.addChild(output.getChildCount(),child);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+
+  }
+  
   /** List repository connectors */
   protected static int apiReadRepositoryConnectors(IThreadContext tc, Configuration output)
     throws ManifoldCFException
@@ -3208,6 +2752,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       Long jobID = new Long(path.substring("jobstatusesnocounts/".length()));
       return apiReadJobStatusNoCounts(tc,output,jobID);
     }
+    else if (path.equals("authoritygroups"))
+    {
+      return apiReadAuthorityGroups(tc,output);
+    }
+    else if (path.startsWith("authoritygroups/"))
+    {
+      String groupName = decodeAPIPathElement(path.substring("authoritygroups/".length()));
+      return apiReadAuthorityGroup(tc,output,groupName);
+    }
     else if (path.equals("outputconnections"))
     {
       return apiReadOutputConnections(tc,output);
@@ -3259,7 +2812,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (path.equals("repositoryconnectors"))
     {
       return apiReadRepositoryConnectors(tc,output);
-    }   
+    }
+    else if (path.equals("authorizationdomains"))
+    {
+      return apiReadAuthorizationDomains(tc,output);
+    }
     else
     {
       createErrorNode(output,"Unrecognized resource.");
@@ -3457,6 +3014,41 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       // Save the job.
       IJobManager jobManager = JobManagerFactory.make(tc);
       jobManager.save(job);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+
+  /** Write authority group.
+  */
+  protected static int apiWriteAuthorityGroup(IThreadContext tc, Configuration output, Configuration input, String groupName)
+    throws ManifoldCFException
+  {
+    ConfigurationNode groupNode = findConfigurationNode(input,API_AUTHORITYGROUPNODE);
+    if (groupNode == null)
+      throw new ManifoldCFException("Input argument must have '"+API_AUTHORITYGROUPNODE+"' field");
+      
+    // Turn the configuration node into an AuthorityGroup
+    org.apache.manifoldcf.authorities.authgroups.AuthorityGroup authorityGroup = new org.apache.manifoldcf.authorities.authgroups.AuthorityGroup();
+    processAuthorityGroup(authorityGroup,groupNode);
+      
+    if (authorityGroup.getName() == null)
+      authorityGroup.setName(groupName);
+    else
+    {
+      if (!authorityGroup.getName().equals(groupName))
+        throw new ManifoldCFException("Authority group name in path and in object must agree");
+    }
+      
+    try
+    {
+      // Save the connection.
+      IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
+      if (groupManager.save(authorityGroup))
+        return WRITERESULT_CREATED;
     }
     catch (ManifoldCFException e)
     {
@@ -3672,6 +3264,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       Long jobID = new Long(path.substring("jobs/".length()));
       return apiWriteJob(tc,output,input,jobID);
     }
+    else if (path.startsWith("authoritygroups/"))
+    {
+      String groupName = decodeAPIPathElement(path.substring("authoritygroups/".length()));
+      return apiWriteAuthorityGroup(tc,output,input,groupName);
+    }
     else if (path.startsWith("outputconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
@@ -3743,6 +3340,23 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return DELETERESULT_FOUND;
   }
   
+  /** Delete authority group.
+  */
+  protected static int apiDeleteAuthorityGroup(IThreadContext tc, Configuration output, String groupName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
+      groupManager.delete(groupName);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
+  }
+
   /** Delete output connection.
   */
   protected static int apiDeleteOutputConnection(IThreadContext tc, Configuration output, String connectionName)
@@ -3807,6 +3421,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       Long jobID = new Long(path.substring("jobs/".length()));
       return apiDeleteJob(tc,output,jobID);
+    }
+    else if (path.startsWith("authoritygroups/"))
+    {
+      String groupName = decodeAPIPathElement(path.substring("authoritygroups/".length()));
+      return apiDeleteAuthorityGroup(tc,output,groupName);
     }
     else if (path.startsWith("outputconnections/"))
     {
@@ -4514,6 +4133,73 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   // End of jobstatus API support.
   
+  // Authority group API
+  
+  protected static final String AUTHGROUPNODE_ISNEW = "isnew";
+  protected static final String AUTHGROUPNODE_NAME = "name";
+  protected static final String AUTHGROUPNODE_DESCRIPTION = "description";
+  
+  // Output connection API support.
+  
+  /** Convert input hierarchy into an AuthorityGroup object.
+  */
+  protected static void processAuthorityGroup(org.apache.manifoldcf.authorities.authgroups.AuthorityGroup group, ConfigurationNode groupNode)
+    throws ManifoldCFException
+  {
+    // Walk through the node's children
+    int i = 0;
+    while (i < groupNode.getChildCount())
+    {
+      ConfigurationNode child = groupNode.findChild(i++);
+      String childType = child.getType();
+      if (childType.equals(AUTHGROUPNODE_ISNEW))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Authority group isnew node requires a value");
+        group.setIsNew(child.getValue().equals("true"));
+      }
+      else if (childType.equals(AUTHGROUPNODE_NAME))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Authority group name node requires a value");
+        group.setName(child.getValue());
+      }
+      else if (childType.equals(AUTHGROUPNODE_DESCRIPTION))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Authority group description node requires a value");
+        group.setDescription(child.getValue());
+      }
+      else
+        throw new ManifoldCFException("Unrecognized authority group field: '"+childType+"'");
+    }
+
+  }
+  
+  /** Format an authority group.
+  */
+  protected static void formatAuthorityGroup(ConfigurationNode groupNode, IAuthorityGroup group)
+  {
+    ConfigurationNode child;
+    int j;
+
+    child = new ConfigurationNode(AUTHGROUPNODE_ISNEW);
+    child.setValue(group.getIsNew()?"true":"false");
+    groupNode.addChild(groupNode.getChildCount(),child);
+
+    child = new ConfigurationNode(AUTHGROUPNODE_NAME);
+    child.setValue(group.getName());
+    groupNode.addChild(groupNode.getChildCount(),child);
+
+    if (group.getDescription() != null)
+    {
+      child = new ConfigurationNode(AUTHGROUPNODE_DESCRIPTION);
+      child.setValue(group.getDescription());
+      groupNode.addChild(groupNode.getChildCount(),child);
+    }
+    
+  }
+
   // Connection API
   
   protected static final String CONNECTIONNODE_ISNEW = "isnew";
@@ -4528,6 +4214,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String CONNECTIONNODE_MATCH = "match";
   protected static final String CONNECTIONNODE_MATCHDESCRIPTION = "match_description";
   protected static final String CONNECTIONNODE_RATE = "rate";
+  protected static final String CONNECTIONNODE_AUTHDOMAIN = "authdomain";
+  protected static final String CONNECTIONNODE_AUTHGROUP = "authgroup";
   
   // Output connection API support.
   
@@ -4691,6 +4379,18 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           throw new ManifoldCFException("Connection prerequisite node requires a value");
         connection.setPrerequisiteMapping(child.getValue());
       }
+      else if (childType.equals(CONNECTIONNODE_AUTHDOMAIN))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection authdomain node requires a value");
+        connection.setAuthDomain(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_AUTHGROUP))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection authgroup node requires a value");
+        connection.setAuthGroup(child.getValue());
+      }
       else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
       {
         if (child.getValue() == null)
@@ -4755,6 +4455,17 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
+    if (connection.getAuthDomain() != null)
+    {
+      child = new ConfigurationNode(CONNECTIONNODE_AUTHDOMAIN);
+      child.setValue(connection.getAuthDomain());
+      connectionNode.addChild(connectionNode.getChildCount(),child);
+    }
+    
+    child = new ConfigurationNode(CONNECTIONNODE_AUTHGROUP);
+    child.setValue(connection.getAuthGroup());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
     ConfigParams cp = connection.getConfigParams();
     child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
     j = 0;

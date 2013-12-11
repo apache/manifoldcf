@@ -58,62 +58,18 @@ public class QueueTracker
   protected final static double binReductionFactor = 1.0;
 
   /** These are the accumulated performance averages for all connections etc. */
-  protected PerformanceStatistics performanceStatistics = new PerformanceStatistics();
-
-  /** These are the bin counts for a prioritization pass.
-  * This hash table is keyed by bin, and contains DoubleBinCount objects as values */
-  protected HashMap binCounts = new HashMap();
+  protected final PerformanceStatistics performanceStatistics = new PerformanceStatistics();
 
   /** These are the bin counts for tracking the documents that are on
   * the active queue, but are not being processed yet */
-  protected HashMap queuedBinCounts = new HashMap();
+  protected final Map<String,BinCount> queuedBinCounts = new HashMap<String,BinCount>();
 
   /** These are the bin counts for active threads */
-  protected HashMap activeBinCounts = new HashMap();
-
-  /** The "minimum depth" - which is the smallest bin count of the last document queued.  This helps guarantee that documents that are
-  * newly discovered don't wind up with high priority, but instead wind up about the same as the currently active document priority. */
-  protected double currentMinimumDepth = 0.0;
-
-  /** This flag, when set, indicates that a reset is in progress, so queuetracker bincount updates are ignored. */
-  protected boolean resetInProgress = false;
-
-  /** This hash table is keyed by PriorityKey objects, and contains ArrayList objects containing Doubles, in sorted order. */
-  protected HashMap availablePriorities = new HashMap();
-
-  /** This hash table is keyed by a String (which is the bin name), and contains a HashMap of PriorityKey objects containing that String as a bin */
-  protected HashMap binDependencies = new HashMap();
-
+  protected final Map<String,BinCount> activeBinCounts = new HashMap<String,BinCount>();
 
   /** Constructor */
   public QueueTracker()
   {
-  }
-
-  /** Reset the queue tracker.
-  * This occurs ONLY when we are about to reprioritize all active documents.  It does not affect the portion of the queue tracker that
-  * tracks the active queue.
-  */
-  public void beginReset()
-  {
-    synchronized (binCounts)
-    {
-      binCounts.clear();
-      currentMinimumDepth = 0.0;
-      availablePriorities.clear();
-      binDependencies.clear();
-      resetInProgress = true;
-    }
-
-  }
-
-  /** Finish the reset operation */
-  public void endReset()
-  {
-    synchronized (binCounts)
-    {
-      resetInProgress = false;
-    }
   }
 
   /** Add an access record to the queue tracker.  This happens when a document
@@ -140,7 +96,7 @@ public class QueueTracker
       String binName = binNames[i++];
       synchronized (queuedBinCounts)
       {
-        BinCount value = (BinCount)queuedBinCounts.get(binName);
+        BinCount value = queuedBinCounts.get(binName);
         if (value == null)
         {
           value = new BinCount();
@@ -150,60 +106,6 @@ public class QueueTracker
       }
     }
 
-  }
-
-  /** Note that a priority which was previously allocated was not used, and needs to be released.
-  */
-  public void notePriorityNotUsed(String[] binNames, IRepositoryConnection connection, double priority)
-  {
-    // If this is called, it means that a calculated document priority was given out but was not used.  As such, this
-    // priority can now be assigned to the next comparable document that has similar characteristics.
-
-    // Since prioritization calculations are not reversible, these unused values are kept in a queue, and are used preferentially.
-    PriorityKey pk = new PriorityKey(binNames);
-    synchronized (binCounts)
-    {
-      ArrayList value = (ArrayList)availablePriorities.get(pk);
-      if (value == null)
-      {
-        value = new ArrayList();
-        availablePriorities.put(pk,value);
-      }
-      // Use bisection lookup to file the current priority so that highest priority is at the end (0.0), and lowest is at the beginning
-      int begin = 0;
-      int end = value.size();
-      while (true)
-      {
-        if (end == begin)
-        {
-          value.add(end,new Double(priority));
-          break;
-        }
-        int middle = (begin + end) >> 1;
-        Double middleValue = (Double)value.get(middle);
-        if (middleValue.doubleValue() < priority)
-        {
-          end = middle;
-        }
-        else
-        {
-          begin = middle + 1;
-        }
-      }
-      // Make sure the key is asserted into the binDependencies map for each bin
-      int i = 0;
-      while (i < binNames.length)
-      {
-        String binName = binNames[i++];
-        HashMap hm = (HashMap)binDependencies.get(binName);
-        if (hm == null)
-        {
-          hm = new HashMap();
-          binDependencies.put(binName,hm);
-        }
-        hm.put(pk,pk);
-      }
-    }
   }
 
   /** Note the time required to successfully complete a set of documents.  This allows this module to keep track of
@@ -251,7 +153,7 @@ public class QueueTracker
       // Increment queued bin count for this bin.
       synchronized (queuedBinCounts)
       {
-        BinCount value = (BinCount)queuedBinCounts.get(binName);
+        BinCount value = queuedBinCounts.get(binName);
         if (value != null)
         {
           if (value.decrement())
@@ -262,7 +164,7 @@ public class QueueTracker
       // Decrement active bin count for this bin.
       synchronized (activeBinCounts)
       {
-        BinCount value = (BinCount)activeBinCounts.get(binName);
+        BinCount value = activeBinCounts.get(binName);
         if (value == null)
         {
           value = new BinCount();
@@ -271,55 +173,6 @@ public class QueueTracker
         value.increment();
       }
     }
-  }
-
-  /** Assess the current minimum depth.
-  * This method is called to provide to the QueueTracker information about the priorities of the documents being currently
-  * queued.  It is the case that it is unoptimal to assign document priorities that are fundamentally higher than this value,
-  * because then the new documents will be preferentially queued, and the goal of distributing documents across bins will not be
-  * adequately met.
-  *@param binNamesSet is the current set of priorities we see on the queuing operation.
-  */
-  public void assessMinimumDepth(Double[] binNamesSet)
-  {
-    synchronized (binCounts)
-    {
-      // Ignore all numbers until reset is complete
-      if (!resetInProgress)
-      {
-        //Logging.scheduling.debug("In assessMinimumDepth");
-        int j = 0;
-        double newMinPriority = Double.MAX_VALUE;
-        while (j < binNamesSet.length)
-        {
-          Double binValue = binNamesSet[j++];
-          if (binValue.doubleValue() < newMinPriority)
-            newMinPriority = binValue.doubleValue();
-        }
-
-        if (newMinPriority != Double.MAX_VALUE)
-        {
-          // Convert minPriority to minDepth.
-          // Note that this calculation does not take into account anything having to do with connection rates, throttling,
-          // or other adjustment factors.  It allows us only to obtain the "raw" minimum depth: the depth without any
-          // adjustments.
-          double newMinDepth = Math.exp(newMinPriority)-1.0;
-
-          if (newMinDepth > currentMinimumDepth)
-          {
-            currentMinimumDepth = newMinDepth;
-            if (Logging.scheduling.isDebugEnabled())
-              Logging.scheduling.debug("Setting new minimum depth value to "+new Double(currentMinimumDepth).toString());
-          }
-          else
-          {
-            if (newMinDepth < currentMinimumDepth && Logging.scheduling.isDebugEnabled())
-              Logging.scheduling.debug("Minimum depth value seems to have been set too high too early! currentMin = "+new Double(currentMinimumDepth).toString()+"; queue value = "+new Double(newMinDepth).toString());
-          }
-        }
-      }
-    }
-
   }
 
 
@@ -347,7 +200,7 @@ public class QueueTracker
       String binName = binNames[i++];
       synchronized (activeBinCounts)
       {
-        BinCount value = (BinCount)activeBinCounts.get(binName);
+        BinCount value = activeBinCounts.get(binName);
         if (value != null)
         {
           if (value.decrement())
@@ -380,7 +233,7 @@ public class QueueTracker
       int count = 0;
       synchronized (activeBinCounts)
       {
-        BinCount value = (BinCount)activeBinCounts.get(binName);
+        BinCount value = activeBinCounts.get(binName);
         if (value != null)
           count = value.getValue();
       }
@@ -405,346 +258,6 @@ public class QueueTracker
     return rval;
   }
 
-  /** This is a made-up constant, originally based on 100 documents/second, but adjusted downward as a result of experimentation and testing, which is described as "T" below.
-  */
-  private final static double minMsPerFetch = 50.0;
-
-  /** Calculate a document priority value.  Priorities are reversed, and in log space, so that
-  * zero (0.0) is considered the highest possible priority, and larger priority values are considered lower in actual priority.
-  *@param binNames are the global bins to which the document belongs.
-  *@param connection is the connection, from which the throttles may be obtained.  More highly throttled connections are given
-  *          less favorable priority.
-  *@return the priority value, based on recent history.  Also updates statistics atomically.
-  */
-  public double calculatePriority(String[] binNames, IRepositoryConnection connection)
-  {
-    synchronized (binCounts)
-    {
-
-      // NOTE: We must be sure to adjust the return value by the factor calculated due to performance; a slower throttle rate
-      // should yield a lower priority.  In theory it should be possible to calculate an adjusted priority pretty exactly,
-      // on the basis that the fetch rates of two distinct bins should grant priorities such that:
-      //
-      //  (n documents) / (the rate of fetch (docs/millisecond) of the first bin) = milliseconds for the first bin
-      //
-      //  should equal:
-      //
-      //  (m documents) / (the rate of fetch of the second bin) = milliseconds for the second bin
-      //
-      // ... and then assigning priorities so that after a given number of document priorities are assigned from the first bin, the
-      // corresponding (*m/n) number of document priorities would get assigned for the second bin.
-      //
-      // Suppose the maximum fetch rate for the document is F fetches per millisecond.  If the document priority assigned for the Bth
-      // bin member is -log(1/(1+B)) for a document fetched with no throttling whatsoever,
-      // then we want the priority to be -log(1/(1+k)) for a throttled bin, where k is chosen so that:
-      // k = B * ((T + 1/F)/T) = B * (1 + 1/TF)
-      // ... where T is the time taken to fetch a single document that has no throttling at all.
-      // For the purposes of this exercise, a value of 100 doc/sec, or T=10ms.
-      //
-      // Basically, for F = 0, k should be infinity, and for F = infinity, k should be B.
-
-
-      // First, calculate the document's max fetch rate, in fetches per millisecond.  This will be used to adjust the priority, and
-      // also when resetting the bin counts.
-      double[] maxFetchRates = calculateMaxFetchRates(binNames,connection);
-
-      // For each bin, we will be calculating the bin count scale factor, which is what we multiply the bincount by to adjust for the
-      // throttling on that bin.
-      double[] binCountScaleFactors = new double[binNames.length];
-
-
-      // Before calculating priority, reset any bins to a higher value, if it seems like it is appropriate.  This is how we avoid assigning priorities
-      // higher than the current level at which queuing is currently taking place.
-
-      // First thing to do is to reset the bin values based on the current minimum.  If we *do* wind up resetting, we also need to ditch any availablePriorities that match.
-      int i = 0;
-      while (i < binNames.length)
-      {
-        String binName = binNames[i];
-        // Remember, maxFetchRate is in fetches per ms.
-        double maxFetchRate = maxFetchRates[i];
-
-        // Calculate (and save for later) the scale factor for this bin.
-        double binCountScaleFactor;
-        if (maxFetchRate == 0.0)
-          binCountScaleFactor = Double.POSITIVE_INFINITY;
-        else
-          binCountScaleFactor = 1.0 + 1.0 / (minMsPerFetch * maxFetchRate);
-        binCountScaleFactors[i] = binCountScaleFactor;
-
-        double thisCount = 0.0;
-        DoubleBinCount bc = (DoubleBinCount)binCounts.get(binName);
-        if (bc != null)
-        {
-          thisCount = bc.getValue();
-        }
-        // Adjust the count, if needed, so that we are not assigning priorities greater than the current level we are
-        // grabbing documents at
-        if (thisCount * binCountScaleFactor < currentMinimumDepth)
-        {
-          double weightedMinimumDepth = currentMinimumDepth / binCountScaleFactor;
-
-          if (Logging.scheduling.isDebugEnabled())
-            Logging.scheduling.debug("Resetting value of bin '"+binName+"' to "+new Double(weightedMinimumDepth).toString()+"(scale factor is "+new Double(binCountScaleFactor)+")");
-
-          // Clear available priorities that depend on this bin
-          HashMap hm = (HashMap)binDependencies.get(binName);
-          if (hm != null)
-          {
-            Iterator iter = hm.keySet().iterator();
-            while (iter.hasNext())
-            {
-              PriorityKey pk = (PriorityKey)iter.next();
-              availablePriorities.remove(pk);
-            }
-            binDependencies.remove(binName);
-          }
-
-          // Set a new bin value
-          if (bc == null)
-          {
-            bc = new DoubleBinCount();
-            binCounts.put(binName,bc);
-          }
-          bc.setValue(weightedMinimumDepth);
-        }
-
-        i++;
-      }
-
-      double returnValue;
-
-      PriorityKey pk2 = new PriorityKey(binNames);
-      ArrayList queuedvalue = (ArrayList)availablePriorities.get(pk2);
-      if (queuedvalue != null && queuedvalue.size() > 0)
-      {
-        // There's a saved value on the queue, which was calculated but not assigned earlier.  We use these values preferentially.
-        returnValue = ((Double)queuedvalue.remove(queuedvalue.size()-1)).doubleValue();
-        if (queuedvalue.size() == 0)
-        {
-          i = 0;
-          while (i < binNames.length)
-          {
-            String binName = binNames[i++];
-            HashMap hm = (HashMap)binDependencies.get(binName);
-            if (hm != null)
-            {
-              hm.remove(pk2);
-              if (hm.size() == 0)
-                binDependencies.remove(binName);
-            }
-          }
-          availablePriorities.remove(pk2);
-        }
-      }
-      else
-      {
-        // There was no previously-calculated value available, so we need to calculate a new value.
-
-        // Find the bin with the largest effective count, and use that for the document's priority.
-        // (This of course assumes that the slowest throttle is the one that wins.)
-        double highestAdjustedCount = 0.0;
-        i = 0;
-        while (i < binNames.length)
-        {
-          String binName = binNames[i];
-          double binCountScaleFactor = binCountScaleFactors[i];
-
-          double thisCount = 0.0;
-          DoubleBinCount bc = (DoubleBinCount)binCounts.get(binName);
-          if (bc != null)
-            thisCount = bc.getValue();
-
-          double adjustedCount;
-          // Use the scale factor already calculated above to yield a priority that is adjusted for the fetch rate.
-          if (binCountScaleFactor == Double.POSITIVE_INFINITY)
-            adjustedCount = Double.POSITIVE_INFINITY;
-          else
-            adjustedCount = thisCount * binCountScaleFactor;
-          if (adjustedCount > highestAdjustedCount)
-            highestAdjustedCount = adjustedCount;
-          i++;
-        }
-
-        // Calculate the proper log value
-        if (highestAdjustedCount == Double.POSITIVE_INFINITY)
-          returnValue = Double.POSITIVE_INFINITY;
-        else
-          returnValue = Math.log(1.0 + highestAdjustedCount);
-
-        // Update bins to indicate we used another priority.  If more than one bin is associated with the document,
-        // counts for all bins are nevertheless updated, because we don't wish to arrange scheduling collisions with hypothetical
-        // documents that share any of these bins.
-        int j = 0;
-        while (j < binNames.length)
-        {
-          String binName = binNames[j];
-          DoubleBinCount bc = (DoubleBinCount)binCounts.get(binName);
-          if (bc == null)
-          {
-            bc = new DoubleBinCount();
-            binCounts.put(binName,bc);
-          }
-          bc.increment();
-
-          j++;
-        }
-
-      }
-
-      if (Logging.scheduling.isDebugEnabled())
-      {
-        StringBuilder sb = new StringBuilder();
-        int k = 0;
-        while (k < binNames.length)
-        {
-          sb.append(binNames[k++]).append(" ");
-        }
-        Logging.scheduling.debug("Document with bins ["+sb.toString()+"] given priority value "+new Double(returnValue).toString());
-      }
-
-
-      return returnValue;
-    }
-  }
-
-  /** Calculate the maximum fetch rate for a given set of bins for a given connection.
-  * This is used to adjust the final priority of a document.
-  */
-  protected double[] calculateMaxFetchRates(String[] binNames, IRepositoryConnection connection)
-  {
-    ThrottleLimits tl = new ThrottleLimits(connection);
-    return tl.getMaximumRates(binNames);
-  }
-
-  /** This class represents the throttle limits out of the connection specification */
-  protected static class ThrottleLimits
-  {
-    protected ArrayList specs = new ArrayList();
-
-    public ThrottleLimits(IRepositoryConnection connection)
-    {
-      String[] throttles = connection.getThrottles();
-      int i = 0;
-      while (i < throttles.length)
-      {
-        try
-        {
-          specs.add(new ThrottleLimitSpec(throttles[i],(double)connection.getThrottleValue(throttles[i])));
-        }
-        catch (PatternSyntaxException e)
-        {
-        }
-        i++;
-      }
-    }
-
-    public double[] getMaximumRates(String[] binNames)
-    {
-      double[] rval = new double[binNames.length];
-      int j = 0;
-      while (j < binNames.length)
-      {
-        String binName = binNames[j];
-        double maxRate = Double.POSITIVE_INFINITY;
-        int i = 0;
-        while (i < specs.size())
-        {
-          ThrottleLimitSpec spec = (ThrottleLimitSpec)specs.get(i++);
-          Pattern p = spec.getRegexp();
-          Matcher m = p.matcher(binName);
-          if (m.find())
-          {
-            double rate = spec.getMaxRate();
-            // The direction of this inequality reflects the fact that the throttling is conservative when more rules are present.
-            if (rate < maxRate)
-              maxRate = rate;
-          }
-        }
-        rval[j] = maxRate;
-        j++;
-      }
-      return rval;
-    }
-
-  }
-
-  /** This is a class which describes an individual throttle limit, in fetches per millisecond. */
-  protected static class ThrottleLimitSpec
-  {
-    /** Regexp */
-    protected Pattern regexp;
-    /** The fetch limit for all bins matching that regexp, in fetches per millisecond */
-    protected double maxRate;
-
-    /** Constructor */
-    public ThrottleLimitSpec(String regexp, double maxRate)
-      throws PatternSyntaxException
-    {
-      this.regexp = Pattern.compile(regexp);
-      this.maxRate = maxRate;
-    }
-
-    /** Get the regexp. */
-    public Pattern getRegexp()
-    {
-      return regexp;
-    }
-
-    /** Get the max count */
-    public double getMaxRate()
-    {
-      return maxRate;
-    }
-  }
-
-  /** This is the key class for the availablePriorities table */
-  protected static class PriorityKey
-  {
-    // The bins, in sorted order
-    protected String[] binNames;
-
-    /** Constructor */
-    public PriorityKey(String[] binNames)
-    {
-      this.binNames = new String[binNames.length];
-      int i = 0;
-      while (i < binNames.length)
-      {
-        this.binNames[i] = binNames[i];
-        i++;
-      }
-      java.util.Arrays.sort(this.binNames);
-    }
-
-    public int hashCode()
-    {
-      int rval = 0;
-      int i = 0;
-      while (i < binNames.length)
-      {
-        rval += binNames[i++].hashCode();
-      }
-      return rval;
-    }
-
-    public boolean equals(Object o)
-    {
-      if (!(o instanceof PriorityKey))
-        return false;
-      PriorityKey p = (PriorityKey)o;
-      if (binNames.length != p.binNames.length)
-        return false;
-      int i = 0;
-      while (i < binNames.length)
-      {
-        if (!binNames[i].equals(p.binNames[i]))
-          return false;
-        i++;
-      }
-      return true;
-    }
-  }
 
   /** This is the class which allows a mutable integer count value to be saved in the bincount table.
   */
@@ -791,42 +304,5 @@ public class QueueTracker
     }
   }
 
-  /** This is the class which allows a mutable integer count value to be saved in the bincount table.
-  */
-  protected static class DoubleBinCount
-  {
-    /** The count */
-    protected double count = 0.0;
-
-    /** Create */
-    public DoubleBinCount()
-    {
-    }
-
-    public DoubleBinCount duplicate()
-    {
-      DoubleBinCount rval = new DoubleBinCount();
-      rval.count = this.count;
-      return rval;
-    }
-
-    /** Increment the counter */
-    public void increment()
-    {
-      count += 1.0;
-    }
-
-    /** Set the value */
-    public void setValue(double count)
-    {
-      this.count = count;
-    }
-
-    /** Get the value */
-    public double getValue()
-    {
-      return count;
-    }
-  }
 
 }

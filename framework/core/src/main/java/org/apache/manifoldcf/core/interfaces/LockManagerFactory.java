@@ -91,6 +91,12 @@ public class LockManagerFactory
   {
     return make(tc).getSharedConfiguration().getIntProperty(s, defaultValue);
   }
+
+  public static long getLongProperty(IThreadContext tc, String s, long defaultValue)
+    throws ManifoldCFException
+  {
+    return make(tc).getSharedConfiguration().getLongProperty(s, defaultValue);
+  }
   
   public static double getDoubleProperty(IThreadContext tc, String s, double defaultValue)
     throws ManifoldCFException

@@ -45,11 +45,12 @@ import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.StringSet;
 import org.apache.manifoldcf.core.interfaces.TimeMarker;
-import org.apache.manifoldcf.core.jdbcpool.WrappedConnection;
-import org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConnectionFactory;
-import org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants;
-import org.apache.manifoldcf.crawler.connectors.jdbc.Messages;
-import org.apache.manifoldcf.crawler.system.Logging;
+import org.apache.manifoldcf.core.interfaces.IResultRow;
+import org.apache.manifoldcf.jdbc.JDBCConnection;
+import org.apache.manifoldcf.jdbc.JDBCConstants;
+import org.apache.manifoldcf.jdbc.IDynamicResultSet;
+import org.apache.manifoldcf.jdbc.IDynamicResultRow;
+import org.apache.manifoldcf.authorities.system.Logging;
 
 /**
  *
@@ -58,14 +59,19 @@ import org.apache.manifoldcf.crawler.system.Logging;
 public class JDBCAuthority extends BaseAuthorityConnector {
 
   public static final String _rcsid = "@(#)$Id: JDBCAuthority.java $";
-  protected WrappedConnection connection = null;
+
+  protected JDBCConnection connection = null;
   protected String jdbcProvider = null;
+  protected String accessMethod = null;
   protected String host = null;
   protected String databaseName = null;
+  protected String rawDriverString = null;
   protected String userName = null;
   protected String password = null;
+
   protected String idQuery = null;
   protected String tokenQuery = null;
+
   private long responseLifetime = 60000L; //60sec
   private int LRUsize = 1000;
   /**
@@ -93,10 +99,13 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     super.connect(configParams);
 
     jdbcProvider = configParams.getParameter(JDBCConstants.providerParameter);
+    accessMethod = configParams.getParameter(JDBCConstants.methodParameter);
     host = configParams.getParameter(JDBCConstants.hostParameter);
     databaseName = configParams.getParameter(JDBCConstants.databaseNameParameter);
+    rawDriverString = configParams.getParameter(JDBCConstants.driverStringParameter);
     userName = configParams.getParameter(JDBCConstants.databaseUserName);
     password = configParams.getObfuscatedParameter(JDBCConstants.databasePassword);
+
     idQuery = configParams.getParameter(JDBCConstants.databaseUserIdQuery);
     tokenQuery = configParams.getParameter(JDBCConstants.databaseTokensQuery);
   }
@@ -108,12 +117,13 @@ public class JDBCAuthority extends BaseAuthorityConnector {
   public String check()
     throws ManifoldCFException {
     try {
-      WrappedConnection tempConnection = JDBCConnectionFactory.getConnection(jdbcProvider, host, databaseName, userName, password);
-      JDBCConnectionFactory.releaseConnection(tempConnection);
+      getSession();
+      // Attempt to fetch a connection; if this succeeds we pass
+      connection.testConnection();
       return super.check();
-    } catch (Throwable e) {
-      if (Logging.connectors.isDebugEnabled()) {
-        Logging.connectors.debug("Service interruption in check(): " + e.getMessage(), e);
+    } catch (ServiceInterruption e) {
+      if (Logging.authorityConnectors.isDebugEnabled()) {
+        Logging.authorityConnectors.debug("Service interruption in check(): " + e.getMessage(), e);
       }
       return "Transient error: " + e.getMessage();
     }
@@ -125,13 +135,12 @@ public class JDBCAuthority extends BaseAuthorityConnector {
   @Override
   public void disconnect()
     throws ManifoldCFException {
-    if (connection != null) {
-      JDBCConnectionFactory.releaseConnection(connection);
-      connection = null;
-    }
+    connection = null;
     host = null;
     jdbcProvider = null;
+    accessMethod = null;
     databaseName = null;
+    rawDriverString = null;
     userName = null;
     password = null;
 
@@ -147,19 +156,19 @@ public class JDBCAuthority extends BaseAuthorityConnector {
       if (jdbcProvider == null || jdbcProvider.length() == 0) {
         throw new ManifoldCFException("Missing parameter '" + JDBCConstants.providerParameter + "'");
       }
-      if (host == null || host.length() == 0) {
-        throw new ManifoldCFException("Missing parameter '" + JDBCConstants.hostParameter + "'");
-      }
+      if ((host == null || host.length() == 0) && (rawDriverString == null || rawDriverString.length() == 0))
+        throw new ManifoldCFException("Missing parameter '"+JDBCConstants.hostParameter+"' or '"+JDBCConstants.driverStringParameter+"'");
 
-      connection = JDBCConnectionFactory.getConnection(jdbcProvider, host, databaseName, userName, password);
+      connection = new JDBCConnection(jdbcProvider,(accessMethod==null || accessMethod.equals("name")),host,databaseName,rawDriverString,userName,password);
     }
   }
 
   private String createCacheConnectionString() {
     StringBuilder sb = new StringBuilder();
     sb.append(jdbcProvider).append("|")
-      .append(host).append("|")
-      .append(databaseName).append("|")
+      .append((host==null)?"":host).append("|")
+      .append((databaseName==null)?"":databaseName).append("|")
+      .append((rawDriverString==null)?"":rawDriverString).append("|")
       .append(userName);
     return sb.toString();
   }
@@ -204,10 +213,12 @@ public class JDBCAuthority extends BaseAuthorityConnector {
 
   public AuthorizationResponse getAuthorizationResponseUncached(String userName)
     throws ManifoldCFException {
-    try {
+    try
+    {
       getSession();
 
       VariableMap vm = new VariableMap();
+      addConstant(vm, JDBCConstants.idReturnVariable, JDBCConstants.idReturnColumnName);
       addVariable(vm, JDBCConstants.userNameVariable, userName);
 
       // Find user id
@@ -215,54 +226,95 @@ public class JDBCAuthority extends BaseAuthorityConnector {
       StringBuilder sb = new StringBuilder();
       substituteQuery(idQuery, vm, sb, paramList);
 
-      PreparedStatement ps = connection.getConnection().prepareStatement(sb.toString());
-      loadPS(ps, paramList);
-      ResultSet rs = ps.executeQuery();
-      if (rs == null) {
+      IDynamicResultSet idSet;
+      try {
+        idSet = connection.executeUncachedQuery(sb.toString(),paramList,-1);
+      }
+      catch (ServiceInterruption e)
+      {
         return RESPONSE_UNREACHABLE;
       }
+      catch (ManifoldCFException e)
+      {
+        throw e;
+      }
+
       String uid;
-      if (rs.next()) {
-        uid = rs.getString(1);
-      } else {
-        return RESPONSE_USERNOTFOUND;
+      try {
+        IDynamicResultRow row = idSet.getNextRow();
+        if (row == null)
+          return RESPONSE_USERNOTFOUND;
+        try
+        {
+          Object oUid = row.getValue(JDBCConstants.idReturnColumnName);
+          if (oUid == null)
+            throw new ManifoldCFException("Bad id query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          uid = JDBCConnection.readAsString(oUid);
+        }
+        finally
+        {
+          row.close();
+        }
+      } finally {
+        idSet.close();
       }
-      if (uid == null || uid.isEmpty()) {
-        return RESPONSE_UNREACHABLE;
+
+      if (uid.isEmpty()) {
+        return RESPONSE_USERNOTFOUND;
       }
 
       // now check tokens
       vm = new VariableMap();
+      addConstant(vm, JDBCConstants.tokenReturnVariable, JDBCConstants.tokenReturnColumnName);
       addVariable(vm, JDBCConstants.userNameVariable, userName);
       addVariable(vm, JDBCConstants.userIDVariable, uid);
       sb = new StringBuilder();
       paramList = new ArrayList();
       substituteQuery(tokenQuery, vm, sb, paramList);
-      ps = connection.getConnection().prepareStatement(sb.toString());
-      loadPS(ps, paramList);
-      rs = ps.executeQuery();
-      if (rs == null) {
+      
+      try {
+        idSet = connection.executeUncachedQuery(sb.toString(),paramList,-1);
+      }
+      catch (ServiceInterruption e)
+      {
         return RESPONSE_UNREACHABLE;
       }
+      catch (ManifoldCFException e)
+      {
+        throw e;
+      }
+
       ArrayList<String> tokenArray = new ArrayList<String>();
-      while (rs.next()) {
-        String token = rs.getString(1);
-        if (token != null && !token.isEmpty()) {
-          tokenArray.add(token);
+      try {
+        while (true)
+        {
+          IDynamicResultRow row = idSet.getNextRow();
+          if (row == null)
+            break;
+          try
+          {
+            Object oToken = row.getValue(JDBCConstants.tokenReturnColumnName);
+            if (oToken == null)
+              throw new ManifoldCFException("Bad token query; doesn't return $(TOKENCOLUMN) column.  Try using quotes around $(TOKENCOLUMN) variable, e.g. \"$(TOKENCOLUMN)\".");
+            String token = JDBCConnection.readAsString(oToken);
+
+            if (!token.isEmpty()) {
+              tokenArray.add(token);
+            }
+          }
+          finally
+          {
+            row.close();
+          }
         }
+      } finally {
+        idSet.close();
       }
-
-      String[] tokens = new String[tokenArray.size()];
-      int k = 0;
-      while (k < tokens.length) {
-        tokens[k] = tokenArray.get(k);
-        k++;
-      }
-
-      return new AuthorizationResponse(tokens, AuthorizationResponse.RESPONSE_OK);
-
-    } catch (Exception e) {
-      // Unreachable
+      return new AuthorizationResponse(tokenArray.toArray(new String[0]), AuthorizationResponse.RESPONSE_OK);
+    }
+    catch (ServiceInterruption e)
+    {
+      Logging.authorityConnectors.warn("JDBCAuthority: Service interruption: "+e.getMessage(),e);
       return RESPONSE_UNREACHABLE;
     }
   }
@@ -297,36 +349,37 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     tabsArray.add(Messages.getString(locale, "JDBCAuthority.Queries"));
 
     out.print(
-      "<script type=\"text/javascript\">\n"
-      + "<!--\n"
-      + "function checkConfigForSave()\n"
-      + "{\n"
-      + "  if (editconnection.databasehost.value == \"\")\n"
-      + "  {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseFillInADatabaseServerName") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Server") + "\");\n"
-      + "    editconnection.databasehost.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.databasename.value == \"\")\n"
-      + "  {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseFillInTheNameOfTheDatabase") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Server") + "\");\n"
-      + "    editconnection.databasename.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.username.value == \"\")\n"
-      + "  {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseSupplyTheDatabaseUsernameForThisConnection") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Credentials") + "\");\n"
-      + "    editconnection.username.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  return true;\n"
-      + "}\n"
-      + "\n"
-      + "//-->\n"
-      + "</script>\n");
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.databasehost.value == \"\" && editconnection.rawjdbcstring.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseFillInADatabaseServerName") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Server") + "\");\n"+
+"    editconnection.databasehost.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.databasename.value == \"\" && editconnection.rawjdbcstring.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseFillInTheNameOfTheDatabase") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Server") + "\");\n"+
+"    editconnection.databasename.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.username.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.PleaseSupplyTheDatabaseUsernameForThisConnection") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "JDBCAuthority.Credentials") + "\");\n"+
+"    editconnection.username.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
   }
 
   /**
@@ -350,6 +403,9 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     if (lJdbcProvider == null) {
       lJdbcProvider = "oracle:thin:@";
     }
+    String lAccessMethod = parameters.getParameter(JDBCConstants.methodParameter);
+    if (lAccessMethod == null)
+      lAccessMethod = "name";
     String lHost = parameters.getParameter(JDBCConstants.hostParameter);
     if (lHost == null) {
       lHost = "localhost";
@@ -358,6 +414,9 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     if (lDatabaseName == null) {
       lDatabaseName = "database";
     }
+    String rawJDBCString = parameters.getParameter(JDBCConstants.driverStringParameter);
+    if (rawJDBCString == null)
+      rawJDBCString = "";
     String databaseUser = parameters.getParameter(JDBCConstants.databaseUserName);
     if (databaseUser == null) {
       databaseUser = "";
@@ -370,51 +429,68 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     }
     String lIdQuery = parameters.getParameter(JDBCConstants.databaseUserIdQuery);
     if (lIdQuery == null) {
-      lIdQuery = "SELECT idfield FROM usertable WHERE login = $(USERNAME)";
+      lIdQuery = "SELECT idfield AS $(IDCOLUMN) FROM usertable WHERE login = $(USERNAME)";
     }
     String lTokenQuery = parameters.getParameter(JDBCConstants.databaseTokensQuery);
     if (lTokenQuery == null) {
-      lTokenQuery = "SELECT groupnamefield FROM grouptable WHERE user_id = $(UID) or login = $(USERNAME)";
+      lTokenQuery = "SELECT groupnamefield AS $(TOKENCOLUMN) FROM grouptable WHERE user_id = $(UID) OR login = $(USERNAME)";
     }
 
     // "Database Type" tab
     if (tabName.equals(Messages.getString(locale, "JDBCAuthority.DatabaseType"))) {
       out.print(
-        "<table class=\"displaytable\">\n"
-        + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-        + "  <tr>\n"
-        + "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseType2") + "</nobr></td><td class=\"value\">\n"
-        + "      <select multiple=\"false\" name=\"databasetype\" size=\"2\">\n"
-        + "        <option value=\"oracle:thin:@\" " + (lJdbcProvider.equals("oracle:thin:@") ? "selected=\"selected\"" : "") + ">Oracle</option>\n"
-        + "        <option value=\"postgresql:\" " + (lJdbcProvider.equals("postgresql:") ? "selected=\"selected\"" : "") + ">Postgres SQL</option>\n"
-        + "        <option value=\"jtds:sqlserver:\" " + (lJdbcProvider.equals("jtds:sqlserver:") ? "selected=\"selected\"" : "") + ">MS SQL Server (&gt; V6.5)</option>\n"
-        + "        <option value=\"jtds:sybase:\" " + (lJdbcProvider.equals("jtds:sybase:") ? "selected=\"selected\"" : "") + ">Sybase (&gt;= V10)</option>\n"
-        + "        <option value=\"mysql:\" " + (lJdbcProvider.equals("mysql:") ? "selected=\"selected\"" : "") + ">MySQL (&gt;= V5)</option>\n"
-        + "      </select>\n"
-        + "    </td>\n"
-        + "  </tr>\n"
-        + "</table>\n");
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseType2") + "</nobr></td><td class=\"value\">\n"+
+"      <select multiple=\"false\" name=\"databasetype\" size=\"2\">\n"+
+"        <option value=\"oracle:thin:@\" " + (lJdbcProvider.equals("oracle:thin:@") ? "selected=\"selected\"" : "") + ">Oracle</option>\n"+
+"        <option value=\"postgresql:\" " + (lJdbcProvider.equals("postgresql:") ? "selected=\"selected\"" : "") + ">Postgres SQL</option>\n"+
+"        <option value=\"jtds:sqlserver:\" " + (lJdbcProvider.equals("jtds:sqlserver:") ? "selected=\"selected\"" : "") + ">MS SQL Server (&gt; V6.5)</option>\n"+
+"        <option value=\"jtds:sybase:\" " + (lJdbcProvider.equals("jtds:sybase:") ? "selected=\"selected\"" : "") + ">Sybase (&gt;= V10)</option>\n"+
+"        <option value=\"mysql:\" " + (lJdbcProvider.equals("mysql:") ? "selected=\"selected\"" : "") + ">MySQL (&gt;= V5)</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCAuthority.AccessMethod") + "</nobr></td><td class=\"value\">\n"+
+"      <select multiple=\"false\" name=\"accessmethod\" size=\"2\">\n"+
+"        <option value=\"name\" "+(lAccessMethod.equals("name")?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"JDBCAuthority.ByName")+"</option>\n"+
+"        <option value=\"label\" "+(lAccessMethod.equals("label")?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"JDBCAuthority.ByLabel")+"</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n");
     } else {
       out.print(
-        "<input type=\"hidden\" name=\"databasetype\" value=\"" + lJdbcProvider + "\"/>\n");
+"<input type=\"hidden\" name=\"databasetype\" value=\"" + lJdbcProvider + "\"/>\n"+
+"<input type=\"hidden\" name=\"accessmethod\" value=\""+lAccessMethod+"\"/>\n"
+      );
     }
 
     // "Server" tab
     if (tabName.equals(Messages.getString(locale, "JDBCAuthority.Server"))) {
       out.print(
-        "<table class=\"displaytable\">\n"
-        + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-        + "  <tr>\n"
-        + "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseHostAndPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"databasehost\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lHost) + "\"/></td>\n"
-        + "  </tr>\n"
-        + "  <tr>\n"
-        + "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseServiceNameOrInstanceDatabase") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"databasename\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lDatabaseName) + "\"/></td>\n"
-        + "  </tr>\n"
-        + "</table>\n");
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseHostAndPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"databasehost\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lHost) + "\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseServiceNameOrInstanceDatabase") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"databasename\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lDatabaseName) + "\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCAuthority.RawDatabaseConnectString") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"80\" name=\"rawjdbcstring\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rawJDBCString)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
     } else {
       out.print(
-        "<input type=\"hidden\" name=\"databasehost\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lHost) + "\"/>\n"
-        + "<input type=\"hidden\" name=\"databasename\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lDatabaseName) + "\"/>\n");
+"<input type=\"hidden\" name=\"databasehost\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lHost) + "\"/>\n"+
+"<input type=\"hidden\" name=\"databasename\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(lDatabaseName) + "\"/>\n"+
+"<input type=\"hidden\" name=\"rawjdbcstring\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rawJDBCString)+"\"/>\n"
+      );
     }
 
     // "Credentials" tab
@@ -481,6 +557,10 @@ public class JDBCAuthority extends BaseAuthorityConnector {
       parameters.setParameter(JDBCConstants.providerParameter, type);
     }
 
+    String accessMethod = variableContext.getParameter("accessmethod");
+    if (accessMethod != null)
+      parameters.setParameter(JDBCConstants.methodParameter,accessMethod);
+
     String lHost = variableContext.getParameter("databasehost");
     if (lHost != null) {
       parameters.setParameter(JDBCConstants.hostParameter, lHost);
@@ -490,6 +570,10 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     if (lDatabaseName != null) {
       parameters.setParameter(JDBCConstants.databaseNameParameter, lDatabaseName);
     }
+
+    String rawJDBCString = variableContext.getParameter("rawjdbcstring");
+    if (rawJDBCString != null)
+      parameters.setParameter(JDBCConstants.driverStringParameter,rawJDBCString);
 
     String lUserName = variableContext.getParameter("username");
     if (lUserName != null) {

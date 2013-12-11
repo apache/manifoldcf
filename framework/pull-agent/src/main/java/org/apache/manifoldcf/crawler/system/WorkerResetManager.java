@@ -31,30 +31,32 @@ public class WorkerResetManager extends ResetManager
   public static final String _rcsid = "@(#)$Id: WorkerResetManager.java 988245 2010-08-23 18:39:35Z kwright $";
 
   /** The document queue */
-  protected DocumentQueue dq;
+  protected final DocumentQueue dq;
   /** The expiration queue */
-  protected DocumentCleanupQueue eq;
+  protected final DocumentCleanupQueue eq;
 
   /** Constructor. */
-  public WorkerResetManager(DocumentQueue dq, DocumentCleanupQueue eq)
+  public WorkerResetManager(DocumentQueue dq, DocumentCleanupQueue eq, String processID)
   {
-    super();
+    super(processID);
     this.dq = dq;
     this.eq = eq;
   }
 
   /** Reset */
-  protected void performResetLogic(IThreadContext tc)
+  @Override
+  protected void performResetLogic(IThreadContext tc, String processID)
     throws ManifoldCFException
   {
     IJobManager jobManager = JobManagerFactory.make(tc);
-    jobManager.resetDocumentWorkerStatus();
+    jobManager.resetDocumentWorkerStatus(processID);
     dq.clear();
     eq.clear();
   }
   
   /** Do the wakeup logic.
   */
+  @Override
   protected void performWakeupLogic()
   {
     // Wake up all sleeping worker threads

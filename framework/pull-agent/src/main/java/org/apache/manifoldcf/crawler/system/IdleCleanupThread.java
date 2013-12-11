@@ -33,14 +33,16 @@ public class IdleCleanupThread extends Thread
   public static final String _rcsid = "@(#)$Id: IdleCleanupThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   */
-  public IdleCleanupThread()
+  public IdleCleanupThread(String processID)
     throws ManifoldCFException
   {
     super();
+    this.processID = processID;
     setName("Idle cleanup thread");
     setDaemon(true);
   }
@@ -55,6 +57,8 @@ public class IdleCleanupThread extends Thread
       // Get the cache handle.
       ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
       
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -62,12 +66,11 @@ public class IdleCleanupThread extends Thread
         try
         {
           // Do the cleanup
-          RepositoryConnectorFactory.pollAllConnectors(threadContext);
-          OutputConnectorFactory.pollAllConnectors(threadContext);
+          repositoryConnectorPool.pollAllConnectors();
           cacheManager.expireObjects(System.currentTimeMillis());
           
           // Sleep for the retry interval.
-          ManifoldCF.sleep(15000L);
+          ManifoldCF.sleep(5000L);
         }
         catch (ManifoldCFException e)
         {

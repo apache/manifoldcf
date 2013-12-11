@@ -57,9 +57,12 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   protected final static String nameField = "connectionname";     // Changed this to work around constraint bug in postgresql
   protected final static String descriptionField = "description";
   protected final static String classNameField = "classname";
-  protected final static String authorityNameField = "authorityname";
   protected final static String maxCountField = "maxcount";
   protected final static String configField = "configxml";
+  protected final static String groupNameField = "groupname";
+
+  // Discontinued fields
+  protected final static String authorityNameField = "authorityname";
 
   protected static Random random = new Random();
 
@@ -93,7 +96,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     throws ManifoldCFException
   {
     // First, get the authority manager table name and name column
-    IAuthorityConnectionManager authMgr = AuthorityConnectionManagerFactory.make(threadContext);
+    IAuthorityGroupManager authMgr = AuthorityGroupManagerFactory.make(threadContext);
 
     // Always use a loop, and no transaction, as we may need to retry due to upgrade
     while (true)
@@ -106,15 +109,63 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
         map.put(nameField,new ColumnDescription("VARCHAR(32)",true,false,null,null,false));
         map.put(descriptionField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
         map.put(classNameField,new ColumnDescription("VARCHAR(255)",false,false,null,null,false));
-        map.put(authorityNameField,new ColumnDescription("VARCHAR(32)",false,true,
-          authMgr.getTableName(),authMgr.getAuthorityNameColumn(),false));
+        map.put(groupNameField,new ColumnDescription("VARCHAR(32)",false,true,
+          authMgr.getTableName(),authMgr.getGroupNameColumn(),false));
         map.put(maxCountField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(configField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         performCreate(map,null);
       }
       else
       {
-        // Upgrade code would go here, if needed.
+        // Upgrade code
+        ColumnDescription cd = (ColumnDescription)existing.get(groupNameField);
+        if (cd == null)
+        {
+          Map addMap = new HashMap();
+          addMap.put(groupNameField,new ColumnDescription("VARCHAR(32)",false,true,
+            authMgr.getTableName(),authMgr.getGroupNameColumn(),false));
+          performAlter(addMap,null,null,null);
+        }
+        // Get rid of the authorityName field.  When we do this we need to copy into the group name
+        // field, adding groups if they don't yet exist first
+        cd = (ColumnDescription)existing.get(authorityNameField);
+        if (cd != null)
+        {
+          ArrayList params = new ArrayList();
+          IResultSet set = performQuery("SELECT "+nameField+","+authorityNameField+" FROM "+getTableName(),null,null,null);
+          for (int i = 0 ; i < set.getRowCount() ; i++)
+          {
+            IResultRow row = set.getRow(i);
+            String repoName = (String)row.getValue(nameField);
+            String authName = (String)row.getValue(authorityNameField);
+            if (authName != null && authName.length() > 0)
+            {
+              // Attempt to create a matching auth group.  This will fail if the group
+              // already exists
+              IAuthorityGroup grp = authMgr.create();
+              grp.setName(authName);
+              try
+              {
+                authMgr.save(grp);
+              }
+              catch (ManifoldCFException e)
+              {
+                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                  throw e;
+                // Fall through; the row exists already
+              }
+              Map<String,String> map = new HashMap<String,String>();
+              map.put(groupNameField,authName);
+              params.clear();
+              String query = buildConjunctionClause(params,new ClauseDescription[]{
+                new UnitaryClause(nameField,repoName)});
+              performUpdate(map," WHERE "+query,params,null);
+            }
+          }
+          List<String> deleteList = new ArrayList<String>();
+          deleteList.add(authorityNameField);
+          performAlter(null,null,deleteList,null);
+        }
       }
 
       // Install dependent tables.
@@ -122,7 +173,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       throttleSpecManager.install(getTableName(),nameField);
 
       // Index management
-      IndexDescription authorityIndex = new IndexDescription(false,new String[]{authorityNameField});
+      IndexDescription authorityIndex = new IndexDescription(false,new String[]{groupNameField});
       IndexDescription classIndex = new IndexDescription(false,new String[]{classNameField});
       
       // Get rid of indexes that shouldn't be there
@@ -368,7 +419,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
             HashMap values = new HashMap();
             values.put(descriptionField,object.getDescription());
             values.put(classNameField,object.getClassName());
-            values.put(authorityNameField,object.getACLAuthority());
+            values.put(groupNameField,object.getACLAuthority());
             values.put(maxCountField,new Long((long)object.getMaxConnections()));
             String configXML = object.getConfigParams().toXML();
             values.put(configField,configXML);
@@ -477,7 +528,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
           throw new ManifoldCFException("Can't delete repository connection '"+name+"': existing jobs refer to it");
         ManifoldCF.noteConfigurationChange();
         throttleSpecManager.deleteRows(name);
-        historyManager.deleteOwner(name,null);
+        historyManager.deleteOwner(name);
         ArrayList params = new ArrayList();
         String query = buildConjunctionClause(params,new ClauseDescription[]{
           new UnitaryClause(nameField,name)});
@@ -507,10 +558,11 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   }
 
   /** Return true if the specified authority name is referenced.
-  *@param authorityName is the authority name.
+  *@param groupName is the group name.
   *@return true if referenced, false otherwise.
   */
-  public boolean isReferenced(String authorityName)
+  @Override
+  public boolean isGroupReferenced(String groupName)
     throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
@@ -518,7 +570,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     StringSet localCacheKeys = new StringSet(ssb);
     ArrayList params = new ArrayList();
     String query = buildConjunctionClause(params,new ClauseDescription[]{
-      new UnitaryClause(authorityNameField,authorityName)});
+      new UnitaryClause(groupNameField,groupName)});
     IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+query,params,
       localCacheKeys,null);
     return set.getRowCount() > 0;
@@ -528,6 +580,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@param className is the class name of the connector.
   *@return the repository connections that use that connector.
   */
+  @Override
   public String[] findConnectionsForConnector(String className)
     throws ManifoldCFException
   {
@@ -555,6 +608,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@param name is the name of the connection to check.
   *@return true if the underlying connector is registered.
   */
+  @Override
   public boolean checkConnectorExists(String name)
     throws ManifoldCFException
   {
@@ -596,6 +650,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   /** Return the name column.
   *@return the name column.
   */
+  @Override
   public String getConnectionNameColumn()
   {
     return nameField;
@@ -604,7 +659,26 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
 
   // Reporting and analysis related
 
-
+  /** Delete history rows related to a specific connection, upon user request.
+  *@param connectionName is the connection whose history records should be removed.
+  */
+  @Override
+  public void cleanUpHistoryData(String connectionName)
+    throws ManifoldCFException
+  {
+    historyManager.deleteOwner(connectionName);
+  }
+  
+  /** Delete history rows older than a specified timestamp.
+  *@param timeCutoff is the timestamp to delete older rows before.
+  */
+  @Override
+  public void cleanUpHistoryData(long timeCutoff)
+    throws ManifoldCFException
+  {
+    historyManager.deleteOldRows(timeCutoff);
+  }
+  
   /** Record time-stamped information about the activity of the connection.  This information can originate from
   * either the connector or from the framework.  The reason it is here is that it is viewed as 'belonging' to an
   * individual connection, and is segregated accordingly.
@@ -867,7 +941,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       rc.setName(name);
       rc.setDescription((String)row.getValue(descriptionField));
       rc.setClassName((String)row.getValue(classNameField));
-      rc.setACLAuthority((String)row.getValue(authorityNameField));
+      rc.setACLAuthority((String)row.getValue(groupNameField));
       rc.setMaxConnections((int)((Long)row.getValue(maxCountField)).longValue());
       String xml = (String)row.getValue(configField);
       if (xml != null && xml.length() > 0)

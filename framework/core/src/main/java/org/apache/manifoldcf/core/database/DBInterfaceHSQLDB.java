@@ -142,6 +142,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void closeDatabase()
     throws ManifoldCFException
   {
+    //System.out.println("Close database called");
     if (!isRemote)
     {
       try

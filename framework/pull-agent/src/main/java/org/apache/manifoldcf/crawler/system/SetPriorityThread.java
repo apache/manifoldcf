@@ -38,22 +38,21 @@ public class SetPriorityThread extends Thread
   public static final String _rcsid = "@(#)$Id: SetPriorityThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-  // This is the queue tracker object.
-  protected QueueTracker queueTracker;
-  // This is the number of documents per cycle
-  protected int cycleCount;
-  // The blocking documents object
-  protected BlockingDocuments blockingDocuments;
+  /** This is the number of documents per cycle */
+  protected final int cycleCount;
+  /** The blocking documents object */
+  protected final BlockingDocuments blockingDocuments;
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
-  *@param qt is the queue tracker object.
   */
-  public SetPriorityThread(QueueTracker qt, int workerThreadCount, BlockingDocuments blockingDocuments)
+  public SetPriorityThread(int workerThreadCount, BlockingDocuments blockingDocuments, String processID)
     throws ManifoldCFException
   {
     super();
-    this.queueTracker = qt;
     this.blockingDocuments = blockingDocuments;
+    this.processID = processID;
     cycleCount = workerThreadCount * 10;
     setName("Set priority thread");
     setDaemon(true);
@@ -69,7 +68,7 @@ public class SetPriorityThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
-
+      
       Logging.threads.debug("Set priority thread coming up");
 
       // Job description map (local) - designed to improve performance.
@@ -126,7 +125,8 @@ public class SetPriorityThread extends Thread
             DocumentDescription desc = blockingDocuments.getBlockingDocument();
             if (desc != null)
             {
-              ManifoldCF.writeDocumentPriorities(threadContext,mgr,jobManager,new DocumentDescription[]{desc},connectionMap,jobDescriptionMap,queueTracker,currentTime);
+              ManifoldCF.writeDocumentPriorities(threadContext,
+                new DocumentDescription[]{desc},connectionMap,jobDescriptionMap,currentTime);
               processedCount++;
               continue;
             }

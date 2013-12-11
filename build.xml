@@ -1182,15 +1182,19 @@
     <target name="preclean-for-delivery">
         <mkdir dir="dist"/>
         <mkdir dir="dist/example"/>
-        <mkdir dir="dist/multiprocess-example"/>
         <mkdir dir="dist/example-proprietary"/>
-        <mkdir dir="dist/multiprocess-example-proprietary"/>
+        <mkdir dir="dist/multiprocess-file-example"/>
+        <mkdir dir="dist/multiprocess-zk-example"/>
+        <mkdir dir="dist/multiprocess-file-example-proprietary"/>
+        <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
         <delete file="dist/connectors.xml"/>
         <delete file="dist/connectors-proprietary.xml"/>
         <delete file="dist/example/properties.xml"/>
         <delete file="dist/example-proprietary/properties.xml"/>
-        <delete file="dist/multiprocess-example/properties.xml"/>
-        <delete file="dist/multiprocess-example-proprietary/properties.xml"/>
+        <delete file="dist/multiprocess-file-example/properties.xml"/>
+        <delete file="dist/multiprocess-file-example-proprietary/properties.xml"/>
+        <delete file="dist/multiprocess-zk-example/properties.xml"/>
+        <delete file="dist/multiprocess-zk-example-proprietary/properties.xml"/>
         <delete file="dist/NOTICE.txt"/>
         <delete file="dist/LICENSE.txt"/>
     </target>
@@ -1204,13 +1208,21 @@
         <copy todir="dist/web-proprietary">
             <fileset dir="framework/dist/web-proprietary"/>
         </copy>
-        <mkdir dir="dist/multiprocess-example"/>
-        <copy todir="dist/multiprocess-example">
-            <fileset dir="framework/dist/multiprocess-example"/>
+        <mkdir dir="dist/multiprocess-file-example"/>
+        <copy todir="dist/multiprocess-file-example">
+            <fileset dir="framework/dist/multiprocess-file-example"/>
         </copy>
-        <mkdir dir="dist/multiprocess-example-proprietary"/>
-        <copy todir="dist/multiprocess-example-proprietary">
-            <fileset dir="framework/dist/multiprocess-example-proprietary"/>
+        <mkdir dir="dist/multiprocess-file-example-proprietary"/>
+        <copy todir="dist/multiprocess-file-example-proprietary">
+            <fileset dir="framework/dist/multiprocess-file-example-proprietary"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example"/>
+        <copy todir="dist/multiprocess-zk-example">
+            <fileset dir="framework/dist/multiprocess-zk-example"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
+        <copy todir="dist/multiprocess-zk-example-proprietary">
+            <fileset dir="framework/dist/multiprocess-zk-example-proprietary"/>
         </copy>
         <mkdir dir="dist/example"/>
         <copy todir="dist/example">
@@ -1242,8 +1254,10 @@
         <chmod dir="dist/script-engine" perm="a+x" includes="**/*.sh"/>
         <chmod dir="dist/example" perm="a+x" includes="**/*.sh"/>
         <chmod dir="dist/example-proprietary" perm="a+x" includes="**/*.sh"/>
-        <chmod dir="dist/multiprocess-example" perm="a+x" includes="**/*.sh"/>
-        <chmod dir="dist/multiprocess-example-proprietary" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-file-example" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-file-example-proprietary" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-zk-example" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-zk-example-proprietary" perm="a+x" includes="**/*.sh"/>
         <copy todir="dist">
             <fileset dir="dist-license" includes="*.txt"/>
         </copy>
@@ -2449,6 +2463,16 @@
             <param name="connector-label" value="SharePoint"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.sharepoint.SharePointRepository"/>
         </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="sharepoint"/>
+            <param name="connector-label" value="SharePoint/ActiveDirectory"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.sharepoint.SharePointADAuthority"/>
+        </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="sharepoint"/>
+            <param name="connector-label" value="SharePoint/Native"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.sharepoint.SharePointAuthority"/>
+        </antcall>
     </target>
     
     <target name="deliver-sharepoint-connector-doc" depends="calculate-sharepoint-doc-condition" if="sharepoint-doc.include">
@@ -3158,7 +3182,8 @@
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
-          <exclude name="/multiprocess-example-proprietary/"/>
+          <exclude name="/multiprocess-file-example-proprietary/"/>
+          <exclude name="/multiprocess-zk-example-proprietary/"/>
           <exclude name="/web-proprietary/"/>
         </zipfileset>
       </zip>
@@ -3172,7 +3197,8 @@
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
-          <exclude name="/multiprocess-example-proprietary/"/>
+          <exclude name="/multiprocess-file-example-proprietary/"/>
+          <exclude name="/multiprocess-zk-example-proprietary/"/>
           <exclude name="/web-proprietary/"/>
         </tarfileset>
       </tar>
@@ -3459,14 +3485,14 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="target" value="hsqldb"/>
         </antcall>
         <copy todir="lib" file="build/download/hsqldb/lib/hsqldb.jar"/ -->
-        <!-- antcall target="download-via-mvn">
+        <antcall target="download-via-maven">
             <param name="project-path" value="org/hsqldb"/>
-            <param name="artifact-version" value="2.2.9-snapshot"/>
+            <param name="artifact-version" value="2.3.1"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="hsqldb"/>
             <param name="artifact-type" value="jar"/>
-        </antcall -->
-        <get src="http://www.hsqldb.org/repos/org/hsqldb/hsqldb/2.2.9/hsqldb-2.2.9.jar" dest="lib/hsqldb.jar"/>
+        </antcall>
+        <!-- get src="http://www.hsqldb.org/repos/org/hsqldb/hsqldb/2.2.9/hsqldb-2.2.9.jar" dest="lib/hsqldb.jar"/-->
     </target>
     
     <target name="download-postgresql">
@@ -4038,10 +4064,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib/elasticsearch"/>
         <!-- Download and unpack binary artifact -->
         <mkdir dir="build/download"/>
-        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-0.1-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin"/>
         <copy todir="lib/elasticsearch">
-            <fileset dir="build/download/apache-manifoldcf-elasticsearch-plugin-bin/elasticsearch-plugin-mcf-0.1"/>
+            <fileset dir="build/download/apache-manifoldcf-elasticsearch-plugin-bin/elasticsearch-plugin-mcf-1.1"/>
         </copy>
     </target>
 
@@ -4140,26 +4166,26 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib/sharepoint-2010"/>
         <!-- Download and unpack binary artifact -->
         <mkdir dir="build/download"/>
-        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2010-plugin-0.3-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2010-plugin-0.4-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin"/>
         <copy todir="lib/sharepoint-2010">
-            <fileset dir="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin/apache-manifoldcf-sharepoint-2010-plugin-0.3"/>
+            <fileset dir="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin/apache-manifoldcf-sharepoint-2010-plugin-0.4"/>
         </copy>
     </target>
 
     <target name="download-solr-plugins">
         <mkdir dir="lib/solr-3.x"/>
         <mkdir dir="build/download"/>
-        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-0.4-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin"/>
         <copy todir="lib/solr-3.x">
-            <fileset dir="build/download/apache-manifoldcf-solr-3.x-plugin-bin/apache-manifoldcf-solr-3.x-plugin-0.4"/>
+            <fileset dir="build/download/apache-manifoldcf-solr-3.x-plugin-bin/apache-manifoldcf-solr-3.x-plugin-1.1"/>
         </copy>
         <mkdir dir="lib/solr-4.x"/>
-        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-0.4-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin"/>
         <copy todir="lib/solr-4.x">
-            <fileset dir="build/download/apache-manifoldcf-solr-4.x-plugin-bin/apache-manifoldcf-solr-4.x-plugin-0.4"/>
+            <fileset dir="build/download/apache-manifoldcf-solr-4.x-plugin-bin/apache-manifoldcf-solr-4.x-plugin-1.1.1"/>
         </copy>
     </target>
 

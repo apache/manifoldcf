@@ -91,16 +91,120 @@
                        will work correctly.</p>
             </section>
 
+            <section id="groups">
+                <title>Defining Authority Groups</title>
+                <p>The Framework UI's left-side menu contains a link for listing authority groups.  An authority group is a collection of authorities that all cooperate to furnish
+                      security for each document from repositories that you select.  For example, a SharePoint 2010 repository with the Claim Space feature enabled may
+                      contain documents that are authorized by SharePoint itself, by Active Directory, and by others.  Documents from such a SharePoint
+                      repository would therefore refer to a authority group which would have a SharePoint native authority, a SharePoint Active Directory authority,
+                      and other SharePoint claim space authorities as members.  But most of the time, an authority group will consist of a single authority that is appropriate for
+                      the repository the authority group is meant to secure.</p>
+                <p>Since you need to select an authority group when you define an authority connection, you should define your authority groups <b>before</b> setting
+                      up your authority connections.  If you don't have any authority groups defined, you cannot create authority connections at all.  But if you select the
+                      wrong authority group when setting up your authority connection, you can go back later and change your selection.</p>
+                <p>It is also a good idea to define your authority groups before creating any repository connections, since each repository connection will also need to
+                      refer back to an authority group in order to secure documents.  While it is possible to change the relationship between a repository connection
+                       and its authority group after-the-fact, in practice such changes may cause many documents to be reindexed the next time an associated job is run.</p>
+                <p>You can create an authority group by clicking the "List Authority Groups" link in the left-side navigation menu.  When you do this, the
+                       following screen will appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/list-authority-groups.PNG" alt="List Authority Groups" width="80%"/>
+                <br/><br/>
+                <p>If there are already authority groups, they will be listed on this screen, along with links that allow you to view, edit, or delete them.  To create a new
+                      authority group, click the "Add a new authority group" link at the bottom.  The following screen will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-authority-group-name.PNG" alt="Add New Authority Group, specify Name" width="80%"/>
+                <br/><br/>
+                <p>The tabs across the top each present a different view of your authority group.  For authority groups, there is only ever one tab, the "Name" tab.</p>
+                <p>Give your authority group a name and a description.  Remember that all authority group names must be unique, and cannot be changed after the
+                      authority group is defined.  The name must be no more than 32 characters long.  The description can be up to 255 characters long.  When you are
+                      done, click on the "Save" button.  You <b>must</b> click the "Save" button when you are done in order to create or update your authority group.
+                      If you click "Cancel" instead, the new authority group will not be created.  (The same thing will happen if you click on any of the navigation links in
+                      the left-hand pane.)</p>
+                <p>After you save your authority group, a summary screen will be displayed that describes the group, and you can proceed on to create any authority
+                      connections that belong to the authority group, or repository connections that refer to the authority group.</p>
+
+            </section>
+            
+            <section id="connections">
+                <title>Defining Repository Connections</title>
+                <p>The Framework UI's left-hand menu contains a link for listing repository connections.  A repository connection is a connection to the repository system that contains the documents
+                       that you are interested in indexing.</p>
+                <p>All jobs require you to specify a repository connection, because that is where they get their documents from.  It is therefore necessary to create a repository connection before
+                       indexing any documents.</p>
+                <p>A repository connection also may have an associated authority group.  This specified authority group determines the security environment in which documents
+                      from the repository connection are attached.  While it is possible to change the specified authority group for a repository connection after a crawl has been done,
+                      in practice this will require all documents associated with that repository connection be reindexed in order to be searchable by anyone.  Therefore, we recommend
+                      that you set up your desired authority group before defining your repository connection.</p>
+                <p>You can create a repository connection by clicking the "List Repository Connections" link in the left-side navigation menu.  When you do this, the
+                       following screen will appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/list-repository-connections.PNG" alt="List Repository Connections" width="80%"/>
+                <br/><br/>
+                <p>On a freshly created system, there may well be no existing repository connections listed.  If there are already repository connections, they will be listed on this
+                    screen, along with links that allow you to view, edit, or delete them.  To create a new repository connection, click the "Add a new connection" link at the bottom.
+                    The following screen will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-repository-connection-name.PNG" alt="Add New Repository Connection, specify Name" width="80%"/>
+                <br/><br/>
+                <p>The tabs across the top each present a different view of your repository connection.  Each tab allows you to edit a different characteristic of that connection.  The exact set of tabs you see
+                       depends on the connection type you choose for the connection.</p>
+                <p>Start by giving your connection a name and a description.  Remember that all repository connection names must be unique, and cannot be changed after the connection is defined.  The name must be
+                       no more than 32 characters long.  The description can be up to 255 characters long.  When you are done, click on the "Type" tab.  The Type tab for the connection will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-repository-connection-type.PNG" alt="Add New Repository Connection, select Type" width="80%"/>
+                <br/><br/>
+                <p>The list of repository connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs
+                      for each different kind of repository connection type are described in this document in separate sections below.</p>
+                <p>You may also at this point select the authority group to use to secure all documents fetched from this repository with.  You do not need to define your
+                      authority group's authority connections before doing this step, but you will not be able to search for your documents after indexing them until you do.</p>
+                <p>After you choose the desired repository connection type and an authority group (if desired), click the "Continue" button at the bottom of the pane.  You will
+                      then see all the tabs appropriate for that kind of connection appear, and a "Save" button will also appear at the bottom of the pane.  You <b>must</b> click
+                      the "Save" button when you are done in order to create or update your connection.  If you click "Cancel" instead, the new connection
+                      will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
+                <p>Every repository connection has a "Throttling" tab.  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/repository-throttling.PNG" alt="Repository Connection Throttling" width="80%"/>
+                <br/><br/>
+                <p>On this tab, you can specify two things.  The first is how many open connections are allowed at any given time to the system the authority connection talks with.  This restriction helps prevent
+                       that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for smaller average search latency.  The default
+                       value is 10, which may not be optimal for all types of repository connections.  Please refer to the section of the manual describing your authority connection type for more precise
+                       recommendations.  The second specifies how rapidly, on average, the crawler will fetch documents via this connection.
+                </p>
+                <p>Each connection type has its own notion of "throttling bin".  A throttling bin is the name of a resource whose access needs to be throttled.  For example, the Web connection type uses a
+                       document's server name as the throttling bin associated with the document, since (presumably) it will be access to each individual server that will need to be throttled independently.
+                </p>
+                <p>On the repository connection "Throttling" tab, you can specify an unrestricted number of throttling descriptions.  Each throttling description consists of a regular expression that describes
+                       a family of throttling bins, plus a helpful description, plus an average number of fetches per minute for each of the throttling bins that matches the regular expression.  If a given
+                       throttling bin matches more than one throttling description, the most conservative fetch rate is chosen.</p>
+                <p>The simplest regular expression you can use is the empty regular expression.  This will match all of the connection's throttle bins, and thus will allow you to specify a default
+                       throttling policy for the connection.  Set the desired average fetch rate, and click the "Add" button.  The throttling tab will then appear something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/repository-throttling-with-throttle.PNG" alt="Repository Connection Throttling With Throttle" width="80%"/>
+                <br/><br/>
+                <p>If no throttle descriptions are added, no fetch-rate throttling will be performed.</p>
+                <p>Please refer to the section of the manual describing your chosen repository connection type for a description of the tabs appropriate for that connection type.</p>
+
+                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This summary screen contains a line where the connection's status
+                       is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.  If there was a problem, you will see a connection-type-specific diagnostic message instead.
+                       If this happens, you will need to correct the problem, by either fixing your infrastructure, or by editing the connection configuration appropriately, before the authority connection
+                       will work correctly.</p>
+                       
+            </section>
+
             <section id="mappers">
-                <title>Defining Mapping Connections</title>
-                <p>The Framework UI's left-side menu contains a link for listing user mapping connections.  A user mapping connection is a connection to a system that understands how to map a user name
-                       into a different user name intended for a different repository.  For example, if you want to enforce document security using LiveLink, but you have only an Active Directory user name,
-                       you will need to map the Active Directory user name to a corresponding LiveLink one, before finding access tokens for it using the LiveLink Authority.</p>
-                <p>You will not need any user mapping connections if the authorities that you intend to create can all operate using the same user name, and that user name is the one that is made available to
-                       ManifoldCF's authority servlet at search time.</p>
-                <p>You should define your mapping connections <b>before</b> setting up your authority connections.  Individual authority connections must specify the mapping connection that precedes it.
-                       It's also convenient to define your mapping connections in the order that you want to process the user name, for the same reason.  If you don't manage to do this right the first time, though,
-                       there is no penalty involved if you need to go back and fix things up.</p>
+                <title>Defining User Mapping Connections</title>
+                <p>The Framework UI's left-side menu contains a link for listing user mapping connections.  A user mapping connection is a connection to a system
+                      that understands how to map a user name into a different user name.  For example, if you want to enforce document security using LiveLink, but
+                      you have only an Active Directory user name, you will need to map the Active Directory user name to a corresponding LiveLink one, before finding
+                      access tokens for it using the LiveLink Authority.</p>
+                <p>Not all user mapping connections need to access other systems in order to be useful.  ManifoldCF, for instance, comes with a regular expression
+                      user mapper that manipulates a user name string using regular expressions alone.  Also, user mapping is not needed for many, if not most, authorities.
+                      You will not need any user mapping connections if the authorities that you intend to create can all operate using the same user name, and that user
+                      name is in the form that will be made available to ManifoldCF's authority servlet at search time.</p>
+                <p>You should define your mapping connections <b>before</b> setting up your authority connections.  An authority connections may specify a mapping
+                      connection that precedes it.  For the same reason, it's also convenient to define your mapping connections in the order that you want to process the
+                      user name.  If you don't manage to do this right the first time, though, there is no reason you cannot go back and fix things up.</p>
                 <p>You can create a mapping connection by clicking the "List User Mapping Connections" link in the left-side navigation menu.  When you do this, the
                        following screen will appear:</p>
                 <br/><br/>
@@ -149,12 +253,13 @@
 
             <section id="authorities">
                 <title>Defining Authority Connections</title>
-                <p>The Framework UI's left-side menu contains a link for listing authority connections.  An authority connection is a connection to a system that defines a particular security environment.
-                       For example, if you want to index some documents that are protected by Active Directory, you would need to configure an Active Directory authority connection.</p>
-                <p>You may not need an authority if you do not mind that portions of all the documents you want to index are visible to everyone.  For web, RSS, and Wiki crawling, this might be the
-                       situation.  Most other repositories have some security mechanism, however.</p>
-                <p>You should define your authority connections <b>before</b> setting up your repository connections.  While it is possible to change the relationship between a repository connection
-                       and its authority after-the-fact, in practice such changes may cause many documents to require reindexing.</p>
+                <p>The Framework UI's left-side menu contains a link for listing authority connections.  An authority connection is a connection to a system that defines a
+                      particular security environment.  For example, if you want to index some documents that are protected by Active Directory, you would need to configure
+                      an Active Directory authority connection.</p>
+                <p>Bear in mind that only specific authority connection types are compatible with a given repository connection type.  Read the details of your desired
+                      repository type in this document in order to understand how it is designed to be used.  You may not need an authority if you do not mind that portions
+                      of all the documents you want to index are visible to everyone.  For web, RSS, and Wiki crawling, this might be the situation.  Most other repositories
+                      have some native security mechanism, however.</p>
                 <p>You can create an authority connection by clicking the "List Authority Connections" link in the left-side navigation menu.  When you do this, the
                        following screen will appear:</p>
                 <br/><br/>
@@ -172,11 +277,18 @@
                 <br/><br/>
                 <figure src="images/en_US/add-new-authority-connection-type.PNG" alt="Add New Authority Connection, select Type" width="80%"/>
                 <br/><br/>
-                <p>The list of authority connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs for each different kind of authority connection
-                       type are described in separate sections below.</p>
-                <p>After you choose an authority connection type, click the "Continue" button at the bottom of the pane.  You will then see all the tabs appropriate for that kind of connection appear, and a
-                       "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create your connection.  If you click "Cancel" instead, the new connection
-                       will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
+                <p>The list of authority connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs for
+                      each different kind of authority connection type are described in this document in separate sections below.</p>
+                <p>On this tab, you must also select the authority group that the authority connection you are creating belongs to.  Select the appropriate authority group from the
+                      pulldown.</p>
+                <p>You also have the option of selecting a non-default authorization domain.  An authorization domain describes which of possibly several user identities the
+                      authority connection is associated with.  For example, a single user may have an Active Directory identity, a LiveLink identity, and a FaceBook identity.
+                      Your authority connection will be appropriate to only one of those identities.  The list of specific authorization domains available is determined by your system
+                      integrator.</p>
+                <p>After you choose an authority connection type, the authority group, and optionally the authorization domain, click the "Continue" button at the bottom of the pane.
+                      You will then see all the tabs appropriate for that kind of connection appear, and a "Save" button will also appear at the bottom of the pane.  You <b>must</b>
+                      click the "Save" button when you are done in order to create your connection.  If you click "Cancel" instead, the new connection
+                      will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
                 <p>Every authority connection has a "Prerequisites" tab.  This tab allows you to specify which mapping connection needs to be run before this one (if any).  The tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/authority-prerequisites.PNG" alt="Authority Connection Prerequisites" width="80%"/>
@@ -198,68 +310,7 @@
                        will work correctly.</p>
                        
             </section>
-            <section id="connectors">
-                <title>Defining Repository Connections</title>
-                <p>The Framework UI's left-hand menu contains a link for listing repository connections.  A repository connection is a connection to the repository system that contains the documents
-                       that you are interested in indexing.</p>
-                <p>All jobs require you to specify a repository connection, because that is where they get their documents from.  It is therefore necessary to create a repository connection before
-                       indexing any documents.</p>
-                <p>A repository connection also may have an associated authority connection.  This specified authority determines the security environment in which documents from the repository
-                       connection are placed.  While it is possible to change the specified authority for a repository connection after a crawl has been done, in practice this will require that all documents
-                       associated with that repository connection be reindexed.  Therefore, we recommend that you set up your desired authority connection before defining your repository connection.</p>
-                <p>You can create a repository connection by clicking the "List Repository Connections" link in the left-side navigation menu.  When you do this, the
-                       following screen will appear:</p>
-                <br/><br/>
-                <figure src="images/en_US/list-repository-connections.PNG" alt="List Repository Connections" width="80%"/>
-                <br/><br/>
-                <p>On a freshly created system, there may well be no existing repository connections listed.  If there are already repository connections, they will be listed on this screen, along with links
-                       that allow you to view, edit, or delete them.  To create a new repository connection, click the "Add a new connection" link at the bottom.  The following screen will then appear:</p>
-                <br/><br/>
-                <figure src="images/en_US/add-new-repository-connection-name.PNG" alt="Add New Repository Connection, specify Name" width="80%"/>
-                <br/><br/>
-                <p>The tabs across the top each present a different view of your repository connection.  Each tab allows you to edit a different characteristic of that connection.  The exact set of tabs you see
-                       depends on the connection type you choose for the connection.</p>
-                <p>Start by giving your connection a name and a description.  Remember that all repository connection names must be unique, and cannot be changed after the connection is defined.  The name must be
-                       no more than 32 characters long.  The description can be up to 255 characters long.  When you are done, click on the "Type" tab.  The Type tab for the connection will then appear:</p>
-                <br/><br/>
-                <figure src="images/en_US/add-new-repository-connection-type.PNG" alt="Add New Repository Connection, select Type" width="80%"/>
-                <br/><br/>
-                <p>The list of repository connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs for each different kind of repository connection
-                       type are described in separate sections below.</p>
-                <p>You may also at this point select the authority connection to secure all documents fetched from this repository with.  Bear in mind that only some authority connection types are compatible with any
-                       given repository connection types.  Read the details of your desired repository or authority connection type to understand its intentions, and how it is expected to be used.</p>
-                <p>After you choose the desired repository connection type and an authority connection, click the "Continue" button at the bottom of the pane.  You will then see all the tabs appropriate for that kind of connection appear, and a
-                       "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create or update your connection.  If you click "Cancel" instead, the new connection
-                       will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
-                <p>Every repository connection has a "Throttling" tab.  The tab looks like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/repository-throttling.PNG" alt="Repository Connection Throttling" width="80%"/>
-                <br/><br/>
-                <p>On this tab, you can specify two things.  The first is how many open connections are allowed at any given time to the system the authority connection talks with.  This restriction helps prevent
-                       that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for smaller average search latency.  The default
-                       value is 10, which may not be optimal for all types of repository connections.  Please refer to the section of the manual describing your authority connection type for more precise
-                       recommendations.  The second specifies how rapidly, on average, the crawler will fetch documents via this connection.
-                </p>
-                <p>Each connection type has its own notion of "throttling bin".  A throttling bin is the name of a resource whose access needs to be throttled.  For example, the Web connection type uses a
-                       document's server name as the throttling bin associated with the document, since (presumably) it will be access to each individual server that will need to be throttled independently.
-                </p>
-                <p>On the repository connection "Throttling" tab, you can specify an unrestricted number of throttling descriptions.  Each throttling description consists of a regular expression that describes
-                       a family of throttling bins, plus a helpful description, plus an average number of fetches per minute for each of the throttling bins that matches the regular expression.  If a given
-                       throttling bin matches more than one throttling description, the most conservative fetch rate is chosen.</p>
-                <p>The simplest regular expression you can use is the empty regular expression.  This will match all of the connection's throttle bins, and thus will allow you to specify a default
-                       throttling policy for the connection.  Set the desired average fetch rate, and click the "Add" button.  The throttling tab will then appear something like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/repository-throttling-with-throttle.PNG" alt="Repository Connection Throttling With Throttle" width="80%"/>
-                <br/><br/>
-                <p>If no throttle descriptions are added, no fetch-rate throttling will be performed.</p>
-                <p>Please refer to the section of the manual describing your chosen repository connection type for a description of the tabs appropriate for that connection type.</p>
 
-                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This summary screen contains a line where the connection's status
-                       is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.  If there was a problem, you will see a connection-type-specific diagnostic message instead.
-                       If this happens, you will need to correct the problem, by either fixing your infrastructure, or by editing the connection configuration appropriately, before the authority connection
-                       will work correctly.</p>
-                       
-            </section>
             <section id="jobs">
                 <title>Creating Jobs</title>
                 <p>A "job" in ManifoldCF is a description of a set of documents.  The Framework's job is to fetch this set of documents come from a specific repository connection, and
@@ -808,7 +859,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <figure src="images/en_US/ldap-status.PNG" alt="LDAP Status" width="80%"/>
                 <br/><br/>
                 <p>Note that in this example, the LDAP connection is not responding, which is leading to an error status message instead of "Connection working".</p>
-				<br/><br/>
+                <br/><br/>
 				<p>Example configuration for ActiveDirectory server to fetch user groups:</p>
 				<ul>
 				  <li>Server: [xxx.yyy.zzz.ttt]</li>
@@ -857,7 +908,9 @@ curl -XGET http://localhost:9200/index/_mapping
                 <figure src="images/en_US/livelink-authority-user-mapping.PNG" alt="LiveLink Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>The purpose of the "User Mapping" tab is to allow you to map the incoming user name and domain (usually from Active Directory) to its LiveLink equivalent.
-                       The mapping consists of a match expression, which is a regular expression where parentheses ("(" and ")") mark sections you are interested in, and a
+                      This tab predates the addition of the general user mapping functionality, and is provided only for backwards-compatibility reasons.  Please create a regular
+                      expression mapper instead.</p>
+                <p>The mapping consists of a match expression, which is a regular expression where parentheses ("(" and ")") mark sections you are interested in, and a
                        replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
                        substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first
                        match group mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
@@ -878,6 +931,65 @@ curl -XGET http://localhost:9200/index/_mapping
                     not accept connections, which is leading to an error status message instead of "Connection working".</p>
             </section>
             
+            <section id="jdbcauthority">
+                <title>Generic Database Authority Connection</title>
+                <p>The generic database connection type allows you to generate access tokens from a database table, served by one of the following databases:</p>
+                <br/>
+                <ul>
+                    <li>Postgresql (via a Postgresql JDBC driver)</li>
+                    <li>SQL Server (via the JTDS JDBC driver)</li>
+                    <li>Oracle (via the Oracle JDBC driver)</li>
+                    <li>Sybase (via the JTDS JDBC driver)</li>
+                    <li>MySQL (via the MySQL JDBC driver)</li>
+                </ul>
+                <br/>
+                <p>This connection type <b>cannot</b> be configured to work with other databases than the ones listed above without software changes.  Depending on your particular installation,
+                       some of the above options may not be available.</p>
+                <p>A generic database authority connection has four special tabs on the repository connection editing screen: the "Database Type" tab, the "Server" tab,
+                      the "Credentials" tab, and the "Queries" tab.  The "Database Type" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/jdbc-authority-configure-database-type.PNG" alt="Generic Database Authority Connection, Database Type tab" width="80%"/>
+                <br/><br/>
+                <p>Select the kind of database you want to connect to, from the pulldown.</p>
+                <p>Also, select the JDBC access method you want from the access method pulldown.  The access method is provided because the JDBC specification has been
+                    recently clarified, and not all JDBC drivers work the same way as far as resultset column name discovery is concerned.  The "by name" option currently works
+                    with all JDBC drivers in the list except for the MySQL driver.  The "by label" works for the current MySQL driver, and may work for some of the others as well.  If
+                    the queries you supply for your generic database jobs do not work correctly, and you see an error message about not being able to find required columns in the
+                    result, you can change your selection on this pulldown and it may correct the problem.</p>
+                <p>The "Server" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/jdbc-authority-configure-server.PNG" alt="Generic Database Authority Connection, Server tab" width="80%"/>
+                <br/><br/>
+                <p>Here you have a choice.  <strong>Either</strong> you can choose to specify the database host and port, and the database name or instance name,
+                      <strong>or</strong> you can provide a raw JDBC connection string that is appropriate for the database type you have chosen.  This latter option
+                      is provided because many JDBC drivers, such as Oracle's, now can connect to an entire cluster of Oracle servers if you specify the appropriate
+                      connection description string.</p>
+                <p>If you choose the second option, just consult your JDBC driver's documentation and supply your string.  If there is anything entered in the raw connection
+                      string field at all, it will take precedence over the database host and database name fields.</p>
+                <p>If you choose the first option, the server name and port must be provided in the "Database host and port" field.  For example, for Oracle, the standard
+                      Oracle installation uses port 1521, so you would enter something like, "my-oracle-server:1521" for this field.  Postgresql uses port 5432 by default, so
+                      "my-postgresql-server:5432" would be required.  SQL Server's standard port is 1433, so use "my-sql-server:1433".</p>
+                <p>The service name or instance name field describes which instance and database to connect to.  For Oracle or Postgresql, provide just the database name.
+                      For SQL Server, use "my-instance-name/my-database-name".  For SQL Server using the default instance, use just the database name.</p>
+                <p>The "Credentials" tab is straightforward:</p>
+                <br/><br/>
+                <figure src="images/en_US/jdbc-authority-configure-credentials.PNG" alt="Generic Database Authority Connection, Credentials tab" width="80%"/>
+                <br/><br/>
+                <p>Enter the database user credentials.</p>
+                <p>The "Queries" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/jdbc-authority-configure-queries.PNG" alt="Generic Database Authority Connection, Queries tab" width="80%"/>
+                <br/><br/>
+                <p>Here you supply two queries.  The first query looks up the user name to find a user id.  The second query looks up access tokens corresponding to the
+                      user id.  Details of what you supply for these queries will depend on your database schema.</p>
+                <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/jdbc-authority-status.PNG" alt="Generic Database Authority Status" width="80%"/>
+                <br/><br/>
+                <p>Note that in this example, the generic database authority connection is not properly authenticated, which is leading to an error status message instead
+                      of "Connection working".</p>
+            </section>
+
             <section id="documentumauthority">
                 <title>EMC Documentum Authority Connection</title>
                 <p>A Documentum authority connection is required for enforcing security for documents retrieved from Documentum repositories.</p>
@@ -894,6 +1006,8 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <p>Enter the desired Content Server docbase name, and enter the appropriate credentials.  You may leave the "Domain" field blank if the Content Server you specify does not have
                     Active Directory support enabled.</p>
+                <p>The purpose of the User Mapping tab is to map an incoming user name to the form that Documentum requires.  This tab predates the addition of
+                      user mapping functionality to ManifoldCF, and is thus considered to be deprecated.  Please create a user mapping instead.</p>
                 <p>The "User Mapping" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/documentum-authority-user-mapping.PNG" alt="Documentum Authority, User Mapping tab" width="80%"/>
@@ -915,36 +1029,6 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <p>Pay careful attention to the status, and be prepared to correct any
                     problems that are displayed.</p>
-            </section>
-            
-            <section id="memexauthority">
-                <title>Memex Patriarch Authority Connection</title>
-                <p>A Memex authority connection is required for enforcing security for documents retrieved from Memex repositories.</p>
-                <p>This connection type needs to be provided with information about what Memex Server to connect to, and what user mapping to perform.
-                    Also needed are the Memex credentials that should be used to retrieve a user's permissions from the Memex server.</p>
-                <p>A Memex authority connection has the following special tabs you will need to configure: the "Memex Server" tab, and the "User Mapping" tab.  The "Memex Server" tab looks like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/memex-authority-memex-server.PNG" alt="Memex Authority, Memex Server tab" width="80%"/>
-                <br/><br/>
-                <p>You must supply the name of your Memex server, and the connection port, along with the Memex credentials for a user that has sufficient permissions to retrieve Memex user
-                    information.  You must also select the Memex server's character encoding.  If you do not know the encoding, consult your Memex system administrator.</p>
-                <p>The "User Mapping" tab looks like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/memex-authority-user-mapping.PNG" alt="Memex Authority, User Mapping tab" width="80%"/>
-                <br/><br/>
-                <p>The purpose of the "User Mapping" tab is to allow you to map the incoming user name and domain (usually from Active Directory) to its Memex equivalent.
-                       The mapping consists of a match expression, which is a regular expression where parentheses ("("
-                       and ")") mark sections you are interested in, and a replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
-                       substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first match group
-                       mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
-                <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert an AD username of
-                    <code>MyUserName@subdomain.domain.com</code> into the Memex user name <code>subdomain\myusername</code>.</p>
-                <p>When you are done, click the "Save" button.  You will then see a summary and status for the authority connection:</p>
-                <br/><br/>
-                <figure src="images/en_US/memex-authority-status.PNG" alt="Memex Authority Status" width="80%"/>
-                <br/><br/>
-                <p>We suggest that you examine the status carefully and correct any reported errors before proceeding.  Note that in this example, the Memex server has a license error, which
-                    is leading to an error status message instead of "Connection working".</p>
             </section>
             
             <section id="meridioauthority">
@@ -1014,7 +1098,8 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
               <p>The repository configuration will be only used to track an ID for a specific CMIS repository. No calls will be performed against the CMIS repository.</p>
               <br/><br/>
-              <p>The second tab that you need to configure is the "User Mapping" tab that allows you to define a regular expression to specify the user mapping.</p>
+              <p>The second tab that you need to configure is the "User Mapping" tab that allows you to define a regular expression to specify the user mapping.  This tab
+                    predates the addition of user mapping functionality to ManifoldCF.  Please create a user mapping instead.</p>
               <p>The "User Mapping" tab looks like the following:</p>
               <br/><br/>
               <figure src="images/en_US/cmis-authority-connection-configuration-usermapping.png" alt="CMIS Authority, User Mapping configuration" width="80%"/>
@@ -1072,12 +1157,12 @@ curl -XGET http://localhost:9200/index/_mapping
             <title>Repository Connection Types</title>
 
             <section id="filesystemrepository">
-                <title>Generic WGET-Sensitive File System Repository Connection</title>
+                <title>Generic WGET-Compatible File System Repository Connection</title>
                 <p>The generic file system repository connection type was developed in part as an example, demonstration, and testing tool, which reads simple
                        files in directory paths, and partly as ManifoldCF support for the Unix utility called <em>wget</em>.  In the latter mode, the File System Repository Connector
                        will parse file names that were created by <em>wget</em>, or by the wget-compatible File System Output Connector, and turn these back
                        into full URL's to external web content.</p>
-                <p>This connection type has no support for any kind of document security.</p>
+                <p>This connection type has no support for any kind of document security, except for hand-entered access tokens provided on a per-job basis.</p>
                 <p>The File System repository connection type provides no configuration tabs beyond the standard ones.  However, please consider setting a "Maximum connections per
                        JVM" value on the "Throttling" tab to at least one per worker thread, or 30, for best performance.</p>
                 <p>Jobs created using a file-system-type repository connection
@@ -1110,12 +1195,12 @@ curl -XGET http://localhost:9200/index/_mapping
             </section>
             
             <section id="hdfsrepository">
-                <title>HDFS Repository Connection (WGET sensitive)</title>
+                <title>HDFS Repository Connection (WGET compatible)</title>
                 <p>The HDFS repository connection operates much like the File System Repository Connection, except it reads data from the Hadoop File System rather than a
                        local disk.  It, too, is capable of understanding directories written in the manner of the Unix utility called <em>wget</em>.  In the latter mode, the HDFS Repository Connector
                        will parse file names that were created by <em>wget</em>, or by the wget-compatible HDFS Output Connector, and turn these back
                        into full URL's pointing to external web content.</p>
-                <p>This connection type has no support for any kind of document security.</p>
+                <p>This connection type has no support for any kind of document security, except for hand-entered access tokens provided on a per-job basis.</p>
                 <p>The HDFS repository connection type has an additional configuration tab above and beyond the standard ones, called "Server".  This is what it looks like:</p>
                 <br/><br/>
                 <figure src="images/en_US/hdfs-repository-configure-server.PNG" alt="HDFS Connection, Server tab" width="80%"/>
@@ -1161,6 +1246,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/>
                 <p>Many users of the RSS connection type set up their jobs to run continuously, configuring their jobs to never refetch documents, but rather to expire them after some 30 days.
                        This model works reasonably well for news, which is what RSS is often used for.</p>
+                <p>This connection type has no support for any kind of document security, except for hand-entered access tokens provided on a per-job basis.</p>
                 <p>An RSS connection has the following special tabs: "Email", "Robots", "Bandwidth", and "Proxy".  The "Email" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/rss-configure-email.PNG" alt="RSS Connection, Email tab" width="80%"/>
@@ -1318,6 +1404,7 @@ curl -XGET http://localhost:9200/index/_mapping
                        reason, we strongly encourage you to consider using the RSS connection type for all applications where it might reasonably apply.</p>
                 <p>Many users of the Web connection type set up their jobs to run continuously, configuring their jobs to occasionally refetch documents, or to not refetch documents
                        ever, and expire them after some period of time.</p>
+                <p>This connection type has no support for any kind of document security, except for hand-entered access tokens provided on a per-job basis.</p>
                 <p>A Web connection has the following special tabs: "Email", "Robots", "Bandwidth", "Access Credentials", and "Certificates".  The "Email" tab
                        looks like this:</p>
                 <br/><br/>
@@ -1452,16 +1539,21 @@ curl -XGET http://localhost:9200/index/_mapping
                     <li>A redirection to a specific URL, as described by a regular expression</li>
                     <li>A page that has a form of a particular name on it, as described by a regular expression</li>
                     <li>A page that has a link on it to a specific target, as described by a regular expression</li>
+                    <li>A page that has specific content on it, as described by a regular expression</li>
                 </ul>
                 <br/>
-                <p>Note that in all three case above that there is an implicit flow through the login sequence that you describe by specifying the pages in the login sequence. For
+                <p>Note that in three of the cases above that there is an implicit flow through the login sequence that you describe by specifying the pages in the login sequence. For
                       example, if upon session timeout you expect to see a redirection to a link, or family of links (remember, it's a regexp, so you can describe that easily), then as part
                       of identifying the redirection as belonging to the login sequence, the web connector also now has a new link to fetch - the redirection link - which is what it does next. The same applies
                       to forms.  If the form name that was specified is found, then the web connector submits that form using values for the form elements that you specify, and using
                       the submission type described in the actual form tag (GET, POST, or multi-part). Any other elements of the form are left in whatever state that the HTML specified;
                       no Javascript is ever evaluated. Thus, if you think a form element's value is being set by Javascript, you have to figure out what it is being set to and enter this
                       value by hand as part of the specification for the "form" type of login page. Typically this amounts to a user name and password.</p>
-                      
+                <p>In the fourth login sequence case, where specific page content is matched to determine that a page belongs in the login sequence, there is no
+                      implicit flow to a subsequent page.  In this case you must supply an <em>override URL</em>,
+                      which describes which page to go to to continue the login sequence.  In fact, you are allowed to provide an override URL for all four cases above,
+                      but this is only recommended when the web connector would not automatically find the right subsequent page URL on its own.</p>
+      
                 <p>To add a session authentication rule, fill in a regular expression describing the site pages that are being protected, and click the "Add" button:</p>
                 <br/><br/>
                 <figure src="images/en_US/web-configure-access-credentials-session.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
@@ -1581,7 +1673,7 @@ curl -XGET http://localhost:9200/index/_mapping
                        Share connection type to convert file names to IRI's.  Instead, the connection always uses a standard canonical form, and expects the search results display system component to know how to properly form
                        the right IRI for the browser or client being used.</p>
                 <p>If you are interested in enforcing security for documents crawled with a Windows Share repository connection, you will need to first configure an authority connection
-                       of the Active Directory type to control access to these documents.</p>
+                       of the Active Directory type to control access to these documents.  The Share/DFS connector type can also be used with the LDAP authority connection type.</p>
                 <p>A Windows Share connection has a single special tab on the repository connection editing screen: the "Server" tab:</p>
                 <br/><br/>
                 <figure src="images/en_US/jcifs-configure-server.PNG" alt="Windows Share Connection, Server tab" width="80%"/>
@@ -1678,7 +1770,8 @@ curl -XGET http://localhost:9200/index/_mapping
             <section id="wikirepository">
                 <title>Wiki Repository Connection</title>
                 <p>The Wiki repository connection type allows you to index content from the main space of a Wiki or MediaWiki site.  The connection type uses the Wiki API
-                  in order to fetch content.  Only publicly visible documents will be indexed, and there is thus no need of an authority for Wiki content.</p>
+                  in order to fetch content.  Only publicly visible documents will be indexed, and there is thus typically no need of an authority for Wiki content.</p>
+                <p>This connection type has no support for any kind of document security, except for hand-entered access tokens provided on a per-job basis.</p>
                 <p>A Wiki connection has only one special tab on the repository connection editing screen: the "Server" tab.  The "Server" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/wiki-configure-server.PNG" alt="Wiki Connection, Server tab" width="80%"/>
@@ -1720,11 +1813,17 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <figure src="images/en_US/jdbc-configure-server.PNG" alt="Generic Database Connection, Server tab" width="80%"/>
                 <br/><br/>
-                <p>The server name and port must be provided in the "Database host and port" field.  For example, for Oracle, the standard Oracle installation uses port 1521, so you would
-                       enter something like, "my-oracle-server:1521" for this field.  Postgresql uses port 5432 by default, so "my-postgresql-server:5432" would be required.  SQL Server's
-                       standard port is 1433, so use "my-sql-server:1433".</p>
-                <p>The service name or instance name field describes which instance and database to connect to.  For Oracle or Postgresql, provide just the database name.  For SQL Server, use
-                       "my-instance-name/my-database-name".  For SQL Server using the default instance, use just the database name.</p>
+                <p>Here you have a choice.  <strong>Either</strong> you can choose to specify the database host and port, and the database name or instance name,
+                      <strong>or</strong> you can provide a raw JDBC connection string that is appropriate for the database type you have chosen.  This latter option
+                      is provided because many JDBC drivers, such as Oracle's, now can connect to an entire cluster of Oracle servers if you specify the appropriate
+                      connection description string.</p>
+                <p>If you choose the second option, just consult your JDBC driver's documentation and supply your string.  If there is anything entered in the raw connection
+                      string field at all, it will take precedence over the database host and database name fields.</p>
+                <p>If you choose the first option, the server name and port must be provided in the "Database host and port" field.  For example, for Oracle, the standard
+                      Oracle installation uses port 1521, so you would enter something like, "my-oracle-server:1521" for this field.  Postgresql uses port 5432 by default, so
+                      "my-postgresql-server:5432" would be required.  SQL Server's standard port is 1433, so use "my-sql-server:1433".</p>
+                <p>The service name or instance name field describes which instance and database to connect to.  For Oracle or Postgresql, provide just the database name.
+                      For SQL Server, use "my-instance-name/my-database-name".  For SQL Server using the default instance, use just the database name.</p>
                 <p>The "Credentials" tab is straightforward:</p>
                 <br/><br/>
                 <figure src="images/en_US/jdbc-configure-credentials.PNG" alt="Generic Database Connection, Credentials tab" width="80%"/>
@@ -1826,6 +1925,39 @@ curl -XGET http://localhost:9200/index/_mapping
 
             <section id="filenetrepository">
                 <title>IBM FileNet P8 Repository Connection</title>
+                <p>The IBM FileNet P8 connection type allows you to index content from a FileNet P8 server instance.  A connection allows you to reach all files
+                      kept on that server.  Multiple connections are required to support multiple servers.</p>
+                <p>This connection type secures documents using the Active Directory authority.  If you have not yet created an Active Directory authority, but would like your
+                    documents to be secured, please follow the direction in the section titled "Active Directory Authority Connection".</p>
+                <p>A FileNet connection has the following special tabs: "Server", "Object Store", "Document URL", and "Credentials".  The "Server" tab allows you to
+                      connect to a specific FileNet P8 Server, while the "Object store" tab allows you to specify the desired FileNet object store.  The "Document URL"
+                      tab allows you to set up the parameters of each indexed document's URL, while the "Credentials" tab allows you to specify the credentials to use
+                      to access the FileNet object store.</p>
+                <p>The "Server" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filenet-configure-server.PNG" alt="FileNet Connection, Server tab" width="80%"/>
+                <br/><br/>
+                <p>Select the appropriate protocol, and provide the server name, port, and service location.</p>
+                <p>The "Object Store" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filenet-configure-objectstore.PNG" alt="FileNet Connection, Object Store tab" width="80%"/>
+                <br/><br/>
+                <p>Type in the name of the FileNet domain you want to connect to, and the name of the FileNet object store within that domain.</p>
+                <p>The "Document URL" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filenet-configure-documenturl.PNG" alt="FileNet Connection, Document URL tab" width="80%"/>
+                <br/><br/>
+                <p>This tab allows you to provide the basic URL that will be how each indexed document will be loaded for the user.  Select the
+                      protocol.  Type in the host name.  Type in the port.  And, type in the location.</p>
+                <p>The "Credentials" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filenet-configure-credentials.PNG" alt="FileNet Connection, Credentials tab" width="80%"/>
+                <br/><br/>
+                <p>Type in the FileNet user ID and password to allow the FileNet connection type access to the FileNet repository.</p>
+                <p>When you are done filling in the connection information, click the "Save" button.  You should see something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filenet-status.PNG" alt="FileNet Connection Status" width="80%"/>
+                <br/><br/>
                 <p>More here later</p>
             </section>
             
@@ -1882,6 +2014,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <p>The Dropbox Repository Connection type allows you to index content from <a href="https://www.dropbox.com/home">Dropbox</a>.</p>
               <p>Each Dropbox Connection manages access to a single dropbox repository. This means that if you have multiple dropbox repositories (i.e. different users),
                 you need to create a specific connection for each dropbox repository and provide the associated authentication information.</p>
+              <p>This connection type has no support for any kind of document security, except for hand-entered access tokens provided on a per-job basis.</p>
               <br/>
               <p>A Dropbox connection has the following configuration parameters on the repository connection editing screen:</p>
               <br/><br/>
@@ -1930,6 +2063,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <p>The Google Drive Repository Connection type allows you to index content from <a href="https://drive.google.com">Google Drives</a>.</p>
               <p>Each Google Drive Connection manages access to a single drive repository. This means that if you have multiple Google Drives (i.e. different users),
                 you need to create a specific connection for each drive repository and provide the associated authentication information.</p>
+              <p>This connection type has no support for any kind of document security, except for hand-entered access tokens provided on a per-job basis.</p>
               <br/>
               <p>A Google Drive connection has the following configuration parameters on the repository connection editing screen:</p>
               <br/><br/>
@@ -1986,6 +2120,8 @@ curl -XGET http://localhost:9200/index/_mapping
             <section id="jirarepository">
               <title>Jira Repository Connection</title>
               <p>The Jira Repository Connection type allows you to index tickets from <a href="http://www.atlassian.com/‎">Atlassian</a>'s <a href="http://www.atlassian.com/software/jira">Jira</a>.</p>
+              <p>This repository connection type is meant to secure documents in conjunction with the Jira Authority Connection type.  Please read the associated
+                    documentation to configure document security.</p>
               <p>A Jira connection has the following configuration parameters on the repository connection editing screen:</p>
               <br/><br/>
               <figure src="images/en_US/jira-repository-connection-configuration.PNG" alt="jira Repository Connection, configuration parameters" width="80%"/>
@@ -2097,34 +2233,6 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>For example, suppose you had a rule which had ".*/(.*)/(.*)/.*" as a match expression, and "$(1) $(2)" as the replace string.  If presented with the path
                     <code>Project/Folder_1/Folder_2/Filename</code>, it would output the string <code>Folder_1 Folder_2</code>.</p>
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
-            </section>
-            
-            <section id="mexexrepository">
-                <title>Memex Patriarch Repository Connection</title>
-                <p>A Memex Patriarch connection allows you to index documents from a Memex server.</p>
-                <p>Documents described by Memex connections are typically secured by a Memex authority.  If you have not yet created a Memex authority, but would like your
-                    documents to be secured, please follow the direction in the section titled "Memex Patriarch Authority Connection".</p>
-                <p>A Memex connection has the following special tabs on the repository connection editing screen: the "Memex Server" tab, and the "Web Server" tab.  The "Memex Server" tab
-                    looks like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/memex-connection-memex-server.PNG" alt="Memex Connection, Memex Server tab" width="80%"/>
-                <br/><br/>
-                <p>You must supply the name of your Memex server, and the connection port, along with the Memex credentials for a user that has sufficient permissions to retrieve Memex
-                    documents.  You must also select the Memex server's character encoding, and timezone.  If you do not know the encoding or timezone, consult your Memex system administrator.</p>
-                <p>The "Web Server" tab looks like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/memex-connection-web-server.PNG" alt="Memex Connection, Web Server tab" width="80%"/>
-                <br/><br/>
-                <p>Here you must provide information that allows a Memex connection to construct a unique URL for each of your Memex documents.  Select a protocol, and fill in the server name and 
-                    port.</p>
-                <p>When you are done, click the "Save" button.  You should see a status page, something like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/memex-connection-status.PNG" alt="Memex Connection Status" width="80%"/>
-                <br/><br/>
-                <p></p>
-                <p>Jobs based on Memex connections have the following special tabs: "Record Criteria", "Entities", and "Security".</p>
-
-                <p>More here later</p>
             </section>
             
             <section id="meridiorepository">
@@ -2335,7 +2443,11 @@ curl -XGET http://localhost:9200/index/_mapping
             <section id="cmisrepository">
               <title>CMIS Repository Connection</title>
               <p>The CMIS Repository Connection type allows you to index content from any CMIS-compliant repository.</p>
-              <p>By default each CMIS Connection manages a single CMIS repository, this means that if you have multiple CMIS repositories exposed by a single endpoint, you need to create a specific connection for each CMIS repository.</p>
+              <p>By default each CMIS Connection manages a single CMIS repository, this means that if you have multiple CMIS repositories exposed by a single
+                  endpoint, you need to create a specific connection for each CMIS repository.</p>
+              <p>CMIS repository documents are typically secured by using the CMIS Authority Connection type.  This authority type, however, does not have access
+                    to user groups, since there is no such functionality in the CMIS specification at this time.  As a result, most people only use the CMIS connection type
+                    in an unsecured manner.</p>
               <br/>
               <p>A CMIS connection has the following configuration parameters on the repository connection editing screen:</p>
               <br/><br/>
@@ -2375,6 +2487,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <title>Alfresco Repository Connection</title>
               <p>The Alfresco Repository Connection type allows you to index content from an Alfresco repository.</p>
               <p>This connector is compatible with any Alfresco version (2.x, 3.x and 4.x).</p>
+              <p>This connection type has no support for any kind of document security, except for hand-entered access tokens provided on a per-job basis.</p>
               <br/>
               <p>An Alfresco connection has the following configuration parameters on the repository connection editing screen:</p>
               <br/><br/>
