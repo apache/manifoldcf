@@ -109,17 +109,7 @@ public class ZooKeeperConnection
   public byte[] getNodeData(String nodePath)
     throws ManifoldCFException, InterruptedException
   {
-    try
-    {
-      Stat s = zookeeper.exists(nodePath,false);
-      if (s == null)
-        return null;
-      return zookeeper.getData(nodePath,false,s);
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+    return readData(nodePath);
   }
   
   /** Set node data.
@@ -127,14 +117,7 @@ public class ZooKeeperConnection
   public void setNodeData(String nodePath, byte[] data)
     throws ManifoldCFException, InterruptedException
   {
-    try
-    {
-      zookeeper.setData(nodePath, data, -1);
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+    writeData(nodePath, data);
   }
   
   /** Delete a node.
@@ -408,10 +391,11 @@ public class ZooKeeperConnection
   {
     try
     {
-      Stat s = zookeeper.exists(resourcePath,false);
-      if (s == null)
-        return null;
-      return zookeeper.getData(resourcePath,null,s);
+      return zookeeper.getData(resourcePath,false,null);
+    }
+    catch (KeeperException.NoNodeException e)
+    {
+      return null;
     }
     catch (KeeperException e)
     {
@@ -436,13 +420,25 @@ public class ZooKeeperConnection
       }
       else
       {
-        try
+        while (true)
         {
-          zookeeper.create(resourcePath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-        }
-        catch (KeeperException.NodeExistsException e)
-        {
-          zookeeper.setData(resourcePath, data, -1);
+          try
+          {
+            zookeeper.setData(resourcePath, data, -1);
+            break;
+          }
+          catch (KeeperException.NoNodeException e)
+          {
+            try
+            {
+              zookeeper.create(resourcePath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+              break;
+            }
+            catch (KeeperException.NodeExistsException e2)
+            {
+              continue;
+            }
+          }
         }
       }
     }
