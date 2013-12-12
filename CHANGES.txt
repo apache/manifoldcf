@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-837: Specifying 1 connection causes hang.
+(Karl Wright)
+
 CONNECTORS-836: Use the same thread context in the registered
 shutdown objects.
 (Karl Wright)
