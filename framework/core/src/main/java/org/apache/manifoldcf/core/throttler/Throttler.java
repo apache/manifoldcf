@@ -23,6 +23,17 @@ import java.util.*;
 
 /** A Throttler object creates a virtual pool of connections to resources
 * whose access needs to be throttled in number, rate of use, and byte rate.
+* This code is modeled on the code for distributed connection pools, and is intended
+* to work in a similar manner.  Basically, a periodic assessment is done about what the
+* local throttling parameters should be (on a per-pool basis), and the local throttling
+* activities then adjust what they are doing based on the new parameters.  A service
+* model is used to keep track of which pools have what clients working with them.
+* This implementation has the advantage that:
+* (1) Only local throttling ever takes place on a method-by-method basis, which makes
+*   it possible to use throttling even in streams and background threads;
+* (2) Throttling resources are apportioned fairly, on average, between all the various
+*   cluster members, so it is unlikely that any persistent starvation conditions can
+*   arise.
 */
 public class Throttler
 {
@@ -58,12 +69,14 @@ public class Throttler
   *@param throttleSpec is the throttle specification to use for the throttle group,
   *@param binNames is the set of bin names to throttle for, within the throttle group.
   *@param currentTime is the current time, in ms. since epoch.
+  *@return the fetch throttler to use for fetches with the obtained connection.
   */
-  public void obtainConnectionPermission(IThreadContext threadContext, String throttleGroup,
+  public IFetchThrottler obtainConnectionPermission(IThreadContext threadContext, String throttleGroup,
     IThrottleSpec throttleSpec, String[] binNames, long currentTime)
     throws ManifoldCFException
   {
     // MHL
+    return null;
   }
   
   /** Release permission to use a connection. This presumes that obtainConnectionPermission()
@@ -80,71 +93,6 @@ public class Throttler
     // MHL
   }
   
-  /** Get permission to fetch a document.  This grants permission to start
-  * fetching a single document.  When done (or aborting), call
-  * releaseFetchDocumentPermission() to note the completion of the document
-  * fetch activity.
-  *@param threadContext is the thread context.
-  *@param throttleGroup is the throttle group name.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
-  *@param binNames is the set of bin names describing this documemnt.
-  *@param currentTime is the current time, in ms. since epoch.
-  */
-  public void obtainFetchDocumentPermission(IThreadContext threadContext, String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime)
-    throws ManifoldCFException
-  {
-    // MHL
-  }
-  
-  /** Release permission to fetch a document.  Call this only when you
-  * called obtainFetchDocumentPermission() successfully earlier in the same
-  * thread.
-  *@param threadContext is the thread context.
-  *@param throttleGroup is the throttle group name.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
-  *@param binNames is the set of bin names describing this documemnt.
-  *@param currentTime is the current time, in ms. since epoch.
-  */
-  public void releaseFetchDocumentPermission(IThreadContext threadContext, String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime)
-    throws ManifoldCFException
-  {
-    // MHL
-  }
-  
-  /** Obtain permission to read a block of bytes.
-  *@param threadContext is the thread context.
-  *@param throttleGroup is the throttle group name.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
-  *@param binNames is the set of bin names describing this documemnt.
-  *@param currentTime is the current time, in ms. since epoch.
-  *@param byteCount is the number of bytes to get permissions to read.
-  */
-  public void obtainReadPermission(IThreadContext threadContext, String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime, int byteCount)
-    throws ManifoldCFException
-  {
-    // MHL
-  }
-    
-  /** Note the completion of the read of a block of bytes.  Call this after
-  * obtainReadPermission() was successfully called in the same thread.
-  *@param threadContext is the thread context.
-  *@param throttleGroup is the throttle group name.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
-  *@param binNames is the set of bin names describing this documemnt.
-  *@param currentTime is the current time, in ms. since epoch.
-  *@param origByteCount is the originally requested number of bytes to get permissions to read.
-  *@param actualByteCount is the number of bytes actually read.
-  */
-  public void releaseReadPermission(IThreadContext threadContext, String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime, int origByteCount, int actualByteCount)
-    throws ManifoldCFException
-  {
-    // MHL
-  }
-
   /** Poll periodically.
   */
   public void poll(IThreadContext threadContext)

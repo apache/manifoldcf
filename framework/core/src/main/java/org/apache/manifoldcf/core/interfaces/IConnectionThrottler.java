@@ -33,70 +33,19 @@ public interface IConnectionThrottler
   *@param throttleSpec is the throttle specification to use for the throttle group,
   *@param binNames is the set of bin names to throttle for, within the throttle group.
   *@param currentTime is the current time, in ms. since epoch.
+  *@return the fetch throttler to use when performing fetches from this connection.
   */
-  public void obtainConnectionPermission(String throttleGroup,
+  public IFetchThrottler obtainConnectionPermission(String throttleGroup,
     IThrottleSpec throttleSpec, String[] binNames, long currentTime)
     throws ManifoldCFException;
   
   /** Release permission to use a connection. This presumes that obtainConnectionPermission()
   * was called earlier in the same thread and was successful.
-  *@param throttleGroup is the throttle group name.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
   *@param currentTime is the current time, in ms. since epoch.
   */
-  public void releaseConnectionPermission(String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime)
+  public void releaseConnectionPermission(long currentTime)
     throws ManifoldCFException;
   
-  /** Get permission to fetch a document.  This grants permission to start
-  * fetching a single document.  When done (or aborting), call
-  * releaseFetchDocumentPermission() to note the completion of the document
-  * fetch activity.
-  *@param throttleGroup is the throttle group name.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
-  *@param binNames is the set of bin names describing this documemnt.
-  *@param currentTime is the current time, in ms. since epoch.
-  */
-  public void obtainFetchDocumentPermission(String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime)
-    throws ManifoldCFException;
-  
-  /** Release permission to fetch a document.  Call this only when you
-  * called obtainFetchDocumentPermission() successfully earlier in the same
-  * thread.
-  *@param throttleGroup is the throttle group name.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
-  *@param binNames is the set of bin names describing this documemnt.
-  *@param currentTime is the current time, in ms. since epoch.
-  */
-  public void releaseFetchDocumentPermission(String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime)
-    throws ManifoldCFException;
-  
-  /** Obtain permission to read a block of bytes.
-  *@param throttleGroup is the throttle group name.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
-  *@param binNames is the set of bin names describing this documemnt.
-  *@param currentTime is the current time, in ms. since epoch.
-  *@param byteCount is the number of bytes to get permissions to read.
-  */
-  public void obtainReadPermission(String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime, int byteCount)
-    throws ManifoldCFException;
-    
-  /** Note the completion of the read of a block of bytes.  Call this after
-  * obtainReadPermission() was successfully called in the same thread.
-  *@param throttleGroup is the throttle group name.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
-  *@param binNames is the set of bin names describing this documemnt.
-  *@param currentTime is the current time, in ms. since epoch.
-  *@param origByteCount is the originally requested number of bytes to get permissions to read.
-  *@param actualByteCount is the number of bytes actually read.
-  */
-  public void releaseReadPermission(String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime, int origByteCount, int actualByteCount)
-    throws ManifoldCFException;
-
   /** Poll periodically.
   */
   public void poll()
