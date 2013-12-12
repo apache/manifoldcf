@@ -48,6 +48,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   *@param binNames is the set of bin names to throttle for, within the throttle group.
   *@param currentTime is the current time, in ms. since epoch.
   */
+  @Override
   public void obtainConnectionPermission(String throttleGroup,
     IThrottleSpec throttleSpec, String[] binNames, long currentTime)
     throws ManifoldCFException
@@ -62,6 +63,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   *@param throttleSpec is the throttle specification to use for the throttle group,
   *@param currentTime is the current time, in ms. since epoch.
   */
+  @Override
   public void releaseConnectionPermission(String throttleGroup,
     IThrottleSpec throttleSpec, String[] binNames, long currentTime)
     throws ManifoldCFException
@@ -79,6 +81,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   *@param binNames is the set of bin names describing this documemnt.
   *@param currentTime is the current time, in ms. since epoch.
   */
+  @Override
   public void obtainFetchDocumentPermission(String throttleGroup,
     IThrottleSpec throttleSpec, String[] binNames, long currentTime)
     throws ManifoldCFException
@@ -95,6 +98,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   *@param binNames is the set of bin names describing this documemnt.
   *@param currentTime is the current time, in ms. since epoch.
   */
+  @Override
   public void releaseFetchDocumentPermission(String throttleGroup,
     IThrottleSpec throttleSpec, String[] binNames, long currentTime)
     throws ManifoldCFException
@@ -110,6 +114,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   *@param currentTime is the current time, in ms. since epoch.
   *@param byteCount is the number of bytes to get permissions to read.
   */
+  @Override
   public void obtainReadPermission(String throttleGroup,
     IThrottleSpec throttleSpec, String[] binNames, long currentTime, int byteCount)
     throws ManifoldCFException
@@ -127,6 +132,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   *@param origByteCount is the originally requested number of bytes to get permissions to read.
   *@param actualByteCount is the number of bytes actually read.
   */
+  @Override
   public void releaseReadPermission(String throttleGroup,
     IThrottleSpec throttleSpec, String[] binNames, long currentTime, int origByteCount, int actualByteCount)
     throws ManifoldCFException
@@ -137,6 +143,7 @@ public class ConnectionThrottler implements IConnectionThrottler
 
   /** Poll periodically.
   */
+  @Override
   public void poll()
     throws ManifoldCFException
   {
@@ -145,6 +152,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   
   /** Free unused resources.
   */
+  @Override
   public void freeUnusedResources()
     throws ManifoldCFException
   {
@@ -153,6 +161,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   
   /** Shut down throttler permanently.
   */
+  @Override
   public void destroy()
     throws ManifoldCFException
   {

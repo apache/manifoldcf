@@ -41,6 +41,15 @@ public class Throttler
   {
   }
   
+  /** Check if throttle group name is still valid.
+  * This can be overridden, but right now nobody does it.
+  */
+  protected boolean isThrottleGroupValid(IThreadContext threadContext, String throttleGroupName)
+    throws ManifoldCFException
+  {
+    return true;
+  }
+  
   /** Get permission to use a connection, which is described by the passed array of bin names.
   * The connection can be used multiple
   * times until the releaseConnectionPermission() method is called.
@@ -141,7 +150,23 @@ public class Throttler
   public void poll(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    // MHL
+    // Go through the whole pool and notify everyone
+    synchronized (poolHash)
+    {
+      Iterator<String> iter = poolHash.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String throttleGroup = iter.next();
+        Pool p = poolHash.get(throttleGroup);
+        if (isThrottleGroupValid(threadContext,throttleGroup))
+          p.poll(threadContext);
+        else
+        {
+          p.destroy(threadContext);
+          iter.remove();
+        }
+      }
+    }
   }
   
   /** Free unused resources.
@@ -161,7 +186,7 @@ public class Throttler
     }
   }
   
-  /** Shut down throttler permanently.
+  /** Shut down all throttlers and deregister them.
   */
   public void destroy(IThreadContext threadContext)
     throws ManifoldCFException

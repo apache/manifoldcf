@@ -253,6 +253,8 @@ public class ManifoldCF
           masterDatabaseUsername = LockManagerFactory.getStringProperty(threadContext,masterDatabaseUsernameProperty,"manifoldcf");
           masterDatabasePassword = LockManagerFactory.getStringProperty(threadContext,masterDatabasePasswordProperty,"local_pg_passwd");
 
+          // Register the throttler for cleanup on shutdown
+          addShutdownHook(new ThrottlerShutdown());
           // Register the file tracker for cleanup on shutdown
           tracker = new FileTrack();
           addShutdownHook(tracker);
@@ -1383,6 +1385,38 @@ public class ManifoldCF
 
   }
 
+  /** Class that cleans up throttler on exit */
+  protected static class ThrottlerShutdown implements IShutdownHook
+  {
+    public ThrottlerShutdown()
+    {
+    }
+    
+    @Override
+    public void doCleanup(IThreadContext threadContext)
+      throws ManifoldCFException
+    {
+      IConnectionThrottler connectionThrottler = ConnectionThrottlerFactory.make(threadContext);
+      connectionThrottler.destroy();
+    }
+    
+    /** Finalizer, which is designed to catch class unloading that tomcat 5.5 does.
+    */
+    protected void finalize()
+      throws Throwable
+    {
+      try
+      {
+        doCleanup(ThreadContextFactory.make());
+      }
+      finally
+      {
+        super.finalize();
+      }
+    }
+
+  }
+  
   /** Class that cleans up database handles on exit */
   protected static class DatabaseShutdown implements IShutdownHook
   {
