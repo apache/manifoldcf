@@ -62,8 +62,14 @@ public class ConnectionThrottler implements IConnectionThrottler
     IThrottleSpec throttleSpec, String[] binNames, long currentTime)
     throws ManifoldCFException
   {
-    // MHL
-    return null;
+    if (throttleGroup != null || throttleSpec != null || binNames != null)
+      throw new IllegalStateException("Already an active connection in this thread; must finish that one first");
+    this.throttleGroup = throttleGroup;
+    this.binNames = binNames;
+    this.throttleSpec = throttleSpec;
+    
+    return throttler.obtainConnectionPermission(threadContext, throttleGroup,
+      throttleSpec, binNames, currentTime);
   }
   
   /** Release permission to use a connection. This presumes that obtainConnectionPermission()
@@ -74,7 +80,13 @@ public class ConnectionThrottler implements IConnectionThrottler
   public void releaseConnectionPermission(long currentTime)
     throws ManifoldCFException
   {
-    // MHL
+    if (throttleGroup == null || throttleSpec == null || binNames == null)
+      throw new IllegalStateException("No active connection in this thread!");
+    throttler.releaseConnectionPermission(threadContext, throttleGroup,
+      throttleSpec, binNames, currentTime);
+    this.throttleGroup = null;
+    this.binNames = null;
+    this.throttleSpec = null;
   }
 
   /** Poll periodically.
