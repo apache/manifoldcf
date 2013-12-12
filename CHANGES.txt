@@ -3,6 +3,13 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-836: Use the same thread context in the registered
+shutdown objects.
+(Karl Wright)
+
+CONNECTORS-835: Fix busted ZooKeeper implementation.
+(Karl Wright)
+
 CONNECTORS-833: Fix Null Pointer exception in LiveLink connector.
 (David Morana, Karl Wright)
 
