@@ -58,6 +58,7 @@
             <include name="xercesImpl*.jar"/>
             <include name="xml-apis*.jar"/>
             <include name="velocity*.jar"/>
+            <include name="mail*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="postgresql*.jar"/>
@@ -326,6 +327,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -365,6 +367,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -409,6 +412,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -449,6 +453,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -496,6 +501,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -544,6 +550,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -599,6 +606,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -649,6 +657,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -768,6 +777,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -809,6 +819,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -1159,6 +1170,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -1247,7 +1259,8 @@
         <property name="manifest-cp-59" value="${manifest-cp-58} lib/slf4j-simple.jar"/>
         <property name="manifest-cp-60" value="${manifest-cp-59} lib/httpcore.jar"/>
         <property name="manifest-cp-61" value="${manifest-cp-60} lib/httpclient.jar"/>
-        <property name="manifest-cp" value="${manifest-cp-61}"/>
+        <property name="manifest-cp-62" value="${manifest-cp-61} lib/mail.jar"/>
+        <property name="manifest-cp" value="${manifest-cp-62}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1287,6 +1300,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
+                <include name="mail*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -1383,7 +1397,8 @@
         <property name="manifest-cp-proprietary-61" value="${manifest-cp-proprietary-60} lib/slf4j-simple.jar"/>
         <property name="manifest-cp-proprietary-62" value="${manifest-cp-proprietary-61} lib/httpcore.jar"/>
         <property name="manifest-cp-proprietary-63" value="${manifest-cp-proprietary-62} lib/httpclient.jar"/>
-        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-63}"/>
+        <property name="manifest-cp-proprietary-64" value="${manifest-cp-proprietary-63} lib/mail.jar"/>
+        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-64}"/>
         <mkdir dir="build/example-proprietary"/>
         <manifest file="build/example-proprietary/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
