@@ -377,12 +377,12 @@ public class AgentsDaemon
     {
     }
     
-    public void doCleanup()
+    @Override
+    public void doCleanup(IThreadContext threadContext)
       throws ManifoldCFException
     {
       // Shutting down in this way must prevent startup from taking place.
-      IThreadContext tc = ThreadContextFactory.make();
-      stopAgents(tc);
+      stopAgents(threadContext);
     }
     
   }
