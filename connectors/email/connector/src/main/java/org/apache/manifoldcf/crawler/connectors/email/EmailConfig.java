@@ -53,7 +53,7 @@ public class EmailConfig {
   */
   public static final String PROPERTIES_PARAM = "properties";
 
-  public static final String PROTOCOL_DEFAULT_VALUE = "IMAP";
+  public static final String PROTOCOL_DEFAULT_VALUE = "imap";
   public static final String PORT_DEFAULT_VALUE = "25";
 
 
