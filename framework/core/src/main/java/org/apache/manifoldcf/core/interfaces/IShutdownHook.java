@@ -23,7 +23,7 @@ public interface IShutdownHook
 {
   /** Do the requisite cleanup.
   */
-  public void doCleanup()
+  public void doCleanup(IThreadContext threadContext)
     throws ManifoldCFException;
 }
 

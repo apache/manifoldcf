@@ -1303,7 +1303,7 @@ public class ManifoldCF
             IShutdownHook hook = (IShutdownHook)cleanupHooks.get(i);
             try
             {
-              hook.doCleanup();
+              hook.doCleanup(threadContext);
             }
             catch (ManifoldCFException e)
             {
@@ -1350,7 +1350,8 @@ public class ManifoldCF
     }
 
     /** Delete all remaining files */
-    public void doCleanup()
+    @Override
+    public void doCleanup(IThreadContext threadContext)
       throws ManifoldCFException
     {
       synchronized (this)
@@ -1372,7 +1373,7 @@ public class ManifoldCF
     {
       try
       {
-        doCleanup();
+        doCleanup(ThreadContextFactory.make());
       }
       finally
       {
@@ -1389,7 +1390,8 @@ public class ManifoldCF
     {
     }
     
-    public void doCleanup()
+    @Override
+    public void doCleanup(IThreadContext threadContext)
       throws ManifoldCFException
     {
       // Clean up the database handles

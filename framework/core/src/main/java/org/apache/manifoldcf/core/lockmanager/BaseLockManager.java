@@ -512,10 +512,10 @@ public class BaseLockManager implements ILockManager
     byte[] serviceCounterData = readData(serviceCounterName);
     if (serviceCounterData == null || serviceCounterData.length != 4)
       return 0;
-    return ((int)serviceCounterData[0]) & 0xff +
-      (((int)serviceCounterData[1]) << 8) & 0xff00 +
-      (((int)serviceCounterData[2]) << 16) & 0xff0000 +
-      (((int)serviceCounterData[3]) << 24) & 0xff000000;
+    return (((int)serviceCounterData[0]) & 0xff) +
+      ((((int)serviceCounterData[1]) << 8) & 0xff00) +
+      ((((int)serviceCounterData[2]) << 16) & 0xff0000) +
+      ((((int)serviceCounterData[3]) << 24) & 0xff000000);
   }
   
   /** Write service counter.
