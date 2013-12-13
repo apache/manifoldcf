@@ -30,10 +30,20 @@ limitations under the License.
   #else
         <option value="IMAP">IMAP</option>
   #end
+  #if($PROTOCOL == 'IMAP-SSL')
+        <option value="IMAP-SSL" selected="selected">IMAP-SSL</option>
+  #else
+        <option value="IMAP-SSL">IMAP-SSL</option>
+  #end
   #if($PROTOCOL == 'POP3')
         <option value="POP3" selected="selected">POP3</option>
   #else
         <option value="POP3">POP3</option>
+  #end
+  #if($PROTOCOL == 'POP3-SSL')
+        <option value="POP3-SSL" selected="selected">POP3-SSL</option>
+  #else
+        <option value="POP3-SSL">POP3-SSL</option>
   #end
       </select>
     </td>

@@ -85,7 +85,9 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   {
     providerMap = new HashMap<String,String>();
     providerMap.put(EmailConfig.PROTOCOL_POP3, EmailConfig.PROTOCOL_POP3_PROVIDER);
+    providerMap.put(EmailConfig.PROTOCOL_POP3S, EmailConfig.PROTOCOL_POP3S_PROVIDER);
     providerMap.put(EmailConfig.PROTOCOL_IMAP, EmailConfig.PROTOCOL_IMAP_PROVIDER);
+    providerMap.put(EmailConfig.PROTOCOL_IMAPS, EmailConfig.PROTOCOL_IMAPS_PROVIDER);
   }
   //////////////////////////////////Start of Basic Connector Methods/////////////////////////
 
