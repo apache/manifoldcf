@@ -865,7 +865,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   private void fillInSearchableAttributes(Map<String, Object> paramMap) {
     String[] attributes = EmailConfig.BASIC_SEARCHABLE_ATTRIBUTES;
-    paramMap.put("searchableattributes", attributes);
+    paramMap.put("SEARCHABLEATTRIBUTES", attributes);
   }
 
   protected static void fillInFilterTab(Map<String, Object> paramMap,
@@ -884,7 +884,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         list.add(row);
       }
     }
-    paramMap.put("matches", list);
+    paramMap.put("MATCHES", list);
   }
 
   /**
