@@ -255,6 +255,13 @@ public class Throttler
     /** The current throttle spec */
     protected IThrottleSpec throttleSpec;
     
+    /** The connection bins */
+    protected final Map<String,ConnectionBin> connectionBins = new HashMap<String,ConnectionBin>();
+    /** The fetch bins */
+    protected final Map<String,FetchBin> fetchBins = new HashMap<String,FetchBin>();
+    /** The throttle bins */
+    protected final Map<String,ThrottleBin> throttleBins = new HashMap<String,ThrottleBin>();
+
     /** Constructor
     */
     public ThrottlingGroup(IThreadContext threadContext, String throttlingGroupType, String throttleGroup, IThrottleSpec throttleSpec)
