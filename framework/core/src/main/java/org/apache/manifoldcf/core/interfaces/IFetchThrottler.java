@@ -28,21 +28,6 @@ public interface IFetchThrottler
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** Get the throttle group for this fetch throttler.
-  *@return the throttle group.
-  */
-  public String getThrottleGroup();
-  
-  /** Get the throttle specification for this fetch throttler.
-  *@return the throttle specification.
-  */
-  public IThrottleSpec getThrottleSpecification();
-  
-  /** Get the bin names for this fetch throttler.
-  *@return the bin names.
-  */
-  public String[] getBinNames();
-
   /** Get permission to fetch a document.  This grants permission to start
   * fetching a single document, within the connection that has already been
   * granted permission that created this object.  When done (or aborting), call

@@ -42,8 +42,8 @@ public class Throttler
   /** The service type prefix for throttle pools */
   protected final static String serviceTypePrefix = "_THROTTLEPOOL_";
   
-  /** Pool hash table. Keyed by throttle group name; value is Pool */
-  protected final Map<String,Pool> poolHash = new HashMap<String,Pool>();
+  /** Throttle group hash table.  Keyed by throttle group type, value is throttling groups */
+  protected final Map<String,ThrottlingGroups> throttleGroupsHash = new HashMap<String,ThrottlingGroups>();
 
   /** Create a throttler instance.  Usually there will be one of these per connector
   * type that needs throttling.
@@ -52,69 +52,97 @@ public class Throttler
   {
   }
   
-  /** Check if throttle group name is still valid.
-  * This can be overridden, but right now nobody does it.
+  /** Get all existing throttle groups for a throttle group type.
+  * The throttle group type typically describes a connector class, while the throttle group represents
+  * a namespace of bin names specific to that connector class.
+  *@param throttleGroupType is the throttle group type.
+  *@return the set of throttle groups for that group type.
   */
-  protected boolean isThrottleGroupValid(IThreadContext threadContext, String throttleGroupName)
-    throws ManifoldCFException
-  {
-    return true;
-  }
-  
-  /** Get permission to use a connection, which is described by the passed array of bin names.
-  * The connection can be used multiple
-  * times until the releaseConnectionPermission() method is called.
-  *@param threadContext is the thread context.
-  *@param throttleGroup is the throttle group.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
-  *@param binNames is the set of bin names to throttle for, within the throttle group.
-  *@param currentTime is the current time, in ms. since epoch.
-  *@return the fetch throttler to use for fetches with the obtained connection.
-  */
-  public IFetchThrottler obtainConnectionPermission(IThreadContext threadContext, String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime)
-    throws ManifoldCFException
+  public Set<String> getThrottleGroups(String throttleGroupType)
   {
     // MHL
     return null;
   }
   
-  /** Release permission to use a connection. This presumes that obtainConnectionPermission()
-  * was called earlier in the same thread and was successful.
-  *@param threadContext is the thread context.
-  *@param throttleGroup is the throttle group name.
-  *@param throttleSpec is the throttle specification to use for the throttle group,
-  *@param currentTime is the current time, in ms. since epoch.
+  /** Remove a throttle group.
+  *@param throttleGroupType is the throttle group type.
+  *@param throttleGroup is the throttle group.
   */
-  public void releaseConnectionPermission(IThreadContext threadContext, String throttleGroup,
-    IThrottleSpec throttleSpec, String[] binNames, long currentTime)
-    throws ManifoldCFException
+  public void removeThrottleGroup(String throttleGroupType, String throttleGroup)
+  {
+    // MHL
+  }
+  
+  /** Set or update throttle specification for a throttle group.  This creates the
+  * throttle group if it does not yet exist.
+  *@param throttleGroupType is the throttle group type.
+  *@param throttleGroup is the throttle group.
+  *@param throttleSpec is the desired throttle specification object.
+  */
+  public void updateThrottleSpecification(String throttleGroupType, String throttleGroup, IThrottleSpec throttleSpec)
+  {
+    // MHL
+  }
+
+  /** Get permission to use a connection, which is described by the passed array of bin names.
+  * This method may block until a connection slot is available.
+  * The connection can be used multiple times until the releaseConnectionPermission() method is called.
+  * This persistence feature is meant to allow connections to be pooled locally by the caller.
+  *@param throttleGroupType is the throttle group type.
+  *@param throttleGroup is the throttle group.
+  *@param binNames is the set of bin names to throttle for, within the throttle group.
+  *@return the fetch throttler to use when performing fetches from the corresponding connection.
+  */
+  public IFetchThrottler obtainConnectionPermission(String throttleGroupType , String throttleGroup,
+    String[] binNames)
+    throws InterruptedException
+  {
+    // MHL
+    return null;
+  }
+  
+  /** Determine whether to release a pooled connection.  This method returns the number of bins
+  * where the outstanding connection exceeds current quotas, indicating whether at least one with the specified
+  * characteristics should be released.
+  * NOTE WELL: This method cannot judge which is the best connection to be released to meet
+  * quotas.  The caller needs to do that based on the highest number of bins matched.
+  *@param throttleGroupType is the throttle group type.
+  *@param throttleGroup is the throttle group.
+  *@param binNames is the set of bin names to throttle for, within the throttle group.
+  *@return the number of bins that are over quota, or zero if none of them are.
+  */
+  public int overConnectionQuotaCount(String throttleGroupType, String throttleGroup, String[] binNames)
+  {
+    // MHL
+    return 0;
+  }
+  
+  /** Release permission to use one connection. This presumes that obtainConnectionPermission()
+  * was called earlier by someone and was successful.
+  *@param throttleGroupType is the throttle group type.
+  *@param throttleGroup is the throttle group.
+  *@param binNames is the set of bin names to throttle for, within the throttle group.
+  */
+  public void releaseConnectionPermission(String throttleGroupType, String throttleGroup, String[] binNames)
   {
     // MHL
   }
   
   /** Poll periodically.
   */
-  public void poll(IThreadContext threadContext)
+  public void poll(IThreadContext threadContext, String throttleGroupType)
     throws ManifoldCFException
   {
-    // Go through the whole pool and notify everyone
-    synchronized (poolHash)
+    // Find the right pool, and poll that
+    ThrottlingGroups tg;
+    synchronized (throttleGroupsHash)
     {
-      Iterator<String> iter = poolHash.keySet().iterator();
-      while (iter.hasNext())
-      {
-        String throttleGroup = iter.next();
-        Pool p = poolHash.get(throttleGroup);
-        if (isThrottleGroupValid(threadContext,throttleGroup))
-          p.poll(threadContext);
-        else
-        {
-          p.destroy(threadContext);
-          iter.remove();
-        }
-      }
+      tg = throttleGroupsHash.get(throttleGroupType);
     }
+    
+    if (tg != null)
+      tg.poll(threadContext);
+      
   }
   
   /** Free unused resources.
@@ -123,12 +151,12 @@ public class Throttler
     throws ManifoldCFException
   {
     // Go through the whole pool and clean it out
-    synchronized (poolHash)
+    synchronized (throttleGroupsHash)
     {
-      Iterator<Pool> iter = poolHash.values().iterator();
+      Iterator<ThrottlingGroups> iter = throttleGroupsHash.values().iterator();
       while (iter.hasNext())
       {
-        Pool p = iter.next();
+        ThrottlingGroups p = iter.next();
         p.freeUnusedResources(threadContext);
       }
     }
@@ -140,12 +168,12 @@ public class Throttler
     throws ManifoldCFException
   {
     // Go through the whole pool and clean it out
-    synchronized (poolHash)
+    synchronized (throttleGroupsHash)
     {
-      Iterator<Pool> iter = poolHash.values().iterator();
+      Iterator<ThrottlingGroups> iter = throttleGroupsHash.values().iterator();
       while (iter.hasNext())
       {
-        Pool p = iter.next();
+        ThrottlingGroups p = iter.next();
         p.destroy(threadContext);
         iter.remove();
       }
@@ -154,15 +182,69 @@ public class Throttler
 
   // Protected methods and classes
   
-  protected String buildServiceTypeName(String throttleGroupName)
+  protected String buildServiceTypeName(String throttlingGroupType, String throttleGroupName)
   {
-    return serviceTypePrefix + throttleGroupName;
+    return serviceTypePrefix + throttlingGroupType + "_" + throttleGroupName;
   }
   
 
-  /** This class represents a value in the pool hash, which corresponds to a given key.
+  /** This class represents a throttling group pool */
+  protected class ThrottlingGroups
+  {
+    /** The throttling group type for this throttling group pool */
+    protected final String throttlingGroupTypeName;
+    /** The pool of individual throttle group services for this pool, keyed by throttle group name */
+    protected final Map<String,ThrottlingGroup> groups = new HashMap<String,ThrottlingGroup>();
+    
+    public ThrottlingGroups(String throttlingGroupTypeName)
+    {
+      this.throttlingGroupTypeName = throttlingGroupTypeName;
+    }
+    
+    // MHL
+    
+    /** Poll this set of throttle groups */
+    public synchronized void poll(IThreadContext threadContext)
+      throws ManifoldCFException
+    {
+      Iterator<String> iter = groups.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String throttleGroup = iter.next();
+        ThrottlingGroup p = groups.get(throttleGroup);
+        p.poll(threadContext);
+      }
+    }
+
+    /** Free unused resources */
+    public synchronized void freeUnusedResources(IThreadContext threadContext)
+      throws ManifoldCFException
+    {
+      Iterator<ThrottlingGroup> iter = groups.values().iterator();
+      while (iter.hasNext())
+      {
+        ThrottlingGroup g = iter.next();
+        g.freeUnusedResources(threadContext);
+      }
+    }
+    
+    /** Destroy and shutdown all */
+    public synchronized void destroy(IThreadContext threadContext)
+      throws ManifoldCFException
+    {
+      Iterator<ThrottlingGroup> iter = groups.values().iterator();
+      while (iter.hasNext())
+      {
+        ThrottlingGroup p = iter.next();
+        p.destroy(threadContext);
+        iter.remove();
+      }
+    }
+  }
+  
+  /** This class represents a throttling group, of a specific throttling group type.
   */
-  protected class Pool
+  protected class ThrottlingGroup
   {
     /** Whether this pool is alive */
     protected boolean isAlive = true;
@@ -175,10 +257,10 @@ public class Throttler
     
     /** Constructor
     */
-    public Pool(IThreadContext threadContext, String throttleGroup, IThrottleSpec throttleSpec)
+    public ThrottlingGroup(IThreadContext threadContext, String throttlingGroupType, String throttleGroup, IThrottleSpec throttleSpec)
       throws ManifoldCFException
     {
-      this.serviceTypeName = buildServiceTypeName(throttleGroup);
+      this.serviceTypeName = buildServiceTypeName(throttlingGroupType, throttleGroup);
       this.throttleSpec = throttleSpec;
       // Now, register and activate service anonymously, and record the service name we get.
       ILockManager lockManager = LockManagerFactory.make(threadContext);
