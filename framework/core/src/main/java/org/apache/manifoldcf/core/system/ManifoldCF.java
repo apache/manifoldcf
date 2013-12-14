@@ -1396,7 +1396,7 @@ public class ManifoldCF
     public void doCleanup(IThreadContext threadContext)
       throws ManifoldCFException
     {
-      IConnectionThrottler connectionThrottler = ConnectionThrottlerFactory.make(threadContext);
+      IThrottleGroups connectionThrottler = ThrottleGroupsFactory.make(threadContext);
       connectionThrottler.destroy();
     }
     

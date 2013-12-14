@@ -102,7 +102,7 @@ public class Throttler
   *@param throttleGroup is the throttle group.
   *@param throttleSpec is the desired throttle specification object.
   */
-  public void updateThrottleSpecification(IThreadContext threadContext, String throttleGroupType, String throttleGroup, IThrottleSpec throttleSpec)
+  public void createOrUpdateThrottleGroup(IThreadContext threadContext, String throttleGroupType, String throttleGroup, IThrottleSpec throttleSpec)
     throws ManifoldCFException
   {
     // Potential addition.  Lock the whole hierarchy.
@@ -114,72 +114,21 @@ public class Throttler
         tg = new ThrottlingGroups(throttleGroupType);
         throttleGroupsHash.put(throttleGroupType, tg);
       }
-      tg.updateThrottleSpecification(threadContext, throttleGroup, throttleSpec);
+      tg.createOrUpdateThrottleGroup(threadContext, throttleGroup, throttleSpec);
     }
   }
 
-  /** Get permission to use a connection, which is described by the passed array of bin names.
-  * This method may block until a connection slot is available.
-  * The connection can be used multiple times until the releaseConnectionPermission() method is called.
-  * This persistence feature is meant to allow connections to be pooled locally by the caller.
+  /** Construct connection throttler for connections with specific bin names.  This object is meant to be embedded with a connection
+  * pool of similar objects, and used to gate the creation of new connections in that pool.
   *@param throttleGroupType is the throttle group type.
   *@param throttleGroup is the throttle group.
-  *@param binNames is the set of bin names to throttle for, within the throttle group.
-  *@return the fetch throttler to use when performing fetches from the corresponding connection, or null if the system is being shut down.
+  *@param binNames are the connection type bin names.
+  *@return the connection throttling object, or null if the pool is being shut down.
   */
-  public IFetchThrottler obtainConnectionPermission(String throttleGroupType , String throttleGroup,
-    String[] binNames)
-    throws InterruptedException
+  public IConnectionThrottler obtainConnectionThrottler(String throttleGroupType, String throttleGroup, String[] binNames)
   {
-    // This method may wait at the innermost level.  We therefore do not lock the hierarchy, BUT
-    // we must code for the possibility that the hierarchy is fluid, and may dissolve.  Under such
-    // conditions we could simply retry.  But in this case, the hierarchy has state: there is an
-    // explicit creation step (updateThrottleSpecification) that must be called to establish the
-    // innermost object and set it up correctly.  It is therefore meaningful if we do not find
-    // the expected structure: we return null in that case.
-    ThrottlingGroups tg;
-    synchronized (throttleGroupsHash)
-    {
-      tg = throttleGroupsHash.get(throttleGroupType);
-    }
-    if (tg == null)
-      return null;
-    return tg.obtainConnectionPermission(throttleGroup, binNames);
-  }
-  
-  /** Determine whether to release a pooled connection.  This method returns the number of bins
-  * where the outstanding connection exceeds current quotas, indicating whether at least one with the specified
-  * characteristics should be released.
-  * NOTE WELL: This method cannot judge which is the best connection to be released to meet
-  * quotas.  The caller needs to do that based on the highest number of bins matched.
-  *@param throttleGroupType is the throttle group type.
-  *@param throttleGroup is the throttle group.
-  *@param binNames is the set of bin names to throttle for, within the throttle group.
-  *@return the number of bins that are over quota, or zero if none of them are.
-  */
-  public int overConnectionQuotaCount(String throttleGroupType, String throttleGroup, String[] binNames)
-  {
-    // No waiting, so it is OK to lock everything.
-    synchronized (throttleGroupsHash)
-    {
-      // MHL
-      return 0;
-    }
-  }
-  
-  /** Release permission to use one connection. This presumes that obtainConnectionPermission()
-  * was called earlier by someone and was successful.
-  *@param throttleGroupType is the throttle group type.
-  *@param throttleGroup is the throttle group.
-  *@param binNames is the set of bin names to throttle for, within the throttle group.
-  */
-  public void releaseConnectionPermission(String throttleGroupType, String throttleGroup, String[] binNames)
-  {
-    // No waiting, so it is ok to lock the entire tree.
-    synchronized (throttleGroupsHash)
-    {
-      // MHL
-    }
+    // MHL
+    return null;
   }
   
   /** Poll periodically.
@@ -258,7 +207,7 @@ public class Throttler
     // MHL
     
     /** Update throttle specification */
-    public void updateThrottleSpecification(IThreadContext threadContext, String throttleGroup, IThrottleSpec throttleSpec)
+    public void createOrUpdateThrottleGroup(IThreadContext threadContext, String throttleGroup, IThrottleSpec throttleSpec)
       throws ManifoldCFException
     {
       synchronized (groups)

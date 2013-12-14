@@ -18,16 +18,16 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-/** Thread-local IConnectionThrottle factory.
+/** Thread-local IThrottleGroups factory.
 */
-public class ConnectionThrottlerFactory
+public class ThrottleGroupsFactory
 {
   public static final String _rcsid = "@(#)$Id$";
 
   // name to use in thread context pool of objects
-  private final static String objectName = "_ConnectionThrottler_";
+  private final static String objectName = "_ThrottleGroups_";
 
-  private ConnectionThrottlerFactory()
+  private ThrottleGroupsFactory()
   {
   }
 
@@ -35,16 +35,16 @@ public class ConnectionThrottlerFactory
   *@param tc is the thread context.
   *@return the handle.
   */
-  public static IConnectionThrottler make(IThreadContext tc)
+  public static IThrottleGroups make(IThreadContext tc)
     throws ManifoldCFException
   {
     Object o = tc.get(objectName);
-    if (o == null || !(o instanceof IConnectionThrottler))
+    if (o == null || !(o instanceof IThrottleGroups))
     {
-      o = new org.apache.manifoldcf.core.throttler.ConnectionThrottler(tc);
+      o = new org.apache.manifoldcf.core.throttler.ThrottleGroups(tc);
       tc.save(objectName,o);
     }
-    return (IConnectionThrottler)o;
+    return (IThrottleGroups)o;
   }
 
 }
