@@ -67,6 +67,8 @@ import org.apache.manifoldcf.core.system.ManifoldCF;
 */
 public class ThrottleBin
 {
+  /** This signals whether the bin is alive or not. */
+  protected boolean isAlive = true;
   /** This is the bin name which this throttle belongs to. */
   protected final String binName;
   /** This is the reference count for this bin (which records active references) */
@@ -136,60 +138,54 @@ public class ThrottleBin
     
   /** Note the start of an individual byte read of a specified size.  Call this method just before the
   * read request takes place.  Performs the necessary delay prior to reading specified number of bytes from the server.
+  *@return false if the wait was interrupted due to the bin being shut down.
   */
-  public void beginRead(int byteCount)
+  public boolean beginRead(int byteCount)
     throws InterruptedException
   {
     long currentTime = System.currentTimeMillis();
 
     synchronized (this)
     {
-      while (estimateInProgress)
-        wait();
-      if (estimateValid == false)
+      while (true)
       {
-        seriesStartTime = currentTime;
-        estimateInProgress = true;
-        // Add these bytes to the estimated total
-        totalBytesRead += (long)byteCount;
-        // Exit early; this thread isn't going to do any waiting
-        return;
-      }
-    }
-
-    // It is possible for the following code to get interrupted.  If that happens,
-    // we have to unstick the threads that are waiting on the estimate!
-    boolean finished = false;
-    try
-    {
-      long waitTime = 0L;
-      synchronized (this)
-      {
-        // Add these bytes to the estimated total
-        totalBytesRead += (long)byteCount;
+        if (!isAlive)
+          return false;
+        if (estimateInProgress)
+        {
+          wait();
+          continue;
+        }
+        if (estimateValid == false)
+        {
+          seriesStartTime = currentTime;
+          estimateInProgress = true;
+          // Add these bytes to the estimated total
+          totalBytesRead += (long)byteCount;
+          // Exit early; this thread isn't going to do any waiting
+          return true;
+        }
 
         // Estimate the time this read will take, and wait accordingly
         long estimatedTime = (long)(rateEstimate * (double)byteCount);
 
         // Figure out how long the total byte count should take, to meet the constraint
-        long desiredEndTime = seriesStartTime + (long)(((double)totalBytesRead) * minimumMillisecondsPerByte);
+        long desiredEndTime = seriesStartTime + (long)(((double)(totalBytesRead + (long)byteCount)) * minimumMillisecondsPerByte);
 
         // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
         // current time.  But it can't be negative.
-        waitTime = (desiredEndTime - estimatedTime) - currentTime;
-      }
+        long waitTime = (desiredEndTime - estimatedTime) - currentTime;
 
-      if (waitTime > 0L)
-      {
-        ManifoldCF.sleep(waitTime);
-      }
-      finished = true;
-    }
-    finally
-    {
-      if (!finished)
-      {
-        abortRead();
+        // If no wait is needed, go ahead and update what needs to be updated and exit.  Otherwise, do the wait.
+        if (waitTime <= 0L)
+        {
+          // Add these bytes to the estimated total
+          totalBytesRead += (long)byteCount;
+          return true;
+        }
+        
+        this.wait(waitTime);
+        // Back around again...
       }
     }
   }
@@ -244,5 +240,12 @@ public class ThrottleBin
 
   }
 
+  /** Shut down this bin.
+  */
+  public synchronized void shutDown()
+  {
+    isAlive = false;
+    notifyAll();
+  }
 }
 

@@ -30,6 +30,8 @@ import org.apache.manifoldcf.core.system.ManifoldCF;
 */
 public class FetchBin
 {
+  /** This is set to true until the bin is shut down. */
+  protected boolean isAlive = true;
   /** This is the bin name which this connection pool belongs to */
   protected final String binName;
   /** This is the last time a fetch was done on this bin */
@@ -89,8 +91,9 @@ public class FetchBin
   
   /** Wait the necessary time to do the fetch.  Presumes we've reserved the next fetch
   * rights already, via reserveFetchRequest().
+  *@return false if the wait did not complete because the bin was shut down.
   */
-  public synchronized void waitNextFetch()
+  public synchronized boolean waitNextFetch()
     throws InterruptedException
   {
     if (!reserveNextFetch)
@@ -98,6 +101,8 @@ public class FetchBin
     
     while (true)
     {
+      if (!isAlive)
+        return false;
       if (minTimeBetweenFetches == Long.MAX_VALUE)
       {
         // wait forever - but eventually someone will set a smaller interval and wake us up.
@@ -109,7 +114,7 @@ public class FetchBin
         // Compute how long we have to wait, based on the current time and the time of the last fetch.
         long waitAmt = lastFetchTime + minTimeBetweenFetches - currentTime;
         if (waitAmt <= 0L)
-          break;
+          return true;
         wait(waitAmt);
       }
     }
@@ -125,5 +130,12 @@ public class FetchBin
     reserveNextFetch = false;
   }
 
+  /** Shut the bin down, and wake up all threads waiting on it.
+  */
+  public synchronized void shutDown()
+  {
+    isAlive = false;
+    notifyAll();
+  }
 }
 
