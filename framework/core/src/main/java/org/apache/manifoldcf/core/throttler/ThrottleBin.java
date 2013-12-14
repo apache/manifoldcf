@@ -81,7 +81,9 @@ public class ThrottleBin
   protected long seriesStartTime = -1L;
   /** Total actual bytes read in this series; this includes fetches in progress */
   protected long totalBytesRead = -1L;
-
+  /** The minimum milliseconds per byte per server */
+  protected double minimumMillisecondsPerBytePerServer = Double.MAX_VALUE;
+  
   /** Constructor. */
   public ThrottleBin(String binName)
   {
@@ -94,6 +96,12 @@ public class ThrottleBin
     return binName;
   }
 
+  /** Update minimumMillisecondsPerBytePerServer */
+  public void updateMinimumMillisecondsPerBytePerServer(double min)
+  {
+    this.minimumMillisecondsPerBytePerServer = min;
+  }
+  
   /** Note the start of a fetch operation for a bin.  Call this method just before the actual stream access begins.
   * May wait until schedule allows.
   */
@@ -129,7 +137,7 @@ public class ThrottleBin
   /** Note the start of an individual byte read of a specified size.  Call this method just before the
   * read request takes place.  Performs the necessary delay prior to reading specified number of bytes from the server.
   */
-  public void beginRead(int byteCount, double minimumMillisecondsPerBytePerServer)
+  public void beginRead(int byteCount)
     throws InterruptedException
   {
     long currentTime = System.currentTimeMillis();

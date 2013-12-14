@@ -333,6 +333,10 @@ public class Throttler
     /** The throttle bins */
     protected final Map<String,ThrottleBin> throttleBins = new HashMap<String,ThrottleBin>();
 
+    // For synchronization, we use several in this class.
+    // Modification to the connectionBins, fetchBins, or throttleBins hashes uses the appropriate local synchronizer.
+    // Changes to other local variables use the main synchronizer.
+    
     /** Constructor
     */
     public ThrottlingGroup(IThreadContext threadContext, String throttlingGroupType, String throttleGroup, IThrottleSpec throttleSpec)
@@ -343,6 +347,8 @@ public class Throttler
       // Now, register and activate service anonymously, and record the service name we get.
       ILockManager lockManager = LockManagerFactory.make(threadContext);
       this.serviceName = lockManager.registerServiceBeginServiceActivity(serviceTypeName, null, null);
+      // Once all that is done, perform the initial setting of all the bin cutoffs
+      poll(threadContext);
     }
 
     /** Update the throttle spec.
@@ -361,7 +367,34 @@ public class Throttler
     public synchronized void poll(IThreadContext threadContext)
       throws ManifoldCFException
     {
+      // This is where we reset all the bin targets using ILockManager.
+      // But for now, to get things working, we just do the "stupid" thing,
+      // and presume we're the only actor.
       // MHL
+      synchronized (connectionBins)
+      {
+        for (ConnectionBin bin : connectionBins.values())
+        {
+          bin.updateMaxActiveConnections(throttleSpec.getMaxOpenConnections(bin.getBinName()));
+        }
+      }
+  
+      synchronized (fetchBins)
+      {
+        for (FetchBin bin : fetchBins.values())
+        {
+          bin.updateMinTimeBetweenFetches(throttleSpec.getMinimumMillisecondsPerFetch(bin.getBinName()));
+        }
+      }
+      
+      synchronized (throttleBins)
+      {
+        for (ThrottleBin bin : throttleBins.values())
+        {
+          bin.updateMinimumMillisecondsPerBytePerServer(throttleSpec.getMinimumMillisecondsPerByte(bin.getBinName()));
+        }
+      }
+      
     }
     
     /** Free unused resources.
