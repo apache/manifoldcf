@@ -34,13 +34,15 @@ public interface IConnectionThrottler
   *@param throttleGroupType is the throttle group type.
   *@return the set of throttle groups for that group type.
   */
-  public Set<String> getThrottleGroups(String throttleGroupType);
+  public Set<String> getThrottleGroups(String throttleGroupType)
+    throws ManifoldCFException;
   
   /** Remove a throttle group.
   *@param throttleGroupType is the throttle group type.
   *@param throttleGroup is the throttle group.
   */
-  public void removeThrottleGroup(String throttleGroupType, String throttleGroup);
+  public void removeThrottleGroup(String throttleGroupType, String throttleGroup)
+    throws ManifoldCFException;
   
   /** Set or update throttle specification for a throttle group.  This creates the
   * throttle group if it does not yet exist.
@@ -48,7 +50,8 @@ public interface IConnectionThrottler
   *@param throttleGroup is the throttle group.
   *@param throttleSpec is the desired throttle specification object.
   */
-  public void updateThrottleSpecification(String throttleGroupType, String throttleGroup, IThrottleSpec throttleSpec);
+  public void updateThrottleSpecification(String throttleGroupType, String throttleGroup, IThrottleSpec throttleSpec)
+    throws ManifoldCFException;
 
   /** Get permission to use a connection, which is described by the passed array of bin names.
   * This method may block until a connection slot is available.
@@ -61,7 +64,7 @@ public interface IConnectionThrottler
   */
   public IFetchThrottler obtainConnectionPermission(String throttleGroupType , String throttleGroup,
     String[] binNames)
-    throws InterruptedException;
+    throws ManifoldCFException;
   
   /** Determine whether to release a pooled connection.  This method returns the number of bins
   * where the outstanding connection exceeds current quotas, indicating whether at least one with the specified
@@ -73,7 +76,8 @@ public interface IConnectionThrottler
   *@param binNames is the set of bin names to throttle for, within the throttle group.
   *@return the number of bins that are over quota, or zero if none of them are.
   */
-  public int overConnectionQuotaCount(String throttleGroupType, String throttleGroup, String[] binNames);
+  public int overConnectionQuotaCount(String throttleGroupType, String throttleGroup, String[] binNames)
+    throws ManifoldCFException;
   
   /** Release permission to use one connection. This presumes that obtainConnectionPermission()
   * was called earlier by someone and was successful.
@@ -81,7 +85,8 @@ public interface IConnectionThrottler
   *@param throttleGroup is the throttle group.
   *@param binNames is the set of bin names to throttle for, within the throttle group.
   */
-  public void releaseConnectionPermission(String throttleGroupType, String throttleGroup, String[] binNames);
+  public void releaseConnectionPermission(String throttleGroupType, String throttleGroup, String[] binNames)
+    throws ManifoldCFException;
   
   /** Poll periodically, to update cluster-wide statistics and allocation.
   *@param throttleGroupType is the throttle group type to update.

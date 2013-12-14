@@ -58,19 +58,32 @@ public class Throttler
   *@param throttleGroupType is the throttle group type.
   *@return the set of throttle groups for that group type.
   */
-  public Set<String> getThrottleGroups(String throttleGroupType)
+  public Set<String> getThrottleGroups(IThreadContext threadContext, String throttleGroupType)
+    throws ManifoldCFException
   {
-    // MHL
-    return null;
+    synchronized (throttleGroupsHash)
+    {
+      return throttleGroupsHash.keySet();
+    }
   }
   
   /** Remove a throttle group.
   *@param throttleGroupType is the throttle group type.
   *@param throttleGroup is the throttle group.
   */
-  public void removeThrottleGroup(String throttleGroupType, String throttleGroup)
+  public void removeThrottleGroup(IThreadContext threadContext, String throttleGroupType, String throttleGroup)
+    throws ManifoldCFException
   {
-    // MHL
+    ThrottlingGroups tg;
+    synchronized (throttleGroupsHash)
+    {
+      tg = throttleGroupsHash.get(throttleGroupType);
+    }
+
+    if (tg != null)
+    {
+      tg.removeThrottleGroup(threadContext, throttleGroup);
+    }
   }
   
   /** Set or update throttle specification for a throttle group.  This creates the
@@ -79,9 +92,21 @@ public class Throttler
   *@param throttleGroup is the throttle group.
   *@param throttleSpec is the desired throttle specification object.
   */
-  public void updateThrottleSpecification(String throttleGroupType, String throttleGroup, IThrottleSpec throttleSpec)
+  public void updateThrottleSpecification(IThreadContext threadContext, String throttleGroupType, String throttleGroup, IThrottleSpec throttleSpec)
+    throws ManifoldCFException
   {
-    // MHL
+    ThrottlingGroups tg;
+    synchronized (throttleGroupsHash)
+    {
+      tg = throttleGroupsHash.get(throttleGroupType);
+      if (tg == null)
+      {
+        tg = new ThrottlingGroups(throttleGroupType);
+        throttleGroupsHash.put(throttleGroupType, tg);
+      }
+    }
+    
+    tg.updateThrottleSpecification(threadContext, throttleGroup, throttleSpec);
   }
 
   /** Get permission to use a connection, which is described by the passed array of bin names.
@@ -93,9 +118,9 @@ public class Throttler
   *@param binNames is the set of bin names to throttle for, within the throttle group.
   *@return the fetch throttler to use when performing fetches from the corresponding connection.
   */
-  public IFetchThrottler obtainConnectionPermission(String throttleGroupType , String throttleGroup,
+  public IFetchThrottler obtainConnectionPermission(IThreadContext threadContext, String throttleGroupType , String throttleGroup,
     String[] binNames)
-    throws InterruptedException
+    throws ManifoldCFException
   {
     // MHL
     return null;
@@ -111,7 +136,8 @@ public class Throttler
   *@param binNames is the set of bin names to throttle for, within the throttle group.
   *@return the number of bins that are over quota, or zero if none of them are.
   */
-  public int overConnectionQuotaCount(String throttleGroupType, String throttleGroup, String[] binNames)
+  public int overConnectionQuotaCount(IThreadContext threadContext, String throttleGroupType, String throttleGroup, String[] binNames)
+    throws ManifoldCFException
   {
     // MHL
     return 0;
@@ -123,7 +149,8 @@ public class Throttler
   *@param throttleGroup is the throttle group.
   *@param binNames is the set of bin names to throttle for, within the throttle group.
   */
-  public void releaseConnectionPermission(String throttleGroupType, String throttleGroup, String[] binNames)
+  public void releaseConnectionPermission(IThreadContext threadContext, String throttleGroupType, String throttleGroup, String[] binNames)
+    throws ManifoldCFException
   {
     // MHL
   }
@@ -203,41 +230,85 @@ public class Throttler
     
     // MHL
     
-    /** Poll this set of throttle groups */
-    public synchronized void poll(IThreadContext threadContext)
+    /** Update throttle specification */
+    public void updateThrottleSpecification(IThreadContext threadContext, String throttleGroup, IThrottleSpec throttleSpec)
       throws ManifoldCFException
     {
-      Iterator<String> iter = groups.keySet().iterator();
-      while (iter.hasNext())
+      synchronized (groups)
       {
-        String throttleGroup = iter.next();
-        ThrottlingGroup p = groups.get(throttleGroup);
-        p.poll(threadContext);
+        ThrottlingGroup g = groups.get(throttleGroup);
+        if (g == null)
+        {
+          g = new ThrottlingGroup(threadContext, throttlingGroupTypeName, throttleGroup, throttleSpec);
+          groups.put(throttleGroup, g);
+        }
+        else
+        {
+          g.updateThrottleSpecification(throttleSpec);
+        }
+      }
+    }
+    
+    /** Remove specified throttle group */
+    public synchronized void removeThrottleGroup(IThreadContext threadContext, String throttleGroup)
+      throws ManifoldCFException
+    {
+      // Must synch the whole thing, because otherwise there would be a risk of someone recreating the
+      // group right after we removed it from the map, and before we destroyed it.
+      synchronized (groups)
+      {
+        ThrottlingGroup g = groups.remove(throttleGroup);
+        if (g != null)
+        {
+          g.destroy(threadContext);
+        }
+      }
+    }
+    
+    /** Poll this set of throttle groups */
+    public void poll(IThreadContext threadContext)
+      throws ManifoldCFException
+    {
+      synchronized (groups)
+      {
+        Iterator<String> iter = groups.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String throttleGroup = iter.next();
+          ThrottlingGroup p = groups.get(throttleGroup);
+          p.poll(threadContext);
+        }
       }
     }
 
     /** Free unused resources */
-    public synchronized void freeUnusedResources(IThreadContext threadContext)
+    public void freeUnusedResources(IThreadContext threadContext)
       throws ManifoldCFException
     {
-      Iterator<ThrottlingGroup> iter = groups.values().iterator();
-      while (iter.hasNext())
+      synchronized (groups)
       {
-        ThrottlingGroup g = iter.next();
-        g.freeUnusedResources(threadContext);
+        Iterator<ThrottlingGroup> iter = groups.values().iterator();
+        while (iter.hasNext())
+        {
+          ThrottlingGroup g = iter.next();
+          g.freeUnusedResources(threadContext);
+        }
       }
     }
     
     /** Destroy and shutdown all */
-    public synchronized void destroy(IThreadContext threadContext)
+    public void destroy(IThreadContext threadContext)
       throws ManifoldCFException
     {
-      Iterator<ThrottlingGroup> iter = groups.values().iterator();
-      while (iter.hasNext())
+      synchronized (groups)
       {
-        ThrottlingGroup p = iter.next();
-        p.destroy(threadContext);
-        iter.remove();
+        Iterator<ThrottlingGroup> iter = groups.values().iterator();
+        while (iter.hasNext())
+        {
+          ThrottlingGroup p = iter.next();
+          p.destroy(threadContext);
+          iter.remove();
+        }
       }
     }
   }
@@ -277,7 +348,7 @@ public class Throttler
     /** Update the throttle spec.
     *@param throttleSpec is the new throttle spec for this throttle group.
     */
-    public synchronized void updateThrottleSpec(IThreadContext threadContext, IThrottleSpec throttleSpec)
+    public synchronized void updateThrottleSpecification(IThrottleSpec throttleSpec)
       throws ManifoldCFException
     {
       this.throttleSpec = throttleSpec;

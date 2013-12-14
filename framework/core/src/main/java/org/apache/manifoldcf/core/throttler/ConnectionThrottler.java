@@ -50,9 +50,9 @@ public class ConnectionThrottler implements IConnectionThrottler
   */
   @Override
   public Set<String> getThrottleGroups(String throttleGroupType)
+    throws ManifoldCFException
   {
-    // MHL
-    return null;
+    return throttler.getThrottleGroups(threadContext, throttleGroupType);
   }
   
   /** Remove a throttle group.
@@ -61,8 +61,9 @@ public class ConnectionThrottler implements IConnectionThrottler
   */
   @Override
   public void removeThrottleGroup(String throttleGroupType, String throttleGroup)
+    throws ManifoldCFException
   {
-    // MHL
+    throttler.removeThrottleGroup(threadContext, throttleGroupType, throttleGroup);
   }
   
   /** Set or update throttle specification for a throttle group.  This creates the
@@ -73,8 +74,9 @@ public class ConnectionThrottler implements IConnectionThrottler
   */
   @Override
   public void updateThrottleSpecification(String throttleGroupType, String throttleGroup, IThrottleSpec throttleSpec)
+    throws ManifoldCFException
   {
-    // MHL
+    throttler.updateThrottleSpecification(threadContext, throttleGroupType, throttleGroup, throttleSpec);
   }
 
   /** Get permission to use a connection, which is described by the passed array of bin names.
@@ -89,10 +91,9 @@ public class ConnectionThrottler implements IConnectionThrottler
   @Override
   public IFetchThrottler obtainConnectionPermission(String throttleGroupType , String throttleGroup,
     String[] binNames)
-    throws InterruptedException
+    throws ManifoldCFException
   {
-    // MHL
-    return null;
+    return throttler.obtainConnectionPermission(threadContext, throttleGroupType, throttleGroup, binNames);
   }
   
   /** Determine whether to release a pooled connection.  This method returns the number of bins
@@ -107,9 +108,9 @@ public class ConnectionThrottler implements IConnectionThrottler
   */
   @Override
   public int overConnectionQuotaCount(String throttleGroupType, String throttleGroup, String[] binNames)
+    throws ManifoldCFException
   {
-    // MHL
-    return 0;
+    return throttler.overConnectionQuotaCount(threadContext, throttleGroupType, throttleGroup, binNames);
   }
   
   /** Release permission to use one connection. This presumes that obtainConnectionPermission()
@@ -120,8 +121,9 @@ public class ConnectionThrottler implements IConnectionThrottler
   */
   @Override
   public void releaseConnectionPermission(String throttleGroupType, String throttleGroup, String[] binNames)
+    throws ManifoldCFException
   {
-    // MHL
+    throttler.releaseConnectionPermission(threadContext, throttleGroupType, throttleGroup, binNames);
   }
   
   /** Poll periodically, to update cluster-wide statistics and allocation.
@@ -131,7 +133,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   public void poll(String throttleGroupType)
     throws ManifoldCFException
   {
-    // MHL
+    throttler.poll(threadContext, throttleGroupType);
   }
   
   /** Free unused resources.
