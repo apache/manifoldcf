@@ -358,7 +358,8 @@ public class Throttler
     }
   }
   
-  /** This class represents a throttling group, of a specific throttling group type.
+  /** This class represents a throttling group, of a specific throttling group type.  It basically
+  * describes an entire self-consistent throttling environment.
   */
   protected class ThrottlingGroup
   {
@@ -405,6 +406,8 @@ public class Throttler
       this.throttleSpec = throttleSpec;
     }
     
+    // Connection acquisition methods
+    
     /** Obtain connection permission.
     *@return null if we are marked as 'not alive'.
     */
@@ -417,8 +420,63 @@ public class Throttler
       // MHL
       // Wait on each reserved bin in turn
       // MHL
-      return null;
+      return new FetchThrottler(this, binNames);
     }
+    
+    // IFetchThrottler support methods
+    
+    /** Get permission to fetch a document.  This grants permission to start
+    * fetching a single document, within the connection that has already been
+    * granted permission that created this object.  When done (or aborting), call
+    * releaseFetchDocumentPermission() to note the completion of the document
+    * fetch activity.
+    *@param currentTime is the current time, in ms. since epoch.
+    *@return the stream throttler to use to throttle the actual data access, or null if the system is being shut down.
+    */
+    public IStreamThrottler obtainFetchDocumentPermission(String[] binNames, long currentTime)
+      throws InterruptedException
+    {
+      // MHL
+      return new StreamThrottler(this, binNames);
+    }
+    
+    /** Release permission to fetch a document.  Call this only when you
+    * called obtainFetchDocumentPermission() successfully earlier.
+    *@param currentTime is the current time, in ms. since epoch.
+    */
+    public void releaseFetchDocumentPermission(String[] binNames, long currentTime)
+    {
+      // MHL
+    }
+
+    // IStreamThrottler support methods
+    
+    /** Obtain permission to read a block of bytes.  This method may wait until it is OK to proceed.
+    * The throttle group, bin names, etc are already known
+    * to this specific interface object, so it is unnecessary to include them here.
+    *@param currentTime is the current time, in ms. since epoch.
+    *@param byteCount is the number of bytes to get permissions to read.
+    *@return true if the wait took place as planned, or false if the system is being shut down.
+    */
+    public boolean obtainReadPermission(String[] binNames, long currentTime, int byteCount)
+      throws InterruptedException
+    {
+      // MHL
+      return false;
+    }
+      
+    /** Note the completion of the read of a block of bytes.  Call this after
+    * obtainReadPermission() was successfully called, and bytes were successfully read.
+    *@param currentTime is the current time, in ms. since epoch.
+    *@param origByteCount is the originally requested number of bytes to get permissions to read.
+    *@param actualByteCount is the number of bytes actually read.
+    */
+    public void releaseReadPermission(String[] binNames, long currentTime, int origByteCount, int actualByteCount)
+    {
+      // MHL
+    }
+
+    // Bookkeeping methods
     
     /** Call this periodically.
     */
@@ -475,6 +533,89 @@ public class Throttler
       ILockManager lockManager = LockManagerFactory.make(threadContext);
       lockManager.endServiceActivity(serviceTypeName, serviceName);
     }
+  }
+  
+  /** Fetch throttler implementation class.
+  * This basically stores some parameters and links back to ThrottlingGroup.
+  */
+  protected static class FetchThrottler implements IFetchThrottler
+  {
+    protected final ThrottlingGroup parent;
+    protected final String[] binNames;
+    
+    public FetchThrottler(ThrottlingGroup parent, String[] binNames)
+    {
+      this.parent = parent;
+      this.binNames = binNames;
+    }
+    
+    /** Get permission to fetch a document.  This grants permission to start
+    * fetching a single document, within the connection that has already been
+    * granted permission that created this object.  When done (or aborting), call
+    * releaseFetchDocumentPermission() to note the completion of the document
+    * fetch activity.
+    *@param currentTime is the current time, in ms. since epoch.
+    *@return the stream throttler to use to throttle the actual data access, or null if the system is being shut down.
+    */
+    @Override
+    public IStreamThrottler obtainFetchDocumentPermission(long currentTime)
+      throws InterruptedException
+    {
+      return parent.obtainFetchDocumentPermission(binNames, currentTime);
+    }
+    
+    /** Release permission to fetch a document.  Call this only when you
+    * called obtainFetchDocumentPermission() successfully earlier.
+    *@param currentTime is the current time, in ms. since epoch.
+    */
+    @Override
+    public void releaseFetchDocumentPermission(long currentTime)
+    {
+      parent.releaseFetchDocumentPermission(binNames, currentTime);
+    }
+
+  }
+  
+  /** Stream throttler implementation class.
+  * This basically stores some parameters and links back to ThrottlingGroup.
+  */
+  protected static class StreamThrottler implements IStreamThrottler
+  {
+    protected final ThrottlingGroup parent;
+    protected final String[] binNames;
+    
+    public StreamThrottler(ThrottlingGroup parent, String[] binNames)
+    {
+      this.parent = parent;
+      this.binNames = binNames;
+    }
+
+    /** Obtain permission to read a block of bytes.  This method may wait until it is OK to proceed.
+    * The throttle group, bin names, etc are already known
+    * to this specific interface object, so it is unnecessary to include them here.
+    *@param currentTime is the current time, in ms. since epoch.
+    *@param byteCount is the number of bytes to get permissions to read.
+    *@return true if the wait took place as planned, or false if the system is being shut down.
+    */
+    @Override
+    public boolean obtainReadPermission(long currentTime, int byteCount)
+      throws InterruptedException
+    {
+      return parent.obtainReadPermission(binNames, currentTime, byteCount);
+    }
+      
+    /** Note the completion of the read of a block of bytes.  Call this after
+    * obtainReadPermission() was successfully called, and bytes were successfully read.
+    *@param currentTime is the current time, in ms. since epoch.
+    *@param origByteCount is the originally requested number of bytes to get permissions to read.
+    *@param actualByteCount is the number of bytes actually read.
+    */
+    @Override
+    public void releaseReadPermission(long currentTime, int origByteCount, int actualByteCount)
+    {
+      parent.releaseReadPermission(binNames, currentTime, origByteCount, actualByteCount);
+    }
+
   }
   
 }
