@@ -546,7 +546,39 @@ public class Throttler
     public synchronized void destroy(IThreadContext threadContext)
       throws ManifoldCFException
     {
-      freeUnusedResources(threadContext);
+      synchronized (connectionBins)
+      {
+        Iterator<ConnectionBin> binIter = connectionBins.values().iterator();
+        while (binIter.hasNext())
+        {
+          ConnectionBin bin = binIter.next();
+          bin.shutDown();
+          binIter.remove();
+        }
+      }
+      
+      synchronized (fetchBins)
+      {
+        Iterator<FetchBin> binIter = fetchBins.values().iterator();
+        while (binIter.hasNext())
+        {
+          FetchBin bin = binIter.next();
+          bin.shutDown();
+          binIter.remove();
+        }
+      }
+      
+      synchronized (throttleBins)
+      {
+        Iterator<ThrottleBin> binIter = throttleBins.values().iterator();
+        while (binIter.hasNext())
+        {
+          ThrottleBin bin = binIter.next();
+          bin.shutDown();
+          binIter.remove();
+        }
+      }
+
       // End service activity
       isAlive = false;
       notifyAll();
