@@ -127,8 +127,14 @@ public class Throttler
   */
   public IConnectionThrottler obtainConnectionThrottler(String throttleGroupType, String throttleGroup, String[] binNames)
   {
-    // MHL
-    return null;
+    // No waiting, so lock the entire tree.
+    synchronized (throttleGroupsHash)
+    {
+      ThrottlingGroups tg = throttleGroupsHash.get(throttleGroupType);
+      if (tg != null)
+        return tg.obtainConnectionThrottler(throttleGroup, binNames);
+      return null;
+    }
   }
   
   /** Poll periodically.
@@ -204,8 +210,6 @@ public class Throttler
       this.throttlingGroupTypeName = throttlingGroupTypeName;
     }
     
-    // MHL
-    
     /** Update throttle specification */
     public void createOrUpdateThrottleGroup(IThreadContext threadContext, String throttleGroup, IThrottleSpec throttleSpec)
       throws ManifoldCFException
@@ -225,23 +229,20 @@ public class Throttler
       }
     }
     
-    /** Obtain connection permission.
-    *@return null if the hierarchy has changed!
+    /** Obtain connection throttler.
+    *@return the throttler, or null of the hierarchy has changed.
     */
-    public IFetchThrottler obtainConnectionPermission(String throttleGroup, String[] binNames)
-      throws InterruptedException
+    public IConnectionThrottler obtainConnectionThrottler(String throttleGroup, String[] binNames)
     {
-      // Can't lock the hierarchy here.
-      ThrottlingGroup g;
       synchronized (groups)
       {
-        g = groups.get(throttleGroup);
+        ThrottlingGroup g = groups.get(throttleGroup);
+        if (g == null)
+          return null;
+        return g.obtainConnectionThrottler(binNames);
       }
-      if (g == null)
-        return null;
-      return g.obtainConnectionPermission(binNames);
     }
-
+    
     /** Remove specified throttle group */
     public void removeThrottleGroup(IThreadContext threadContext, String throttleGroup)
       throws ManifoldCFException
@@ -355,7 +356,13 @@ public class Throttler
       this.throttleSpec = throttleSpec;
     }
     
-    // Connection acquisition methods
+    /** Obtain a connection throttler */
+    public IConnectionThrottler obtainConnectionThrottler(String[] binNames)
+    {
+      return new ConnectionThrottler(this, binNames);
+    }
+    
+    // IConnectionThrottler support methods
     
     /** Obtain connection permission.
     *@return null if we are marked as 'not alive'.
@@ -370,6 +377,21 @@ public class Throttler
       // Wait on each reserved bin in turn
       // MHL
       return new FetchThrottler(this, binNames);
+    }
+    
+    /** Count the number of bins that are over quota.
+    *@return Integer.MAX_VALUE if shutting down.
+    */
+    public int overConnectionQuotaCount(String[] binNames)
+    {
+      // MHL
+      return Integer.MAX_VALUE;
+    }
+    
+    /** Release connection */
+    public void releaseConnectionPermission(String[] binNames)
+    {
+      // MHL
     }
     
     // IFetchThrottler support methods
@@ -482,6 +504,57 @@ public class Throttler
       ILockManager lockManager = LockManagerFactory.make(threadContext);
       lockManager.endServiceActivity(serviceTypeName, serviceName);
     }
+  }
+  
+  /** Connection throttler implementation class.
+  * This basically stores some parameters and links back to ThrottlingGroup.
+  */
+  protected static class ConnectionThrottler implements IConnectionThrottler
+  {
+    protected final ThrottlingGroup parent;
+    protected final String[] binNames;
+    
+    public ConnectionThrottler(ThrottlingGroup parent, String[] binNames)
+    {
+      this.parent = parent;
+      this.binNames = binNames;
+    }
+    
+    /** Get permission to use a connection, which is described by the passed array of bin names.
+    * This method may block until a connection slot is available.
+    * The connection can be used multiple times until the releaseConnectionPermission() method is called.
+    * This persistence feature is meant to allow connections to be pooled locally by the caller.
+    *@return the fetch throttler to use when performing fetches from the corresponding connection, or null if the system is being shut down.
+    */
+    @Override
+    public IFetchThrottler obtainConnectionPermission()
+      throws InterruptedException
+    {
+      return parent.obtainConnectionPermission(binNames);
+    }
+    
+    /** Determine whether to release a pooled connection.  This method returns the number of bins
+    * where the outstanding connection exceeds current quotas, indicating whether at least one with the specified
+    * characteristics should be released.
+    * NOTE WELL: This method cannot judge which is the best connection to be released to meet
+    * quotas.  The caller needs to do that based on the highest number of bins matched.
+    *@return the number of bins that are over quota, or zero if none of them are.
+    */
+    @Override
+    public int overConnectionQuotaCount()
+    {
+      return parent.overConnectionQuotaCount(binNames);
+    }
+    
+    /** Release permission to use one connection. This presumes that obtainConnectionPermission()
+    * was called earlier by someone and was successful.
+    */
+    @Override
+    public void releaseConnectionPermission()
+    {
+      parent.releaseConnectionPermission(binNames);
+    }
+
   }
   
   /** Fetch throttler implementation class.

@@ -41,7 +41,7 @@ public interface IConnectionThrottler
   * characteristics should be released.
   * NOTE WELL: This method cannot judge which is the best connection to be released to meet
   * quotas.  The caller needs to do that based on the highest number of bins matched.
-  *@return the number of bins that are over quota, or zero if none of them are.
+  *@return the number of bins that are over quota, or zero if none of them are.  Returns Integer.MAX_VALUE if shutting down.
   */
   public int overConnectionQuotaCount();
   
