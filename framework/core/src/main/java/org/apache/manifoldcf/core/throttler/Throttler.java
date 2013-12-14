@@ -370,12 +370,52 @@ public class Throttler
     public IFetchThrottler obtainConnectionPermission(String[] binNames)
       throws InterruptedException
     {
-      // First, make sure all the bins exist
-      // MHL
-      // Reserve a slot in all bins
-      // MHL
-      // Wait on each reserved bin in turn
-      // MHL
+      // First, make sure all the bins exist, and reserve a slot in each
+      int i = 0;
+      while (i < binNames.length)
+      {
+        String binName = binNames[i];
+        ConnectionBin bin;
+        synchronized (connectionBins)
+        {
+          bin = connectionBins.get(binName);
+          if (bin == null)
+          {
+            bin = new ConnectionBin(binName);
+            connectionBins.put(binName, bin);
+          }
+        }
+        // Reserve a slot
+        if (!bin.reserveAConnection())
+        {
+          // Release previous reservations, and return null
+          while (i > 0)
+          {
+            i--;
+            binName = binNames[i];
+            synchronized (connectionBins)
+            {
+              bin = connectionBins.get(binName);
+            }
+            if (bin != null)
+              bin.clearReservation();
+          }
+          return null;
+        }
+        i++;
+      }
+      
+      // All reservations have been made!  Convert them.
+      for (String binName : binNames)
+      {
+        ConnectionBin bin;
+        synchronized (connectionBins)
+        {
+          bin = connectionBins.get(binName);
+        }
+        if (bin != null)
+          bin.noteConnectionCreation();
+      }
       return new FetchThrottler(this, binNames);
     }
     
@@ -391,7 +431,16 @@ public class Throttler
     /** Release connection */
     public void releaseConnectionPermission(String[] binNames)
     {
-      // MHL
+      for (String binName : binNames)
+      {
+        ConnectionBin bin;
+        synchronized (connectionBins)
+        {
+          bin = connectionBins.get(binName);
+        }
+        if (bin != null)
+          bin.noteConnectionDestruction();
+      }
     }
     
     // IFetchThrottler support methods

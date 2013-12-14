@@ -41,6 +41,8 @@ import org.apache.manifoldcf.core.system.ManifoldCF;
 */
 public class ConnectionBin
 {
+  /** True if this bin is alive still */
+  protected boolean isAlive = true;
   /** This is the bin name which this connection pool belongs to */
   protected final String binName;
   /** This is the maximum number of active connections allowed for this bin */
@@ -74,8 +76,10 @@ public class ConnectionBin
   }
 
   /** Reserve a connection from this bin.  If there is no connection yet available to reserve, wait
-  * until there is. */
-  public synchronized void reserveAConnection()
+  * until there is.
+  *@return false if the wait was aborted because the bin became inactivated.
+  */
+  public synchronized boolean reserveAConnection()
     throws InterruptedException
   {
     // Reserved connections keep a slot available which can't be used by anyone else.
@@ -84,10 +88,12 @@ public class ConnectionBin
     // and convert the reservation to a new connection.
     while (true)
     {
+      if (!isAlive)
+        return false;
       if (inUseConnections + reservedConnections < maxActiveConnections)
       {
         reservedConnections++;
-        return;
+        return true;
       }
       // Wait for a connection to free up.  Note that it is up to the caller to free stuff up.
       wait();
@@ -130,6 +136,14 @@ public class ConnectionBin
   public synchronized int countConnections()
   {
     return inUseConnections;
+  }
+  
+  /** Shut down the bin, and release everything that is waiting on it.
+  */
+  public synchronized void shutDown()
+  {
+    isAlive = false;
+    notifyAll();
   }
 }
 
