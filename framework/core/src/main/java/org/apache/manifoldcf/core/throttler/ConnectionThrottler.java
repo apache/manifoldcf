@@ -86,14 +86,21 @@ public class ConnectionThrottler implements IConnectionThrottler
   *@param throttleGroupType is the throttle group type.
   *@param throttleGroup is the throttle group.
   *@param binNames is the set of bin names to throttle for, within the throttle group.
-  *@return the fetch throttler to use when performing fetches from the corresponding connection.
+  *@return the fetch throttler to use when performing fetches from the corresponding connection, or null if the system is being shut down.
   */
   @Override
   public IFetchThrottler obtainConnectionPermission(String throttleGroupType , String throttleGroup,
     String[] binNames)
     throws ManifoldCFException
   {
-    return throttler.obtainConnectionPermission(threadContext, throttleGroupType, throttleGroup, binNames);
+    try
+    {
+      return throttler.obtainConnectionPermission(throttleGroupType, throttleGroup, binNames);
+    }
+    catch (InterruptedException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
+    }
   }
   
   /** Determine whether to release a pooled connection.  This method returns the number of bins
@@ -110,7 +117,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   public int overConnectionQuotaCount(String throttleGroupType, String throttleGroup, String[] binNames)
     throws ManifoldCFException
   {
-    return throttler.overConnectionQuotaCount(threadContext, throttleGroupType, throttleGroup, binNames);
+    return throttler.overConnectionQuotaCount(throttleGroupType, throttleGroup, binNames);
   }
   
   /** Release permission to use one connection. This presumes that obtainConnectionPermission()
@@ -123,7 +130,7 @@ public class ConnectionThrottler implements IConnectionThrottler
   public void releaseConnectionPermission(String throttleGroupType, String throttleGroup, String[] binNames)
     throws ManifoldCFException
   {
-    throttler.releaseConnectionPermission(threadContext, throttleGroupType, throttleGroup, binNames);
+    throttler.releaseConnectionPermission(throttleGroupType, throttleGroup, binNames);
   }
   
   /** Poll periodically, to update cluster-wide statistics and allocation.

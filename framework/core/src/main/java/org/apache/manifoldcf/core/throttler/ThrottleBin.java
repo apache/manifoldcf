@@ -81,8 +81,8 @@ public class ThrottleBin
   protected long seriesStartTime = -1L;
   /** Total actual bytes read in this series; this includes fetches in progress */
   protected long totalBytesRead = -1L;
-  /** The minimum milliseconds per byte per server */
-  protected double minimumMillisecondsPerBytePerServer = Double.MAX_VALUE;
+  /** The minimum milliseconds per byte */
+  protected double minimumMillisecondsPerByte = Double.MAX_VALUE;
   
   /** Constructor. */
   public ThrottleBin(String binName)
@@ -97,9 +97,9 @@ public class ThrottleBin
   }
 
   /** Update minimumMillisecondsPerBytePerServer */
-  public void updateMinimumMillisecondsPerBytePerServer(double min)
+  public void updateMinimumMillisecondsPerByte(double min)
   {
-    this.minimumMillisecondsPerBytePerServer = min;
+    this.minimumMillisecondsPerByte = min;
   }
   
   /** Note the start of a fetch operation for a bin.  Call this method just before the actual stream access begins.
@@ -172,7 +172,7 @@ public class ThrottleBin
         long estimatedTime = (long)(rateEstimate * (double)byteCount);
 
         // Figure out how long the total byte count should take, to meet the constraint
-        long desiredEndTime = seriesStartTime + (long)(((double)totalBytesRead) * minimumMillisecondsPerBytePerServer);
+        long desiredEndTime = seriesStartTime + (long)(((double)totalBytesRead) * minimumMillisecondsPerByte);
 
         // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
         // current time.  But it can't be negative.

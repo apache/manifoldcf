@@ -34,7 +34,7 @@ public interface IFetchThrottler
   * releaseFetchDocumentPermission() to note the completion of the document
   * fetch activity.
   *@param currentTime is the current time, in ms. since epoch.
-  *@return the stream throttler to use to throttle the actual data access.
+  *@return the stream throttler to use to throttle the actual data access, or null if the system is being shut down.
   */
   public IStreamThrottler obtainFetchDocumentPermission(long currentTime)
     throws InterruptedException;

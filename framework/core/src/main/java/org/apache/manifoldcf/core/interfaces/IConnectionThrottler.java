@@ -60,7 +60,7 @@ public interface IConnectionThrottler
   *@param throttleGroupType is the throttle group type.
   *@param throttleGroup is the throttle group.
   *@param binNames is the set of bin names to throttle for, within the throttle group.
-  *@return the fetch throttler to use when performing fetches from the corresponding connection.
+  *@return the fetch throttler to use when performing fetches from the corresponding connection, or null if the system is being shut down.
   */
   public IFetchThrottler obtainConnectionPermission(String throttleGroupType , String throttleGroup,
     String[] binNames)

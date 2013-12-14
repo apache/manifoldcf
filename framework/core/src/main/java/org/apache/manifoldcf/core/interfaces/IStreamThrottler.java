@@ -33,8 +33,9 @@ public interface IStreamThrottler
   * to this specific interface object, so it is unnecessary to include them here.
   *@param currentTime is the current time, in ms. since epoch.
   *@param byteCount is the number of bytes to get permissions to read.
+  *@return true if the wait took place as planned, or false if the system is being shut down.
   */
-  public void obtainReadPermission(long currentTime, int byteCount)
+  public boolean obtainReadPermission(long currentTime, int byteCount)
     throws InterruptedException;
     
   /** Note the completion of the read of a block of bytes.  Call this after

@@ -52,6 +52,17 @@ public class Throttler
   {
   }
   
+  // There are a lot of synchronizers to coordinate here.  They are indeed hierarchical.  It is not possible to simply
+  // throw a synchronizer at every level, and require that we hold all of them, because when we wait somewhere in the
+  // inner level, we will continue to hold locks and block access to all the outer levels.
+  //
+  // Instead, I've opted for a model whereby individual resources are protected.  This is tricky to coordinate, though,
+  // because (for instance) after a resource has been removed from the hash table, it had better be cleaned up
+  // thoroughly before the outer lock is removed, or two versions of the resource might wind up coming into existence.
+  // The general rule is therefore:
+  // (1) Creation or deletion of resources involves locking the parent where the resource is being added or removed
+  // (2) Anything that waits CANNOT also add or remove.
+  
   /** Get all existing throttle groups for a throttle group type.
   * The throttle group type typically describes a connector class, while the throttle group represents
   * a namespace of bin names specific to that connector class.
@@ -74,15 +85,14 @@ public class Throttler
   public void removeThrottleGroup(IThreadContext threadContext, String throttleGroupType, String throttleGroup)
     throws ManifoldCFException
   {
-    ThrottlingGroups tg;
+    // Removal.  Lock the whole hierarchy.
     synchronized (throttleGroupsHash)
     {
-      tg = throttleGroupsHash.get(throttleGroupType);
-    }
-
-    if (tg != null)
-    {
-      tg.removeThrottleGroup(threadContext, throttleGroup);
+      ThrottlingGroups tg = throttleGroupsHash.get(throttleGroupType);
+      if (tg != null)
+      {
+        tg.removeThrottleGroup(threadContext, throttleGroup);
+      }
     }
   }
   
@@ -95,18 +105,17 @@ public class Throttler
   public void updateThrottleSpecification(IThreadContext threadContext, String throttleGroupType, String throttleGroup, IThrottleSpec throttleSpec)
     throws ManifoldCFException
   {
-    ThrottlingGroups tg;
+    // Potential addition.  Lock the whole hierarchy.
     synchronized (throttleGroupsHash)
     {
-      tg = throttleGroupsHash.get(throttleGroupType);
+      ThrottlingGroups tg = throttleGroupsHash.get(throttleGroupType);
       if (tg == null)
       {
         tg = new ThrottlingGroups(throttleGroupType);
         throttleGroupsHash.put(throttleGroupType, tg);
       }
+      tg.updateThrottleSpecification(threadContext, throttleGroup, throttleSpec);
     }
-    
-    tg.updateThrottleSpecification(threadContext, throttleGroup, throttleSpec);
   }
 
   /** Get permission to use a connection, which is described by the passed array of bin names.
@@ -116,14 +125,26 @@ public class Throttler
   *@param throttleGroupType is the throttle group type.
   *@param throttleGroup is the throttle group.
   *@param binNames is the set of bin names to throttle for, within the throttle group.
-  *@return the fetch throttler to use when performing fetches from the corresponding connection.
+  *@return the fetch throttler to use when performing fetches from the corresponding connection, or null if the system is being shut down.
   */
-  public IFetchThrottler obtainConnectionPermission(IThreadContext threadContext, String throttleGroupType , String throttleGroup,
+  public IFetchThrottler obtainConnectionPermission(String throttleGroupType , String throttleGroup,
     String[] binNames)
-    throws ManifoldCFException
+    throws InterruptedException
   {
-    // MHL
-    return null;
+    // This method may wait at the innermost level.  We therefore do not lock the hierarchy, BUT
+    // we must code for the possibility that the hierarchy is fluid, and may dissolve.  Under such
+    // conditions we could simply retry.  But in this case, the hierarchy has state: there is an
+    // explicit creation step (updateThrottleSpecification) that must be called to establish the
+    // innermost object and set it up correctly.  It is therefore meaningful if we do not find
+    // the expected structure: we return null in that case.
+    ThrottlingGroups tg;
+    synchronized (throttleGroupsHash)
+    {
+      tg = throttleGroupsHash.get(throttleGroupType);
+    }
+    if (tg == null)
+      return null;
+    return tg.obtainConnectionPermission(throttleGroup, binNames);
   }
   
   /** Determine whether to release a pooled connection.  This method returns the number of bins
@@ -136,11 +157,14 @@ public class Throttler
   *@param binNames is the set of bin names to throttle for, within the throttle group.
   *@return the number of bins that are over quota, or zero if none of them are.
   */
-  public int overConnectionQuotaCount(IThreadContext threadContext, String throttleGroupType, String throttleGroup, String[] binNames)
-    throws ManifoldCFException
+  public int overConnectionQuotaCount(String throttleGroupType, String throttleGroup, String[] binNames)
   {
-    // MHL
-    return 0;
+    // No waiting, so it is OK to lock everything.
+    synchronized (throttleGroupsHash)
+    {
+      // MHL
+      return 0;
+    }
   }
   
   /** Release permission to use one connection. This presumes that obtainConnectionPermission()
@@ -149,10 +173,13 @@ public class Throttler
   *@param throttleGroup is the throttle group.
   *@param binNames is the set of bin names to throttle for, within the throttle group.
   */
-  public void releaseConnectionPermission(IThreadContext threadContext, String throttleGroupType, String throttleGroup, String[] binNames)
-    throws ManifoldCFException
+  public void releaseConnectionPermission(String throttleGroupType, String throttleGroup, String[] binNames)
   {
-    // MHL
+    // No waiting, so it is ok to lock the entire tree.
+    synchronized (throttleGroupsHash)
+    {
+      // MHL
+    }
   }
   
   /** Poll periodically.
@@ -160,15 +187,13 @@ public class Throttler
   public void poll(IThreadContext threadContext, String throttleGroupType)
     throws ManifoldCFException
   {
-    // Find the right pool, and poll that
-    ThrottlingGroups tg;
+    // No waiting, so lock the entire tree.
     synchronized (throttleGroupsHash)
     {
-      tg = throttleGroupsHash.get(throttleGroupType);
+      ThrottlingGroups tg = throttleGroupsHash.get(throttleGroupType);
+      if (tg != null)
+        tg.poll(threadContext);
     }
-    
-    if (tg != null)
-      tg.poll(threadContext);
       
   }
   
@@ -177,6 +202,7 @@ public class Throttler
   public void freeUnusedResources(IThreadContext threadContext)
     throws ManifoldCFException
   {
+    // This potentially affects the entire hierarchy.
     // Go through the whole pool and clean it out
     synchronized (throttleGroupsHash)
     {
@@ -194,6 +220,7 @@ public class Throttler
   public void destroy(IThreadContext threadContext)
     throws ManifoldCFException
   {
+    // This affects the entire hierarchy, so lock the whole thing.
     // Go through the whole pool and clean it out
     synchronized (throttleGroupsHash)
     {
@@ -249,8 +276,25 @@ public class Throttler
       }
     }
     
+    /** Obtain connection permission.
+    *@return null if the hierarchy has changed!
+    */
+    public IFetchThrottler obtainConnectionPermission(String throttleGroup, String[] binNames)
+      throws InterruptedException
+    {
+      // Can't lock the hierarchy here.
+      ThrottlingGroup g;
+      synchronized (groups)
+      {
+        g = groups.get(throttleGroup);
+      }
+      if (g == null)
+        return null;
+      return g.obtainConnectionPermission(binNames);
+    }
+
     /** Remove specified throttle group */
-    public synchronized void removeThrottleGroup(IThreadContext threadContext, String throttleGroup)
+    public void removeThrottleGroup(IThreadContext threadContext, String throttleGroup)
       throws ManifoldCFException
     {
       // Must synch the whole thing, because otherwise there would be a risk of someone recreating the
@@ -265,7 +309,8 @@ public class Throttler
       }
     }
     
-    /** Poll this set of throttle groups */
+    /** Poll this set of throttle groups.
+    */
     public void poll(IThreadContext threadContext)
       throws ManifoldCFException
     {
@@ -360,7 +405,20 @@ public class Throttler
       this.throttleSpec = throttleSpec;
     }
     
-    // MHL
+    /** Obtain connection permission.
+    *@return null if we are marked as 'not alive'.
+    */
+    public IFetchThrottler obtainConnectionPermission(String[] binNames)
+      throws InterruptedException
+    {
+      // First, make sure all the bins exist
+      // MHL
+      // Reserve a slot in all bins
+      // MHL
+      // Wait on each reserved bin in turn
+      // MHL
+      return null;
+    }
     
     /** Call this periodically.
     */
@@ -391,7 +449,7 @@ public class Throttler
       {
         for (ThrottleBin bin : throttleBins.values())
         {
-          bin.updateMinimumMillisecondsPerBytePerServer(throttleSpec.getMinimumMillisecondsPerByte(bin.getBinName()));
+          bin.updateMinimumMillisecondsPerByte(throttleSpec.getMinimumMillisecondsPerByte(bin.getBinName()));
         }
       }
       
