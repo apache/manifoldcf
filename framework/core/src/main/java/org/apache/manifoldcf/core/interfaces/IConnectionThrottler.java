@@ -21,33 +21,92 @@ package org.apache.manifoldcf.core.interfaces;
 import java.util.*;
 
 /** An IConnectionThrottler object is not thread-local.  It gates connection
-* creation.
+* creation and pool management.
+* The underlying model is a pool of connections.  A connection gets pulled off the pool and
+* used to perform a fetch.  If there are insufficient connections in the pool, and there is
+* sufficient capacity to create a new connection, a connection will be created instead.
+* When the fetch is done, the connection is returned, and then there is a decision whether
+* or not to put the connection back into the pool, or to destroy it.  Finally, the pool is
+* periodically evaluated, and connections may be destroyed if either they have expired,
+* or the allocated connections are still over capacity.
+*
+* This object does not in itself contain a connection pool - but it is intended to assist
+* in the management of that pool.  Specifically, it tracks connections that are in the
+* pool, and connections that are handed out for use, and performs ALL the waiting needed
+* due to the pool being empty and/or the number of active connections being at or over
+* the quota.
 */
 public interface IConnectionThrottler
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** Get permission to use a connection, which is described by the passed array of bin names.
-  * This method may block until a connection slot is available.
-  * The connection can be used multiple times until the releaseConnectionPermission() method is called.
-  * This persistence feature is meant to allow connections to be pooled locally by the caller.
-  *@return the fetch throttler to use when performing fetches from the corresponding connection, or null if the system is being shut down.
+  // For grabbing a connection for use
+  
+  /** Get the connection from the pool */
+  public final static int CONNECTION_FROM_POOL = 0;
+  /** Create a connection */
+  public final static int CONNECTION_FROM_CREATION = 1;
+  /** Pool shutting down */
+  public final static int CONNECTION_FROM_NOWHERE = -1;
+  
+  /** Get permission to grab a connection for use.  If this object believes there is a connection
+  * available in the pool, it will update its pool size variable and return   If not, this method
+  * evaluates whether a new connection should be created.  If neither condition is true, it
+  * waits until a connection is available.
+  *@return whether to take the connection from the pool, or create one, or whether the
+  * throttler is being shut down.
   */
-  public IFetchThrottler obtainConnectionPermission()
+  public int waitConnectionAvailable()
     throws InterruptedException;
   
-  /** Determine whether to release a pooled connection.  This method returns the number of bins
-  * where the outstanding connection exceeds current quotas, indicating whether at least one with the specified
-  * characteristics should be released.
-  * NOTE WELL: This method cannot judge which is the best connection to be released to meet
-  * quotas.  The caller needs to do that based on the highest number of bins matched.
-  *@return the number of bins that are over quota, or zero if none of them are.  Returns Integer.MAX_VALUE if shutting down.
+  /** For a new connection, obtain the fetch throttler to use for the connection.
+  * If the result from waitConnectionAvailable() is CONNECTION_FROM_CREATION,
+  * the calling code is expected to create a connection using the result of this method.
+  *@return the fetch throttler for a new connection.
   */
-  public int overConnectionQuotaCount();
+  public IFetchThrottler getNewConnectionFetchThrottler();
   
-  /** Release permission to use one connection. This presumes that obtainConnectionPermission()
-  * was called earlier by someone and was successful.
+  /** This method indicates whether a formerly in-use connection should be placed back
+  * in the pool or destroyed.
+  *@return true if the connection should not be put into the pool but should instead
+  *  simply be destroyed.  If true is returned, the caller MUST call noteConnectionDestroyed()
+  *  after the connection is destroyed in order for the bookkeeping to work.  If false
+  *  is returned, the caller MUST call noteConnectionReturnedToPool() after the connection
+  *  is returned to the pool.
   */
-  public void releaseConnectionPermission();
+  public boolean noteReturnedConnection();
+  
+  /** This method calculates whether a connection should be taken from the pool and destroyed
+  /* in order to meet quota requirements.  If this method returns
+  /* true, you MUST remove a connection from the pool, and you MUST call
+  /* noteConnectionDestroyed() afterwards.
+  *@return true if a pooled connection should be destroyed.  If true is returned, the
+  * caller MUST call noteConnectionDestroyed() (below) in order for the bookkeeping to work.
+  */
+  public boolean checkDestroyPooledConnection();
+  
+  /** Connection expiration is tricky, because even though a connection may be identified as
+  * being expired, at the very same moment it could be handed out in another thread.  So there
+  * is a natural race condition present.
+  * The way the connection throttler deals with that is to allow the caller to reserve a connection
+  * for expiration.  This must be called BEFORE the actual identified connection is removed from the
+  * connection pool.  If the value returned by this method is "true", then a connection MUST be removed
+  * from the pool and destroyed, whether or not the identified connection is actually still available for
+  * destruction or not.
+  *@return true if a connection from the pool can be expired.  If true is returned, noteConnectionDestruction()
+  *  MUST be called once the connection has actually been destroyed.
+  */
+  public boolean checkExpireConnection();
+  
+  /** Note that a connection has been returned to the pool.  Call this method after a connection has been
+  * placed back into the pool and is available for use.
+  */
+  public void noteConnectionReturnedToPool();
+  
+  /** Note that a connection has been destroyed.  Call this method ONLY after noteReturnedConnection()
+  * or checkDestroyPooledConnection() returns true, AND the connection has been already
+  * destroyed.
+  */
+  public void noteConnectionDestroyed();
   
 }

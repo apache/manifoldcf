@@ -20,6 +20,7 @@ package org.apache.manifoldcf.core.throttler;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.ManifoldCF;
+import java.util.concurrent.atomic.*;
 
 /** Connection tracking for a bin.
 *
@@ -75,39 +76,60 @@ public class ConnectionBin
     notifyAll();
   }
 
-  /** Reserve a connection from this bin.  If there is no connection yet available to reserve, wait
-  * until there is.
-  *@return false if the wait was aborted because the bin became inactivated.
+  /** Wait for a connection to become available, in the context of an existing connection pool.
+  *@param poolCount is the number of connections in the pool times the number of bins per connection.
+  * This parameter is only ever changed in this class!!
+  *@return a recommendation as to how to proceed, using the IConnectionThrottler values.  If the
+  * recommendation is to create a connection, a slot will be reserved for that purpose.  A
+  * subsequent call to noteConnectionCreation() will be needed to confirm the reservation, or clearReservation() to
+  * release the reservation.
   */
-  public synchronized boolean reserveAConnection()
+  public synchronized int waitConnectionAvailable(AtomicInteger poolCount)
     throws InterruptedException
   {
     // Reserved connections keep a slot available which can't be used by anyone else.
     // Connection bins are always sorted so that deadlocks can't occur.
     // Once all slots are reserved, the caller will go ahead and create the necessary connection
     // and convert the reservation to a new connection.
+    
     while (true)
     {
       if (!isAlive)
-        return false;
+        return IConnectionThrottler.CONNECTION_FROM_NOWHERE;
+      int currentPoolCount = poolCount.get();
+      if (currentPoolCount > 0)
+      {
+        // Recommendation is to pull the connection from the pool.
+        poolCount.set(currentPoolCount - 1);
+        return IConnectionThrottler.CONNECTION_FROM_POOL;
+      }
       if (inUseConnections + reservedConnections < maxActiveConnections)
       {
         reservedConnections++;
-        return true;
+        return IConnectionThrottler.CONNECTION_FROM_CREATION;
       }
       // Wait for a connection to free up.  Note that it is up to the caller to free stuff up.
       wait();
     }
   }
   
-  /** Clear reservation.
+  /** Undo what we had decided to do before.
+  *@param recommendation is the decision returned by waitForConnection() above.
   */
-  public synchronized void clearReservation()
+  public synchronized void undoReservation(int recommendation, AtomicInteger poolCount)
   {
-    if (reservedConnections == 0)
-      throw new IllegalStateException("Can't clear a reservation we don't have");
-    reservedConnections--;
-    notifyAll();
+    if (recommendation == IConnectionThrottler.CONNECTION_FROM_CREATION)
+    {
+      if (reservedConnections == 0)
+        throw new IllegalStateException("Can't clear a reservation we don't have");
+      reservedConnections--;
+      notifyAll();
+    }
+    else if (recommendation == IConnectionThrottler.CONNECTION_FROM_POOL)
+    {
+      poolCount.set(poolCount.get() + 1);
+      notifyAll();
+    }
   }
   
   /** Note the creation of an active connection that belongs to this bin.  The connection MUST
@@ -122,22 +144,31 @@ public class ConnectionBin
     // No notification needed because the total number of reserved+active connections did not change.
   }
 
+  /** Figure out whether we are currently over target or not for this bin.
+  */
+  public synchronized boolean shouldReturnedConnectionBeDestroyed()
+  {
+    // We don't count reserved connections here because those are not yet committed
+    return inUseConnections > maxActiveConnections;
+  }
+  
+  /** Note a connection returned to the pool.
+  */
+  public synchronized void noteConnectionReturnedToPool(AtomicInteger poolCount)
+  {
+    poolCount.set(poolCount.get() + 1);
+    // Wake up threads possibly waiting on a pool return.
+    notifyAll();
+  }
+  
   /** Note the destruction of an active connection that belongs to this bin.
   */
-  public synchronized void noteConnectionDestruction()
+  public synchronized void noteConnectionDestroyed()
   {
     inUseConnections--;
     notifyAll();
   }
 
-  /** Count connections that are active.
-  *@return connections that are in use.
-  */
-  public synchronized int countConnections()
-  {
-    return inUseConnections;
-  }
-  
   /** Shut down the bin, and release everything that is waiting on it.
   */
   public synchronized void shutDown()

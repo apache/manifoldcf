@@ -20,6 +20,7 @@ package org.apache.manifoldcf.core.throttler;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
+import java.util.concurrent.atomic.*;
 
 /** A Throttler object creates a virtual pool of connections to resources
 * whose access needs to be throttled in number, rate of use, and byte rate.
@@ -364,72 +365,124 @@ public class Throttler
     
     // IConnectionThrottler support methods
     
-    /** Obtain connection permission.
-    *@return null if we are marked as 'not alive'.
+    /** Wait for a connection to become available.
+    *@param poolCount is a description of how many connections
+    * are available in the current pool, across all bins.
+    *@return the IConnectionThrottler codes for results.
     */
-    public IFetchThrottler obtainConnectionPermission(String[] binNames)
+    public int waitConnectionAvailable(String[] binNames, AtomicInteger poolCount)
       throws InterruptedException
     {
-      // First, make sure all the bins exist, and reserve a slot in each
-      int i = 0;
-      while (i < binNames.length)
+      // Each bin can signal something different.  Bins that signal
+      // CONNECTION_FROM_NOWHERE are shutting down, but there's also
+      // apparently the conflicting possibilities of distinct answers of
+      // CONNECTION_FROM_POOL and CONNECTION_FROM_CREATION.
+      // However: the pool count we track is in fact N * the actual pool count,
+      // where N is the number of bins in each connection.  This means that a conflict 
+      // is ALWAYS due to two entities simultaneously calling waitConnectionAvailable(),
+      // and deadlocking each other.  The solution is therefore to back off and retry.
+
+      // This is the retry loop
+      while (true)
       {
-        String binName = binNames[i];
-        ConnectionBin bin;
-        synchronized (connectionBins)
+        int currentRecommendation = IConnectionThrottler.CONNECTION_FROM_NOWHERE;
+        
+        boolean retry = false;
+
+        // First, make sure all the bins exist, and reserve a slot in each
+        int i = 0;
+        while (i < binNames.length)
         {
-          bin = connectionBins.get(binName);
-          if (bin == null)
+          String binName = binNames[i];
+          ConnectionBin bin;
+          synchronized (connectionBins)
           {
-            bin = new ConnectionBin(binName);
-            connectionBins.put(binName, bin);
+            bin = connectionBins.get(binName);
+            if (bin == null)
+            {
+              bin = new ConnectionBin(binName);
+              connectionBins.put(binName, bin);
+            }
           }
-        }
-        // Reserve a slot
-        if (!bin.reserveAConnection())
-        {
-          // Release previous reservations, and return null
-          while (i > 0)
+          // Reserve a slot
+          int result = bin.waitConnectionAvailable(poolCount);
+          if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE ||
+            (currentRecommendation != IConnectionThrottler.CONNECTION_FROM_NOWHERE && currentRecommendation != result))
           {
-            i--;
-            binName = binNames[i];
+            // Release previous reservations, and either return, or retry
+            while (i > 0)
+            {
+              i--;
+              binName = binNames[i];
+              synchronized (connectionBins)
+              {
+                bin = connectionBins.get(binName);
+              }
+              if (bin != null)
+                bin.undoReservation(currentRecommendation, poolCount);
+            }
+            if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
+              return result;
+            // Break out of the outer loop so we can retry
+            retry = true;
+            break;
+          }
+          if (currentRecommendation == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
+            currentRecommendation = result;
+          i++;
+        }
+        
+        if (retry)
+          continue;
+        
+        // Complete the reservation process (if that is what we decided)
+        if (currentRecommendation == IConnectionThrottler.CONNECTION_FROM_CREATION)
+        {
+          // All reservations have been made!  Convert them.
+          for (String binName : binNames)
+          {
+            ConnectionBin bin;
             synchronized (connectionBins)
             {
               bin = connectionBins.get(binName);
             }
             if (bin != null)
-              bin.clearReservation();
+              bin.noteConnectionCreation();
           }
-          return null;
         }
-        i++;
+
+        return currentRecommendation;
       }
       
-      // All reservations have been made!  Convert them.
-      for (String binName : binNames)
-      {
-        ConnectionBin bin;
-        synchronized (connectionBins)
-        {
-          bin = connectionBins.get(binName);
-        }
-        if (bin != null)
-          bin.noteConnectionCreation();
-      }
+    }
+    
+    public IFetchThrottler getNewConnectionFetchThrottler(String[] binNames)
+    {
       return new FetchThrottler(this, binNames);
     }
     
-    /** Count the number of bins that are over quota.
-    *@return Integer.MAX_VALUE if shutting down.
-    */
-    public int overConnectionQuotaCount(String[] binNames)
+    public boolean noteReturnedConnection(String[] binNames)
     {
-      // MHL
-      return Integer.MAX_VALUE;
+      // If ANY of the bins think the connection should be destroyed, then that will be
+      // the recommendation.
+      synchronized (connectionBins)
+      {
+        boolean destroyConnection = false;
+
+        for (String binName : binNames)
+        {
+          ConnectionBin bin = connectionBins.get(binName);
+          if (bin != null)
+          {
+            destroyConnection |= bin.shouldReturnedConnectionBeDestroyed();
+          }
+        }
+        
+        return destroyConnection;
+      }
     }
     
-    /** Release connection */
-    public void releaseConnectionPermission(String[] binNames)
+    public void noteConnectionReturnedToPool(String[] binNames, AtomicInteger poolCount)
     {
       synchronized (connectionBins)
       {
@@ -437,7 +490,20 @@ public class Throttler
         {
           ConnectionBin bin = connectionBins.get(binName);
           if (bin != null)
-            bin.noteConnectionDestruction();
+            bin.noteConnectionReturnedToPool(poolCount);
+        }
+      }
+    }
+
+    public void noteConnectionDestroyed(String[] binNames)
+    {
+      synchronized (connectionBins)
+      {
+        for (String binName : binNames)
+        {
+          ConnectionBin bin = connectionBins.get(binName);
+          if (bin != null)
+            bin.noteConnectionDestroyed();
         }
       }
     }
@@ -657,7 +723,7 @@ public class Throttler
     public synchronized void freeUnusedResources(IThreadContext threadContext)
       throws ManifoldCFException
     {
-      // MHL
+      // Does nothing; there are not really resources to free
     }
     
     /** Destroy this pool.
@@ -707,54 +773,124 @@ public class Throttler
   }
   
   /** Connection throttler implementation class.
-  * This basically stores some parameters and links back to ThrottlingGroup.
+  * This class instance stores some parameters and links back to ThrottlingGroup.  But each class instance
+  * models a connection pool with the specified bins.  But the description of each pool consists of more than just
+  * the bin names that describe the throttling - it also may include connection parameters which we have
+  * no insight into at this level.
+  *
+  * Thus, in order to do pool tracking properly, we cannot simply rely on the individual connection bin instances
+  * to do all the work, since they cannot distinguish between different pools properly.  So that leaves us with
+  * two choices.  (1) We can somehow push the separate pool instance parameters down to the connection bin
+  * level, or (2) the connection bins cannot actually do any waiting or blocking.
+  *
+  * The benefit of having blocking take place in connection bins is that they are in fact designed to be precisely
+  * the thing you would want to synchronize on.   If we presume that the waits happen in those classes,
+  * then we need the ability to send in our local pool count to them, and we need to be able to "wake up"
+  * those underlying classes when the local pool count changes.
   */
   protected static class ConnectionThrottler implements IConnectionThrottler
   {
     protected final ThrottlingGroup parent;
     protected final String[] binNames;
     
+    // Keep track of local pool parameters.
+
+    /** This is the number of connections in the pool, times the number of bins per connection */
+    protected final AtomicInteger poolCount = new AtomicInteger(0);
+
     public ConnectionThrottler(ThrottlingGroup parent, String[] binNames)
     {
       this.parent = parent;
       this.binNames = binNames;
     }
     
-    /** Get permission to use a connection, which is described by the passed array of bin names.
-    * This method may block until a connection slot is available.
-    * The connection can be used multiple times until the releaseConnectionPermission() method is called.
-    * This persistence feature is meant to allow connections to be pooled locally by the caller.
-    *@return the fetch throttler to use when performing fetches from the corresponding connection, or null if the system is being shut down.
+    /** Get permission to grab a connection for use.  If this object believes there is a connection
+    * available in the pool, it will update its pool size variable and return   If not, this method
+    * evaluates whether a new connection should be created.  If neither condition is true, it
+    * waits until a connection is available.
+    *@return whether to take the connection from the pool, or create one, or whether the
+    * throttler is being shut down.
     */
     @Override
-    public IFetchThrottler obtainConnectionPermission()
+    public int waitConnectionAvailable()
       throws InterruptedException
     {
-      return parent.obtainConnectionPermission(binNames);
+      return parent.waitConnectionAvailable(binNames, poolCount);
     }
     
-    /** Determine whether to release a pooled connection.  This method returns the number of bins
-    * where the outstanding connection exceeds current quotas, indicating whether at least one with the specified
-    * characteristics should be released.
-    * NOTE WELL: This method cannot judge which is the best connection to be released to meet
-    * quotas.  The caller needs to do that based on the highest number of bins matched.
-    *@return the number of bins that are over quota, or zero if none of them are.
+    /** For a new connection, obtain the fetch throttler to use for the connection.
+    * If the result from waitConnectionAvailable() is CONNECTION_FROM_CREATION,
+    * the calling code is expected to create a connection using the result of this method.
+    *@return the fetch throttler for a new connection.
     */
     @Override
-    public int overConnectionQuotaCount()
+    public IFetchThrottler getNewConnectionFetchThrottler()
     {
-      return parent.overConnectionQuotaCount(binNames);
+      return parent.getNewConnectionFetchThrottler(binNames);
     }
     
-    /** Release permission to use one connection. This presumes that obtainConnectionPermission()
-    * was called earlier by someone and was successful.
+    /** For returning a connection from use, there is only one method.  This method signals
+    /* whether a formerly in-use connection should be placed back in the pool or destroyed.
+    *@return true if the connection should NOT be put into the pool but should instead
+    *  simply be destroyed.  If true is returned, the caller MUST call noteConnectionDestroyed()
+    *  (below) in order for the bookkeeping to work.
     */
     @Override
-    public void releaseConnectionPermission()
+    public boolean noteReturnedConnection()
     {
-      parent.releaseConnectionPermission(binNames);
+      return parent.noteReturnedConnection(binNames);
+    }
+    
+    /** This method calculates whether a connection should be taken from the pool and destroyed
+    /* in order to meet quota requirements.  If this method returns
+    /* true, you MUST remove a connection from the pool, and you MUST call
+    /* noteConnectionDestroyed() afterwards.
+    *@return true if a pooled connection should be destroyed.  If true is returned, the
+    * caller MUST call noteConnectionDestroyed() (below) in order for the bookkeeping to work.
+    */
+    @Override
+    public boolean checkDestroyPooledConnection()
+    {
+      // MHL
+      return false;
+    }
+    
+    /** Connection expiration is tricky, because even though a connection may be identified as
+    * being expired, at the very same moment it could be handed out in another thread.  So there
+    * is a natural race condition present.
+    * The way the connection throttler deals with that is to allow the caller to reserve a connection
+    * for expiration.  This must be called BEFORE the actual identified connection is removed from the
+    * connection pool.  If the value returned by this method is "true", then a connection MUST be removed
+    * from the pool and destroyed, whether or not the identified connection is actually still available for
+    * destruction or not.
+    *@return true if a connection from the pool can be expired.  If true is returned, noteConnectionDestruction()
+    *  MUST be called once the connection has actually been destroyed.
+    */
+    @Override
+    public boolean checkExpireConnection()
+    {
+      // MHL
+      return false;
+    }
+    
+    /** Note that a connection has been returned to the pool.  Call this method after a connection has been
+    * placed back into the pool and is available for use.
+    */
+    @Override
+    public void noteConnectionReturnedToPool()
+    {
+      parent.noteConnectionReturnedToPool(binNames, poolCount);
     }
 
+    /** Note that a connection has been destroyed.  Call this method ONLY after noteReturnedConnection()
+    * or checkDestroyPooledConnection() returns true, AND the connection has been already
+    * destroyed.
+    */
+    @Override
+    public void noteConnectionDestroyed()
+    {
+      parent.noteConnectionDestroyed(binNames);
+    }
   }
   
   /** Fetch throttler implementation class.
