@@ -142,7 +142,6 @@ public class ThrottleBin
   public boolean beginRead(int byteCount)
     throws InterruptedException
   {
-    long currentTime = System.currentTimeMillis();
 
     synchronized (this)
     {
@@ -155,6 +154,10 @@ public class ThrottleBin
           wait();
           continue;
         }
+
+        // Update the current time
+        long currentTime = System.currentTimeMillis();
+        
         if (estimateValid == false)
         {
           seriesStartTime = currentTime;
@@ -170,6 +173,7 @@ public class ThrottleBin
 
         // Figure out how long the total byte count should take, to meet the constraint
         long desiredEndTime = seriesStartTime + (long)(((double)(totalBytesRead + (long)byteCount)) * minimumMillisecondsPerByte);
+
 
         // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
         // current time.  But it can't be negative.
@@ -208,8 +212,6 @@ public class ThrottleBin
   */
   public void endRead(int originalCount, int actualCount)
   {
-    long currentTime = System.currentTimeMillis();
-
     synchronized (this)
     {
       totalBytesRead = totalBytesRead + (long)actualCount - (long)originalCount;
@@ -219,7 +221,7 @@ public class ThrottleBin
           // Didn't actually get any bytes, so use 0.0
           rateEstimate = 0.0;
         else
-          rateEstimate = ((double)(currentTime - seriesStartTime))/(double)actualCount;
+          rateEstimate = ((double)(System.currentTimeMillis() - seriesStartTime))/(double)actualCount;
         estimateValid = true;
         estimateInProgress = false;
         notifyAll();

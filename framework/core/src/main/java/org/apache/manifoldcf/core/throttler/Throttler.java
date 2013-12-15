@@ -471,7 +471,7 @@ public class Throttler
           }
         }
         // Reserve a slot
-        if (!bin.reserveFetchRequest())
+        if (bin == null || !bin.reserveFetchRequest())
         {
           // Release previous reservations, and return null
           while (i > 0)
@@ -552,8 +552,34 @@ public class Throttler
     public boolean obtainReadPermission(String[] binNames, int byteCount)
       throws InterruptedException
     {
-      // MHL
-      return false;
+      int i = 0;
+      while (i < binNames.length)
+      {
+        String binName = binNames[i];
+        ThrottleBin bin;
+        synchronized (throttleBins)
+        {
+          bin = throttleBins.get(binName);
+        }
+        if (bin == null || bin.beginRead(byteCount))
+        {
+          // End bins we've already done, and exit
+          while (i > 0)
+          {
+            i--;
+            binName = binNames[i];
+            synchronized (throttleBins)
+            {
+              bin = throttleBins.get(binName);
+            }
+            if (bin != null)
+              bin.endRead(byteCount,0);
+          }
+          return false;
+        }
+        i++;
+      }
+      return true;
     }
       
     /** Note the completion of the read of a block of bytes.  Call this after
@@ -563,7 +589,15 @@ public class Throttler
     */
     public void releaseReadPermission(String[] binNames, int origByteCount, int actualByteCount)
     {
-      // MHL
+      synchronized (throttleBins)
+      {
+        for (String binName : binNames)
+        {
+          ThrottleBin bin = throttleBins.get(binName);
+          if (bin != null)
+            bin.endRead(origByteCount, actualByteCount);
+        }
+      }
     }
 
     /** Note the stream being closed.
