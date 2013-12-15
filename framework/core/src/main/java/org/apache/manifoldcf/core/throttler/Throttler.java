@@ -482,6 +482,58 @@ public class Throttler
       }
     }
     
+    public boolean checkDestroyPooledConnection(String[] binNames, AtomicInteger poolCount)
+    {
+      // Only if all believe we can destroy a pool connection, will we do it.
+      // This is because some pools may be empty, etc.
+      synchronized (connectionBins)
+      {
+        boolean destroyConnection = false;
+
+        int i = 0;
+        while (i < binNames.length)
+        {
+          String binName = binNames[i];
+          ConnectionBin bin = connectionBins.get(binName);
+          if (bin != null)
+          {
+            int result = bin.shouldPooledConnectionBeDestroyed(poolCount);
+            if (result == ConnectionBin.CONNECTION_POOLEMPTY)
+            {
+              // Give up now, and undo all the other bins
+              while (i > 0)
+              {
+                i--;
+                binName = binNames[i];
+                bin = connectionBins.get(binName);
+                bin.undoPooledConnectionDecision(poolCount);
+              }
+              return false;
+            }
+            else if (result == ConnectionBin.CONNECTION_DESTROY)
+            {
+              destroyConnection = true;
+            }
+          }
+          i++;
+        }
+        
+        if (destroyConnection)
+          return true;
+        
+        // Undo pool reservation, since everything is apparently within bounds.
+        for (String binName : binNames)
+        {
+          ConnectionBin bin = connectionBins.get(binName);
+          if (bin != null)
+            bin.undoPooledConnectionDecision(poolCount);
+        }
+        
+        return false;
+      }
+
+    }
+    
     public void noteConnectionReturnedToPool(String[] binNames, AtomicInteger poolCount)
     {
       synchronized (connectionBins)
@@ -851,8 +903,7 @@ public class Throttler
     @Override
     public boolean checkDestroyPooledConnection()
     {
-      // MHL
-      return false;
+      return parent.checkDestroyPooledConnection(binNames, poolCount);
     }
     
     /** Connection expiration is tricky, because even though a connection may be identified as

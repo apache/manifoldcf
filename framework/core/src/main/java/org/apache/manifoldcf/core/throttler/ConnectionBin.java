@@ -152,6 +152,42 @@ public class ConnectionBin
     return inUseConnections > maxActiveConnections;
   }
   
+  public static final int CONNECTION_DESTROY = 0;
+  public static final int CONNECTION_POOLEMPTY = 1;
+  public static final int CONNECTION_WITHINBOUNDS =2;
+  
+  /** Figure out whether we are currently over target or not for this bin, and whether a
+  * connection should be pulled from the pool and destroyed.
+  * Note that this is tricky in conjunction with other bins, because those other bins
+  * may conclude that we can't destroy a connection.  If so, we just return the stolen
+  * connection back to the pool.
+  *@return CONNECTION_DESTROY, CONNECTION_POOLEMPTY, or CONNECTION_WITHINBOUNDS.
+  */
+  public synchronized int shouldPooledConnectionBeDestroyed(AtomicInteger poolCount)
+  {
+    int currentPoolCount = poolCount.get();
+    if (currentPoolCount > 0)
+    {
+      // Consider it removed from the pool for the purposes of consideration.  If we change our minds, we'll
+      // return it, and no harm done.
+      poolCount.set(currentPoolCount-1);
+      // We don't count reserved connections here because those are not yet committed.
+      if (inUseConnections > maxActiveConnections)
+      {
+        return CONNECTION_DESTROY;
+      }
+      return CONNECTION_WITHINBOUNDS;
+    }
+    return CONNECTION_POOLEMPTY;
+  }
+
+  /** Undo the decision to destroy a pooled connection.
+  */
+  public synchronized void undoPooledConnectionDecision(AtomicInteger poolCount)
+  {
+    poolCount.set(poolCount.get() + 1);
+  }
+  
   /** Note a connection returned to the pool.
   */
   public synchronized void noteConnectionReturnedToPool(AtomicInteger poolCount)
