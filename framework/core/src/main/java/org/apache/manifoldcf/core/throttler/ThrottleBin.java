@@ -108,7 +108,6 @@ public class ThrottleBin
   * May wait until schedule allows.
   */
   public void beginFetch()
-    throws InterruptedException
   {
     synchronized (this)
     {

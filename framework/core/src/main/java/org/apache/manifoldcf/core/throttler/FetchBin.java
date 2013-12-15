@@ -66,18 +66,23 @@ public class FetchBin
   /** Reserve a request to fetch a document from this bin.  The actual fetch is not yet committed
   * with this call, but if it succeeds for all bins associated with the document, then the caller
   * has permission to do the fetch, and can update the last fetch time.
+  *@return false if the fetch bin is being shut down.
   */
-  public synchronized void reserveFetchRequest()
+  public synchronized boolean reserveFetchRequest()
     throws InterruptedException
   {
     // First wait for the ability to even get the next fetch from this bin
     while (true)
     {
+      if (!isAlive)
+        return false;
       if (!reserveNextFetch)
-        break;
+      {
+        reserveNextFetch = true;
+        return true;
+      }
       wait();
     }
-    reserveNextFetch = true;
   }
   
   /** Clear reserved request.
@@ -102,6 +107,7 @@ public class FetchBin
     while (true)
     {
       if (!isAlive)
+        // Leave it to the caller to undo reservations
         return false;
       if (minTimeBetweenFetches == Long.MAX_VALUE)
       {
@@ -114,22 +120,18 @@ public class FetchBin
         // Compute how long we have to wait, based on the current time and the time of the last fetch.
         long waitAmt = lastFetchTime + minTimeBetweenFetches - currentTime;
         if (waitAmt <= 0L)
+        {
+          // Note actual time we start the fetch.
+          if (currentTime > lastFetchTime)
+            lastFetchTime = currentTime;
+          reserveNextFetch = false;
           return true;
+        }
         wait(waitAmt);
       }
     }
   }
   
-  /** Note the beginning of fetch of a document from this bin.
-  *@param currentTime is the actual time the fetch was started.
-  */
-  public synchronized void beginFetch(long currentTime)
-  {
-    if (currentTime > lastFetchTime)
-      lastFetchTime = currentTime;
-    reserveNextFetch = false;
-  }
-
   /** Shut the bin down, and wake up all threads waiting on it.
   */
   public synchronized void shutDown()

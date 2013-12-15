@@ -431,15 +431,14 @@ public class Throttler
     /** Release connection */
     public void releaseConnectionPermission(String[] binNames)
     {
-      for (String binName : binNames)
+      synchronized (connectionBins)
       {
-        ConnectionBin bin;
-        synchronized (connectionBins)
+        for (String binName : binNames)
         {
-          bin = connectionBins.get(binName);
+          ConnectionBin bin = connectionBins.get(binName);
+          if (bin != null)
+            bin.noteConnectionDestruction();
         }
-        if (bin != null)
-          bin.noteConnectionDestruction();
       }
     }
     
@@ -453,32 +452,104 @@ public class Throttler
     *@param currentTime is the current time, in ms. since epoch.
     *@return the stream throttler to use to throttle the actual data access, or null if the system is being shut down.
     */
-    public IStreamThrottler obtainFetchDocumentPermission(String[] binNames, long currentTime)
+    public IStreamThrottler obtainFetchDocumentPermission(String[] binNames)
       throws InterruptedException
     {
-      // MHL
+      // First, make sure all the bins exist, and reserve a slot in each
+      int i = 0;
+      while (i < binNames.length)
+      {
+        String binName = binNames[i];
+        FetchBin bin;
+        synchronized (fetchBins)
+        {
+          bin = fetchBins.get(binName);
+          if (bin == null)
+          {
+            bin = new FetchBin(binName);
+            fetchBins.put(binName, bin);
+          }
+        }
+        // Reserve a slot
+        if (!bin.reserveFetchRequest())
+        {
+          // Release previous reservations, and return null
+          while (i > 0)
+          {
+            i--;
+            binName = binNames[i];
+            synchronized (fetchBins)
+            {
+              bin = fetchBins.get(binName);
+            }
+            if (bin != null)
+              bin.clearReservation();
+          }
+          return null;
+        }
+        i++;
+      }
+      
+      // All reservations have been made!  Convert them.
+      // (These are guaranteed to succeed - but they may wait)
+      i = 0;
+      while (i < binNames.length)
+      {
+        String binName = binNames[i];
+        FetchBin bin;
+        synchronized (fetchBins)
+        {
+          bin = fetchBins.get(binName);
+        }
+        if (bin != null)
+        {
+          if (!bin.waitNextFetch())
+          {
+            // Undo the reservations we haven't processed yet
+            while (i < binNames.length)
+            {
+              binName = binNames[i];
+              synchronized (fetchBins)
+              {
+                bin = fetchBins.get(binName);
+              }
+              if (bin != null)
+                bin.clearReservation();
+              i++;
+            }
+            return null;
+          }
+        }
+        i++;
+      }
+      
+      // Do a "begin fetch" for all throttle bins
+      synchronized (throttleBins)
+      {
+        for (String binName : binNames)
+        {
+          ThrottleBin bin = throttleBins.get(binName);
+          if (bin == null)
+          {
+            bin = new ThrottleBin(binName);
+            throttleBins.put(binName,bin);
+          }
+          bin.beginFetch();
+        }
+      }
+      
       return new StreamThrottler(this, binNames);
     }
     
-    /** Release permission to fetch a document.  Call this only when you
-    * called obtainFetchDocumentPermission() successfully earlier.
-    *@param currentTime is the current time, in ms. since epoch.
-    */
-    public void releaseFetchDocumentPermission(String[] binNames, long currentTime)
-    {
-      // MHL
-    }
-
     // IStreamThrottler support methods
     
     /** Obtain permission to read a block of bytes.  This method may wait until it is OK to proceed.
     * The throttle group, bin names, etc are already known
     * to this specific interface object, so it is unnecessary to include them here.
-    *@param currentTime is the current time, in ms. since epoch.
     *@param byteCount is the number of bytes to get permissions to read.
     *@return true if the wait took place as planned, or false if the system is being shut down.
     */
-    public boolean obtainReadPermission(String[] binNames, long currentTime, int byteCount)
+    public boolean obtainReadPermission(String[] binNames, int byteCount)
       throws InterruptedException
     {
       // MHL
@@ -487,13 +558,27 @@ public class Throttler
       
     /** Note the completion of the read of a block of bytes.  Call this after
     * obtainReadPermission() was successfully called, and bytes were successfully read.
-    *@param currentTime is the current time, in ms. since epoch.
     *@param origByteCount is the originally requested number of bytes to get permissions to read.
     *@param actualByteCount is the number of bytes actually read.
     */
-    public void releaseReadPermission(String[] binNames, long currentTime, int origByteCount, int actualByteCount)
+    public void releaseReadPermission(String[] binNames, int origByteCount, int actualByteCount)
     {
       // MHL
+    }
+
+    /** Note the stream being closed.
+    */
+    public void closeStream(String[] binNames)
+    {
+      synchronized (throttleBins)
+      {
+        for (String binName : binNames)
+        {
+          ThrottleBin bin = throttleBins.get(binName);
+          if (bin != null)
+            bin.endFetch();
+        }
+      }
     }
 
     // Bookkeeping methods
@@ -657,26 +742,15 @@ public class Throttler
     * granted permission that created this object.  When done (or aborting), call
     * releaseFetchDocumentPermission() to note the completion of the document
     * fetch activity.
-    *@param currentTime is the current time, in ms. since epoch.
     *@return the stream throttler to use to throttle the actual data access, or null if the system is being shut down.
     */
     @Override
-    public IStreamThrottler obtainFetchDocumentPermission(long currentTime)
+    public IStreamThrottler obtainFetchDocumentPermission()
       throws InterruptedException
     {
-      return parent.obtainFetchDocumentPermission(binNames, currentTime);
+      return parent.obtainFetchDocumentPermission(binNames);
     }
     
-    /** Release permission to fetch a document.  Call this only when you
-    * called obtainFetchDocumentPermission() successfully earlier.
-    *@param currentTime is the current time, in ms. since epoch.
-    */
-    @Override
-    public void releaseFetchDocumentPermission(long currentTime)
-    {
-      parent.releaseFetchDocumentPermission(binNames, currentTime);
-    }
-
   }
   
   /** Stream throttler implementation class.
@@ -696,27 +770,33 @@ public class Throttler
     /** Obtain permission to read a block of bytes.  This method may wait until it is OK to proceed.
     * The throttle group, bin names, etc are already known
     * to this specific interface object, so it is unnecessary to include them here.
-    *@param currentTime is the current time, in ms. since epoch.
     *@param byteCount is the number of bytes to get permissions to read.
     *@return true if the wait took place as planned, or false if the system is being shut down.
     */
     @Override
-    public boolean obtainReadPermission(long currentTime, int byteCount)
+    public boolean obtainReadPermission(int byteCount)
       throws InterruptedException
     {
-      return parent.obtainReadPermission(binNames, currentTime, byteCount);
+      return parent.obtainReadPermission(binNames, byteCount);
     }
       
     /** Note the completion of the read of a block of bytes.  Call this after
     * obtainReadPermission() was successfully called, and bytes were successfully read.
-    *@param currentTime is the current time, in ms. since epoch.
     *@param origByteCount is the originally requested number of bytes to get permissions to read.
     *@param actualByteCount is the number of bytes actually read.
     */
     @Override
-    public void releaseReadPermission(long currentTime, int origByteCount, int actualByteCount)
+    public void releaseReadPermission(int origByteCount, int actualByteCount)
     {
-      parent.releaseReadPermission(binNames, currentTime, origByteCount, actualByteCount);
+      parent.releaseReadPermission(binNames, origByteCount, actualByteCount);
+    }
+
+    /** Note the stream being closed.
+    */
+    @Override
+    public void closeStream()
+    {
+      parent.closeStream(binNames);
     }
 
   }

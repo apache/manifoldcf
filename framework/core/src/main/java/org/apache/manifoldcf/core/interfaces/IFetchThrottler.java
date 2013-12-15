@@ -31,18 +31,11 @@ public interface IFetchThrottler
   /** Get permission to fetch a document.  This grants permission to start
   * fetching a single document, within the connection that has already been
   * granted permission that created this object.  When done (or aborting), call
-  * releaseFetchDocumentPermission() to note the completion of the document
+  * IStreamThrottler.closeStream() to note the completion of the document
   * fetch activity.
-  *@param currentTime is the current time, in ms. since epoch.
   *@return the stream throttler to use to throttle the actual data access, or null if the system is being shut down.
   */
-  public IStreamThrottler obtainFetchDocumentPermission(long currentTime)
+  public IStreamThrottler obtainFetchDocumentPermission()
     throws InterruptedException;
-  
-  /** Release permission to fetch a document.  Call this only when you
-  * called obtainFetchDocumentPermission() successfully earlier.
-  *@param currentTime is the current time, in ms. since epoch.
-  */
-  public void releaseFetchDocumentPermission(long currentTime);
   
 }
