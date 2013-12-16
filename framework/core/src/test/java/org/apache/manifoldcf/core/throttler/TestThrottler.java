@@ -208,6 +208,7 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
       }
       catch (Exception e)
       {
+        e.printStackTrace();
         exception = e;
       }
     }
@@ -257,9 +258,9 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public double getMinimumMillisecondsPerByte(String binName)
     {
       if (binName.equals("B"))
-        return 10.0;
+        return 1.0;
       if (binName.equals("C"))
-        return 15.0;
+        return 1.5;
       return 0.0;
     }
 
