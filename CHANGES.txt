@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-838: Character-stuff names that ZooKeeper sees, to
+prevent issues with '/' characters.
+(Karl Wright)
+
 CONNECTORS-837: Specifying 1 connection causes hang.
 (Karl Wright)
 

@@ -511,6 +511,51 @@ public class ZooKeeperConnection
     zookeeperWatcher = null;
   }
   
+  public static String zooKeeperSafeName(String input)
+  {
+    // Escape "/" characters
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < input.length(); i++)
+    {
+      char x = input.charAt(i);
+      if (x == '/')
+        sb.append('\\').append('0');
+      else if (x == '\\')
+        sb.append('\\').append('\\');
+      else
+        sb.append(x);
+    }
+    return sb.toString();
+  }
+
+  public static String zooKeeperDecodeSafeName(String input)
+  {
+    // Escape "/" characters
+    StringBuilder sb = new StringBuilder();
+    int i = 0;
+    while (i < input.length())
+    {
+      char x = input.charAt(i);
+      if (x == '\\')
+      {
+        i++;
+        if (i == input.length())
+          throw new RuntimeException("Supposedly safe zookeeper name is not properly encoded!!");
+        x = input.charAt(i);
+        if (x == '0')
+          sb.append('/');
+        else if (x == '\\')
+          sb.append('\\');
+        else
+          throw new RuntimeException("Supposedly safe zookeeper name is not properly encoded!!");
+      }
+      else
+        sb.append(x);
+      i++;
+    }
+    return sb.toString();
+  }
+
   // Protected methods
   
   /** Create a node and a sequential child node.  Neither node has any data.
