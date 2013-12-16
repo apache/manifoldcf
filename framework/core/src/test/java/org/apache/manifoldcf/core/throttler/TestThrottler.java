@@ -68,6 +68,9 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     pt.interrupt();
     pt.finishUp();
 
+    // Shut down the throttle group
+    tg.removeThrottleGroup("test","test");
+
     // Finally, do the log analysis
     eventLog.analyze();
     
