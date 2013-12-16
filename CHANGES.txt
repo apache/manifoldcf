@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-841: Always reset document schedules on job start.
+(David Morana, Karl Wright)
+
 CONNECTORS-839: Fix our CloudSolrServer usage to use multipart
 post instead of putting everything in the URL.
 (Alessandro Benedetti, Raymond Wiker, Karl Wright)
