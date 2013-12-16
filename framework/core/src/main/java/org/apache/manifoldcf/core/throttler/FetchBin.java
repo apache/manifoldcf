@@ -42,7 +42,7 @@ public class FetchBin
   protected boolean reserveNextFetch = false;
 
   /** Constructor. */
-  public FetchBin(String binName)
+  public FetchBin(IThreadContext threadContext, String binName)
   {
     this.binName = binName;
   }
@@ -134,7 +134,8 @@ public class FetchBin
   
   /** Shut the bin down, and wake up all threads waiting on it.
   */
-  public synchronized void shutDown()
+  public synchronized void shutDown(IThreadContext threadContext)
+    throws ManifoldCFException
   {
     isAlive = false;
     notifyAll();

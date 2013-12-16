@@ -126,14 +126,15 @@ public class Throttler
   *@param binNames are the connection type bin names.
   *@return the connection throttling object, or null if the pool is being shut down.
   */
-  public IConnectionThrottler obtainConnectionThrottler(String throttleGroupType, String throttleGroup, String[] binNames)
+  public IConnectionThrottler obtainConnectionThrottler(IThreadContext threadContext, String throttleGroupType, String throttleGroup, String[] binNames)
+    throws ManifoldCFException
   {
     // No waiting, so lock the entire tree.
     synchronized (throttleGroupsHash)
     {
       ThrottlingGroups tg = throttleGroupsHash.get(throttleGroupType);
       if (tg != null)
-        return tg.obtainConnectionThrottler(throttleGroup, binNames);
+        return tg.obtainConnectionThrottler(threadContext, throttleGroup, binNames);
       return null;
     }
   }
@@ -233,14 +234,15 @@ public class Throttler
     /** Obtain connection throttler.
     *@return the throttler, or null of the hierarchy has changed.
     */
-    public IConnectionThrottler obtainConnectionThrottler(String throttleGroup, String[] binNames)
+    public IConnectionThrottler obtainConnectionThrottler(IThreadContext threadContext, String throttleGroup, String[] binNames)
+      throws ManifoldCFException
     {
       synchronized (groups)
       {
         ThrottlingGroup g = groups.get(throttleGroup);
         if (g == null)
           return null;
-        return g.obtainConnectionThrottler(binNames);
+        return g.obtainConnectionThrottler(threadContext, binNames);
       }
     }
     
@@ -348,6 +350,55 @@ public class Throttler
       poll(threadContext);
     }
 
+    /** Create a bunch of bins, corresponding to the bin names specified.
+    * Note that this also registers them as services etc.
+    *@param binNames describes the set of bins to create.
+    */
+    public synchronized IConnectionThrottler obtainConnectionThrottler(IThreadContext threadContext, String[] binNames)
+      throws ManifoldCFException
+    {
+      synchronized (connectionBins)
+      {
+        for (String binName : binNames)
+        {
+          ConnectionBin bin = connectionBins.get(binName);
+          if (bin == null)
+          {
+            bin = new ConnectionBin(threadContext, binName);
+            connectionBins.put(binName, bin);
+          }
+        }
+      }
+      
+      synchronized (fetchBins)
+      {
+        for (String binName : binNames)
+        {
+          FetchBin bin = fetchBins.get(binName);
+          if (bin == null)
+          {
+            bin = new FetchBin(threadContext, binName);
+            fetchBins.put(binName, bin);
+          }
+        }
+      }
+      
+      synchronized (throttleBins)
+      {
+        for (String binName : binNames)
+        {
+          ThrottleBin bin = throttleBins.get(binName);
+          if (bin == null)
+          {
+            bin = new ThrottleBin(threadContext, binName);
+            throttleBins.put(binName, bin);
+          }
+        }
+      }
+      
+      return new ConnectionThrottler(this, binNames);
+    }
+    
     /** Update the throttle spec.
     *@param throttleSpec is the new throttle spec for this throttle group.
     */
@@ -357,11 +408,6 @@ public class Throttler
       this.throttleSpec = throttleSpec;
     }
     
-    /** Obtain a connection throttler */
-    public IConnectionThrottler obtainConnectionThrottler(String[] binNames)
-    {
-      return new ConnectionThrottler(this, binNames);
-    }
     
     // IConnectionThrottler support methods
     
@@ -398,37 +444,35 @@ public class Throttler
           synchronized (connectionBins)
           {
             bin = connectionBins.get(binName);
-            if (bin == null)
-            {
-              bin = new ConnectionBin(binName);
-              connectionBins.put(binName, bin);
-            }
           }
-          // Reserve a slot
-          int result = bin.waitConnectionAvailable(poolCount);
-          if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE ||
-            (currentRecommendation != IConnectionThrottler.CONNECTION_FROM_NOWHERE && currentRecommendation != result))
+          if (bin != null)
           {
-            // Release previous reservations, and either return, or retry
-            while (i > 0)
+            // Reserve a slot
+            int result = bin.waitConnectionAvailable(poolCount);
+            if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE ||
+              (currentRecommendation != IConnectionThrottler.CONNECTION_FROM_NOWHERE && currentRecommendation != result))
             {
-              i--;
-              binName = binNames[i];
-              synchronized (connectionBins)
+              // Release previous reservations, and either return, or retry
+              while (i > 0)
               {
-                bin = connectionBins.get(binName);
+                i--;
+                binName = binNames[i];
+                synchronized (connectionBins)
+                {
+                  bin = connectionBins.get(binName);
+                }
+                if (bin != null)
+                  bin.undoReservation(currentRecommendation, poolCount);
               }
-              if (bin != null)
-                bin.undoReservation(currentRecommendation, poolCount);
+              if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
+                return result;
+              // Break out of the outer loop so we can retry
+              retry = true;
+              break;
             }
-            if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
-              return result;
-            // Break out of the outer loop so we can retry
-            retry = true;
-            break;
+            if (currentRecommendation == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
+              currentRecommendation = result;
           }
-          if (currentRecommendation == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
-            currentRecommendation = result;
           i++;
         }
         
@@ -582,11 +626,6 @@ public class Throttler
         synchronized (fetchBins)
         {
           bin = fetchBins.get(binName);
-          if (bin == null)
-          {
-            bin = new FetchBin(binName);
-            fetchBins.put(binName, bin);
-          }
         }
         // Reserve a slot
         if (bin == null || !bin.reserveFetchRequest())
@@ -647,12 +686,8 @@ public class Throttler
         for (String binName : binNames)
         {
           ThrottleBin bin = throttleBins.get(binName);
-          if (bin == null)
-          {
-            bin = new ThrottleBin(binName);
-            throttleBins.put(binName,bin);
-          }
-          bin.beginFetch();
+          if (bin != null)
+            bin.beginFetch();
         }
       }
       
@@ -789,7 +824,7 @@ public class Throttler
         while (binIter.hasNext())
         {
           ConnectionBin bin = binIter.next();
-          bin.shutDown();
+          bin.shutDown(threadContext);
           binIter.remove();
         }
       }
@@ -800,7 +835,7 @@ public class Throttler
         while (binIter.hasNext())
         {
           FetchBin bin = binIter.next();
-          bin.shutDown();
+          bin.shutDown(threadContext);
           binIter.remove();
         }
       }
@@ -811,7 +846,7 @@ public class Throttler
         while (binIter.hasNext())
         {
           ThrottleBin bin = binIter.next();
-          bin.shutDown();
+          bin.shutDown(threadContext);
           binIter.remove();
         }
       }

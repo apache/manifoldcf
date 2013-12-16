@@ -56,7 +56,7 @@ public class ConnectionBin
   protected int inUseConnections = 0;
 
   /** Constructor. */
-  public ConnectionBin(String binName)
+  public ConnectionBin(IThreadContext threadContext, String binName)
   {
     this.binName = binName;
   }
@@ -207,7 +207,8 @@ public class ConnectionBin
 
   /** Shut down the bin, and release everything that is waiting on it.
   */
-  public synchronized void shutDown()
+  public synchronized void shutDown(IThreadContext threadContext)
+    throws ManifoldCFException
   {
     isAlive = false;
     notifyAll();

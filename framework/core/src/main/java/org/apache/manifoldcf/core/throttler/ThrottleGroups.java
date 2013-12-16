@@ -88,9 +88,10 @@ public class ThrottleGroups implements IThrottleGroups
   */
   @Override
   public IConnectionThrottler obtainConnectionThrottler(String throttleGroupType, String throttleGroup, String[] binNames)
+    throws ManifoldCFException
   {
     java.util.Arrays.sort(binNames);
-    return throttler.obtainConnectionThrottler(throttleGroupType, throttleGroup, binNames);
+    return throttler.obtainConnectionThrottler(threadContext, throttleGroupType, throttleGroup, binNames);
   }
 
   /** Poll periodically, to update cluster-wide statistics and allocation.

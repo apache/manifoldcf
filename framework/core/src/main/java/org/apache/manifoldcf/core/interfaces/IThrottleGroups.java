@@ -59,7 +59,8 @@ public interface IThrottleGroups
   *@param binNames are the connection type bin names.
   *@return the connection throttling object, or null if the pool is being shut down.
   */
-  public IConnectionThrottler obtainConnectionThrottler(String throttleGroupType, String throttleGroup, String[] binNames);
+  public IConnectionThrottler obtainConnectionThrottler(String throttleGroupType, String throttleGroup, String[] binNames)
+    throws ManifoldCFException;
   
   /** Poll periodically, to update cluster-wide statistics and allocation.
   *@param throttleGroupType is the throttle group type to update.

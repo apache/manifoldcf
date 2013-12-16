@@ -87,7 +87,7 @@ public class ThrottleBin
   protected double minimumMillisecondsPerByte = Double.MAX_VALUE;
   
   /** Constructor. */
-  public ThrottleBin(String binName)
+  public ThrottleBin(IThreadContext threadContext, String binName)
   {
     this.binName = binName;
   }
@@ -254,7 +254,8 @@ public class ThrottleBin
 
   /** Shut down this bin.
   */
-  public synchronized void shutDown()
+  public synchronized void shutDown(IThreadContext threadContext)
+    throws ManifoldCFException
   {
     isAlive = false;
     notifyAll();
