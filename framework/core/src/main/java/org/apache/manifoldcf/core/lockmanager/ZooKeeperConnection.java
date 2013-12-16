@@ -520,8 +520,14 @@ public class ZooKeeperConnection
       char x = input.charAt(i);
       if (x == '/')
         sb.append('\\').append('0');
+      else if (x == '\u007f')
+        sb.append('\\').append('1');
       else if (x == '\\')
         sb.append('\\').append('\\');
+      else if (x >= '\u0000' && x < '\u0020')
+        sb.append('\\').append(x + '\u0040');
+      else if (x >= '\u0080' && x < '\u00a0')
+        sb.append('\\').append(x + '\u0060' - '\u0080');
       else
         sb.append(x);
     }
@@ -544,8 +550,14 @@ public class ZooKeeperConnection
         x = input.charAt(i);
         if (x == '0')
           sb.append('/');
+        else if (x == '1')
+          sb.append('\u007f');
         else if (x == '\\')
           sb.append('\\');
+        else if (x >= '\u0040' && x < '\u0060')
+          sb.append(x - '\u0040');
+        else if (x >= '\u0060' && x < '\u0080')
+          sb.append(x - '\u0060' + '\u0080');
         else
           throw new RuntimeException("Supposedly safe zookeeper name is not properly encoded!!");
       }
