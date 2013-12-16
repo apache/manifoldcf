@@ -335,7 +335,9 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public void apply(State state)
       throws Exception
     {
-      // MHL
+      if (state.outstandingConnections + 1 > 3)
+        throw new Exception("Too many outstanding connections at once!");
+      state.outstandingConnections++;
     }
     
     public String toString()
@@ -355,7 +357,7 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public void apply(State state)
       throws Exception
     {
-      // MHL
+      state.outstandingConnections--;
     }
     
     public String toString()
@@ -375,7 +377,6 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public void apply(State state)
       throws Exception
     {
-      // MHL
     }
     
     public String toString()
@@ -395,7 +396,6 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public void apply(State state)
       throws Exception
     {
-      // MHL
     }
     
     public String toString()
@@ -415,7 +415,9 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public void apply(State state)
       throws Exception
     {
-      // MHL
+      if (timestamp < state.lastFetch + 20L)
+        throw new Exception("Fetch too fast: took place in "+ (timestamp - state.lastFetch) + " milliseconds");
+      state.lastFetch = timestamp;
     }
     
     public String toString()
@@ -434,7 +436,6 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public void apply(State state)
       throws Exception
     {
-      // MHL
     }
     
     public String toString()
