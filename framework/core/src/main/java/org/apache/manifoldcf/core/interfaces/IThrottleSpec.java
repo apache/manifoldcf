@@ -27,7 +27,7 @@ public interface IThrottleSpec
   public static final String _rcsid = "@(#)$Id$";
 
   /** Given a bin name, find the max open connections to use for that bin.
-  *@return -1 if no limit found.
+  *@return Integer.MAX_VALUE if no limit found.
   */
   public int getMaxOpenConnections(String binName);
 

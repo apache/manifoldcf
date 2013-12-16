@@ -89,6 +89,7 @@ public class ThrottleGroups implements IThrottleGroups
   @Override
   public IConnectionThrottler obtainConnectionThrottler(String throttleGroupType, String throttleGroup, String[] binNames)
   {
+    java.util.Arrays.sort(binNames);
     return throttler.obtainConnectionThrottler(throttleGroupType, throttleGroup, binNames);
   }
 

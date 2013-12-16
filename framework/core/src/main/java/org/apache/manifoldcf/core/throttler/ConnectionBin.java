@@ -154,7 +154,7 @@ public class ConnectionBin
   
   public static final int CONNECTION_DESTROY = 0;
   public static final int CONNECTION_POOLEMPTY = 1;
-  public static final int CONNECTION_WITHINBOUNDS =2;
+  public static final int CONNECTION_WITHINBOUNDS = 2;
   
   /** Figure out whether we are currently over target or not for this bin, and whether a
   * connection should be pulled from the pool and destroyed.
