@@ -40,9 +40,6 @@ public class Throttler
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** The service type prefix for throttle pools */
-  protected final static String serviceTypePrefix = "_THROTTLEPOOL_";
-  
   /** Throttle group hash table.  Keyed by throttle group type, value is throttling groups */
   protected final Map<String,ThrottlingGroups> throttleGroupsHash = new HashMap<String,ThrottlingGroups>();
 
@@ -193,11 +190,10 @@ public class Throttler
 
   // Protected methods and classes
   
-  protected String buildServiceTypeName(String throttlingGroupType, String throttleGroupName)
+  protected static String buildThrottlingGroupName(String throttlingGroupType, String throttlingGroupName)
   {
-    return serviceTypePrefix + throttlingGroupType + "_" + throttleGroupName;
+    return throttlingGroupType + "_" + throttlingGroupName;
   }
-  
 
   /** This class represents a throttling group pool */
   protected class ThrottlingGroups
@@ -316,12 +312,8 @@ public class Throttler
   */
   protected class ThrottlingGroup
   {
-    /** Whether this pool is alive */
-    protected boolean isAlive = true;
-    /** Service type name */
-    protected final String serviceTypeName;
-    /** The (anonymous) service name */
-    protected final String serviceName;
+    /** The throttling group name */
+    protected final String throttlingGroupName;
     /** The current throttle spec */
     protected IThrottleSpec throttleSpec;
     
@@ -341,11 +333,8 @@ public class Throttler
     public ThrottlingGroup(IThreadContext threadContext, String throttlingGroupType, String throttleGroup, IThrottleSpec throttleSpec)
       throws ManifoldCFException
     {
-      this.serviceTypeName = buildServiceTypeName(throttlingGroupType, throttleGroup);
+      this.throttlingGroupName = buildThrottlingGroupName(throttlingGroupType, throttleGroup);
       this.throttleSpec = throttleSpec;
-      // Now, register and activate service anonymously, and record the service name we get.
-      ILockManager lockManager = LockManagerFactory.make(threadContext);
-      this.serviceName = lockManager.registerServiceBeginServiceActivity(serviceTypeName, null, null);
       // Once all that is done, perform the initial setting of all the bin cutoffs
       poll(threadContext);
     }
@@ -364,7 +353,7 @@ public class Throttler
           ConnectionBin bin = connectionBins.get(binName);
           if (bin == null)
           {
-            bin = new ConnectionBin(threadContext, binName);
+            bin = new ConnectionBin(threadContext, throttlingGroupName, binName);
             connectionBins.put(binName, bin);
           }
         }
@@ -377,7 +366,7 @@ public class Throttler
           FetchBin bin = fetchBins.get(binName);
           if (bin == null)
           {
-            bin = new FetchBin(threadContext, binName);
+            bin = new FetchBin(threadContext, throttlingGroupName, binName);
             fetchBins.put(binName, bin);
           }
         }
@@ -390,7 +379,7 @@ public class Throttler
           ThrottleBin bin = throttleBins.get(binName);
           if (bin == null)
           {
-            bin = new ThrottleBin(threadContext, binName);
+            bin = new ThrottleBin(threadContext, throttlingGroupName, binName);
             throttleBins.put(binName, bin);
           }
         }
@@ -775,15 +764,13 @@ public class Throttler
     public synchronized void poll(IThreadContext threadContext)
       throws ManifoldCFException
     {
-      // This is where we reset all the bin targets using ILockManager.
-      // But for now, to get things working, we just do the "stupid" thing,
-      // and presume we're the only actor.
-      // MHL
+      // Go through all existing bins and update each one.
       synchronized (connectionBins)
       {
         for (ConnectionBin bin : connectionBins.values())
         {
           bin.updateMaxActiveConnections(throttleSpec.getMaxOpenConnections(bin.getBinName()));
+          bin.poll(threadContext);
         }
       }
   
@@ -792,6 +779,7 @@ public class Throttler
         for (FetchBin bin : fetchBins.values())
         {
           bin.updateMinTimeBetweenFetches(throttleSpec.getMinimumMillisecondsPerFetch(bin.getBinName()));
+          bin.poll(threadContext);
         }
       }
       
@@ -800,6 +788,7 @@ public class Throttler
         for (ThrottleBin bin : throttleBins.values())
         {
           bin.updateMinimumMillisecondsPerByte(throttleSpec.getMinimumMillisecondsPerByte(bin.getBinName()));
+          bin.poll(threadContext);
         }
       }
       
@@ -851,11 +840,6 @@ public class Throttler
         }
       }
 
-      // End service activity
-      isAlive = false;
-      notifyAll();
-      ILockManager lockManager = LockManagerFactory.make(threadContext);
-      lockManager.endServiceActivity(serviceTypeName, serviceName);
     }
   }
   

@@ -34,6 +34,10 @@ public class FetchBin
   protected boolean isAlive = true;
   /** This is the bin name which this connection pool belongs to */
   protected final String binName;
+  /** Service type name */
+  protected final String serviceTypeName;
+  /** The (anonymous) service name */
+  protected final String serviceName;
   /** This is the last time a fetch was done on this bin */
   protected long lastFetchTime = 0L;
   /** This is the minimum time between fetches for this bin, in ms. */
@@ -41,10 +45,23 @@ public class FetchBin
   /** Is the next fetch reserved? */
   protected boolean reserveNextFetch = false;
 
+  /** The service type prefix for fetch bins */
+  protected final static String serviceTypePrefix = "_FETCHBIN_";
+
   /** Constructor. */
-  public FetchBin(IThreadContext threadContext, String binName)
+  public FetchBin(IThreadContext threadContext, String throttlingGroupName, String binName)
+    throws ManifoldCFException
   {
     this.binName = binName;
+    this.serviceTypeName = buildServiceTypeName(throttlingGroupName, binName);
+    // Now, register and activate service anonymously, and record the service name we get.
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    this.serviceName = lockManager.registerServiceBeginServiceActivity(serviceTypeName, null, null);
+  }
+
+  protected String buildServiceTypeName(String throttlingGroupName, String binName)
+  {
+    return serviceTypePrefix + throttlingGroupName + "_" + binName;
   }
 
   /** Get the bin name. */
@@ -132,6 +149,13 @@ public class FetchBin
     }
   }
   
+  /** Poll this bin */
+  public synchronized void poll(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
   /** Shut the bin down, and wake up all threads waiting on it.
   */
   public synchronized void shutDown(IThreadContext threadContext)
@@ -139,6 +163,8 @@ public class FetchBin
   {
     isAlive = false;
     notifyAll();
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    lockManager.endServiceActivity(serviceTypeName, serviceName);
   }
 }
 

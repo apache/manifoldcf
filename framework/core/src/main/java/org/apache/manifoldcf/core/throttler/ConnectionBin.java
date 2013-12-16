@@ -46,6 +46,10 @@ public class ConnectionBin
   protected boolean isAlive = true;
   /** This is the bin name which this connection pool belongs to */
   protected final String binName;
+  /** Service type name */
+  protected final String serviceTypeName;
+  /** The (anonymous) service name */
+  protected final String serviceName;
   /** This is the maximum number of active connections allowed for this bin */
   protected int maxActiveConnections = 0;
   /** This is the number of connections in this bin that have been reserved - that is, they
@@ -55,10 +59,23 @@ public class ConnectionBin
   * in use or in a pool somewhere. */
   protected int inUseConnections = 0;
 
+  /** The service type prefix for connection bins */
+  protected final static String serviceTypePrefix = "_CONNECTIONBIN_";
+
   /** Constructor. */
-  public ConnectionBin(IThreadContext threadContext, String binName)
+  public ConnectionBin(IThreadContext threadContext, String throttlingGroupName, String binName)
+    throws ManifoldCFException
   {
     this.binName = binName;
+    this.serviceTypeName = buildServiceTypeName(throttlingGroupName, binName);
+    // Now, register and activate service anonymously, and record the service name we get.
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    this.serviceName = lockManager.registerServiceBeginServiceActivity(serviceTypeName, null, null);
+  }
+
+  protected String buildServiceTypeName(String throttlingGroupName, String binName)
+  {
+    return serviceTypePrefix + throttlingGroupName + "_" + binName;
   }
 
   /** Get the bin name. */
@@ -205,6 +222,13 @@ public class ConnectionBin
     notifyAll();
   }
 
+  /** Poll this bin */
+  public synchronized void poll(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
   /** Shut down the bin, and release everything that is waiting on it.
   */
   public synchronized void shutDown(IThreadContext threadContext)
@@ -212,6 +236,8 @@ public class ConnectionBin
   {
     isAlive = false;
     notifyAll();
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    lockManager.endServiceActivity(serviceTypeName, serviceName);
   }
 }
 

@@ -71,6 +71,10 @@ public class ThrottleBin
   protected boolean isAlive = true;
   /** This is the bin name which this throttle belongs to. */
   protected final String binName;
+  /** Service type name */
+  protected final String serviceTypeName;
+  /** The (anonymous) service name */
+  protected final String serviceName;
   /** This is the reference count for this bin (which records active references) */
   protected volatile int refCount = 0;
   /** The inverse rate estimate of the first fetch, in ms/byte */
@@ -86,12 +90,25 @@ public class ThrottleBin
   /** The minimum milliseconds per byte */
   protected double minimumMillisecondsPerByte = Double.MAX_VALUE;
   
+  /** The service type prefix for throttle bins */
+  protected final static String serviceTypePrefix = "_THROTTLEBIN_";
+
   /** Constructor. */
-  public ThrottleBin(IThreadContext threadContext, String binName)
+  public ThrottleBin(IThreadContext threadContext, String throttlingGroupName, String binName)
+    throws ManifoldCFException
   {
     this.binName = binName;
+    this.serviceTypeName = buildServiceTypeName(throttlingGroupName, binName);
+    // Now, register and activate service anonymously, and record the service name we get.
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    this.serviceName = lockManager.registerServiceBeginServiceActivity(serviceTypeName, null, null);
   }
 
+  protected String buildServiceTypeName(String throttlingGroupName, String binName)
+  {
+    return serviceTypePrefix + throttlingGroupName + "_" + binName;
+  }
+  
   /** Get the bin name. */
   public String getBinName()
   {
@@ -252,6 +269,13 @@ public class ThrottleBin
 
   }
 
+  /** Poll this bin */
+  public synchronized void poll(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
   /** Shut down this bin.
   */
   public synchronized void shutDown(IThreadContext threadContext)
@@ -259,6 +283,8 @@ public class ThrottleBin
   {
     isAlive = false;
     notifyAll();
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    lockManager.endServiceActivity(serviceTypeName, serviceName);
   }
 }
 
