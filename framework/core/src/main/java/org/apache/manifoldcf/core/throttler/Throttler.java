@@ -679,7 +679,7 @@ public class Throttler
         {
           bin = throttleBins.get(binName);
         }
-        if (bin == null || bin.beginRead(byteCount))
+        if (bin == null || !bin.beginRead(byteCount))
         {
           // End bins we've already done, and exit
           while (i > 0)

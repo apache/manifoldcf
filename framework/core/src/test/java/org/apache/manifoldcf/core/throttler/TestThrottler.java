@@ -45,6 +45,9 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     // while generating a log that includes timestamps for everything that happens.  At the end, the log will be
     // analyzed for violations of throttling policy.
     
+    PollingThread pt = new PollingThread();
+    pt.start();
+
     EventLog eventLog = new EventLog();
     
     int numThreads = 10;
@@ -62,10 +65,63 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
       threads[i].finishUp();
     }
     
+    pt.interrupt();
+    pt.finishUp();
+
     // Finally, do the log analysis
     eventLog.analyze();
     
     System.out.println("Done test");
+  }
+  
+  protected static class PollingThread extends Thread
+  {
+    protected Throwable exception = null;
+    
+    public PollingThread()
+    {
+    }
+    
+    public void run()
+    {
+      try
+      {
+        IThreadContext threadContext = ThreadContextFactory.make();
+        IThrottleGroups throttleGroups = ThrottleGroupsFactory.make(threadContext);
+        
+        while (true)
+        {
+          throttleGroups.poll("test");
+          Thread.sleep(1000L);
+        }
+      }
+      catch (InterruptedException e)
+      {
+      }
+      catch (Exception e)
+      {
+        exception = e;
+      }
+
+    }
+    
+    public void finishUp()
+      throws Exception
+    {
+      join();
+      if (exception != null)
+      {
+        if (exception instanceof RuntimeException)
+          throw (RuntimeException)exception;
+        else if (exception instanceof Error)
+          throw (Error)exception;
+        else if (exception instanceof Exception)
+          throw (Exception)exception;
+        else
+          throw new RuntimeException("Unknown exception: "+exception.getClass().getName()+": "+exception.getMessage(),exception);
+      }
+    }
+
   }
   
   protected static class TesterThread extends Thread
@@ -188,9 +244,9 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public int getMaxOpenConnections(String binName)
     {
       if (binName.equals("A"))
-        return 2;
+        return 3;
       if (binName.equals("B"))
-        return 1;
+        return 4;
       return Integer.MAX_VALUE;
     }
 
@@ -203,7 +259,7 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
       if (binName.equals("B"))
         return 10.0;
       if (binName.equals("C"))
-        return 5.0;
+        return 15.0;
       return 0.0;
     }
 

@@ -101,7 +101,11 @@ public class ThrottleBin
   /** Update minimumMillisecondsPerBytePerServer */
   public void updateMinimumMillisecondsPerByte(double min)
   {
-    this.minimumMillisecondsPerByte = min;
+    synchronized (this)
+    {
+      this.minimumMillisecondsPerByte = min;
+      notifyAll();
+    }
   }
   
   /** Note the start of a fetch operation for a bin.  Call this method just before the actual stream access begins.
@@ -168,6 +172,13 @@ public class ThrottleBin
           return true;
         }
 
+        // If we haven't set a proper throttle yet, wait until we do.
+        if (minimumMillisecondsPerByte == Double.MAX_VALUE)
+        {
+          wait();
+          continue;
+        }
+        
         // Estimate the time this read will take, and wait accordingly
         long estimatedTime = (long)(rateEstimate * (double)byteCount);
 
@@ -175,7 +186,7 @@ public class ThrottleBin
         long desiredEndTime = seriesStartTime + (long)(((double)(totalBytesRead + (long)byteCount)) * minimumMillisecondsPerByte);
 
 
-        // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
+        // The wait time is the difference between our desired end time, minus the estimated time to read the data, and the
         // current time.  But it can't be negative.
         long waitTime = (desiredEndTime - estimatedTime) - currentTime;
 
