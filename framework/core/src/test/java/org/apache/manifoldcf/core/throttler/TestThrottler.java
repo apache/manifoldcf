@@ -415,7 +415,7 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public void apply(State state)
       throws Exception
     {
-      if (timestamp < state.lastFetch + 20L)
+      if (timestamp < state.lastFetch + 20L - 1L)
         throw new Exception("Fetch too fast: took place in "+ (timestamp - state.lastFetch) + " milliseconds");
       state.lastFetch = timestamp;
     }
@@ -457,7 +457,15 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public void apply(State state)
       throws Exception
     {
-      // MHL
+      if (state.firstByteReadTime == -1L)
+        state.firstByteReadTime = timestamp;
+      else
+      {
+        // Calculate running minimum amount of time it should have taken for the bytes given
+        long minTime = (long)(((double)state.byteTotal) * 1.5 + 0.5);
+        if (timestamp - state.firstByteReadTime < minTime)
+          throw new Exception("Took too short a time to read "+state.byteTotal+" bytes: "+(timestamp - state.firstByteReadTime));
+      }
     }
     
     public String toString()
@@ -479,7 +487,7 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public void apply(State state)
       throws Exception
     {
-      // MHL
+      state.byteTotal += actual;
     }
     
     public String toString()
@@ -492,8 +500,8 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
   {
     public int outstandingConnections = 0;
     public long lastFetch = 0L;
-    public long lastByteRead = 0L;
-    public int lastByteAmt = 0;
+    public long firstByteReadTime = -1L;
+    public long byteTotal = 0L;
   }
   
 }
