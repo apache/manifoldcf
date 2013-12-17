@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-842: Update documentation to describe the functioning
+of the org.apache.manifoldcf.mysql.client property.
+(Chris Griffin, Karl Wright)
+
 CONNECTORS-843: Solr Connector methods do not call getSession()
 when they should, leading to unpredictable results.
 (Markus Schuch, Karl Wright)
