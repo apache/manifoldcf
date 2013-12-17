@@ -70,6 +70,7 @@ import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
 
 
 /**
@@ -158,7 +159,7 @@ public class HttpPoster
     
     try
     {
-      CloudSolrServer cloudSolrServer = new CloudSolrServer(zookeeperHosts);
+      CloudSolrServer cloudSolrServer = new CloudSolrServer(zookeeperHosts, new ModifiedLBHttpSolrServer(HttpClientUtil.createClient(null)));
       cloudSolrServer.setZkClientTimeout(zkClientTimeout);
       cloudSolrServer.setZkConnectTimeout(zkConnectTimeout);
       cloudSolrServer.setDefaultCollection(collection);

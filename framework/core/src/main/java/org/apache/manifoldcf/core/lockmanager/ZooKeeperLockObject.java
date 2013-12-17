@@ -41,7 +41,7 @@ public class ZooKeeperLockObject extends LockObject
   {
     super(lockPool,lockKey);
     this.pool = pool;
-    this.lockPath = LOCK_PATH_PREFIX + lockKey.toString();
+    this.lockPath = LOCK_PATH_PREFIX + ZooKeeperConnection.zooKeeperSafeName(lockKey.toString());
   }
 
   @Override

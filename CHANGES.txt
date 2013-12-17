@@ -3,6 +3,20 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-841: Always reset document schedules on job start.
+(David Morana, Karl Wright)
+
+CONNECTORS-839: Fix our CloudSolrServer usage to use multipart
+post instead of putting everything in the URL.
+(Alessandro Benedetti, Raymond Wiker, Karl Wright)
+
+CONNECTORS-838: Character-stuff names that ZooKeeper sees, to
+prevent issues with '/' characters.
+(Karl Wright)
+
+CONNECTORS-837: Specifying 1 connection causes hang.
+(Karl Wright)
+
 CONNECTORS-836: Use the same thread context in the registered
 shutdown objects.
 (Karl Wright)

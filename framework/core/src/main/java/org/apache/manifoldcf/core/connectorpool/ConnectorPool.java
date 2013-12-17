@@ -572,6 +572,8 @@ public abstract class ConnectorPool<T extends IConnector>
         // Compute MaximumTarget
         SumClass sumClass = new SumClass(serviceName);
         lockManager.scanServiceData(serviceTypeName, sumClass);
+        //System.out.println("numServices = "+sumClass.getNumServices()+"; globalTarget = "+sumClass.getGlobalTarget()+"; globalInUse = "+sumClass.getGlobalInUse());
+        
         int numServices = sumClass.getNumServices();
         if (numServices == 0)
           return;
@@ -614,11 +616,13 @@ public abstract class ConnectorPool<T extends IConnector>
         {
           // We want a fast ramp up, so make this proportional to globalMax
           int increment = globalMax >> 2;
-          if (increment < 0)
+          if (increment == 0)
             increment = 1;
           optimalTarget += increment;
         }
         
+        //System.out.println("maxTarget = "+maximumTarget+"; fairTarget = "+fairTarget+"; optimalTarget = "+optimalTarget);
+
         // Now compute actual target
         int target = maximumTarget;
         if (target > fairTarget)

@@ -5845,7 +5845,10 @@ public class JobManager implements IJobManager
     // (3) If the connector has some other model, we look at the start time.  A start
     // time of 0 implies a full scan, while any other start time implies an incremental
     // scan.
-
+    
+    // Always reset document schedules for those documents already pending!
+    jobQueue.resetPendingDocumentSchedules(jobID);
+    
     // Complete connector model is told everything, so no delete phase.
     if (connectorModel == IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
     {
