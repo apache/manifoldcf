@@ -40,9 +40,10 @@ public interface IThrottledConnection
   public static final int FETCH_UNKNOWN_ERROR = -999;
 
   /** Check whether the connection has expired.
+  *@param currentTime is the current time to use to judge if a connection has expired.
   *@return true if the connection has expired, and should be closed.
   */
-  public boolean hasExpired();
+  public boolean hasExpired(long currentTime);
 
   /** Begin the fetch process.
   * @param fetchType is a short descriptive string describing the kind of fetch being requested.  This
@@ -118,7 +119,13 @@ public interface IThrottledConnection
   public void doneFetch(IVersionActivity activities)
     throws ManifoldCFException;
 
-  /** Close the connection.  Call this to end this server connection.
+  /** Close the connection.  Call this to return the connection to
+  * its pool.
   */
   public void close();
+  
+  /** Destroy the connection.  Call this to close the connection.
+  */
+  public void destroy();
+  
 }

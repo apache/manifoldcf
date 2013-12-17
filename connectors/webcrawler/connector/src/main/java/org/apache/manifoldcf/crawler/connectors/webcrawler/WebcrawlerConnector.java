@@ -718,6 +718,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   // Prepare to perform the fetch, and decide what to do with the document.
                   //
                   IThrottledConnection connection = ThrottledFetcher.getConnection(currentContext,
+                    throttleGroupName,
                     protocol,ipAddress,port,
                     credential,trustStore,throttleDescription,binNames,connectionLimit,
                     proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
@@ -5133,7 +5134,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       // We've successfully obtained a lock on reading robots for this server!  Now, guarantee that we'll free it, by instantiating a try/finally
       try
       {
-        IThrottledConnection connection = ThrottledFetcher.getConnection(currentContext,
+        IThrottledConnection connection = ThrottledFetcher.getConnection(currentContext,throttleGroupName,
           protocol,hostIPAddress,port,credential,
           trustStore,throttleDescription,binNames,connectionLimit,
           proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
