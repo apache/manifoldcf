@@ -583,6 +583,47 @@ public class Throttler
 
     }
     
+    /** Connection expiration is tricky, because even though a connection may be identified as
+    * being expired, at the very same moment it could be handed out in another thread.  So there
+    * is a natural race condition present.
+    * The way the connection throttler deals with that is to allow the caller to reserve a connection
+    * for expiration.  This must be called BEFORE the actual identified connection is removed from the
+    * connection pool.  If the value returned by this method is "true", then a connection MUST be removed
+    * from the pool and destroyed, whether or not the identified connection is actually still available for
+    * destruction or not.
+    *@return true if a connection from the pool can be expired.  If true is returned, noteConnectionDestruction()
+    *  MUST be called once the connection has actually been destroyed.
+    */
+    public boolean checkExpireConnection(String[] binNames, AtomicInteger poolCount)
+    {
+      synchronized (connectionBins)
+      {
+        int i = 0;
+        while (i < binNames.length)
+        {
+          String binName = binNames[i];
+          ConnectionBin bin = connectionBins.get(binName);
+          if (bin != null)
+          {
+            if (!bin.hasPooledConnection(poolCount))
+            {
+              // Give up now, and undo all the other bins
+              while (i > 0)
+              {
+                i--;
+                binName = binNames[i];
+                bin = connectionBins.get(binName);
+                bin.undoPooledConnectionDecision(poolCount);
+              }
+              return false;
+            }
+          }
+          i++;
+        }
+        return true;
+      }
+    }
+
     public void noteConnectionReturnedToPool(String[] binNames, AtomicInteger poolCount)
     {
       synchronized (connectionBins)
@@ -957,8 +998,7 @@ public class Throttler
     @Override
     public boolean checkExpireConnection()
     {
-      // MHL
-      return false;
+      return parent.checkExpireConnection(binNames, poolCount);
     }
     
     /** Note that a connection has been returned to the pool.  Call this method after a connection has been

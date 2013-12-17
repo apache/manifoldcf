@@ -198,6 +198,19 @@ public class ConnectionBin
     return CONNECTION_POOLEMPTY;
   }
 
+  /** Check only if there's a pooled connection, and make moves to take it from the pool.
+  */
+  public synchronized boolean hasPooledConnection(AtomicInteger poolCount)
+  {
+    int currentPoolCount = poolCount.get();
+    if (currentPoolCount > 0)
+    {
+      poolCount.set(currentPoolCount-1);
+      return true;
+    }
+    return false;
+  }
+  
   /** Undo the decision to destroy a pooled connection.
   */
   public synchronized void undoPooledConnectionDecision(AtomicInteger poolCount)
