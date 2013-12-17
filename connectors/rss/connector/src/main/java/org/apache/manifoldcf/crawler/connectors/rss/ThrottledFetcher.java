@@ -219,8 +219,6 @@ public class ThrottledFetcher
     /** The httpclient */
     protected final HttpClient httpClient;
 
-    /** The stream throttler */
-    protected IStreamThrottler streamThrottler = null;
     /** The method object */
     protected HttpRequestBase executeMethod = null;
     /** The start-fetch time */
@@ -337,7 +335,8 @@ public class ThrottledFetcher
       fetchCounter = 0L;
       try
       {
-        streamThrottler = fetchThrottler.obtainFetchDocumentPermission();
+        if (fetchThrottler.obtainFetchDocumentPermission() == false)
+          throw new IllegalStateException("obtainFetchDocumentPermission() had unexpected return value");
       }
       catch (InterruptedException e)
       {
@@ -400,7 +399,7 @@ public class ThrottledFetcher
       if (lastModified != null)
         executeMethod.setHeader(new BasicHeader("Last-Modified",lastModified));
       // Create the execution thread.
-      methodThread = new ExecuteMethodThread(this, streamThrottler,
+      methodThread = new ExecuteMethodThread(this, fetchThrottler,
         httpClient, executeMethod);
       // Start the method thread, which will start the transaction
       try
@@ -731,7 +730,6 @@ public class ThrottledFetcher
         myUrl = null;
         statusCode = -1;
         fetchType = null;
-        streamThrottler = null;
       }
     }
 
@@ -900,18 +898,14 @@ public class ThrottledFetcher
     public void close()
       throws IOException
     {
-      IOException rval = null;
       try
       {
         inputStream.close();
       }
-      catch (IOException e)
+      finally
       {
-        rval = e;
+        streamThrottler.closeStream();
       }
-      streamThrottler.closeStream();
-      if (rval != null)
-        throw rval;
     }
 
   }
@@ -936,8 +930,8 @@ public class ThrottledFetcher
   {
     /** The connection */
     protected final ThrottledConnection theConnection;
-    /** The stream throttler */
-    protected final IStreamThrottler streamThrottler;
+    /** The fetch throttler */
+    protected final IFetchThrottler fetchThrottler;
     /** Client and method, all preconfigured */
     protected final HttpClient httpClient;
     protected final HttpRequestBase executeMethod;
@@ -955,13 +949,13 @@ public class ThrottledFetcher
 
     protected Throwable generalException = null;
     
-    public ExecuteMethodThread(ThrottledConnection theConnection, IStreamThrottler streamThrottler,
+    public ExecuteMethodThread(ThrottledConnection theConnection, IFetchThrottler fetchThrottler,
       HttpClient httpClient, HttpRequestBase executeMethod)
     {
       super();
       setDaemon(true);
       this.theConnection = theConnection;
-      this.streamThrottler = streamThrottler;
+      this.fetchThrottler = fetchThrottler;
       this.httpClient = httpClient;
       this.executeMethod = executeMethod;
     }
@@ -1013,7 +1007,7 @@ public class ThrottledFetcher
                   bodyStream = response.getEntity().getContent();
                   if (bodyStream != null)
                   {
-                    bodyStream = new ThrottledInputstream(theConnection,streamThrottler,bodyStream);
+                    bodyStream = new ThrottledInputstream(theConnection,fetchThrottler.createFetchStream(),bodyStream);
                     threadStream = new XThreadInputStream(bodyStream);
                   }
                   streamCreated = true;
