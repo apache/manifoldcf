@@ -67,7 +67,12 @@ public interface IThrottleGroups
   */
   public void poll(String throttleGroupType)
     throws ManifoldCFException;
-  
+
+  /** Poll periodically, to update ALL cluster-wide statistics and allocation.
+  */
+  public void poll()
+    throws ManifoldCFException;
+
   /** Free all unused resources.
   */
   public void freeUnusedResources()

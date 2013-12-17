@@ -150,6 +150,22 @@ public class Throttler
     }
       
   }
+
+  /** Poll ALL bins periodically.
+  */
+  public void poll(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    // No waiting, so lock the entire tree.
+    synchronized (throttleGroupsHash)
+    {
+      for (ThrottlingGroups tg : throttleGroupsHash.values())
+      {
+        tg.poll(threadContext);
+      }
+    }
+      
+  }
   
   /** Free unused resources.
   */

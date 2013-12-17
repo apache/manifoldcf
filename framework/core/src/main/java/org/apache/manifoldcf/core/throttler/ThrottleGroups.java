@@ -104,6 +104,15 @@ public class ThrottleGroups implements IThrottleGroups
     throttler.poll(threadContext, throttleGroupType);
   }
   
+  /** Poll periodically, to update ALL cluster-wide statistics and allocation.
+  */
+  @Override
+  public void poll()
+    throws ManifoldCFException
+  {
+    throttler.poll(threadContext);
+  }
+
   /** Free unused resources.
   */
   @Override
