@@ -39,6 +39,11 @@ public interface IThrottledConnection
   public static final int FETCH_INTERRUPTED = -104;
   public static final int FETCH_UNKNOWN_ERROR = -999;
 
+  /** Check whether the connection has expired.
+  *@return true if the connection has expired, and should be closed.
+  */
+  public boolean hasExpired();
+
   /** Begin the fetch process.
   * @param fetchType is a short descriptive string describing the kind of fetch being requested.  This
   *        is used solely for logging purposes.
@@ -115,6 +120,5 @@ public interface IThrottledConnection
 
   /** Close the connection.  Call this to end this server connection.
   */
-  public void close()
-    throws ManifoldCFException;
+  public void close();
 }
