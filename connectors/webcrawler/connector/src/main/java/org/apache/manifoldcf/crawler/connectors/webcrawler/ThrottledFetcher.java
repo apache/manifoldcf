@@ -2009,6 +2009,8 @@ public class ThrottledFetcher
           connection.destroy();
           connectionThrottler.noteConnectionDestroyed();
         }
+        else
+          break;
       }
     }
     
