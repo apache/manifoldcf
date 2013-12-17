@@ -55,6 +55,8 @@ public class IdleCleanupThread extends Thread
       ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
       // Get the output connector pool handle
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+      // Throttler subsystem
+      IThrottleGroups throttleGroups = ThrottleGroupsFactory.make(threadContext);
       
       /* For HSQLDB debugging...
       IDBInterface database = DBInterfaceFactory.make(threadContext,
@@ -88,6 +90,9 @@ public class IdleCleanupThread extends Thread
           
           // Do the cleanup
           outputConnectorPool.pollAllConnectors();
+          // Poll connection bins
+          throttleGroups.poll();
+          // Expire objects
           cacheManager.expireObjects(System.currentTimeMillis());
           
           // Sleep for the retry interval.
