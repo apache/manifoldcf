@@ -250,10 +250,8 @@ public class ThrottledFetcher
     /** Authentication */
     protected final PageCredentials authentication;
 
-    /** Whether is active (in use), or is in the pool */
-    protected boolean isActive = true;
-    /** If not active, this is when it went inactive */
-    protected long inactiveTime = 0L;
+    /** This is when the connection will expire.  Only valid if connection is in the pool. */
+    protected long expireTime = -1L;
 
     /** The http connection manager.  The pool is of size 1.  */
     protected PoolingClientConnectionManager connManager = null;
@@ -322,19 +320,12 @@ public class ThrottledFetcher
     @Override
     public boolean hasExpired(long currentTime)
     {
-      if (isActive)
-        return false;
-
       if (connManager != null)
       {
         connManager.closeIdleConnections(idleTimeout, TimeUnit.MILLISECONDS);
         connManager.closeExpiredConnections();
-        // Need to determine if there's a valid connection in the connection manager still, or if it is empty.
-        //return connManager.getConnectionsInPool() == 0;
-        return false;
       }
-      else
-        return true;
+      return (currentTime > expireTime);
     }
 
     /** Log the fetch of a number of bytes, from within a stream. */
@@ -347,9 +338,6 @@ public class ThrottledFetcher
     @Override
     public void destroy()
     {
-      if (isActive == false)
-        throw new RuntimeException("Trying to destroy an inactive connection");
-
       // Kill the actual connection object.
       if (connManager != null)
       {
@@ -1008,7 +996,7 @@ public class ThrottledFetcher
     @Override
     public void close()
     {
-      inactiveTime = System.currentTimeMillis();
+      expireTime = System.currentTimeMillis() + idleTimeout;
       myPool.release(this);
     }
     
