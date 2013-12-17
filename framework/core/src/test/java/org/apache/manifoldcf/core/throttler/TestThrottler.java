@@ -151,7 +151,7 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
           // First grab a connection.
           int rval = connectionThrottler.waitConnectionAvailable();
           if (rval == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
-            return;
+            throw new Exception("Unexpected return value from waitConnectionAvailable()");
           IFetchThrottler fetchThrottler;
           if (rval == IConnectionThrottler.CONNECTION_FROM_CREATION)
           {
@@ -168,30 +168,36 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
           for (int l = 0; l < numberFetchesPerCycle; l++)
           {
             // Perform a fake fetch
-            IStreamThrottler streamThrottler = fetchThrottler.obtainFetchDocumentPermission();
-            if (streamThrottler == null)
-              return;
+            if (fetchThrottler.obtainFetchDocumentPermission() == false)
+              throw new Exception("Unexpected return value for obtainFetchDocumentPermission()");
             eventLog.addLogEntry(new FetchStartEvent());
-            // Do one read
-            if (streamThrottler.obtainReadPermission(1000) == false)
-              return;
-            eventLog.addLogEntry(new ReadStartEvent(1000));
-            streamThrottler.releaseReadPermission(1000, 1000);
-            eventLog.addLogEntry(new ReadDoneEvent(1000));
-            // Do another read
-            if (streamThrottler.obtainReadPermission(1000) == false)
-              return;
-            eventLog.addLogEntry(new ReadStartEvent(1000));
-            streamThrottler.releaseReadPermission(1000, 1000);
-            eventLog.addLogEntry(new ReadDoneEvent(1000));
-            // Do a third read
-            if (streamThrottler.obtainReadPermission(1000) == false)
-              return;
-            eventLog.addLogEntry(new ReadStartEvent(1000));
-            streamThrottler.releaseReadPermission(1000, 100);
-            eventLog.addLogEntry(new ReadDoneEvent(100));
-            // Close the stream
-            streamThrottler.closeStream();
+            IStreamThrottler streamThrottler = fetchThrottler.createFetchStream();
+            try
+            {
+              // Do one read
+              if (streamThrottler.obtainReadPermission(1000) == false)
+                throw new Exception("False from obtainReadPermission!");
+              eventLog.addLogEntry(new ReadStartEvent(1000));
+              streamThrottler.releaseReadPermission(1000, 1000);
+              eventLog.addLogEntry(new ReadDoneEvent(1000));
+              // Do another read
+              if (streamThrottler.obtainReadPermission(1000) == false)
+                throw new Exception("False from obtainReadPermission!");
+              eventLog.addLogEntry(new ReadStartEvent(1000));
+              streamThrottler.releaseReadPermission(1000, 1000);
+              eventLog.addLogEntry(new ReadDoneEvent(1000));
+              // Do a third read
+              if (streamThrottler.obtainReadPermission(1000) == false)
+                throw new Exception("False from obtainReadPermission!");
+              eventLog.addLogEntry(new ReadStartEvent(1000));
+              streamThrottler.releaseReadPermission(1000, 100);
+              eventLog.addLogEntry(new ReadDoneEvent(100));
+            }
+            finally
+            {
+              // Close the stream
+              streamThrottler.closeStream();
+            }
             eventLog.addLogEntry(new FetchDoneEvent());
           }
           

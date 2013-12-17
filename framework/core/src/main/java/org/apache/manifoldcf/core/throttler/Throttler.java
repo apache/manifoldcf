@@ -613,13 +613,11 @@ public class Throttler
     
     /** Get permission to fetch a document.  This grants permission to start
     * fetching a single document, within the connection that has already been
-    * granted permission that created this object.  When done (or aborting), call
-    * releaseFetchDocumentPermission() to note the completion of the document
-    * fetch activity.
-    *@param currentTime is the current time, in ms. since epoch.
-    *@return the stream throttler to use to throttle the actual data access, or null if the system is being shut down.
+    * granted permission that created this object.
+    *@param binNames are the names of the bins.
+    *@return false if being shut down
     */
-    public IStreamThrottler obtainFetchDocumentPermission(String[] binNames)
+    public boolean obtainFetchDocumentPermission(String[] binNames)
       throws InterruptedException
     {
       // First, make sure all the bins exist, and reserve a slot in each
@@ -647,7 +645,7 @@ public class Throttler
             if (bin != null)
               bin.clearReservation();
           }
-          return null;
+          return false;
         }
         i++;
       }
@@ -679,12 +677,16 @@ public class Throttler
                 bin.clearReservation();
               i++;
             }
-            return null;
+            return false;
           }
         }
         i++;
       }
-      
+      return true;
+    }
+    
+    public IStreamThrottler createFetchStream(String[] binNames)
+    {
       // Do a "begin fetch" for all throttle bins
       synchronized (throttleBins)
       {
@@ -995,18 +997,27 @@ public class Throttler
     
     /** Get permission to fetch a document.  This grants permission to start
     * fetching a single document, within the connection that has already been
-    * granted permission that created this object.  When done (or aborting), call
-    * releaseFetchDocumentPermission() to note the completion of the document
-    * fetch activity.
-    *@return the stream throttler to use to throttle the actual data access, or null if the system is being shut down.
+    * granted permission that created this object.
+    *@return false if the throttler is being shut down.
     */
     @Override
-    public IStreamThrottler obtainFetchDocumentPermission()
+    public boolean obtainFetchDocumentPermission()
       throws InterruptedException
     {
       return parent.obtainFetchDocumentPermission(binNames);
     }
     
+    /** Open a fetch stream.  When done (or aborting), call
+    * IStreamThrottler.closeStream() to note the completion of the document
+    * fetch activity.
+    *@return the stream throttler to use to throttle the actual data access.
+    */
+    @Override
+    public IStreamThrottler createFetchStream()
+    {
+      return parent.createFetchStream(binNames);
+    }
+
   }
   
   /** Stream throttler implementation class.
