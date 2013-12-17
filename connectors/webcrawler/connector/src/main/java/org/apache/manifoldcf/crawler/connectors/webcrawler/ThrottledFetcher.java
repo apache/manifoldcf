@@ -1813,7 +1813,7 @@ public class ThrottledFetcher
       return protocol.hashCode() +
         server.hashCode() +
         (port * 31) +
-        authentication.hashCode() +
+        ((authentication==null)?0:authentication.hashCode()) +
         ((trustStoreString==null)?0:trustStoreString.hashCode()) +
         ((proxyHost==null)?0:proxyHost.hashCode()) +
         (proxyPort * 29) +
@@ -1828,9 +1828,18 @@ public class ThrottledFetcher
         return false;
       ConnectionPoolKey other = (ConnectionPoolKey)o;
       if (!server.equals(other.server) ||
-        port != other.port ||
-        !authentication.equals(other.authentication))
+        port != other.port)
         return false;
+      if (authentication == null || other.authentication == null)
+      {
+        if (authentication != other.authentication)
+          return false;
+      }
+      else
+      {
+        if (!authentication.equals(other.authentication))
+          return false;
+      }
       if (trustStoreString == null || other.trustStoreString == null)
       {
         if (trustStoreString != other.trustStoreString)
