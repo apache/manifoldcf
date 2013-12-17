@@ -164,10 +164,11 @@ public class ThrottledFetcher
   *@param connectionLimit isthe maximum number of connections permitted.
   *@return an IThrottledConnection object that can be used to fetch from the port.
   */
-  public static IThrottledConnection getConnection(String protocol, String server, int port,
+  public static IThrottledConnection getConnection(IThreadContext threadContext,
+    String protocol, String server, int port,
     PageCredentials authentication,
     IKeystoreManager trustStore,
-    ThrottleDescription throttleDescription, String[] binNames,
+    IThrottleSpec throttleDescription, String[] binNames,
     int connectionLimit,
     String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
     throws ManifoldCFException
@@ -290,12 +291,6 @@ public class ThrottledFetcher
 
               // Figure out the connection limit for this bin, based on the throttle description
               int maxConnections = throttleDescription.getMaxOpenConnections(binName);
-
-              // If no restriction, use a very large value.
-              if (maxConnections == -1)
-                maxConnections = Integer.MAX_VALUE;
-              else if (maxConnections == 0)
-                maxConnections = 1;
 
               // Now, do what we need to do to reserve our connection for this bin.
               // If we can't reserve it now, we plan on undoing everything we did, so
@@ -436,7 +431,7 @@ public class ThrottledFetcher
 
 
   /** Flush connections that have timed out from inactivity. */
-  public static void flushIdleConnections()
+  public static void flushIdleConnections(IThreadContext threadContext)
     throws ManifoldCFException
   {
     synchronized (poolLock)
@@ -1150,7 +1145,7 @@ public class ThrottledFetcher
 
     /** Set up the connection.  This allows us to feed all bins the correct bandwidth limit info.
     */
-    public void setup(ThrottleDescription description)
+    public void setup(IThrottleSpec description)
     {
       // Go through all bins, and set up the current limits.
       int i = 0;
