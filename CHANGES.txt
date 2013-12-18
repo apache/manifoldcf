@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-844: Remove "per JVM" from connection maximum
+messages in crawler UI.
+(Karl Wright)
+
 CONNECTORS-842: Update documentation to describe the functioning
 of the org.apache.manifoldcf.mysql.client property.
 (Chris Griffin, Karl Wright)
