@@ -299,16 +299,10 @@ public class ThrottleBin
       // per millisecond, and a target value for the same.
       // The target value is computed as follows:
       // (1) Target is summed cross-cluster, excluding our local service.  This is GlobalTarget.
-      // (2) In-use is summed cross-cluster, excluding our local service.  This is GlobalInUse.
-      // (3) MaximumTarget is computed, which is min(Maximum-GlobalTarget,Maximum-GlobalInUse).
-      // (4) FairTarget is computed, which is Maximum/numServices + rand(Maximum%numServices).
-      // (5) Finally, we compute Target by taking the minimum of MaximumTarget, FairTarget.
+      // (2) MaximumTarget is computed, which is Maximum-GlobalTarget.
+      // (3) FairTarget is computed, which is Maximum/numServices + rand(Maximum%numServices).
+      // (4) Finally, we compute Target by taking the minimum of MaximumTarget, FairTarget.
 
-      // The tricky part of all this is computing the local in-use value.  Ideally, this would be
-      // the instantaneous value *right now*.  But we can approximate this by computing the
-      // number of bytes fetched since the last polling call, divided by the milliseconds elapsed
-      // since then.
-      
       // Compute MaximumTarget
       SumClass sumClass = new SumClass(serviceName);
       lockManager.scanServiceData(serviceTypeName, sumClass);
@@ -425,7 +419,7 @@ public class ThrottleBin
   protected static double unpackTarget(byte[] data)
   {
     if (data == null || data.length != 8)
-      return 0;
+      return 0.0;
     return Double.longBitsToDouble((((long)data[0]) & 0xffL) +
       ((((long)data[1]) << 8) & 0xff00L) +
       ((((long)data[2]) << 16) & 0xff0000L) +
