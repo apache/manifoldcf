@@ -234,6 +234,7 @@ public class ConnectionBin
   public synchronized void undoPooledConnectionDecision(AtomicInteger poolCount)
   {
     poolCount.set(poolCount.get() + 1);
+    notifyAll();
   }
   
   /** Note a connection returned to the pool.

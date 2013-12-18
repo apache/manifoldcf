@@ -123,6 +123,7 @@ public class FetchBin
     if (!reserveNextFetch)
       throw new IllegalStateException("Can't clear a fetch reservation we don't have");
     reserveNextFetch = false;
+    notifyAll();
   }
   
   /** Wait the necessary time to do the fetch.  Presumes we've reserved the next fetch
@@ -243,6 +244,7 @@ public class FetchBin
       // But in order to update the next time, we have to update the last time.
       if (target == localMinimum && earliestTargetTime == lastFetchTime)
         return;
+      //System.out.println(binName+":Setting localMinimum="+target+"; last fetch time="+earliestTargetTime);
       localMinimum = target;
       lastFetchTime = earliestTargetTime;
       notifyAll();
