@@ -20,6 +20,7 @@ package org.apache.manifoldcf.core.throttler;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.ManifoldCF;
+import java.util.*;
 
 /** Throttles for a bin.
 * An instance of this class keeps track of the information needed to bandwidth throttle access
@@ -75,6 +76,15 @@ public class ThrottleBin
   protected final String serviceTypeName;
   /** The (anonymous) service name */
   protected final String serviceName;
+  /** The target calculation lock name */
+  protected final String targetCalcLockName;
+
+  /** The minimum milliseconds per byte */
+  protected double minimumMillisecondsPerByte = Double.MAX_VALUE;
+
+  /** The local minimum milliseconds per byte */
+  protected double localMinimum = Double.MAX_VALUE;
+  
   /** This is the reference count for this bin (which records active references) */
   protected volatile int refCount = 0;
   /** The inverse rate estimate of the first fetch, in ms/byte */
@@ -87,11 +97,12 @@ public class ThrottleBin
   protected long seriesStartTime = -1L;
   /** Total actual bytes read in this series; this includes fetches in progress */
   protected long totalBytesRead = -1L;
-  /** The minimum milliseconds per byte */
-  protected double minimumMillisecondsPerByte = Double.MAX_VALUE;
   
   /** The service type prefix for throttle bins */
   protected final static String serviceTypePrefix = "_THROTTLEBIN_";
+  
+  /** The target calculation lock prefix */
+  protected final static String targetCalcLockPrefix = "_THROTTLEBINTARGET_";
 
   /** Constructor. */
   public ThrottleBin(IThreadContext threadContext, String throttlingGroupName, String binName)
@@ -99,16 +110,22 @@ public class ThrottleBin
   {
     this.binName = binName;
     this.serviceTypeName = buildServiceTypeName(throttlingGroupName, binName);
+    this.targetCalcLockName = buildTargetCalcLockName(throttlingGroupName, binName);
     // Now, register and activate service anonymously, and record the service name we get.
     ILockManager lockManager = LockManagerFactory.make(threadContext);
     this.serviceName = lockManager.registerServiceBeginServiceActivity(serviceTypeName, null, null);
   }
 
-  protected String buildServiceTypeName(String throttlingGroupName, String binName)
+  protected static String buildServiceTypeName(String throttlingGroupName, String binName)
   {
     return serviceTypePrefix + throttlingGroupName + "_" + binName;
   }
   
+  protected static String buildTargetCalcLockName(String throttlingGroupName, String binName)
+  {
+    return targetCalcLockPrefix + throttlingGroupName + "_" + binName;
+  }
+
   /** Get the bin name. */
   public String getBinName()
   {
@@ -116,13 +133,9 @@ public class ThrottleBin
   }
 
   /** Update minimumMillisecondsPerBytePerServer */
-  public void updateMinimumMillisecondsPerByte(double min)
+  public synchronized void updateMinimumMillisecondsPerByte(double min)
   {
-    synchronized (this)
-    {
-      this.minimumMillisecondsPerByte = min;
-      notifyAll();
-    }
+    this.minimumMillisecondsPerByte = min;
   }
   
   /** Note the start of a fetch operation for a bin.  Call this method just before the actual stream access begins.
@@ -190,7 +203,7 @@ public class ThrottleBin
         }
 
         // If we haven't set a proper throttle yet, wait until we do.
-        if (minimumMillisecondsPerByte == Double.MAX_VALUE)
+        if (localMinimum == Double.MAX_VALUE)
         {
           wait();
           continue;
@@ -200,7 +213,7 @@ public class ThrottleBin
         long estimatedTime = (long)(rateEstimate * (double)byteCount);
 
         // Figure out how long the total byte count should take, to meet the constraint
-        long desiredEndTime = seriesStartTime + (long)(((double)(totalBytesRead + (long)byteCount)) * minimumMillisecondsPerByte);
+        long desiredEndTime = seriesStartTime + (long)(((double)(totalBytesRead + (long)byteCount)) * localMinimum);
 
 
         // The wait time is the difference between our desired end time, minus the estimated time to read the data, and the
@@ -273,7 +286,23 @@ public class ThrottleBin
   public synchronized void poll(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    // MHL
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    lockManager.enterWriteLock(targetCalcLockName);
+    try
+    {
+      // MHL
+      double target = minimumMillisecondsPerByte;
+      // MHL
+      if (target == localMinimum)
+        return;
+      localMinimum = target;
+      notifyAll();
+    }
+    finally
+    {
+      lockManager.leaveWriteLock(targetCalcLockName);
+    }
+
   }
 
   /** Shut down this bin.

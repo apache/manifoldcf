@@ -38,15 +38,25 @@ public class FetchBin
   protected final String serviceTypeName;
   /** The (anonymous) service name */
   protected final String serviceName;
-  /** This is the last time a fetch was done on this bin */
-  protected long lastFetchTime = 0L;
+  /** The target calculation lock name */
+  protected final String targetCalcLockName;
+
   /** This is the minimum time between fetches for this bin, in ms. */
   protected long minTimeBetweenFetches = Long.MAX_VALUE;
+
+  /** The local minimum time between fetches */
+  protected long localMinimum = Long.MAX_VALUE;
+
+  /** This is the last time a fetch was done on this bin */
+  protected long lastFetchTime = 0L;
   /** Is the next fetch reserved? */
   protected boolean reserveNextFetch = false;
 
   /** The service type prefix for fetch bins */
   protected final static String serviceTypePrefix = "_FETCHBIN_";
+
+  /** The target calculation lock prefix */
+  protected final static String targetCalcLockPrefix = "_FETCHBINTARGET_";
 
   /** Constructor. */
   public FetchBin(IThreadContext threadContext, String throttlingGroupName, String binName)
@@ -54,14 +64,20 @@ public class FetchBin
   {
     this.binName = binName;
     this.serviceTypeName = buildServiceTypeName(throttlingGroupName, binName);
+    this.targetCalcLockName = buildTargetCalcLockName(throttlingGroupName, binName);
     // Now, register and activate service anonymously, and record the service name we get.
     ILockManager lockManager = LockManagerFactory.make(threadContext);
     this.serviceName = lockManager.registerServiceBeginServiceActivity(serviceTypeName, null, null);
   }
 
-  protected String buildServiceTypeName(String throttlingGroupName, String binName)
+  protected static String buildServiceTypeName(String throttlingGroupName, String binName)
   {
     return serviceTypePrefix + throttlingGroupName + "_" + binName;
+  }
+
+  protected static String buildTargetCalcLockName(String throttlingGroupName, String binName)
+  {
+    return targetCalcLockPrefix + throttlingGroupName + "_" + binName;
   }
 
   /** Get the bin name. */
@@ -76,8 +92,6 @@ public class FetchBin
   {
     // Update the number and wake up any waiting threads; they will take care of everything.
     this.minTimeBetweenFetches = minTimeBetweenFetches;
-    // Wake up everything that's waiting.
-    notifyAll();
   }
 
   /** Reserve a request to fetch a document from this bin.  The actual fetch is not yet committed
@@ -126,7 +140,7 @@ public class FetchBin
       if (!isAlive)
         // Leave it to the caller to undo reservations
         return false;
-      if (minTimeBetweenFetches == Long.MAX_VALUE)
+      if (localMinimum == Long.MAX_VALUE)
       {
         // wait forever - but eventually someone will set a smaller interval and wake us up.
         wait();
@@ -135,7 +149,7 @@ public class FetchBin
       {
         long currentTime = System.currentTimeMillis();
         // Compute how long we have to wait, based on the current time and the time of the last fetch.
-        long waitAmt = lastFetchTime + minTimeBetweenFetches - currentTime;
+        long waitAmt = lastFetchTime + localMinimum - currentTime;
         if (waitAmt <= 0L)
         {
           // Note actual time we start the fetch.
@@ -153,7 +167,23 @@ public class FetchBin
   public synchronized void poll(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    // MHL
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    lockManager.enterWriteLock(targetCalcLockName);
+    try
+    {
+      // MHL
+      long target = minTimeBetweenFetches;
+      // MHL
+      if (target == localMinimum)
+        return;
+      localMinimum = target;
+      notifyAll();
+    }
+    finally
+    {
+      lockManager.leaveWriteLock(targetCalcLockName);
+    }
+
   }
 
   /** Shut the bin down, and wake up all threads waiting on it.
