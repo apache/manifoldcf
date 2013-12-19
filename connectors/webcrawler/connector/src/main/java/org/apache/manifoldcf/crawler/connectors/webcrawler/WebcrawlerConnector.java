@@ -160,6 +160,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   protected int connectionTimeoutMilliseconds = 60000;
   /** Socket timeout, milliseconds */
   protected int socketTimeoutMilliseconds = 300000;
+  /** Throttle group name */
+  protected String throttleGroupName = null;
 
   // Canonicalization enabling/disabling.  Eventually this will probably need to be by regular expression.
 
@@ -354,6 +356,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       String x;
 
+      // Either set this from the connection name, or just have one.  Right now, we have one.
+      String throttleGroupName = "";
+      
       String emailAddress = params.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
       if (emailAddress == null)
         throw new ManifoldCFException("Missing email address");
@@ -406,7 +411,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   public void poll()
     throws ManifoldCFException
   {
-    ThrottledFetcher.flushIdleConnections();
+    ThrottledFetcher.flushIdleConnections(currentContext);
   }
 
   /** Check status of connection.
@@ -425,6 +430,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   public void disconnect()
     throws ManifoldCFException
   {
+    throttleGroupName = null;
     throttleDescription = null;
     credentialsDescription = null;
     trustsDescription = null;
@@ -711,7 +717,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
                   // Prepare to perform the fetch, and decide what to do with the document.
                   //
-                  IThrottledConnection connection = ThrottledFetcher.getConnection(protocol,ipAddress,port,
+                  IThrottledConnection connection = ThrottledFetcher.getConnection(currentContext,
+                    throttleGroupName,
+                    protocol,ipAddress,port,
                     credential,trustStore,throttleDescription,binNames,connectionLimit,
                     proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
                   try
@@ -5126,7 +5134,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       // We've successfully obtained a lock on reading robots for this server!  Now, guarantee that we'll free it, by instantiating a try/finally
       try
       {
-        IThrottledConnection connection = ThrottledFetcher.getConnection(protocol,hostIPAddress,port,credential,
+        IThrottledConnection connection = ThrottledFetcher.getConnection(currentContext,throttleGroupName,
+          protocol,hostIPAddress,port,credential,
           trustStore,throttleDescription,binNames,connectionLimit,
           proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
         try

@@ -717,6 +717,28 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     TrackerClass.noteJobChange(jobID,"Prepare full scan");
   }
 
+  /** Reset schedule for all PENDINGPURGATORY entries.
+  *@param jobID is the job identifier.
+  */
+  public void resetPendingDocumentSchedules(Long jobID)
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    // Do not reset priorities here!  They should all be blank at this point.
+    map.put(checkTimeField,new Long(0L));
+    map.put(checkActionField,actionToString(ACTION_RESCAN));
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_PENDINGPURGATORY),
+        statusToString(STATUS_PENDING)})});
+    performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
+  }
+  
   /** For ADD_CHANGE_DELETE jobs where the specifications have been changed,
   * we must reconsider every existing document.  So reconsider them all.
   *@param jobID is the job identifier.

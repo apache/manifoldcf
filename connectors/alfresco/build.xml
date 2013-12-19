@@ -50,6 +50,7 @@
             <include name="saaj*.jar"/>	
             <include name="commons-discovery*.jar"/>
             <include name="jaxrpc*.jar"/>
+            <include name="mail*.jar"/>
             <include name="opensaml*.jar"/>
             <include name="wsdl4j*.jar"/>
             <include name="wss4j*.jar"/>
@@ -72,6 +73,7 @@
                 <include name="saaj*.jar"/>	
                 <include name="commons-discovery*.jar"/>
                 <include name="jaxrpc*.jar"/>
+                <include name="mail*.jar"/>
                 <include name="opensaml*.jar"/>
                 <include name="wsdl4j*.jar"/>
                 <include name="wss4j*.jar"/>

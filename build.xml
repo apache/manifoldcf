@@ -59,7 +59,6 @@
         <ant dir="connectors/alfresco" target="clean"/>
         <ant dir="connectors/cmis" target="clean"/>
         <ant dir="connectors/dropbox" target="clean"/>
-        <ant dir="connectors/email" target="clean"/>
         <ant dir="connectors/generic" target="clean"/>
         <ant dir="connectors/googledrive" target="clean"/>
         <ant dir="connectors/jira" target="clean"/>
@@ -117,7 +116,6 @@
         <ant dir="connectors/alfresco" target="clean"/>
         <ant dir="connectors/cmis" target="clean"/>
         <ant dir="connectors/dropbox" target="clean"/>
-        <ant dir="connectors/email" target="clean"/>
         <ant dir="connectors/generic" target="clean"/>
         <ant dir="connectors/googledrive" target="clean"/>
         <ant dir="connectors/jira" target="clean"/>
@@ -1129,41 +1127,6 @@
         <ant dir="connectors/wiki" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-email-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-email-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-email-connector" depends="setup-email-connector" if="downloaded">
-        <ant dir="connectors/email" target="build"/>
-    </target>
-
-    <target name="doc-email-connector" depends="setup-email-connector" if="downloaded">
-        <ant dir="connectors/email" target="doc"/>
-    </target>
-
-    <target name="build-tests-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="run-tests-HSQLDB"/>
-    </target>
 
     <target name="deliver-site-doc" depends="presite-check" if="site-exists">
           <mkdir dir="dist/doc"/>
@@ -2555,43 +2518,6 @@
         </antcall>
     </target>
 
-    <target name="calculate-email-condition" depends="build-email-connector">
-        <available file="connectors/email/dist/lib" type="dir" property="email.exists"/>
-        <condition property="email.include">
-            <and>
-                <isset property="email.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-email-doc-condition" depends="doc-email-connector">
-        <available file="connectors/email/dist/doc" type="dir" property="email-doc.exists"/>
-        <condition property="email-doc.include">
-            <and>
-                <isset property="email-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-email-connector" depends="calculate-email-condition" if="email.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="email"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="email"/>
-            <param name="connector-label" value="EMail"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.email.EmailConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-email-connector-doc" depends="calculate-email-doc-condition" if="email-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="email"/>
-        </antcall>
-    </target>
-
     <target name="calculate-filesystem-tests-condition" depends="calculate-filesystem-condition,calculate-nulloutput-condition">
       <condition property="filesystem-tests.include">
         <and>
@@ -3069,8 +2995,8 @@
 
     <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-hdfs-loadtests-HSQLDB,run-rss-loadtests-HSQLDB,run-wiki-loadtests-HSQLDB,run-alfresco-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
 
-    <target name="deliver-open-connectors" depends="deliver-email-connector,deliver-generic-connector,deliver-jira-connector,deliver-googledrive-connector,deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-hdfs-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
-    <target name="deliver-open-connectors-doc" depends="deliver-email-connector-doc,deliver-generic-connector-doc,deliver-jira-connector-doc,deliver-googledrive-connector-doc,deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-hdfs-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
+    <target name="deliver-open-connectors" depends="deliver-generic-connector,deliver-jira-connector,deliver-googledrive-connector,deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-hdfs-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
+    <target name="deliver-open-connectors-doc" depends="deliver-generic-connector-doc,deliver-jira-connector-doc,deliver-googledrive-connector-doc,deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-hdfs-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
 
     <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector"/>
     <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc,deliver-elasticsearch-connector-doc"/>
@@ -4258,7 +4184,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/activedirectory" target="download-dependencies"/>
         <ant dir="connectors/ldap" target="download-dependencies"/>
         <ant dir="connectors/documentum" target="download-dependencies"/>
-        <ant dir="connectors/email" target="download-dependencies"/>
         <ant dir="connectors/filenet" target="download-dependencies"/>
         <ant dir="connectors/filesystem" target="download-dependencies"/>
         <ant dir="connectors/gts" target="download-dependencies"/>
