@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-846: Once a service had grabbed all connector
+instances, but was not using them any more, it would not release
+them for other cluster members to use.
+(Karl Wright)
+
 CONNECTORS-844: Remove "per JVM" from connection maximum
 messages in crawler UI.
 (Karl Wright)
