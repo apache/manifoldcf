@@ -16,83 +16,65 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.agents.system;
+package org.apache.manifoldcf.crawlerui;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.crawler.interfaces.*;
+import org.apache.manifoldcf.authorities.interfaces.*;
+import org.apache.manifoldcf.core.system.Logging;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import java.util.*;
+import java.lang.reflect.*;
 
-/** This thread periodically calls the cleanup method in all connected output connectors.  The ostensible purpose
+/** This thread periodically calls the cleanup method in all connected repository connectors.  The ostensible purpose
 * is to allow the connectors to shutdown idle connections etc.
 */
 public class IdleCleanupThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  // Local data
-  /** Process ID */
-  protected final String processID;
-
   /** Constructor.
   */
-  public IdleCleanupThread(String processID)
+  public IdleCleanupThread()
     throws ManifoldCFException
   {
     super();
-    this.processID = processID;
     setName("Idle cleanup thread");
     setDaemon(true);
   }
 
   public void run()
   {
-    Logging.agents.debug("Start up idle cleanup thread");
+    Logging.root.debug("Start up idle cleanup thread");
     try
     {
       // Create a thread context object.
       IThreadContext threadContext = ThreadContextFactory.make();
       // Get the cache handle.
       ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
-      // Get the output connector pool handle
+      
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
-      // Throttler subsystem
+      IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(threadContext);
+      IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(threadContext);
+      
       IThrottleGroups throttleGroups = ThrottleGroupsFactory.make(threadContext);
-      
-      /* For HSQLDB debugging...
-      IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ManifoldCF.getMasterDatabaseName(),
-        ManifoldCF.getMasterDatabaseUsername(),
-        ManifoldCF.getMasterDatabasePassword());
-      */
-      
+
       // Loop
       while (true)
       {
         // Do another try/catch around everything in the loop
         try
         {
-          /*
-          System.out.println("+++++++++");
-          IResultSet results = database.performQuery("SELECT * FROM information_schema.system_sessions",null,null,null);
-          for (int i = 0; i < results.getRowCount(); i++)
-          {
-            IResultRow row = results.getRow(i);
-            Iterator<String> iter = row.getColumns();
-            while (iter.hasNext())
-            {
-              String columnName = iter.next();
-              System.out.println(columnName+": "+row.getValue(columnName).toString());
-            }
-            System.out.println("--------");
-          }
-          System.out.println("++++++++++");
-          */
-          
           // Do the cleanup
+          repositoryConnectorPool.pollAllConnectors();
           outputConnectorPool.pollAllConnectors();
-          // Poll connection bins
+          authorityConnectorPool.pollAllConnectors();
+          mappingConnectorPool.pollAllConnectors();
+          
           throttleGroups.poll();
-          // Expire objects
+          
           cacheManager.expireObjects(System.currentTimeMillis());
           
           // Sleep for the retry interval.
@@ -105,7 +87,7 @@ public class IdleCleanupThread extends Thread
 
           if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
-            Logging.agents.error("Idle cleanup thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
+            Logging.root.error("Idle cleanup thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
             {
               // Give the database a chance to catch up/wake up
@@ -119,7 +101,7 @@ public class IdleCleanupThread extends Thread
           }
 
           // Log it, but keep the thread alive
-          Logging.agents.error("Exception tossed: "+e.getMessage(),e);
+          Logging.root.error("Exception tossed: "+e.getMessage(),e);
 
           if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
@@ -135,22 +117,22 @@ public class IdleCleanupThread extends Thread
         }
         catch (OutOfMemoryError e)
         {
-          System.err.println("agents process ran out of memory - shutting down");
+          System.err.println("Crawler UI ran out of memory - shutting down");
           e.printStackTrace(System.err);
           System.exit(-200);
         }
         catch (Throwable e)
         {
           // A more severe error - but stay alive
-          Logging.agents.fatal("Error tossed: "+e.getMessage(),e);
+          Logging.root.fatal("Error tossed: "+e.getMessage(),e);
         }
       }
     }
     catch (Throwable e)
     {
       // Severe error on initialization
-      System.err.println("agents process could not start - shutting down");
-      Logging.agents.fatal("IdleCleanupThread initialization error tossed: "+e.getMessage(),e);
+      System.err.println("Crawler UI could not start - shutting down");
+      Logging.root.fatal("IdleCleanupThread initialization error tossed: "+e.getMessage(),e);
       System.exit(-300);
     }
 

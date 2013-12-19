@@ -3,6 +3,37 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-846: Once a service had grabbed all connector
+instances, but was not using them any more, it would not release
+them for other cluster members to use.
+(Karl Wright)
+
+CONNECTORS-844: Remove "per JVM" from connection maximum
+messages in crawler UI.
+(Karl Wright)
+
+CONNECTORS-842: Update documentation to describe the functioning
+of the org.apache.manifoldcf.mysql.client property.
+(Chris Griffin, Karl Wright)
+
+CONNECTORS-843: Solr Connector methods do not call getSession()
+when they should, leading to unpredictable results.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-841: Always reset document schedules on job start.
+(David Morana, Karl Wright)
+
+CONNECTORS-839: Fix our CloudSolrServer usage to use multipart
+post instead of putting everything in the URL.
+(Alessandro Benedetti, Raymond Wiker, Karl Wright)
+
+CONNECTORS-838: Character-stuff names that ZooKeeper sees, to
+prevent issues with '/' characters.
+(Karl Wright)
+
+CONNECTORS-837: Specifying 1 connection causes hang.
+(Karl Wright)
+
 CONNECTORS-836: Use the same thread context in the registered
 shutdown objects.
 (Karl Wright)

@@ -434,6 +434,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public String getOutputDescription(OutputSpecification spec)
     throws ManifoldCFException, ServiceInterruption
   {
+    getSession();
+    
     StringBuilder sb = new StringBuilder();
 
     // All the arguments need to go into this string, since they affect ingestion.
@@ -578,6 +580,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption
   {
+    getSession();
     if (includedMimeTypes != null && includedMimeTypes.get(mimeType) == null)
       return false;
     if (excludedMimeTypes != null && excludedMimeTypes.get(mimeType) != null)
@@ -594,6 +597,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public boolean checkLengthIndexable(String outputDescription, long length)
     throws ManifoldCFException, ServiceInterruption
   {
+    getSession();
     if (maxDocumentLength != null && length > maxDocumentLength.longValue())
       return false;
     return super.checkLengthIndexable(outputDescription,length);

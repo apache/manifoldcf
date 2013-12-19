@@ -442,8 +442,9 @@ cd example
             <tr><td><em>start-database[.sh|.bat]</em></td><td>script to start the HSQLDB database</td></tr>
             <tr><td><em>initialize[.sh|.bat]</em></td><td>script to create the database instance, create all database tables, and register connectors</td></tr>
             <tr><td><em>start-webapps[.sh|.bat]</em></td><td>script to start Jetty with the ManifoldCF web applications deployed</td></tr>
-            <tr><td><em>start-agents[.sh|.bat]</em></td><td>script to start the agents process</td></tr>
-            <tr><td><em>stop-agents[.sh|.bat]</em></td><td>script to stop a running agents process cleanly</td></tr>
+            <tr><td><em>start-agents[.sh|.bat]</em></td><td>script to start the (first) agents process</td></tr>
+            <tr><td><em>start-agents-2[.sh|.bat]</em></td><td>script to start a second agents process</td></tr>
+            <tr><td><em>stop-agents[.sh|.bat]</em></td><td>script to stop all running agents processes cleanly</td></tr>
             <tr><td><em>lock-clean[.sh|.bat]</em></td><td>script to clean up dirty locks (run only when all webapps and processes are stopped)</td></tr>
           </table>
           <p></p>
@@ -452,7 +453,7 @@ cd example
             <p></p>
             <p>If you run the file-based multiprocess model, after you first start the database (using <em>start-database[.sh|.bat]</em>), you will need to initialize the database before you start the agents process or use the crawler UI.  To do this, all you need to do is
                 run the <em>initialize[.sh|.bat]</em> script.  Then, you will need to start the web applications (using <em>start-webapps[.sh|.bat]</em>) and the agents process (using
-                <em>start-agents[.sh|.bat]</em>).</p>
+                <em>start-agents[.sh|.bat]</em>), and optionally the second agents process (using <em>start-agents-2[.sh|.bat]</em>).</p>
             <p></p>
           </section>
 
@@ -480,8 +481,9 @@ cd example
             <tr><td><em>start-database[.sh|.bat]</em></td><td>script to start the HSQLDB database</td></tr>
             <tr><td><em>initialize[.sh|.bat]</em></td><td>script to create the database instance, create all database tables, and register connectors</td></tr>
             <tr><td><em>start-webapps[.sh|.bat]</em></td><td>script to start Jetty with the ManifoldCF web applications deployed</td></tr>
-            <tr><td><em>start-agents[.sh|.bat]</em></td><td>script to start the agents process</td></tr>
-            <tr><td><em>stop-agents[.sh|.bat]</em></td><td>script to stop a running agents process cleanly</td></tr>
+            <tr><td><em>start-agents[.sh|.bat]</em></td><td>script to start (the first) agents process</td></tr>
+            <tr><td><em>start-agents-2[.sh|.bat]</em></td><td>script to start a second agents process</td></tr>
+            <tr><td><em>stop-agents[.sh|.bat]</em></td><td>script to stop all running agents processes cleanly</td></tr>
           </table>
           <p></p>
           <section>
@@ -494,8 +496,8 @@ cd example
               <li>Initialize the ManifoldCF shared configuration data (using <em>setglobalproperties[.sh|.bat]</em>)</li>
               <li>Start the database (using <em>start-database[.sh|.bat]</em>)</li>
               <li>Initialize the database (using <em>initialize[.sh|.bat]</em>)</li>
-              <li>Start the agents process (using <em>start-agents[.sh|.bat]</em></li>
-              <li>Start the web applications (using <em>start-webapps[.sh|.bat]</em></li>
+              <li>Start the agents process (using <em>start-agents[.sh|.bat]</em>, and optionally <em>start-agents-2[.sh|.bat]</em>)</li>
+              <li>Start the web applications (using <em>start-webapps[.sh|.bat]</em>)</li>
             </ol>
             <p></p>
           </section>
@@ -871,6 +873,7 @@ cd example
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseport</td><td>No</td><td>The HSQLDB remote server port.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseinstance</td><td>No</td><td>The HSQLDB remote database instance name.</td></tr>
             <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL server name.  Defaults to 'localhost'.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.client</td><td>No</td><td>The MySQL client property.  Defaults to 'localhost'.  You may want to set this to '%' for a multi-machine setup.</td></tr>
             <tr><td>org.apache.manifoldcf.lockmanagerclass</td><td>No</td><td>Specifies the class to use to implement synchronization.  Default
                 is either file-based synchronization or in-memory synchronization, using the org.apache.manifoldcf.core.lockmanager.LockManager class.
                 Options include org.apache.manifoldcf.core.lockmanager.BaseLockManager, org.apache.manifoldcf.core.FileLockManager, and

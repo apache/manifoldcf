@@ -873,6 +873,7 @@ cd example
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseport</td><td>No</td><td>The HSQLDB remote server port.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseinstance</td><td>No</td><td>The HSQLDB remote database instance name.</td></tr>
             <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL server name.  Defaults to 'localhost'.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.client</td><td>No</td><td>The MySQL client property.  Defaults to 'localhost'.  You may want to set this to '%' for a multi-machine setup.</td></tr>
             <tr><td>org.apache.manifoldcf.lockmanagerclass</td><td>No</td><td>Specifies the class to use to implement synchronization.  Default
                 is either file-based synchronization or in-memory synchronization, using the org.apache.manifoldcf.core.lockmanager.LockManager class.
                 Options include org.apache.manifoldcf.core.lockmanager.BaseLockManager, org.apache.manifoldcf.core.FileLockManager, and
