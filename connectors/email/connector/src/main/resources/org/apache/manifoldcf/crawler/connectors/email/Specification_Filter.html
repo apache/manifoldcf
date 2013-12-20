@@ -20,20 +20,29 @@ limitations under the License.
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
+  #if($EXCEPTION == '')
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FoldersColon'))</nobr>
     </td>
     <td class="value">
       <select name="folders" multiple="true" size="4">
-  #foreach($name in $FOLDERNAMES)
-    #if($FOLDERS.contains($name))
+    #foreach($name in $FOLDERNAMES)
+      #if($FOLDERS.contains($name))
         <option value="$Encoder.attributeEscape($name)" selected="true">$Encoder.bodyEscape($name)</option>
-    #else
+      #else
         <option value="$Encoder.attributeEscape($name)">$Encoder.bodyEscape($name)</option>
+      #end
     #end
-  #end
       </select>
     </td>
+  #else
+    <td class="message" colspan="2">
+    #foreach($name in $FOLDERS)
+      <input type="hidden" name="folders" value="$Encoder.attributeEscape($name)"/>
+    #end
+      $Encoder.bodyEscape($EXCEPTION)
+    </td>
+  #end
   </tr>
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
@@ -117,6 +126,10 @@ limitations under the License.
 </table>
 
 #else
+
+  #foreach($name in $FOLDERS)
+<input type="hidden" name="folders" value="$Encoder.attributeEscape($name)"/>
+  #end
 
   #set($k = 0)
   #foreach($match in $MATCHES)
