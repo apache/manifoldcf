@@ -441,20 +441,12 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption {
 
-    String[] result = null;
-    if (documentIdentifiers.length > 0) {
-      result = new String[documentIdentifiers.length];
-      //Since visioning is not applicable in the current context.
-      if (result != null) {
-        for (int i=0;i<documentIdentifiers.length;i++) {
-          result[i]=EmailConfig.EMAIL_VERSION;
-        }
-      }
-      return result;
-
-    } else {
-      return new String[]{EmailConfig.EMAIL_VERSION};
+    String[] result = new String[documentIdentifiers.length];
+    for (int i = 0; i < documentIdentifiers.length; i++)
+    {
+      result[i] = "_";   // NOT empty; we need to make ManifoldCF understand that this is a document that never will change.
     }
+    return result;
 
   }
 
