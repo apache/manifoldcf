@@ -79,16 +79,15 @@ public class EmailSession
     return null;
   }
   
-  public Folder openDefaultFolder()
+  public void checkConnection()
     throws MessagingException
   {
     if (store != null)
     {
-      Folder thisFolder = store.getDefaultFolder();
-      thisFolder.open(Folder.READ_ONLY);
-      return thisFolder;
+      if (store.getDefaultFolder() == null) {
+        throw new MessagingException("Error checking the connection: No default folder.");
+      }
     }
-    return null;
   }
 
   public Folder openFolder(String folderName)

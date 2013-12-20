@@ -173,11 +173,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     finalizeConnection();
     getSession();
     try {
-      Folder defaultFolder = session.openDefaultFolder();
-      if (defaultFolder == null) {
-        throw new ManifoldCFException("Error checking the connection: No default folder.");
-      }
-      session.closeFolder(defaultFolder);
+      session.checkConnection();
     } catch (MessagingException e) {
       handleMessagingException(e,"checking the connection");
     }
