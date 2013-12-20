@@ -151,6 +151,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *
   * @return the connection's status as a displayable string.
   */
+  @Override
   public String check()
       throws ManifoldCFException {
     try {
@@ -181,7 +182,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   //////////////////////////////Start of Repository Connector Method///////////////////////////////////
 
-
+  @Override
   public int getConnectorModel() {
     return MODEL_ADD; //Change is not applicable in context of email
   }
@@ -191,19 +192,9 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *
   * @return the list.
   */
+  @Override
   public String[] getActivitiesList() {
     return new String[]{EmailConfig.ACTIVITY_FETCH};
-  }
-
-  /**
-  * Return the list of relationship types that this connector recognizes.
-  *
-  * @return the list.
-  */
-  public String[] getRelationshipTypes() {
-    String[] relationships = new String[1];
-    relationships[0] = EmailConfig.RELATIONSHIP_CHILD;
-    return relationships;
   }
 
   /**
@@ -218,6 +209,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   * @return the set of bin names. If an empty array is returned, it is equivalent to there being no request
   * rate throttling available for this identifier.
   */
+  @Override
   public String[] getBinNames(String documentIdentifier) {
     return new String[]{server};
   }
@@ -227,6 +219,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *
   * @return the maximum number. 0 indicates "unlimited".
   */
+  @Override
   public int getMaxDocumentRequest() {
     return 50;
   }
