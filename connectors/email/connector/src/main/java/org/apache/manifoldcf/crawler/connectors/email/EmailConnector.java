@@ -1044,4 +1044,30 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   }
 
   ///////////////////////////////////////End of specification UI///////////////////////////////////////////////
+  
+  // Get a sorted list of folder names
+  protected String[] getFolderNames()
+    throws ManifoldCFException, ServiceInterruption
+  {
+    getSession();
+    List<String> folderList = new ArrayList<String>();
+    try
+    {
+      Folder[] folders = store.getDefaultFolder().list("*");
+      for (Folder folder : folders)
+      {
+        if ((folder.getType() & Folder.HOLDS_MESSAGES) != 0)
+          folderList.add(folder.getFullName());
+      }
+    }
+    catch (MessagingException e)
+    {
+      Logging.connectors.error("Email: Can't get folder list: "+e.getMessage(),e);
+      throw new ManifoldCFException("Can't get folder list: "+e.getMessage(),e);
+    }
+    String[] rval = folderList.toArray(new String[0]);
+    java.util.Arrays.sort(rval);
+    return rval;
+  }
+
 }
