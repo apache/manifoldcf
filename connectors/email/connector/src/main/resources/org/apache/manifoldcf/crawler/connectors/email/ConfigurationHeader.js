@@ -17,6 +17,17 @@
 
 <script type="text/javascript">
 <!--
+function checkConfig()
+{
+  if (editconnection.port.value != "" && !isInteger(editconnection.port.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.PortMustBeIntegerOrBlank'))");
+    editconnection.port.focus();
+    return false;
+  }
+  return true;
+}
+
 function checkConfigForSave()
 {
   if (editconnection.server.value == "")
@@ -24,6 +35,13 @@ function checkConfigForSave()
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.EnterAMailServerHostName'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.Server'))");
     editconnection.server.focus();
+    return false;
+  }
+  if (editconnection.port.value != "" && !isInteger(editconnection.port.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.PortMustBeIntegerOrBlank'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.Server'))");
+    editconnection.port.focus();
     return false;
   }
   return true;

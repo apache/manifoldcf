@@ -30,7 +30,7 @@ import javax.mail.search.*;
 public class EmailSession
 {
   protected final String server;
-  protected final String port;
+  protected final int port;
   protected final String username;
   protected final String password;
   protected final String protocol;
@@ -40,7 +40,7 @@ public class EmailSession
   private Store store = null;
 
   /** Create a session */
-  public EmailSession(String server, String port, String username, String password,
+  public EmailSession(String server, int port, String username, String password,
     String protocol, Properties properties)
     throws MessagingException
   {
@@ -54,7 +54,7 @@ public class EmailSession
     // Now, try to connect
     Session thisSession = Session.getDefaultInstance(properties, null);
     Store thisStore = thisSession.getStore(protocol);
-    thisStore.connect(server, username, password);
+    thisStore.connect(server, port, username, password);
 
     session = thisSession;
     store = thisStore;

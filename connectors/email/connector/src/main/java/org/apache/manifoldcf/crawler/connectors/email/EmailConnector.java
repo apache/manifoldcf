@@ -74,7 +74,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   // Parameters for establishing a session
   
   protected String server = null;
-  protected String port = null;
+  protected String portString = null;
   protected String username = null;
   protected String password = null;
   protected String protocol = null;
@@ -104,7 +104,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   public void connect(ConfigParams configParameters) {
     super.connect(configParameters);
     this.server = configParameters.getParameter(EmailConfig.SERVER_PARAM);
-    this.port = configParameters.getParameter(EmailConfig.PORT_PARAM);
+    this.portString = configParameters.getParameter(EmailConfig.PORT_PARAM);
     this.protocol = configParameters.getParameter(EmailConfig.PROTOCOL_PARAM);
     this.username = configParameters.getParameter(EmailConfig.USERNAME_PARAM);
     this.password = configParameters.getParameter(EmailConfig.PASSWORD_PARAM);
@@ -128,7 +128,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   public void disconnect()
     throws ManifoldCFException {
     this.server = null;
-    this.port = null;
+    this.portString = null;
     this.protocol = null;
     this.username = null;
     this.password = null;
@@ -356,6 +356,21 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   protected void getSession()
     throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
+      int port;
+      if (portString != null && portString.length() > 0)
+      {
+        try
+        {
+          port = Integer.parseInt(portString);
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException("Port number has bad format: "+e.getMessage(),e);
+        }
+      }
+      else
+        port = -1;
+
       try {
         session = new EmailSession(server, port, username, password,
           providerMap.get(protocol), properties);

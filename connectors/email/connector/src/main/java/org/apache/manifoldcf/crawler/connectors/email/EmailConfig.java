@@ -63,7 +63,7 @@ public class EmailConfig {
   public static final String PROTOCOL_POP3S_PROVIDER = "pop3s";
   
   public static final String PROTOCOL_DEFAULT_VALUE = "IMAP";
-  public static final String PORT_DEFAULT_VALUE = "25";
+  public static final String PORT_DEFAULT_VALUE = "";
 
 
   public static final String NODE_PROPERTIES = "properties";
