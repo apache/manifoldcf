@@ -70,14 +70,18 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   // Local variables.
   protected long sessionExpiration = -1L;
+  
+  // Parameters for establishing a session
+  
   protected String server = null;
   protected String port = null;
   protected String username = null;
   protected String password = null;
   protected String protocol = null;
-  protected Map<String, String> properties = new HashMap<String,String>();
-  private Session session = null;
-  private Store store = null;
+  protected Properties properties = new Properties();
+  
+  // Local session handle
+  protected EmailSession session = null;
 
   private static Map<String,String> providerMap;
   static
@@ -111,7 +115,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       if (cn.getType().equals(EmailConfig.NODE_PROPERTIES)) {
         String findParameterName = cn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
         String findParameterValue = cn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
-        this.properties.put(findParameterName, findParameterValue);
+        this.properties.setProperty(findParameterName, findParameterValue);
       }
     }
   }
@@ -169,10 +173,11 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     finalizeConnection();
     getSession();
     try {
-      Folder defaultFolder = store.getDefaultFolder();
+      Folder defaultFolder = session.openDefaultFolder();
       if (defaultFolder == null) {
         throw new ManifoldCFException("Error checking the connection: No default folder.");
       }
+      session.closeFolder(defaultFolder);
     } catch (MessagingException e) {
       handleMessagingException(e,"checking the connection");
     }
@@ -256,8 +261,10 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   public void addSeedDocuments(ISeedingActivity activities,
     DocumentSpecification spec, long startTime, long endTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption {
+
     getSession();
-    int i = 0, j = 0;
+
+    int i = 0;
     Map<String,String> findMap = new HashMap<String,String>();
     List<String> folderNames = new ArrayList<String>();
     while (i < spec.getChildCount()) {
@@ -277,7 +284,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     for (String folderName : folderNames)
     {
       try {
-        Folder folder = openFolder(folderName);
+        Folder folder = session.openFolder(folderName);
         try
         {
           Message[] messages = findMessages(folder, startTime, endTime, findMap);
@@ -288,21 +295,13 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         }
         finally
         {
-          folder.close(false);
+          session.closeFolder(folder);
         }
       } catch (MessagingException e) {
         handleMessagingException(e, "finding emails");
       }
     }
 
-  }
-
-  private Folder openFolder(String folderName)
-    throws MessagingException
-  {
-    Folder thisFolder = store.getFolder(folderName);
-    thisFolder.open(Folder.READ_ONLY);
-    return thisFolder;
   }
 
   /*
@@ -348,27 +347,18 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     
     Message[] result;
     if (searchTerm == null)
-      result = folder.getMessages();
+      result = session.getMessages(folder);
     else
-      result = folder.search(searchTerm);
+      result = session.search(folder, searchTerm);
     return result;
   }
 
-  private void getSession()
+  protected void getSession()
     throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
-      // Create empty properties
-      Properties props = new Properties();
-      // Get session
       try {
-        Session thisSession = Session.getDefaultInstance(props, null);
-        Store thisStore = thisSession.getStore(providerMap.get(protocol));
-        thisStore.connect(server, username, password);
-
-        
-        session = thisSession;
-        store = thisStore;
-        
+        session = new EmailSession(server, port, username, password,
+          providerMap.get(protocol), properties);
       } catch (MessagingException e) {
         handleMessagingException(e, "connecting");
       }
@@ -376,15 +366,15 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     sessionExpiration = System.currentTimeMillis() + EmailConfig.SESSION_EXPIRATION_MILLISECONDS;
   }
 
-  private void finalizeConnection() {
-    try {
-      if (store != null)
-        store.close();
-    } catch (MessagingException e) {
-      Logging.connectors.warn("Error while closing connection to server: " + e.getMessage(),e);
-    } finally {
-      store = null;
-      session = null;
+  protected void finalizeConnection() {
+    if (session != null) {
+      try {
+        session.close();
+      } catch (MessagingException e) {
+        Logging.connectors.warn("Error while closing connection to server: " + e.getMessage(),e);
+      } finally {
+        session = null;
+      }
     }
   }
 
@@ -475,7 +465,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
           Folder folder = openFolders.get(folderName);
           if (folder == null)
           {
-            folder = openFolder(folderName);
+            folder = session.openFolder(folderName);
             openFolders.put(folderName,folder);
           }
           
@@ -487,7 +477,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
           MessageIDTerm messageIDTerm = new MessageIDTerm(id);
           Message[] message = null;
 
-          message = folder.search(messageIDTerm);
+          message = session.search(folder, messageIDTerm);
+
           for (Message msg : message) {
             RepositoryDocument rd = new RepositoryDocument();
             Date setDate = msg.getSentDate();
@@ -585,7 +576,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       {
         try
         {
-          f.close(false);
+          session.closeFolder(f);
         }
         catch (MessagingException e)
         {
@@ -1031,23 +1022,15 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    List<String> folderList = new ArrayList<String>();
     try
     {
-      Folder[] folders = store.getDefaultFolder().list("*");
-      for (Folder folder : folders)
-      {
-        if ((folder.getType() & Folder.HOLDS_MESSAGES) != 0)
-          folderList.add(folder.getFullName());
-      }
+      return session.listFolders();
     }
     catch (MessagingException e)
     {
       handleMessagingException(e,"getting folder list");
+      return null;
     }
-    String[] rval = folderList.toArray(new String[0]);
-    java.util.Arrays.sort(rval);
-    return rval;
   }
 
 
