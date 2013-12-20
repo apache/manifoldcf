@@ -173,9 +173,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         throw new ManifoldCFException("Error checking the connection: No default folder.");
       }
     } catch (MessagingException e) {
-      Logging.connectors.warn(
-        "Email: Error checking the connection: "+e.getMessage(),e);
-      throw new ManifoldCFException("Error checking the connection: "+e.getMessage(),e);
+      handleMessagingException(e,"checking the connection");
     }
   }
 
@@ -300,8 +298,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
           folder.close(false);
         }
       } catch (MessagingException e) {
-        Logging.connectors.error("Email: Error finding emails: " + e.getMessage(), e);
-        throw new ManifoldCFException(e.getMessage(), e);
+        handleMessagingException(e, "finding emails");
       }
     }
 
@@ -385,8 +382,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         store = thisStore;
         
       } catch (MessagingException e) {
-        Logging.connectors.error("Email: Connection error: "+e.getMessage(),e);
-        throw new ManifoldCFException("Email connection error: "+e.getMessage(), e);
+        handleMessagingException(e, "connecting");
       }
     }
     sessionExpiration = System.currentTimeMillis() + EmailConfig.SESSION_EXPIRATION_MILLISECONDS;
@@ -586,12 +582,9 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
           folder.close(false);
         }
       } catch (MessagingException e) {
-        Logging.connectors.error("Email exception: "+e.getMessage(),e);
-        throw new ManifoldCFException("Email exception: "+e.getMessage(),e);
-      } catch (InterruptedIOException e) {
-        throw new ManifoldCFException(e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
+        handleMessagingException(e, "processing email");
       } catch (IOException e) {
+        handleIOException(e, "processing email");
         throw new ManifoldCFException(e.getMessage(), e);
       }
     }
@@ -1062,12 +1055,39 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     }
     catch (MessagingException e)
     {
-      Logging.connectors.error("Email: Can't get folder list: "+e.getMessage(),e);
-      throw new ManifoldCFException("Can't get folder list: "+e.getMessage(),e);
+      handleMessagingException(e,"getting folder list");
     }
     String[] rval = folderList.toArray(new String[0]);
     java.util.Arrays.sort(rval);
     return rval;
+  }
+
+  // Handle Messaging exceptions in a consistent global manner
+  protected static void handleMessagingException(MessagingException e, String context)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    Logging.connectors.error("Email: Error "+context+": "+e.getMessage(),e);
+    throw new ManifoldCFException("Error "+context+": "+e.getMessage(),e);
+  }
+  
+  // Handle IO Exception
+  protected static void handleIOException(IOException e, String context)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (e instanceof java.net.SocketTimeoutException)
+    {
+      Logging.connectors.error("Email: Socket timeout "+context+": "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout: "+e.getMessage(),e);
+    }
+    else if (e instanceof InterruptedIOException)
+    {
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
+    }
+    else
+    {
+      Logging.connectors.error("Email: IO error "+context+": "+e.getMessage(),e);
+      throw new ManifoldCFException("IO error "+context+": "+e.getMessage(),e);
+    }
   }
 
 }
