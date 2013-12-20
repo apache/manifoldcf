@@ -76,9 +76,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   protected String password = null;
   protected String protocol = null;
   protected Map<String, String> properties = new HashMap<String,String>();
-  private String folderName = null;
-  private Folder folder;
-  private Store store;
+  private Session session = null;
+  private Store store = null;
 
   private static Map<String,String> providerMap;
   static
@@ -140,7 +139,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   */
   @Override
   public void poll() throws ManifoldCFException {
-    if (store != null)
+    if (session != null)
     {
       if (System.currentTimeMillis() >= sessionExpiration)
         finalizeConnection();
@@ -165,23 +164,18 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   }
 
   protected void checkConnection() throws ManifoldCFException, ServiceInterruption {
-    while (true) {
-      try {
-        store = getSession().getStore(providerMap.get(protocol));
-        store.connect(server, username, password);
-        Folder defaultFolder = store.getDefaultFolder();
-        if (defaultFolder == null) {
-          Logging.connectors.warn("Email: Error checking the connection: No default folder.");
-          throw new ManifoldCFException("Error checking the connection: No default folder.");
-        }
-
-      } catch (Exception e) {
-        Logging.connectors.warn(
-            "Email: Error checking the connection: "+e.getMessage(),e);
-        throw new ManifoldCFException("Error checking the connection: "+e.getMessage(),e);
+    // Force a re-connection
+    finalizeConnection();
+    getSession();
+    try {
+      Folder defaultFolder = store.getDefaultFolder();
+      if (defaultFolder == null) {
+        throw new ManifoldCFException("Error checking the connection: No default folder.");
       }
-      store = null;
-      return;
+    } catch (MessagingException e) {
+      Logging.connectors.warn(
+        "Email: Error checking the connection: "+e.getMessage(),e);
+      throw new ManifoldCFException("Error checking the connection: "+e.getMessage(),e);
     }
   }
 
@@ -271,117 +265,142 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   public void addSeedDocuments(ISeedingActivity activities,
     DocumentSpecification spec, long startTime, long endTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption {
-    Session session = getSession();
+    getSession();
     int i = 0, j = 0;
-    Map findMap;
+    Map<String,String> findMap = new HashMap<String,String>();
+    String folderName = null;
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i++);
       if (sn.getType().equals(EmailConfig.NODE_FILTER) && sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME).equals(EmailConfig.ATTRIBUTE_FOLDER)) {
         folderName = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
-      }
-    }
-    while (j < spec.getChildCount()) {
-      SpecificationNode sn = spec.getChild(j++);
-      if (sn.getType().equals(EmailConfig.NODE_FILTER)) {
+      } else if (sn.getType().equals(EmailConfig.NODE_FILTER)) {
         String findParameterName, findParameterValue;
         findParameterName = sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
         findParameterValue = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
-        findMap = new HashMap();
         findMap.put(findParameterName, findParameterValue);
-        try {
-          Message[] messages = findMessages(startTime, endTime, findMap);
+
+      }
+
+    }
+    
+    if (folderName != null)
+    {
+      try {
+        Folder folder = openFolder(folderName);
+        try
+        {
+          Message[] messages = findMessages(folder, startTime, endTime, findMap);
           for (Message message : messages) {
             String emailID = ((MimeMessage) message).getMessageID();
             activities.addSeedDocument(emailID);
           }
-        } catch (MessagingException e) {
-          Logging.connectors.warn("Email: Error finding emails: " + e.getMessage(), e);
-          throw new ManifoldCFException(e.getMessage(), e);
-        } catch (Exception e) {
-          Logging.connectors.warn("Email: Error finding emails: " + e.getMessage(), e);
-          throw new ManifoldCFException(e.getMessage(), e);
-        }finally {
-          finalizeConnection();
         }
-
+        finally
+        {
+          folder.close(false);
+        }
+      } catch (MessagingException e) {
+        Logging.connectors.error("Email: Error finding emails: " + e.getMessage(), e);
+        throw new ManifoldCFException(e.getMessage(), e);
       }
-
     }
+
+  }
+
+  private Folder openFolder(String folderName)
+    throws MessagingException
+  {
+    Folder thisFolder;
+    if (protocol.equals(EmailConfig.PROTOCOL_IMAP) || protocol.equals(EmailConfig.PROTOCOL_IMAPS)) {
+      thisFolder = store.getFolder(folderName);
+    } else {
+      thisFolder = store.getFolder(EmailConfig.FOLDER_INBOX);
+    }
+    thisFolder.open(Folder.READ_ONLY);
+    return thisFolder;
   }
 
   /*
   This method will return the list of messages which matches the given criteria
   */
-  private Message[] findMessages(long startTime, long endTime, Map findMap) throws MessagingException {
-    Message[] result;
+  private Message[] findMessages(Folder folder, long startTime, long endTime, Map<String,String> findMap) throws MessagingException {
     String findParameterName;
     String findParameterValue;
-    initializeConnection();
-    if (findMap.size() > 0) {
-      result = null;
-      Iterator it = findMap.entrySet().iterator();
-      while (it.hasNext()) {
-        Map.Entry pair = (Map.Entry) it.next();
-        findParameterName = ((String) pair.getKey()).toLowerCase();
-        findParameterValue = (String) pair.getValue();
-        it.remove();
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Email: Finding emails where " + findParameterName +
-              "= '" + findParameterValue + "'");
-        if (findParameterName.equals(EmailConfig.EMAIL_SUBJECT)) {
-          SubjectTerm subjectTerm = new SubjectTerm(findParameterValue);
-          result = folder.search(subjectTerm);
-        } else if (findParameterName.equals(EmailConfig.EMAIL_FROM)) {
-          FromStringTerm fromTerm = new FromStringTerm(findParameterValue);
-          result = folder.search(fromTerm);
-        } else if (findParameterName.equals(EmailConfig.EMAIL_TO)) {
-          RecipientStringTerm recipientTerm = new RecipientStringTerm(Message.RecipientType.TO, findParameterValue);
-          result = folder.search(recipientTerm);
-        } else if (findParameterName.equals(EmailConfig.EMAIL_BODY)) {
-          BodyTerm bodyTerm = new BodyTerm(findParameterValue);
-          result = folder.search(bodyTerm);
-        }
+    
+    SearchTerm searchTerm = null;
+    
+    Iterator<Map.Entry<String,String>> it = findMap.entrySet().iterator();
+    while (it.hasNext()) {
+      Map.Entry<String,String> pair = it.next();
+      findParameterName = pair.getKey().toLowerCase();
+      findParameterValue = pair.getValue();
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("Email: Finding emails where '" + findParameterName +
+            "' = '" + findParameterValue + "'");
+      SearchTerm searchClause = null;
+      if (findParameterName.equals(EmailConfig.EMAIL_SUBJECT)) {
+        searchClause = new SubjectTerm(findParameterValue);
+      } else if (findParameterName.equals(EmailConfig.EMAIL_FROM)) {
+        searchClause = new FromStringTerm(findParameterValue);
+      } else if (findParameterName.equals(EmailConfig.EMAIL_TO)) {
+        searchClause = new RecipientStringTerm(Message.RecipientType.TO, findParameterValue);
+      } else if (findParameterName.equals(EmailConfig.EMAIL_BODY)) {
+        searchClause = new BodyTerm(findParameterValue);
       }
-    } else {
-      result = folder.getMessages();
+      
+      if (searchClause != null)
+      {
+        if (searchTerm == null)
+          searchTerm = searchClause;
+        else
+          searchTerm = new AndTerm(searchTerm, searchClause);
+      }
+      else
+      {
+        Logging.connectors.warn("Email: Unknown filter parameter name: '"+findParameterName+"'");
+      }
     }
-
+    
+    Message[] result;
+    if (searchTerm == null)
+      result = folder.getMessages();
+    else
+      result = folder.search(searchTerm);
     return result;
   }
 
-  private Session getSession() {
-    // Create empty properties
-    Properties props = new Properties();
-    // Get session
-    Session session = Session.getDefaultInstance(props, null);
-    sessionExpiration = System.currentTimeMillis() + EmailConfig.SESSION_EXPIRATION_MILLISECONDS;
-    return session;
-  }
+  private void getSession()
+    throws ManifoldCFException, ServiceInterruption {
+    if (session == null) {
+      // Create empty properties
+      Properties props = new Properties();
+      // Get session
+      try {
+        Session thisSession = Session.getDefaultInstance(props, null);
+        Store thisStore = thisSession.getStore(providerMap.get(protocol));
+        thisStore.connect(server, username, password);
 
-  private void initializeConnection() throws MessagingException {
-    store = getSession().getStore(providerMap.get(protocol));
-    store.connect(server, username, password);
-
-    if (protocol.equals(EmailConfig.PROTOCOL_IMAP)) {
-      folder = store.getFolder(folderName);
-    } else {
-      folder = store.getFolder(EmailConfig.FOLDER_INBOX);
+        
+        session = thisSession;
+        store = thisStore;
+        
+      } catch (MessagingException e) {
+        Logging.connectors.error("Email: Connection error: "+e.getMessage(),e);
+        throw new ManifoldCFException("Email connection error: "+e.getMessage(), e);
+      }
     }
-    folder.open(Folder.READ_ONLY);
+    sessionExpiration = System.currentTimeMillis() + EmailConfig.SESSION_EXPIRATION_MILLISECONDS;
   }
 
   private void finalizeConnection() {
     try {
-      if (folder != null)
-        folder.close(false);
       if (store != null)
         store.close();
     } catch (MessagingException e) {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("Error while closing connection to server" + e.getMessage());
+      Logging.connectors.warn("Error while closing connection to server: " + e.getMessage(),e);
     } finally {
-      folder = null;
       store = null;
+      session = null;
     }
   }
 
@@ -448,122 +467,134 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     DocumentSpecification spec, boolean[] scanOnly, int jobMode)
     throws ManifoldCFException, ServiceInterruption {
+    getSession();
     int i = 0, count=0;
     List<String> requiredMetadata = new ArrayList<String>();
-    try {
-      initializeConnection();
-
-      while (i < spec.getChildCount()) {
-        SpecificationNode sn = spec.getChild(i++);
-        if (sn.getType().equals(EmailConfig.NODE_METADATA)) {
-          String metadataAttribute = sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
-          requiredMetadata.add(metadataAttribute);
-        }
+    String folderName = null;
+    while (i < spec.getChildCount()) {
+      SpecificationNode sn = spec.getChild(i++);
+      if (sn.getType().equals(EmailConfig.NODE_METADATA)) {
+        String metadataAttribute = sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
+        requiredMetadata.add(metadataAttribute);
+      } else if (sn.getType().equals(EmailConfig.NODE_FILTER) && sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME).equals(EmailConfig.ATTRIBUTE_FOLDER)) {
+        folderName = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
       }
-      for (String id : documentIdentifiers) {
-        long startTime = System.currentTimeMillis();
-        String msgId = documentIdentifiers[count];
-        InputStream is = null;
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Email: Processing document identifier '"
-              + msgId + "'");
-        MessageIDTerm messageIDTerm = new MessageIDTerm(id);
-        Message[] message = null;
+    }
+    if (folderName != null)
+    {
+      try {
+        Folder folder = openFolder(folderName);
+        try
+        {
+          for (String id : documentIdentifiers) {
+            long startTime = System.currentTimeMillis();
+            String msgId = documentIdentifiers[count];
+            InputStream is = null;
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("Email: Processing document identifier '"
+                  + msgId + "'");
+            MessageIDTerm messageIDTerm = new MessageIDTerm(id);
+            Message[] message = null;
 
-        message = folder.search(messageIDTerm);
-        for (Message msg : message) {
-          RepositoryDocument rd = new RepositoryDocument();
-          Date setDate = msg.getSentDate();
-          rd.setFileName(msg.getFileName());
-          is = msg.getInputStream();
-          rd.setBinary(is, msg.getSize());
-          String subject = StringUtils.EMPTY;
-          for (String metadata : requiredMetadata) {
-            if (metadata.toLowerCase().equals(EmailConfig.EMAIL_TO)) {
-              Address[] to = msg.getRecipients(Message.RecipientType.TO);
-              String[] toStr = new String[to.length];
-              int j = 0;
-              for (Address address : to) {
-                toStr[j] = address.toString();
-              }
-              rd.addField(EmailConfig.EMAIL_TO, toStr);
-            } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_FROM)) {
-              Address[] from = msg.getFrom();
-              String[] fromStr = new String[from.length];
-              int j = 0;
-              for (Address address : from) {
-                fromStr[j] = address.toString();
-              }
-              rd.addField(EmailConfig.EMAIL_TO, fromStr);
-
-            } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_SUBJECT)) {
-              subject = msg.getSubject();
-              rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
-            } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_BODY)) {
-              Multipart mp = (Multipart) msg.getContent();
-              for (int j = 0, n = mp.getCount(); i < n; i++) {
-                Part part = mp.getBodyPart(i);
-                String disposition = part.getDisposition();
-                if ((disposition == null)) {
-                  MimeBodyPart mbp = (MimeBodyPart) part;
-                  if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
-                    rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
-                  } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
-                    rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
+            message = folder.search(messageIDTerm);
+            for (Message msg : message) {
+              RepositoryDocument rd = new RepositoryDocument();
+              Date setDate = msg.getSentDate();
+              rd.setFileName(msg.getFileName());
+              is = msg.getInputStream();
+              rd.setBinary(is, msg.getSize());
+              String subject = StringUtils.EMPTY;
+              for (String metadata : requiredMetadata) {
+                if (metadata.toLowerCase().equals(EmailConfig.EMAIL_TO)) {
+                  Address[] to = msg.getRecipients(Message.RecipientType.TO);
+                  String[] toStr = new String[to.length];
+                  int j = 0;
+                  for (Address address : to) {
+                    toStr[j] = address.toString();
                   }
-                }
-              }
-            } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_DATE)) {
-              Date sentDate = msg.getSentDate();
-              rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
-            } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
-              Multipart mp = (Multipart) msg.getContent();
-              if (mp != null) {
-                String[] encoding = new String[mp.getCount()];
-                for (int k = 0, n = mp.getCount(); i < n; i++) {
-                  Part part = mp.getBodyPart(i);
-                  String disposition = part.getDisposition();
-                  if ((disposition != null) &&
-                      ((disposition.equals(Part.ATTACHMENT) ||
-                          (disposition.equals(Part.INLINE))))) {
-                    encoding[k] = part.getFileName().split("\\?")[1];
-
+                  rd.addField(EmailConfig.EMAIL_TO, toStr);
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_FROM)) {
+                  Address[] from = msg.getFrom();
+                  String[] fromStr = new String[from.length];
+                  int j = 0;
+                  for (Address address : from) {
+                    fromStr[j] = address.toString();
                   }
-                }
-                rd.addField(EmailConfig.ENCODING_FIELD, encoding);
-              }
-            } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
-              Multipart mp = (Multipart) msg.getContent();
-              String[] MIMEType = new String[mp.getCount()];
-              for (int k = 0, n = mp.getCount(); i < n; i++) {
-                Part part = mp.getBodyPart(i);
-                String disposition = part.getDisposition();
-                if ((disposition != null) &&
-                    ((disposition.equals(Part.ATTACHMENT) ||
-                        (disposition.equals(Part.INLINE))))) {
-                  MIMEType[k] = part.getContentType();
+                  rd.addField(EmailConfig.EMAIL_TO, fromStr);
 
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_SUBJECT)) {
+                  subject = msg.getSubject();
+                  rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_BODY)) {
+                  Multipart mp = (Multipart) msg.getContent();
+                  for (int j = 0, n = mp.getCount(); i < n; i++) {
+                    Part part = mp.getBodyPart(i);
+                    String disposition = part.getDisposition();
+                    if ((disposition == null)) {
+                      MimeBodyPart mbp = (MimeBodyPart) part;
+                      if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
+                        rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
+                      } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
+                        rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
+                      }
+                    }
+                  }
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_DATE)) {
+                  Date sentDate = msg.getSentDate();
+                  rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
+                  Multipart mp = (Multipart) msg.getContent();
+                  if (mp != null) {
+                    String[] encoding = new String[mp.getCount()];
+                    for (int k = 0, n = mp.getCount(); i < n; i++) {
+                      Part part = mp.getBodyPart(i);
+                      String disposition = part.getDisposition();
+                      if ((disposition != null) &&
+                          ((disposition.equals(Part.ATTACHMENT) ||
+                              (disposition.equals(Part.INLINE))))) {
+                        encoding[k] = part.getFileName().split("\\?")[1];
+
+                      }
+                    }
+                    rd.addField(EmailConfig.ENCODING_FIELD, encoding);
+                  }
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
+                  Multipart mp = (Multipart) msg.getContent();
+                  String[] MIMEType = new String[mp.getCount()];
+                  for (int k = 0, n = mp.getCount(); i < n; i++) {
+                    Part part = mp.getBodyPart(i);
+                    String disposition = part.getDisposition();
+                    if ((disposition != null) &&
+                        ((disposition.equals(Part.ATTACHMENT) ||
+                            (disposition.equals(Part.INLINE))))) {
+                      MIMEType[k] = part.getContentType();
+
+                    }
+                  }
+                  rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
                 }
               }
-              rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
+              String documentURI = subject + messageIDTerm;
+              String version = versions[count++];
+              activities.ingestDocument(id, version, documentURI, rd);
+
             }
           }
-          String documentURI = subject + messageIDTerm;
-          String version = versions[count++];
-          activities.ingestDocument(id, version, documentURI, rd);
-
         }
+        finally
+        {
+          folder.close(false);
+        }
+      } catch (MessagingException e) {
+        Logging.connectors.error("Email exception: "+e.getMessage(),e);
+        throw new ManifoldCFException("Email exception: "+e.getMessage(),e);
+      } catch (InterruptedIOException e) {
+        throw new ManifoldCFException(e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+      } catch (IOException e) {
+        throw new ManifoldCFException(e.getMessage(), e);
       }
-
-    } catch (MessagingException e) {
-
-    } catch (IOException e) {
-      throw new ManifoldCFException(e.getMessage(), e,
-          ManifoldCFException.INTERRUPTED);
-    } finally {
-      finalizeConnection();
     }
-
   }
 
   //////////////////////////////End of Repository Connector Methods///////////////////////////////////
