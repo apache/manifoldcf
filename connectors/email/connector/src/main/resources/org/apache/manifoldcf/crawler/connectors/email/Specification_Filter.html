@@ -21,6 +21,23 @@ limitations under the License.
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FoldersColon'))</nobr>
+    </td>
+    <td class="value">
+      <select name="folders" multiple="true" size="4">
+  #foreach($name in $FOLDERNAMES)
+    #if($FOLDERS.contains($name))
+        <option value="$Encoder.attributeEscape($name)" selected="true">$Encoder.bodyEscape($name)</option>
+    #else
+        <option value="$Encoder.attributeEscape($name)">$Encoder.bodyEscape($name)</option>
+    #end
+  #end
+      </select>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.RecordFilterColon'))</nobr>
     </td>
     <td class="boxcell">

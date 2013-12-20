@@ -266,11 +266,11 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     getSession();
     int i = 0, j = 0;
     Map<String,String> findMap = new HashMap<String,String>();
-    String folderName = null;
+    List<String> folderNames = new ArrayList<String>();
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals(EmailConfig.NODE_FILTER) && sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME).equals(EmailConfig.ATTRIBUTE_FOLDER)) {
-        folderName = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+      if (sn.getType().equals(EmailConfig.NODE_FOLDER)) {
+        folderNames.add(sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME));
       } else if (sn.getType().equals(EmailConfig.NODE_FILTER)) {
         String findParameterName, findParameterValue;
         findParameterName = sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
@@ -281,7 +281,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
     }
     
-    if (folderName != null)
+    for (String folderName : folderNames)
     {
       try {
         Folder folder = openFolder(folderName);
@@ -290,7 +290,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
           Message[] messages = findMessages(folder, startTime, endTime, findMap);
           for (Message message : messages) {
             String emailID = ((MimeMessage) message).getMessageID();
-            activities.addSeedDocument(emailID);
+            activities.addSeedDocument(createDocumentIdentifier(folderName,emailID));
           }
         }
         finally
@@ -307,12 +307,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   private Folder openFolder(String folderName)
     throws MessagingException
   {
-    Folder thisFolder;
-    if (protocol.equals(EmailConfig.PROTOCOL_IMAP) || protocol.equals(EmailConfig.PROTOCOL_IMAPS)) {
-      thisFolder = store.getFolder(folderName);
-    } else {
-      thisFolder = store.getFolder(EmailConfig.FOLDER_INBOX);
-    }
+    Folder thisFolder = store.getFolder(folderName);
     thisFolder.open(Folder.READ_ONLY);
     return thisFolder;
   }
@@ -464,128 +459,145 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     DocumentSpecification spec, boolean[] scanOnly, int jobMode)
     throws ManifoldCFException, ServiceInterruption {
     getSession();
-    int i = 0, count=0;
+    int i = 0;
     List<String> requiredMetadata = new ArrayList<String>();
-    String folderName = null;
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i++);
       if (sn.getType().equals(EmailConfig.NODE_METADATA)) {
         String metadataAttribute = sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
         requiredMetadata.add(metadataAttribute);
-      } else if (sn.getType().equals(EmailConfig.NODE_FILTER) && sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME).equals(EmailConfig.ATTRIBUTE_FOLDER)) {
-        folderName = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
       }
     }
-    if (folderName != null)
-    {
-      try {
-        Folder folder = openFolder(folderName);
-        try
-        {
-          for (String id : documentIdentifiers) {
-            long startTime = System.currentTimeMillis();
-            String msgId = documentIdentifiers[count];
-            InputStream is = null;
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Email: Processing document identifier '"
-                  + msgId + "'");
-            MessageIDTerm messageIDTerm = new MessageIDTerm(id);
-            Message[] message = null;
+    
+    // Keep a cached set of open folders
+    Map<String,Folder> openFolders = new HashMap<String,Folder>();
+    try {
+      i = 0;
+      while (i < documentIdentifiers.length) {
+        String compositeID = documentIdentifiers[i];
+        String version = versions[i];
+        String folderName = extractFolderNameFromDocumentIdentifier(compositeID);
+        String id = extractEmailIDFromDocumentIdentifier(compositeID);
+        try {
+          Folder folder = openFolders.get(folderName);
+          if (folder == null)
+          {
+            folder = openFolder(folderName);
+            openFolders.put(folderName,folder);
+          }
+          
+          long startTime = System.currentTimeMillis();
+          InputStream is = null;
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("Email: Processing document identifier '"
+              + compositeID + "'");
+          MessageIDTerm messageIDTerm = new MessageIDTerm(id);
+          Message[] message = null;
 
-            message = folder.search(messageIDTerm);
-            for (Message msg : message) {
-              RepositoryDocument rd = new RepositoryDocument();
-              Date setDate = msg.getSentDate();
-              rd.setFileName(msg.getFileName());
-              is = msg.getInputStream();
-              rd.setBinary(is, msg.getSize());
-              String subject = StringUtils.EMPTY;
-              for (String metadata : requiredMetadata) {
-                if (metadata.toLowerCase().equals(EmailConfig.EMAIL_TO)) {
-                  Address[] to = msg.getRecipients(Message.RecipientType.TO);
-                  String[] toStr = new String[to.length];
-                  int j = 0;
-                  for (Address address : to) {
-                    toStr[j] = address.toString();
-                  }
-                  rd.addField(EmailConfig.EMAIL_TO, toStr);
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_FROM)) {
-                  Address[] from = msg.getFrom();
-                  String[] fromStr = new String[from.length];
-                  int j = 0;
-                  for (Address address : from) {
-                    fromStr[j] = address.toString();
-                  }
-                  rd.addField(EmailConfig.EMAIL_TO, fromStr);
+          message = folder.search(messageIDTerm);
+          for (Message msg : message) {
+            RepositoryDocument rd = new RepositoryDocument();
+            Date setDate = msg.getSentDate();
+            rd.setFileName(msg.getFileName());
+            is = msg.getInputStream();
+            rd.setBinary(is, msg.getSize());
+            String subject = StringUtils.EMPTY;
+            for (String metadata : requiredMetadata) {
+              if (metadata.toLowerCase().equals(EmailConfig.EMAIL_TO)) {
+                Address[] to = msg.getRecipients(Message.RecipientType.TO);
+                String[] toStr = new String[to.length];
+                int j = 0;
+                for (Address address : to) {
+                  toStr[j] = address.toString();
+                }
+                rd.addField(EmailConfig.EMAIL_TO, toStr);
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_FROM)) {
+                Address[] from = msg.getFrom();
+                String[] fromStr = new String[from.length];
+                int j = 0;
+                for (Address address : from) {
+                  fromStr[j] = address.toString();
+                }
+                rd.addField(EmailConfig.EMAIL_TO, fromStr);
 
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_SUBJECT)) {
-                  subject = msg.getSubject();
-                  rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_BODY)) {
-                  Multipart mp = (Multipart) msg.getContent();
-                  for (int j = 0, n = mp.getCount(); i < n; i++) {
-                    Part part = mp.getBodyPart(i);
-                    String disposition = part.getDisposition();
-                    if ((disposition == null)) {
-                      MimeBodyPart mbp = (MimeBodyPart) part;
-                      if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
-                        rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
-                      } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
-                        rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
-                      }
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_SUBJECT)) {
+                subject = msg.getSubject();
+                rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_BODY)) {
+                Multipart mp = (Multipart) msg.getContent();
+                for (int j = 0, n = mp.getCount(); i < n; i++) {
+                  Part part = mp.getBodyPart(i);
+                  String disposition = part.getDisposition();
+                  if ((disposition == null)) {
+                    MimeBodyPart mbp = (MimeBodyPart) part;
+                    if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
+                      rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
+                    } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
+                      rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
                     }
                   }
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_DATE)) {
-                  Date sentDate = msg.getSentDate();
-                  rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
-                  Multipart mp = (Multipart) msg.getContent();
-                  if (mp != null) {
-                    String[] encoding = new String[mp.getCount()];
-                    for (int k = 0, n = mp.getCount(); i < n; i++) {
-                      Part part = mp.getBodyPart(i);
-                      String disposition = part.getDisposition();
-                      if ((disposition != null) &&
-                          ((disposition.equals(Part.ATTACHMENT) ||
-                              (disposition.equals(Part.INLINE))))) {
-                        encoding[k] = part.getFileName().split("\\?")[1];
-
-                      }
-                    }
-                    rd.addField(EmailConfig.ENCODING_FIELD, encoding);
-                  }
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
-                  Multipart mp = (Multipart) msg.getContent();
-                  String[] MIMEType = new String[mp.getCount()];
+                }
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_DATE)) {
+                Date sentDate = msg.getSentDate();
+                rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
+                Multipart mp = (Multipart) msg.getContent();
+                if (mp != null) {
+                  String[] encoding = new String[mp.getCount()];
                   for (int k = 0, n = mp.getCount(); i < n; i++) {
                     Part part = mp.getBodyPart(i);
                     String disposition = part.getDisposition();
                     if ((disposition != null) &&
                         ((disposition.equals(Part.ATTACHMENT) ||
                             (disposition.equals(Part.INLINE))))) {
-                      MIMEType[k] = part.getContentType();
+                      encoding[k] = part.getFileName().split("\\?")[1];
 
                     }
                   }
-                  rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
+                  rd.addField(EmailConfig.ENCODING_FIELD, encoding);
                 }
-              }
-              String documentURI = subject + messageIDTerm;
-              String version = versions[count++];
-              activities.ingestDocument(id, version, documentURI, rd);
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
+                Multipart mp = (Multipart) msg.getContent();
+                String[] MIMEType = new String[mp.getCount()];
+                for (int k = 0, n = mp.getCount(); i < n; i++) {
+                  Part part = mp.getBodyPart(i);
+                  String disposition = part.getDisposition();
+                  if ((disposition != null) &&
+                      ((disposition.equals(Part.ATTACHMENT) ||
+                          (disposition.equals(Part.INLINE))))) {
+                    MIMEType[k] = part.getContentType();
 
+                  }
+                }
+                rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
+              }
             }
+            String documentURI = subject + messageIDTerm;
+            activities.ingestDocument(id, version, documentURI, rd);
+
           }
+        } catch (MessagingException e) {
+          handleMessagingException(e, "processing email");
+        } catch (IOException e) {
+          handleIOException(e, "processing email");
+          throw new ManifoldCFException(e.getMessage(), e);
         }
-        finally
+        
+        i++;
+      }
+    }
+    finally
+    {
+      for (Folder f : openFolders.values())
+      {
+        try
         {
-          folder.close(false);
+          f.close(false);
         }
-      } catch (MessagingException e) {
-        handleMessagingException(e, "processing email");
-      } catch (IOException e) {
-        handleIOException(e, "processing email");
-        throw new ManifoldCFException(e.getMessage(), e);
+        catch (MessagingException e)
+        {
+          handleMessagingException(e, "closing folders");
+        }
       }
     }
   }
@@ -747,26 +759,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     return null;
   }
 
-  private void addFindParameterNode(ConfigParams parameters, String findParameterName, String findParameterValue) {
-    ConfigNode cn = new ConfigNode(EmailConfig.NODE_PROPERTIES);
-    cn.setAttribute(EmailConfig.ATTRIBUTE_NAME, findParameterName);
-    cn.setAttribute(EmailConfig.ATTRIBUTE_VALUE, findParameterValue);
-    // Add to the end
-    parameters.addChild(parameters.getChildCount(), cn);
-  }
-
-  protected static void removeNodes(ConfigParams parameters,
-                    String nodeTypeName) {
-    int i = 0;
-    while (i < parameters.getChildCount()) {
-      ConfigNode cn = parameters.getChild(i);
-      if (cn.getType().equals(nodeTypeName))
-        parameters.removeChild(i);
-      else
-        i++;
-    }
-  }
-
   /**
   * View configuration. This method is called in the body section of the
   * connector's view configuration page. Its purpose is to present the
@@ -883,18 +875,35 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("TabName", tabName);
     fillInFilterTab(paramMap, ds);
-    fillInSearchableAttributes(paramMap);
+    if (tabName.equals(Messages.getString(locale, "EmailConnector.Filter")))
+      fillInSearchableAttributes(paramMap);
     Messages.outputResourceWithVelocity(out, locale, "Specification_Filter.html", paramMap);
   }
 
-  private void fillInSearchableAttributes(Map<String, Object> paramMap) {
+  private void fillInSearchableAttributes(Map<String, Object> paramMap)
+  {
     String[] attributes = EmailConfig.BASIC_SEARCHABLE_ATTRIBUTES;
     paramMap.put("SEARCHABLEATTRIBUTES", attributes);
+    try
+    {
+      String[] folderNames = getFolderNames();
+      paramMap.put("FOLDERNAMES", folderNames);
+      paramMap.put("EXCEPTION", "");
+    }
+    catch (ManifoldCFException e)
+    {
+      paramMap.put("EXCEPTION", e.getMessage());
+    }
+    catch (ServiceInterruption e)
+    {
+      paramMap.put("EXCEPTION", e.getMessage());
+    }
   }
 
   protected static void fillInFilterTab(Map<String, Object> paramMap,
     DocumentSpecification ds) {
-    List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+    List<Map<String, String>> filterList = new ArrayList<Map<String, String>>();
+    Set<String> folders = new HashSet<String>();
     int i = 0;
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i++);
@@ -905,10 +914,15 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         Map<String, String> row = new HashMap<String, String>();
         row.put("name", findParameterName);
         row.put("value", findParameterValue);
-        list.add(row);
+        filterList.add(row);
+      }
+      else if (sn.getType().equals(EmailConfig.NODE_FOLDER)) {
+        String folderName = sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
+        folders.add(folderName);
       }
     }
-    paramMap.put("MATCHES", list);
+    paramMap.put("MATCHES", filterList);
+    paramMap.put("FOLDERS", folders);
   }
 
   /**
@@ -937,12 +951,13 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   protected String processFilterTab(IPostParameters variableContext, DocumentSpecification ds)
       throws ManifoldCFException {
-    // Remove old find parameter document specification information
-    removeNodes(ds, EmailConfig.NODE_FILTER);
 
     String findCountString = variableContext.getParameter("findcount");
     if (findCountString != null) {
       int findCount = Integer.parseInt(findCountString);
+      
+      // Remove old find parameter document specification information
+      removeNodes(ds, EmailConfig.NODE_FILTER);
 
       int i = 0;
       while (i < findCount) {
@@ -955,15 +970,24 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
           addFindParameterNode(ds, findParameterName, findParameterValue);
         }
       }
-    }
 
-    String operation = variableContext.getParameter("findop");
-    if (operation != null && operation.equals("Add")) {
-      String findParameterName = variableContext.getParameter("findname");
-      String findParameterValue = variableContext.getParameter("findvalue");
-      addFindParameterNode(ds, findParameterName, findParameterValue);
+      String operation = variableContext.getParameter("findop");
+      if (operation != null && operation.equals("Add")) {
+        String findParameterName = variableContext.getParameter("findname");
+        String findParameterValue = variableContext.getParameter("findvalue");
+        addFindParameterNode(ds, findParameterName, findParameterValue);
+      }
     }
-
+    
+    String[] folders = variableContext.getParameterValues("folders");
+    if (folders != null)
+    {
+      removeNodes(ds, EmailConfig.NODE_FOLDER);
+      for (String folder : folders)
+      {
+        addFolderNode(ds, folder);
+      }
+    }
     return null;
   }
 
@@ -985,35 +1009,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     }
 
     return null;
-  }
-
-  protected static void removeNodes(DocumentSpecification ds,
-                    String nodeTypeName) {
-    int i = 0;
-    while (i < ds.getChildCount()) {
-      SpecificationNode sn = ds.getChild(i);
-      if (sn.getType().equals(nodeTypeName))
-        ds.removeChild(i);
-      else
-        i++;
-    }
-  }
-
-  protected static void addIncludedMetadataNode(DocumentSpecification ds,
-                          String metadataName) {
-    // Build the proper node
-    SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_METADATA);
-    sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, metadataName);
-    // Add to the end
-    ds.addChild(ds.getChildCount(), sn);
-  }
-
-  private void addFindParameterNode(DocumentSpecification ds, String findParameterName, String findParameterValue) {
-    SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_FILTER);
-    sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, findParameterName);
-    sn.setAttribute(EmailConfig.ATTRIBUTE_VALUE, findParameterValue);
-    // Add to the end
-    ds.addChild(ds.getChildCount(), sn);
   }
 
   /**
@@ -1038,7 +1033,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   ///////////////////////////////////////End of specification UI///////////////////////////////////////////////
   
-  // Get a sorted list of folder names
+  /** Get a sorted list of folder names */
   protected String[] getFolderNames()
     throws ManifoldCFException, ServiceInterruption
   {
@@ -1062,7 +1057,132 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     return rval;
   }
 
-  // Handle Messaging exceptions in a consistent global manner
+
+  protected static void addFindParameterNode(ConfigParams parameters, String findParameterName, String findParameterValue) {
+    ConfigNode cn = new ConfigNode(EmailConfig.NODE_PROPERTIES);
+    cn.setAttribute(EmailConfig.ATTRIBUTE_NAME, findParameterName);
+    cn.setAttribute(EmailConfig.ATTRIBUTE_VALUE, findParameterValue);
+    // Add to the end
+    parameters.addChild(parameters.getChildCount(), cn);
+  }
+
+  protected static void removeNodes(ConfigParams parameters,
+                    String nodeTypeName) {
+    int i = 0;
+    while (i < parameters.getChildCount()) {
+      ConfigNode cn = parameters.getChild(i);
+      if (cn.getType().equals(nodeTypeName))
+        parameters.removeChild(i);
+      else
+        i++;
+    }
+  }
+
+  protected static void removeNodes(DocumentSpecification ds,
+                    String nodeTypeName) {
+    int i = 0;
+    while (i < ds.getChildCount()) {
+      SpecificationNode sn = ds.getChild(i);
+      if (sn.getType().equals(nodeTypeName))
+        ds.removeChild(i);
+      else
+        i++;
+    }
+  }
+
+  protected static void addIncludedMetadataNode(DocumentSpecification ds,
+                          String metadataName) {
+    // Build the proper node
+    SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_METADATA);
+    sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, metadataName);
+    // Add to the end
+    ds.addChild(ds.getChildCount(), sn);
+  }
+
+  protected static void addFindParameterNode(DocumentSpecification ds, String findParameterName, String findParameterValue) {
+    SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_FILTER);
+    sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, findParameterName);
+    sn.setAttribute(EmailConfig.ATTRIBUTE_VALUE, findParameterValue);
+    // Add to the end
+    ds.addChild(ds.getChildCount(), sn);
+  }
+
+  protected static void addFolderNode(DocumentSpecification ds, String folderName)
+  {
+    SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_FOLDER);
+    sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, folderName);
+    ds.addChild(ds.getChildCount(), sn);
+  }
+  
+
+  /** Create a document identifier from a folder name and an email ID */
+  protected static String createDocumentIdentifier(String folderName, String emailID)
+  {
+    return makeSafeFolderName(folderName) + ":" + emailID;
+  }
+  
+  /** Find a folder name in a document identifier */
+  protected static String extractFolderNameFromDocumentIdentifier(String di)
+  {
+    int index = di.indexOf(":");
+    if (index == -1)
+      throw new RuntimeException("Bad document identifier: '"+di+"'");
+    return di.substring(0,index);
+  }
+
+  /** Find an email ID in a document identifier */
+  protected static String extractEmailIDFromDocumentIdentifier(String di)
+  {
+    int index = di.indexOf(":");
+    if (index == -1)
+      throw new RuntimeException("Bad document identifier: '"+di+"'");
+    return di.substring(index+1);
+  }
+  
+  /** Create a safe folder name (which doesn't contain colons) */
+  protected static String makeSafeFolderName(String folderName)
+  {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < folderName.length(); i++)
+    {
+      char x = folderName.charAt(i);
+      if (x == '\\')
+        sb.append('\\').append('\\');
+      else if (x == ':')
+        sb.append('\\').append('0');
+      else
+        sb.append(x);
+    }
+    return sb.toString();
+  }
+  
+  /** Unpack a safe folder name */
+  protected static String unpackSafeFolderName(String packedFolderName)
+  {
+    StringBuilder sb = new StringBuilder();
+    int i = 0;
+    while (i < packedFolderName.length())
+    {
+      char x = packedFolderName.charAt(i++);
+      if (x == '\\')
+      {
+        if (i == packedFolderName.length())
+          throw new RuntimeException("Illegal packed folder name: '"+packedFolderName+"'");
+        x = packedFolderName.charAt(i++);
+        if (x == '\\')
+          sb.append('\\');
+        else if (x == '0')
+          sb.append(':');
+        else
+          throw new RuntimeException("Illegal packed folder name: '"+packedFolderName+"'");
+      }
+      else
+        sb.append(x);
+    }
+    return sb.toString();
+  }
+  
+  /** Handle Messaging exceptions in a consistent global manner */
   protected static void handleMessagingException(MessagingException e, String context)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -1070,7 +1190,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     throw new ManifoldCFException("Error "+context+": "+e.getMessage(),e);
   }
   
-  // Handle IO Exception
+  /** Handle IO Exception */
   protected static void handleIOException(IOException e, String context)
     throws ManifoldCFException, ServiceInterruption
   {

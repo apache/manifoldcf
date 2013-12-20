@@ -17,6 +17,15 @@ limitations under the License.
 
 <table class="displaytable">
   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FoldersColon'))</nobr></td>
+    <td class="value">
+  #foreach($folder in $FOLDERS)
+      <nobr>$Encoder.bodyEscape($folder)</nobr><br/>
+  #end
+    </td>
+  </tr>
+  
+  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.RecordFilterColon'))</nobr></td>
     <td class="boxcell">
       <table class="formtable">
