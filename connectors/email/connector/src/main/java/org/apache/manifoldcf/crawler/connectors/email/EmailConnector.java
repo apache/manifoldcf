@@ -221,7 +221,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   */
   @Override
   public int getMaxDocumentRequest() {
-    return 50;
+    return 10;
   }
 
   /**
