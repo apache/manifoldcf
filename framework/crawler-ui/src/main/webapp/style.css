@@ -1,8 +1,3 @@
-/* 
-    Created on : Dec 4, 2013, 11:11:44 AM
-    Author     : Modified By Eranda Bandaranaike eragroove@gmail.com
-*/
-
 /* Licensed to the Apache Software Foundation (ASF) under one or more        */
 /* contributor license agreements. See the NOTICE file distributed with      */
 /* this work for additional information regarding copyright ownership.       */
@@ -17,7 +12,14 @@
 /* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  */
 /* See the License for the specific language governing permissions and       */
 /* limitations under the License.                                            */
-body{
+
+/* 
+    Created on : Dec 4, 2013, 11:11:44 AM
+    Author     : Modified By Eranda Bandaranaike eragroove@gmail.com
+*/
+
+body
+{
     font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
     padding: 0;
     margin: 0;
@@ -468,16 +470,20 @@ body{
     border-collapse: collapse;
 }
 
-.descripxion
+.description
 {
-    padding:0 10px 0 0;
-    margin-left: 0;
-    margin-right: 0;
-    background-color: #f6f6f6;
-    font-weight: bold;
+    padding-left: 0;
+	padding-right:5px;
+	padding-top: 0;
+	padding-bottom: 0;
+	margin-left: 0;
+	margin-right: 0;
+	margin-top: 5px;
+	margin-bottom: 0;
+	border: 0;
     color: #404040;
     font-size: 12px;
-    text-align: right;
+    text-align: left;
 }
 
 .message
@@ -523,10 +529,14 @@ body{
 .value
 {
     width: 100%;
-    padding-left: 10px;
-    padding-right: 10px;
-    margin: 0;
-    padding: 0;
+    padding-left: 0;
+    padding-right: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+    margin-left: 0;
+	margin-right: 0;
+	margin-top: 5px;
+	margin-bottom: 0;
     border: 0;
     color: black;
     font-size: 12px;
