@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-553: Add email connector.
+(Tishan DahanaYakage, Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-846: Once a service had grabbed all connector
 instances, but was not using them any more, it would not release
 them for other cluster members to use.
