@@ -44,6 +44,13 @@ function checkConfigForSave()
     editconnection.port.focus();
     return false;
   }
+  if (editconnection.url.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.URLTemplateCannotBeBlank'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.URL'))");
+    editconnection.url.focus();
+    return false;
+  }
   return true;
 }
 

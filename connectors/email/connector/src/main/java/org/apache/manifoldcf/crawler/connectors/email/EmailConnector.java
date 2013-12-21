@@ -68,6 +68,8 @@ import javax.mail.search.*;
 
 public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector {
 
+  protected final static long SESSION_EXPIRATION_MILLISECONDS = 300000L;
+  
   // Local variables.
   protected long sessionExpiration = -1L;
   
@@ -79,6 +81,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   protected String password = null;
   protected String protocol = null;
   protected Properties properties = null;
+  protected String urlTemplate = null;
   
   // Local session handle
   protected EmailSession session = null;
@@ -107,7 +110,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     this.portString = configParameters.getParameter(EmailConfig.PORT_PARAM);
     this.protocol = configParameters.getParameter(EmailConfig.PROTOCOL_PARAM);
     this.username = configParameters.getParameter(EmailConfig.USERNAME_PARAM);
-    this.password = configParameters.getParameter(EmailConfig.PASSWORD_PARAM);
+    this.password = configParameters.getObfuscatedParameter(EmailConfig.PASSWORD_PARAM);
+    this.urlTemplate = configParameters.getParameter(EmailConfig.URL_PARAM);
     this.properties = new Properties();
     int i = 0;
     while (i < configParameters.getChildCount()) //In post property set is added as a configuration node
@@ -128,6 +132,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   @Override
   public void disconnect()
     throws ManifoldCFException {
+    this.urlTemplate = null;
     this.server = null;
     this.portString = null;
     this.protocol = null;
@@ -372,6 +377,18 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   protected void getSession()
     throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
+      
+      // Check that all the required parameters are there.
+      if (urlTemplate == null)
+        throw new ManifoldCFException("Missing url parameter");
+      if (server == null)
+        throw new ManifoldCFException("Missing server parameter");
+      if (properties == null)
+        throw new ManifoldCFException("Missing server properties");
+      if (protocol == null)
+        throw new ManifoldCFException("Missing protocol parameter");
+      
+      // Create a session.
       int port;
       if (portString != null && portString.length() > 0)
       {
@@ -398,7 +415,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         handleMessagingException(e, "connecting");
       }
     }
-    sessionExpiration = System.currentTimeMillis() + EmailConfig.SESSION_EXPIRATION_MILLISECONDS;
+    sessionExpiration = System.currentTimeMillis() + SESSION_EXPIRATION_MILLISECONDS;
   }
 
   protected void finalizeConnection() {
@@ -444,7 +461,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     String[] result = new String[documentIdentifiers.length];
     for (int i = 0; i < documentIdentifiers.length; i++)
     {
-      result[i] = "_";   // NOT empty; we need to make ManifoldCF understand that this is a document that never will change.
+      result[i] = "_" + urlTemplate;   // NOT empty; we need to make ManifoldCF understand that this is a document that never will change.
     }
     return result;
 
@@ -589,7 +606,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                 rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
               }
             }
-            String documentURI = subject + messageIDTerm;
+            String documentURI = makeDocumentURI(urlTemplate, folderName, id);
             activities.ingestDocument(id, version, documentURI, rd);
 
           }
@@ -650,11 +667,13 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException {
     tabsArray.add(Messages.getString(locale, "EmailConnector.Server"));
+    tabsArray.add(Messages.getString(locale, "EmailConnector.URL"));
     // Map the parameters
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the parameters from each tab
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
+    fillInURLConfigurationMap(paramMap, out, parameters);
 
     // Output the Javascript - only one Velocity template for all tabs
     Messages.outputResourceWithVelocity(out, locale, "ConfigurationHeader.js", paramMap);
@@ -669,14 +688,16 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     // Set the tab name
     paramMap.put("TabName", tabName);
     // Fill in the parameters
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
+    fillInURLConfigurationMap(paramMap, out, parameters);
     Messages.outputResourceWithVelocity(out, locale, "Configuration_Server.html", paramMap);
+    Messages.outputResourceWithVelocity(out, locale, "Configuration_URL.html", paramMap);
   }
 
-  private void fillInServerConfigurationMap(Map<String, Object> paramMap, ConfigParams parameters) {
+  private static void fillInServerConfigurationMap(Map<String, Object> paramMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
     int i = 0;
     String username = parameters.getParameter(EmailConfig.USERNAME_PARAM);
-    String password = parameters.getParameter(EmailConfig.PASSWORD_PARAM);
+    String password = parameters.getObfuscatedParameter(EmailConfig.PASSWORD_PARAM);
     String protocol = parameters.getParameter(EmailConfig.PROTOCOL_PARAM);
     String server = parameters.getParameter(EmailConfig.SERVER_PARAM);
     String port = parameters.getParameter(EmailConfig.PORT_PARAM);
@@ -698,6 +719,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       username = StringUtils.EMPTY;
     if (password == null)
       password = StringUtils.EMPTY;
+    else
+      password = mapper.mapPasswordToKey(password);
     if (protocol == null)
       protocol = EmailConfig.PROTOCOL_DEFAULT_VALUE;
     if (server == null)
@@ -712,6 +735,15 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     paramMap.put("PORT", port);
     paramMap.put("PROPERTIES", list);
 
+  }
+
+  private static void fillInURLConfigurationMap(Map<String, Object> paramMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
+    String urlTemplate = parameters.getParameter(EmailConfig.URL_PARAM);
+
+    if (urlTemplate == null)
+      urlTemplate = "http://sampleserver/$(FOLDERNAME)?id=$(MESSAGEID)";
+
+    paramMap.put("URL", urlTemplate);
   }
 
   /**
@@ -732,13 +764,17 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
     ConfigParams parameters) throws ManifoldCFException {
 
+    String urlTemplate = variableContext.getParameter("url");
+    if (urlTemplate != null)
+      parameters.setParameter(EmailConfig.URL_PARAM, urlTemplate);
+
     String userName = variableContext.getParameter("username");
     if (userName != null)
       parameters.setParameter(EmailConfig.USERNAME_PARAM, userName);
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setParameter(EmailConfig.PASSWORD_PARAM, password);
+      parameters.setObfuscatedParameter(EmailConfig.PASSWORD_PARAM, variableContext.mapKeyToPassword(password));
 
     String protocol = variableContext.getParameter("protocol");
     if (protocol != null)
@@ -802,7 +838,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in map from each tab
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
+    fillInURLConfigurationMap(paramMap, out, parameters);
 
     Messages.outputResourceWithVelocity(out, locale, "ConfigurationView.html", paramMap);
   }
@@ -1080,7 +1117,53 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     }
   }
 
+  /** Create a document's URI given a template, a folder name, and a message ID */
+  protected static String makeDocumentURI(String urlTemplate, String folderName, String id)
+  {
+    try {
+      // First, URL encode folder name and id
+      String encodedFolderName = java.net.URLEncoder.encode(folderName, "utf-8");
+      String encodedId = java.net.URLEncoder.encode(id, "utf-8");
+      // The template is already URL encoded, except for the substitution points
+      Map<String,String> subsMap = new HashMap<String,String>();
+      subsMap.put("FOLDERNAME", encodedFolderName);
+      subsMap.put("MESSAGEID", encodedId);
+      return substitute(urlTemplate, subsMap);
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException("No utf-8 encoder found: "+e.getMessage(), e);
+    }
+  }
 
+  protected static String substitute(String template, Map<String,String> map)
+  {
+    StringBuilder sb = new StringBuilder();
+    int index = 0;
+    while (true)
+    {
+      int newIndex = template.indexOf("$(",index);
+      if (newIndex == -1)
+      {
+        sb.append(template.substring(index));
+        break;
+      }
+      sb.append(template.substring(index, newIndex));
+      int endIndex = template.indexOf(")",newIndex+2);
+      String varName;
+      if (endIndex == -1)
+        varName = template.substring(newIndex + 2);
+      else
+        varName = template.substring(newIndex + 2, endIndex);
+      String subsValue = map.get(varName);
+      if (subsValue == null)
+        subsValue = "";
+      sb.append(subsValue);
+      if (endIndex == -1)
+        break;
+      index = endIndex+1;
+    }
+    return sb.toString();
+  }
+  
   protected static void addFindParameterNode(ConfigParams parameters, String findParameterName, String findParameterValue) {
     ConfigNode cn = new ConfigNode(EmailConfig.NODE_PROPERTIES);
     cn.setAttribute(EmailConfig.ATTRIBUTE_NAME, findParameterName);
