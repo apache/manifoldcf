@@ -1923,6 +1923,49 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>Enter a desired access token, and click the "Add" button.  You may enter multiple access tokens.</p>
             </section>
 
+            <section id="emailrepository">
+                <title>Individual Email Repository Connection</title>
+                <p>The Individual Email connection type allows you to index content from a single email account, using IMAP, IMAP-SSL, POP3, or
+                    POP3-SSL email protocols.  Multiple connections are required to support multiple email accounts.</p>
+                <p>This connection type provides no support at this time for securing email documents.</p>
+                <p>An Email connection has the following special tabs: "Server" and "URL".  The "Server" tab allows you to describe a server and
+                    email account, while the "URL" tab allows you describe a URL template that will be used to form the URL for individual emails that
+                    are crawled.</p>
+                <p>The "Server" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/email-configure-server.PNG" alt="Email Connection, Server tab" width="80%"/>
+                <br/><br/>
+                <p>Select an email protocol, and type in the name of the email host.  Also type in the user name and password.  If the port differs from the
+                    default for the selected protocol, you may enter a port as well.</p>
+                <p>The "URL" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/email-configure-url.PNG" alt="Email Connection, URL tab" width="80%"/>
+                <br/><br/>
+                <p>Enter a URL template to be used for generating the URL for each individual email.  Use the special substitution tokens "$(FOLDERNAME)"
+                    and "$(MESSAGEID)" to include the individual message's folder name and message ID in the URL, in url-encoded form.</p>
+                <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/email-status.PNG" alt="Email Connection Status" width="80%"/>
+                <br/><br/>
+                <p>Note that in this example, the email connection cannot reach the server, which is leading to an error status message instead of
+                    "Connection working".</p>
+                <p></p>
+                <p>When you configure a job to use a repository connection of the email type, two additional tabs are presented.  These are, in order, "Metadata", and "Filter".</p>
+                <p>The "Metadata" tab looks something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/email-job-metadata.PNG" alt="Email Job, Metadata tab" width="80%"/>
+                <br/><br/>
+                <p>Select any of the checkboxes to include that metadata in the crawl.</p>
+                <p></p>
+                <p>The "Filter" tab looks something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/email-job-filter.PNG" alt="Email Job, Filter tab" width="80%"/>
+                <br/><br/>
+                <p>Select one or more folders to include in the pulldown.  Then, if you wish to limit the documents included further by applying search criteria,
+                    you may select a field, type in a search value, and click the "Add" button.  Note that <strong>all</strong> the fields must match for the
+                    email to be included in the crawl.</p>
+            </section>
+
             <section id="filenetrepository">
                 <title>IBM FileNet P8 Repository Connection</title>
                 <p>The IBM FileNet P8 connection type allows you to index content from a FileNet P8 server instance.  A connection allows you to reach all files
