@@ -22,15 +22,13 @@ limitations under the License.
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.IncludedMetadataColon'))</nobr></td>
     <td class="value">
-
-
   #foreach($metadataattribute in $METADATAATTRIBUTES)
     #if($METADATASELECTIONS.contains($metadataattribute))
       <input type="checkbox" name="metadata" value="$Encoder.attributeEscape($metadataattribute)" checked="true"/>
     #else
       <input type="checkbox" name="metadata" value="$Encoder.attributeEscape($metadataattribute)"/>
     #end
-      $Encoder.bodyEscape($metadataattribute)<br/>
+      <nobr>$Encoder.bodyEscape($metadataattribute)</nobr><br/>
   #end
     </td>
 

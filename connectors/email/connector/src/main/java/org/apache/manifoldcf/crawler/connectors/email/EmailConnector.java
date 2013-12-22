@@ -920,7 +920,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         metadataSelections.add(metadataName);
       }
     }
-    paramMap.put("metadataselections", metadataSelections);
+    paramMap.put("METADATASELECTIONS", metadataSelections);
   }
 
   /**
@@ -928,7 +928,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   */
   protected void fillInMetadataAttributes(Map<String, Object> paramMap) {
     String[] matchNames = EmailConfig.BASIC_METADATA;
-    paramMap.put("metadataattributes", matchNames);
+    paramMap.put("METADATAATTRIBUTES", matchNames);
   }
 
   protected void outputFilterTab(IHTTPOutput out, Locale locale,
