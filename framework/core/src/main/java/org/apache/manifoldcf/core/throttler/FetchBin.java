@@ -157,6 +157,7 @@ public class FetchBin
           if (currentTime > lastFetchTime)
             lastFetchTime = currentTime;
           reserveNextFetch = false;
+          notifyAll();
           return true;
         }
         wait(waitAmt);
