@@ -1156,6 +1156,82 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>If you need specific ManifoldCF logging information, contact your system integrator.</p>
             </section>
             
+            <section id="sharepointadauthority">
+                <title>Microsoft SharePoint ActiveDirectory Authority Connection</title>
+                <p>A Microsoft SharePoint ActiveDirectory authority connection is meant to furnish access tokens from Active Directory for a SharePoint instance that is configured
+                    to use Claim Space authorization.  It cannot be used in any other situation.</p>
+                <p>The SharePoint ActiveDirectory authority is meant to work in conjunction with a SharePoint Native authority connection, and provides authorization information from one or
+                    more Active Directory domain controllers.  Thus, it is only needed if Active Directory groups are used to furnish access to documents for users in the SharePoint system.</p>
+                <p>Documents must be indexed using a Microsoft SharePoint repository connection where the "Authority type" is specified to be "Native".  If the "Authority type" is
+                    specified to be "Active Directory", then instead you should configure an Active Directory authority connection, described above.</p>
+                <p>This connection type needs to be provided with information about how to log into an appropriate Windows domain controller, with a user that has sufficient privileges to
+                    be able to look up any user's ID and group relationships.</p>
+                <br/>
+                <p>A SharePoint Active Directory authority connection type has two special tabs in the authority connection editing screen: "Domain Controller", and "Cache".  The "Domain Controller"
+                       tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/sharepointadauthority-configure-dc.PNG" alt="SharePoint AD Configuration, Domain Controller tab" width="80%"/>
+                <br/><br/>
+                <p>As you can see, the SharePoint Active Directory authority allows you to configure multiple connections to different, but presumably related, domain controllers.  The choice of
+                       which domain controller will be accessed is determined by traversing the list of configured domain controllers from top to bottom, and finding the first one that
+                       matches the domain suffix field specified.  Note that a blank value for the domain suffix will match <strong>all</strong> users.</p>
+                <p>To add a domain controller to the end of the list, fill in the requested values.  Note that the "Administrative user name" field usually requires no domain suffix, but
+                       depending on the details of how the domain controller is configured, may sometimes only accept the "name@domain" format.  When you have completed your
+                       entry, click the "Add to end" button to add the domain controller rule to the end of the list.  Later, when other domain controllers are present in the list, you can
+                       click a different button at an appropriate spot to insert the domain controller record into the list where you want it to go.</p>
+                <p>The Active Directory authority connection type also has a "Cache" tab, for managing the caching of individual user responses:</p>
+                <br/><br/>
+                <figure src="images/en_US/sharepointadauthority-configure-cache.PNG" alt="SharePoint AD Configuration, Cache tab" width="80%"/>
+                <br/><br/>
+                <p>Here you can control how many individual users will be cached, and for how long.</p>
+                <p>When you are done, click the "Save" button.  When you do, a connection summary and status screen will be presented, which may look something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/sharepointadauthority-status.PNG" alt="SharePoint AD Status" width="80%"/>
+                <br/><br/>
+                <p>Note that in this example, the SharePoint Active Directory connection is not responding, which is leading to an error status message instead of "Connection working".</p>
+
+            </section>
+
+            <section id="sharepointnativeauthority">
+                <title>Microsoft SharePoint Native Authority Connection</title>
+                <p>A Microsoft SharePoint Native authority connection is meant to furnish access tokens from the same SharePoint instance that the documents are coming from.
+                    You should use this authority type whenever you are trying to secure documents using a SharePoint repository connection that is configured to the use "Native" 
+                    authority type.</p>
+                <p>If your SharePoint instance is configured to use the Claim Space authorization model, you may combine a SharePoint Native authority connection with other
+                    SharePoint authority types, such as the SharePoint ActiveDirectory authority type, to furnish complete authorization support.  However, if Claim Space is not
+                    configured, the SharePoint Native authority connection is the only authority type you should need to use.</p>
+                <p>A SharePoint authority connection has two special tabs on the authority connection editing screen: the "Server" tab, and the "Cache" tab.
+                    The "Server" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/sharepointnativeauthority-configure-server.PNG" alt="SharePoint Native Authority, Server tab" width="80%"/>
+                <br/><br/>
+                <p>Select your SharePoint server version from the pulldown.  If you do not select the correct server version, your documents may either be indexed with
+                    insufficient security protection, or you may not be able to index any documents.  Check with your SharePoint system administrator if you are not sure
+                    what to select.</p>
+                <p>SharePoint uses a web URL model for addressing sites, subsites, libraries, and files.  The best way to figure out how to set up a SharePoint connection 
+                    type is therefore to start with your web browser, and visit the topmost root of the site you wish to crawl.  Then, record the URL you see in your browser.</p>
+                <p>Select the server protocol, and enter the server name and port, based on what you recorded from the URL for your SharePoint site.  For the "Site path"
+                    field, type in the portion of the root site URL that includes everything after the server and port, except for the final "aspx" file.  For example, if the SharePoint
+                    URL is "http://myserver:81/sites/somewhere/index.asp", the site path would be "/sites/somewhere".</p>
+                <p>The SharePoint credentials are, of course, what you used to log into your root site.  The SharePoint connection type always requires the user name to be
+                    in the form "domain\user".</p>
+                <p>If your SharePoint server is using SSL, you will need to supply enough certificates for the connection's trust store so that the SharePoint server's SSL
+                    server certificate can be validated.  This typically consists of either the server certificate, or the certificate from the authority that signed the server certificate.
+                    Browse to the local file containing the certificate, and click the "Add" button.</p>
+                <p>The "Cache" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/sharepointnativeauthority-configure-cache.PNG" alt="SharePoint Native Authority, Cache tab" width="80%"/>
+                <br/><br/>
+                <p>Fill in the desired caching parameters.</p>
+                <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/sharepointnativeauthority-status.PNG" alt="SharePoint Native Status" width="80%"/>
+                <br/><br/>
+                <p>Note that in this example, the SharePoint connection is not actually referencing a SharePoint instance, which is leading to an error status message instead of
+                    "Connection working".</p>
+            </section>
+            
+            
        </section>
         
         <section id="repositoryconnectiontypes">
@@ -2116,8 +2192,6 @@ curl -XGET http://localhost:9200/index/_mapping
                     though its explicit subsites.  It is the case that it is desirable in some very large SharePoint installations to access <b>all</b> SharePoint sites using
                     a single connection.  But the ManifoldCF SharePoint connection type does not support that model as of yet.  If this functionality is important for you,
                     contact your system integrator.</p>
-                <p>SharePoint uses a web URL model for addressing sites, subsites, libraries, and files.  The best way to figure out how to set up a SharePoint connection 
-                    type is therefore to start with your web browser, and visit the topmost root of the site you wish to crawl.  Then, record the URL you see in your browser.</p>
                 <p>Documents described by SharePoint connections can be secured in either one of two ways.  Either you can choose to secure documents using Active
                     Directory SIDs (in which case, you must use the Active Directory authority type), or you may choose to use native SharePoint groups and users for
                     authorization.  The latter <strong>must</strong> be used in the following cases:</p>
@@ -2144,6 +2218,8 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>Select your SharePoint server version from the pulldown.  If you do not select the correct server version, your documents may either be indexed with
                     insufficient security protection, or you may not be able to index any documents.  Check with your SharePoint system administrator if you are not sure
                     what to select.</p>
+                <p>SharePoint uses a web URL model for addressing sites, subsites, libraries, and files.  The best way to figure out how to set up a SharePoint connection 
+                    type is therefore to start with your web browser, and visit the topmost root of the site you wish to crawl.  Then, record the URL you see in your browser.</p>
                 <p>Select the server protocol, and enter the server name and port, based on what you recorded from the URL for your SharePoint site.  For the "Site path"
                     field, type in the portion of the root site URL that includes everything after the server and port, except for the final "aspx" file.  For example, if the SharePoint
                     URL is "http://myserver:81/sites/somewhere/index.asp", the site path would be "/sites/somewhere".</p>

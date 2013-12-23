@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-816: Document revisions to SharePoint connector,
+and new SharePoint authorities.
+(Karl Wright)
+
 CONNECTORS-553: Add email connector.
 (Tishan DahanaYakage, Piergiorgio Lucidi, Karl Wright)
 
