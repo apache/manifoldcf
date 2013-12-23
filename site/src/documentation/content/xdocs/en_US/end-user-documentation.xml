@@ -809,7 +809,7 @@ curl -XGET http://localhost:9200/index/_mapping
             
             <section id="adauthority">
                 <title>Active Directory Authority Connection</title>
-                <p>An active directory authority connection is essential for enforcing security for documents from Windows shares, Microsoft SharePoint, and IBM FileNet repositories.
+                <p>An active directory authority connection is essential for enforcing security for documents from Windows shares, Microsoft SharePoint (in ActiveDirectory mode), and IBM FileNet repositories.
                        This connection type needs to be provided with information about how to log into an appropriate Windows domain controller, with a user that has sufficient privileges to
                        be able to look up any user's ID and group relationships.</p>
                 <br/>
@@ -2337,41 +2337,64 @@ curl -XGET http://localhost:9200/index/_mapping
             
             <section id="sharepointrepository">
                 <title>Microsoft SharePoint Repository Connection</title>
-                <p>The Microsoft SharePoint connection type allows you to index documents from a Microsoft SharePoint site.  Bear in mind that a single SharePoint installation actually represents
-                    a set of sites.  Some sites
-                    in SharePoint are directly related to others (e.g. they are subsites), while some sites operate relatively independently of one another.</p>
-                <p>The SharePoint connection type is designed so that one SharePoint repository connection can access all SharePoint sites from a specific root site though its explicit subsites.
-                    It is the case
-                    that it is desirable in some very large SharePoint installations to access <b>all</b> SharePoint sites using a single connection.  But the ManifoldCF SharePoint connection type today
-                    does not support
-                    that model as of yet.  If this functionality is important for you, contact your system integrator.</p>
-                <p>SharePoint uses a web URL model for addressing sites, subsites, libraries, and files.  The best way to figure out how to set up a SharePoint connection type is therefore to start
-                    with your web browser,
-                    and visit the root of the site you wish to crawl.  Then, record the URL you see in your browser.</p>
-                <p>Documents described by SharePoint connections are typically secured by an Active Directory authority.  If you have not yet created your Active Directory authority, but would like
-                    your documents to be secured, please follow the direction in the section titled "Active Directory Authority Connection".</p>
-                <p>A SharePoint connection has one special tab on the repository connection editing screen: the "Server" tab, which looks like this:</p>
+                <p>The Microsoft SharePoint connection type allows you to index documents from a Microsoft SharePoint site.  Bear in mind that a single SharePoint
+                    installation actually represents a set of sites.  Some sites in SharePoint are directly related to others (e.g. they are subsites), while some sites operate
+                    relatively independently of one another.</p>
+                <p>The SharePoint connection type is designed so that one SharePoint repository connection can access all SharePoint sites from a specific root site
+                    though its explicit subsites.  It is the case that it is desirable in some very large SharePoint installations to access <b>all</b> SharePoint sites using
+                    a single connection.  But the ManifoldCF SharePoint connection type does not support that model as of yet.  If this functionality is important for you,
+                    contact your system integrator.</p>
+                <p>SharePoint uses a web URL model for addressing sites, subsites, libraries, and files.  The best way to figure out how to set up a SharePoint connection 
+                    type is therefore to start with your web browser, and visit the topmost root of the site you wish to crawl.  Then, record the URL you see in your browser.</p>
+                <p>Documents described by SharePoint connections can be secured in either one of two ways.  Either you can choose to secure documents using Active
+                    Directory SIDs (in which case, you must use the Active Directory authority type), or you may choose to use native SharePoint groups and users for
+                    authorization.  The latter <strong>must</strong> be used in the following cases:</p>
+                <br/>
+                <ul>
+                  <li>You have native SharePoint groups or users created which do not correspond to Active Directory SIDs</li>
+                  <li>Your SharePoint 2010 is configured to use Claim Space authorization mode</li>
+                  <li>You have ActiveDirectory groups that have more than roughly 1000 members</li>
+                </ul>
+                <br/>
+                <p>In general, native SharePoint authorization is the preferred model, except in legacy situations.  If you choose to use native SharePoint authorization, you
+                    will need to define one or more authorities of type "SharePoint/XXX" associated with the same authority group as your SharePoint connection.  Please read
+                    the sections of this manual that describe how to configure SharePoint/Native and SharePoint/AD authorities.  Bear in mind that SharePoint when configured
+                    to run in Claim
+                    Space mode (available starting in SharePoint 2010) uses a federated authorization model, so you should expect to create more than one authority when
+                    working with a SharePoint Claim Space installation.  If your SharePoint is not using Claim Space, then a single authority of type "SharePoint/Native" is
+                    sufficient.</p>
+                <p>If you wish to use the legacy support for the Active Directory authority, then read the section titled "Active Directory Authority Connection" instead.</p>
+                <p>A SharePoint connection has two special tabs on the repository connection editing screen: the "Server" tab, and the "Authority type" tab.  The "Server"
+                    tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/sharepoint-configure-server.PNG" alt="SharePoint Connection, Server tab" width="80%"/>
                 <br/><br/>
-                <p>Select your SharePoint server version from the pulldown.  If you do not select the correct server version, your documents may either be indexed with insufficient security protection,
-                    or you
-                    may not be able to index any documents.  Check with your SharePoint system administrator if you are not sure what to select.</p>
-                <p>Select the server protocol, and enter the server name and port, based on what you recorded from the URL for your SharePoint site.  For the "Site path" field, type in the portion of the
-                    root site URL that includes everything after the server and port, except for the final "aspx" file.  For example, if the SharePoint URL is "http://myserver:81/sites/somewhere/index.asp",
-                    the site path would be "/sites/somewhere".</p>
-                <p>The SharePoint credentials are, of course, what you used to log into your root site.  The SharePoint connection type always requires the user name to be in the form "domain\user".</p>
-                <p>If your SharePoint server is using SSL, you will need to supply enough certificates for the connection's trust store so that the SharePoint server's SSL server certificate
-                    can be validated.  This typically consists of either the server certificate, or the certificate from the authority that signed the server certificate.  Browse to the local file containing the
-                    certificate, and click the "Add" button.</p>
+                <p>Select your SharePoint server version from the pulldown.  If you do not select the correct server version, your documents may either be indexed with
+                    insufficient security protection, or you may not be able to index any documents.  Check with your SharePoint system administrator if you are not sure
+                    what to select.</p>
+                <p>Select the server protocol, and enter the server name and port, based on what you recorded from the URL for your SharePoint site.  For the "Site path"
+                    field, type in the portion of the root site URL that includes everything after the server and port, except for the final "aspx" file.  For example, if the SharePoint
+                    URL is "http://myserver:81/sites/somewhere/index.asp", the site path would be "/sites/somewhere".</p>
+                <p>The SharePoint credentials are, of course, what you used to log into your root site.  The SharePoint connection type always requires the user name to be
+                    in the form "domain\user".</p>
+                <p>If your SharePoint server is using SSL, you will need to supply enough certificates for the connection's trust store so that the SharePoint server's SSL
+                    server certificate can be validated.  This typically consists of either the server certificate, or the certificate from the authority that signed the server certificate.
+                    Browse to the local file containing the certificate, and click the "Add" button.</p>
+                <p>The SharePoint connection "Authority type" tab allows you to select the authorization model used by the connection.  It looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/sharepoint-configure-authoritytype.PNG" alt="SharePoint Connection, Authority type tab" width="80%"/>
+                <br/><br/>
+                <p>Select the authority model you wish to use.</p>
                 <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/sharepoint-status.PNG" alt="SharePoint Status" width="80%"/>
                 <br/><br/>
-                <p>Note that in this example, the SharePoint connection is not actually referencing a SharePoint instance, which is leading to an error status message instead of "Connection working".</p>
-                <p>Since SharePoint uses Windows IIS for authentication, there are many ways in which the configuration of either IIS or the Windows domain under which SharePoint runs can affect
-                    the correct functioning of the SharePoint connection.  It is beyond the scope of this manual to describe the kinds of analysis and debugging techniques that might be required to diagnose connection
-                    and authentication problems.  If you have trouble, you will almost certainly need to involve your SharePoint IT personnel.  Debugging tools may include (but are not limited to):</p>
+                <p>Note that in this example, the SharePoint connection is not actually referencing a SharePoint instance, which is leading to an error status message instead of
+                    "Connection working".</p>
+                <p>Since SharePoint uses Windows IIS for authentication, there are many ways in which the configuration of either IIS or the Windows domain under which
+                    SharePoint runs can affect the correct functioning of the SharePoint connection.  It is beyond the scope of this manual to describe the kinds of analysis and
+                    debugging techniques that might be required to diagnose connection and authentication problems.  If you have trouble, you will almost certainly need to involve
+                    your SharePoint IT personnel.  Debugging tools may include (but are not limited to):</p>
                 <br/>
                 <ul>
                     <li>Windows security event logs</li>
