@@ -1179,7 +1179,7 @@ curl -XGET http://localhost:9200/index/_mapping
                        depending on the details of how the domain controller is configured, may sometimes only accept the "name@domain" format.  When you have completed your
                        entry, click the "Add to end" button to add the domain controller rule to the end of the list.  Later, when other domain controllers are present in the list, you can
                        click a different button at an appropriate spot to insert the domain controller record into the list where you want it to go.</p>
-                <p>The Active Directory authority connection type also has a "Cache" tab, for managing the caching of individual user responses:</p>
+                <p>The SharePoint Active Directory authority connection type also has a "Cache" tab, for managing the caching of individual user responses:</p>
                 <br/><br/>
                 <figure src="images/en_US/sharepointadauthority-configure-cache.PNG" alt="SharePoint AD Configuration, Cache tab" width="80%"/>
                 <br/><br/>
