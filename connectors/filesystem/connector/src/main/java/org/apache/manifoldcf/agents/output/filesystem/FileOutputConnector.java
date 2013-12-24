@@ -180,28 +180,78 @@ public class FileOutputConnector extends BaseOutputConnector {
       if (specs.getRootPath() != null) {
         path.append(specs.getRootPath());
       }
-      path.append("/");
-      path.append(documentURItoFilePath(documentURI));
-
-      File file = new File(path.toString());
-
-      //System.out.println("File is '"+file+"'");
-
-      /*
-       * make directory
-       */
-      if (!file.getParentFile().exists()) {
-        file.getParentFile().mkdirs();
+      
+      // If the path does not yet exist at the root level, it is dangerous to create it.
+      File currentPath = new File(path.toString());
+      if (!currentPath.exists())
+        throw new ManifoldCFException("Root path does not yet exist: '"+currentPath+"'");
+      if (!currentPath.isDirectory())
+        throw new ManifoldCFException("Root path is not a directory: '"+currentPath+"'");
+      
+      String filePath = documentURItoFilePath(documentURI);
+      
+      // Build path one level at a time.  This is needed because there may be a collision at
+      // every level.
+      int index = 0;
+      while (true)
+      {
+        int currentIndex = filePath.indexOf("/",index);
+        if (currentIndex == -1)
+          break;
+        String dirName = filePath.substring(index,currentIndex);
+        File newPath = new File(currentPath, dirName);
+        index = currentIndex + 1;
+        int suffix = 1;
+        while (true)
+        {
+          if (newPath.exists() && newPath.isDirectory())
+            break;
+          // Try to create it.  If we fail, check if it now exists as a file.
+          if (newPath.mkdir())
+            break;
+          // Hmm, didn't create.  If it is a file, we suffered a collision, so try again with ".N" as a suffix.
+          if (newPath.exists())
+          {
+            if (newPath.isDirectory())
+              break;
+            newPath = new File(currentPath, dirName + "." + suffix);
+            suffix++;
+          }
+          else
+            throw new ManifoldCFException("Could not create directory '"+newPath+"'.  Permission issue?");
+        }
+        // Directory successfully created!
+        currentPath = newPath;
+        // Go on to the next one.
+      }
+      
+      // Path successfully created.  Now create file.
+      FileOutputStream output = null;
+      String fileName = filePath.substring(index);
+      File outputPath = new File(currentPath, fileName);
+      int fileSuffix = 1;
+      while (true)
+      {
+        try
+        {
+          output = new FileOutputStream(outputPath);
+          break;
+        }
+        catch (FileNotFoundException e)
+        {
+          // Figure out why it could not be created.
+          if (outputPath.exists() && !outputPath.isFile())
+          {
+            // try a new file
+            outputPath = new File(currentPath, fileName + "." + fileSuffix);
+            fileSuffix++;
+            continue;
+          }
+          // Probably some other error
+          throw new ManifoldCFException("Could not create file '"+outputPath+"': "+e.getMessage(),e);
+        }
       }
 
-      /*
-       * delete old file
-       */
-      if (file.exists()) {
-        file.delete();
-      }
-
-      FileOutputStream output = new FileOutputStream(file);
       try {
         /*
          * lock file
@@ -209,7 +259,7 @@ public class FileOutputConnector extends BaseOutputConnector {
         FileChannel channel = output.getChannel();
         FileLock lock = channel.tryLock();
         if (lock == null)
-          throw new ServiceInterruption("Could not lock file: '"+file+"'",null,1000L,-1L,10,false);
+          throw new ServiceInterruption("Could not lock file: '"+outputPath+"'",null,1000L,-1L,10,false);
 
         try {
 
@@ -217,7 +267,7 @@ public class FileOutputConnector extends BaseOutputConnector {
            * write file
            */
           InputStream input = document.getBinaryStream();
-          byte buf[] = new byte[1024];
+          byte buf[] = new byte[65536];
           int len;
           while((len = input.read(buf)) != -1) {
             output.write(buf, 0, len);
@@ -244,11 +294,11 @@ public class FileOutputConnector extends BaseOutputConnector {
     } catch (URISyntaxException e) {
       handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
-    } catch (SecurityException e) {
-      handleSecurityException(e);
-      return DOCUMENTSTATUS_REJECTED;
     } catch (FileNotFoundException e) {
       handleFileNotFoundException(e);
+      return DOCUMENTSTATUS_REJECTED;
+    } catch (SecurityException e) {
+      handleSecurityException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (IOException e) {
       handleIOException(e);
