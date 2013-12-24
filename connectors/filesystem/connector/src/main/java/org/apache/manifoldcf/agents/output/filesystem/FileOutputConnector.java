@@ -364,26 +364,87 @@ public class FileOutputConnector extends BaseOutputConnector {
     try {
       specs = new FileOutputSpecs(outputDescription);
 
-      /*
-       * make path
-       */
-      if (specs.getRootPath() != null) {
-        path.append(specs.getRootPath());
+      // We cannot remove documents, because it is unsafe to do so.
+      // Paths that were created when the document existed will not
+      // be found if it goes away.  So we have to leave a grave marker,
+      // in this case a zero-length file, instead.
+      
+      // If the path does not yet exist at the root level, it is dangerous to create it.
+      File currentPath = new File(path.toString());
+      if (!currentPath.exists())
+        return;
+      if (!currentPath.isDirectory())
+        return;
+      
+      String filePath = documentURItoFilePath(documentURI);
+      
+      // Build path one level at a time.  This is needed because there may be a collision at
+      // every level.  If we don't find a directory where we expect it, we just exit.
+      int index = 0;
+      while (true)
+      {
+        int currentIndex = filePath.indexOf("/",index);
+        if (currentIndex == -1)
+          break;
+        String dirName = filePath.substring(index,currentIndex);
+        File newPath = new File(currentPath, dirName);
+        index = currentIndex + 1;
+        int suffix = 1;
+        while (true)
+        {
+          if (!newPath.exists())
+            return;
+          if (newPath.isDirectory())
+            break;
+          // It's a file.  Move on to the next one.
+          newPath = new File(currentPath, dirName + "." + suffix);
+          suffix++;
+        }
+        // Directory successfully created!
+        currentPath = newPath;
+        // Go on to the next level.
       }
-      path.append("/");
-      path.append(documentURItoFilePath(documentURI));
-
-      File file = new File(path.toString());
-
-      /*
-       * delete old file
-       */
-      if (file.exists()) {
-        file.delete();
+      
+      // Path found.  Now, see if we can find the file to null out.
+      FileOutputStream output = null;
+      String fileName = filePath.substring(index);
+      File outputPath = new File(currentPath, fileName);
+      int fileSuffix = 1;
+      while (true)
+      {
+        if (!outputPath.exists())
+          return;
+        if (!outputPath.isFile())
+        {
+          // Try a new one
+          outputPath = new File(currentPath, fileName + "." + fileSuffix);
+          fileSuffix++;
+          continue;
+        }
+        // Null it out!
+        try
+        {
+          output = new FileOutputStream(outputPath);
+          break;
+        }
+        catch (FileNotFoundException e)
+        {
+          // Probably some other error
+          throw new ManifoldCFException("Could not zero out file '"+outputPath+"': "+e.getMessage(),e);
+        }
       }
+      // Just close it, to make a zero-length grave marker.
+      output.close();
     } catch (JSONException e) {
+      handleJSONException(e);
     } catch (URISyntaxException e) {
-    } catch (NullPointerException e) {
+      handleURISyntaxException(e);
+    } catch (FileNotFoundException e) {
+      handleFileNotFoundException(e);
+    } catch (SecurityException e) {
+      handleSecurityException(e);
+    } catch (IOException e) {
+      handleIOException(e);
     }
 
     activities.recordActivity(null, REMOVE_ACTIVITY, null, documentURI, "OK", null);
