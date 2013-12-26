@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-814: Make File System output connector handle
+directory/file conflicts.
+(Karl Wright)
+
 CONNECTORS-733: Write a test which exercises database connection
 interruption logic, and debug the same.
 (Ahmet Arslan, Karl Wright)
