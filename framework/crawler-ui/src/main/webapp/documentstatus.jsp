@@ -506,52 +506,52 @@ if (maintenanceUnderway == false)
 		}
 %>
 		</table>
-		<table class="displaytable">
-		    <tr>
-			<td class="separator" colspan="5"><hr/></td>
-		    </tr>
-		    <tr>
-			<td class="value">
+		<table class="reportfootertable">
+		    <tr class="reportfooterrow">
+			<td class="reportfootercell">
 				<nobr>
 <%
 		if (startRow == 0)
 		{
 %>
-				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"documentstatus.Previous")%>
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"documentstatus.Previous")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="Previous page">Previous</a>
-<%
-		}
-%>
-				&nbsp;
-<%
-		if (hasMoreRows == false)
-		{
-%>
-				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"documentstatus.Next")%>
-<%
-		}
-		else
-		{
-%>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="Next page">Next</a>
+					<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="Previous page">Previous</a>
 <%
 		}
 %>
 				</nobr>
 			</td>
-			<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"documentstatus.Rows")%></nobr></td><td class="value"><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></td>
-			<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"documentstatus.RowsPerPage")%></nobr></td>
-			<td class="value">
-				<input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/>
+			<td class="reportfootercell">
+				<nobr>
+<%
+		if (hasMoreRows == false)
+		{
+%>
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"documentstatus.Next")%>
+<%
+		}
+		else
+		{
+%>
+					<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="Next page">Next</a>
+<%
+		}
+%>
+				</nobr>
 			</td>
-		    </tr>
-		    <tr>
-			<td class="separator" colspan="5"><hr/></td>
+			<td class="reportfootercell">
+				<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"documentstatus.Rows")%></nobr>
+				<nobr><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></nobr>
+			</td>
+			<td class="reportfootercell">
+				<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"documentstatus.RowsPerPage")%></nobr>
+				<nobr><input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/></nobr>
+			</td>
 		    </tr>
 		</table>
 

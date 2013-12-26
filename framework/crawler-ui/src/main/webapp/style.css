@@ -375,6 +375,37 @@ body
 
 }
 
+.reportfootertable
+{
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-collapse: collapse;
+}
+
+.reportfooterrow
+{
+	width: 100%;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background-color: #f0f0f0;
+    vertical-align: center;
+}
+
+.reportfootercell
+{
+    padding-left: 5px;
+	padding-right:5px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	margin: 0
+    border: 0;
+    color: black;
+    font-size: 10px;
+}
+
 .formtable
 {
     width: 100%;

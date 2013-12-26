@@ -767,52 +767,50 @@ if (maintenanceUnderway == false)
 <%
 		}
 %>
-		<table class="displaytable">
-		    <tr>
-			<td class="separator" colspan="5"><hr/></td>
-		    </tr>
-		    <tr>
-			<td class="value">
+		<table class="reportfootertable">
+		    <tr class="reportfooterrow">
+			<td class="reportfootercell">
 				<nobr>
 <%
 		if (startRow == 0)
 		{
 %>
-				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Previous")%>
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Previous")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxbandwidthreport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Previous")%></a>
+					<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxbandwidthreport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Previous")%></a>
 <%
 		}
 %>
-				&nbsp;
+				</nobr>
+				<nobr>
 <%
 		if (hasMoreRows == false)
 		{
 %>
-				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Next")%>
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Next")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Next")%></a>
+					<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Next")%></a>
 <%
 		}
 %>
 				</nobr>
 			</td>
-			<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Rows")%></nobr></td><td class="value"><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></td>
-			<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.RowsPerPage")%></nobr></td>
-			<td class="value">
-				<input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/>
+			<td class="reportfootercell">
+				<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Rows")%></nobr>
+				<nobr><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></nobr>
 			</td>
-		    </tr>
-		    <tr>
-			<td class="separator" colspan="5"><hr/></td>
+			<td class="reportfootercell">
+				<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.RowsPerPage")%></nobr>
+				<nobr><input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/></nobr>
+			</td>
 		    </tr>
 		</table>
 
