@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-733: Write a test which exercises database connection
+interruption logic, and debug the same.
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-816: Document revisions to SharePoint connector,
 and new SharePoint authorities.
 (Karl Wright)

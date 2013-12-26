@@ -41,6 +41,12 @@ public class RSSSimpleCrawlTester
   public void executeTest()
     throws Exception
   {
+    executeTest(null);
+  }
+  
+  public void executeTest(TestNotification tn)
+    throws Exception
+  {
     // Hey, we were able to install the file system connector etc.
     // Now, create a local test job and run it.
     IThreadContext tc = ThreadContextFactory.make();
@@ -60,7 +66,7 @@ public class RSSSimpleCrawlTester
     cp.setParameter(RSSConfig.PARAMETER_ROBOTSUSAGE,"none");
     // Now, save
     mgr.save(conn);
-      
+    
     // Create a basic null output connection, and save it.
     IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(tc);
     IOutputConnection outputConn = outputMgr.create();
@@ -101,6 +107,11 @@ public class RSSSimpleCrawlTester
     // Now, start the job, and wait until it completes.
     long startTime = System.currentTimeMillis();
     jobManager.manualStart(job.getID());
+    // Wait 15 seconds, then do a notification
+    if (tn != null)
+    {
+      tn.notifyMe();
+    }
     instance.waitJobInactiveNative(jobManager,job.getID(),600000L);
     System.err.println("Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
 
@@ -117,4 +128,9 @@ public class RSSSimpleCrawlTester
     // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
   }
   
+  public static interface TestNotification
+  {
+    public void notifyMe()
+      throws Exception;
+  }
 }

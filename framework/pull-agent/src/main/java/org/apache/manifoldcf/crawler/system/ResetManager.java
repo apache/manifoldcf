@@ -41,11 +41,11 @@ public abstract class ResetManager
   protected final String processID;
   
   /** Boolean which describes whether an event requiring reset has occurred. */
-  protected boolean resetRequired = false;
+  protected volatile boolean resetRequired = false;
   /** This is the count of the threads that care about this resource. */
   protected int involvedThreadCount = 0;
   /** This is the number of threads that are waiting for the reset. */
-  protected int waitingThreads = 0;
+  protected volatile int waitingThreads = 0;
 
   /** Constructor.
   */
@@ -63,9 +63,13 @@ public abstract class ResetManager
 
   /** Note a resettable event.
   */
-  public synchronized void noteEvent()
+  public void noteEvent()
   {
-    resetRequired = true;
+    //System.out.println(this + " Event noted; involvedThreadCount = "+involvedThreadCount);
+    synchronized (this)
+    {
+      resetRequired = true;
+    }
     performWakeupLogic();
   }
 
@@ -81,12 +85,14 @@ public abstract class ResetManager
   {
     if (resetRequired == false)
       return false;
+
     waitingThreads++;
 
     // Check if this is the "Prince Charming" thread, who will wake up
     // all the others.
     if (waitingThreads == involvedThreadCount)
     {
+      //System.out.println(this + " Prince Charming thread found!");
       // Kick off reset, and wake everyone up
       // There's a question of what to do if the reset fails.
       // Right now, my notion is that we throw the exception
@@ -108,6 +114,7 @@ public abstract class ResetManager
       return true;
     }
 
+    //System.out.println(this + " Waiting threads = "+waitingThreads+"; going to sleep");
     // Just go to sleep until kicked.
     wait();
     // If we were awakened, it's because reset was fired.
