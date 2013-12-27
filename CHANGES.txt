@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-849: Upgrade to Hadoop 2.2.0.
+(Karl Wright)
+
 CONNECTORS-847: Upgrade to SolrJ 4.6.0.
 (Karl Wright)
 

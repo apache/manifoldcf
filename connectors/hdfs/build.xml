@@ -23,7 +23,10 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
             <include name="commons-configuration*.jar"/>
-            <include name="hadoop-core*.jar"/>
+            <include name="hadoop-common*.jar"/>
+            <include name="hadoop-annotations*.jar"/>
+            <include name="hadoop-auth*.jar"/>
+            <include name="guava*.jar"/>
         </fileset>
     </path>
 
@@ -32,7 +35,10 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
                 <include name="commons-configuration*.jar"/>
-                <include name="hadoop-core*.jar"/>
+                <include name="hadoop-common*.jar"/>
+                <include name="hadoop-annotations*.jar"/>
+                <include name="hadoop-auth*.jar"/>
+                <include name="guava*.jar"/>
             </fileset>
         </copy>
     </target>

@@ -4189,17 +4189,41 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </copy>
     </target>
 
-    <target name="download-hadoop">
+    <target name="download-hadoop" depends="download-guava">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/hadoop"/>
-            <param name="artifact-version" value="1.1.2"/>
-            <param name="artifact-name" value="hadoop-core"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-common"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-annotations"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-auth"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
     
+    <target name="download-guava">
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/guava"/>
+            <param name="artifact-version" value="r09"/>
+            <param name="artifact-name" value="guava"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
     <target name="download-solrj">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
