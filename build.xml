@@ -4200,12 +4200,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-	  <target name="download-solrj">
+    <target name="download-solrj">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/solr"/>
-            <param name="artifact-version" value="4.3.1"/>
+            <param name="artifact-version" value="4.6.0"/>
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>

@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-847: Upgrade to SolrJ 4.6.0.
+(Karl Wright)
+
 CONNECTORS-814: Make File System output connector handle
 directory/file conflicts.
 (Karl Wright)
