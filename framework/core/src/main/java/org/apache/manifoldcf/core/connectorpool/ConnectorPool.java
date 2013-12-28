@@ -301,7 +301,21 @@ public abstract class ConnectorPool<T extends IConnector>
       p = poolHash.get(connectionName);
     }
 
-    p.releaseConnector(threadContext, connector);
+    if (p != null)
+      p.releaseConnector(threadContext, connector);
+    else
+    {
+      // Destroy the connector instance, since the pool is gone and that means we're shutting down
+      connector.setThreadContext(threadContext);
+      try
+      {
+        connector.disconnect();
+      }
+      finally
+      {
+        connector.clearThreadContext();
+      }
+    }
   }
 
   /** Idle notification for inactive output connector handles.

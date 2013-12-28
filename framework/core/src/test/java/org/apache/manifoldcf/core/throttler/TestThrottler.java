@@ -267,9 +267,9 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
     public double getMinimumMillisecondsPerByte(String binName)
     {
       if (binName.equals("B"))
-        return 1.0;
+        return 0.5;
       if (binName.equals("C"))
-        return 1.5;
+        return 0.75;
       return 0.0;
     }
 
@@ -471,7 +471,7 @@ public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
       else
       {
         // Calculate running minimum amount of time it should have taken for the bytes given
-        long minTime = (long)(((double)state.byteTotal) * 1.5 + 0.5);
+        long minTime = (long)(((double)state.byteTotal) * 0.75 + 0.5);
         if (timestamp - state.firstByteReadTime < minTime)
           throw new Exception("Took too short a time to read "+state.byteTotal+" bytes: "+(timestamp - state.firstByteReadTime));
       }
