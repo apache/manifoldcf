@@ -70,6 +70,10 @@
 	IJobManager manager = JobManagerFactory.make(threadContext);
         IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
 	IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
+	
+	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+	IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+	
 	String jobID = variableContext.getParameter("jobid");
 	IJobDescription job = manager.load(new Long(jobID));
 	if (job == null)
@@ -446,7 +450,7 @@
 					if (srDayOfMonth == null)
 					{
 						if (srDayOfWeek == null && srHourOfDay == null && srMinutesOfHour == null)
-							out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.onthe1stofthemonth"));
+							out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.onanydayofthemonth"));
 					}
 					else
 					{
@@ -631,17 +635,16 @@
 <%
 		if (outputConnection != null)
 		{
-			IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
-				outputConnection.getMaxConnections());
+			IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 			if (outputConnector != null)
 			{
 				try
 				{
-					outputConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),job.getOutputSpecification());
+					outputConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),job.getOutputSpecification());
 				}
 				finally
 				{
-					OutputConnectorFactory.release(outputConnector);
+					outputConnectorPool.release(outputConnection,outputConnector);
 				}
 			}
 		}
@@ -656,18 +659,16 @@
 <%
 		if (connection != null)
 		{
-			IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
-
-				connection.getMaxConnections());
+			IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 			if (repositoryConnector != null)
 			{
 				try
 				{
-					repositoryConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),job.getSpecification());
+					repositoryConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),job.getSpecification());
 				}
 				finally
 				{
-					RepositoryConnectorFactory.release(repositoryConnector);
+					repositoryConnectorPool.release(connection,repositoryConnector);
 				}
 			}
 		}

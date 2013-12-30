@@ -28,38 +28,38 @@ import java.util.*;
 */
 public class RestartJob
 {
-        public static final String _rcsid = "@(#)$Id: RestartJob.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: RestartJob.java 988245 2010-08-23 18:39:35Z kwright $";
 
-        private RestartJob()
-        {
-        }
+  private RestartJob()
+  {
+  }
 
-        // Add: throttle, priority, recrawl interval
+  // Add: throttle, priority, recrawl interval
 
-        public static void main(String[] args)
-        {
-                if (args.length != 1)
-                {
-                        System.err.println("Usage: RestartJob <jobid>");
-                        System.exit(1);
-                }
+  public static void main(String[] args)
+  {
+    if (args.length != 1)
+    {
+      System.err.println("Usage: RestartJob <jobid>");
+      System.exit(1);
+    }
 
-                String jobID = args[0];
+    String jobID = args[0];
 
 
-                try
-                {
-                        ManifoldCF.initializeEnvironment();
-                        IThreadContext tc = ThreadContextFactory.make();
-                        IJobManager jobManager = JobManagerFactory.make(tc);
-                        jobManager.restartJob(new Long(jobID));
-                        System.err.println("Job resuming");
-                }
-                catch (Exception e)
-                {
-                        e.printStackTrace();
-                        System.exit(2);
-                }
-        }
-                
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.restartJob(new Long(jobID));
+      System.err.println("Job resuming");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      System.exit(2);
+    }
+  }
+    
 }

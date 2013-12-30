@@ -28,69 +28,66 @@ import java.util.*;
 */
 public class DefineRepositoryConnection
 {
-        public static final String _rcsid = "@(#)$Id: DefineRepositoryConnection.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: DefineRepositoryConnection.java 988245 2010-08-23 18:39:35Z kwright $";
 
-        private DefineRepositoryConnection()
-        {
-        }
-
-
-        public static void main(String[] args)
-        {
-                if (args.length < 5)
-                {
-                        System.err.println("Usage: DefineRepositoryConnection <connection_name> <description> <connector_class> <authority_name> <pool_max> <param1>=<value1> ...");
-                        System.exit(1);
-                }
-
-                String connectionName = args[0];
-                String description = args[1];
-                String connectorClass = args[2];
-                String authorityName = args[3];
-                String poolMax = args[4];
+  private DefineRepositoryConnection()
+  {
+  }
 
 
-                try
-                {
-                        ManifoldCF.initializeEnvironment();
-                        IThreadContext tc = ThreadContextFactory.make();
-                        IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
-                        IRepositoryConnection conn = mgr.create();
-                        conn.setName(connectionName);
-                        conn.setDescription(description);
-                        conn.setClassName(connectorClass);
-                        if (authorityName.length() > 0)
-                                conn.setACLAuthority(authorityName);
-                        conn.setMaxConnections(new Integer(poolMax).intValue());
-                        ConfigParams x = conn.getConfigParams();
-                        int i = 5;
-                        while (i < args.length)
-                        {
-                                String arg = args[i++];
-                                // Parse
-                                int pos = arg.indexOf("=");
-                                if (pos == -1)
-                                        throw new ManifoldCFException("Argument missing =");
-                                String name = arg.substring(0,pos);
-                                String value = arg.substring(pos+1);
-                                if (name.endsWith("assword"))
-                                        x.setObfuscatedParameter(name,value);
-                                else
-                                        x.setParameter(name,value);
-                        }
+  public static void main(String[] args)
+  {
+    if (args.length < 5)
+    {
+      System.err.println("Usage: DefineRepositoryConnection <connection_name> <description> <connector_class> <authority_name> <pool_max> <param1>=<value1> ...");
+      System.exit(1);
+    }
 
-                        // Now, save
-                        mgr.save(conn);
-
-                }
-                catch (Exception e)
-                {
-                        e.printStackTrace();
-                        System.exit(2);
-                }
-        }
+    String connectionName = args[0];
+    String description = args[1];
+    String connectorClass = args[2];
+    String authorityName = args[3];
+    String poolMax = args[4];
 
 
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
+      IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection conn = mgr.create();
+      conn.setName(connectionName);
+      conn.setDescription(description);
+      conn.setClassName(connectorClass);
+      if (authorityName.length() > 0)
+        conn.setACLAuthority(authorityName);
+      conn.setMaxConnections(new Integer(poolMax).intValue());
+      ConfigParams x = conn.getConfigParams();
+      int i = 5;
+      while (i < args.length)
+      {
+        String arg = args[i++];
+        // Parse
+        int pos = arg.indexOf("=");
+        if (pos == -1)
+          throw new ManifoldCFException("Argument missing =");
+        String name = arg.substring(0,pos);
+        String value = arg.substring(pos+1);
+        if (name.endsWith("assword"))
+          x.setObfuscatedParameter(name,value);
+        else
+          x.setParameter(name,value);
+      }
 
-                
+      // Now, save
+      mgr.save(conn);
+
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      System.exit(2);
+    }
+  }
+
 }

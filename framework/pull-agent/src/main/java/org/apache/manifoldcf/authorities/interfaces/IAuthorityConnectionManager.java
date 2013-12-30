@@ -45,10 +45,24 @@ public interface IAuthorityConnectionManager
   public void importConfiguration(java.io.InputStream is)
     throws java.io.IOException, ManifoldCFException;
 
+  /** Return true if the specified authority group name is referenced.
+  *@param authorityGroup is the authority group name.
+  *@return true if referenced, false otherwise.
+  */
+  public boolean isGroupReferenced(String authorityGroup)
+    throws ManifoldCFException;
+
   /** Obtain a list of the authority connections, ordered by name.
   *@return an array of connection objects.
   */
   public IAuthorityConnection[] getAllConnections()
+    throws ManifoldCFException;
+
+  /** Obtain a list of the authority connections which correspond to an auth domain.
+  *@param authDomain is the domain to get connections for.
+  *@return an array of connection objects.
+  */
+  public IAuthorityConnection[] getDomainConnections(String authDomain)
     throws ManifoldCFException;
 
   /** Load a authority connection by name.
@@ -56,6 +70,13 @@ public interface IAuthorityConnectionManager
   *@return the loaded connection object, or null if not found.
   */
   public IAuthorityConnection load(String name)
+    throws ManifoldCFException;
+
+  /** Load multiple repository connections by name.
+  *@param names are the names to load.
+  *@return the loaded connection objects.
+  */
+  public IAuthorityConnection[] loadMultiple(String[] names)
     throws ManifoldCFException;
 
   /** Create a new authority connection object.
@@ -89,5 +110,12 @@ public interface IAuthorityConnectionManager
   *@return the name column.
   */
   public String getAuthorityNameColumn();
+
+  /** Return true if the specified mapping name is referenced.
+  *@param mappingName is the mapping name.
+  *@return true if referenced, false otherwise.
+  */
+  public boolean isMappingReferenced(String mappingName)
+    throws ManifoldCFException;
 
 }

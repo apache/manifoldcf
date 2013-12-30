@@ -136,48 +136,68 @@ public interface IJobManager
   // The job queue is maintained underneath this interface, and all threads that perform
   // job activities need to go through this layer.
 
-  /** Reset the job queue immediately before starting up.
-  * If the system was shut down in the middle of a job, sufficient information should
-  * be around in the database to allow it to restart.  However, BEFORE all the job threads
-  * are spun up, there needs to be a pass over the queue to bring things back to a "normal"
-  * state.
+  /** Reset the job queue for an individual process ID.
+  * If a node was shut down in the middle of doing something, sufficient information should
+  * be around in the database to allow the node's activities to be cleaned up.
+  *@param processID is the process ID of the node we want to clean up after.
   */
-  public void prepareForStart()
+  public void cleanupProcessData(String processID)
+    throws ManifoldCFException;
+
+  /** Reset the job queue for all process IDs.
+  * If a node was shut down in the middle of doing something, sufficient information should
+  * be around in the database to allow the node's activities to be cleaned up.
+  */
+  public void cleanupProcessData()
+    throws ManifoldCFException;
+
+  /** Prepare to start the entire cluster.
+  * If there are no other nodes alive, then at the time the first node comes up, we need to
+  * reset the job queue for ALL processes that had been running before.  This method must
+  * be called in addition to cleanupProcessData().
+  */
+  public void prepareForClusterStart()
     throws ManifoldCFException;
 
   /** Reset as part of restoring document worker threads.
+  *@param processID is the current process ID.
   */
-  public void resetDocumentWorkerStatus()
+  public void resetDocumentWorkerStatus(String processID)
     throws ManifoldCFException;
 
   /** Reset as part of restoring seeding threads.
   */
-  public void resetSeedingWorkerStatus()
+  public void resetSeedingWorkerStatus(String processID)
     throws ManifoldCFException;
 
   /** Reset as part of restoring doc delete threads.
+  *@param processID is the current process ID.
   */
-  public void resetDocDeleteWorkerStatus()
+  public void resetDocDeleteWorkerStatus(String processID)
     throws ManifoldCFException;
 
   /** Reset as part of restoring doc cleanup threads.
+  *@param processID is the current process ID.
   */
-  public void resetDocCleanupWorkerStatus()
+  public void resetDocCleanupWorkerStatus(String processID)
     throws ManifoldCFException;
 
   /** Reset as part of restoring delete startup threads.
+  *@param processID is the current process ID.
   */
-  public void resetDeleteStartupWorkerStatus()
+  public void resetDeleteStartupWorkerStatus(String processID)
     throws ManifoldCFException;
 
   /** Reset as part of restoring notification threads.
+  *@param processID is the current process ID.
   */
-  public void resetNotificationWorkerStatus()
+  public void resetNotificationWorkerStatus(String processID)
     throws ManifoldCFException;
 
   /** Reset as part of restoring startup threads.
+  *@param processID is the current process ID.
   */
-  public void resetStartupWorkerStatus()
+  public void resetStartupWorkerStatus(String processID)
     throws ManifoldCFException;
 
   // These methods support the "set doc priority" thread
@@ -208,7 +228,7 @@ public interface IJobManager
   *@param descriptions are the document descriptions.
   *@param priorities are the desired priorities.
   */
-  public void writeDocumentPriorities(long currentTime, DocumentDescription[] descriptions, double[] priorities)
+  public void writeDocumentPriorities(long currentTime, DocumentDescription[] descriptions, IPriorityCalculator[] priorities)
     throws ManifoldCFException;
 
   // This method supports the "expiration" thread
@@ -218,11 +238,12 @@ public interface IJobManager
   * The same marking is used as is used for documents that have been queued for worker threads.  The model
   * is thus identical.
   *
+  *@param processID is the current process ID.
   *@param n is the maximum number of records desired.
   *@param currentTime is the current time.
   *@return the array of document descriptions to expire.
   */
-  public DocumentSetAndFlags getExpiredDocuments(int n, long currentTime)
+  public DocumentSetAndFlags getExpiredDocuments(String processID, int n, long currentTime)
     throws ManifoldCFException;
 
   // This method supports the "queue stuffer" thread
@@ -232,6 +253,7 @@ public interface IJobManager
   * pertaining to the document's handling (e.g. whether it should be refetched if the version
   * has not changed).
   * This method also marks the documents whose descriptions have be returned as "being processed".
+  *@param processID is the current process ID.
   *@param n is the number of documents desired.
   *@param currentTime is the current time; some fetches do not occur until a specific time.
   *@param interval is the number of milliseconds that this set of documents should represent (for throttling).
@@ -243,7 +265,8 @@ public interface IJobManager
   * to being overcommitted.
   *@return the array of document descriptions to fetch and process.
   */
-  public DocumentDescription[] getNextDocuments(int n, long currentTime, long interval,
+  public DocumentDescription[] getNextDocuments(String processID,
+    int n, long currentTime, long interval,
     BlockingDocuments blockingDocuments, PerformanceStatistics statistics,
     DepthStatistics scanRecord)
     throws ManifoldCFException;
@@ -387,9 +410,8 @@ public interface IJobManager
   * extent that if one is *already* being processed, it will need to be done over again.
   *@param documentDescriptions is the set of description objects for the documents that have had their parent carrydown information changed.
   *@param docPriorities are the document priorities to assign to the documents, if needed.
-  *@return a flag for each document priority, true if it was used, false otherwise.
   */
-  public boolean[] carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, double[] docPriorities)
+  public void carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, IPriorityCalculator[] docPriorities)
     throws ManifoldCFException;
 
   /** Requeue a document because of carrydown changes.
@@ -397,9 +419,8 @@ public interface IJobManager
   * extent that if it is *already* being processed, it will need to be done over again.
   *@param documentDescription is the description object for the document that has had its parent carrydown information changed.
   *@param docPriority is the document priority to assign to the document, if needed.
-  *@return a flag for the document priority, true if it was used, false otherwise.
   */
-  public boolean carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, double docPriority)
+  public void carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, IPriorityCalculator docPriority)
     throws ManifoldCFException;
 
   /** Requeue a document for further processing in the future.
@@ -495,6 +516,7 @@ public interface IJobManager
   * This method is called during job startup, when the queue is being loaded.
   * A set of document references is passed to this method, which updates the status of the document
   * in the specified job's queue, according to specific state rules.
+  *@param processID is the current process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHashes are the hashes of the local document identifiers (primary key).
@@ -504,11 +526,11 @@ public interface IJobManager
   *@param currentTime is the current time in milliseconds since epoch.
   *@param documentPriorities are the document priorities corresponding to the document identifiers.
   *@param prereqEventNames are the events that must be completed before each document can be processed.
-  *@return true if the priority value(s) were used, false otherwise.
   */
-  public boolean[] addDocumentsInitial(Long jobID, String[] legalLinkTypes,
+  public void addDocumentsInitial(String processID,
+    Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs, boolean overrideSchedule,
-    int hopcountMethod, long currentTime, double[] documentPriorities,
+    int hopcountMethod, long currentTime, IPriorityCalculator[] documentPriorities,
     String[][] prereqEventNames)
     throws ManifoldCFException;
 
@@ -516,12 +538,14 @@ public interface IJobManager
   * This method is called during job startup, when the queue is being loaded, to list documents that
   * were NOT included by calling addDocumentsInitial().  Documents listed here are simply designed to
   * enable the framework to get rid of old, invalid seeds.  They are not queued for processing.
+  *@param processID is the current process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHashes are the hash values of the local document identifiers.
   *@param hopcountMethod is either accurate, nodelete, or neverdelete.
   */
-  public void addRemainingDocumentsInitial(Long jobID, String[] legalLinkTypes,
+  public void addRemainingDocumentsInitial(String processID,
+    Long jobID, String[] legalLinkTypes,
     String[] docIDHashes,
     int hopcountMethod)
     throws ManifoldCFException;
@@ -540,10 +564,11 @@ public interface IJobManager
     throws ManifoldCFException;
 
   /** Begin an event sequence.
+  *@param processID is the current process ID.
   *@param eventName is the name of the event.
   *@return true if the event could be created, or false if it's already there.
   */
-  public boolean beginEventSequence(String eventName)
+  public boolean beginEventSequence(String processID, String eventName)
     throws ManifoldCFException;
 
   /** Complete an event sequence.
@@ -578,10 +603,12 @@ public interface IJobManager
   * This method is called during document processing, when a document reference is discovered.
   * The document reference is passed to this method, which updates the status of the document
   * in the specified job's queue, according to specific state rules.
+  *@param processID is the current process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHash is the local document identifier hash value.
   *@param parentIdentifierHash is the optional parent identifier hash value for this document.  Pass null if none.
+  *       MUST be present in the case of carrydown information.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
   *@param hopcountMethod is either accurate, nodelete, or neverdelete.
@@ -591,25 +618,27 @@ public interface IJobManager
   *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
   *@param priority is the desired document priority for the document.
   *@param prereqEventNames are the events that must be completed before the document can be processed.
-  *@return true if the priority value was used, false otherwise.
   */
-  public boolean addDocument(Long jobID, String[] legalLinkTypes,
+  public void addDocument(String processID,
+    Long jobID, String[] legalLinkTypes,
     String docIDHash, String docID,
     String parentIdentifierHash,
     String relationshipType,
     int hopcountMethod, String[] dataNames, Object[][] dataValues,
-    long currentTime, double priority, String[] prereqEventNames)
+    long currentTime, IPriorityCalculator priority, String[] prereqEventNames)
     throws ManifoldCFException;
 
   /** Add documents to the queue in bulk.
   * This method is called during document processing, when a set of document references are discovered.
   * The document references are passed to this method, which updates the status of the document(s)
   * in the specified job's queue, according to specific state rules.
+  *@param processID is the current process ID.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHashes are the hashes of the local document identifiers.
   *@param docIDs are the local document identifiers.
   *@param parentIdentifierHash is the optional parent identifier hash of these documents.  Pass null if none.
+  *       MUST be present in the case of carrydown information.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
   *@param hopcountMethod is either accurate, nodelete, or neverdelete.
@@ -619,14 +648,14 @@ public interface IJobManager
   *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
   *@param priorities are the desired document priorities for the documents.
   *@param prereqEventNames are the events that must be completed before each document can be processed.
-  *@return an array of boolean values indicating whether or not the passed-in priority value was used or not for each doc id (true if used).
   */
-  public boolean[] addDocuments(Long jobID, String[] legalLinkTypes,
+  public void addDocuments(String processID,
+    Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs,
     String parentIdentifierHash,
     String relationshipType,
     int hopcountMethod, String[][] dataNames, Object[][][] dataValues,
-    long currentTime, double[] priorities,
+    long currentTime, IPriorityCalculator[] priorities,
     String[][] prereqEventNames)
     throws ManifoldCFException;
 
@@ -745,11 +774,12 @@ public interface IJobManager
     throws ManifoldCFException;
 
   /** Get the list of jobs that are ready for seeding.
+  *@param processID is the current process ID.
   *@param currentTime is the current time in milliseconds since epoch.
   *@return jobs that are active and are running in adaptive mode.  These will be seeded
   * based on what the connector says should be added to the queue.
   */
-  public JobSeedingRecord[] getJobsReadyForSeeding(long currentTime)
+  public JobSeedingRecord[] getJobsReadyForSeeding(String processID, long currentTime)
     throws ManifoldCFException;
 
   /** Reset a seeding job back to "active" state.
@@ -759,21 +789,24 @@ public interface IJobManager
     throws ManifoldCFException;
 
   /** Get the list of jobs that are ready for deletion.
+  *@param processID is the current process ID.
   *@return jobs that were in the "readyfordelete" state.
   */
-  public JobDeleteRecord[] getJobsReadyForDelete()
+  public JobDeleteRecord[] getJobsReadyForDelete(String processID)
     throws ManifoldCFException;
     
   /** Get the list of jobs that are ready for startup.
+  *@param processID is the current process ID.
   *@return jobs that were in the "readyforstartup" state.  These will be marked as being in the "starting up" state.
   */
-  public JobStartRecord[] getJobsReadyForStartup()
+  public JobStartRecord[] getJobsReadyForStartup(String processID)
     throws ManifoldCFException;
 
   /** Find the list of jobs that need to have their connectors notified of job completion.
+  *@param processID is the current process ID.
   *@return the ID's of jobs that need their output connectors notified in order to become inactive.
   */
-  public JobNotifyRecord[] getJobsReadyForInactivity()
+  public JobNotifyRecord[] getJobsReadyForInactivity(String processID)
     throws ManifoldCFException;
 
   /** Inactivate a job, from the notification state.
@@ -900,20 +933,24 @@ public interface IJobManager
 
   /** Get list of deletable document descriptions.  This list will take into account
   * multiple jobs that may own the same document.
+  *@param processID is the current process ID.
   *@param n is the maximum number of documents to return.
   *@param currentTime is the current time; some fetches do not occur until a specific time.
   *@return the document descriptions for these documents.
   */
-  public DocumentDescription[] getNextDeletableDocuments(int n, long currentTime)
+  public DocumentDescription[] getNextDeletableDocuments(String processID,
+    int n, long currentTime)
     throws ManifoldCFException;
 
   /** Get list of cleanable document descriptions.  This list will take into account
   * multiple jobs that may own the same document.
+  *@param processID is the current process ID.
   *@param n is the maximum number of documents to return.
   *@param currentTime is the current time; some fetches do not occur until a specific time.
   *@return the document descriptions for these documents.
   */
-  public DocumentSetAndFlags getNextCleanableDocuments(int n, long currentTime)
+  public DocumentSetAndFlags getNextCleanableDocuments(String processID,
+    int n, long currentTime)
     throws ManifoldCFException;
 
   /** Delete ingested document identifiers (as part of deleting the owning job).
@@ -971,6 +1008,7 @@ public interface IJobManager
   // Status reports
 
   /** Get the status of a job.
+  *@param jobID is the job ID.
   *@return the status object for the specified job.
   */
   public JobStatus getStatus(Long jobID)
@@ -995,6 +1033,7 @@ public interface IJobManager
     throws ManifoldCFException;
 
   /** Get the status of a job.
+  *@param jobID is the job ID.
   *@param includeCounts is true if document counts should be included.
   *@return the status object for the specified job.
   */
@@ -1020,6 +1059,39 @@ public interface IJobManager
   *@return an array of the job status objects.
   */
   public JobStatus[] getFinishedJobs(boolean includeCounts)
+    throws ManifoldCFException;
+
+  /** Get the status of a job.
+  *@param jobID is the job ID.
+  *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
+  *@return the status object for the specified job.
+  */
+  public JobStatus getStatus(Long jobID, boolean includeCounts, int maxCount)
+    throws ManifoldCFException;
+
+  /** Get a list of all jobs, and their status information.
+  *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
+  *@return an ordered array of job status objects.
+  */
+  public JobStatus[] getAllStatus(boolean includeCounts, int maxCount)
+    throws ManifoldCFException;
+
+  /** Get a list of running jobs.  This is for status reporting.
+  *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
+  *@return an array of the job status objects.
+  */
+  public JobStatus[] getRunningJobs(boolean includeCounts, int maxCount)
+    throws ManifoldCFException;
+
+  /** Get a list of completed jobs, and their statistics.
+  *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
+  *@return an array of the job status objects.
+  */
+  public JobStatus[] getFinishedJobs(boolean includeCounts, int maxCount)
     throws ManifoldCFException;
 
   // The following commands generate reports based on the queue.

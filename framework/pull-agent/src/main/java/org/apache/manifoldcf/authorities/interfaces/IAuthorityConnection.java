@@ -80,4 +80,35 @@ public interface IAuthorityConnection
   */
   public int getMaxConnections();
 
+  /** Set the prerequisite mapper, if any.
+  *@param mapping is the name of the mapping connection to use to get the input user name,
+  *  or null.
+  */
+  public void setPrerequisiteMapping(String mapping);
+
+  /** Get the prerequisite mapper, if any.
+  *@return the mapping connection name whose output should be used as the input user name.
+  */
+  public String getPrerequisiteMapping();
+
+  /** Set the authorization domain.
+  *@param domain is the authorization domain.
+  */
+  public void setAuthDomain(String domain);
+  
+  /** Get the authorization domain.
+  *@return the authorization domain.
+  */
+  public String getAuthDomain();
+  
+  /** Set authorization group.
+  *@param groupName is the name of the group.
+  */
+  public void setAuthGroup(String groupName);
+  
+  /** Get the authorization group.
+  *@return the group.
+  */
+  public String getAuthGroup();
+  
 }

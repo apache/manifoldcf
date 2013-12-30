@@ -27,33 +27,25 @@ import org.junit.*;
 import java.lang.reflect.*;
 
 /** This is a testing base class that is responsible for setting up/tearing down the core HSQLDB remote database. */
-public class BaseHSQLDBext extends Base
+public class BaseHSQLDBext extends BaseHSQLDB
 {
   protected DatabaseThread databaseThread = null;
   
-  /** Method to add properties to properties.xml contents.
-  * Override this method to add properties clauses to the property file.
-  */
-  protected void writeProperties(StringBuilder output)
+  /** Method to set database properties */
+  @Override
+  protected void writeDatabaseControlProperties(StringBuilder output)
     throws Exception
   {
-    super.writeProperties(output);
     output.append(
-      "  <property name=\"org.apache.manifoldcf.databaseimplementationclass\" value=\"org.apache.manifoldcf.core.database.DBInterfaceHSQLDB\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.hsqldbdatabaseprotocol\" value=\"hsql\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.hsqldbdatabaseserver\" value=\"localhost\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.hsqldbdatabaseinstance\" value=\"xdb\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.database.maxquerytime\" value=\"30\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.threads\" value=\"30\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.expirethreads\" value=\"10\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.cleanupthreads\" value=\"10\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.deletethreads\" value=\"10\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.database.maxhandles\" value=\"80\"/>\n"
-      );
+      "  <property name=\"org.apache.manifoldcf.hsqldbdatabaseinstance\" value=\"xdb\"/>\n"
+    );
   }
 
   /** Method to get database superuser name.
   */
+  @Override
   protected String getDatabaseSuperuserName()
     throws Exception
   {
@@ -62,6 +54,7 @@ public class BaseHSQLDBext extends Base
   
   /** Method to get database superuser password.
   */
+  @Override
   protected String getDatabaseSuperuserPassword()
     throws Exception
   {

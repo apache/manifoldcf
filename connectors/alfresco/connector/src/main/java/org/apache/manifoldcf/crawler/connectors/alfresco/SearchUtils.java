@@ -18,6 +18,7 @@
  */
 package org.apache.manifoldcf.crawler.connectors.alfresco;
 
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,44 +55,56 @@ public class SearchUtils {
     "{http://www.alfresco.org/model/site/1.0}sites"};
   
 
-  public static QueryResult luceneSearch(String username, String password, AuthenticationDetails session, String luceneQuery){
+  public static QueryResult luceneSearch(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session, String luceneQuery) throws IOException {
     QueryResult queryResult = null;
     Query query = new Query(Constants.QUERY_LANG_LUCENE, luceneQuery);
     try {
+      WebServiceFactory.setEndpointAddress(endpoint);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
       queryResult = WebServiceFactory.getRepositoryService().query(STORE, query, false);
+      AuthenticationUtils.endSession();
     } catch (RepositoryFault e) {
       Logging.connectors.error(
           "Alfresco: Repository fault during addSeedDocuments: "
               + e.getMessage(), e);
+      throw new IOException("Alfresco: Repository fault during addSeedDocuments: "
+          + e.getMessage(), e);
     } catch (RemoteException e) {
       Logging.connectors.error(
           "Alfresco: Remote exception during addSeedDocuments: "
               + e.getMessage(), e);
-    } finally{
-      AuthenticationUtils.endSession();
+      throw e;
+    } finally {
+      session = null;
     }
     return queryResult;
   }
   
-  public static QueryResult getChildren(String username, String password, AuthenticationDetails session, Reference reference){
+  public static QueryResult getChildren(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session, Reference reference) throws IOException {
     QueryResult queryResult = null;
     try {
+      WebServiceFactory.setEndpointAddress(endpoint);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
-      session = AuthenticationUtils.getAuthenticationDetails();
+      session = AuthenticationUtils.getAuthenticationDetails();  
       queryResult = WebServiceFactory.getRepositoryService().queryChildren(reference);
+      AuthenticationUtils.endSession();
     } catch (RepositoryFault e) {
       Logging.connectors.error(
           "Alfresco: RepositoryFault during getting a node in processDocuments. Node: "
               + reference.getPath() + ". " + e.getMessage(), e);
+      throw new IOException("Alfresco: RepositoryFault during getting a node in processDocuments. Node: "
+              + reference.getPath() + ". " + e.getMessage(), e);
+      
     } catch (RemoteException e) {
       Logging.connectors
           .error(
               "Alfresco: Remote exception error during getting a node in processDocuments. Node: "
                   + reference.getPath() + ". " + e.getMessage(), e);
+      throw e;
     } finally {
-      AuthenticationUtils.endSession();
       session = null;
     }
     return queryResult;
@@ -104,9 +117,9 @@ public class SearchUtils {
    * @param session
    * @return filtered children of the Company Home without all the special spaces
    */
-  public static QueryResult getChildrenFromCompanyHome(String username, String password, AuthenticationDetails session){
+  public static QueryResult getChildrenFromCompanyHome(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session) throws IOException {
     Reference companyHome = new Reference(STORE, null, XPATH_COMPANY_HOME);
-    QueryResult queryResult = SearchUtils.getChildren(username,password,session,companyHome);
+    QueryResult queryResult = SearchUtils.getChildren(endpoint, username, password, socketTimeout, session, companyHome);
     ResultSet rs = queryResult.getResultSet();
     ResultSetRow[] rows = rs.getRows();
     List<ResultSetRow> filteredRows = new ArrayList<ResultSetRow>();

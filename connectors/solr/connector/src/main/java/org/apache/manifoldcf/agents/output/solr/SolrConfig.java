@@ -87,6 +87,8 @@ public class SolrConfig
   public static final String PARAM_MODIFIEDDATEFIELD = "Solr modified date field name";
   /** Optional created date field */
   public static final String PARAM_CREATEDDATEFIELD = "Solr created date field name";
+  /** Optional indexed date field */
+  public static final String PARAM_INDEXEDDATEFIELD = "Solr indexed date field name";
   /** Optional file name field */
   public static final String PARAM_FILENAMEFIELD = "Solr filename field name";
   /** Optional mime type field */

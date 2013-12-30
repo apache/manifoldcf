@@ -19,10 +19,11 @@
 package com.filenet.api.meta;
 
 import com.filenet.api.collection.PropertyDescriptionList;
+import com.filenet.api.core.IndependentObject;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface ClassDescription
+public interface ClassDescription extends Metadata, IndependentObject
 {
   public PropertyDescriptionList get_PropertyDescriptions();
 }

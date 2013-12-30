@@ -20,6 +20,6 @@ package com.filenet.api.core;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface ContentElement
+public interface ContentElement extends RepositoryObject, EngineObject, DependentObject
 {
 }

@@ -238,6 +238,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentState = TAGPARSESTATE_SAWSECONDRIGHTBRACKET;
       else
       {
+        currentState = TAGPARSESTATE_IN_CDATA_BODY;
         if (noteEscapedCharacter(']'))
           return true;
         if (noteEscapedCharacter(thisChar))
@@ -248,8 +249,15 @@ public class TagParseState extends SingleCharacterReceiver
     case TAGPARSESTATE_SAWSECONDRIGHTBRACKET:
       if (thisChar == '>')
         currentState = TAGPARSESTATE_NORMAL;
+      else if (thisChar == ']')
+      {
+        // currentstate unchanged; emit the first bracket
+        if (noteEscapedCharacter(']'))
+          return true;
+      }
       else
       {
+        currentState = TAGPARSESTATE_IN_CDATA_BODY;
         if (noteEscapedCharacter(']'))
           return true;
         if (noteEscapedCharacter(']'))

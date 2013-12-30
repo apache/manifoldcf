@@ -18,6 +18,7 @@
  */
 package org.apache.manifoldcf.crawler.connectors.alfresco;
 
+import java.io.IOException;
 import java.rmi.RemoteException;
 
 import org.alfresco.webservice.repository.RepositoryFault;
@@ -50,23 +51,28 @@ public class NodeUtils {
    * @param predicate
    * @return the Node object instance of the current content
    */
-  public static Node get(String username, String password, AuthenticationDetails session, Predicate predicate){
+  public static Node get(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session, Predicate predicate) throws IOException {
     Node[] resultNodes = null;
     try {
+      WebServiceFactory.setEndpointAddress(endpoint);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
       resultNodes = WebServiceFactory.getRepositoryService().get(predicate);
+      AuthenticationUtils.endSession();
     } catch (RepositoryFault e) {
       Logging.connectors.error(
           "Alfresco: RepositoryFault during getting a node in processDocuments. Node: "
               + predicate.getNodes()[0].getPath() + ". " + e.getMessage(), e);
+      throw new IOException("Alfresco: RepositoryFault during getting a node in processDocuments. Node: "
+          + predicate.getNodes()[0].getPath() + ". " + e.getMessage(), e);
     } catch (RemoteException e) {
       Logging.connectors
           .error(
               "Alfresco: Remote exception error during getting a node in processDocuments. Node: "
                   + predicate.getNodes()[0].getPath() + ". " + e.getMessage(), e);
+      throw e;
     } finally {
-      AuthenticationUtils.endSession();
       session = null;
     }
     if(resultNodes!=null && resultNodes.length>0){

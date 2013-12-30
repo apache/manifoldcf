@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.apache.manifoldcf.agents.system.AgentsDaemon;
 
 import java.io.*;
 import java.util.*;
@@ -56,30 +57,58 @@ import org.apache.http.entity.ContentType;
 /** Tests that run the "agents daemon" should be derived from this */
 public class ManifoldCFInstance
 {
-  public static final String agentShutdownSignal = "agent-process";
-  
-  protected boolean singleWar = false;
-  protected int testPort = 8346;
+  protected final boolean webapps;
+  protected final boolean singleWar;
+  protected final int testPort;
+  protected final String processID;
   
   protected DaemonThread daemonThread = null;
   protected Server server = null;
 
   public ManifoldCFInstance()
   {
+    this("", 8346, false, true);
   }
   
-  public ManifoldCFInstance(boolean singleWar)
+  public ManifoldCFInstance(String processID)
   {
-    this(8346,singleWar);
-  }
-  
-  public ManifoldCFInstance(int testPort)
-  {
-    this(testPort,false);
+    this(processID, 8346, false, true);
   }
 
-  public ManifoldCFInstance(int testPort, boolean singleWar)
+  public ManifoldCFInstance(boolean singleWar)
   {
+    this("", 8346, singleWar, true);
+  }
+  
+  public ManifoldCFInstance(String processID, boolean singleWar)
+  {
+    this(processID, 8346, singleWar, true);
+  }
+
+  public ManifoldCFInstance(boolean singleWar, boolean webapps)
+  {
+    this("", 8346, singleWar, webapps);
+  }
+
+  public ManifoldCFInstance(String processID, boolean singleWar, boolean webapps)
+  {
+    this(processID, 8346, singleWar, webapps);
+  }
+  
+  public ManifoldCFInstance(String processID, int testPort)
+  {
+    this(processID, testPort, false, true);
+  }
+
+  public ManifoldCFInstance(String processID, int testPort, boolean singleWar)
+  {
+    this(processID, testPort, singleWar, true);
+  }
+
+  public ManifoldCFInstance(String processID, int testPort, boolean singleWar, boolean webapps)
+  {
+    this.processID = processID;
+    this.webapps = webapps;
     this.testPort = testPort;
     this.singleWar = singleWar;
   }
@@ -279,11 +308,17 @@ public class ManifoldCFInstance
   /** Construct a command url.
   */
   public String makeAPIURL(String command)
+    throws Exception
   {
-    if (singleWar)
-      return "http://localhost:"+Integer.toString(testPort)+"/mcf/api/json/"+command;
+    if (webapps)
+    {
+      if (singleWar)
+        return "http://localhost:"+Integer.toString(testPort)+"/mcf/api/json/"+command;
+      else
+        return "http://localhost:"+Integer.toString(testPort)+"/mcf-api-service/json/"+command;
+    }
     else
-      return "http://localhost:"+Integer.toString(testPort)+"/mcf-api-service/json/"+command;
+      throw new Exception("No API servlet running");
   }
 
   public static String convertToString(HttpResponse httpResponse)
@@ -497,61 +532,71 @@ public class ManifoldCFInstance
   public void start()
     throws Exception
   {
-    // Start jetty
-    server = new Server( testPort );    
-    server.setStopAtShutdown( true );
-    // Initialize the servlets
     ContextHandlerCollection contexts = new ContextHandlerCollection();
-    server.setHandler(contexts);
+    if (webapps)
+    {
+      // Start jetty
+      server = new Server( testPort );    
+      server.setStopAtShutdown( true );
+      // Initialize the servlets
+      server.setHandler(contexts);
+    }
 
     if (singleWar)
     {
-      // Start the single combined war
-      String combinedWarPath = "../../framework/build/war-proprietary/mcf-combined-service.war";
-      if (System.getProperty("combinedWarPath") != null)
-        combinedWarPath = System.getProperty("combinedWarPath");
-      
-      // Initialize the servlet
-      WebAppContext lcfCombined = new WebAppContext(combinedWarPath,"/mcf");
-      // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
-      lcfCombined.setParentLoaderPriority(true);
-      contexts.addHandler(lcfCombined);
-      server.start();
+      if (webapps)
+      {
+        // Start the single combined war
+        String combinedWarPath = "../../framework/build/war-proprietary/mcf-combined-service.war";
+        if (System.getProperty("combinedWarPath") != null)
+          combinedWarPath = System.getProperty("combinedWarPath");
+        
+        // Initialize the servlet
+        WebAppContext lcfCombined = new WebAppContext(combinedWarPath,"/mcf");
+        // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
+        lcfCombined.setParentLoaderPriority(true);
+        contexts.addHandler(lcfCombined);
+        server.start();
+      }
+      else
+        throw new Exception("Can't run singleWar without webapps");
     }
     else
     {
-      String crawlerWarPath = "../../framework/build/war-proprietary/mcf-crawler-ui.war";
-      String authorityserviceWarPath = "../../framework/build/war-proprietary/mcf-authority-service.war";
-      String apiWarPath = "../../framework/build/war-proprietary/mcf-api-service.war";
+      if (webapps)
+      {
+        String crawlerWarPath = "../../framework/build/war-proprietary/mcf-crawler-ui.war";
+        String authorityserviceWarPath = "../../framework/build/war-proprietary/mcf-authority-service.war";
+        String apiWarPath = "../../framework/build/war-proprietary/mcf-api-service.war";
 
-      if (System.getProperty("crawlerWarPath") != null)
-          crawlerWarPath = System.getProperty("crawlerWarPath");
-      if (System.getProperty("authorityserviceWarPath") != null)
-          authorityserviceWarPath = System.getProperty("authorityserviceWarPath");
-      if (System.getProperty("apiWarPath") != null)
-          apiWarPath = System.getProperty("apiWarPath");
+        if (System.getProperty("crawlerWarPath") != null)
+            crawlerWarPath = System.getProperty("crawlerWarPath");
+        if (System.getProperty("authorityserviceWarPath") != null)
+            authorityserviceWarPath = System.getProperty("authorityserviceWarPath");
+        if (System.getProperty("apiWarPath") != null)
+            apiWarPath = System.getProperty("apiWarPath");
 
-      // Initialize the servlets
-      WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
-      // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
-      lcfCrawlerUI.setParentLoaderPriority(true);
-      contexts.addHandler(lcfCrawlerUI);
-      WebAppContext lcfAuthorityService = new WebAppContext(authorityserviceWarPath,"/mcf-authority-service");
-      // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
-      lcfAuthorityService.setParentLoaderPriority(true);
-      contexts.addHandler(lcfAuthorityService);
-      WebAppContext lcfApi = new WebAppContext(apiWarPath,"/mcf-api-service");
-      lcfApi.setParentLoaderPriority(true);
-      contexts.addHandler(lcfApi);
-      server.start();
+        // Initialize the servlets
+        WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
+        // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
+        lcfCrawlerUI.setParentLoaderPriority(true);
+        contexts.addHandler(lcfCrawlerUI);
+        WebAppContext lcfAuthorityService = new WebAppContext(authorityserviceWarPath,"/mcf-authority-service");
+        // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
+        lcfAuthorityService.setParentLoaderPriority(true);
+        contexts.addHandler(lcfAuthorityService);
+        WebAppContext lcfApi = new WebAppContext(apiWarPath,"/mcf-api-service");
+        lcfApi.setParentLoaderPriority(true);
+        contexts.addHandler(lcfApi);
+        server.start();
+      }
 
       // If all worked, then we can start the daemon.
       // Clear the agents shutdown signal.
       IThreadContext tc = ThreadContextFactory.make();
-      ILockManager lockManager = LockManagerFactory.make(tc);
-      lockManager.clearGlobalFlag(agentShutdownSignal);
+      AgentsDaemon.clearAgentsShutdownSignal(tc);
 
-      daemonThread = new DaemonThread();
+      daemonThread = new DaemonThread(processID);
       daemonThread.start();
     }
   }
@@ -641,31 +686,48 @@ public class ManifoldCFInstance
         }
       }
 
-      if (!singleWar)
+      try
       {
-        // Shut down daemon
-        ILockManager lockManager = LockManagerFactory.make(tc);
-        lockManager.setGlobalFlag(agentShutdownSignal);
-        
-        // Wait for daemon thread to exit.
-        while (true)
-        {
-          if (daemonThread.isAlive())
-          {
-            Thread.sleep(1000L);
-            continue;
-          }
-          break;
-        }
-
-        Exception e = daemonThread.getDaemonException();
-        if (e != null)
+        stopNoCleanup();
+      }
+      catch (Exception e)
+      {
+        if (currentException == null)
           currentException = e;
       }
+    }
+  }
+  
+  public void stopNoCleanup()
+    throws Exception
+  {
+    if (daemonThread != null)
+    {
+      Exception currentException = null;
+      
+      // Shut down daemon - but only ONE daemon
+      //AgentsDaemon.assertAgentsShutdownSignal(tc);
         
+      // Wait for daemon thread to exit.
+      while (true)
+      {
+        daemonThread.interrupt();
+        if (daemonThread.isAlive())
+        {
+          Thread.sleep(1000L);
+          continue;
+        }
+        break;
+      }
+
+      Exception e = daemonThread.getDaemonException();
+      if (e != null || !(e instanceof InterruptedException))
+        currentException = e;
+
       if (currentException != null)
         throw currentException;
     }
+        
   }
   
   public void unload()
@@ -683,10 +745,12 @@ public class ManifoldCFInstance
   
   protected static class DaemonThread extends Thread
   {
+    protected final String processID;
     protected Exception daemonException = null;
     
-    public DaemonThread()
+    public DaemonThread(String processID)
     {
+      this.processID = processID;
       setName("Daemon thread");
     }
     
@@ -695,27 +759,10 @@ public class ManifoldCFInstance
       IThreadContext tc = ThreadContextFactory.make();
       // Now, start the server, and then wait for the shutdown signal.  On shutdown, we have to actually do the cleanup,
       // because the JVM isn't going away.
+      AgentsDaemon ad = new AgentsDaemon(processID);
       try
       {
-        ILockManager lockManager = LockManagerFactory.make(tc);
-        while (true)
-        {
-          // Any shutdown signal yet?
-          if (lockManager.checkGlobalFlag(agentShutdownSignal))
-            break;
-            
-          // Start whatever agents need to be started
-          ManifoldCF.startAgents(tc);
-
-          try
-          {
-            ManifoldCF.sleep(5000);
-          }
-          catch (InterruptedException e)
-          {
-            break;
-          }
-        }
+        ad.runAgents(tc);
       }
       catch (ManifoldCFException e)
       {
@@ -725,7 +772,7 @@ public class ManifoldCFInstance
       {
         try
         {
-          ManifoldCF.stopAgents(tc);
+          ad.stopAgents(tc);
         }
         catch (ManifoldCFException e)
         {

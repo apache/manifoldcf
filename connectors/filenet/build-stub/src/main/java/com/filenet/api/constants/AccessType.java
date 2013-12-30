@@ -18,12 +18,15 @@
 */
 package com.filenet.api.constants;
 
-/** Stub interface to allow the connector to build fully.
+/** Stub class to allow the connector to build fully.
 */
-public interface AccessType
+public class AccessType implements java.io.Serializable
 {
   public static final int ALLOW_AS_INT = 1;
   public static final int DENY_AS_INT = 2;
   
-  public int getValue();
+  public int getValue()
+  {
+    return 0;
+  }
 }

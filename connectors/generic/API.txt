@@ -1,0 +1,71 @@
+API should be implemented as web page (entry point) returning results based on provided GET params. API can be secured with HTTP basic authentication.
+There are 4 actions:
+- check
+- seed
+- items
+- item
+
+Action is passed as "action" GET param to the entrypoint.
+
+
+----------------------------------------------------------------------------------------------------
+[entrypoint]?action=check
+----------------------------------------------------------------------------------------------------
+should return HTTP status code 200 providing information that entrypoint is working properly.
+
+----------------------------------------------------------------------------------------------------
+[entrypoint]?action=seed&startDate=YYYY-MM-DDTHH:mm:ssZ&endDate=YYYY-MM-DDTHH:mm:ssZ
+----------------------------------------------------------------------------------------------------
+parameters:
+startDate - the start of time frame which should be applied to returned seeds. If this is a first run - this parameter will not be provided meaning that all documents should be returned.
+endDate - the end of time frame. Always provided.
+
+startDate and endDate parameters are encoded as YYYY-MM-DD'T'HH:mm:ss'Z'. Result should be valid XML of form:
+<seeds>
+   <seed id="document_id_1" />
+   <seed id="document_id_2" />
+   ...
+</seeds>
+
+attributes "id" are required.
+
+----------------------------------------------------------------------------------------------------
+[entrypoint]?action=items&id[]=document_id_1&id=document_id_2
+----------------------------------------------------------------------------------------------------
+parameters:
+id[] - array of document IDs that should be returned
+
+Result should be valid XML of form:
+<items>
+   <item id="document_id_1">
+      <url>[http://document_uri]</url>
+      <version>[document_version]</version>
+	  <created>2013-11-11T21:00:00Z</created>
+	  <updated>2013-11-11T21:00:00Z</updated>
+	  <filename>filename.ext</filename>
+	  <mimetype>mime/type</mimetype>
+	  <metadata>
+	     <meta name="meta_name_1">meta_value_1</meta>
+	     <meta name="meta_name_2">meta_value_2</meta>
+		 ...
+	  </metadata>
+	  <auth>
+		 <token>auth_token_1</token>
+		 <token>auth_token_2</token>
+		 ...
+	  </auth>
+	  <content>Document content</content>
+   </item>
+   ...
+</items>
+
+id, url, version are required, the rest is optional. If "auth" tag is provided - document will be treated as non-public with defined access tokens, if it is ommited - document will be public.
+if content tag is ommited - connector will ask for document content as "action=item" separate API call.
+
+----------------------------------------------------------------------------------------------------
+[entrypoint]?action=item&id=document_id
+----------------------------------------------------------------------------------------------------
+parameters:
+id - requested document ID
+
+Result should be the document content. It does not have to be XML - you may return binary data (PDF, DOC, etc) which represent the document.

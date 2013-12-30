@@ -22,7 +22,7 @@ import java.io.InputStream;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface ContentTransfer
+public interface ContentTransfer extends RepositoryObject, ContentElement, DependentObject
 {
   public InputStream accessContentStream();
 }

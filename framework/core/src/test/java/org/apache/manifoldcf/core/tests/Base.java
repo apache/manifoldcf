@@ -184,7 +184,7 @@ public class Base
     writeConnectorsXML(connectorsXMLContents);
     writeFile(connectorFile,connectorsXMLContents.toString());
 
-    ManifoldCF.initializeEnvironment();
+    ManifoldCF.initializeEnvironment(ThreadContextFactory.make());
   }
   
   protected void localSetUp()
@@ -223,9 +223,10 @@ public class Base
       loggingFile.delete();
       connectorFile.delete();
       
-      ManifoldCF.cleanUpEnvironment();
+      IThreadContext threadContext = ThreadContextFactory.make();
+      ManifoldCF.cleanUpEnvironment(threadContext);
       // Just in case we're not synchronized...
-      ManifoldCF.resetEnvironment();
+      ManifoldCF.resetEnvironment(threadContext);
     }
   }
   

@@ -67,7 +67,7 @@ public class AgentManagerFactory
     int i = 0;
     while (i < theAgents.length)
     {
-      if (theAgents[i++].isOutputConnectionInUse(connName))
+      if (theAgents[i++].isOutputConnectionInUse(threadContext, connName))
         return true;
     }
     return false;
@@ -86,7 +86,7 @@ public class AgentManagerFactory
     int i = 0;
     while (i < theAgents.length)
     {
-      theAgents[i++].noteOutputConnectorDeregistration(connectionNames);
+      theAgents[i++].noteOutputConnectorDeregistration(threadContext, connectionNames);
     }
   }
 
@@ -104,7 +104,7 @@ public class AgentManagerFactory
     int i = 0;
     while (i < theAgents.length)
     {
-      theAgents[i++].noteOutputConnectorRegistration(connectionNames);
+      theAgents[i++].noteOutputConnectorRegistration(threadContext, connectionNames);
     }
   }
 
@@ -121,7 +121,7 @@ public class AgentManagerFactory
     int i = 0;
     while (i < theAgents.length)
     {
-      theAgents[i++].noteOutputConnectionChange(connectionName);
+      theAgents[i++].noteOutputConnectionChange(threadContext, connectionName);
     }
   }
 
@@ -138,7 +138,7 @@ public class AgentManagerFactory
     int i = 0;
     while (i < rval.length)
     {
-      rval[i] = AgentFactory.make(threadContext,allAgents[i]);
+      rval[i] = AgentFactory.make(allAgents[i]);
       i++;
     }
     return rval;

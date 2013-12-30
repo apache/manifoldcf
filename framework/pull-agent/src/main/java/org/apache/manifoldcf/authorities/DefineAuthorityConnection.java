@@ -28,66 +28,64 @@ import java.util.*;
 */
 public class DefineAuthorityConnection
 {
-        public static final String _rcsid = "@(#)$Id: DefineAuthorityConnection.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: DefineAuthorityConnection.java 988245 2010-08-23 18:39:35Z kwright $";
 
-        private DefineAuthorityConnection()
-        {
-        }
-
-
-        public static void main(String[] args)
-        {
-                if (args.length < 4)
-                {
-                        System.err.println("Usage: DefineAuthorityConnection <connection_name> <description> <connector_class> <pool_max> <param1>=<value1> ...");
-                        System.exit(1);
-                }
-
-                String connectionName = args[0];
-                String description = args[1];
-                String connectorClass = args[2];
-                String poolMax = args[3];
+  private DefineAuthorityConnection()
+  {
+  }
 
 
-                try
-                {
-                        ManifoldCF.initializeEnvironment();
-                        IThreadContext tc = ThreadContextFactory.make();
-                        IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
-                        IAuthorityConnection conn = mgr.create();
-                        conn.setName(connectionName);
-                        conn.setDescription(description);
-                        conn.setClassName(connectorClass);
-                        conn.setMaxConnections(new Integer(poolMax).intValue());
-                        ConfigParams x = conn.getConfigParams();
-                        int i = 4;
-                        while (i < args.length)
-                        {
-                                String arg = args[i++];
-                                // Parse
-                                int pos = arg.indexOf("=");
-                                if (pos == -1)
-                                        throw new ManifoldCFException("Argument missing =");
-                                String name = arg.substring(0,pos);
-                                String value = arg.substring(pos+1);
-                                if (name.endsWith("assword"))
-                                        x.setObfuscatedParameter(name,value);
-                                else
-                                        x.setParameter(name,value);
-                        }
+  public static void main(String[] args)
+  {
+    if (args.length < 4)
+    {
+      System.err.println("Usage: DefineAuthorityConnection <connection_name> <description> <connector_class> <pool_max> <param1>=<value1> ...");
+      System.exit(1);
+    }
 
-                        // Now, save
-                        mgr.save(conn);
-
-                }
-                catch (Exception e)
-                {
-                        e.printStackTrace(System.err);
-                        System.exit(2);
-                }
-        }
+    String connectionName = args[0];
+    String description = args[1];
+    String connectorClass = args[2];
+    String poolMax = args[3];
 
 
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
+      IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
+      IAuthorityConnection conn = mgr.create();
+      conn.setName(connectionName);
+      conn.setDescription(description);
+      conn.setClassName(connectorClass);
+      conn.setMaxConnections(new Integer(poolMax).intValue());
+      ConfigParams x = conn.getConfigParams();
+      int i = 4;
+      while (i < args.length)
+      {
+        String arg = args[i++];
+        // Parse
+        int pos = arg.indexOf("=");
+        if (pos == -1)
+          throw new ManifoldCFException("Argument missing =");
+        String name = arg.substring(0,pos);
+        String value = arg.substring(pos+1);
+        if (name.endsWith("assword"))
+          x.setObfuscatedParameter(name,value);
+        else
+          x.setParameter(name,value);
+      }
 
-                
+      // Now, save
+      mgr.save(conn);
+
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace(System.err);
+      System.exit(2);
+    }
+  }
+
+
 }

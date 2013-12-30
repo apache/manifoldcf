@@ -32,8 +32,8 @@ public abstract class BaseAgentsInitializationCommand implements InitializationC
 {
   public void execute() throws ManifoldCFException
   {
-    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
+    ManifoldCF.initializeEnvironment(tc);
     doExecute(tc);
   }
 

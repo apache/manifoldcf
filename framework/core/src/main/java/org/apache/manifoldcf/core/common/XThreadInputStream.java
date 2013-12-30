@@ -26,18 +26,25 @@ import java.io.*;
 */
 public class XThreadInputStream extends InputStream
 {
-  private byte[] buffer = new byte[65536];
+  private final byte[] buffer = new byte[65536];
   private int startPoint = 0;
   private int byteCount = 0;
   private boolean streamEnd = false;
   private IOException failureException = null;
-  private InputStream sourceStream;
   private boolean abort = false;
-  
-  /** Constructor */
+
+  private final InputStream sourceStream;
+	
+  /** Constructor, from a given input stream. */
   public XThreadInputStream(InputStream sourceStream)
   {
     this.sourceStream = sourceStream;
+  }
+  
+  /** Constructor, from another source. */
+  public XThreadInputStream()
+  {
+    this.sourceStream = null;
   }
   
   /** Call this method to abort the stuffQueue() method.
@@ -51,8 +58,63 @@ public class XThreadInputStream extends InputStream
     }
   }
   
+  /** This method is called from the helper thread side, to stuff bytes onto
+  * the queue when there is no input stream.
+  * It exits only when interrupted or done.
+  */
+  public void stuffQueue(byte[] byteBuffer, int offset, int amount)
+    throws InterruptedException
+  {
+    while (amount > 0)
+    {
+      int maxToRead;
+      int readStartPoint;
+      synchronized (this)
+      {
+        if (abort || streamEnd)
+          return;
+        // Calculate amount to read
+        maxToRead = buffer.length - byteCount;
+        if (maxToRead == 0)
+        {
+          wait();
+          continue;
+        }
+        readStartPoint = (startPoint + byteCount) & (buffer.length-1);
+      }
+      if (readStartPoint + maxToRead >= buffer.length)
+        maxToRead = buffer.length - readStartPoint;
+      // Now, copy to buffer
+      int amt;
+      if (amount > maxToRead)
+        amt = maxToRead;
+      else
+        amt = amount;
+      System.arraycopy(byteBuffer,offset,buffer,readStartPoint,amt);
+      offset += amt;
+      amount -= amt;
+      synchronized (this)
+      {
+        byteCount += amt;
+        notifyAll();
+      }
+    }
+  }
+  
+  /** Call this method when there is no more data to write.
+  */
+  public void doneStuffingQueue()
+  {
+    synchronized (this)
+    {
+      streamEnd = true;
+      notifyAll();
+    }
+  }
+  
   /** This method is called from the helper thread side, to keep the queue
-  * stuffed.  It exits when the stream is empty, or when interrupted.
+  * stuffed from the input stream.
+  * It exits when the stream is empty, or when interrupted.
   */
   public void stuffQueue()
     throws IOException, InterruptedException
@@ -232,7 +294,7 @@ public class XThreadInputStream extends InputStream
   public void close()
     throws IOException
   {
-    // MHL
+    // Do nothing; stream close is handled by the caller on the stuffer side
   }
 
 }

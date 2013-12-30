@@ -33,14 +33,18 @@ public class StartDeleteThread extends Thread
   public static final String _rcsid = "@(#)$Id$";
 
   /** Delete startup reset manager */
-  protected static DeleteStartupResetManager resetManager = new DeleteStartupResetManager();
-
+  protected final DeleteStartupResetManager resetManager;
+  /** Process ID */
+  protected final String processID;
+  
   /** Constructor.
   */
-  public StartDeleteThread()
+  public StartDeleteThread(DeleteStartupResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
+    this.resetManager = resetManager;
+    this.processID = processID;
     setName("Delete startup thread");
     setDaemon(true);
   }
@@ -80,7 +84,7 @@ public class StartDeleteThread extends Thread
 
           // See if there are any starting jobs.
           // Note: Since this following call changes the job state, we must be careful to reset it on any kind of failure.
-          JobDeleteRecord[] deleteJobs = jobManager.getJobsReadyForDelete();
+          JobDeleteRecord[] deleteJobs = jobManager.getJobsReadyForDelete(processID);
           try
           {
 
@@ -206,35 +210,6 @@ public class StartDeleteThread extends Thread
       Logging.threads.fatal("StartDeleteThread initialization error tossed: "+e.getMessage(),e);
       System.exit(-300);
     }
-  }
-
-  /** Class which handles reset for seeding thread pool (of which there's
-  * typically only one member).  The reset action here
-  * is to move the status of jobs back from "seeding" to normal.
-  */
-  protected static class DeleteStartupResetManager extends ResetManager
-  {
-
-    /** Constructor. */
-    public DeleteStartupResetManager()
-    {
-      super();
-    }
-
-    /** Reset */
-    protected void performResetLogic(IThreadContext tc)
-      throws ManifoldCFException
-    {
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.resetDeleteStartupWorkerStatus();
-    }
-    
-    /** Do the wakeup logic.
-    */
-    protected void performWakeupLogic()
-    {
-    }
-
   }
 
 }

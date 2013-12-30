@@ -24,6 +24,7 @@ import javax.servlet.http.*;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.*;
+import org.apache.manifoldcf.ui.passwords.PasswordMapper;
 
 /** The profile object contains an admin user's login information, and helps establish the
 * session model for the application.  This particular bean maintains the user (against
@@ -34,15 +35,18 @@ public class AdminProfile implements HttpSessionBindingListener
   public static final String _rcsid = "@(#)$Id: AdminProfile.java 988245 2010-08-23 18:39:35Z kwright $";
 
   /** Time of login */
-  private long loginTime = 0;
+  private long loginTime = -1L;
   /** Logged in user */
   private String userID = null;
-  /** Session identifier */
-  private String sessionIdentifier = null;
   /** Set to "true" if user is logged in. */
   private boolean isLoggedIn = false;
   /** Set to "true" if user can manage users. */
   private boolean manageUsers = false;
+  /** Password mapper */
+  private PasswordMapper passwordMapper = null;
+
+  /** Session identifier */
+  private String sessionIdentifier = null;
 
   /** Constructor.
   */
@@ -61,15 +65,6 @@ public class AdminProfile implements HttpSessionBindingListener
     return sessionIdentifier;
   }
 
-  /** Set the admin user id.
-  *@param userID is the ID of the admin user to log in.
-  */
-  public void setUserID(String userID)
-  {
-    sessionCleanup();       // nuke existing stuff (i.e. log out)
-    this.userID = userID;
-  }
-
   /** Get the admin user id.
   *@return the last login user id.
   */
@@ -86,35 +81,36 @@ public class AdminProfile implements HttpSessionBindingListener
     return manageUsers;
   }
 
+  /** Log out the current user.
+  */
+  public void logout()
+  {
+    sessionCleanup();
+  }
+
   /** Log on the user, with the already-set user id and company
   * description.
   *@param userPassword is the login password for the user.
   */
-  public void setPassword(String userPassword)
+  public void login(IThreadContext threadContext,
+    String userID, String userPassword)
   {
     sessionCleanup();
     try
     {
       // Check if everything is in place.
-      IThreadContext threadContext = ThreadContextFactory.make();
-      if (userID != null)
+      if (ManifoldCF.verifyLogin(threadContext,userID,userPassword))
       {
-        IDBInterface database = DBInterfaceFactory.make(threadContext,
-          ManifoldCF.getMasterDatabaseName(),
-          ManifoldCF.getMasterDatabaseUsername(),
-          ManifoldCF.getMasterDatabasePassword());
-        // MHL to actually log in (when we figure out what to use as an authority)
-        if (userID.equals("admin") &&  userPassword.equals("admin"))
-        {
-          isLoggedIn = true;
-          loginTime = System.currentTimeMillis();
-          manageUsers = false;
-        }
+        isLoggedIn = true;
+        loginTime = System.currentTimeMillis();
+        this.userID = userID;
+        manageUsers = false;
+        passwordMapper = new PasswordMapper();
       }
     }
     catch (ManifoldCFException e)
     {
-      Logging.misc.fatal("Exception logging in!",e);
+      Logging.misc.fatal("Exception logging in: "+e.getMessage(),e);
     }
   }
 
@@ -143,12 +139,24 @@ public class AdminProfile implements HttpSessionBindingListener
     return loginTime;
   }
 
+  /** Get the password mapper object.
+  *@return the password mapper object.
+  */
+  public PasswordMapper getPasswordMapper()
+  {
+    return passwordMapper;
+  }
+  
   // Nuke stuff for security and the garbage
   // collector threads
   private void sessionCleanup()
   {
     // Un-log-in the user
     isLoggedIn = false;
+    userID = null;
+    manageUsers = false;
+    loginTime = -1L;
+    passwordMapper = null;
   }
 
 

@@ -26,34 +26,41 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a testing base class that is responsible for setting up/tearing down the core Postgresql database. */
-public class BasePostgresql extends Base
+public class BasePostgresql extends BaseDatabase
 {
   protected final static String SUPER_USER_NAME = "postgres";
   protected final static String SUPER_USER_PASSWORD = "postgres";
 
-  /** Method to add properties to properties.xml contents.
-  * Override this method to add properties clauses to the property file.
-  */
-  protected void writeProperties(StringBuilder output)
+  /** Method to get database implementation class */
+  @Override
+  protected String getDatabaseImplementationClass()
     throws Exception
   {
-    super.writeProperties(output);
+    return "org.apache.manifoldcf.core.database.DBInterfacePostgreSQL";
+  }
+
+  /** Method to set database properties */
+  @Override
+  protected void writeDatabaseControlProperties(StringBuilder output)
+    throws Exception
+  {
     output.append(
-      "  <property name=\"org.apache.manifoldcf.databaseimplementationclass\" value=\"org.apache.manifoldcf.core.database.DBInterfacePostgreSQL\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.database.name\" value=\"testdb\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.database.username\" value=\"testuser\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.database.maxquerytime\" value=\"30\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.threads\" value=\"30\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.expirethreads\" value=\"10\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.cleanupthreads\" value=\"10\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.deletethreads\" value=\"10\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.database.maxhandles\" value=\"80\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.database.maxquerytime\" value=\"15\"/>\n"
+      "  <property name=\"org.apache.manifoldcf.database.username\" value=\"testuser\"/>\n"
     );
+  }
+
+  /** Method to get max query time property. */
+  @Override
+  protected int getDatabaseMaxQueryTimeProperty()
+    throws Exception
+  {
+    return 15;
   }
 
   /** Method to get database superuser name.
   */
+  @Override
   protected String getDatabaseSuperuserName()
     throws Exception
   {
@@ -62,6 +69,7 @@ public class BasePostgresql extends Base
   
   /** Method to get database superuser password.
   */
+  @Override
   protected String getDatabaseSuperuserPassword()
     throws Exception
   {

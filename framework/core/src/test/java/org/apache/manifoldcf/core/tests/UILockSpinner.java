@@ -28,11 +28,10 @@ public class UILockSpinner
   public static void main(String[] argv)
     throws Exception
   {
-    ManifoldCF.initializeEnvironment();
-
+    IThreadContext threadContext = ThreadContextFactory.make();
+    ManifoldCF.initializeEnvironment(threadContext);
 
     // Create a thread context object.
-    IThreadContext threadContext = ThreadContextFactory.make();
     ILockManager lockManager = LockManagerFactory.make(threadContext);
 
     System.out.println("Starting test");

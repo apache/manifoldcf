@@ -36,10 +36,14 @@
       <p><a href="../api/alfresco/index.html">Alfresco connector</a></p>
       <p><a href="../api/cmis/index.html">CMIS authority and connector</a></p>
       <p><a href="../api/documentum/index.html">Documentum authority, connector, and support processes</a></p>
+      <p><a href="../api/dropbox/index.html">Dropbox connector</a></p>
       <p><a href="../api/filenet/index.html">FileNet connector and support processes</a></p>
-      <p><a href="../api/filesystem/index.html">File system connector</a></p>
+      <p><a href="../api/filesystem/index.html">File system repository and output connector</a></p>
+      <p><a href="../api/googledrive/index.html">GoogleDrive connector</a></p>
       <p><a href="../api/gts/index.html">qBase GTS output connector</a></p>
+      <p><a href="../api/hdfs/index.html">HDFS repository and output connector</a></p>
       <p><a href="../api/jcifs/index.html">CIFS connector</a></p>
+      <p><a href="../api/jira/index.html">JIRA connector and authority</a></p>
       <p><a href="../api/jdbc/index.html">JDBC connector</a></p>
       <p><a href="../api/livelink/index.html">LiveLink authority and connector</a></p>
       <p><a href="../api/meridio/index.html">Meridio authority and connector</a></p>
@@ -47,6 +51,7 @@
       <p><a href="../api/elasticsearch/index.html">ElasticSearch output connector</a></p>
       <p><a href="../api/nullauthority/index.html">Null authority</a></p>
       <p><a href="../api/nulloutput/index.html">Null output connector</a></p>
+      <p><a href="../api/regexpmapper/index.html">Regular expression mapping connector</a></p>
       <p><a href="../api/rss/index.html">RSS connector</a></p>
       <p><a href="../api/sharepoint/index.html">SharePoint connector</a></p>
       <p><a href="../api/solr/index.html">Solr output connector</a></p>

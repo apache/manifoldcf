@@ -20,13 +20,13 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-parent</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.5-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.apache.manifoldcf</groupId>
   <artifactId>mcf-connectors</artifactId>
-  <version>1.2-SNAPSHOT</version>
+  <version>1.5-SNAPSHOT</version>
 
   <name>ManifoldCF - Connectors</name>
   <packaging>pom</packaging>
@@ -36,6 +36,7 @@
     <module>activedirectory</module>
     <module>filesystem</module>
     <module>gts</module>
+    <module>hdfs</module>
     <module>jcifs</module>
     <module>jdbc</module>
     <module>ldap</module>
@@ -50,6 +51,12 @@
     <module>wiki</module>
     <module>alfresco</module>
     <module>elasticsearch</module>
+    <module>dropbox</module>
+    <module>googledrive</module>
+    <module>jira</module>
+    <module>generic</module>
+    <module>regexpmapper</module>
+    <module>email</module>
   </modules>
 
 </project>

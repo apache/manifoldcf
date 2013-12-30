@@ -18,6 +18,7 @@
 */
 package org.apache.manifoldcf.alfresco_tests;
 
+import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -76,6 +77,8 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
 
     WebAppContext alfrescoServerApi = new WebAppContext(alfrescoServerWarPath,"/alfresco");
     alfrescoServerApi.setParentLoaderPriority(false);
+    HashLoginService dummyLoginService = new HashLoginService("TEST-SECURITY-REALM");
+    alfrescoServerApi.getSecurityHandler().setLoginService(dummyLoginService);
     contexts.addHandler(alfrescoServerApi);
     
     Class h2DataSource = Thread.currentThread().getContextClassLoader().loadClass("org.h2.jdbcx.JdbcDataSource");

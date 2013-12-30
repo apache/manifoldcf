@@ -71,7 +71,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   protected String urlVersionBase = null;
 
   /** Deny access token for Meridio */
-  private final static String denyToken = "DEAD_AUTHORITY";
+  private final static String denyToken = GLOBAL_DENY_TOKEN;
 
   /** Deny access token for Active Directory, which is what we expect to be in place for forced acls */
   private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
@@ -1690,6 +1690,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     String password = parameters.getObfuscatedParameter("Password");
     if (password == null)
       password = "";
+    else
+      password = out.mapPasswordToKey(password);
 
     String webClientProtocol = parameters.getParameter("MeridioWebClientProtocol");
     if (webClientProtocol == null)
@@ -2007,7 +2009,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter("Password",password);
+      parameters.setObfuscatedParameter("Password",variableContext.mapKeyToPassword(password));
 
     String webClientProtocol = variableContext.getParameter("webClientProtocol");
     if (webClientProtocol != null)

@@ -44,6 +44,16 @@ public class NavigationDerbyUI extends BaseUIDerby
     
     window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp");
     
+    // Login
+    form = window.findForm(testerInstance.createStringDescription("loginform"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("userID"));
+    textarea.setValue(testerInstance.createStringDescription("admin"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("password"));
+    textarea.setValue(testerInstance.createStringDescription("admin"));
+    button = window.findButton(testerInstance.createStringDescription("Login"));
+    button.click();
+    window = testerInstance.findWindow(null);
+
     // Define an output connection via the UI
     link = window.findLink(testerInstance.createStringDescription("List output connections"));
     link.click();
@@ -122,6 +132,8 @@ public class NavigationDerbyUI extends BaseUIDerby
     textarea.setValue(testerInstance.createStringDescription("9090"));
     textarea = form.findTextarea(testerInstance.createStringDescription("path"));
     textarea.setValue(testerInstance.createStringDescription("/alfresco/api"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("socketTimeout"));
+    textarea.setValue(testerInstance.createStringDescription("120000"));
     // Go back to the Name tab
     link = window.findLink(testerInstance.createStringDescription("Name tab"));
     link.click();

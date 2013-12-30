@@ -25,7 +25,7 @@ import java.io.*;
 * There are no implied semantics in this class around managing the stream itself.
 * These semantics must be handled by a derived class.
 */
-public abstract class BinaryInput
+public abstract class BinaryInput extends PersistentDatabaseObject
 {
   public static final String _rcsid = "@(#)$Id: BinaryInput.java 988245 2010-08-23 18:39:35Z kwright $";
 
@@ -59,6 +59,7 @@ public abstract class BinaryInput
   }
 
   /** Close the stream we passed to JDBC */
+  @Override
   public void doneWithStream()
     throws ManifoldCFException
   {
@@ -70,6 +71,7 @@ public abstract class BinaryInput
   public abstract BinaryInput transfer();
 
   /** Discard the object */
+  @Override
   public void discard()
     throws ManifoldCFException
   {

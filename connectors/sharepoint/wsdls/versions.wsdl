@@ -224,10 +224,10 @@
   </wsdl:binding>
   <wsdl:service name="Versions">
     <wsdl:port name="VersionsSoap" binding="tns:VersionsSoap">
-      <soap:address location="http://www.wssdemo.com/_vti_bin/versions.asmx" />
+      <soap:address location="http://localhost/_vti_bin/versions.asmx" />
     </wsdl:port>
     <wsdl:port name="VersionsSoap12" binding="tns:VersionsSoap12">
-      <soap12:address location="http://www.wssdemo.com/_vti_bin/versions.asmx" />
+      <soap12:address location="http://localhost/_vti_bin/versions.asmx" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

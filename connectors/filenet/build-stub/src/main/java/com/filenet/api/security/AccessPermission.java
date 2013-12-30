@@ -18,9 +18,11 @@
 */
 package com.filenet.api.security;
 
+import com.filenet.api.core.DependentObject;
+
 /** Stub interface to allow the connector to build fully.
 */
-public interface AccessPermission extends DiscretionaryPermission
+public interface AccessPermission extends DiscretionaryPermission, DependentObject
 {
   public Integer get_AccessMask();
 }

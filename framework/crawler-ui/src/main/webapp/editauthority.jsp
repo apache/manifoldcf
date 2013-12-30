@@ -28,11 +28,17 @@
     // the connection object being edited will be placed in the thread context under the name "ConnectionObject".
     try
     {
+	// Get the domain manager handle
+	IAuthorizationDomainManager domainMgr = AuthorizationDomainManagerFactory.make(threadContext);
 	// Get the connection manager handle
 	IAuthorityConnectionManager connMgr = AuthorityConnectionManagerFactory.make(threadContext);
 	// Also get the list of available connectors
 	IAuthorityConnectorManager connectorManager = AuthorityConnectorManagerFactory.make(threadContext);
-
+	// Get the mapping connection manager
+	IMappingConnectionManager mappingConnMgr = MappingConnectionManagerFactory.make(threadContext);
+	// Get the group manager
+	IAuthorityGroupManager authGroupManager = AuthorityGroupManagerFactory.make(threadContext);
+	
 	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
@@ -58,7 +64,10 @@
 	String className = "";
 	int maxConnections = 10;
 	ConfigParams parameters = new ConfigParams();
-
+	String prereq = null;
+	String authDomain = "";
+	String groupName = "";
+	
 	if (connection != null)
 	{
 		// Set up values
@@ -68,6 +77,13 @@
 		className = connection.getClassName();
 		parameters = connection.getConfigParams();
 		maxConnections = connection.getMaxConnections();
+		prereq = connection.getPrerequisiteMapping();
+		authDomain = connection.getAuthDomain();
+		if (authDomain == null)
+			authDomain = "";
+		groupName = connection.getAuthGroup();
+		if (groupName == null)
+			groupName = "";
 	}
 	else
 		connectionName = null;
@@ -82,7 +98,10 @@
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Name"));
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Type"));
 	if (className.length() > 0)
+	{
+		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Prerequisites"));
 		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Throttling"));
+	}
 
 %>
 
@@ -143,6 +162,13 @@
 				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAName")%>");
 				SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.Name")%>");
 				document.editconnection.connname.focus();
+				return;
+			}
+			if (editconnection.authoritygroup.value == "")
+			{
+				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAGroup")%>");
+				SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.Type")%>");
+				document.editconnection.authoritygroup.focus();
 				return;
 			}
 			if (window.checkConfigForSave)
@@ -211,10 +237,12 @@
 	//-->
 	</script>
 <%
-	AuthorityConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabsArray);
+	AuthorityConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabsArray);
 
 	// Get connectors, since this will be needed to determine what to display.
 	IResultSet set = connectorManager.getConnectors();
+	// Same for authority groups
+	IAuthorityGroup[] set2 = authGroupManager.getAllGroups();
 
 %>
 
@@ -226,13 +254,18 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="darkwindow">
-
-
 <%
-	if (set.getRowCount() == 0)
+	if (set2.length == 0)
 	{
 %>
-	<p class="windowtitle">Edit Authority Connection</p>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthorityConnection")%></p>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityGroupsDefinedCreateOneFirst")%></td></tr></table>
+<%
+	}
+	else if (set.getRowCount() == 0)
+	{
+%>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthorityConnection")%></p>
 	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityConnectorsRegistered")%></td></tr></table>
 <%
 	}
@@ -334,11 +367,13 @@
 	  // "Type" tab
 	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Type")))
 	  {
+	    IResultSet domainSet = domainMgr.getDomains();
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.ConnectionTypeColon")%></nobr></td>
+				<td class="value" colspan="4">
 <%
 	    if (className.length() > 0)
 	    {
@@ -382,6 +417,49 @@
 %>
 				</td>
 			</tr>
+			<tr><td class="separator" colspan="5"><hr/></td></tr>
+			<tr>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorityGroupColon")%></nobr></td>
+				<td class="value" colspan="1">
+					<select name="authoritygroup" size="1">
+						<option value=""><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.SelectAGroup")%></option>
+<%
+	    for (int i = 0; i < set2.length; i++)
+	    {
+		IAuthorityGroup row = set2[i];
+		String thisAuthorityName = row.getName();
+		String thisDescription = row.getDescription();
+		if (thisDescription == null || thisDescription.length() == 0)
+			thisDescription = thisAuthorityName;
+%>
+						<option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisAuthorityName)%>'
+							<%=(groupName.equals(thisAuthorityName))?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+<%
+	    }
+%>
+					</select>
+				</td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorizationDomainColon")%></nobr></td>
+				<td class="value" colspan="1">
+					<select name="authdomain" size="1">
+						<option value="" <%=(authDomain == null || authDomain.length() == 0)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.DefaultDomainNone")%></option>
+<%
+	    for (int i = 0; i < domainSet.getRowCount(); i++)
+	    {
+		IResultRow row = domainSet.getRow(i);
+		String domainName = (String)row.getValue("domainname");
+		String thisDescription = (String)row.getValue("description");
+		if (thisDescription == null || thisDescription.length() == 0)
+			thisDescription = domainName;
+%>
+						<option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domainName)%>'
+							<%=(authDomain!=null && domainName.equals(authDomain))?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+<%
+	    }
+%>
+					</select>
+				</td>
+			</tr>
 		    </table>
 <%
 	  }
@@ -390,10 +468,75 @@
 		// Hiddens for the "Type" tab
 %>
 		    <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+		    <input type="hidden" name="authdomain" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/>
+		    <input type="hidden" name="authoritygroup" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(groupName)%>'/>
 <%
 	  }
 
+	  // The "Prerequisites" tab
+	  IMappingConnection[] mappingConnections = mappingConnMgr.getAllConnections();
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Prerequisites")))
+	  {
+%>
+		    <table class="displaytable">
+			<tr><td class="separator" colspan="5"><hr/></td></tr>
+			<tr>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.PrerequisiteUserMappingColon")%></nobr></td>
+				<td class="value" colspan="4">
+					<input type="hidden" name="prerequisites_present" value="true"/>
+<%
+	    if (prereq == null)
+	    {
+%>
+					<input type="radio" name="prerequisites" value="" checked="true"/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoPrerequisites")%><br/>
+<%
+	    }
+	    else
+	    {
+%>
+					<input type="radio" name="prerequisites" value=""/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoPrerequisites")%><br/>
+<%
+	    }
 
+	    for (IMappingConnection mappingConnection : mappingConnections)
+	    {
+		String mappingName = mappingConnection.getName();
+		String mappingDescription = mappingName;
+		if (mappingConnection.getDescription() != null && mappingConnection.getDescription().length() > 0)
+			mappingDescription += " (" + mappingConnection.getDescription()+")";
+		if (prereq != null && prereq.equals(mappingName))
+		{
+%>
+					<input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>' checked="true"/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+<%
+		}
+		else
+		{
+%>
+					<input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>'/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+<%
+		}
+	    }
+%>
+				</td>
+			</tr>
+		    </table>
+<%
+	  }
+	  else
+	  {
+		// Hiddens for Prerequisites tab
+%>
+		    <input type="hidden" name="prerequisites_present" value="true"/>
+<%
+		if (prereq != null)
+		{
+%>
+		    <input type="hidden" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(prereq)%>'/>
+<%
+		}
+	  }
+	  
 	  // The "Throttling" tab
 	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Throttling")))
 	  {
@@ -401,7 +544,7 @@
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.MaxConnections")%></nobr><br/><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.PerJVMColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.MaxConnectionsColon")%></nobr></td>
 				<td class="value" colspan="4"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
 			</tr>
 		    </table>
@@ -416,7 +559,7 @@
 	  }
 
 	  if (className.length() > 0)
-		AuthorityConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabName);
+		AuthorityConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="4"><hr/></td></tr>

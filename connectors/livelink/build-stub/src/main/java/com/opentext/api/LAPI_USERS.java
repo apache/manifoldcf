@@ -45,5 +45,9 @@ public class LAPI_USERS
     return 0;
   }
   
+  public int ListUsers(LLValue rval)
+  {
+    return 0;
+  }
 }
 

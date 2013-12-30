@@ -45,9 +45,14 @@
 		// Make a few things we will need
 		// Get the job manager handle
 		IJobManager manager = JobManagerFactory.make(threadContext);
+		IAuthorityGroupManager authGroupManager = AuthorityGroupManagerFactory.make(threadContext);
 		IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
 		IAuthorityConnectionManager authConnManager = AuthorityConnectionManagerFactory.make(threadContext);
+		IMappingConnectionManager mappingConnManager = MappingConnectionManagerFactory.make(threadContext);
 		IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+		
+		IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+		IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
 		
 		String type = variableContext.getParameter("type");
 		String op = variableContext.getParameter("op");
@@ -201,6 +206,28 @@
 				<jsp:forward page="listconnections.jsp"/>
 <%
 			}
+			else if (op.equals("ClearHistory"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new ManifoldCFException("Missing connection parameter");
+					connManager.cleanUpHistoryData(connectionName);
+%>
+					<jsp:forward page="listconnections.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listconnections.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
 			else
 			{
 				// Error
@@ -210,6 +237,105 @@
 				<jsp:forward page="error.jsp"/>
 <%
 			}
+		}
+		else if (type != null && op != null && type.equals("group"))
+		{
+			// -- Group editing operations --
+			if (op.equals("Save") || op.equals("Continue"))
+			{
+				try
+				{
+					// Set up a connection object that is a merge of an existing connection object plus what was posted.
+					IAuthorityGroup group = null;
+					boolean isNew = true;
+					String x = variableContext.getParameter("isnewconnection");
+					if (x != null)
+						isNew = x.equals("true");
+
+					String groupName = variableContext.getParameter("groupname");
+					// If the groupname is not null, load the group and prepopulate everything with what comes from it.
+					if (groupName != null && groupName.length() > 0 && !isNew)
+					{
+						group = authGroupManager.load(groupName);
+					}
+					
+					if (group == null)
+					{
+						group = authGroupManager.create();
+						if (groupName != null && groupName.length() > 0)
+							group.setName(groupName);
+					}
+
+					// Gather all the data from the form.
+					group.setIsNew(isNew);
+					x = variableContext.getParameter("description");
+					if (x != null)
+						group.setDescription(x);
+
+					if (op.equals("Continue"))
+					{
+						threadContext.save("GroupObject",group);
+%>
+						<jsp:forward page="editgroup.jsp"/>
+<%
+					}
+					else if (op.equals("Save"))
+					{
+						authGroupManager.save(group);
+						variableContext.setParameter("groupname",groupName);
+%>
+						<jsp:forward page="viewgroup.jsp"/>
+<%
+					}
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listgroups.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Delete"))
+			{
+				try
+				{
+					String groupName = variableContext.getParameter("groupname");
+					if (groupName == null)
+						throw new ManifoldCFException("Missing group name parameter");
+					authGroupManager.delete(groupName);
+%>
+					<jsp:forward page="listgroups.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listgroups.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Cancel"))
+			{
+%>
+				<jsp:forward page="listgroups.jsp"/>
+<%
+			}
+			else
+			{
+				// Error
+				variableContext.setParameter("text","Illegal parameter to authority group execution page");
+				variableContext.setParameter("target","listgroups.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
+
 		}
 		else if (type != null && op != null && type.equals("authority"))
 		{
@@ -248,8 +374,22 @@
 					if (x != null)
 						connection.setClassName(x);
 					x = variableContext.getParameter("maxconnections");
-					if (x != null && x.length() > 0)
+					if (x != null)
 						connection.setMaxConnections(Integer.parseInt(x));
+					x = variableContext.getParameter("prerequisites_present");
+					if (x != null && x.equals("true"))
+					{
+						String y = variableContext.getParameter("prerequisites");
+						if (y != null && y.length() == 0)
+							y = null;
+						connection.setPrerequisiteMapping(y);
+					}
+					x = variableContext.getParameter("authdomain");
+					if (x != null)
+						connection.setAuthDomain(x);
+					x = variableContext.getParameter("authoritygroup");
+					if (x != null)
+						connection.setAuthGroup(x);
 
 					String error = AuthorityConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
 					
@@ -321,6 +461,129 @@
 				// Error
 				variableContext.setParameter("text","Illegal parameter to authority execution page");
 				variableContext.setParameter("target","listauthorities.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
+		}
+		else if (type != null && op != null && type.equals("mapper"))
+		{
+			// -- Mapping editing operations --
+			if (op.equals("Save") || op.equals("Continue"))
+			{
+				try
+				{
+					// Set up a connection object that is a merge of an existing connection object plus what was posted.
+					IMappingConnection connection = null;
+					boolean isNew = true;
+					String x = variableContext.getParameter("isnewconnection");
+					if (x != null)
+						isNew = x.equals("true");
+
+					String connectionName = variableContext.getParameter("connname");
+					// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
+					if (connectionName != null && connectionName.length() > 0 && !isNew)
+					{
+						connection = mappingConnManager.load(connectionName);
+					}
+					
+					if (connection == null)
+					{
+						connection = mappingConnManager.create();
+						if (connectionName != null && connectionName.length() > 0)
+							connection.setName(connectionName);
+					}
+
+					// Gather all the data from the form.
+					connection.setIsNew(isNew);
+					x = variableContext.getParameter("description");
+					if (x != null)
+						connection.setDescription(x);
+					x = variableContext.getParameter("classname");
+					if (x != null)
+						connection.setClassName(x);
+					x = variableContext.getParameter("maxconnections");
+					if (x != null && x.length() > 0)
+						connection.setMaxConnections(Integer.parseInt(x));
+					x = variableContext.getParameter("prerequisites_present");
+					if (x != null && x.equals("true"))
+					{
+						String y = variableContext.getParameter("prerequisites");
+						if (y != null && y.length() == 0)
+							y = null;
+						connection.setPrerequisiteMapping(y);
+					}
+
+					String error = MappingConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
+					
+					if (error != null)
+					{
+						variableContext.setParameter("text",error);
+						variableContext.setParameter("target","listmappers.jsp");
+%>
+						<jsp:forward page="error.jsp"/>
+<%
+					}
+					
+					if (op.equals("Continue"))
+					{
+						threadContext.save("ConnectionObject",connection);
+%>
+						<jsp:forward page="editmapper.jsp"/>
+<%
+					}
+					else if (op.equals("Save"))
+					{
+						mappingConnManager.save(connection);
+						variableContext.setParameter("connname",connectionName);
+%>
+						<jsp:forward page="viewmapper.jsp"/>
+<%
+					}
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listmappers.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Delete"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new ManifoldCFException("Missing connection parameter");
+					mappingConnManager.delete(connectionName);
+%>
+					<jsp:forward page="listmappers.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listmappers.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Cancel"))
+			{
+%>
+				<jsp:forward page="listmappers.jsp"/>
+<%
+			}
+			else
+			{
+				// Error
+				variableContext.setParameter("text","Illegal parameter to mapping execution page");
+				variableContext.setParameter("target","listmappers.jsp");
 %>
 				<jsp:forward page="error.jsp"/>
 <%
@@ -439,6 +702,28 @@
 					if (connectionName == null)
 						throw new ManifoldCFException("Missing connection parameter");
 					org.apache.manifoldcf.agents.system.ManifoldCF.signalOutputConnectionRedo(threadContext,connectionName);
+%>
+					<jsp:forward page="listoutputs.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listoutputs.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("RemoveAll"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new ManifoldCFException("Missing connection parameter");
+					org.apache.manifoldcf.agents.system.ManifoldCF.signalOutputConnectionRemoved(threadContext,connectionName);
 %>
 					<jsp:forward page="listoutputs.jsp"/>
 <%
@@ -768,8 +1053,7 @@
 					
 					if (outputPresent && outputConnection != null)
 					{
-						IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,
-							outputConnection.getClassName(),outputConnection.getConfigParams(),outputConnection.getMaxConnections());
+						IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 						if (outputConnector != null)
 						{
 							try
@@ -786,15 +1070,14 @@
 							}
 							finally
 							{
-								OutputConnectorFactory.release(outputConnector);
+								outputConnectorPool.release(outputConnection,outputConnector);
 							}
 						}
 					}
 					
 					if (connectionPresent && connection != null)
 					{
-						IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,
-							connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+						IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 						if (repositoryConnector != null)
 						{
 							try
@@ -811,7 +1094,7 @@
 							}
 							finally
 							{
-								RepositoryConnectorFactory.release(repositoryConnector);
+								repositoryConnectorPool.release(connection,repositoryConnector);
 							}
 						}
 					}

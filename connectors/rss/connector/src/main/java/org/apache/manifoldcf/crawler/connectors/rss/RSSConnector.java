@@ -52,7 +52,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 {
   public static final String _rcsid = "@(#)$Id: RSSConnector.java 994959 2010-09-08 10:04:42Z kwright $";
 
-
+  protected final static String rssThrottleGroupType = "_RSS_";
 
   // Usage flag values
   protected static final int ROBOTS_NONE = 0;
@@ -105,7 +105,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   protected Robots robots = null;
 
   /** Storage for fetcher objects */
-  protected static Map fetcherMap = new HashMap();
+  protected static Map<String,ThrottledFetcher> fetcherMap = new HashMap<String,ThrottledFetcher>();
   /** Storage for robots objects */
   protected static Map robotsMap = new HashMap();
 
@@ -231,10 +231,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
       }
 
+      IThrottleGroups tg = ThrottleGroupsFactory.make(currentContext);
+      // Create the throttle group
+      tg.createOrUpdateThrottleGroup(rssThrottleGroupType, throttleGroupName, new ThrottleSpec(maxOpenConnectionsPerServer,
+        minimumMillisecondsPerFetchPerServer, minimumMillisecondsPerBytePerServer));
+      
       isInitialized = true;
     }
   }
 
+  
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
@@ -815,11 +821,15 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 String[] pubDates = activities.retrieveParentData(urlValue,"pubdate");
                 String[] sources = activities.retrieveParentData(urlValue,"source");
                 String[] titles = activities.retrieveParentData(urlValue,"title");
+                String[] authorNames = activities.retrieveParentData(urlValue,"authorname");
+                String[] authorEmails = activities.retrieveParentData(urlValue,"authoremail");
                 String[] categories = activities.retrieveParentData(urlValue,"category");
                 String[] descriptions = activities.retrieveParentData(urlValue,"description");
                 java.util.Arrays.sort(pubDates);
                 java.util.Arrays.sort(sources);
                 java.util.Arrays.sort(titles);
+                java.util.Arrays.sort(authorNames);
+                java.util.Arrays.sort(authorEmails);
                 java.util.Arrays.sort(categories);
                 java.util.Arrays.sort(descriptions);
 
@@ -852,6 +862,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 packList(sb,categories,'+');
                 // The descriptions
                 packList(sb,descriptions,'+');
+                // The author names
+                packList(sb,authorNames,'+');
+                // The author emails
+                packList(sb,authorEmails,'+');
 
                 // Do the checksum part, which does not need to be parseable.
                 sb.append(new Long(checkSum).toString());
@@ -928,11 +942,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             String pathPart = url.getFile();
 
             // Check with robots to see if it's allowed
-            if (robotsUsage >= ROBOTS_DATA && !robots.isFetchAllowed(protocol,port,hostName,url.getPath(),
+            if (robotsUsage >= ROBOTS_DATA && !robots.isFetchAllowed(currentContext,throttleGroupName,
+              protocol,port,hostName,url.getPath(),
               userAgent,from,
-              minimumMillisecondsPerBytePerServer,
-              maxOpenConnectionsPerServer,
-              minimumMillisecondsPerFetchPerServer,
               proxyHost, proxyPort, proxyAuthDomain, proxyAuthUsername, proxyAuthPassword,
               activities, connectionLimit))
             {
@@ -947,10 +959,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             {
 
               // Now, use the fetcher, and get the file.
-              IThrottledConnection connection = fetcher.createConnection(hostName,
-                minimumMillisecondsPerBytePerServer,
-                maxOpenConnectionsPerServer,
-                minimumMillisecondsPerFetchPerServer,
+              IThrottledConnection connection = fetcher.createConnection(currentContext,
+                throttleGroupName,
+                hostName,
                 connectionLimit,
                 feedTimeout,
                 proxyHost,
@@ -1055,11 +1066,15 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                           String[] pubDates = activities.retrieveParentData(urlValue,"pubdate");
                           String[] sources = activities.retrieveParentData(urlValue,"source");
                           String[] titles = activities.retrieveParentData(urlValue,"title");
+                          String[] authorNames = activities.retrieveParentData(urlValue,"authorname");
+                          String[] authorEmails = activities.retrieveParentData(urlValue,"authoremail");
                           String[] categories = activities.retrieveParentData(urlValue,"category");
                           String[] descriptions = activities.retrieveParentData(urlValue,"description");
                           java.util.Arrays.sort(pubDates);
                           java.util.Arrays.sort(sources);
                           java.util.Arrays.sort(titles);
+                          java.util.Arrays.sort(authorNames);
+                          java.util.Arrays.sort(authorEmails);
                           java.util.Arrays.sort(categories);
                           java.util.Arrays.sort(descriptions);
 
@@ -1092,7 +1107,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                           packList(sb,categories,'+');
                           // The descriptions
                           packList(sb,descriptions,'+');
-
+                          // The author names
+                          packList(sb,authorNames,'+');
+                          // The author emails
+                          packList(sb,authorEmails,'+');
                         }
                         else
                         {
@@ -1322,6 +1340,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           startPos = unpackList(categories,version,startPos,'+');
           ArrayList descriptions = new ArrayList();
           startPos = unpackList(descriptions,version,startPos,'+');
+          ArrayList authorNames = new ArrayList();
+          startPos = unpackList(authorNames,version,startPos,'+');
+          ArrayList authorEmails = new ArrayList();
+          startPos = unpackList(authorEmails,version,startPos,'+');
 
           if (ingestURL.length() > 0)
           {
@@ -1389,6 +1411,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
             if (k > 0)
               rd.addField("title",titleValues);
+
+            // Loop through the author names to add those to the metadata
+            String[] authorNameValues = new String[authorNames.size()];
+            k = 0;
+            while (k < authorNameValues.length)
+            {
+              authorNameValues[k] = (String)authorNames.get(k);
+              k++;
+            }
+            if (k > 0)
+              rd.addField("authorname",authorNameValues);
+
+            // Loop through the author emails to add those to the metadata
+            String[] authorEmailValues = new String[authorEmails.size()];
+            k = 0;
+            while (k < authorEmailValues.length)
+            {
+              authorEmailValues[k] = (String)authorEmails.get(k);
+              k++;
+            }
+            if (k > 0)
+              rd.addField("authoremail",authorEmailValues);
             
             // Loop through the descriptions to add those to the metadata
             String[] descriptionValues = new String[descriptions.size()];
@@ -1651,6 +1695,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     String proxyAuthPassword = parameters.getObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD);
     if (proxyAuthPassword == null)
       proxyAuthPassword = "";
+    else
+      proxyAuthPassword = out.mapPasswordToKey(proxyAuthPassword);
       
     // Email tab
     if (tabName.equals(Messages.getString(locale,"RSSConnector.Email")))
@@ -1819,7 +1865,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       parameters.setParameter(RSSConfig.PARAMETER_PROXYAUTHUSERNAME,proxyAuthUsername);
     String proxyAuthPassword = variableContext.getParameter("proxyauthpassword");
     if (proxyAuthPassword != null)
-      parameters.setObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD,proxyAuthPassword);
+      parameters.setObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD,variableContext.mapKeyToPassword(proxyAuthPassword));
 
     return null;
   }
@@ -3806,6 +3852,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected String pubDateField = null;
     protected String titleField = null;
     protected String descriptionField = null;
+    protected String authorEmailField = null;
+    protected String authorNameField = null;
     protected ArrayList categoryField = new ArrayList();
     protected File contentsFile = null;
 
@@ -3843,6 +3891,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       else if (localName.equals("category"))
       {
         // "category" tag
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
+      }
+      else if (localName.equals("author"))
+      {
+        // "author" tag, which contains email
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
+      }
+      else if (localName.equals("creator"))
+      {
+        // "creator" tag which contains name (like dc:creator)
         return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
@@ -3941,6 +3999,14 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         categoryField.add(((XMLStringParsingContext)theContext).getValue());
       }
+      else if (theTag.equals("author"))
+      {
+        authorEmailField = ((XMLStringParsingContext)theContext).getValue();
+      }
+      else if (theTag.equals("creator"))
+      {
+        authorNameField = ((XMLStringParsingContext)theContext).getValue();
+      }
       else
       {
         // What we want is: (a) if dechromed mode is NONE, just put the description file in the description field; (b)
@@ -4038,22 +4104,26 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               if (contentsFile == null && filter.getChromedContentMode() != CHROMED_METADATA_ONLY)
               {
                 // It's a reference!  Add it.
-                String[] dataNames = new String[]{"pubdate","title","source","category","description"};
+                String[] dataNames = new String[]{"pubdate","title","source","authoremail","authorname","category","description"};
                 String[][] dataValues = new String[dataNames.length][];
                 if (origDate != null)
                   dataValues[0] = new String[]{origDate.toString()};
                 if (titleField != null)
                   dataValues[1] = new String[]{titleField};
                 dataValues[2] = new String[]{documentIdentifier};
-                dataValues[3] = new String[categoryField.size()];
+                if (authorEmailField != null)
+                  dataValues[3] = new String[]{authorEmailField};
+                if (authorNameField != null)
+                  dataValues[4] = new String[]{authorNameField};
+                dataValues[5] = new String[categoryField.size()];
                 int q = 0;
                 while (q < categoryField.size())
                 {
-                  (dataValues[3])[q] = (String)categoryField.get(q);
+                  (dataValues[5])[q] = (String)categoryField.get(q);
                   q++;
                 }
                 if (descriptionField != null)
-                  dataValues[4] = new String[]{descriptionField};
+                  dataValues[6] = new String[]{descriptionField};
                 // Add document reference, not including the data to pass down, but including a description
                 activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
               }
@@ -4067,30 +4137,34 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 // Since the dechromed data is available from the feed, the possibility remains of passing the document
 
                 // Now, set up the carrydown info
-                String[] dataNames = new String[]{"pubdate","title","source","category","data","description"};
+                String[] dataNames = new String[]{"pubdate","title","source","authoremail","authorname","category","data","description"};
                 Object[][] dataValues = new Object[dataNames.length][];
                 if (origDate != null)
                   dataValues[0] = new String[]{origDate.toString()};
                 if (titleField != null)
                   dataValues[1] = new String[]{titleField};
                 dataValues[2] = new String[]{documentIdentifier};
-                dataValues[3] = new String[categoryField.size()];
+                if (authorEmailField != null)
+                  dataValues[3] = new String[]{authorEmailField};
+                if (authorNameField != null)
+                  dataValues[4] = new String[]{authorNameField};
+                dataValues[5] = new String[categoryField.size()];
                 int q = 0;
                 while (q < categoryField.size())
                 {
-                  (dataValues[3])[q] = (String)categoryField.get(q);
+                  (dataValues[5])[q] = (String)categoryField.get(q);
                   q++;
                 }
 
                 if (descriptionField != null)
-                  dataValues[5] = new String[]{descriptionField};
+                  dataValues[7] = new String[]{descriptionField};
                   
                 if (contentsFile == null)
                 {
                   CharacterInput ci = new NullCharacterInput();
                   try
                   {
-                    dataValues[4] = new Object[]{ci};
+                    dataValues[6] = new Object[]{ci};
 
                     // Add document reference, including the data to pass down, and the dechromed content too
                     activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
@@ -4106,7 +4180,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                   try
                   {
                     contentsFile = null;
-                    dataValues[4] = new Object[]{ci};
+                    dataValues[6] = new Object[]{ci};
 
                     // Add document reference, including the data to pass down, and the dechromed content too
                     activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
@@ -4252,6 +4326,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected String linkField = null;
     protected String pubDateField = null;
     protected String titleField = null;
+    protected String authorNameField = null;
     protected String descriptionField = null;
     protected File contentsFile = null;
 
@@ -4279,6 +4354,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       else if (localName.equals("title"))
       {
         // "title" tag
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
+      }
+      else if (localName.equals("creator"))
+      {
+        // "creator" tag (e.g. "dc:creator")
         return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
@@ -4366,6 +4446,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         titleField = ((XMLStringParsingContext)theContext).getValue();
       }
+      else if (theTag.equals("creator"))
+      {
+        authorNameField = ((XMLStringParsingContext)theContext).getValue();
+      }
       else
       {
         switch (dechromedContentMode)
@@ -4450,15 +4534,17 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               if (contentsFile == null && filter.getChromedContentMode() != CHROMED_METADATA_ONLY)
               {
                 // It's a reference!  Add it.
-                String[] dataNames = new String[]{"pubdate","title","source","description"};
+                String[] dataNames = new String[]{"pubdate","title","source","authorname","description"};
                 String[][] dataValues = new String[dataNames.length][];
                 if (origDate != null)
                   dataValues[0] = new String[]{origDate.toString()};
                 if (titleField != null)
                   dataValues[1] = new String[]{titleField};
                 dataValues[2] = new String[]{documentIdentifier};
+                if (authorNameField != null)
+                  dataValues[3] = new String[]{authorNameField};
                 if (descriptionField != null)
-                  dataValues[3] = new String[]{descriptionField};
+                  dataValues[4] = new String[]{descriptionField};
 
                 // Add document reference, including the data to pass down
                 activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
@@ -4471,22 +4557,24 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 // right here.
 
                 // Now, set up the carrydown info
-                String[] dataNames = new String[]{"pubdate","title","source","data","description"};
+                String[] dataNames = new String[]{"pubdate","title","source","authorname","data","description"};
                 Object[][] dataValues = new Object[dataNames.length][];
                 if (origDate != null)
                   dataValues[0] = new String[]{origDate.toString()};
                 if (titleField != null)
                   dataValues[1] = new String[]{titleField};
                 dataValues[2] = new String[]{documentIdentifier};
+                if (authorNameField != null)
+                  dataValues[3] = new String[]{authorNameField};
                 if (descriptionField != null)
-                  dataValues[4] = new String[]{descriptionField};
+                  dataValues[5] = new String[]{descriptionField};
                   
                 if (contentsFile == null)
                 {
                   CharacterInput ci = new NullCharacterInput();
                   try
                   {
-                    dataValues[3] = new Object[]{ci};
+                    dataValues[4] = new Object[]{ci};
 
                     // Add document reference, including the data to pass down, and the dechromed content too
                     activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
@@ -4502,7 +4590,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                   try
                   {
                     contentsFile = null;
-                    dataValues[3] = new Object[]{ci};
+                    dataValues[4] = new Object[]{ci};
 
                     // Add document reference, including the data to pass down, and the dechromed content too
                     activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
@@ -4648,6 +4736,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected List<String> linkField = new ArrayList<String>();
     protected String pubDateField = null;
     protected String titleField = null;
+    protected String authorNameField = null;
+    protected String authorEmailField = null;
     protected ArrayList categoryField = new ArrayList();
     protected File contentsFile = null;
     protected String descriptionField = null;
@@ -4680,6 +4770,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         // "title" tag
         return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
+      }
+      else if (localName.equals("author"))
+      {
+        return new FeedAuthorContextClass(theStream,namespace,localName,qName,atts);
       }
       else if (localName.equals("category"))
       {
@@ -4768,6 +4862,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       else if (theTag.equals("title"))
       {
         titleField = ((XMLStringParsingContext)theContext).getValue();
+      }
+      else if (theTag.equals("author"))
+      {
+        FeedAuthorContextClass authorContext = (FeedAuthorContextClass)theContext;
+        authorEmailField = authorContext.getAuthorEmail();
+        authorNameField = authorContext.getAuthorName();
       }
       else
       {
@@ -4951,6 +5051,69 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
   
+  protected class FeedAuthorContextClass extends XMLParsingContext
+  {
+    protected String authorNameField = null;
+    protected String authorEmailField = null;
+
+    public FeedAuthorContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts)
+    {
+      super(theStream,namespace,localName,qName,atts);
+    }
+
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
+    {
+      if (localName.equals("name"))
+      {
+        // "name" tag
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
+      }
+      else if (localName.equals("email"))
+      {
+        // "email" tag
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
+      }
+      else
+      {
+        // Skip everything else.
+        return super.beginTag(namespace,localName,qName,atts);
+      }
+    }
+
+    /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
+    protected void endTag()
+      throws ManifoldCFException
+    {
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
+      if (theTag.equals("name"))
+      {
+        authorNameField = ((XMLStringParsingContext)theContext).getValue();
+      }
+      else if (theTag.equals("email"))
+      {
+        authorEmailField = ((XMLStringParsingContext)theContext).getValue();
+      }
+      else
+      {
+        super.endTag();
+      }
+    }
+    
+    public String getAuthorName()
+    {
+      return authorNameField;
+    }
+    
+    public String getAuthorEmail()
+    {
+      return authorEmailField;
+    }
+  }
+
   protected class UrlsetContextClass extends XMLParsingContext
   {
     /** The document identifier */
@@ -5244,7 +5407,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   {
     synchronized (fetcherMap)
     {
-      ThrottledFetcher tf = (ThrottledFetcher)fetcherMap.get(throttleGroupName);
+      ThrottledFetcher tf = fetcherMap.get(throttleGroupName);
       if (tf == null)
       {
         tf = new ThrottledFetcher();
@@ -5336,6 +5499,47 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
   // Protected classes
+
+  /** The throttle specification class.  Each server name is a different bin in this model.
+  */
+  protected static class ThrottleSpec implements IThrottleSpec
+  {
+    protected final int maxOpenConnectionsPerServer;
+    protected final long minimumMillisecondsPerFetchPerServer;
+    protected final double minimumMillisecondsPerBytePerServer;
+    
+    public ThrottleSpec(int maxOpenConnectionsPerServer, long minimumMillisecondsPerFetchPerServer,
+      double minimumMillisecondsPerBytePerServer)
+    {
+      this.maxOpenConnectionsPerServer = maxOpenConnectionsPerServer;
+      this.minimumMillisecondsPerFetchPerServer = minimumMillisecondsPerFetchPerServer;
+      this.minimumMillisecondsPerBytePerServer = minimumMillisecondsPerBytePerServer;
+    }
+    
+    /** Given a bin name, find the max open connections to use for that bin.
+    *@return Integer.MAX_VALUE if no limit found.
+    */
+    public int getMaxOpenConnections(String binName)
+    {
+      return maxOpenConnectionsPerServer;
+    }
+
+    /** Look up minimum milliseconds per byte for a bin.
+    *@return 0.0 if no limit found.
+    */
+    public double getMinimumMillisecondsPerByte(String binName)
+    {
+      return minimumMillisecondsPerBytePerServer;
+    }
+
+    /** Look up minimum milliseconds for a fetch for a bin.
+    *@return 0 if no limit found.
+    */
+    public long getMinimumMillisecondsPerFetch(String binName)
+    {
+      return minimumMillisecondsPerFetchPerServer;
+    }
+  }
 
   /** Name/value class */
   protected static class NameValue

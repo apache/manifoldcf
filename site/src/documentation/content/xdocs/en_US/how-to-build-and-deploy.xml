@@ -79,9 +79,14 @@
         <ul>
           <li>CMIS connector</li>
           <li>Documentum connector, built against a Documentum API stub</li>
+          <li>DropBox connector</li>
           <li>FileNet connector, built against a FileNet API stub</li>
-          <li>Filesystem connector</li>
+          <li>WGET-compatible filesystem connector</li>
+          <li>Generic XML repository connector</li>
+          <li>Google Drive connector</li>
+          <li>HDFS connector</li>
           <li>JDBC connector, with just the PostgreSQL jdbc driver</li>
+          <li>Jira connector</li>
           <li>LiveLink connector, built against a LiveLink API stub</li>
           <li>Meridio connector, built against modified Meridio API WSDLs and XSDs</li>
           <li>RSS connector</li>
@@ -108,10 +113,12 @@
           <li>Apache Solr output connector</li>
           <li>OpenSearchServer output connector</li>
           <li>ElasticSearch output connector</li>
+          <li>WGET-compatible filesystem output connector</li>
+          <li>HDFS output connector</li>
           <li>Null output connector</li>
         </ul>
         <p></p>
-        <p>Each individual LGPL and proprietary connector's dependencies and build limitations are described in separate sections below.</p>
+        <p>The dependencies and build limitations of each individual LGPL and proprietary connector is described in separate sections below.</p>
         <p></p>
             
         <section>
@@ -120,7 +127,7 @@
           <p>The Alfresco connector requires the Alfresco Web Services Client provided by Alfresco in order to be built. Place this jar into the directory <em>connectors/alfresco/lib-proprietary</em> before you build.
               This will occur automatically if you execute the ant target "make-deps" from the ManifoldCF root directory.</p>
           <p></p>
-          <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-war (using "mvn package" inside the folder)
+          <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-4-war (using "mvn package" inside the folder)
               into the <em>connectors/alfresco/test-materials-proprietary</em> folder.  Then use the "ant test" or "mvn integration-test" for the standard build to execute integration tests.</p>
           <p></p>
         </section>
@@ -315,8 +322,10 @@ mvn clean package
           <tr><td><em>script-engine</em></td><td>jars and scripts for running the ManifoldCF script interpreter</td></tr>
           <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), excluding all proprietary libraries</td></tr>
           <tr><td><em>example-proprietary</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), including proprietary libraries; not included in binary release</td></tr>
-          <tr><td><em>multiprocess-example</em></td><td>scripts and jars for an example that uses the multiple process model, excluding all proprietary libraries</td></tr>
-          <tr><td><em>multiprocess-example-proprietary</em></td><td>scripts and jars for an example that uses the multiple process model, including proprietary libraries; not included in binary release</td></tr>
+          <tr><td><em>multiprocess-file-example</em></td><td>scripts and jars for an example that uses the multiple process model using file-based synchronization, excluding all proprietary libraries</td></tr>
+          <tr><td><em>multiprocess-file-example-proprietary</em></td><td>scripts and jars for an example that uses the multiple process model using file-based synchronization, including proprietary libraries; not included in binary release</td></tr>
+          <tr><td><em>multiprocess-zk-example</em></td><td>scripts and jars for an example that uses the multiple process model using ZooKeeper-based synchronization, excluding all proprietary libraries</td></tr>
+          <tr><td><em>multiprocess-zk-example-proprietary</em></td><td>scripts and jars for an example that uses the multiple process model using ZooKeeper-based synchronization, including proprietary libraries; not included in binary release</td></tr>
           <tr><td><em>web</em></td><td>app-server deployable web applications (wars), excluding all proprietary libraries</td></tr>
           <tr><td><em>web-proprietary</em></td><td>app-server deployable web applications (wars), including proprietary libraries; not included in binary release</td></tr>
           <tr><td><em>doc</em></td><td>javadocs for framework and all included connectors</td></tr>
@@ -415,15 +424,15 @@ cd example
         </section>
 
         <section>
-          <title>Simplified multi-process model</title>
+          <title>Simplified multi-process model using file-based synchronization</title>
           <p></p>
-          <p>ManifoldCF can also be deployed in a simplified multi-process model.  Inside the <em>multiprocess-example</em> directory, you will find everything you need to do this.  (The
-              <em>multiprocess-example-proprietary</em> directory is similar but includes proprietary material and is available only if you build ManifoldCF yourself.)  Below is a list of
+          <p>ManifoldCF can also be deployed in a simplified multi-process model which uses files to synchronize processes.  Inside the <em>multiprocess-file-example</em> directory, you will find everything you need to do this.  (The
+              <em>multiprocess-file-example-proprietary</em> directory is similar but includes proprietary material and is available only if you build ManifoldCF yourself.)  Below is a list of
               what you will find in this directory.</p>
           <p></p>
           <table>
-            <caption>Multiprocess example files and directories</caption>
-            <tr><th><em>multiprocess-example</em> file/directory</th><th>Meaning</th></tr>
+            <caption>File-based multiprocess example files and directories</caption>
+            <tr><th><em>multiprocess-file-example</em> file/directory</th><th>Meaning</th></tr>
             <tr><td><em>web</em></td><td>Web applications that should be deployed on tomcat or the equivalent, plus recommended application server -D switch names and values</td></tr>
             <tr><td><em>processes</em></td><td>classpath jars that should be included in the class path for all non-connector-specific processes, along with -D switches, using the same convention as described for tomcat, above</td></tr>
             <tr><td><em>properties.xml</em></td><td>an example ManifoldCF configuration file, in the right place for the multiprocess script to find it</td></tr>
@@ -433,17 +442,63 @@ cd example
             <tr><td><em>start-database[.sh|.bat]</em></td><td>script to start the HSQLDB database</td></tr>
             <tr><td><em>initialize[.sh|.bat]</em></td><td>script to create the database instance, create all database tables, and register connectors</td></tr>
             <tr><td><em>start-webapps[.sh|.bat]</em></td><td>script to start Jetty with the ManifoldCF web applications deployed</td></tr>
-            <tr><td><em>start-agents[.sh|.bat]</em></td><td>script to start the agents process</td></tr>
-            <tr><td><em>stop-agents[.sh|.bat]</em></td><td>script to stop a running agents process cleanly</td></tr>
+            <tr><td><em>start-agents[.sh|.bat]</em></td><td>script to start the (first) agents process</td></tr>
+            <tr><td><em>start-agents-2[.sh|.bat]</em></td><td>script to start a second agents process</td></tr>
+            <tr><td><em>stop-agents[.sh|.bat]</em></td><td>script to stop all running agents processes cleanly</td></tr>
             <tr><td><em>lock-clean[.sh|.bat]</em></td><td>script to clean up dirty locks (run only when all webapps and processes are stopped)</td></tr>
           </table>
           <p></p>
           <section>
             <title>Initializing the database and running</title>
             <p></p>
-            <p>If you run the multiprocess model, after you first start the database (using <em>start-database[.sh|.bat]</em>), you will need to initialize the database before you start the agents process or use the crawler UI.  To do this, all you need to do is
+            <p>If you run the file-based multiprocess model, after you first start the database (using <em>start-database[.sh|.bat]</em>), you will need to initialize the database before you start the agents process or use the crawler UI.  To do this, all you need to do is
                 run the <em>initialize[.sh|.bat]</em> script.  Then, you will need to start the web applications (using <em>start-webapps[.sh|.bat]</em>) and the agents process (using
-                <em>start-agents[.sh|.bat]</em>).</p>
+                <em>start-agents[.sh|.bat]</em>), and optionally the second agents process (using <em>start-agents-2[.sh|.bat]</em>).</p>
+            <p></p>
+          </section>
+
+        </section>
+
+        <section>
+          <title>Simplified multi-process model using ZooKeeper-based synchronization</title>
+          <p></p>
+          <p>ManifoldCF can be deployed in a simplified multi-process model which uses Apache ZooKeeper to synchronize processes.  Inside the <em>multiprocess-kz-example</em> directory, you will find everything you need to do this.  (The
+              <em>multiprocess-zk-example-proprietary</em> directory is similar but includes proprietary material and is available only if you build ManifoldCF yourself.)  Below is a list of
+              what you will find in this directory.</p>
+          <p></p>
+          <table>
+            <caption>ZooKeeper-based multiprocess example files and directories</caption>
+            <tr><th><em>multiprocess-zk-example</em> file/directory</th><th>Meaning</th></tr>
+            <tr><td><em>web</em></td><td>Web applications that should be deployed on tomcat or the equivalent, plus recommended application server -D switch names and values</td></tr>
+            <tr><td><em>processes</em></td><td>classpath jars that should be included in the class path for all non-connector-specific processes, along with -D switches, using the same convention as described for tomcat, above</td></tr>
+            <tr><td><em>properties.xml</em></td><td>an example ManifoldCF configuration file, in the right place for the multiprocess script to find it</td></tr>
+            <tr><td><em>properties-global.xml</em></td><td>an example ManifoldCF shared configuration file, in the right place for the setglobalproperties script to find it</td></tr>
+            <tr><td><em>logging.ini</em></td><td>an example ManifoldCF logging configuration file, in the right place for the properties.xml to find it</td></tr>
+            <tr><td><em>zookeeper</em></td><td>the example ZooKeeper storage directory, which must be writable in order for ZooKeeper to work</td></tr>
+            <tr><td><em>logs</em></td><td>where the ManifoldCF logs get written to</td></tr>
+            <tr><td><em>runzookeeper[.sh|.bat]</em></td><td>script to run a ZooKeeper server instance</td></tr>
+            <tr><td><em>setglobalproperties[.sh|.bat]</em></td><td>script to initialize ZooKeeper with properties from properties-global.xml</td></tr>
+            <tr><td><em>start-database[.sh|.bat]</em></td><td>script to start the HSQLDB database</td></tr>
+            <tr><td><em>initialize[.sh|.bat]</em></td><td>script to create the database instance, create all database tables, and register connectors</td></tr>
+            <tr><td><em>start-webapps[.sh|.bat]</em></td><td>script to start Jetty with the ManifoldCF web applications deployed</td></tr>
+            <tr><td><em>start-agents[.sh|.bat]</em></td><td>script to start (the first) agents process</td></tr>
+            <tr><td><em>start-agents-2[.sh|.bat]</em></td><td>script to start a second agents process</td></tr>
+            <tr><td><em>stop-agents[.sh|.bat]</em></td><td>script to stop all running agents processes cleanly</td></tr>
+          </table>
+          <p></p>
+          <section>
+            <title>Initializing the database and running</title>
+            <p></p>
+            <p>If you run the ZooKeeper-based multiprocess example, then you must follow the following steps:</p>
+            <p></p>
+            <ol>
+              <li>Start ZooKeeper (using the <em>runzookeeper[.sh|.bat]</em> script)</li>
+              <li>Initialize the ManifoldCF shared configuration data (using <em>setglobalproperties[.sh|.bat]</em>)</li>
+              <li>Start the database (using <em>start-database[.sh|.bat]</em>)</li>
+              <li>Initialize the database (using <em>initialize[.sh|.bat]</em>)</li>
+              <li>Start the agents process (using <em>start-agents[.sh|.bat]</em>, and optionally <em>start-agents-2[.sh|.bat]</em>)</li>
+              <li>Start the web applications (using <em>start-webapps[.sh|.bat]</em>)</li>
+            </ol>
             <p></p>
           </section>
 
@@ -476,7 +531,7 @@ cd example
             MCF_HOME, which should point to ManifoldCF's home execution directory, where the <em>properties.xml</em> file is found.)</p>
             
           <p></p>
-          <p>The basic steps required to set up and run ManifoldCF in command-driven multi-process mode are as follows:</p>
+          <p>The basic steps required to set up and run ManifoldCF in command-driven file-based multi-process mode are as follows:</p>
           <p></p>
           <ul>
             <li>Install PostgreSQL or MySQL.  The PostgreSQL JDBC driver included with ManifoldCF is known to work with version 9.1, so that version is the currently recommended
@@ -547,6 +602,20 @@ cd example
               correct arguments and settings.</p>
             <p></p>
             <table>
+              <tr><th>Authorization Domain Command Class</th><th>Arguments</th><th>Function</th></tr>
+              <tr><td>org.apache.manifoldcf.authorities.RegisterDomain</td><td><em>domainname</em> <em>description</em></td><td>Register an authorization domain</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.UnRegisterDomain</td><td><em>domainname</em></td><td>Un-register an authorization domain</td></tr>
+            </table>
+            <p></p>
+            <table>
+              <tr><th>User Mapping Command Class</th><th>Arguments</th><th>Function</th></tr>
+              <tr><td>org.apache.manifoldcf.authorities.RegisterMapper</td><td><em>classname</em> <em>description</em></td><td>Register a mapping connector class</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.UnRegisterMapper</td><td><em>classname</em></td><td>Un-register a mapping connector class</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.UnRegisterAllMappers</td><td>None</td><td>Un-register all mapping connector classes</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.SynchronizeMappers</td><td>None</td><td>Un-register all registered mapping connector classes that can't be found</td></tr>
+            </table>
+            <p></p>
+            <table>
               <tr><th>Authority Command Class</th><th>Arguments</th><th>Function</th></tr>
               <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td><em>classname</em> <em>description</em></td><td>Register an authority connector class</td></tr>
               <tr><td>org.apache.manifoldcf.authorities.UnRegisterAuthority</td><td><em>classname</em></td><td>Un-register an authority connector class</td></tr>
@@ -554,8 +623,8 @@ cd example
               <tr><td>org.apache.manifoldcf.authorities.SynchronizeAuthorities</td><td>None</td><td>Un-register all registered authority connector classes that can't be found</td></tr>
             </table>
             <p></p>
-            <p>Remember that you need to include all the jars under <em>multiprocess-example/processes/lib</em> in the classpath whenever you run one of these commands!
-                But, luckily, there are scripts which do this for you.  These can be found in <em>multiprocess-example/processes/executecommand[.sh,.bat]</em>.
+            <p>Remember that you need to include all the jars under <em>multiprocess-file-example/processes/lib</em> in the classpath whenever you run one of these commands!
+                But, luckily, there are scripts which do this for you.  These can be found in <em>multiprocess-file-example/processes/executecommand[.sh,.bat]</em>.
                 The scripts require some environment variables to be set, such as <em>MCF_HOME</em> and <em>JAVA_HOME</em>, and expect the configuration file to be
                 found at <em>MCF_HOME/properties.xml</em>.</p>
             <p></p>
@@ -608,8 +677,8 @@ cd example
         <p>&#60;outputconnector name="<em>pretty_name</em>" class="<em>connector_class</em>"/&#62;</p>
         <p></p>
         <p>The <em>connectors.xml</em> file typically has some connectors commented out - namely the ones build with stubs which require you to supply a
-          third-party library in order for the connector to run.  If you build ManifoldCF yourself, the <em>example-proprietary</em> and <em>multiprocess-example-proprietary</em>
-          directories instead use <em>connectors-proprietary.xml</em>.  The connectors you build against the proprietary libraries you supply will not have their
+          third-party library in order for the connector to run.  If you build ManifoldCF yourself, the <em>example-proprietary</em> and <em>multiprocess-file-example-proprietary</em>
+          and <em>multiprocess-zk-example-proprietary</em> directories instead use <em>connectors-proprietary.xml</em>.  The connectors you build against the proprietary libraries you supply will not have their
           <em>connectors-proprietary.xml</em> tags commented out.</p>
         <p></p>
       </section>
@@ -687,7 +756,7 @@ cd example
             <tr><td>tcpip_socket</td><td>true</td></tr>
             <tr><td>max_connections</td><td>400</td></tr>
             <tr><td>checkpoint_timeout</td><td>900</td></tr>
-            <tr><td>datastyle</td><td>ISO,European</td></tr>
+            <tr><td>datestyle</td><td>ISO,European</td></tr>
             <tr><td>autovacuum</td><td>off</td></tr>
           </table>
           <p></p>
@@ -745,6 +814,8 @@ cd example
             when operating without any apparent stalls due to the above issues, Derby is still only about 1/4 as fast as PostgreSQL.  At the moment this limits Derby's utility for
             ManifoldCF to demonstration and testing.</p>
         </section>
+        
+        
       </section>
         
       <section>
@@ -778,6 +849,8 @@ cd example
           <table>
             <caption>Property.xml properties</caption>
             <tr><th>Property</th><th>Required?</th><th>Function</th></tr>
+            <tr><td>org.apache.manifoldcf.login.name</td><td>No</td><td>Crawler UI login user ID (defaults to "admin")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.password</td><td>No</td><td>Crawler UI login user password (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.crawleruiwarpath</td><td>Yes, for Jetty</td><td>Location of Crawler UI war</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservicewarpath</td><td>Yes, for Jetty</td><td>Location of Authority Service war</td></tr>
             <tr><td>org.apache.manifoldcf.apiservicewarpath</td><td>Yes, for Jetty</td><td>Location of API Service war</td></tr>
@@ -786,6 +859,10 @@ cd example
             <tr><td>org.apache.manifoldcf.connectorsconfigurationfile</td><td>No</td><td>Location of connectors.xml file, for QuickStart, so ManifoldCF can register connectors.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperusername</td><td>No</td><td>Database superuser name, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
+            <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>The maximum number of documents ManifoldCF will try to count for the job status display.  Defaults to 500000.</td></tr>
+            <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.
+                Default is a built-in PostgreSQL implementation.  Supported choices are: org.apache.manifoldcf.core.database.DBInterfaceDerby,
+                org.apache.manifoldcf.core.database.DBInterfacePostgreSQL, org.apache.manifoldcf.core.database.DBInterfaceHSQLDB</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.hostname</td><td>No</td><td>PostgreSQL server host name, or localhost if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.port</td><td>No</td><td>PostgreSQL server port, or standard port if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
@@ -796,9 +873,17 @@ cd example
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseport</td><td>No</td><td>The HSQLDB remote server port.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseinstance</td><td>No</td><td>The HSQLDB remote database instance name.</td></tr>
             <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL server name.  Defaults to 'localhost'.</td></tr>
-            <tr><td>org.apache.manifoldcf.lockmanagerclass</td><td>No</td><td>Specifies the class to use to implement synchronization.  Default is a built-in file-based synchronization class.</td></tr>
-            <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.  Default is a built-in PostgreSQL implementation.  Supported choices are: org.apache.manifoldcf.core.database.DBInterfaceDerby, org.apache.manifoldcf.core.database.DBInterfacePostgreSQL, org.apache.manifoldcf.core.database.DBInterfaceHSQLDB</td></tr>
-            <tr><td>org.apache.manifoldcf.synchdirectory</td><td>Yes, if file-based synchronization class is used</td><td>Specifies the path of a synchronization directory.  All ManifoldCF process owners <strong>must</strong> have read/write privileges to this directory.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.client</td><td>No</td><td>The MySQL client property.  Defaults to 'localhost'.  You may want to set this to '%' for a multi-machine setup.</td></tr>
+            <tr><td>org.apache.manifoldcf.lockmanagerclass</td><td>No</td><td>Specifies the class to use to implement synchronization.  Default
+                is either file-based synchronization or in-memory synchronization, using the org.apache.manifoldcf.core.lockmanager.LockManager class.
+                Options include org.apache.manifoldcf.core.lockmanager.BaseLockManager, org.apache.manifoldcf.core.FileLockManager, and
+                org.apache.manifoldcf.core.lockmanager.ZooKeeperLockManager.</td></tr>
+            <tr><td>org.apache.manifoldcf.synchdirectory</td><td>Yes, if file-based synchronization class is specified</td><td>Specifies the path of a
+                synchronization directory.  All ManifoldCF process owners <strong>must</strong> have read/write privileges to this directory.</td></tr>
+            <tr><td>org.apache.manifoldcf.zookeeper.connectstring</td><td>Yes, if ZooKeeper-based synchronization class is specified</td><td>Specifies the ZooKeeper
+                connection string, consisting of comma-separated hostname:port pairs.</td></tr>
+            <tr><td>org.apache.manifoldcf.zookeeper.sessiontimeout</td><td>No</td><td>Specifies the ZooKeeper
+                session timeout, if ZooKeeperLockManager is specified.  Defaults to 2000.</td></tr>
             <tr><td>org.apache.manifoldcf.database.maxhandles</td><td>No</td><td>Specifies the maximum number of database connection handles that will by pooled.  Recommended value is 200.</td></tr>
             <tr><td>org.apache.manifoldcf.database.handletimeout</td><td>No</td><td>Specifies the maximum time a handle is to live before it is presumed dead.  Recommend a value of 604800, which is the maximum allowable.</td></tr>
             <tr><td>org.apache.manifoldcf.database.connectiontracking</td><td>No</td><td>True or false.  When "true", will track all allocated database connection handles, and will dump an allocation stack trace when the pool is exhausted.  Useful for diagnosing connection leaks.</td></tr>
@@ -810,6 +895,7 @@ cd example
             <tr><td>org.apache.manifoldcf.crawler.expirethreads</td><td>No</td><td>Number of crawler expiration threads created.  Suggest a value of 10.</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.cleanupthreads</td><td>No</td><td>Number of crawler cleanup threads created.  Suggest a value of 10.</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.deletethreads</td><td>No</td><td>Number of crawler delete threads created.  Suggest a value of 10.</td></tr>
+            <tr><td>org.apache.manifoldcf.crawler.historycleanupinterval</td><td>No</td><td>Milliseconds to retain history records.  Default is 0.  Zero means "forever".</td></tr>
             <tr><td>org.apache.manifoldcf.misc</td><td>No</td><td>Miscellaneous debugging output.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.db</td><td>No</td><td>Database debugging output.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.lock</td><td>No</td><td>Lock management debugging output.  Legal values INFO, WARN, or DEBUG.</td></tr>
@@ -916,7 +1002,47 @@ mvn exec:exec
         <p>In a multi process setup, all of the ManifoldCF processes might as well exist on their own.  You can learn how to programmatically start the agents process by looking at the code
           in the AgentRun command class, as described above.  Similarly, the command classes that register connectors are very small and should be easy to understand.</p>
       </section>
-      
+
+      <section>
+          <title>Integrating ManifoldCF with a search engine</title>
+          <p></p>
+          <p>ManifoldCF's Authority Service is designed to allow maximum flexibility in integrating ManifoldCF security with search engines.  The
+                service receives a user identity (as a set of authorization domain/user name tuples), and produces a set of tokens.  It also returns a 
+                summary of the status of all authorities that were involved in the assembly of the set of tokens, as a nicety.  A search engine user
+                interface could thus signal the user when the results they might be seeing are incomplete, and why.</p>
+          <p>The Authority Service expects the following arguments, passed as URL arguments and properly URL encoded:</p>
+          <p></p>
+          <table>
+            <caption>Authority Service URL parameters</caption>
+            <tr><th>Authority Service URL parameter</th><th>Meaning</th></tr>
+            <tr><td>username</td><td>the username, if there is only one authorization domain</td></tr>
+            <tr><td>domain</td><td>the optional authorization domain if there is only one authorization domain (defaults to empty string)</td></tr>
+            <tr><td>username_<em>XX</em></td><td>username number <em>XX</em>, where <em>XX</em> is an integer starting at zero</td></tr>
+            <tr><td>domain_<em>XX</em></td><td>authorization domain <em>XX</em>, where <em>XX</em> is an integer starting at zero</td></tr>
+          </table>
+          <p></p>
+          <p>Access tokens and authority statuses are returned in the HTTP response separated by newline characters.  Each line has a prefix
+                as follows:</p>
+          <p></p>
+          <table>
+            <caption>Authority Service response prefixes</caption>
+            <tr><th>Authority Service response prefix</th><th>Meaning</th></tr>
+            <tr><td>TOKEN:</td><td>An access token</td></tr>
+            <tr><td>AUTHORIZED:</td><td>The name of an authority that found the user to be authorized</td></tr>
+            <tr><td>UNREACHABLEAUTHORITY:</td><td>The name of an authority that was found to be unreachable or unusable</td></tr>
+            <tr><td>UNAUTHORIZED:</td><td>The name of an authority that found the user to be unauthorized</td></tr>
+            <tr><td>USERNOTFOUND:</td><td>The name of an authority that could not find the user</td></tr>
+          </table>
+          <p></p>
+          <p>It is important to remember that only the "TOKEN:" lines actually matter for security.  Even if any of the error conditions apply, the set
+                of tokens returned by the Authority Service will be correctly supplied in order to apply appropriate security to documents being searched.</p>
+          <p>If you choose to deploy a search-engine plugin supplied by the Apache ManifoldCF project (for example, the Solr plugin), you will not need
+                know any of the above, since part of the plugin's purpose is to communicate with the Authority Service and apply the access tokens that are
+                returned to the search query automatically.  Some plugins, such as the ElasticSearch plugin, are more or less like toolkits, but still hide most
+                of the above from the integrator.  In a more highly customized system, however, you may need to develop your own code which interacts
+                with the Authority Service in order to meet your goals.</p>
+      </section>
+
     </section>
   </body>
 

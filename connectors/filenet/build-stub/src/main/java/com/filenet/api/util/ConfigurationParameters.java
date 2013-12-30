@@ -18,8 +18,8 @@
 */
 package com.filenet.api.util;
 
-/** Stub interface to allow the connector to build fully.
+/** Stub class to allow the connector to build fully.
 */
-public interface ConfigurationParameters
+public class ConfigurationParameters implements java.io.Serializable
 {
 }

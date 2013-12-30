@@ -22,6 +22,7 @@ package org.apache.manifoldcf.agents.output.elasticsearch;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
@@ -96,7 +97,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     @Override
     public void writeTo(OutputStream out)
       throws IOException {
-      PrintWriter pw = new PrintWriter(out);
+      PrintWriter pw = new PrintWriter(new OutputStreamWriter(out, "utf-8"));
       try
       {
         pw.print("{");
@@ -115,17 +116,19 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           if(needComma){
             pw.print(",");
           }
-          pw.print("\"type\" : \"attachment\",");
+          // I'm told this is not necessary: see CONNECTORS-690
+          //pw.print("\"type\" : \"attachment\",");
+          pw.print("\"file\" : {");
           String contentType = document.getMimeType();
           if (contentType != null)
             pw.print("\"_content_type\" : "+jsonStringEscape(contentType)+",");
           String fileName = document.getFileName();
           if (fileName != null)
             pw.print("\"_name\" : "+jsonStringEscape(fileName)+",");
-          pw.print("\"file\" : \"");
+          pw.print(" \"content\" : \"");
           Base64 base64 = new Base64();
           base64.encodeStream(inputStream, pw);
-          pw.print("\"");
+          pw.print("\"}");
         }
         
         pw.print("}");
@@ -134,6 +137,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
         throw new IOException(e.getMessage());
       } finally
       {
+        pw.flush();
         IOUtils.closeQuietly(pw);
       }
     }
@@ -196,9 +200,22 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     for (int i = 0; i < value.length(); i++)
     {
       char x = value.charAt(i);
-      if (x == '\"' || x == '\\' || x == '/')
-        sb.append('\\');
-      sb.append(x);
+      if (x == '\n')
+        sb.append('\\').append('n');
+      else if (x == '\r')
+        sb.append('\\').append('r');
+      else if (x == '\t')
+        sb.append('\\').append('t');
+      else if (x == '\b')
+        sb.append('\\').append('b');
+      else if (x == '\f')
+        sb.append('\\').append('f');
+      else
+      {
+        if (x == '\"' || x == '\\' || x == '/')
+          sb.append('\\');
+        sb.append(x);
+      }
     }
     sb.append("\"");
     return sb.toString();

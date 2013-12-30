@@ -73,6 +73,20 @@ function checkConfigForSave()
     editconnection.path.focus();
     return false;
   }
+  if (editconnection.socketTimeout.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.TheSocketTimeoutMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.Server'))");
+    editconnection.socketTimeout.focus();
+    return false;
+  } 
+  else if (!isInteger(editconnection.socketTimeout.value))
+  {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.TheSocketTimeoutMustBeAValidInteger'))");
+      SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.Server'))");
+      editconnection.socketTimeout.focus();
+      return false;
+  }
   return true;
 }
 // -->

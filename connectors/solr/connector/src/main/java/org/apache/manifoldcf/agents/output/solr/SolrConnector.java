@@ -110,6 +110,16 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     }
   }
 
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return poster != null;
+  }
+
   /** Close the connection.  Call this before discarding the connection.
   */
   @Override
@@ -160,6 +170,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (createdDateAttributeName == null || createdDateAttributeName.length() == 0)
         createdDateAttributeName = null;
   
+      String indexedDateAttributeName = params.getParameter(SolrConfig.PARAM_INDEXEDDATEFIELD);
+      if (indexedDateAttributeName == null || indexedDateAttributeName.length() == 0)
+        indexedDateAttributeName = null;
+
       String fileNameAttributeName = params.getParameter(SolrConfig.PARAM_FILENAMEFIELD);
       if (fileNameAttributeName == null || fileNameAttributeName.length() == 0)
         fileNameAttributeName = null;
@@ -273,7 +287,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             connectTimeout,socketTimeout,
             updatePath,removePath,statusPath,realm,userID,password,
             allowAttributeName,denyAttributeName,idAttributeName,
-            modifiedDateAttributeName,createdDateAttributeName,
+            modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,
             keystoreManager,maxDocumentLength,commitWithin);
           
@@ -328,7 +342,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             zkClientTimeout,zkConnectTimeout,
             updatePath,removePath,statusPath,
             allowAttributeName,denyAttributeName,idAttributeName,
-            modifiedDateAttributeName,createdDateAttributeName,
+            modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,
             maxDocumentLength,commitWithin);
           
@@ -420,6 +434,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public String getOutputDescription(OutputSpecification spec)
     throws ManifoldCFException, ServiceInterruption
   {
+    getSession();
+    
     StringBuilder sb = new StringBuilder();
 
     // All the arguments need to go into this string, since they affect ingestion.
@@ -459,6 +475,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     {
       String name = sortArray[i++];
       ArrayList values = (ArrayList)args.get(name);
+      java.util.Collections.sort(values);
       int j = 0;
       while (j < values.size())
       {
@@ -473,45 +490,52 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     
     packList(sb,nameValues,'+');
     
-    Map fieldMap = new HashMap();
+    // Do the source/target pairs
     i = 0;
-    while (i < spec.getChildCount())
-    {
+    Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
+    while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP))
-      {
+      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
         String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
         String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
-        if (target == null)
+        if (target == null) {
           target = "";
-        fieldMap.put(source,target);
+        }
+        List<String> list = (List<String>)sourceTargets.get(source);
+        if (list == null) {
+          list = new ArrayList<String>();
+          sourceTargets.put(source, list);
+        }
+        list.add(target);
       }
     }
     
-    sortArray = new String[fieldMap.size()];
+    sortArray = new String[sourceTargets.size()];
+    iter = sourceTargets.keySet().iterator();
     i = 0;
-    iter = fieldMap.keySet().iterator();
-    while (iter.hasNext())
-    {
+    while (iter.hasNext()) {
       sortArray[i++] = (String)iter.next();
     }
     java.util.Arrays.sort(sortArray);
     
-    ArrayList sourceTargets = new ArrayList();
-    
+    ArrayList sourceTargetsList = new ArrayList();
     i = 0;
-    while (i < sortArray.length)
-    {
+    while (i < sortArray.length) {
       String source = sortArray[i++];
-      String target = (String)fieldMap.get(source);
-      fixedList[0] = source;
-      fixedList[1] = target;
-      StringBuilder pairBuffer = new StringBuilder();
-      packFixedList(pairBuffer,fixedList,'=');
-      sourceTargets.add(pairBuffer.toString());
+      List<String> values = (List<String>)sourceTargets.get(source);
+      java.util.Collections.sort(values);
+      int j = 0;
+      while (j < values.size()) {
+        String target = (String)values.get(j++);
+        fixedList[0] = source;
+        fixedList[1] = target;
+        StringBuilder pairBuffer = new StringBuilder();
+        packFixedList(pairBuffer,fixedList,'=');
+        sourceTargetsList.add(pairBuffer.toString());
+      }
     }
     
-    packList(sb,sourceTargets,'+');
+    packList(sb,sourceTargetsList,'+');
 
     // Here, append things which we have no intention of unpacking.  This includes stuff that comes from
     // the configuration information, for instance.
@@ -556,6 +580,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption
   {
+    getSession();
     if (includedMimeTypes != null && includedMimeTypes.get(mimeType) == null)
       return false;
     if (excludedMimeTypes != null && excludedMimeTypes.get(mimeType) != null)
@@ -572,6 +597,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public boolean checkLengthIndexable(String outputDescription, long length)
     throws ManifoldCFException, ServiceInterruption
   {
+    getSession();
     if (maxDocumentLength != null && length > maxDocumentLength.longValue())
       return false;
     return super.checkLengthIndexable(outputDescription,length);
@@ -597,7 +623,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   {
     // Build the argument map we'll send.
     Map args = new HashMap();
-    Map sourceTargets = new HashMap();
+    Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
     int index = 0;
     ArrayList nameValues = new ArrayList();
     index = unpackList(nameValues,outputDescription,index,'+');
@@ -623,11 +649,17 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     
     // Do the source/target pairs
     i = 0;
-    while (i < sts.size())
-    {
+    while (i < sts.size()) {
       String x = (String)sts.get(i++);
       unpackFixedList(fixedBuffer,x,0,'=');
-      sourceTargets.put(fixedBuffer[0],fixedBuffer[1]);
+      String source = fixedBuffer[0];
+      String target = fixedBuffer[1];
+      List<String> list = (List<String>)sourceTargets.get(source);
+      if (list == null) {
+        list = new ArrayList<String>();
+        sourceTargets.put(source, list);
+      }
+      list.add(target);
     }
 
     // Establish a session
@@ -1059,6 +1091,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String createdDateField = parameters.getParameter(SolrConfig.PARAM_CREATEDDATEFIELD);
     if (createdDateField == null)
       createdDateField = "";
+
+    String indexedDateField = parameters.getParameter(SolrConfig.PARAM_INDEXEDDATEFIELD);
+    if (indexedDateField == null)
+      indexedDateField = "";
     
     String fileNameField = parameters.getParameter(SolrConfig.PARAM_FILENAMEFIELD);
     if (fileNameField == null)
@@ -1079,6 +1115,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String password = parameters.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
     if (password == null)
       password = "";
+    else
+      password = out.mapPasswordToKey(password);
     
     String commits = parameters.getParameter(SolrConfig.PARAM_COMMITS);
     if (commits == null)
@@ -1435,6 +1473,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       out.print(
 "<input type=\"hidden\" name=\"count_zookeeper\" value=\""+k+"\"/>\n"+
 "<input type=\"hidden\" name=\"znodepath\" value=\""+znodePath+"\"/>\n"+
+"<input type=\"hidden\" name=\"collection\" value=\""+collection+"\"/>\n"+
 "<input type=\"hidden\" name=\"zkclienttimeout\" value=\""+zkClientTimeout+"\"/>\n"+
 "<input type=\"hidden\" name=\"zkconnecttimeout\" value=\""+zkConnectTimeout+"\"/>\n"
       );
@@ -1502,6 +1541,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.IndexedDateFieldName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"indexeddatefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(indexedDateField)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.FileNameFieldName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"filenamefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fileNameField)+"\"/>\n"+
@@ -1522,6 +1567,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input type=\"hidden\" name=\"idfield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"modifieddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(modifiedDateField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"createddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(createdDateField)+"\"/>\n"+
+"<input type=\"hidden\" name=\"indexeddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(indexedDateField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"filenamefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fileNameField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"mimetypefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"
       );
@@ -1811,6 +1857,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (createdDateField != null)
       parameters.setParameter(SolrConfig.PARAM_CREATEDDATEFIELD,createdDateField);
 
+    String indexedDateField = variableContext.getParameter("indexeddatefield");
+    if (indexedDateField != null)
+      parameters.setParameter(SolrConfig.PARAM_INDEXEDDATEFIELD,indexedDateField);
+
     String fileNameField = variableContext.getParameter("filenamefield");
     if (fileNameField != null)
       parameters.setParameter(SolrConfig.PARAM_FILENAMEFIELD,fileNameField);
@@ -1829,7 +1879,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 		
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter(SolrConfig.PARAM_PASSWORD,password);
+      parameters.setObfuscatedParameter(SolrConfig.PARAM_PASSWORD,variableContext.mapKeyToPassword(password));
     
     String maxLength = variableContext.getParameter("maxdocumentlength");
     if (maxLength != null)
@@ -2218,21 +2268,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
     throws ManifoldCFException, IOException
   {
-    // Prep for field mapping tab
-    HashMap fieldMap = new HashMap();
     int i = 0;
-    while (i < os.getChildCount())
-    {
-      SpecificationNode sn = os.getChild(i++);
-      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP))
-      {
-        String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
-        String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
-        if (target != null && target.length() == 0)
-          target = null;
-        fieldMap.put(source,target);
-      }
-    }
     
     // Field Mapping tab
     if (tabName.equals(Messages.getString(locale,"SolrConnector.SolrFieldMapping")))
@@ -2251,30 +2287,25 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "        </tr>\n"
       );
 
-      String[] sourceFieldNames = new String[fieldMap.size()];
-      Iterator iter = fieldMap.keySet().iterator();
-      i = 0;
-      while (iter.hasNext())
-      {
-        sourceFieldNames[i++] = (String)iter.next();
-      }
-      java.util.Arrays.sort(sourceFieldNames);
-      
       int fieldCounter = 0;
       i = 0;
-      while (i < sourceFieldNames.length)
-      {
-        String source = sourceFieldNames[i++];
-        String target = (String)fieldMap.get(source);
-        String targetDisplay = target;
-        if (target == null)
-        {
-          target = "";
-          targetDisplay = "(remove)";
-        }
-        // It's prefix will be...
-        String prefix = "solr_fieldmapping_" + Integer.toString(fieldCounter);
-        out.print(
+      while (i < os.getChildCount()) {
+        SpecificationNode sn = os.getChild(i++);
+        if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
+          String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
+          String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
+          if (target != null && target.length() == 0) {
+            target = null;
+          }
+          String targetDisplay = target;
+          if (target == null)
+          {
+            target = "";
+            targetDisplay = "(remove)";
+          }
+          // It's prefix will be...
+          String prefix = "solr_fieldmapping_" + Integer.toString(fieldCounter);
+          out.print(
 "        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <a name=\""+prefix+"\">\n"+
@@ -2291,8 +2322,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(targetDisplay)+"</nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"
-        );
-        fieldCounter++;
+          );
+          fieldCounter++;
+        }
       }
       
       if (fieldCounter == 0)
@@ -2327,25 +2359,27 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     else
     {
       // Hiddens for field mapping
-      out.print(
-"<input type=\"hidden\" name=\"solr_fieldmapping_count\" value=\""+Integer.toString(fieldMap.size())+"\"/>\n"
-      );
-      Iterator iter = fieldMap.keySet().iterator();
+      i = 0;
       int fieldCounter = 0;
-      while (iter.hasNext())
-      {
-        String source = (String)iter.next();
-        String target = (String)fieldMap.get(source);
-        if (target == null)
-          target = "";
+      while (i < os.getChildCount()) {
+        SpecificationNode sn = os.getChild(i++);
+        if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
+          String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
+          String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
+          if (target == null)
+            target = "";
         // It's prefix will be...
-        String prefix = "solr_fieldmapping_" + Integer.toString(fieldCounter);
-        out.print(
+          String prefix = "solr_fieldmapping_" + Integer.toString(fieldCounter);
+          out.print(
 "<input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"
-        );
-        fieldCounter++;
+          );
+          fieldCounter++;
+        }
       }
+      out.print(
+"<input type=\"hidden\" name=\"solr_fieldmapping_count\" value=\""+Integer.toString(fieldCounter)+"\"/>\n"
+      );
     }
 
   }
@@ -2424,27 +2458,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     // Prep for field mappings
     HashMap fieldMap = new HashMap();
     int i = 0;
-    while (i < os.getChildCount())
-    {
-      SpecificationNode sn = os.getChild(i++);
-      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP))
-      {
-        String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
-        String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
-        if (target != null && target.length() == 0)
-          target = null;
-        fieldMap.put(source,target);
-      }
-    }
-
-    String[] sourceFieldNames = new String[fieldMap.size()];
-    Iterator iter = fieldMap.keySet().iterator();
-    i = 0;
-    while (iter.hasNext())
-    {
-      sourceFieldNames[i++] = (String)iter.next();
-    }
-    java.util.Arrays.sort(sourceFieldNames);
 
     // Display field mappings
     out.print(
@@ -2461,17 +2474,19 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     );
 
     int fieldCounter = 0;
-    while (fieldCounter < sourceFieldNames.length)
-    {
-      String source = sourceFieldNames[fieldCounter++];
-      String target = (String)fieldMap.get(source);
-      String targetDisplay = target;
-      if (target == null)
-      {
-        target = "";
-        targetDisplay = "(remove)";
-      }
-      out.print(
+    i = 0;
+    while (i < os.getChildCount()) {
+      SpecificationNode sn = os.getChild(i++);
+      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
+        String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
+        String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
+        String targetDisplay = target;
+        if (target == null)
+        {
+          target = "";
+          targetDisplay = "(remove)";
+        }
+        out.print(
 "        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(source)+"</nobr>\n"+
@@ -2480,8 +2495,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(targetDisplay)+"</nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"
-      );
-      fieldCounter++;
+        );
+        fieldCounter++;
+      }
     }
     
     if (fieldCounter == 0)

@@ -49,8 +49,30 @@ public class NavigationDerbyUI extends BaseUIDerby
     HTMLTester.Loop loop;
     
     window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp");
-    
+
+    // Login
+    form = window.findForm(testerInstance.createStringDescription("loginform"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("userID"));
+    textarea.setValue(testerInstance.createStringDescription("admin"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("password"));
+    textarea.setValue(testerInstance.createStringDescription("admin"));
+    button = window.findButton(testerInstance.createStringDescription("Login"));
+    button.click();
+
     // Define an authority connection via the UI
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("List authority groups"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Add new authority group"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editgroup"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("groupname"));
+    textarea.setValue(testerInstance.createStringDescription("MyAuthorityConnection"));
+    button = window.findButton(testerInstance.createStringDescription("Save this authority group"));
+    button.click();
+
     window = testerInstance.findWindow(null);
     link = window.findLink(testerInstance.createStringDescription("List authorities"));
     link.click();
@@ -69,6 +91,8 @@ public class NavigationDerbyUI extends BaseUIDerby
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
     selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
     selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("authoritygroup"));
+    selectbox.selectValue(testerInstance.createStringDescription("MyAuthorityConnection"));
     button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
     button.click();
     // Server tab

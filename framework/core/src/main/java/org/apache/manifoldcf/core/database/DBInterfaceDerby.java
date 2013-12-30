@@ -91,6 +91,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   protected static String getFullDatabasePath(String databaseName)
     throws ManifoldCFException
   {
+    // Derby is local file based so it cannot currently be used in zookeeper mode
     File path = ManifoldCF.getFileProperty(databasePathProperty);
     if (path == null)
       throw new ManifoldCFException("Derby database requires '"+databasePathProperty+"' property, containing a relative path");
@@ -1245,7 +1246,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.derby.reindex."+tableName,250000);
+        reindexThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.derby.reindex."+tableName,250000);
         reindexThresholds.put(tableName,new Integer(reindexThreshold));
       }
       else
@@ -1302,7 +1303,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.derby.analyze."+tableName,5000);
+        analyzeThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.derby.analyze."+tableName,5000);
         analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
       }
       else

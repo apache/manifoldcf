@@ -28,8 +28,7 @@ public class AgentRun extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id: AgentRun.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  public static final String agentInUseSignal = "_AGENTINUSE_";
-  public static final String agentShutdownSignal = "_AGENTRUN_";
+  public static final String agentServiceType = "AGENT";
   
   public AgentRun()
   {
@@ -37,41 +36,32 @@ public class AgentRun extends BaseAgentsInitializationCommand
 
   protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
+    // Note well:
+    // As part of CONNECTORS-781, multiple agents processes are now permitted, provided
+    // that a truly global lock manager implementation is used.  This implementation thus does the
+    // following:
+    // (1) Register the agent, and begin its execution
+    // (2) Periodically check for any new registered IAgent implementations
+    // (3) Await a shutdown signal
+    // (4) If exit signal seen, exit active block
+    // (5) Trap JVM exit to be sure we exit active block no matter what
+    //   (This latter option requires the ability to exit active blocks from different ILockManager instances)
+    //
+    // Note well that the agents shutdown signal is NEVER modified by this code; it will be set/cleared by
+    // AgentStop only, and AgentStop will wait until all services become inactive before exiting.
+    String processID = ManifoldCF.getProcessID();
     ILockManager lockManager = LockManagerFactory.make(tc);
-    // Agent already in use?
-    if (lockManager.checkGlobalFlag(agentInUseSignal))
-    {
-      System.err.println("Agent already in use");
-      System.exit(1);
-    }
-    
-    ManifoldCF.addShutdownHook(new AgentRunShutdownRunner());
-    
-    // Set the agents in use signal.
-    lockManager.setGlobalFlag(agentInUseSignal);    
+    lockManager.registerServiceBeginServiceActivity(agentServiceType, processID, null);
     try
     {
-      // Clear the agents shutdown signal.
-      lockManager.clearGlobalFlag(agentShutdownSignal);
+      // Register a shutdown hook to make sure we signal that the main agents process is going inactive.
+      ManifoldCF.addShutdownHook(new AgentRunShutdownRunner(processID));
+      
       Logging.root.info("Running...");
-      while (true)
-      {
-        // Any shutdown signal yet?
-        if (lockManager.checkGlobalFlag(agentShutdownSignal))
-          break;
-
-        // Start whatever agents need to be started
-        ManifoldCF.startAgents(tc);
-
-        try
-        {
-          ManifoldCF.sleep(5000);
-        }
-        catch (InterruptedException e)
-        {
-          break;
-        }
-      }
+      // Register hook first so stopAgents() not required
+      AgentsDaemon ad = new AgentsDaemon(processID);
+      ad.registerAgentsShutdownHook(tc);
+      ad.runAgents(tc);
       Logging.root.info("Shutting down...");
     }
     catch (ManifoldCFException e)
@@ -81,7 +71,9 @@ public class AgentRun extends BaseAgentsInitializationCommand
     }
     finally
     {
-      lockManager.clearGlobalFlag(agentInUseSignal);
+      // Exit service
+      // This is a courtesy; some lock managers (i.e. ZooKeeper) manage to do this anyway
+      lockManager.endServiceActivity(agentServiceType, processID);
     }
   }
 
@@ -111,16 +103,24 @@ public class AgentRun extends BaseAgentsInitializationCommand
   
   protected static class AgentRunShutdownRunner implements IShutdownHook
   {
-    public AgentRunShutdownRunner()
+    protected final String processID;
+    
+    public AgentRunShutdownRunner(String processID)
     {
+      this.processID = processID;
     }
     
-    public void doCleanup()
+    @Override
+    public void doCleanup(IThreadContext tc)
       throws ManifoldCFException
     {
-      IThreadContext tc = ThreadContextFactory.make();
       ILockManager lockManager = LockManagerFactory.make(tc);
-      lockManager.clearGlobalFlag(agentInUseSignal);
+      // We can blast the active flag off here; we may have already exited though and an exception will
+      // therefore be thrown.
+      if (lockManager.checkServiceActive(agentServiceType, processID))
+      {
+        lockManager.endServiceActivity(agentServiceType, processID);
+      }
     }
     
   }

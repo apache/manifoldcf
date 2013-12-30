@@ -33,25 +33,26 @@ public class ExpireThread extends Thread
 
 
   // Local data
-  protected String id;
-  // This is a reference to the static main document queue
-  protected DocumentCleanupQueue documentQueue;
+  /** Thread id */
+  protected final String id;
+  /** This is a reference to the static main document queue */
+  protected final DocumentCleanupQueue documentQueue;
   /** Worker thread pool reset manager */
-  protected WorkerResetManager resetManager;
-  /** Queue tracker */
-  protected QueueTracker queueTracker;
-
+  protected final WorkerResetManager resetManager;
+  /** Process ID */
+  protected final String processID;
+  
   /** Constructor.
   *@param id is the expire thread id.
   */
-  public ExpireThread(String id, DocumentCleanupQueue documentQueue, QueueTracker queueTracker, WorkerResetManager resetManager)
+  public ExpireThread(String id, DocumentCleanupQueue documentQueue, WorkerResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     this.id = id;
     this.documentQueue = documentQueue;
     this.resetManager = resetManager;
-    this.queueTracker = queueTracker;
+    this.processID = processID;
     setName("Expiration thread '"+id+"'");
     setDaemon(true);
 
@@ -69,7 +70,10 @@ public class ExpireThread extends Thread
       IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
+      IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
+      IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -134,7 +138,7 @@ public class ExpireThread extends Thread
             }
 
             // Grab one connection for the connectionName.  If we fail, nothing is lost and retries are possible.
-            IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+            IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
             try
             {
 
@@ -238,7 +242,7 @@ public class ExpireThread extends Thread
                   DocumentDescription[] requeueCandidates = jobManager.markDocumentExpired(jobID,legalLinkTypes,ddd,hopcountMethod);
                   // Use the common method for doing the requeuing
                   ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
-                    connector,connection,queueTracker,currentTime);
+                    connector,connection,rt,currentTime);
                   // Finally, completed expiration of the document.
                   dqd.setProcessed();
                 }
@@ -248,7 +252,7 @@ public class ExpireThread extends Thread
             finally
             {
               // Free up the reserved connector instance
-              RepositoryConnectorFactory.release(connector);
+              repositoryConnectorPool.release(connection,connector);
             }
           }
           catch (ManifoldCFException e)

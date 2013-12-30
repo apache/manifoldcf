@@ -46,6 +46,7 @@ import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -53,6 +54,7 @@ import org.apache.manifoldcf.core.interfaces.IKeystoreManager;
 import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.Configuration;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
 import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IDocumentIdentifierStream;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
@@ -108,7 +110,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     System.setProperty("jcifs.smb.client.responseTimeout","120000");
     System.setProperty("jcifs.resolveOrder","LMHOSTS,DNS,WINS");
     System.setProperty("jcifs.smb.client.listCount","20");
-    System.setProperty("jcifs.sm.client.dfs.strictView","true");
+    System.setProperty("jcifs.smb.client.dfs.strictView","true");
   }
   
   private String smbconnectionPath = null;
@@ -119,17 +121,27 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   private boolean useSIDs = true;
 
   private NtlmPasswordAuthentication pa;
-
+  
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
   /** Constructor.
   */
   public SharedDriveConnector()
   {
-    // We need to know whether to operate in NTLMv2 mode, or in NTLM mode.
-    String value = ManifoldCF.getProperty(PROPERTY_JCIFS_USE_NTLM_V1);
-    if (value == null || value.toLowerCase().equals("false"))
+  }
+
+  /** Set thread context.
+  * Use the opportunity to set the system properties we'll need.
+  */
+  @Override
+  public void setThreadContext(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    super.setThreadContext(threadContext);
+    // We need to know whether to operate in NTLMv2 mode, or in NTLM mode.  We do this before jcifs called the first time.
+    boolean useV1 = LockManagerFactory.getBooleanProperty(threadContext, PROPERTY_JCIFS_USE_NTLM_V1, false);
+    if (!useV1)
     {
       System.setProperty("jcifs.smb.lmCompatibility","3");
       System.setProperty("jcifs.smb.client.useExtendedSecurity","true");
@@ -140,13 +152,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       System.setProperty("jcifs.smb.client.useExtendedSecurity","false");
     }
   }
-
+  
   /** Establish a "session".  In the case of the jcifs connector, this just builds the appropriate smbconnectionPath string, and does the necessary checks. */
   protected void getSession()
     throws ManifoldCFException
   {
     if (smbconnectionPath == null)
     {
+      
       // Get the server
       if (server == null || server.length() == 0)
         throw new ManifoldCFException("Missing parameter '"+SharedDriveParameters.server+"'");
@@ -726,115 +739,126 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               String fileName = getFileCanonicalPath(file);
               if (fileName != null && !file.isHidden())
               {
-                // manipulate path to include the DFS alias, not the literal path
-                // String newPath = matchPrefix + fileName.substring(matchReplace.length());
-                String newPath = fileName;
-                if (checkNeedFileData(newPath, spec))
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("JCIFS: Local file data needed for '"+documentIdentifier+"'");
+                // Initialize repository document with common stuff, and find the URI
+                RepositoryDocument rd = new RepositoryDocument();
+                String uri = prepareForIndexing(rd,file,version);
 
-                  // Create a temporary file, and use that for the check and then the ingest
-                  File tempFile = File.createTempFile("_sdc_",null);
-                  try
+                if (activities.checkURLIndexable(uri))
+                {
+
+                  // manipulate path to include the DFS alias, not the literal path
+                  // String newPath = matchPrefix + fileName.substring(matchReplace.length());
+                  String newPath = fileName;
+                  if (checkNeedFileData(newPath, spec))
                   {
-                    FileOutputStream os = new FileOutputStream(tempFile);
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("JCIFS: Local file data needed for '"+documentIdentifier+"'");
+
+                    // Create a temporary file, and use that for the check and then the ingest
+                    File tempFile = File.createTempFile("_sdc_",null);
                     try
                     {
-
-                      // Now, make a local copy so we can fingerprint
-                      InputStream inputStream = getFileInputStream(file);
+                      FileOutputStream os = new FileOutputStream(tempFile);
                       try
                       {
-                        // Copy!
-                        if (transferBuffer == null)
-                          transferBuffer = new byte[65536];
-                        while (true)
+
+                        // Now, make a local copy so we can fingerprint
+                        InputStream inputStream = getFileInputStream(file);
+                        try
                         {
-                          int amt = inputStream.read(transferBuffer,0,transferBuffer.length);
-                          if (amt == -1)
-                            break;
-                          os.write(transferBuffer,0,amt);
+                          // Copy!
+                          if (transferBuffer == null)
+                            transferBuffer = new byte[65536];
+                          while (true)
+                          {
+                            int amt = inputStream.read(transferBuffer,0,transferBuffer.length);
+                            if (amt == -1)
+                              break;
+                            os.write(transferBuffer,0,amt);
+                          }
+                        }
+                        finally
+                        {
+                          inputStream.close();
                         }
                       }
                       finally
                       {
-                        inputStream.close();
+                        os.close();
+                      }
+
+                      if (checkIngest(tempFile, newPath, spec, activities))
+                      {
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("JCIFS: Decided to ingest '"+documentIdentifier+"'");
+                        // OK, do ingestion itself!
+                        InputStream inputStream = new FileInputStream(tempFile);
+                        try
+                        {
+                          rd.setBinary(inputStream, tempFile.length());
+                          
+                          activities.ingestDocument(documentIdentifier, version, uri, rd);
+                        }
+                        finally
+                        {
+                          inputStream.close();
+                        }
+
+                        // I put this record here deliberately for two reasons:
+                        // (1) the other path includes ingestion time, and
+                        // (2) if anything fails up to and during ingestion, I want THAT failure record to be written, not this one.
+                        // So, really, ACTIVITY_ACCESS is a bit more than just fetch for JCIFS...
+                        activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
+                          new Long(tempFile.length()),documentIdentifier,"Success",null,null);
+
+                      }
+                      else
+                      {
+                        // We must actively remove the document here, because the getDocumentVersions()
+                        // method has no way of signalling this, since it does not do the fingerprinting.
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("JCIFS: Decided to remove '"+documentIdentifier+"'");
+                        activities.deleteDocument(documentIdentifier, version);
+                        // We should record the access here as well, since this is a non-exception way through the code path.
+                        // (I noticed that this was not being recorded in the history while fixing 25477.)
+                        activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
+                          new Long(tempFile.length()),documentIdentifier,"Success",null,null);
                       }
                     }
                     finally
                     {
-                      os.close();
-                    }
-
-
-                    if (checkIngest(tempFile, newPath, spec, activities))
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("JCIFS: Decided to ingest '"+documentIdentifier+"'");
-                      // OK, do ingestion itself!
-                      InputStream inputStream = new FileInputStream(tempFile);
-                      try
-                      {
-                        RepositoryDocument rd = new RepositoryDocument();
-                        rd.setBinary(inputStream, tempFile.length());
-                        
-                        indexDocument(activities,rd,file,documentIdentifier,version);
-                      }
-                      finally
-                      {
-                        inputStream.close();
-                      }
-
-                      // I put this record here deliberately for two reasons:
-                      // (1) the other path includes ingestion time, and
-                      // (2) if anything fails up to and during ingestion, I want THAT failure record to be written, not this one.
-                      // So, really, ACTIVITY_ACCESS is a bit more than just fetch for JCIFS...
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
-                        new Long(tempFile.length()),documentIdentifier,"Success",null,null);
-
-                    }
-                    else
-                    {
-                      // We must actively remove the document here, because the getDocumentVersions()
-                      // method has no way of signalling this, since it does not do the fingerprinting.
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("JCIFS: Decided to remove '"+documentIdentifier+"'");
-                      activities.deleteDocument(documentIdentifier, version);
-                      // We should record the access here as well, since this is a non-exception way through the code path.
-                      // (I noticed that this was not being recorded in the history while fixing 25477.)
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
-                        new Long(tempFile.length()),documentIdentifier,"Success",null,null);
+                      tempFile.delete();
                     }
                   }
-                  finally
+                  else
                   {
-                    tempFile.delete();
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("JCIFS: Local file data not needed for '"+documentIdentifier+"'");
+
+                    // Presume that since the file was queued that it fulfilled the needed criteria.
+                    // Go off and ingest the fast way.
+
+                    // Ingest the document.
+                    InputStream inputStream = getFileInputStream(file);
+                    try
+                    {
+                      rd.setBinary(inputStream, fileLength(file));
+                      
+                      activities.ingestDocument(documentIdentifier, version, uri, rd);
+                    }
+                    finally
+                    {
+                      inputStream.close();
+                    }
+                    activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
+                      new Long(fileLength(file)),documentIdentifier,"Success",null,null);
                   }
                 }
                 else
                 {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("JCIFS: Local file data not needed for '"+documentIdentifier+"'");
-
-                  // Presume that since the file was queued that it fulfilled the needed criteria.
-                  // Go off and ingest the fast way.
-
-                  // Ingest the document.
-                  InputStream inputStream = getFileInputStream(file);
-                  try
-                  {
-                    RepositoryDocument rd = new RepositoryDocument();
-                    rd.setBinary(inputStream, fileLength(file));
-                    
-                    indexDocument(activities,rd,file,documentIdentifier,version);
-                  }
-                  finally
-                  {
-                    inputStream.close();
-                  }
-                  activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
-                    new Long(fileLength(file)),documentIdentifier,"Success",null,null);
+                  Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept it");
+                  activities.recordActivity(null,ACTIVITY_ACCESS,
+                    null,documentIdentifier,"Skip","Output connector refused",null);
                 }
               }
               else
@@ -965,11 +989,18 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
   }
 
-  protected static void indexDocument(IProcessActivity activities, RepositoryDocument rd, SmbFile file, String documentIdentifier, String version)
-    throws ManifoldCFException, ServiceInterruption, SmbException
+  protected static String prepareForIndexing(RepositoryDocument rd, SmbFile file, String version)
+    throws ManifoldCFException, SmbException
   {
     String fileNameString = file.getName();
     Date lastModifiedDate = new Date(file.lastModified());
+    Date creationDate = new Date(file.createTime());
+    //If using the lastAccess patched/Google version of jcifs then this can be uncommented
+    //Date lastAccessDate = new Date(file.lastAccess());
+    Integer attributes = file.getAttributes();
+    String shareName = file.getShare();
+
+    
     String contentType = mapExtensionToMimeType(fileNameString);
 
     rd.setFileName(fileNameString);
@@ -977,15 +1008,24 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       rd.setMimeType(contentType);
     rd.addField("lastModified", lastModifiedDate.toString());
     rd.setModifiedDate(lastModifiedDate);
+    
+    // Add extra obtainable fields to the field map
+    rd.addField("createdOn", creationDate.toString());
+    rd.setCreatedDate(creationDate);
+
+    //rd.addField("lastAccess", lastModifiedDate.toString());
+    rd.addField("attributes", Integer.toString(attributes));
+    rd.addField("shareName", shareName);
+
 
     int index = 0;
     index = setDocumentSecurity(rd,version,index);
     index = setPathMetadata(rd,version,index);
     StringBuilder ingestURI = new StringBuilder();
     index = unpack(ingestURI,version,index,'+');
-    activities.ingestDocument(documentIdentifier, version, ingestURI.toString(), rd);
+    return ingestURI.toString();
   }
-
+  
   /** Map an extension to a mime type */
   protected static String mapExtensionToMimeType(String fileName)
   {
@@ -1433,7 +1473,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       if (!isDirectory)
       {
         long fileLength = fileLength(file);
-        if (!activities.checkLengthIndexable(fileLength))
+        if (!activities.checkLengthIndexable(fileLength) ||
+          !activities.checkMimeTypeIndexable(mapExtensionToMimeType(fileName)))
           return false;
         long maxFileLength = Long.MAX_VALUE;
         i = 0;
@@ -1691,6 +1732,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                     isIndexable = false;
                   else
                   {
+                    // Evaluate the parts of being indexable that are based on the filename, mime type, and url
                     isIndexable = pretendIndexable;
                   }
 
@@ -2621,15 +2663,18 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String server   = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.server);
+    String server   = parameters.getParameter(SharedDriveParameters.server);
     if (server==null) server = "";
-    String domain = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.domain);
+    String domain = parameters.getParameter(SharedDriveParameters.domain);
     if (domain==null) domain = "";
-    String username = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.username);
+    String username = parameters.getParameter(SharedDriveParameters.username);
     if (username==null) username = "";
-    String password = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.password);
-    if (password==null) password = "";
-    String resolvesids = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.useSIDs);
+    String password = parameters.getObfuscatedParameter(SharedDriveParameters.password);
+    if (password==null)
+      password = "";
+    else
+      password = out.mapPasswordToKey(password);
+    String resolvesids = parameters.getParameter(SharedDriveParameters.useSIDs);
     if (resolvesids==null) resolvesids = "true";
 
     // "Server" tab
@@ -2691,19 +2736,19 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   {
     String server = variableContext.getParameter("server");
     if (server != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.server,server);
+      parameters.setParameter(SharedDriveParameters.server,server);
 	
     String domain = variableContext.getParameter("domain");
     if (domain != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.domain,domain);
+      parameters.setParameter(SharedDriveParameters.domain,domain);
 	
     String username = variableContext.getParameter("username");
     if (username != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.username,username);
+      parameters.setParameter(SharedDriveParameters.username,username);
 		
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.password,password);
+      parameters.setObfuscatedParameter(SharedDriveParameters.password,variableContext.mapKeyToPassword(password));
     
     String resolvesidspresent = variableContext.getParameter("resolvesidspresent");
     if (resolvesidspresent != null)

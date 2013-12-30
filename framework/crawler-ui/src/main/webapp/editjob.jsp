@@ -36,6 +36,9 @@
 	IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(threadContext);
 	IOutputConnection[] outputList = outputMgr.getAllConnections();
 
+	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+	IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+
 	// Figure out tab name
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
@@ -404,17 +407,16 @@
 <%
 	if (outputConnection != null)
 	{
-		IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
-			outputConnection.getMaxConnections());
+		IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 		if (outputConnector != null)
 		{
 			try
 			{
-				outputConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),outputSpecification,tabsArray);
+				outputConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,tabsArray);
 			}
 			finally
 			{
-				OutputConnectorFactory.release(outputConnector);
+				outputConnectorPool.release(outputConnection,outputConnector);
 			}
 		}
 	}
@@ -423,17 +425,16 @@
 <%
 	if (connection != null)
 	{
-		IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
-			connection.getMaxConnections());
+		IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 		if (repositoryConnector != null)
 		{
 			try
 			{
-				repositoryConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),documentSpecification,tabsArray);
+				repositoryConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),documentSpecification,tabsArray);
 			}
 			finally
 			{
-				RepositoryConnectorFactory.release(repositoryConnector);
+				repositoryConnectorPool.release(connection,repositoryConnector);
 			}
 		}
 	}
@@ -1272,17 +1273,16 @@
 
 	if (outputConnection != null)
 	{
-		IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
-			outputConnection.getMaxConnections());
+		IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
 		if (outputConnector != null)
 		{
 			try
 			{
-				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),outputSpecification,tabName);
+				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,tabName);
 			}
 			finally
 			{
-				OutputConnectorFactory.release(outputConnector);
+				outputConnectorPool.release(outputConnection,outputConnector);
 			}
 %>
 		  <input type="hidden" name="outputpresent" value="true"/>
@@ -1292,17 +1292,16 @@
 
 	if (connection != null)
 	{
-		IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
-			connection.getMaxConnections());
+		IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
 		if (repositoryConnector != null)
 		{
 			try
 			{
-				repositoryConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),documentSpecification,tabName);
+				repositoryConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),documentSpecification,tabName);
 			}
 			finally
 			{
-				RepositoryConnectorFactory.release(repositoryConnector);
+				repositoryConnectorPool.release(connection,repositoryConnector);
 			}
 %>
 		  <input type="hidden" name="connectionpresent" value="true"/>

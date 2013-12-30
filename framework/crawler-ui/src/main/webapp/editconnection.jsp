@@ -32,7 +32,7 @@
 	IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
 	// Also get the list of available connectors
 	IConnectorManager connectorManager = ConnectorManagerFactory.make(threadContext);
-	IAuthorityConnectionManager authConnectionManager = AuthorityConnectionManagerFactory.make(threadContext);
+	IAuthorityGroupManager authGroupManager = AuthorityGroupManagerFactory.make(threadContext);
 
 	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
@@ -254,7 +254,7 @@
 	//-->
 	</script>
 <%
-	RepositoryConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabsArray);
+	RepositoryConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabsArray);
 %>
 
 </head>
@@ -422,10 +422,10 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.AuthorityColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.AuthorityGroupColon")%></nobr></td>
 				<td class="value" colspan="4">
 <%
-	    IAuthorityConnection[] set2 = authConnectionManager.getAllConnections();
+	    IAuthorityGroup[] set2 = authGroupManager.getAllGroups();
 	    int i = 0;
 %>
 					<select name="authorityname" size="1">
@@ -433,7 +433,7 @@
 <%
 	    while (i < set2.length)
 	    {
-		IAuthorityConnection row = set2[i++];
+		IAuthorityGroup row = set2[i++];
 		String thisAuthorityName = row.getName();
 		String thisDescription = row.getDescription();
 		if (thisDescription == null || thisDescription.length() == 0)
@@ -470,7 +470,7 @@
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="2"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.Maxconnections")%></nobr><br/><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.PerJVMColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.MaxconnectionsColon")%></nobr></td>
 				<td class="value"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
 			</tr>
 			<tr>
@@ -567,7 +567,7 @@
 	  }
 
 	  if (className.length() > 0)
-		RepositoryConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabName);
+		RepositoryConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="4"><hr/></td></tr>

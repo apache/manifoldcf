@@ -89,11 +89,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   // Livelink does not have "deny" permissions, and there is no such thing as a document with no tokens, so it is safe to not have a local "deny" token.
   // However, people feel that a suspenders-and-belt approach is called for, so this restriction has been added.
   // Livelink tokens are numbers, "SYSTEM", or "GUEST", so they can't collide with the standard form.
-  private static final String denyToken = "DEAD_AUTHORITY";
-  private static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{denyToken},
-    AuthorizationResponse.RESPONSE_UNREACHABLE);
-  private static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{denyToken},
-    AuthorizationResponse.RESPONSE_USERNOTFOUND);
 
   /** Constructor.
   */
@@ -322,6 +317,16 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     }
   }
 
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return hasConnected;
+  }
+
   /** Close the connection.  Call this before discarding the repository connector.
   */
   @Override
@@ -446,14 +451,14 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
           {
             if (Logging.authorityConnectors.isDebugEnabled())
               Logging.authorityConnectors.debug("Livelink: Livelink user '"+domainAndUser+"' does not exist");
-            return userNotFoundResponse;
+            return RESPONSE_USERNOTFOUND;
           }
 
           if (status != 0)
           {
             Logging.authorityConnectors.warn("Livelink: User '"+domainAndUser+"' GetUserInfo error # "+Integer.toString(status)+" "+llServer.getErrors());
             // The server is probably down.
-            return unreachableResponse;
+            return RESPONSE_UNREACHABLE;
           }
 
           int deleted = userObject.toInteger("Deleted");
@@ -462,7 +467,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
             if (Logging.authorityConnectors.isDebugEnabled())
               Logging.authorityConnectors.debug("Livelink: Livelink user '"+domainAndUser+"' has been deleted");
             // Since the user cannot become undeleted, then this should be treated as 'user does not exist'.
-            return userNotFoundResponse;
+            return RESPONSE_USERNOTFOUND;
           }
           int privs = userObject.toInteger("UserPrivileges");
           if ((privs & LAPI_USERS.PRIV_PERM_WORLD) == LAPI_USERS.PRIV_PERM_WORLD)
@@ -476,7 +481,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
           {
             if (Logging.authorityConnectors.isDebugEnabled())
               Logging.authorityConnectors.debug("Livelink: Livelink error looking up user rights for '"+domainAndUser+"' - user does not exist");
-            return userNotFoundResponse;
+            return RESPONSE_USERNOTFOUND;
           }
 
           if (status != 0)
@@ -485,7 +490,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
             // right error code, so just stuff it in the log.
             Logging.authorityConnectors.warn("Livelink: For user '"+domainAndUser+"', ListRights error # "+Integer.toString(status)+" "+llServer.getErrors());
             // An error code at this level has to indicate a suddenly unreachable authority
-            return unreachableResponse;
+            return RESPONSE_UNREACHABLE;
           }
 
           // Go through the individual objects, and get their IDs.  These id's will be the access tokens
@@ -549,7 +554,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     catch (ServiceInterruption e)
     {
       Logging.authorityConnectors.warn("Livelink: Server seems to be down: "+e.getMessage(),e);
-      return unreachableResponse;
+      return RESPONSE_UNREACHABLE;
     }
   }
 
@@ -561,7 +566,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
     // The default response if the getConnection method fails
-    return unreachableResponse;
+    return RESPONSE_UNREACHABLE;
   }
 
   // UI support methods.
@@ -716,6 +721,8 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
     if (serverPassword == null)
       serverPassword = "";
+    else
+      serverPassword = out.mapPasswordToKey(serverPassword);
     String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
     if (serverHTTPCgiPath == null)
       serverHTTPCgiPath = "/livelink/livelink.exe";
@@ -728,6 +735,8 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
     if (serverHTTPNTLMPassword == null)
       serverHTTPNTLMPassword = "";
+    else
+      serverHTTPNTLMPassword = out.mapPasswordToKey(serverHTTPNTLMPassword);
     String serverHTTPSKeystore = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
     IKeystoreManager localServerHTTPSKeystore;
     if (serverHTTPSKeystore == null)
@@ -974,7 +983,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       parameters.setParameter(LiveLinkParameters.serverUsername,serverUserName);
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,serverPassword);
+      parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
     String serverHTTPCgiPath = variableContext.getParameter("serverhttpcgipath");
     if (serverHTTPCgiPath != null)
       parameters.setParameter(LiveLinkParameters.serverHTTPCgiPath,serverHTTPCgiPath);
@@ -986,7 +995,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       parameters.setParameter(LiveLinkParameters.serverHTTPNTLMUsername,serverHTTPNTLMUserName);
     String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
     if (serverHTTPNTLMPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,serverHTTPNTLMPassword);
+      parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
     String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
     if (serverHTTPSKeystoreValue != null)
       parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
@@ -1265,7 +1274,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       this.serverHTTPNTLMDomain = (serverHTTPNTLMDomain==null)?"":serverHTTPNTLMDomain;
       this.serverHTTPNTLMUsername = (serverHTTPNTLMUsername==null)?"":serverHTTPNTLMUsername;
       this.serverHTTPNTLMPassword = (serverHTTPNTLMPassword==null)?"":serverHTTPNTLMPassword;
-      this.serverHTTPSKeystore = serverHTTPSKeystore.getString();
+      if (serverHTTPSKeystore != null)
+        this.serverHTTPSKeystore = serverHTTPSKeystore.getString();
+      else
+        this.serverHTTPSKeystore = null;
       this.responseLifetime = responseLifetime;
     }
 
@@ -1281,7 +1293,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       return getClass().getName() + "-" + userName + "-" + serverProtocol + "-" + serverName +
         "-" + Integer.toString(serverPort) + "-" + serverUsername + "-" + serverPassword +
         "-" + serverHTTPCgi + "-" + serverHTTPNTLMDomain + "-" + serverHTTPNTLMUsername +
-        "-" + serverHTTPNTLMPassword + "-" + serverHTTPSKeystore;
+        "-" + serverHTTPNTLMPassword + "-" + ((serverHTTPSKeystore==null)?"":serverHTTPSKeystore);
     }
 
     /** Return the object expiration interval */
@@ -1298,7 +1310,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         serverProtocol.hashCode() + serverName.hashCode() + new Integer(serverPort).hashCode() +
         serverUsername.hashCode() + serverPassword.hashCode() +
         serverHTTPCgi.hashCode() + serverHTTPNTLMDomain.hashCode() + serverHTTPNTLMUsername.hashCode() +
-        serverHTTPNTLMPassword.hashCode() + serverHTTPSKeystore.hashCode();
+        serverHTTPNTLMPassword.hashCode() + ((serverHTTPSKeystore==null)?0:serverHTTPSKeystore.hashCode());
     }
     
     public boolean equals(Object o)
@@ -1311,7 +1323,8 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         ard.serverUsername.equals(serverUsername) && ard.serverPassword.equals(serverPassword) &&
         ard.serverHTTPCgi.equals(serverHTTPCgi) && ard.serverHTTPNTLMDomain.equals(serverHTTPNTLMDomain) &&
         ard.serverHTTPNTLMUsername.equals(serverHTTPNTLMUsername) && ard.serverHTTPNTLMPassword.equals(serverHTTPNTLMPassword) &&
-        ard.serverHTTPSKeystore.equals(serverHTTPSKeystore);
+        ((ard.serverHTTPSKeystore != null && serverHTTPSKeystore != null && ard.serverHTTPSKeystore.equals(serverHTTPSKeystore)) ||
+          ((ard.serverHTTPSKeystore == null || serverHTTPSKeystore == null) && ard.serverHTTPSKeystore == serverHTTPSKeystore));
     }
     
   }

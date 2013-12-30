@@ -62,14 +62,15 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
-    super(tc,getJdbcUrl(databaseName),_driver,databaseName,userName,password);
+    super(tc,getJdbcUrl(tc,databaseName),_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
     lockManager = LockManagerFactory.make(tc);
   }
 
-  private static String getJdbcUrl(String theDatabaseName)
+  private static String getJdbcUrl(IThreadContext tc, String theDatabaseName)
+    throws ManifoldCFException
   {
-    String server =  ManifoldCF.getProperty(mysqlServerProperty);
+    String server =  LockManagerFactory.getProperty(tc,mysqlServerProperty);
     if (server == null || server.length() == 0)
       server = "localhost";
     return "jdbc:mysql://"+server+"/"+theDatabaseName+"?useUnicode=true&characterEncoding=utf8";
@@ -615,7 +616,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     // Get the client property
-    String client =  ManifoldCF.getProperty(mysqlClientProperty);
+    String client =  lockManager.getSharedConfiguration().getProperty(mysqlClientProperty);
     if (client == null || client.length() == 0)
       client = "localhost";
 
@@ -1278,7 +1279,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.mysql.analyze."+tableName,10000);
+        analyzeThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.mysql.analyze."+tableName,10000);
         analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
       }
       else

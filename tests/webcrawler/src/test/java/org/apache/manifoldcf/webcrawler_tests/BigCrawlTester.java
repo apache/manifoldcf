@@ -80,7 +80,8 @@ public class BigCrawlTester
     job.setType(job.TYPE_SPECIFIED);
     job.setStartMethod(job.START_DISABLE);
     job.setHopcountMode(job.HOPCOUNT_ACCURATE);
-    job.addHopCountFilter("link",new Long(2));
+    // Start with hopfilter = 1, then we will increase it.
+    job.addHopCountFilter("link",new Long(1));
     //job.addHopCountFilter("redirect",new Long(2));
 
     // Now, set up the document specification.
@@ -120,6 +121,32 @@ public class BigCrawlTester
     // Check to be sure we actually processed the right number of documents.
     JobStatus status = jobManager.getStatus(job.getID());
     // Four levels deep from 10 site seeds: Each site seed has 1 + 10 + 100 + 1000 = 1111 documents, so 10 has 11110.
+    // First run: 1/10 of the final
+    if (status.getDocumentsProcessed() != 110)
+    {
+      System.err.println("Sleeping for database inspection");
+      while (true)
+      {
+        if (1 < 0)
+          break;
+        Thread.sleep(10000L);
+      }
+      throw new ManifoldCFException("Wrong number of documents processed - expected 110, saw "+new Long(status.getDocumentsProcessed()).toString());
+    }
+    
+    // Increase the hopcount filter value
+    job.addHopCountFilter("link",new Long(2));
+    jobManager.save(job);
+    
+    // Run again
+    startTime = System.currentTimeMillis();
+    jobManager.manualStart(job.getID());
+    instance.waitJobInactiveNative(jobManager,job.getID(),220000000L);
+    System.err.println("Second crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
+
+    // Check to be sure we actually processed the right number of documents.
+    status = jobManager.getStatus(job.getID());
+    // Four levels deep from 10 site seeds: Each site seed has 1 + 10 + 100 + 1000 = 1111 documents, so 10 has 11110.
     if (status.getDocumentsProcessed() != 1110)
     {
       System.err.println("Sleeping for database inspection");
@@ -131,7 +158,7 @@ public class BigCrawlTester
       }
       throw new ManifoldCFException("Wrong number of documents processed - expected 1110, saw "+new Long(status.getDocumentsProcessed()).toString());
     }
-    
+
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
     instance.waitJobDeletedNative(jobManager,job.getID(),18000000L);

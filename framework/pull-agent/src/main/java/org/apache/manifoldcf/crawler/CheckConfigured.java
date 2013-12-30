@@ -28,37 +28,37 @@ import java.util.*;
 */
 public class CheckConfigured
 {
-        public static final String _rcsid = "@(#)$Id: CheckConfigured.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: CheckConfigured.java 988245 2010-08-23 18:39:35Z kwright $";
 
-        private CheckConfigured()
-        {
-        }
+  private CheckConfigured()
+  {
+  }
 
-        // Add: throttle, priority, recrawl interval
+  // Add: throttle, priority, recrawl interval
 
-        public static void main(String[] args)
-        {
-                if (args.length != 0)
-                {
-                        System.err.println("Usage: CheckConfigured");
-                        System.exit(1);
-                }
+  public static void main(String[] args)
+  {
+    if (args.length != 0)
+    {
+      System.err.println("Usage: CheckConfigured");
+      System.exit(1);
+    }
 
-                try
-                {
-                        ManifoldCF.initializeEnvironment();
-                        IThreadContext tc = ThreadContextFactory.make();
-                        IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
-                        if (connManager.getAllConnections().length > 0)
-                                UTF8Stdout.println("CONFIGURED");
-                        else
-                                UTF8Stdout.println("OK");
-                }
-                catch (Exception e)
-                {
-                        e.printStackTrace();
-                        System.exit(2);
-                }
-        }
-                
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
+      IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
+      if (connManager.getAllConnections().length > 0)
+        UTF8Stdout.println("CONFIGURED");
+      else
+        UTF8Stdout.println("OK");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      System.exit(2);
+    }
+  }
+    
 }

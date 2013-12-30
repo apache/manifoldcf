@@ -1,5 +1,11 @@
-<%
+<% response.setHeader("Pragma","No-cache");
+response.setDateHeader("Expires",0);
+response.setHeader("Cache-Control", "no-cache");
+response.setDateHeader("max-age", 0);
+response.setContentType("text/html;charset=utf-8");
+%><%@ include file="adminDefaults.jsp" %>
 
+<%
 /* $Id$ */
 
 /**
@@ -20,28 +26,20 @@
 */
 %>
 
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="sql" uri="http://java.sun.com/jsp/jstl/sql" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%
+String userID = variableContext.getParameter("userID");
+String password = variableContext.getParameter("password");
+if (userID == null)
+	userID = "";
+if (password == null)
+	password = "";
 
-<jsp:useBean id="adminprofile" class="org.apache.manifoldcf.ui.beans.AdminProfile" scope="session"/>
-
-<c:catch var="error">
-	<c:if test="${param.valid=='true'}">
-		<c:set value="${param.login}" target="${adminprofile}" property="userID"/>
-		<c:set value="${param.password}" target="${adminprofile}" property="password"/>
-	</c:if>
-	
-	<c:if test="${param.valid=='false'}">
-		<c:set value="null" target="${adminprofile}" property="userID"/>
-	</c:if>
-</c:catch>
-
-<c:if test="${error!=null}">
-	<c:set target="${logger}" property="msg" value="Profile error!!!! ${error}"/>
-	<c:set value="null" target="${adminprofile}" property="userID"/>
-</c:if>
-
-
-
-
+adminprofile.login(threadContext,userID,password);
+if (adminprofile.getLoggedOn())
+	response.sendRedirect("index.jsp");
+else
+{
+	// Go back to login page, but with signal that login failed
+	response.sendRedirect("login.jsp?loginfailed=true");
+}
+%>

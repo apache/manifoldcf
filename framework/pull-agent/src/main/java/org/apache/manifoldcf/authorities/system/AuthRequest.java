@@ -32,10 +32,8 @@ public class AuthRequest
 
   // This is where the request data actually lives
   protected String userID;
-  protected String className;
-  protected String identifyingString;
-  protected ConfigParams configParameters;
-  protected int maxConnections;
+  protected final IAuthorityConnection authorityConnection;
+  protected final String identifyingString;
 
   // These are the possible results of the request
   protected boolean answerComplete = false;
@@ -44,43 +42,34 @@ public class AuthRequest
 
   /** Construct the request, and record the question.
   */
-  public AuthRequest(String userID, String className, String identifyingString, ConfigParams configParameters, int maxConnections)
+  public AuthRequest(IAuthorityConnection authorityConnection, String identifyingString)
   {
-    this.userID = userID;
-    this.className = className;
+    this.authorityConnection = authorityConnection;
     this.identifyingString = identifyingString;
-    this.configParameters = configParameters;
-    this.maxConnections = maxConnections;
   }
 
+  /** Set the user ID we'll be using */
+  public void setUserID(String userID)
+  {
+    this.userID = userID;
+  }
+  
   /** Get the user id */
   public String getUserID()
   {
     return userID;
   }
 
-  /** Get the class name */
-  public String getClassName()
+  /** Get the authority connection */
+  public IAuthorityConnection getAuthorityConnection()
   {
-    return className;
+    return authorityConnection;
   }
 
   /** Get the identifying string, to pass back to the user if there was a problem */
   public String getIdentifyingString()
   {
     return identifyingString;
-  }
-
-  /** Get the configuration parameters */
-  public ConfigParams getConfigurationParams()
-  {
-    return configParameters;
-  }
-
-  /** Get the maximum number of connections */
-  public int getMaxConnections()
-  {
-    return maxConnections;
   }
 
   /** Wait for an auth request to be complete.

@@ -543,52 +543,50 @@ if (maintenanceUnderway == false)
 		}
 %>
 		</table>
-		<table class="displaytable">
-		    <tr>
-			<td class="separator" colspan="5"><hr/></td>
-		    </tr>
-		    <tr>
-			<td class="value">
+		<table class="reportfootertable">
+		    <tr class="reportfooterrow">
+			<td class="reportfootercell">
 				<nobr>
 <%
 		if (startRow == 0)
 		{
 %>
-				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%>
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a>
+					<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a>
 <%
 		}
 %>
-				&nbsp;
+				</nobr>
+				<nobr>
 <%
 		if (hasMoreRows == false)
 		{
 %>
-				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%>
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%></a>
+					<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%></a>
 <%
 		}
 %>
 				</nobr>
 			</td>
-			<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Rows")%></nobr></td><td class="value"><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></td>
-			<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.RowsPerPage")%></nobr></td>
-			<td class="value">
-				<input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/>
+			<td class="reportfootercell">
+				<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Rows")%></nobr>
+				<nobr><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></nobr>
 			</td>
-		    </tr>
-		    <tr>
-			<td class="separator" colspan="5"><hr/></td>
+			<td class="reportfootercell">
+				<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.RowsPerPage")%></nobr>
+				<nobr><input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/></nobr>
+			</td>
 		    </tr>
 		</table>
 

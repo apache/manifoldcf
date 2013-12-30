@@ -29,7 +29,7 @@
 
   <groupId>org.apache.manifoldcf</groupId>
   <artifactId>mcf-parent</artifactId>
-  <version>1.2-SNAPSHOT</version>
+  <version>1.5-SNAPSHOT</version>
 
   <name>ManifoldCF</name>
   <packaging>pom</packaging>
@@ -40,16 +40,18 @@
     <junit.version>4.8.2</junit.version>
     <postgresql.version>9.1-901.jdbc4</postgresql.version>
     <mysql.version>5.1.18</mysql.version>
-    <hsqldb.version>2.2.9</hsqldb.version>
-    <derby.version>10.8.2.2</derby.version>
+    <hsqldb.version>2.3.1</hsqldb.version>
+    <derby.version>10.10.1.1</derby.version>
     <jetty.version>7.5.4.v20111024</jetty.version>
     <commons-codec.version>1.5</commons-codec.version>
     <commons-io.version>2.1</commons-io.version>
     <commons-logging.version>1.1.1</commons-logging.version>
     <commons-collections.version>3.2.1</commons-collections.version>
     <commons-fileupload.version>1.2.2</commons-fileupload.version>
-    <httpcomponent.version>4.2.4</httpcomponent.version>
-    <solr.version>4.3.0</solr.version>
+    <httpcomponent.httpclient.version>4.2.6</httpcomponent.httpclient.version>
+    <httpcomponent.httpcore.version>4.2.5</httpcomponent.httpcore.version>
+    <httpcomponent.httpmime.version>4.2.6</httpcomponent.httpmime.version>
+    <solr.version>4.6.0</solr.version>
     <commons-el.version>1.0</commons-el.version>
     <commons-lang.version>2.6</commons-lang.version>
     <xalan.version>2.7.1</xalan.version>
@@ -64,6 +66,8 @@
     <json.version>20090211</json.version>
     <velocity.version>1.7</velocity.version>
     <slf4j.version>1.6.6</slf4j.version>
+    <jaxb.version>2.2.6</jaxb.version>
+    <zookeeper.version>3.4.5</zookeeper.version>
   </properties>
 
   <modules>
@@ -90,8 +94,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.3.2</version>
         <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
+          <source>1.7</source>
+          <target>1.7</target>
           <fork>true</fork>
           <meminitial>128m</meminitial>
           <maxmem>512m</maxmem>

@@ -70,6 +70,7 @@ import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
 
 
 /**
@@ -107,6 +108,7 @@ public class HttpPoster
   private String idAttributeName;
   private String modifiedDateAttributeName;
   private String createdDateAttributeName;
+  private String indexedDateAttributeName;
   private String fileNameAttributeName;
   private String mimeTypeAttributeName;
   
@@ -131,7 +133,7 @@ public class HttpPoster
     int zkClientTimeout, int zkConnectTimeout,
     String updatePath, String removePath, String statusPath,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
-    String modifiedDateAttributeName, String createdDateAttributeName,
+    String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName,
     Long maxDocumentLength,
     String commitWithin)
@@ -149,6 +151,7 @@ public class HttpPoster
     this.idAttributeName = idAttributeName;
     this.modifiedDateAttributeName = modifiedDateAttributeName;
     this.createdDateAttributeName = createdDateAttributeName;
+    this.indexedDateAttributeName = indexedDateAttributeName;
     this.fileNameAttributeName = fileNameAttributeName;
     this.mimeTypeAttributeName = mimeTypeAttributeName;
     
@@ -156,7 +159,7 @@ public class HttpPoster
     
     try
     {
-      CloudSolrServer cloudSolrServer = new CloudSolrServer(zookeeperHosts);
+      CloudSolrServer cloudSolrServer = new CloudSolrServer(zookeeperHosts/*, new ModifiedLBHttpSolrServer(HttpClientUtil.createClient(null))*/);
       cloudSolrServer.setZkClientTimeout(zkClientTimeout);
       cloudSolrServer.setZkConnectTimeout(zkConnectTimeout);
       cloudSolrServer.setDefaultCollection(collection);
@@ -176,7 +179,7 @@ public class HttpPoster
     String updatePath, String removePath, String statusPath,
     String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
-    String modifiedDateAttributeName, String createdDateAttributeName,
+    String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName,
     IKeystoreManager keystoreManager, Long maxDocumentLength,
     String commitWithin)
@@ -194,6 +197,7 @@ public class HttpPoster
     this.idAttributeName = idAttributeName;
     this.modifiedDateAttributeName = modifiedDateAttributeName;
     this.createdDateAttributeName = createdDateAttributeName;
+    this.indexedDateAttributeName = indexedDateAttributeName;
     this.fileNameAttributeName = fileNameAttributeName;
     this.mimeTypeAttributeName = mimeTypeAttributeName;
     
@@ -233,6 +237,7 @@ public class HttpPoster
     // This one is essential to prevent us from reading from the content stream before necessary during auth, but
     // is incompatible with some proxies.
     params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
+    params.setIntParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE,socketTimeout);
     params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
     params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
     params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
@@ -398,7 +403,11 @@ public class HttpPoster
     if (code == 500)
     {
       long currentTime = System.currentTimeMillis();
-      throw new ServiceInterruption("Solr exception during "+context+" ("+e.code()+"): "+e.getMessage(),
+      
+      // Log the error
+      String message = "Solr exception during "+context+" ("+e.code()+"): "+e.getMessage();
+      Logging.ingest.warn(message,e);
+      throw new ServiceInterruption(message,
         e,
         currentTime + interruptionRetryTime,
         currentTime + 2L * 60L * 60000L,
@@ -435,20 +444,26 @@ public class HttpPoster
       if (e.getMessage().toLowerCase(Locale.ROOT).indexOf("broken pipe") != -1 ||
         e.getMessage().toLowerCase(Locale.ROOT).indexOf("connection reset") != -1 ||
         e.getMessage().toLowerCase(Locale.ROOT).indexOf("target server failed to respond") != -1)
+      {
         // Treat it as a service interruption, but with a limited number of retries.
         // In that way we won't burden the user with a huge retry interval; it should
         // give up fairly quickly, and yet NOT give up if the error was merely transient
-        throw new ServiceInterruption("Server dropped connection during "+context+": "+e.getMessage(),
+        String message = "Server dropped connection during "+context+": "+e.getMessage();
+        Logging.ingest.warn(message,e);
+        throw new ServiceInterruption(message,
           e,
           currentTime + interruptionRetryTime,
           -1L,
           3,
           false);
+      }
       
       // Other socket exceptions are service interruptions - but if we keep getting them, it means 
       // that a socket timeout is probably set too low to accept this particular document.  So
       // we retry for a while, then skip the document.
-      throw new ServiceInterruption("Socket timeout exception during "+context+": "+e.getMessage(),
+      String message2 = "Socket timeout exception during "+context+": "+e.getMessage();
+      Logging.ingest.warn(message2,e);
+      throw new ServiceInterruption(message2,
         e,
         currentTime + interruptionRetryTime,
         currentTime + 20L * 60000L,
@@ -457,7 +472,9 @@ public class HttpPoster
     }
     
     // Otherwise, no idea what the trouble is, so presume that retries might fix it.
-    throw new ServiceInterruption("IO exception during "+context+": "+e.getMessage(),
+    String message3 = "IO exception during "+context+": "+e.getMessage();
+    Logging.ingest.warn(message3,e);
+    throw new ServiceInterruption(message3,
       e,
       currentTime + interruptionRetryTime,
       currentTime + 2L * 60L * 60000L,
@@ -476,7 +493,7 @@ public class HttpPoster
   * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
-    RepositoryDocument document, Map arguments, Map sourceTargets,
+    RepositoryDocument document, Map arguments, Map<String, List<String>> sourceTargets,
     String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -752,7 +769,7 @@ public class HttpPoster
     protected String documentURI;
     protected RepositoryDocument document;
     protected Map<String,List<String>> arguments;
-    protected Map<String,String> sourceTargets;
+    protected Map<String,List<String>> sourceTargets;
     protected String[] shareAcls;
     protected String[] shareDenyAcls;
     protected String[] acls;
@@ -768,7 +785,7 @@ public class HttpPoster
     protected boolean rval = false;
 
     public IngestThread(String documentURI, RepositoryDocument document,
-      Map<String,List<String>> arguments, Map<String,String> sourceTargets,
+      Map<String,List<String>> arguments, Map<String, List<String>> sourceTargets,
       String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls, String commitWithin)
     {
       super();
@@ -820,6 +837,13 @@ public class HttpPoster
               // Write value
               writeField(out,LITERAL+createdDateAttributeName,DateParser.formatISO8601Date(date));
           }
+          if (indexedDateAttributeName != null)
+          {
+            Date date = document.getIndexingDate();
+            if (date != null)
+              // Write value
+              writeField(out,LITERAL+indexedDateAttributeName,DateParser.formatISO8601Date(date));
+          }
           if (fileNameAttributeName != null)
           {
             String fileName = document.getFileName();
@@ -849,15 +873,26 @@ public class HttpPoster
           while (iter.hasNext())
           {
             String fieldName = iter.next();
-            String newFieldName = sourceTargets.get(fieldName);
-            if (newFieldName == null)
-              newFieldName = fieldName;
-            if (newFieldName.length() > 0)
-            {
-              if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT)))
-                newFieldName = ID_METADATA;
-              String[] values = document.getFieldAsStrings(fieldName);
-              writeField(out,LITERAL+newFieldName,values);
+            List<String> mapping = sourceTargets.get(fieldName);
+            if(mapping != null) {
+              for(String newFieldName : mapping) {
+                if(newFieldName != null && !newFieldName.isEmpty()) {
+                  if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
+                    newFieldName = ID_METADATA;
+                  }
+                  String[] values = document.getFieldAsStrings(fieldName);
+                  writeField(out,LITERAL+newFieldName,values);
+                }
+              }
+            } else {
+              String newFieldName = fieldName;
+              if (!newFieldName.isEmpty()) {
+                if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
+                  newFieldName = ID_METADATA;
+                }
+                String[] values = document.getFieldAsStrings(fieldName);
+                writeField(out,LITERAL+newFieldName,values);
+              }
             }
           }
              

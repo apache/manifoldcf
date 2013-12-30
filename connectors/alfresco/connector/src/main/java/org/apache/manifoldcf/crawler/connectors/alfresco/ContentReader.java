@@ -18,13 +18,13 @@
  */
 package org.apache.manifoldcf.crawler.connectors.alfresco;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.rmi.RemoteException;
 
 import org.alfresco.webservice.authentication.AuthenticationFault;
 import org.alfresco.webservice.content.Content;
 import org.alfresco.webservice.content.ContentFault;
-import org.alfresco.webservice.content.ContentServiceSoapBindingStub;
 import org.alfresco.webservice.types.Predicate;
 import org.alfresco.webservice.util.AuthenticationDetails;
 import org.alfresco.webservice.util.AuthenticationUtils;
@@ -39,35 +39,42 @@ public class ContentReader {
    * @param predicate
    * @return an unique binary for content
    */
-  public static Content read(String username, String password, AuthenticationDetails session, Predicate predicate, String contentProperty) {
+  public static Content read(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session, Predicate predicate, String contentProperty) throws IOException {
     Content[] resultBinary = null;
     try {
+      WebServiceFactory.setEndpointAddress(endpoint);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
-      ContentServiceSoapBindingStub contentService = WebServiceFactory.getContentService();
-      resultBinary = contentService.read(predicate, contentProperty);
+      resultBinary = WebServiceFactory.getContentService().read(predicate, contentProperty);
+      AuthenticationUtils.endSession();
     } catch (ContentFault e) {
         Logging.connectors
         .error(
             "Alfresco: Content fault exception error during getting the content binary in processDocuments. " +
             "Node: "+predicate.getNodes()[0].getPath() + ". "
                 + e.getMessage(), e);
+        throw new IOException("Alfresco: Content fault exception error during getting the content binary in processDocuments. " +
+            "Node: "+predicate.getNodes()[0].getPath() + ". "
+            + e.getMessage(), e);
     } catch (RemoteException e) {
         Logging.connectors
         .error(
             "Alfresco: Remote exception error during getting the content binary in processDocuments. " +
             "Node: "+predicate.getNodes()[0].getPath() + ". "
                 + e.getMessage(), e);
+        throw e;
     } finally{
-      AuthenticationUtils.endSession();
       session = null;
     }
     return resultBinary[0];
   }
   
-  public static InputStream getBinary(Content binary, String username, String password, AuthenticationDetails session){
+  public static InputStream getBinary(String endpoint, Content binary, String username, String password, int socketTimeout, AuthenticationDetails session) throws IOException {
     InputStream is = null;
-    try {
+   try { 
+      WebServiceFactory.setEndpointAddress(endpoint);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
       is = ContentUtils.getContentAsInputStream(binary);
@@ -76,6 +83,7 @@ public class ContentReader {
       .error(
           "Alfresco: Error during getting the binary for the node: "+binary.getNode().getPath()+"."
               + e.getMessage(), e);
+      throw e;
     }
     return is;
   }

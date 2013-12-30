@@ -40,9 +40,8 @@ public class LockManagerFactory
     Object x = context.get(lockManager);
     if (x == null || !(x instanceof ILockManager))
     {
-      String implementationClass = ManifoldCF.getProperty(ManifoldCF.lockManagerImplementation);
-      if (implementationClass == null)
-        implementationClass = "org.apache.manifoldcf.core.lockmanager.LockManager";
+      String implementationClass = ManifoldCF.getStringProperty(ManifoldCF.lockManagerImplementation,
+        "org.apache.manifoldcf.core.lockmanager.LockManager");
       try
       {
         Class c = Class.forName(implementationClass);
@@ -75,5 +74,41 @@ public class LockManagerFactory
     return (ILockManager)x;
   }
 
+  public static String getProperty(IThreadContext tc, String s)
+    throws ManifoldCFException
+  {
+    return make(tc).getSharedConfiguration().getProperty(s);
+  }
+  
+  public static String getStringProperty(IThreadContext tc, String s, String defaultValue)
+    throws ManifoldCFException
+  {
+    return make(tc).getSharedConfiguration().getStringProperty(s, defaultValue);
+  }
+  
+  public static int getIntProperty(IThreadContext tc, String s, int defaultValue)
+    throws ManifoldCFException
+  {
+    return make(tc).getSharedConfiguration().getIntProperty(s, defaultValue);
+  }
+
+  public static long getLongProperty(IThreadContext tc, String s, long defaultValue)
+    throws ManifoldCFException
+  {
+    return make(tc).getSharedConfiguration().getLongProperty(s, defaultValue);
+  }
+  
+  public static double getDoubleProperty(IThreadContext tc, String s, double defaultValue)
+    throws ManifoldCFException
+  {
+    return make(tc).getSharedConfiguration().getDoubleProperty(s, defaultValue);
+  }
+  
+  public static boolean getBooleanProperty(IThreadContext tc, String s, boolean defaultValue)
+    throws ManifoldCFException
+  {
+    return make(tc).getSharedConfiguration().getBooleanProperty(s, defaultValue);
+  }
+  
 }
 

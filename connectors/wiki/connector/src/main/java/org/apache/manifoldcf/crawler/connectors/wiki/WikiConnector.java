@@ -32,6 +32,10 @@ import org.apache.manifoldcf.agents.common.XMLContext;
 import org.apache.manifoldcf.agents.common.XMLStringContext;
 import org.apache.manifoldcf.agents.common.XMLFileContext;
 
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.auth.NTCredentials;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
@@ -40,12 +44,14 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.HttpEntity;
+import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
@@ -53,6 +59,10 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.CircularRedirectException;
@@ -99,15 +109,45 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** The user-agent for this connector instance */
   protected String userAgent = null;
 
+  // Server login parameters
   protected String serverLogin = null;
   protected String serverPass = null;
   protected String serverDomain = null;
+  
+  // Basic auth parameters
+  protected String accessRealm = null;
+  protected String accessUser = null;
+  protected String accessPassword = null;
+  
+  // Proxy parameters
+  protected String proxyHost = null;
+  protected String proxyPort = null;
+  protected String proxyDomain = null;
+  protected String proxyUsername = null;
+  protected String proxyPassword = null;
   
   /** Connection management */
   protected ClientConnectionManager connectionManager = null;
 
   protected HttpClient httpClient = null;
   
+  // Current host name
+  private static String currentHost = null;
+  static
+  {
+    // Find the current host name
+    try
+    {
+      java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
+
+      // Get hostname
+      currentHost = addr.getHostName();
+    }
+    catch (java.net.UnknownHostException e)
+    {
+    }
+  }
+
   /** Constructor.
   */
   public WikiConnector()
@@ -139,10 +179,20 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   public void connect(ConfigParams configParameters)
   {
     super.connect(configParameters);
+
     server = params.getParameter(WikiConfig.PARAM_SERVER);
     serverLogin = params.getParameter(WikiConfig.PARAM_LOGIN);
     serverPass = params.getObfuscatedParameter(WikiConfig.PARAM_PASSWORD);
     serverDomain = params.getParameter(WikiConfig.PARAM_DOMAIN);
+    accessRealm = params.getParameter(WikiConfig.PARAM_ACCESSREALM);
+    accessUser = params.getParameter(WikiConfig.PARAM_ACCESSUSER);
+    accessPassword = params.getObfuscatedParameter(WikiConfig.PARAM_ACCESSPASSWORD);
+
+    proxyHost = params.getParameter(WikiConfig.PARAM_PROXYHOST);
+    proxyPort = params.getParameter(WikiConfig.PARAM_PROXYPORT);
+    proxyDomain = params.getParameter(WikiConfig.PARAM_PROXYDOMAIN);
+    proxyUsername = params.getParameter(WikiConfig.PARAM_PROXYUSERNAME);
+    proxyPassword = params.getObfuscatedParameter(WikiConfig.PARAM_PROXYPASSWORD);
   }
 
   protected void getSession()
@@ -168,16 +218,28 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       
       baseURL = protocol + "://" + server + ((portString!=null)?":" + portString:"") + path + "/api.php?format=xml&";
 
+      int socketTimeout = 900000;
+      int connectionTimeout = 300000;
+
+      javax.net.ssl.SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();
+      SSLSocketFactory myFactory = new SSLSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
+        new AllowAllHostnameVerifier());
+      Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
+
       // Set up connection manager
       PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
       localConnectionManager.setMaxTotal(1);
       connectionManager = localConnectionManager;
+      // Set up protocol registry
+      connectionManager.getSchemeRegistry().register(myHttpsProtocol);
 
       BasicHttpParams params = new BasicHttpParams();
+      params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
+      params.setIntParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE,socketTimeout);
       params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
       params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
-      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
-      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,300000);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
+      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
       DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
       // No retries
@@ -192,6 +254,52 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           }
        
         });
+
+      if (accessUser != null && accessUser.length() > 0 && accessPassword != null)
+      {
+        Credentials credentials = new UsernamePasswordCredentials(accessUser, accessPassword);
+        if (accessRealm != null && accessRealm.length() > 0)
+          localHttpClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, accessRealm), credentials);
+        else
+          localHttpClient.getCredentialsProvider().setCredentials(AuthScope.ANY, credentials);
+      }
+
+      // If there's a proxy, set that too.
+      if (proxyHost != null && proxyHost.length() > 0)
+      {
+
+        int proxyPortInt;
+        if (proxyPort != null && proxyPort.length() > 0)
+        {
+          try
+          {
+            proxyPortInt = Integer.parseInt(proxyPort);
+          }
+          catch (NumberFormatException e)
+          {
+            throw new ManifoldCFException("Bad number: "+e.getMessage(),e);
+          }
+        }
+        else
+          proxyPortInt = 8080;
+
+        // Configure proxy authentication
+        if (proxyUsername != null && proxyUsername.length() > 0)
+        {
+          if (proxyPassword == null)
+            proxyPassword = "";
+          if (proxyDomain == null)
+            proxyDomain = "";
+
+          localHttpClient.getCredentialsProvider().setCredentials(
+            new AuthScope(proxyHost, proxyPortInt),
+            new NTCredentials(proxyUsername, proxyPassword, currentHost, proxyDomain));
+        }
+
+        HttpHost proxy = new HttpHost(proxyHost, proxyPortInt);
+
+        localHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+      }
 
       httpClient = localHttpClient;
       
@@ -678,6 +786,14 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     serverLogin = null;
     serverPass = null;
     serverDomain = null;
+    accessUser = null;
+    accessPassword = null;
+    accessRealm = null;
+    proxyHost = null;
+    proxyPort = null;
+    proxyDomain = null;
+    proxyUsername = null;
+    proxyPassword = null;
     baseURL = null;
     userAgent = null;
 
@@ -865,6 +981,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     tabsArray.add(Messages.getString(locale,"WikiConnector.Server"));
     tabsArray.add(Messages.getString(locale,"WikiConnector.Email"));
+    tabsArray.add(Messages.getString(locale,"WikiConnector.Proxy"));
 
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -887,6 +1004,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.PathMustStartWithACharacter")+"\");\n"+
 "    editconnection.serverpath.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.proxyport.value != \"\" && !isInteger(editconnection.proxyport.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.ProxyPortMustBeAValidInteger")+"\");\n"+
+"    editconnection.proxyport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
@@ -920,6 +1043,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    alert(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.PathMustStartWithACharacter")+"\");\n"+
 "    SelectTab(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.Server")+"\");\n"+
 "    editconnection.serverpath.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.proxyport.value != \"\" && !isInteger(editconnection.proxyport.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.ProxyPortMustBeAValidInteger")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.Proxy")+"\");\n"+
+"    editconnection.proxyport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
@@ -963,6 +1093,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (path == null)
       path = "/w";
 
+    // Server login parameters
+
     String login = parameters.getParameter(WikiConfig.PARAM_LOGIN);
     if (login == null) {
       login = "";
@@ -970,10 +1102,93 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String pass = parameters.getObfuscatedParameter(WikiConfig.PARAM_PASSWORD);
     if (pass == null) {
       pass = "";
+    } else {
+      pass = out.mapPasswordToKey(pass);
     }
     String domain = parameters.getParameter(WikiConfig.PARAM_DOMAIN);
     if (domain == null) {
       domain = "";
+    }
+
+    // Basic auth parameters
+    
+    String accessRealm = parameters.getParameter(WikiConfig.PARAM_ACCESSREALM);
+    if (accessRealm == null)
+      accessRealm = "";
+    
+    String accessUser = parameters.getParameter(WikiConfig.PARAM_ACCESSUSER);
+    if (accessUser == null)
+      accessUser = "";
+    
+    String accessPassword = parameters.getObfuscatedParameter(WikiConfig.PARAM_ACCESSPASSWORD);
+    if (accessPassword == null)
+      accessPassword = "";
+    else
+      accessPassword = out.mapPasswordToKey(accessPassword);
+
+    // Proxy parameters
+    
+    String proxyHost = parameters.getParameter(WikiConfig.PARAM_PROXYHOST);
+    if (proxyHost == null)
+      proxyHost = "";
+    
+    String proxyPort = parameters.getParameter(WikiConfig.PARAM_PROXYPORT);
+    if (proxyPort == null)
+      proxyPort = "";
+    
+    String proxyDomain = parameters.getParameter(WikiConfig.PARAM_PROXYDOMAIN);
+    if (proxyDomain == null)
+      proxyDomain = "";
+    
+    String proxyUsername = parameters.getParameter(WikiConfig.PARAM_PROXYUSERNAME);
+    if (proxyUsername == null)
+      proxyUsername = "";
+    
+    String proxyPassword = parameters.getObfuscatedParameter(WikiConfig.PARAM_PROXYPASSWORD);
+    if (proxyPassword == null)
+      proxyPassword = "";
+    else
+      proxyPassword = out.mapPasswordToKey(proxyPassword);
+
+    // Proxy tab
+    if (tabName.equals(Messages.getString(locale,"WikiConnector.Proxy")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.ProxyHostColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyhost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyHost)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.ProxyPortColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"proxyport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyPort)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.ProxyDomainColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxydomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyDomain)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.ProxyUsernameColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"16\" name=\"proxyusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyUsername)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.ProxyPasswordColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"password\" size=\"16\" name=\"proxypassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyPassword)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"proxyhost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyHost)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyPort)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxydomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyDomain)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyUsername)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxypassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyPassword)+"\"/>\n"
+      );
     }
     
     // Email tab
@@ -1026,6 +1241,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      <input name=\"serverpath\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "WikiConnector.ServerLogin") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
@@ -1044,6 +1260,25 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      <input name=\"serverdomain\" type=\"text\" size=\"16\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domain) + "\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "WikiConnector.AccessUser") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"accessuser\" type=\"text\" size=\"16\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessUser) + "\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "WikiConnector.AccessPassword") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"accesspassword\" type=\"password\" size=\"16\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessPassword) + "\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "WikiConnector.AccessRealm") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"accessrealm\" type=\"text\" size=\"16\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessRealm) + "\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -1057,7 +1292,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "<input type=\"hidden\" name=\"serverpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverlogin\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(login) + "\"/>\n"+
 "<input type=\"hidden\" name=\"serverpass\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pass) + "\"/>\n"+
-"<input type=\"hidden\" name=\"serverdomain\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domain) + "\"/>\n"
+"<input type=\"hidden\" name=\"serverdomain\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domain) + "\"/>\n"+
+"<input type=\"hidden\" name=\"accessuser\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessUser) + "\"/>\n"+
+"<input type=\"hidden\" name=\"accesspassword\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessPassword) + "\"/>\n"+
+"<input type=\"hidden\" name=\"accessrealm\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessRealm) + "\"/>\n"
       );
     }
 
@@ -1104,12 +1342,52 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     String pass = variableContext.getParameter("serverpass");
     if (pass != null) {
-      parameters.setObfuscatedParameter(WikiConfig.PARAM_PASSWORD, pass);
+      parameters.setObfuscatedParameter(WikiConfig.PARAM_PASSWORD, variableContext.mapKeyToPassword(pass));
     }
 
     String domain = variableContext.getParameter("serverdomain");
     if (domain != null) {
       parameters.setParameter(WikiConfig.PARAM_DOMAIN, domain);
+    }
+
+    String accessUser = variableContext.getParameter("accessuser");
+    if (accessUser != null) {
+      parameters.setParameter(WikiConfig.PARAM_ACCESSUSER, accessUser);
+    }
+
+    String accessPassword = variableContext.getParameter("accesspassword");
+    if (accessPassword != null) {
+      parameters.setObfuscatedParameter(WikiConfig.PARAM_ACCESSPASSWORD, variableContext.mapKeyToPassword(accessPassword));
+    }
+
+    String accessRealm = variableContext.getParameter("accessrealm");
+    if (accessRealm != null) {
+      parameters.setParameter(WikiConfig.PARAM_ACCESSREALM, accessRealm);
+    }
+
+    String proxyHost = variableContext.getParameter("proxyhost");
+    if (proxyHost != null) {
+      parameters.setParameter(WikiConfig.PARAM_PROXYHOST, proxyHost);
+    }
+    
+    String proxyPort = variableContext.getParameter("proxyport");
+    if (proxyPort != null) {
+      parameters.setParameter(WikiConfig.PARAM_PROXYPORT, proxyPort);
+    }
+
+    String proxyDomain = variableContext.getParameter("proxydomain");
+    if (proxyDomain != null) {
+      parameters.setParameter(WikiConfig.PARAM_PROXYDOMAIN, proxyDomain);
+    }
+    
+    String proxyUsername = variableContext.getParameter("proxyusername");
+    if (proxyUsername != null) {
+      parameters.setParameter(WikiConfig.PARAM_PROXYUSERNAME, proxyUsername);
+    }
+
+    String proxyPassword = variableContext.getParameter("proxypassword");
+    if (proxyPassword != null) {
+      parameters.setObfuscatedParameter(WikiConfig.PARAM_PROXYPASSWORD, variableContext.mapKeyToPassword(proxyPassword));
     }
 
     return null;
@@ -2061,7 +2339,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
 	HttpRequestBase executeMethod = getInitializedGetMethod(getListPagesURL(startPageTitle,namespace,prefix));
-        PageBuffer pageBuffer = new PageBuffer();
+        XThreadStringBuffer pageBuffer = new XThreadStringBuffer();
         ExecuteListPagesThread t = new ExecuteListPagesThread(httpClient,executeMethod,pageBuffer,startPageTitle);
         try
         {
@@ -2191,12 +2469,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected HttpClient client;
     protected HttpRequestBase executeMethod;
     protected Throwable exception = null;
-    protected PageBuffer pageBuffer;
+    protected XThreadStringBuffer pageBuffer;
     protected String lastPageTitle = null;
     protected String startPageTitle;
     protected boolean loginNeeded = false;
 
-    public ExecuteListPagesThread(HttpClient client, HttpRequestBase executeMethod, PageBuffer pageBuffer, String startPageTitle)
+    public ExecuteListPagesThread(HttpClient client, HttpRequestBase executeMethod, XThreadStringBuffer pageBuffer, String startPageTitle)
     {
       super();
       setDaemon(true);
@@ -2277,7 +2555,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *   </query-continue>
   * </api>
   */
-  protected static boolean parseListPagesResponse(InputStream is, PageBuffer buffer, String startPageTitle, ReturnString lastTitle)
+  protected static boolean parseListPagesResponse(InputStream is, XThreadStringBuffer buffer, String startPageTitle, ReturnString lastTitle)
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
@@ -2309,11 +2587,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiListPagesAPIContext extends SingleLevelContext
   {
     protected String lastTitle = null;
-    protected PageBuffer buffer;
+    protected XThreadStringBuffer buffer;
     protected String startPageTitle;
     protected boolean loginNeeded = false;
     
-    public WikiListPagesAPIContext(XMLStream theStream, PageBuffer buffer, String startPageTitle)
+    public WikiListPagesAPIContext(XMLStream theStream, XThreadStringBuffer buffer, String startPageTitle)
     {
       super(theStream,"api");
       this.buffer = buffer;
@@ -2350,11 +2628,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiListPagesQueryContext extends SingleLevelErrorContext
   {
     protected String lastTitle = null;
-    protected PageBuffer buffer;
+    protected XThreadStringBuffer buffer;
     protected String startPageTitle;
     
     public WikiListPagesQueryContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts,
-      PageBuffer buffer, String startPageTitle)
+      XThreadStringBuffer buffer, String startPageTitle)
     {
       super(theStream,namespaceURI,localName,qName,atts,"query");
       this.buffer = buffer;
@@ -2385,11 +2663,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiListPagesAllPagesContext extends SingleLevelContext
   {
     protected String lastTitle = null;
-    protected PageBuffer buffer;
+    protected XThreadStringBuffer buffer;
     protected String startPageTitle;
     
     public WikiListPagesAllPagesContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts,
-      PageBuffer buffer, String startPageTitle)
+      XThreadStringBuffer buffer, String startPageTitle)
     {
       super(theStream,namespaceURI,localName,qName,atts,"allpages");
       this.buffer = buffer;
@@ -2422,11 +2700,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiListPagesPContext extends BaseProcessingContext
   {
     protected String lastTitle = null;
-    protected PageBuffer buffer;
+    protected XThreadStringBuffer buffer;
     protected String startPageTitle;
     
     public WikiListPagesPContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts,
-      PageBuffer buffer, String startPageTitle)
+      XThreadStringBuffer buffer, String startPageTitle)
     {
       super(theStream,namespaceURI,localName,qName,atts);
       this.buffer = buffer;

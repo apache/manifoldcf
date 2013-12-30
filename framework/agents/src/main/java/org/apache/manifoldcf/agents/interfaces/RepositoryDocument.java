@@ -50,6 +50,7 @@ public class RepositoryDocument
   protected String contentMimeType = "application/octet-stream";
   protected Date createdDate = null;
   protected Date modifiedDate = null;
+  protected Date indexingDate = null;
   
   /** Constructor.
   */
@@ -87,6 +88,22 @@ public class RepositoryDocument
   public Date getModifiedDate()
   {
     return modifiedDate;
+  }
+
+  /** Set the document's indexing date.  Use null to indicate that the date is unknown.
+  *@param date is the date.
+  */
+  public void setIndexingDate(Date date)
+  {
+    indexingDate = date;
+  }
+  
+  /** Get the document's indexing date.  Returns null of the date is unknown.
+  *@return the date.
+  */
+  public Date getIndexingDate()
+  {
+    return indexingDate;
   }
   
   /** Set the document's mime type.
@@ -343,7 +360,7 @@ public class RepositoryDocument
     throws ManifoldCFException
   {
     if (fieldData == null)
-      addField(fieldName,(String)null);
+      addField(fieldName,(String[])null);
     else
       addField(fieldName,new String[]{fieldData});
   }

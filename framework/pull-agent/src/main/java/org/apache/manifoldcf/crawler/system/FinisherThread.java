@@ -32,13 +32,16 @@ public class FinisherThread extends Thread
   public static final String _rcsid = "@(#)$Id: FinisherThread.java 991295 2010-08-31 19:12:14Z kwright $";
 
   // Local data
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   */
-  public FinisherThread()
+  public FinisherThread(String processID)
     throws ManifoldCFException
   {
     super();
+    this.processID = processID;
     setName("Finisher thread");
     setDaemon(true);
   }

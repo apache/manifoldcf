@@ -33,17 +33,18 @@ public class JobResetThread extends Thread
   public static final String _rcsid = "@(#)$Id: JobResetThread.java 991295 2010-08-31 19:12:14Z kwright $";
 
   // Local data
-  protected QueueTracker queueTracker;
+  /** Process ID */
+  protected final String processID;
 
   /** Constructor.
   */
-  public JobResetThread(QueueTracker queueTracker)
+  public JobResetThread(String processID)
     throws ManifoldCFException
   {
     super();
     setName("Job reset thread");
     setDaemon(true);
-    this.queueTracker = queueTracker;
+    this.processID = processID;
   }
 
   public void run()
@@ -105,7 +106,7 @@ public class JobResetThread extends Thread
           {
             Logging.threads.debug("Job reset thread reprioritizing documents...");
 
-            ManifoldCF.resetAllDocumentPriorities(threadContext,queueTracker,currentTime);
+            ManifoldCF.resetAllDocumentPriorities(threadContext,currentTime,processID);
             
             Logging.threads.debug("Job reset thread done reprioritizing documents.");
 

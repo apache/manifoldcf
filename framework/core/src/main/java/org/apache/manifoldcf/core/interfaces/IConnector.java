@@ -64,6 +64,12 @@ public interface IConnector
   public void poll()
     throws ManifoldCFException;
 
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  public boolean isConnected();
+  
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()

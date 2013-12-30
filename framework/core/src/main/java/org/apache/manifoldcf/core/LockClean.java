@@ -38,15 +38,14 @@ public class LockClean implements InitializationCommand
    */
   public void execute() throws ManifoldCFException
   {
-    ManifoldCF.initializeEnvironment();
-    String synchDir = ManifoldCF.getFileProperty(org.apache.manifoldcf.core.lockmanager.LockManager.synchDirectoryProperty).toString();
+    ManifoldCF.initializeEnvironment(ThreadContextFactory.make());
+    File synchDir = org.apache.manifoldcf.core.lockmanager.FileLockManager.getSynchDirectoryProperty();
     if (synchDir != null)
     {
       // Recursively clean up the contents of the synch directory. But don't remove the directory itself
-      File dir = new File(synchDir);
-      if (dir.isDirectory())
+      if (synchDir.isDirectory())
       {
-        removeContentsOfDirectory(dir);
+        removeContentsOfDirectory(synchDir);
       }
     }
     Logging.root.info("Synchronization storage cleaned up");

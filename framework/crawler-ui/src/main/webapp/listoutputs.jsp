@@ -94,7 +94,7 @@
 		String className = connection.getClassName();
 		String connectorName = connectorManager.getDescription(className);
 		if (connectorName == null)
-			connectorName = className + "(uninstalled)";
+			connectorName = className + Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.uninstalled");;
 		int maxCount = connection.getMaxConnections();
 
 %>

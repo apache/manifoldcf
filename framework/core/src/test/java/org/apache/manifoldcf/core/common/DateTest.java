@@ -37,7 +37,11 @@ public class DateTest
     assertNotNull(d);
     d = DateParser.parseISO8601Date("2012-11-15T01:32:33+0100");
     assertNotNull(d);
+    d = DateParser.parseISO8601Date("2012-11-15T01:32:33-03:00");
+    assertNotNull(d);
     d = DateParser.parseISO8601Date("2012-11-15T01:32:33GMT-03:00");
+    assertNotNull(d);
+    d = DateParser.parseISO8601Date("2012-11-15T01:32:33.001-04:00");
     assertNotNull(d);
   }
 

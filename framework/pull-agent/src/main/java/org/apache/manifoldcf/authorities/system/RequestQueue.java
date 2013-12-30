@@ -28,12 +28,12 @@ import java.util.*;
 * (b) the "reader" threads block if queue is empty.
 * The objects being queued are all AuthRequest objects.
 */
-public class RequestQueue
+public class RequestQueue<T>
 {
   public static final String _rcsid = "@(#)$Id: RequestQueue.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Since the queue has a maximum size, an ArrayList is a fine way to keep it
-  protected ArrayList queue = new ArrayList();
+  protected List<T> queue = new ArrayList<T>();
 
   /** Constructor.
   */
@@ -44,7 +44,7 @@ public class RequestQueue
   /** Add a request to the queue.
   *@param dd is the request.
   */
-  public void addRequest(AuthRequest dd)
+  public void addRequest(T dd)
   {
     synchronized (queue)
     {
@@ -57,7 +57,7 @@ public class RequestQueue
   * nothing there.
   *@return the request to be processed.
   */
-  public AuthRequest getRequest()
+  public T getRequest()
     throws InterruptedException
   {
     synchronized (queue)
@@ -66,7 +66,7 @@ public class RequestQueue
       while (queue.size() == 0)
         queue.wait();
 
-      return (AuthRequest)queue.remove(queue.size()-1);
+      return queue.remove(queue.size()-1);
     }
   }
 

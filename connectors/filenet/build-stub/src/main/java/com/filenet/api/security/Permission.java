@@ -18,9 +18,11 @@
 */
 package com.filenet.api.security;
 
+import com.filenet.api.core.*;
+
 /** Stub interface to allow the connector to build fully.
 */
-public interface Permission
+public interface Permission extends EngineObject, DependentObject
 {
   public String get_GranteeName();
 }

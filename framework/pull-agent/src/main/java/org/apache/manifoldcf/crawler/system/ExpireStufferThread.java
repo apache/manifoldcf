@@ -33,25 +33,28 @@ public class ExpireStufferThread extends Thread
   public static final String _rcsid = "@(#)$Id: ExpireStufferThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-  // This is a reference to the static main document expiration queue
-  protected DocumentCleanupQueue documentQueue;
+  /** This is a reference to the static main document expiration queue */
+  protected final DocumentCleanupQueue documentQueue;
   /** Worker thread pool reset manager */
-  protected WorkerResetManager resetManager;
-  // This is the number of entries we want to stuff at any one time.
-  protected int n;
-
+  protected final WorkerResetManager resetManager;
+  /** This is the number of entries we want to stuff at any one time. */
+  protected final int n;
+  /** Process ID */
+  protected final String processID;
+  
   /** Constructor.
   *@param documentQueue is the document queue we'll be stuffing.
   *@param n represents the number of threads that will be processing queued stuff, NOT the
   * number of documents to be done at once!
   */
-  public ExpireStufferThread(DocumentCleanupQueue documentQueue, int n, WorkerResetManager resetManager)
+  public ExpireStufferThread(DocumentCleanupQueue documentQueue, int n, WorkerResetManager resetManager, String processID)
     throws ManifoldCFException
   {
     super();
     this.documentQueue = documentQueue;
     this.n = n;
     this.resetManager = resetManager;
+    this.processID = processID;
     setName("Expire stuffer thread");
     setDaemon(true);
     // The priority of this thread is higher than most others.  We want stuffing to proceed even if the machine
@@ -115,7 +118,7 @@ public class ExpireStufferThread extends Thread
           // The number n passed in here thus cannot be used in a query to limit the number of returned
           // results.  Instead, it must be factored into the limit portion of the query.
           long currentTime = System.currentTimeMillis();
-          DocumentSetAndFlags docsAndFlags = jobManager.getExpiredDocuments(deleteChunkSize,currentTime);
+          DocumentSetAndFlags docsAndFlags = jobManager.getExpiredDocuments(processID,deleteChunkSize,currentTime);
           DocumentDescription[] descs = docsAndFlags.getDocumentSet();
           boolean[] deleteFromIndex = docsAndFlags.getFlags();
           
@@ -131,7 +134,7 @@ public class ExpireStufferThread extends Thread
           // The theory is that we need to allow stuff to accumulate.
           if (descs.length == 0)
           {
-            ManifoldCF.sleep(60000L);      // 1 minute
+            ManifoldCF.sleep(5000L);      // 5 seconds
             continue;
           }
 

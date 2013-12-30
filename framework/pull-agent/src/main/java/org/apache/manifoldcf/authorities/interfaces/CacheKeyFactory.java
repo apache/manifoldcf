@@ -28,6 +28,23 @@ public class CacheKeyFactory extends org.apache.manifoldcf.core.interfaces.Cache
   {
   }
 
+  /** Construct a key which represents the general list of authority groups.
+  *@return the cache key.
+  */
+  public static String makeAuthorityGroupsKey()
+  {
+    return "AUTHORITYGROUPS";
+  }
+
+  /** Construct a key which represents an individual authority group.
+  *@param groupName is the name of the group.
+  *@return the cache key.
+  */
+  public static String makeAuthorityGroupKey(String groupName)
+  {
+    return "AUTHORITYGROUP_"+groupName;
+  }
+
   /** Construct a key which represents the general list of authority connectors.
   *@return the cache key.
   */
@@ -43,6 +60,23 @@ public class CacheKeyFactory extends org.apache.manifoldcf.core.interfaces.Cache
   public static String makeAuthorityConnectionKey(String connectionName)
   {
     return "AUTHORITYCONNECTION_"+connectionName;
+  }
+
+  /** Construct a key which represents the general list of mapping connectors.
+  *@return the cache key.
+  */
+  public static String makeMappingConnectionsKey()
+  {
+    return "MAPPINGCONNECTIONS";
+  }
+
+  /** Construct a key which represents an individual mapping connection.
+  *@param connectionName is the name of the connection.
+  *@return the cache key.
+  */
+  public static String makeMappingConnectionKey(String connectionName)
+  {
+    return "MAPPINGCONNECTION_"+connectionName;
   }
 
 }

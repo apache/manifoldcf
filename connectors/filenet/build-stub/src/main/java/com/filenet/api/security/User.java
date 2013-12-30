@@ -20,7 +20,7 @@ package com.filenet.api.security;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface User
+public interface User extends SecurityPrincipal
 {
   public String get_Id();
 }

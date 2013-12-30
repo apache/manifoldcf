@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 
 /** An instance of this class manages a number of (independent) connection pools.
@@ -37,10 +38,10 @@ public class ConnectionPoolManager
   protected volatile AtomicBoolean shuttingDown = new AtomicBoolean(false);
   protected final boolean debug;
   
-  public ConnectionPoolManager(int count)
+  public ConnectionPoolManager(int count, boolean debug)
     throws ManifoldCFException
   {
-    debug = ManifoldCF.getBooleanProperty(ManifoldCF.databaseConnectionTrackingProperty, false);
+    this.debug = debug;
     poolMap = new HashMap<String,ConnectionPool>(count);
     connectionCloserThread = new ConnectionCloserThread();
     connectionCloserThread.start();
@@ -67,6 +68,7 @@ public class ConnectionPoolManager
   
   public void shutdown()
   {
+    //System.out.println("JDBC POOL SHUTDOWN CALLED");
     shuttingDown.set(true);
     while (connectionCloserThread.isAlive())
     {
