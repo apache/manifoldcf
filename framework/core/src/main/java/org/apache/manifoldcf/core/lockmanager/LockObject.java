@@ -29,7 +29,7 @@ public class LockObject
 {
   public static final String _rcsid = "@(#)$Id: LockObject.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  protected Object lockKey;
+  protected final Object lockKey;
 
   private LockPool lockPool;
   private boolean obtainedWrite = false;  // Set to true if this object already owns the permission to exclusively write
