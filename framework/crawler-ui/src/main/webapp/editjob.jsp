@@ -884,13 +884,15 @@
 				<td class="description">
 					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalIfContinuousColon")%></nobr>
 				</td>
-				<td class="value">
+				<td class="value" colspan="3">
 					<nobr><input type="text" size="5" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
+			</tr>
+			<tr>
 				<td class="description">
 					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaxRecrawlIntervalIfContinuousColon")%></nobr>
 				</td>
-				<td class="value">
+				<td class="value" colspan="3">
 					<nobr><input type="text" size="5" name="maxrecrawlinterval" value='<%=((maxRecrawlInterval==null)?"":maxRecrawlInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
 			</tr>
@@ -898,13 +900,15 @@
 				<td class="description">
 					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalIfContinuousColon")%></nobr>
 				</td>
-				<td class="value">
+				<td class="value" colspan="3">
 					<nobr><input type="text" size="5" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
+			</tr>
+			<tr>
 				<td class="description">
 					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalIfContinuousColon")%></nobr>
 				</td>
-				<td class="value">
+				<td class="value" colspan="3">
 					<nobr><input type="text" size="5" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
 			</tr>
