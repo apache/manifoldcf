@@ -805,9 +805,12 @@ class VirtualWindow:
         # confirm( )
         # alert( )
         # eval( )
+        # parseInt( )
+
         self.jscontext.define_value( "confirm", JSConfirmMethod( self ) )
         self.jscontext.define_value( "alert", JSAlertMethod( self ))
         self.jscontext.define_value( "eval", JSEvalMethod( self ))
+        self.jscontext.define_value( "parseInt", JSParseIntMethod( self ))
 
         # Need built-in objects for:
         # document (with form properties and form element properties beneath that).
@@ -1367,6 +1370,22 @@ class JSEvalMethod( Javascript.JSObject ):
         # Parse this as javascript
         tokenstream = Javascript.JSTokenStream( message )
         return tokenstream.evaluate_expr( context, "Eval" )
+
+# JS object that handles "parseInt" method
+class JSParseIntMethod( Javascript.JSObject ):
+
+    def __init__( self, window_instance ):
+        Javascript.JSObject.__init__( self )
+        assert isinstance( window_instance, VirtualWindow )
+        self.window_instance = window_instance
+
+    def call( self, argset, context ):
+        # Check to be sure we have one string argument
+        if len(argset) != 1:
+            raise Exception("parseInt method requires one string argument")
+        # Evaluate to int
+        intvalue = argset[0].int_value( )
+        return Javascript.JSNumber( intvalue )
 
 # JS object that handles "submit" method
 class JSSubmitMethod( Javascript.JSObject ):

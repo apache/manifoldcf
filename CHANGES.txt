@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-850: Add maximum recrawl interval parameter for all
+jobs.  NOTE: Schema change!!
+(Florian Schmedding, Karl Wright)
+
 CONNECTORS-849: Upgrade to Hadoop 2.2.0.
 (Karl Wright)
 

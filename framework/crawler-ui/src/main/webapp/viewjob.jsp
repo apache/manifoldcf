@@ -85,6 +85,7 @@
 		String naMessage = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Notapplicable");
 		String jobType = "";
 		String intervalString = naMessage;
+		String maxIntervalString = naMessage;
 		String reseedIntervalString = naMessage;
 		String expirationIntervalString = naMessage;
 
@@ -95,9 +96,11 @@
 			String minutesMessage = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.minutes");
 			jobType = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Rescandocumentsdynamically");
 			Long recrawlInterval = job.getInterval();
+			Long maxRecrawlInterval = job.getMaxInterval();
 			Long reseedInterval = job.getReseedInterval();
 			Long expirationInterval = job.getExpiration();
 			intervalString = (recrawlInterval==null)?infinityMessage:(new Long(recrawlInterval.longValue()/60000L).toString()+" "+minutesMessage);
+			maxIntervalString = (maxRecrawlInterval==null)?infinityMessage:(new Long(maxRecrawlInterval.longValue()/60000L).toString()+" "+minutesMessage);
 			reseedIntervalString = (reseedInterval==null)?infinityMessage:(new Long(reseedInterval.longValue()/60000L).toString()+" "+minutesMessage);
 			expirationIntervalString = (expirationInterval==null)?infinityMessage:(new Long(expirationInterval.longValue()/60000L).toString()+" "+minutesMessage);
 			break;
@@ -173,9 +176,13 @@
 			</tr>
 			<tr>
 				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ScheduleTypeColon")%></nobr></td>
-				<td class="value"><nobr><%=jobType%></nobr></td>
+				<td class="value" colspan="3"><nobr><%=jobType%></nobr></td>
+			</tr>
+			<tr>
 				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MinimumRecrawlIntervalColon")%></nobr></td>
 				<td class="value"><nobr><%=intervalString%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumRecrawlIntervalColon")%></nobr></td>
+				<td class="value"><nobr><%=maxIntervalString%></nobr></td>
 			</tr>
 			<tr>
 				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ExpirationIntervalColon")%></nobr></td>

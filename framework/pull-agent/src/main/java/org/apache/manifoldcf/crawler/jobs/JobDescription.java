@@ -57,6 +57,9 @@ public class JobDescription implements IJobDescription
   // Default interval for continuous crawling
   protected Long interval = new Long(1000L*3600L*24L);            // 1 day is the default
 
+  // Maximum interval for continuous crawling
+  protected Long maxInterval = null;
+  
   // Document expiration time for this job, in milliseconds
   protected Long expiration = null;                       // Never is the default
 
@@ -99,6 +102,7 @@ public class JobDescription implements IJobDescription
     // No direct modification of this object is possible
     rval.scheduleList = scheduleList.duplicate();
     rval.interval = interval;
+    rval.maxInterval = maxInterval;
     rval.expiration = expiration;
     rval.reseedInterval = reseedInterval;
     rval.rate = rate;
@@ -153,6 +157,7 @@ public class JobDescription implements IJobDescription
   /** Get isnew.
   *@return true if the object is new.
   */
+  @Override
   public boolean getIsNew()
   {
     return isNew;
@@ -171,6 +176,7 @@ public class JobDescription implements IJobDescription
   /** Get the id.
   *@return the id.
   */
+  @Override
   public Long getID()
   {
     return id;
@@ -179,6 +185,7 @@ public class JobDescription implements IJobDescription
   /** Set the description.
   *@param description is the description.
   */
+  @Override
   public void setDescription(String description)
   {
     if (readOnly)
@@ -189,6 +196,7 @@ public class JobDescription implements IJobDescription
   /** Get the description.
   *@return the description
   */
+  @Override
   public String getDescription()
   {
     return description;
@@ -197,6 +205,7 @@ public class JobDescription implements IJobDescription
   /** Set the output connection name.
   *@param connectionName is the connection name.
   */
+  @Override
   public void setOutputConnectionName(String connectionName)
   {
     if (readOnly)
@@ -207,6 +216,7 @@ public class JobDescription implements IJobDescription
   /** Get the output connection name.
   *@return the output connection name.
   */
+  @Override
   public String getOutputConnectionName()
   {
     return outputConnectionName;
@@ -215,6 +225,7 @@ public class JobDescription implements IJobDescription
   /** Set the connection name.
   *@param connectionName is the connection name.
   */
+  @Override
   public void setConnectionName(String connectionName)
   {
     if (readOnly)
@@ -225,6 +236,7 @@ public class JobDescription implements IJobDescription
   /** Get the connection name.
   *@return the connection name.
   */
+  @Override
   public String getConnectionName()
   {
     return connectionName;
@@ -233,6 +245,7 @@ public class JobDescription implements IJobDescription
   /** Set the job type.
   *@param type is the type (as an integer).
   */
+  @Override
   public void setType(int type)
   {
     if (readOnly)
@@ -243,6 +256,7 @@ public class JobDescription implements IJobDescription
   /** Get the job type.
   *@return the type (as an integer).
   */
+  @Override
   public int getType()
   {
     return type;
@@ -251,6 +265,7 @@ public class JobDescription implements IJobDescription
   /** Set the job's start method.
   *@param startMethod is the start description.
   */
+  @Override
   public void setStartMethod(int startMethod)
   {
     if (readOnly)
@@ -261,6 +276,7 @@ public class JobDescription implements IJobDescription
   /** Get the job's start method.
   *@return the start method.
   */
+  @Override
   public int getStartMethod()
   {
     return startMethod;
@@ -272,6 +288,7 @@ public class JobDescription implements IJobDescription
 
   /** Clear all the scheduling records.
   */
+  @Override
   public void clearScheduleRecords()
   {
     if (readOnly)
@@ -282,6 +299,7 @@ public class JobDescription implements IJobDescription
   /** Add a record.
   *@param record is the record to add.
   */
+  @Override
   public void addScheduleRecord(ScheduleRecord record)
   {
     if (readOnly)
@@ -292,6 +310,7 @@ public class JobDescription implements IJobDescription
   /** Get the number of schedule records.
   *@return the count.
   */
+  @Override
   public int getScheduleRecordCount()
   {
     return scheduleList.getRecordCount();
@@ -301,6 +320,7 @@ public class JobDescription implements IJobDescription
   *@param index is the record number.
   *@return the record.
   */
+  @Override
   public ScheduleRecord getScheduleRecord(int index)
   {
     return scheduleList.getRecord(index);
@@ -309,6 +329,7 @@ public class JobDescription implements IJobDescription
   /** Delete a specified schedule record.
   *@param index is the record number.
   */
+  @Override
   public void deleteScheduleRecord(int index)
   {
     if (readOnly)
@@ -323,6 +344,7 @@ public class JobDescription implements IJobDescription
   /** Set the rescheduling interval, in milliseconds.
   *@param interval is the default interval, or null for infinite.
   */
+  @Override
   public void setInterval(Long interval)
   {
     if (readOnly)
@@ -333,14 +355,36 @@ public class JobDescription implements IJobDescription
   /** Get the rescheduling interval, in milliseconds.
   *@return the default interval, or null for infinite.
   */
+  @Override
   public Long getInterval()
   {
     return interval;
   }
 
+  /** Set the maximum rescheduling interval, in milliseconds, or null if forever.
+  *@param interval is the maximum interval.
+  */
+  @Override
+  public void setMaxInterval(Long interval)
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    this.maxInterval = interval;
+  }
+
+  /** Get the maximum rescheduling interval, in milliseconds.
+  *@return the max interval, or null if forever.
+  */
+  @Override
+  public Long getMaxInterval()
+  {
+    return maxInterval;
+  }
+
   /** Set the expiration time, in milliseconds.
   *@param time is the maximum expiration time of a document, in milliseconds, or null if none.
   */
+  @Override
   public void setExpiration(Long time)
   {
     if (readOnly)
@@ -351,6 +395,7 @@ public class JobDescription implements IJobDescription
   /** Get the expiration time, in milliseconds.
   *@return the maximum expiration time of a document, or null if none.
   */
+  @Override
   public Long getExpiration()
   {
     return expiration;
@@ -359,6 +404,7 @@ public class JobDescription implements IJobDescription
   /** Set the reseeding interval, in milliseconds.
   *@param interval is the interval, or null for infinite.
   */
+  @Override
   public void setReseedInterval(Long interval)
   {
     if (readOnly)
@@ -369,6 +415,7 @@ public class JobDescription implements IJobDescription
   /** Get the reseeding interval, in milliseconds.
   *@return the interval, or null if infinite.
   */
+  @Override
   public Long getReseedInterval()
   {
     return reseedInterval;
@@ -377,6 +424,7 @@ public class JobDescription implements IJobDescription
   /** Get the output specification.
   *@return the output specification object.
   */
+  @Override
   public OutputSpecification getOutputSpecification()
   {
     return outputSpecification;
@@ -385,6 +433,7 @@ public class JobDescription implements IJobDescription
   /** Get the document specification.
   *@return the document specification object.
   */
+  @Override
   public DocumentSpecification getSpecification()
   {
     return documentSpecification;
@@ -395,6 +444,7 @@ public class JobDescription implements IJobDescription
   * 1 is the highest priority.
   *@param priority is the priority.
   */
+  @Override
   public void setPriority(int priority)
   {
     if (readOnly)
@@ -405,6 +455,7 @@ public class JobDescription implements IJobDescription
   /** Get the job priority.
   *@return the priority (a number between 1 and 10).
   */
+  @Override
   public int getPriority()
   {
     return priority;
@@ -415,6 +466,7 @@ public class JobDescription implements IJobDescription
   /** Get the set of hopcount filters the job has defined.
   *@return the set as a map, keyed by Strings and containing Longs.
   */
+  @Override
   public Map getHopCountFilters()
   {
     return (Map)hopCountFilters.clone();
@@ -422,6 +474,7 @@ public class JobDescription implements IJobDescription
 
   /** Clear the set of hopcount filters for the job.
   */
+  @Override
   public void clearHopCountFilters()
   {
     if (readOnly)
@@ -434,6 +487,7 @@ public class JobDescription implements IJobDescription
   *@param linkType is the type of link the filter applies to.
   *@param maxHops is the maximum hop count.  Use null to remove a filter.
   */
+  @Override
   public void addHopCountFilter(String linkType, Long maxHops)
   {
     if (readOnly)
@@ -442,12 +496,14 @@ public class JobDescription implements IJobDescription
   }
 
   /** Get the hopcount mode. */
+  @Override
   public int getHopcountMode()
   {
     return hopcountMode;
   }
 
   /** Set the hopcount mode. */
+  @Override
   public void setHopcountMode(int mode)
   {
     if (readOnly)
@@ -460,6 +516,7 @@ public class JobDescription implements IJobDescription
   /** Get the forced metadata.
   *@return the set as a map, keyed by metadata name, with value a set of strings.
   */
+  @Override
   public Map<String,Set<String>> getForcedMetadata()
   {
     return forcedMetadata;
@@ -467,6 +524,7 @@ public class JobDescription implements IJobDescription
   
   /** Clear forced metadata.
   */
+  @Override
   public void clearForcedMetadata()
   {
     forcedMetadata.clear();
@@ -474,6 +532,7 @@ public class JobDescription implements IJobDescription
   
   /** Add a forced metadata name/value pair.
   */
+  @Override
   public void addForcedMetadataValue(String name, String value)
   {
     Set<String> rval = forcedMetadata.get(name);

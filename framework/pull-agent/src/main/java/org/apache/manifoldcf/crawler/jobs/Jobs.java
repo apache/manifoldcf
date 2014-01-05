@@ -45,6 +45,7 @@ import java.util.*;
  * <tr><td>outputname</td><td>VARCHAR(32)</td><td>Reference:outputconnections.connectionname</td></tr>
  * <tr><td>type</td><td>CHAR(1)</td><td></td></tr>
  * <tr><td>intervaltime</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>maxintervaltime</td><td>BIGINT</td><td></td></tr>
  * <tr><td>expirationtime</td><td>BIGINT</td><td></td></tr>
  * <tr><td>windowend</td><td>BIGINT</td><td></td></tr>
  * <tr><td>priority</td><td>BIGINT</td><td></td></tr>
@@ -153,6 +154,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public final static String typeField = "type";
   /** This is the minimum reschedule interval for a document being crawled adaptively (in ms.) */
   public final static String intervalField = "intervaltime";
+  /** This is the maximum reschedule interval for a document being crawled adaptively (in ms.) */
+  public final static String maxIntervalField = "maxintervaltime";
   /** This is the expiration time of documents for a given job (in ms.) */
   public final static String expirationField = "expirationtime";
   /** This is the job's priority vs. other jobs. */
@@ -341,6 +344,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         map.put(this.outputNameField,new ColumnDescription("VARCHAR(32)",false,false,outputTableName,outputNameField,false));
         map.put(typeField,new ColumnDescription("CHAR(1)",false,false,null,null,false));
         map.put(intervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
+        map.put(maxIntervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(expirationField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(windowEndField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(priorityField,new ColumnDescription("BIGINT",false,false,null,null,false));
@@ -359,6 +363,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         {
           Map insertMap = new HashMap();
           insertMap.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+        }
+        if (existing.get(maxIntervalField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(processIDField,new ColumnDescription("BIGINT",false,true,null,null,false));
           performAlter(insertMap,null,null,null);
         }
       }
@@ -764,6 +774,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
             values.put(typeField,typeToString(jobDescription.getType()));
             values.put(startMethodField,startMethodToString(jobDescription.getStartMethod()));
             values.put(intervalField,jobDescription.getInterval());
+            values.put(maxIntervalField,jobDescription.getMaxInterval());
             values.put(reseedIntervalField,jobDescription.getReseedInterval());
             values.put(expirationField,jobDescription.getExpiration());
             values.put(priorityField,new Integer(jobDescription.getPriority()));
@@ -3051,6 +3062,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         Object x;
 
         rc.setInterval((Long)row.getValue(intervalField));
+        rc.setMaxInterval((Long)row.getValue(maxIntervalField));
         rc.setReseedInterval((Long)row.getValue(reseedIntervalField));
         rc.setExpiration((Long)row.getValue(expirationField));
 
@@ -3065,7 +3077,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     }
     catch (NumberFormatException e)
     {
-      throw new ManifoldCFException("Bad number",e);
+      throw new ManifoldCFException("Bad number: "+e.getMessage(),e);
     }
   }
 

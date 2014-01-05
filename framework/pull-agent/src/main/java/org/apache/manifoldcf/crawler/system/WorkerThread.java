@@ -1870,7 +1870,13 @@ public class WorkerThread extends Thread
       Long recrawlTime = null;
       Long recrawlInterval = job.getInterval();
       if (recrawlInterval != null)
-        recrawlTime = new Long(currentTime + timeAmt + recrawlInterval.longValue());
+      {
+        Long maxInterval = job.getMaxInterval();
+        long actualInterval = recrawlInterval.longValue() + timeAmt;
+        if (maxInterval != null && actualInterval > maxInterval.longValue())
+          actualInterval = maxInterval.longValue();
+        recrawlTime = new Long(currentTime + actualInterval);
+      }
       if (Logging.scheduling.isDebugEnabled())
         Logging.scheduling.debug("Default rescan time for document '"+localIdentifier+"' is "+((recrawlTime==null)?"NEVER":recrawlTime.toString()));
       Long lowerBound = getDocumentRescheduleLowerBoundTime(localIdentifier);

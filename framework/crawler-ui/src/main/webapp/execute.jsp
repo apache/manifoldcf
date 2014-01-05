@@ -1005,6 +1005,14 @@
 						else
 							job.setInterval(new Long(new Long(x).longValue() * 60000L));
 					}
+					x = variableContext.getParameter("maxrecrawlinterval");
+					if (x != null)
+					{
+						if (x.length() == 0)
+							job.setMaxInterval(null);
+						else
+							job.setMaxInterval(new Long(new Long(x).longValue() * 60000L));
+					}
 					x = variableContext.getParameter("reseedinterval");
 					if (x != null)
 					{
