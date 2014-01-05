@@ -102,8 +102,12 @@
 %>
 		<tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
 		    <td class="columncell">
-			<a href='<%="viewjob.jsp?jobid="+jd.getID()%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Viewjob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.View")%></a>&nbsp;
-			<a href='<%="editjob.jsp?jobid="+jd.getID()%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Editjob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Edit")%></a>&nbsp;<a href='<%="javascript:Delete(\""+jd.getID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.DeleteJob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Delete")%></a>&nbsp;<a href='<%="editjob.jsp?origjobid="+jd.getID()%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.CopyJob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Copy")%></a>
+			<nobr>
+				<a href='<%="viewjob.jsp?jobid="+jd.getID()%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Viewjob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.View")%></a>
+				<a href='<%="editjob.jsp?jobid="+jd.getID()%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Editjob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Edit")%></a>
+				<a href='<%="javascript:Delete(\""+jd.getID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.DeleteJob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Delete")%></a>
+				<a href='<%="editjob.jsp?origjobid="+jd.getID()%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.CopyJob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Copy")%></a>
+			</nobr>
 		    </td>
 		    <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(jd.getDescription())%></td>
 		    <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(jd.getOutputConnectionName())%></td>
