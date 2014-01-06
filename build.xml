@@ -17,6 +17,8 @@
 
 <project name="manifoldcf" default="help">
 
+    <import file="site-options.xml" optional="true"/>
+
     <import file="common-build.xml"/>
     
     <target name="downloaded-condition">

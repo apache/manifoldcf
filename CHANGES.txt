@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-851: Add mail.jar to connector wsdl builder to turn off
+warnings.  Also provide ability to extend build with optional include.
+(B. Scott Michel, Karl Wright)
+
 CONNECTORS-850: Add maximum recrawl interval parameter for all
 jobs.  NOTE: Schema change!!
 (Florian Schmedding, Karl Wright)
