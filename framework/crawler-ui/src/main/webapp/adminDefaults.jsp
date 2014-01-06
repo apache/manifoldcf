@@ -28,6 +28,8 @@
 */
 %>
 
+<!DOCTYPE html>
+
 <jsp:useBean id="thread" class="org.apache.manifoldcf.ui.beans.ThreadContext" scope="request"/>
 <jsp:useBean id="adminprofile" class="org.apache.manifoldcf.ui.beans.AdminProfile" scope="session"/>
 
