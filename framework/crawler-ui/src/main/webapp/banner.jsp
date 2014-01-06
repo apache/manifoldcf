@@ -29,7 +29,7 @@
 %>
 
 <table class="bannertable">
-    <tr>
+    <tr class="bannerrow">
 	<td class="headerimage"><img src="ManifoldCF-logo.png"/></td>
           <td class="headercell">
 	    <table class="headertable">

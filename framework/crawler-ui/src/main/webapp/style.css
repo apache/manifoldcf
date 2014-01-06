@@ -143,6 +143,7 @@ body
 .bannerrow
 {
 	width: 100%;
+	height: 100%;
 }
 
 .headerimage
@@ -165,12 +166,12 @@ body
     border-width: 0;
     border-collapse: collapse;
 	width: 100%;
+	height: 100%;
 }
 
 .headerdaterow
 {
 	width: 100%;
-    vertical-align: top !important;
 	text-align: right !important;
 }
 
@@ -179,13 +180,14 @@ body
 	width: 100%;
 	height: 100%;
 	vertical-align: middle !important;
-	text-align: center !important;
+	text-align: left !important;
 }
 
 .headercell
 {
 	vertical-align: top;
 	width: 100%;
+	height: 100%;
 }
 
 .header
