@@ -131,7 +131,6 @@ body
 .bannertable
 {
     width: 100%;
-    height: 100%;
     margin: 0;
     padding: 0;
     border-style: none;
@@ -141,28 +140,54 @@ body
     background: #f8f8f8;
 }
 
-.headertable
+.bannerrow
 {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    border-style: none;
-    border-width: 0;
-    border-collapse: collapse;
+	width: 100%;
 }
 
 .headerimage
 {
     width: 50px;
     text-align: left;
-    vertical-align: middle;
+    vertical-align: top;
     padding: 0;
     margin: 0;
 }
 .headerimage img{
     margin: 12px;
 }
+
+.headertable
+{
+    margin: 0;
+    padding: 0;
+    border-style: none;
+    border-width: 0;
+    border-collapse: collapse;
+	width: 100%;
+}
+
+.headerdaterow
+{
+	width: 100%;
+    vertical-align: top !important;
+	text-align: right !important;
+}
+
+.headerrow
+{
+	width: 100%;
+	height: 100%;
+	vertical-align: middle !important;
+	text-align: center !important;
+}
+
+.headercell
+{
+	vertical-align: top;
+	width: 100%;
+}
+
 .header
 {
     color: black;
@@ -172,12 +197,9 @@ body
 
 .headerdate
 {
-    text-align: right;
-    vertical-align: top;
     color: black;
     font-weight: 200;
     font-size: 10px;
-
 }
 
 .navigation

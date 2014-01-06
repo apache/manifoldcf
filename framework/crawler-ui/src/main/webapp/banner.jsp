@@ -29,11 +29,16 @@
 %>
 
 <table class="bannertable">
-    <tr><td class="headerimage"><img src="ManifoldCF-logo.png"/></td>
-          <td>
+    <tr>
+	<td class="headerimage"><img src="ManifoldCF-logo.png"/></td>
+          <td class="headercell">
 	    <table class="headertable">
-		<tr><td class="headerdate"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dateString)%></td></tr>
-	          <tr><td class="header"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"banner.DocumentIngestion")%></td></tr>
+		<tr class="headerdaterow">
+			<td class="headerdate"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dateString)%></td>
+		</tr>
+	          <tr class="headerrow">
+			<td class="header"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"banner.DocumentIngestion")%></td>
+		</tr>
 	    </table>
 	</td>
     </tr>
