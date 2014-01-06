@@ -468,7 +468,12 @@ body
     border-width: 0;
     color: black;
     font-size: 8px;
+}
 
+.formcolumncell input[type="button"]
+{
+    min-height: 22px;
+    padding: 0 10px;
 }
 
 .formcolumnmessage
@@ -479,7 +484,6 @@ body
     border-width: 0;
     color: black;
     font-size: 8px;
-
     text-align: center;
 }
 
@@ -491,9 +495,12 @@ body
     color: #808080;
     font-size: 5px;
 }
-.formseparator hr{
+
+.formseparator hr
+{
     display: none;
 }
+
 .displaytable
 {
     width: 100%;
@@ -527,7 +534,9 @@ body
     border-width: 0;
     font-size: 14px;
 }
-.message a{
+
+.message a
+{
     padding: 10px;
     border-right: #6FB3E0 2px solid;
     background-color: #6FB3E0 !important;
@@ -536,7 +545,9 @@ body
     cursor: pointer;
     margin: 0 5px 0 0;
 }
-.message input[type="button"], .formcolumncell input[type="button"]{
+
+.message input[type="button"], .formcolumncell input[type="button"]
+{
     min-height: 30px;
     font-size: 14px;
     color: #fff;
@@ -546,10 +557,7 @@ body
     background-color: #6FB3E0 !important;
     color: #fff;
 }
-.formcolumncell input[type="button"]{
-    min-height: 22px;
-    padding: 0 10px;
-}
+
 .message a input[type="button"]{
     border: none;
     background: none transparent;
@@ -559,6 +567,7 @@ body
     cursor: pointer;
     padding: 0 10px;
 }
+
 .value
 {
     width: 100%;
@@ -575,11 +584,14 @@ body
     font-size: 12px;
     text-align: left;
 }
-.value input[type="text"],.value input[type="password"]{
+
+.value input[type="text"], .value input[type="password"]
+{
     border: 1px solid #bbb;
     padding: 5px;
     margin-top: 10px;
 }
+
 .boxcell
 {
     margin: 0 2px;
