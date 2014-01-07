@@ -377,11 +377,12 @@
                 <ul>
                     <li>Whether the job runs continuously, or scans every document once</li>
                     <li>How long a document should remain alive before it is 'expired', and removed from the index</li>
-                    <li>How long an interval before a document is re-checked, to see if it has changed</li>
+                    <li>The minimum interval before a document is re-checked, to see if it has changed</li>
+                    <li>The maximum interval before a document is re-checked, to see if it has changed</li>
                     <li>How long to wait before reseeding initial documents</li>
                 </ul>
                 <br/>
-                <p>The last three parameters only make sense if a job is a continuously running one, as the UI indicates.</p>
+                <p>The last four parameters only make sense if a job is a continuously running one, as the UI indicates.</p>
                 <p>The other thing you can do on this time is to define an appropriate set of scheduling records.  Each scheduling record defines some related set of intervals during
                        which the job can run.  The intervals are determined by the starting time (which is defined by the day of week, month, day, hour, and minute pulldowns), and the
                        maximum run time in minutes, which determines when the interval ends.  It is, of course, possible to select multiple values for each of the pulldowns, in which case
