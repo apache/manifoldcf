@@ -18,11 +18,31 @@
 */
 package org.apache.manifoldcf.agents.output.solr;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import java.util.*;
-import java.io.*;
+import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
+import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
+import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
+import org.apache.manifoldcf.agents.interfaces.OutputSpecification;
+import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.core.interfaces.ConfigNode;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
+import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
+import org.apache.manifoldcf.core.interfaces.IDFactory;
+import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IKeystoreManager;
+import org.apache.manifoldcf.core.interfaces.IPostParameters;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 
 
 /** This is the output connector for SOLR.  Currently, no frills.
@@ -493,11 +513,19 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     // Do the source/target pairs
     i = 0;
     Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
+    SpecificationNode keepAllMetadataNode = null;
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i++);
+      
+      if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
+          keepAllMetadataNode = sn;
+          continue;
+      }
+      
       if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
         String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
         String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
+        
         if (target == null) {
           target = "";
         }
@@ -568,6 +596,17 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         sb.append('-');
     }
     
+    // Add keepAllMetadata option if specified
+    if(keepAllMetadataNode != null) {
+        fixedList[0] = SolrConfig.NODE_KEEPMETADATA;
+        fixedList[1] = keepAllMetadataNode.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
+        StringBuilder pairBuffer = new StringBuilder();
+        packFixedList(pairBuffer,fixedList,'=');
+        List<String> list = new ArrayList<String>();
+        list.add(pairBuffer.toString());
+        packList(sb, list,'+');
+    }
+    
     return sb.toString();
   }
 
@@ -624,11 +663,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     // Build the argument map we'll send.
     Map args = new HashMap();
     Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
+    Boolean keepAllMetadata = false;
     int index = 0;
     ArrayList nameValues = new ArrayList();
     index = unpackList(nameValues,outputDescription,index,'+');
     ArrayList sts = new ArrayList();
     index = unpackList(sts,outputDescription,index,'+');
+    ArrayList metadataExtraParams = new ArrayList();
+    index = unpackList(metadataExtraParams, outputDescription, index, '+');
     String[] fixedBuffer = new String[2];
     
     // Do the name/value pairs
@@ -662,11 +704,17 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       list.add(target);
     }
 
+    // extract keep all metadata Flag
+    String keepAllMetadataFlag=(String)metadataExtraParams.get(0);
+    unpackFixedList(fixedBuffer, keepAllMetadataFlag, 0, '=');
+    String keepAllMetadataFlagValue = fixedBuffer[1];
+    keepAllMetadata=Boolean.parseBoolean(keepAllMetadataFlagValue);
+
     // Establish a session
     getSession();
 
     // Now, go off and call the ingest API.
-    if (poster.indexPost(documentURI,document,args,sourceTargets,authorityNameString,activities))
+    if (poster.indexPost(documentURI,document,args,sourceTargets,keepAllMetadata,authorityNameString,activities))
       return DOCUMENTSTATUS_ACCEPTED;
     return DOCUMENTSTATUS_REJECTED;
   }
@@ -2289,6 +2337,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 
       int fieldCounter = 0;
       i = 0;
+      SpecificationNode keepMetadata = null;
       while (i < os.getChildCount()) {
         SpecificationNode sn = os.getChild(i++);
         if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
@@ -2325,6 +2374,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
           );
           fieldCounter++;
         }
+        else if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
+            keepMetadata = sn;
+        }
       }
       
       if (fieldCounter == 0)
@@ -2332,6 +2384,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         out.print(
 "        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"SolrConnector.NoFieldMappingSpecified") + "</td></tr>\n"
         );
+      }
+      
+      String keepMetadataValue = "";
+      if(keepMetadata != null) {
+          keepMetadataValue = keepMetadata.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
+          keepMetadataValue = !keepMetadataValue.isEmpty() && keepMetadataValue != null && keepMetadataValue.equals("true") ? "checked" : "";
       }
       out.print(
 "        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
@@ -2350,6 +2408,16 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "            <nobr><input type=\"text\" size=\"15\" name=\"solr_fieldmapping_target\" value=\"\"/></nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"+
+    // Adding keep metadata
+ "   <tr class=\"formrow\">\n"+
+            "          <td class=\"formcolumncell\">\n"+
+            "              <input type=\"checkbox\" "+keepMetadataValue+" name=\"solr_keepallmetadata\" value=\"true\" />\n"+
+            "          </td>\n"+
+            "          <td class=\"formcolumncell\">\n"+
+                        Messages.getAttributeString(locale,"SolrConnector.KeepAllMetadata")+
+            "          </td>\n"+
+            "          <td class=\"formcolumncell\">\n</td>\n"+
+            "        </tr>\n"+
 "      </table>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -2375,6 +2443,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"
           );
           fieldCounter++;
+        }
+        else if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
+            out.print("<input type=\"hidden\" name=\"solr_keepallmetadata\" value=\""+sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE)+"\"/>\n");
         }
       }
       out.print(
@@ -2404,7 +2475,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       while (i < os.getChildCount())
       {
         SpecificationNode node = os.getChild(i);
-        if (node.getType().equals(SolrConfig.NODE_FIELDMAP))
+        if (node.getType().equals(SolrConfig.NODE_FIELDMAP) || node.getType().equals(SolrConfig.NODE_KEEPMETADATA))
           os.removeChild(i);
         else
           i++;
@@ -2429,6 +2500,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         }
         i++;
       }
+      
       String addop = variableContext.getParameter("solr_fieldmapping_op");
       if (addop != null && addop.equals("Add"))
       {
@@ -2441,6 +2513,18 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         node.setAttribute(SolrConfig.ATTRIBUTE_TARGET,target);
         os.addChild(os.getChildCount(),node);
       }
+      
+      // Gather the keep all metadata parameter to be the last one
+      SpecificationNode node = new SpecificationNode(SolrConfig.NODE_KEEPMETADATA);
+      if(variableContext.getParameter("solr_keepallmetadata") != null && !variableContext.getParameter("solr_keepallmetadata").isEmpty()) {
+          node.setAttribute(SolrConfig.ATTRIBUTE_VALUE, "true");
+      }
+      else {
+          node.setAttribute(SolrConfig.ATTRIBUTE_VALUE, "false");
+      }
+      // Add the new keepallmetadata config parameter 
+      os.addChild(os.getChildCount(), node);
+          
     }
     return null;
   }

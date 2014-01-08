@@ -101,5 +101,25 @@
       <artifactId>httpclient</artifactId>
       <version>${httpcomponent.httpclient.version}</version>
     </dependency>
+
+      <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>${junit.version}</version>
+          <scope>test</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>org.powermock</groupId>
+          <artifactId>powermock-module-junit4</artifactId>
+          <version>${powerMock.version}</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.powermock</groupId>
+          <artifactId>powermock-api-mockito</artifactId>
+          <version>${powerMock.version}</version>
+          <scope>test</scope>
+      </dependency>
   </dependencies>
 </project>

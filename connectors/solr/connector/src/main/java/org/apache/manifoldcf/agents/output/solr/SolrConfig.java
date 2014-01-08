@@ -126,5 +126,10 @@ public class SolrConfig
   public static final String ATTRIBUTE_SOURCE = "source";
   /** Attribute describing a target field name */
   public static final String ATTRIBUTE_TARGET = "target";
+  
+  /**
+   * Node describing the keep metadata 
+   */
+  public static final String NODE_KEEPMETADATA = "keepAllMetadata";
 
 }
