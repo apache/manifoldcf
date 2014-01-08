@@ -368,7 +368,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         if (existing.get(maxIntervalField) == null)
         {
           Map insertMap = new HashMap();
-          insertMap.put(processIDField,new ColumnDescription("BIGINT",false,true,null,null,false));
+          insertMap.put(maxIntervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
           performAlter(insertMap,null,null,null);
         }
       }
