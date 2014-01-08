@@ -3929,6 +3929,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="${powermock-package}"/>
+            <param name="artifact-version" value="${powermock-version}"/>
+            <param name="artifact-name" value="powermock-module-junit4-common"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/mockito"/>
             <param name="artifact-version" value="1.9.5"/>
             <param name="artifact-name" value="mockito-all"/>
