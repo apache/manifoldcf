@@ -3931,6 +3931,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="${powermock-package}"/>
             <param name="artifact-version" value="${powermock-version}"/>
+            <param name="artifact-name" value="powermock-reflect"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="${powermock-package}"/>
+            <param name="artifact-version" value="${powermock-version}"/>
             <param name="artifact-name" value="powermock-module-junit4-common"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -3938,6 +3944,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="org/mockito"/>
             <param name="artifact-version" value="1.9.5"/>
             <param name="artifact-name" value="mockito-all"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/noggit"/>
+            <param name="artifact-version" value="0.5"/>
+            <param name="artifact-name" value="noggit"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
