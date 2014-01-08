@@ -3902,22 +3902,30 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
     <target name="download-mock">
         <mkdir dir="lib"/>
+        <property name="powermock-version" value="1.5.2"/>
+        <property name="powermock-package" value="org/powermock"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/powermock"/>
-            <param name="artifact-version" value="1.5.2"/>
+            <param name="project-path" value="${powermock-package}"/>
+            <param name="artifact-version" value="${powermock-version}"/>
             <param name="artifact-name" value="powermock-module-junit4"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/powermock"/>
-            <param name="artifact-version" value="1.5.2"/>
+            <param name="project-path" value="${powermock-package}"/>
+            <param name="artifact-version" value="${powermock-version}"/>
             <param name="artifact-name" value="powermock-api-mockito"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/powermock"/>
-            <param name="artifact-version" value="1.5.2"/>
+            <param name="project-path" value="${powermock-package}"/>
+            <param name="artifact-version" value="${powermock-version}"/>
             <param name="artifact-name" value="powermock-api-support"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="${powermock-package}"/>
+            <param name="artifact-version" value="${powermock-version}"/>
+            <param name="artifact-name" value="powermock-core"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
