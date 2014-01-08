@@ -481,8 +481,8 @@ public class HttpPoster
   * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
-                           RepositoryDocument document, Map arguments, Map<String, List<String>> sourceTargets,
-                           Boolean keepAllMetadata, String authorityNameString, IOutputAddActivity activities)
+    RepositoryDocument document, Map arguments, Map<String, List<String>> sourceTargets,
+    boolean keepAllMetadata, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
@@ -754,16 +754,16 @@ public class HttpPoster
   */
   protected class IngestThread extends java.lang.Thread
   {
-    protected String documentURI;
-    protected RepositoryDocument document;
-    protected Map<String,List<String>> arguments;
-    protected Map<String,List<String>> sourceTargets;
-    protected String[] shareAcls;
-    protected String[] shareDenyAcls;
-    protected String[] acls;
-    protected String[] denyAcls;
-    protected String commitWithin;
-    protected Boolean keepAllMetadata;
+    protected final String documentURI;
+    protected final RepositoryDocument document;
+    protected final Map<String,List<String>> arguments;
+    protected final Map<String,List<String>> sourceTargets;
+    protected final String[] shareAcls;
+    protected final String[] shareDenyAcls;
+    protected final String[] acls;
+    protected final String[] denyAcls;
+    protected final String commitWithin;
+    protected final boolean keepAllMetadata;
     
     protected Long activityStart = null;
     protected Long activityBytes = null;
@@ -773,14 +773,9 @@ public class HttpPoster
     protected boolean readFromDocumentStreamYet = false;
     protected boolean rval = false;
 
-      public IngestThread(String documentURI)
-      {
-          super();}
-
-
     public IngestThread(String documentURI, RepositoryDocument document,
-                        Map<String, List<String>> arguments, Boolean keepAllMetadata, Map<String, List<String>> sourceTargets,
-                        String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls, String commitWithin)
+      Map<String, List<String>> arguments, boolean keepAllMetadata, Map<String, List<String>> sourceTargets,
+      String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls, String commitWithin)
     {
       super();
       setDaemon(true);
@@ -796,15 +791,7 @@ public class HttpPoster
       this.keepAllMetadata=keepAllMetadata;
     }
 
-      public Boolean getKeepAllMetadata() {
-          return keepAllMetadata;
-      }
-
-      public void setKeepAllMetadata(Boolean keepAllMetadata) {
-          this.keepAllMetadata = keepAllMetadata;
-      }
-
-      public void run()
+    public void run()
     {
       long length = document.getBinaryLength();
       InputStream is = document.getBinaryStream();
@@ -962,50 +949,53 @@ public class HttpPoster
       }
     }
 
-      /**
-       * builds the solr parameter maps for the update request.
-       * For each mapping expressed is applied the renaming for the metadata field name.
-       * If we set to keep all the metadata, the metadata non present in the mapping will be kept with their original names.
-       * In the other case ignored
-       * @param out
-       * @throws IOException
-       */
-        private void buildSolrParamsFromMetadata(ModifiableSolrParams out) throws IOException
+    /**
+      * builds the solr parameter maps for the update request.
+      * For each mapping expressed is applied the renaming for the metadata field name.
+      * If we set to keep all the metadata, the metadata non present in the mapping will be kept with their original names.
+      * In the other case ignored
+      * @param out
+      * @throws IOException
+      */
+    private void buildSolrParamsFromMetadata(ModifiableSolrParams out) throws IOException
+    {
+      if (this.keepAllMetadata)
+      {
+        Iterator<String> iter = document.getFields();
+        while (iter.hasNext())
         {
-            if (this.keepAllMetadata)
-            {
-                Iterator<String> iter = document.getFields();
-                while (iter.hasNext())
-                {
-                    String fieldName = iter.next();
-                    List<String> mappings = sourceTargets.get(fieldName);
-                    if (mappings != null)
-                        for (String newFieldName : mappings)
-                            applySingleMapping(fieldName, out, newFieldName);
-                    else // the fields not mentioned in the mapping are added only if we have set the keep all metadata=true.
-                        this.applySingleMapping(fieldName, out, fieldName);
-                }
-            }
-            else //don't keep all the metadata but only the ones in sourceTargets
-                for (String originalFieldName : sourceTargets.keySet())
-                {
-                    List<String> mapping = sourceTargets.get(originalFieldName);
-                    for (String newFieldName : mapping)
-                        applySingleMapping(originalFieldName, out, newFieldName);
-                }
+          String fieldName = iter.next();
+          List<String> mappings = sourceTargets.get(fieldName);
+          if (mappings != null)
+            for (String newFieldName : mappings)
+              applySingleMapping(fieldName, out, newFieldName);
+          else // the fields not mentioned in the mapping are added only if we have set the keep all metadata=true.
+            applySingleMapping(fieldName, out, fieldName);
         }
-
-      private void applySingleMapping(String originalFieldName, ModifiableSolrParams out, String newFieldName) throws IOException {
-          if(newFieldName != null && !newFieldName.isEmpty()) {
-              if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
-                  newFieldName = ID_METADATA;
-              }
-              String[] values = document.getFieldAsStrings(originalFieldName);
-              writeField(out,LITERAL+newFieldName,values);
-          }
       }
+      else
+      {
+        //don't keep all the metadata but only the ones in sourceTargets
+        for (String originalFieldName : sourceTargets.keySet())
+        {
+          List<String> mapping = sourceTargets.get(originalFieldName);
+          for (String newFieldName : mapping)
+            applySingleMapping(originalFieldName, out, newFieldName);
+        }
+      }
+    }
 
-      public Throwable getException()
+    private void applySingleMapping(String originalFieldName, ModifiableSolrParams out, String newFieldName) throws IOException {
+      if(newFieldName != null && !newFieldName.isEmpty()) {
+        if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
+          newFieldName = ID_METADATA;
+        }
+        String[] values = document.getFieldAsStrings(originalFieldName);
+        writeField(out,LITERAL+newFieldName,values);
+      }
+    }
+
+    public Throwable getException()
     {
       return exception;
     }

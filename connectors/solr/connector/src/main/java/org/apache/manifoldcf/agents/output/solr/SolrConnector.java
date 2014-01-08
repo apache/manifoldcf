@@ -513,16 +513,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     // Do the source/target pairs
     i = 0;
     Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-    SpecificationNode keepAllMetadataNode = null;
+    boolean keepAllMetadata = true;
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i++);
       
       if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
-          keepAllMetadataNode = sn;
-          continue;
-      }
-      
-      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
+        String value = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
+        keepAllMetadata = Boolean.parseBoolean(value);
+      } else if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
         String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
         String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
         
@@ -565,6 +563,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     
     packList(sb,sourceTargetsList,'+');
 
+    // Keep all metadata flag
+    if (keepAllMetadata)
+      sb.append('+');
+    else
+      sb.append('-');
+
     // Here, append things which we have no intention of unpacking.  This includes stuff that comes from
     // the configuration information, for instance.
     
@@ -594,17 +598,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       }
       else
         sb.append('-');
-    }
-    
-    // Add keepAllMetadata option if specified
-    if(keepAllMetadataNode != null) {
-        fixedList[0] = SolrConfig.NODE_KEEPMETADATA;
-        fixedList[1] = keepAllMetadataNode.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
-        StringBuilder pairBuffer = new StringBuilder();
-        packFixedList(pairBuffer,fixedList,'=');
-        List<String> list = new ArrayList<String>();
-        list.add(pairBuffer.toString());
-        packList(sb, list,'+');
     }
     
     return sb.toString();
@@ -663,7 +656,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     // Build the argument map we'll send.
     Map args = new HashMap();
     Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-    Boolean keepAllMetadata = false;
     int index = 0;
     ArrayList nameValues = new ArrayList();
     index = unpackList(nameValues,outputDescription,index,'+');
@@ -705,11 +697,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     }
 
     // extract keep all metadata Flag
-    String keepAllMetadataFlag=(String)metadataExtraParams.get(0);
-    unpackFixedList(fixedBuffer, keepAllMetadataFlag, 0, '=');
-    String keepAllMetadataFlagValue = fixedBuffer[1];
-    keepAllMetadata=Boolean.parseBoolean(keepAllMetadataFlagValue);
-
+    boolean keepAllMetadata = true;
+    if (index < outputDescription.length())
+    {
+      keepAllMetadata = (outputDescription.charAt(index++) == '+');
+    }
+    
     // Establish a session
     getSession();
 
