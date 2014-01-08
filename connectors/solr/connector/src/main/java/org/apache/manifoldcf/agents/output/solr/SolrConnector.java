@@ -830,7 +830,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  }\n"+
 "  if (editconnection.core.value != \"\" && editconnection.core.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.CoreNameCannotHaveCharacter")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.CoreNameCannotHaveCharacters")+"\");\n"+
 "    editconnection.core.focus();\n"+
 "    return false;\n"+
 "  }\n"+
