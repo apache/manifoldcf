@@ -49,6 +49,7 @@
             <include name="jsp-api*.jar"/>
             <include name="junit*.jar"/>
             <include name="powermock*.jar"/>
+            <include name="mockito-all*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
             <include name="servlet-api*.jar"/>
