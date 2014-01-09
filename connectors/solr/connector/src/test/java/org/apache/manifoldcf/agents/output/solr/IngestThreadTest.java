@@ -52,196 +52,196 @@ import static org.powermock.api.mockito.PowerMockito.*;
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( { HttpPoster.IngestThread.class } )
 public class IngestThreadTest
-    extends TestCase
+  extends TestCase
 {
 
-    HttpPoster.IngestThread ingestThreadToTest;
+  HttpPoster.IngestThread ingestThreadToTest;
 
-    HttpPoster poster;
+  HttpPoster poster;
 
-    RepositoryDocument document;
+  RepositoryDocument document;
 
-    IOutputAddActivity act;
+  IOutputAddActivity act;
 
-    @Override
-    public void setUp()
-        throws Exception
+  @Override
+  public void setUp()
+    throws Exception
+  {
+
+    poster =new HttpPoster( "zkHost", "collection1", 5000, 500, "update", "removePath", "statusPath",
+                 "allowAttributeName", "denyAttributeName", "idAttributeName",
+                 "modifiedDateAttributeName", "createdDateAttributeName", "indexedDateAttributeName",
+                 "fileNameAttributeName", "mimeTypeAttributeName", new Long( 5000 ), "true" );
+
+    Logging.ingest = mock( Logger.class );
+    when( Logging.ingest.isDebugEnabled() ).thenReturn( false );
+    document = mock( RepositoryDocument.class );
+    List<String> fields = getFields();
+    Iterator<String> fieldsIterator = fields.iterator();
+    when( document.getFields() ).thenReturn( fieldsIterator );
+    when( document.getFieldAsStrings( "cm:description" ) ).thenReturn( new String[]{ "description" } );
+    when( document.getFieldAsStrings( "cm:name" ) ).thenReturn( new String[]{ "name" } );
+    when( document.getFieldAsStrings( "cm:title" ) ).thenReturn( new String[]{ "title" } );
+    when( document.getFieldAsStrings( "extraMetadata1" ) ).thenReturn( new String[]{ "value1" } );
+    when( document.getFieldAsStrings( "extraMetadata2" ) ).thenReturn( new String[]{ "value2" } );
+    when( document.getFieldAsStrings( "extraMetadata3" ) ).thenReturn( new String[]{ "value3" } );
+
+    act = mock( IOutputAddActivity.class );
+
+    Map<String, List<String>> sourceTargets = this.getMappingsMap();
+    Map<String, List<String>> streamParam = this.getArgumentsMap();
+    String[] shareAcls = new String[]{ "shareAcl1", "shareAcl2" };
+    String[] shareDenyAcls = new String[]{ "denyShareAcl1", "denyShareAcl2" };
+    String[] acls = new String[]{ "acl1", "acl2" };
+    String[] denyAcls = new String[]{ "denyAcl1", "denyAcl2" };
+    String commitWithin = "true";
+
+    ingestThreadToTest = spy(
+      poster.new IngestThread( "document id", document, streamParam, true, sourceTargets, shareAcls,
+                   shareDenyAcls, acls, denyAcls, commitWithin ) );
+
+  }
+
+
+  public void testIndexPostNotKeepMetadata()
+    throws Exception
+  {
+    this.indexPostNotKeepMetadata( true );
+    this.indexPostNotKeepMetadata( false );
+
+  }
+
+  /**
+   * Verify the behaviour, when the keep variable is set to true, we want to send to Solr all the metadata fields
+   *
+   * @param keep
+   * @throws Exception
+   */
+  private void indexPostNotKeepMetadata( Boolean keep )
+    throws Exception
+  {
+    ingestThreadToTest.setKeepAllMetadata( keep );
+
+    ContentStreamUpdateRequest contentStreamUpdateRequest = mock( ContentStreamUpdateRequest.class );
+    whenNew( ContentStreamUpdateRequest.class ).withArguments( anyString() ).thenReturn(
+      contentStreamUpdateRequest );
+    UpdateResponse mockResponse = mock( UpdateResponse.class );
+    when( contentStreamUpdateRequest.process( any( SolrServer.class ) ) ).thenReturn( mockResponse );
+    doCallRealMethod().when( contentStreamUpdateRequest ).setParams( any( ModifiableSolrParams.class ) );
+    doCallRealMethod().when( contentStreamUpdateRequest ).getParams();
+    ingestThreadToTest.run();
+    verifyNew( ContentStreamUpdateRequest.class, atLeastOnce() ).withArguments( anyString() );
+
+    ModifiableSolrParams expectedParams = initExpectedSolrParams( keep );
+    assertEqualsModifiableSolrParams( expectedParams, contentStreamUpdateRequest.getParams() );
+    verify( contentStreamUpdateRequest ).process( any( SolrServer.class ) );
+
+  }
+
+  /**
+   * asserts that 2 ModifiableSolrParams are equals
+   *
+   * @param expected
+   * @param actual
+   * @return
+   */
+  private boolean assertEqualsModifiableSolrParams( ModifiableSolrParams expected, ModifiableSolrParams actual )
+  {
+    Set<String> expectedParameterNames = expected.getParameterNames();
+    Set<String> actualParameterNames = actual.getParameterNames();
+    int expectedSize = expectedParameterNames.size();
+    assertEquals( expectedSize, actualParameterNames.size() );
+    for ( String parameterName : expectedParameterNames )
     {
-
-        poster =new HttpPoster( "zkHost", "collection1", 5000, 500, "update", "removePath", "statusPath",
-                                 "allowAttributeName", "denyAttributeName", "idAttributeName",
-                                 "modifiedDateAttributeName", "createdDateAttributeName", "indexedDateAttributeName",
-                                 "fileNameAttributeName", "mimeTypeAttributeName", new Long( 5000 ), "true" );
-
-        Logging.ingest = mock( Logger.class );
-        when( Logging.ingest.isDebugEnabled() ).thenReturn( false );
-        document = mock( RepositoryDocument.class );
-        List<String> fields = getFields();
-        Iterator<String> fieldsIterator = fields.iterator();
-        when( document.getFields() ).thenReturn( fieldsIterator );
-        when( document.getFieldAsStrings( "cm:description" ) ).thenReturn( new String[]{ "description" } );
-        when( document.getFieldAsStrings( "cm:name" ) ).thenReturn( new String[]{ "name" } );
-        when( document.getFieldAsStrings( "cm:title" ) ).thenReturn( new String[]{ "title" } );
-        when( document.getFieldAsStrings( "extraMetadata1" ) ).thenReturn( new String[]{ "value1" } );
-        when( document.getFieldAsStrings( "extraMetadata2" ) ).thenReturn( new String[]{ "value2" } );
-        when( document.getFieldAsStrings( "extraMetadata3" ) ).thenReturn( new String[]{ "value3" } );
-
-        act = mock( IOutputAddActivity.class );
-
-        Map<String, List<String>> sourceTargets = this.getMappingsMap();
-        Map<String, List<String>> streamParam = this.getArgumentsMap();
-        String[] shareAcls = new String[]{ "shareAcl1", "shareAcl2" };
-        String[] shareDenyAcls = new String[]{ "denyShareAcl1", "denyShareAcl2" };
-        String[] acls = new String[]{ "acl1", "acl2" };
-        String[] denyAcls = new String[]{ "denyAcl1", "denyAcl2" };
-        String commitWithin = "true";
-
-        ingestThreadToTest = spy(
-            poster.new IngestThread( "document id", document, streamParam, true, sourceTargets, shareAcls,
-                                     shareDenyAcls, acls, denyAcls, commitWithin ) );
-
+      assertEquals( expected.get( parameterName ), actual.get( parameterName ) );
     }
+    return true;
+  }
 
-
-    public void testIndexPostNotKeepMetadata()
-        throws Exception
+  /**
+   * inits the expected solr params for both the tests, in the first one we expect the extra params not to be present
+   * because they are not in the mappings
+   *
+   * @param test2
+   * @return
+   * @throws UnsupportedEncodingException
+   */
+  private ModifiableSolrParams initExpectedSolrParams( Boolean test2 )
+    throws UnsupportedEncodingException
+  {
+    ModifiableSolrParams expectedParams = new ModifiableSolrParams();
+    expectedParams.add( "literal.idAttributeName", "document id" );
+    expectedParams.add( "literal.allowAttributeNameshare", "shareAcl1" );
+    expectedParams.add( "literal.allowAttributeNameshare", "shareAcl2" );
+    expectedParams.add( "literal.denyAttributeNameshare", "denyShareAcl1" );
+    expectedParams.add( "literal.denyAttributeNameshare", "denyShareAcl2" );
+    expectedParams.add( "literal.allowAttributeNamedocument", "acl1" );
+    expectedParams.add( "literal.allowAttributeNamedocument", "acl2" );
+    expectedParams.add( "literal.denyAttributeNamedocument", "denyAcl1" );
+    expectedParams.add( "literal.denyAttributeNamedocument", "denyAcl2" );
+    expectedParams.add( "stream.type", "text/plain" );
+    expectedParams.add( "literal.cm_description_s", "description" );
+    expectedParams.add( "literal.cm_title_s", "title" );
+    expectedParams.add( "literal.cm_name_s", "name" );
+    if ( test2 )
     {
-        this.indexPostNotKeepMetadata( true );
-        this.indexPostNotKeepMetadata( false );
-
+      expectedParams.add( "literal.extraMetadata1", "value1" );
+      expectedParams.add( "literal.extraMetadata2", "value2" );
+      expectedParams.add( "literal.extraMetadata3", "value3" );
     }
+    expectedParams.add( "commitWithin", "true" );
+    return expectedParams;
+  }
 
-    /**
-     * Verify the behaviour, when the keep variable is set to true, we want to send to Solr all the metadata fields
-     *
-     * @param keep
-     * @throws Exception
-     */
-    private void indexPostNotKeepMetadata( Boolean keep )
-        throws Exception
-    {
-        ingestThreadToTest.setKeepAllMetadata( keep );
+  /**
+   * return a list of example metadata fields present in a mock document
+   *
+   * @return
+   */
+  private List<String> getFields()
+  {
+    List<String> fields = new ArrayList<String>();
+    fields.add( "cm:description" );
+    fields.add( "cm:title" );
+    fields.add( "cm:name" );
+    fields.add( "extraMetadata1" );
+    fields.add( "extraMetadata2" );
+    fields.add( "extraMetadata3" );
+    return fields;
+  }
 
-        ContentStreamUpdateRequest contentStreamUpdateRequest = mock( ContentStreamUpdateRequest.class );
-        whenNew( ContentStreamUpdateRequest.class ).withArguments( anyString() ).thenReturn(
-            contentStreamUpdateRequest );
-        UpdateResponse mockResponse = mock( UpdateResponse.class );
-        when( contentStreamUpdateRequest.process( any( SolrServer.class ) ) ).thenReturn( mockResponse );
-        doCallRealMethod().when( contentStreamUpdateRequest ).setParams( any( ModifiableSolrParams.class ) );
-        doCallRealMethod().when( contentStreamUpdateRequest ).getParams();
-        ingestThreadToTest.run();
-        verifyNew( ContentStreamUpdateRequest.class, atLeastOnce() ).withArguments( anyString() );
+  /**
+   * returns a testing mapping map
+   *
+   * @return
+   */
+  private Map<String, List<String>> getMappingsMap()
+  {
+    Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
+    List<String> firstList = new ArrayList<String>();
+    firstList.add( "cm_description_s" );
+    List<String> secondList = new ArrayList<String>();
+    secondList.add( "cm_name_s" );
+    List<String> thirdList = new ArrayList<String>();
+    thirdList.add( "cm_title_s" );
 
-        ModifiableSolrParams expectedParams = initExpectedSolrParams( keep );
-        assertEqualsModifiableSolrParams( expectedParams, contentStreamUpdateRequest.getParams() );
-        verify( contentStreamUpdateRequest ).process( any( SolrServer.class ) );
+    sourceTargets.put( "cm:description", firstList );
+    sourceTargets.put( "cm:name", secondList );
+    sourceTargets.put( "cm:title", thirdList );
+    return sourceTargets;
+  }
 
-    }
-
-    /**
-     * asserts that 2 ModifiableSolrParams are equals
-     *
-     * @param expected
-     * @param actual
-     * @return
-     */
-    private boolean assertEqualsModifiableSolrParams( ModifiableSolrParams expected, ModifiableSolrParams actual )
-    {
-        Set<String> expectedParameterNames = expected.getParameterNames();
-        Set<String> actualParameterNames = actual.getParameterNames();
-        int expectedSize = expectedParameterNames.size();
-        assertEquals( expectedSize, actualParameterNames.size() );
-        for ( String parameterName : expectedParameterNames )
-        {
-            assertEquals( expected.get( parameterName ), actual.get( parameterName ) );
-        }
-        return true;
-    }
-
-    /**
-     * inits the expected solr params for both the tests, in the first one we expect the extra params not to be present
-     * because they are not in the mappings
-     *
-     * @param test2
-     * @return
-     * @throws UnsupportedEncodingException
-     */
-    private ModifiableSolrParams initExpectedSolrParams( Boolean test2 )
-        throws UnsupportedEncodingException
-    {
-        ModifiableSolrParams expectedParams = new ModifiableSolrParams();
-        expectedParams.add( "literal.idAttributeName", "document id" );
-        expectedParams.add( "literal.allowAttributeNameshare", "shareAcl1" );
-        expectedParams.add( "literal.allowAttributeNameshare", "shareAcl2" );
-        expectedParams.add( "literal.denyAttributeNameshare", "denyShareAcl1" );
-        expectedParams.add( "literal.denyAttributeNameshare", "denyShareAcl2" );
-        expectedParams.add( "literal.allowAttributeNamedocument", "acl1" );
-        expectedParams.add( "literal.allowAttributeNamedocument", "acl2" );
-        expectedParams.add( "literal.denyAttributeNamedocument", "denyAcl1" );
-        expectedParams.add( "literal.denyAttributeNamedocument", "denyAcl2" );
-        expectedParams.add( "stream.type", "text/plain" );
-        expectedParams.add( "literal.cm_description_s", "description" );
-        expectedParams.add( "literal.cm_title_s", "title" );
-        expectedParams.add( "literal.cm_name_s", "name" );
-        if ( test2 )
-        {
-            expectedParams.add( "literal.extraMetadata1", "value1" );
-            expectedParams.add( "literal.extraMetadata2", "value2" );
-            expectedParams.add( "literal.extraMetadata3", "value3" );
-        }
-        expectedParams.add( "commitWithin", "true" );
-        return expectedParams;
-    }
-
-    /**
-     * return a list of example metadata fields present in a mock document
-     *
-     * @return
-     */
-    private List<String> getFields()
-    {
-        List<String> fields = new ArrayList<String>();
-        fields.add( "cm:description" );
-        fields.add( "cm:title" );
-        fields.add( "cm:name" );
-        fields.add( "extraMetadata1" );
-        fields.add( "extraMetadata2" );
-        fields.add( "extraMetadata3" );
-        return fields;
-    }
-
-    /**
-     * returns a testing mapping map
-     *
-     * @return
-     */
-    private Map<String, List<String>> getMappingsMap()
-    {
-        Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-        List<String> firstList = new ArrayList<String>();
-        firstList.add( "cm_description_s" );
-        List<String> secondList = new ArrayList<String>();
-        secondList.add( "cm_name_s" );
-        List<String> thirdList = new ArrayList<String>();
-        thirdList.add( "cm_title_s" );
-
-        sourceTargets.put( "cm:description", firstList );
-        sourceTargets.put( "cm:name", secondList );
-        sourceTargets.put( "cm:title", thirdList );
-        return sourceTargets;
-    }
-
-    /**
-     * returns a testing argument map
-     *
-     * @return
-     */
-    private Map<String, List<String>> getArgumentsMap()
-    {
-        Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-        List<String> firstList = new ArrayList<String>();
-        firstList.add( "text/plain" );
-        sourceTargets.put( "stream.type", firstList );
-        return sourceTargets;
-    }
+  /**
+   * returns a testing argument map
+   *
+   * @return
+   */
+  private Map<String, List<String>> getArgumentsMap()
+  {
+    Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
+    List<String> firstList = new ArrayList<String>();
+    firstList.add( "text/plain" );
+    sourceTargets.put( "stream.type", firstList );
+    return sourceTargets;
+  }
 }
