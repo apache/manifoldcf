@@ -65,7 +65,7 @@ public class HttpPosterTest
     throws Exception
   {
 
-    httpPosterToTest = spy(new HttpPoster( "zkHost", "collection1", 5000, 500, "update", "removePath", "statusPath",
+    httpPosterToTest = spy(new HttpPoster( "localhost", "collection1", 5000, 500, "update", "removePath", "statusPath",
                  "allowAttributeName", "denyAttributeName", "idAttributeName",
                  "modifiedDateAttributeName", "createdDateAttributeName", "indexedDateAttributeName",
                  "fileNameAttributeName", "mimeTypeAttributeName", new Long( 5000 ), "true"));
@@ -104,16 +104,16 @@ public class HttpPosterTest
     Mockito.doThrow(new RuntimeException()).when( mockIngestionThread ).run();
 
     whenNew( HttpPoster.IngestThread.class).withArguments("Document Id", document, streamParam, true, sourceTargets,shareAcls,
-                                shareDenyAcls, acls, denyAcls,commitWithin).thenReturn(mockIngestionThread);
+      shareDenyAcls, acls, denyAcls,commitWithin).thenReturn(mockIngestionThread);
     httpPosterToTest.indexPost("Document Id", document, streamParam,
-                  sourceTargets,true, "AuthorityString",act);
+      sourceTargets,true, "AuthorityString",act);
 
     verifyNew(HttpPoster.IngestThread.class).withArguments("Document Id", document, streamParam, true, sourceTargets, shareAcls,
-                                 shareDenyAcls, acls, denyAcls, commitWithin );
+      shareDenyAcls, acls, denyAcls, commitWithin );
   }
 
   private void initRepositoryDocumentMock( String[] shareAcls, String[] shareDenyAcls, String[] acls,
-                       String[] denyAcls )
+    String[] denyAcls )
     throws IOException
   {
     document = mock( RepositoryDocument.class );

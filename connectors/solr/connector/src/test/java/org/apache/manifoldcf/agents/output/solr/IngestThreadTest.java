@@ -55,6 +55,7 @@ public class IngestThreadTest
   extends TestCase
 {
 
+  HttpPoster.IngestThread ingestThreadToTestKeepAllMetadata;
   HttpPoster.IngestThread ingestThreadToTest;
 
   HttpPoster poster;
@@ -96,8 +97,11 @@ public class IngestThreadTest
     String[] denyAcls = new String[]{ "denyAcl1", "denyAcl2" };
     String commitWithin = "true";
 
-    ingestThreadToTest = spy(
+    ingestThreadToTestKeepAllMetadata = spy(
       poster.new IngestThread( "document id", document, streamParam, true, sourceTargets, shareAcls,
+                   shareDenyAcls, acls, denyAcls, commitWithin ) );
+    ingestThreadToTest = spy(
+      poster.new IngestThread( "document id", document, streamParam, false, sourceTargets, shareAcls,
                    shareDenyAcls, acls, denyAcls, commitWithin ) );
 
   }
@@ -106,8 +110,8 @@ public class IngestThreadTest
   public void testIndexPostNotKeepMetadata()
     throws Exception
   {
-    this.indexPostNotKeepMetadata( true );
-    this.indexPostNotKeepMetadata( false );
+    this.indexPostNotKeepMetadata( ingestThreadToTestKeepAllMetadata, true );
+    this.indexPostNotKeepMetadata( ingestThreadToTest, false );
 
   }
 
@@ -117,11 +121,9 @@ public class IngestThreadTest
    * @param keep
    * @throws Exception
    */
-  private void indexPostNotKeepMetadata( Boolean keep )
+  private void indexPostNotKeepMetadata( HttpPoster.IngestThread it, boolean keep )
     throws Exception
   {
-    ingestThreadToTest.setKeepAllMetadata( keep );
-
     ContentStreamUpdateRequest contentStreamUpdateRequest = mock( ContentStreamUpdateRequest.class );
     whenNew( ContentStreamUpdateRequest.class ).withArguments( anyString() ).thenReturn(
       contentStreamUpdateRequest );
@@ -129,7 +131,7 @@ public class IngestThreadTest
     when( contentStreamUpdateRequest.process( any( SolrServer.class ) ) ).thenReturn( mockResponse );
     doCallRealMethod().when( contentStreamUpdateRequest ).setParams( any( ModifiableSolrParams.class ) );
     doCallRealMethod().when( contentStreamUpdateRequest ).getParams();
-    ingestThreadToTest.run();
+    it.run();
     verifyNew( ContentStreamUpdateRequest.class, atLeastOnce() ).withArguments( anyString() );
 
     ModifiableSolrParams expectedParams = initExpectedSolrParams( keep );
@@ -166,7 +168,7 @@ public class IngestThreadTest
    * @return
    * @throws UnsupportedEncodingException
    */
-  private ModifiableSolrParams initExpectedSolrParams( Boolean test2 )
+  private ModifiableSolrParams initExpectedSolrParams( boolean test2 )
     throws UnsupportedEncodingException
   {
     ModifiableSolrParams expectedParams = new ModifiableSolrParams();
