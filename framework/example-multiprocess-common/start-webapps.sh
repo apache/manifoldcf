@@ -23,19 +23,26 @@ fi
 
 #Make sure environment variables are properly set
 if [ -e "$JAVA_HOME"/bin/java ] ; then
-
-    CLASSPATH=""
-    for filename in $(ls -1 ./lib) ; do
-        if [ -n "$CLASSPATH" ] ; then
-            CLASSPATH="$CLASSPATH""$PATHSEP"./lib/"$filename"
-        else
-            CLASSPATH=./lib/"$filename"
-        fi
-    done
-
-    "$JAVA_HOME"/bin/java -cp "$CLASSPATH" org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner
-    exit $?
+    if [ -f ./properties.xml ] ; then
+        # Set the MCF_HOME variable
+        export MCF_HOME=$PWD
+        CLASSPATH=""
+        for filename in $(ls -1 ./lib) ; do
+            if [ -n "$CLASSPATH" ] ; then
+                CLASSPATH="$CLASSPATH""$PATHSEP"./lib/"$filename"
+            else
+                CLASSPATH=./lib/"$filename"
+            fi
+        done
+        DEFINES="-Dorg.apache.manifoldcf.configfile=$MCF_HOME/properties.xml"
+        "$JAVA_HOME"/bin/java -cp "$CLASSPATH" $DEFINES org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner
+        exit $?
         
+    else
+        echo "Working directory contains no properties.xml file." 1>&2
+        exit 1
+    fi
+
 else
     echo "Environment variable JAVA_HOME is not properly set." 1>&2
     exit 1
