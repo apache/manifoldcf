@@ -463,7 +463,7 @@ public class ThrottledFetcher
         BasicHttpParams params = new BasicHttpParams();
         params.setParameter(ClientPNames.DEFAULT_HOST,fetchHost);
         params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-        params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+        params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
         params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
         // MEDIUM_SECURITY compatibility level not supported in HttpComponents.  Try BROWSER_NETSCAPE?
         HttpClientParams.setCookiePolicy(params,CookiePolicy.BROWSER_COMPATIBILITY);

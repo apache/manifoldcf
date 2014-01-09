@@ -260,7 +260,7 @@ public class MeridioWrapper
     // dmws first
     BasicHttpParams dmwsParams = new BasicHttpParams();
     dmwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-    dmwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+    dmwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
     dmwsParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
     dmwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
     dmwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
@@ -305,7 +305,7 @@ public class MeridioWrapper
     // rmws
     BasicHttpParams rmwsParams = new BasicHttpParams();
     rmwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-    rmwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+    rmwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
     rmwsParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
     rmwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
     rmwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
@@ -352,7 +352,7 @@ public class MeridioWrapper
     {
       BasicHttpParams mcwsParams = new BasicHttpParams();
       mcwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      mcwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      mcwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
       mcwsParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
       mcwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
       mcwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);

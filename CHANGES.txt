@@ -3,9 +3,16 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-854: Enable stale connection checks on all http fetches.
+Not sure why it was disabled long ago, but it causes problems when
+connections are pooled for longer than the server wants the connection
+to survive.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-855: Use -D switch in start-webapps scripts to point
 to the right properties.xml file.  Otherwise who knows where the
 properties may come from.
+(David Morana, Karl Wright)
 
 CONNECTORS-851: Add mail.jar to connector wsdl builder to turn off
 warnings.  Also provide ability to extend build with optional include.
