@@ -55,6 +55,8 @@
             <include name="powermock-api-mockito*.jar"/>
             <include name="mockito-all*.jar"/>
             <include name="noggit*.jar"/>
+            <include name="javassist*.jar"/>
+            <include name="objenesis*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
             <include name="servlet-api*.jar"/>
