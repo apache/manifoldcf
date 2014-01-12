@@ -69,14 +69,15 @@ public class SPSProxyHelper {
 
   public static final String HTTPCLIENT_PROPERTY = org.apache.manifoldcf.sharepoint.CommonsHTTPSender.HTTPCLIENT_PROPERTY;
 
-  private String serverUrl;
-  private String serverLocation;
-  private String decodedServerLocation;
-  private String baseUrl;
-  private String userName;
-  private String password;
-  private EngineConfiguration configuration;
-  private HttpClient httpClient;
+  private final String serverUrl;
+  private final String serverLocation;
+  private final String decodedServerLocation;
+  private final String baseUrl;
+  private final String userName;
+  private final String password;
+  private final boolean isClaimSpace;
+  private final EngineConfiguration configuration;
+  private final HttpClient httpClient;
 
   /**
   *
@@ -85,7 +86,7 @@ public class SPSProxyHelper {
   * @param password
   */
   public SPSProxyHelper( String serverUrl, String serverLocation, String decodedServerLocation, String userName, String password,
-    Class resourceClass, String configFileName, HttpClient httpClient )
+    Class resourceClass, String configFileName, HttpClient httpClient, boolean isClaimSpace )
   {
     this.serverUrl = serverUrl;
     this.serverLocation = serverLocation;
@@ -98,6 +99,7 @@ public class SPSProxyHelper {
     this.password = password;
     this.configuration = new ResourceProvider(resourceClass,configFileName);
     this.httpClient = httpClient;
+    this.isClaimSpace = isClaimSpace;
   }
 
   /**
@@ -110,6 +112,8 @@ public class SPSProxyHelper {
     {
       if ( site.compareTo("/") == 0 )
         site = ""; // root case
+
+      userLoginName = mapToClaimSpace(userLoginName);
       
       UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, configuration, httpClient  );
       com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall = userService.getUserGroupSoapHandler( );
@@ -207,50 +211,70 @@ public class SPSProxyHelper {
         }
       }
 
-      com.microsoft.schemas.sharepoint.soap.directory.GetRoleCollectionFromUserResponseGetRoleCollectionFromUserResult userRoleResp =
-        userCall.getRoleCollectionFromUser( userLoginName );
-      org.apache.axis.message.MessageElement[] rolesList = userRoleResp.get_any();
+      // AxisFault is expected for case where user has no assigned roles
+      try
+      {
+        com.microsoft.schemas.sharepoint.soap.directory.GetRoleCollectionFromUserResponseGetRoleCollectionFromUserResult userRoleResp =
+          userCall.getRoleCollectionFromUser( userLoginName );
+        org.apache.axis.message.MessageElement[] rolesList = userRoleResp.get_any();
 
-      if (rolesList.length != 1)
-        throw new ManifoldCFException("Bad response - expecting one outer 'GetRoleCollectionFromUser' node, saw "+Integer.toString(rolesList.length));
-      
-      if (Logging.authorityConnectors.isDebugEnabled()){
-        Logging.authorityConnectors.debug("SharePoint authority: getRoleCollectionFromUser xml response: '" + rolesList[0].toString() + "'");
-      }
+        if (rolesList.length != 1)
+          throw new ManifoldCFException("Bad response - expecting one outer 'GetRoleCollectionFromUser' node, saw "+Integer.toString(rolesList.length));
+        
+        if (Logging.authorityConnectors.isDebugEnabled()){
+          Logging.authorityConnectors.debug("SharePoint authority: getRoleCollectionFromUser xml response: '" + rolesList[0].toString() + "'");
+        }
 
-      // Not specified in doc and must be determined experimentally
-      /*
+        // Not specified in doc and must be determined experimentally
+        /*
 <ns1:GetRoleCollectionFromUser xmlns:ns1="http://schemas.microsoft.com/sharepoint/soap/directory/">
   <ns1:Roles>
     <ns1:Role ID="1073741825" Name="Limited Access" Description="Can view specific lists, document libraries, list items, folders, or documents when given permissions."
       Order="160" Hidden="True" Type="Guest" BasePermissions="ViewFormPages, Open, BrowseUserInfo, UseClientIntegration, UseRemoteAPIs"/>
   </ns1:Roles>
 </ns1:GetRoleCollectionFromUser>'
-      */
-      
-      MessageElement roles = rolesList[0];
-      if (!roles.getElementName().getLocalName().equals("GetRoleCollectionFromUser"))
-        throw new ManifoldCFException("Bad response - outer node should have been 'GetRoleCollectionFromUser' node");
-          
-      Iterator rolesIter = roles.getChildElements();
-      while (rolesIter.hasNext())
-      {
-        MessageElement child = (MessageElement)rolesIter.next();
-        if (child.getElementName().getLocalName().equals("Roles"))
+        */
+        
+        MessageElement roles = rolesList[0];
+        if (!roles.getElementName().getLocalName().equals("GetRoleCollectionFromUser"))
+          throw new ManifoldCFException("Bad response - outer node should have been 'GetRoleCollectionFromUser' node");
+            
+        Iterator rolesIter = roles.getChildElements();
+        while (rolesIter.hasNext())
         {
-          Iterator roleIter = child.getChildElements();
-          while (roleIter.hasNext())
+          MessageElement child = (MessageElement)rolesIter.next();
+          if (child.getElementName().getLocalName().equals("Roles"))
           {
-            MessageElement role = (MessageElement)roleIter.next();
-            if (role.getElementName().getLocalName().equals("Role"))
+            Iterator roleIter = child.getChildElements();
+            while (roleIter.hasNext())
             {
-              String roleID = role.getAttribute("ID");
-              String roleName = role.getAttribute("Name");
-              // Add to the access token list
-              accessTokens.add("R"+roleName);
+              MessageElement role = (MessageElement)roleIter.next();
+              if (role.getElementName().getLocalName().equals("Role"))
+              {
+                String roleID = role.getAttribute("ID");
+                String roleName = role.getAttribute("Name");
+                // Add to the access token list
+                accessTokens.add("R"+roleName);
+              }
             }
           }
         }
+      }
+      catch (org.apache.axis.AxisFault e)
+      {
+        if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
+        {
+          org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://schemas.microsoft.com/sharepoint/soap/","errorcode"));
+          if (elem != null)
+          {
+            elem.normalize();
+            String sharepointErrorCode = elem.getFirstChild().getNodeValue().trim();
+            if (!sharepointErrorCode.equals("0x80131600"))
+              throw e;
+          }
+        }
+        else
+          throw e;
       }
       
       return accessTokens;
@@ -364,10 +388,8 @@ public class SPSProxyHelper {
       com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall = userService.getUserGroupSoapHandler( );
 
       // Get the info for the admin user
-      com.microsoft.schemas.sharepoint.soap.directory.GetUserInfoResponseGetUserInfoResult userResp = userCall.getUserInfo( userName );
+      com.microsoft.schemas.sharepoint.soap.directory.GetUserInfoResponseGetUserInfoResult userResp = userCall.getUserInfo( mapToClaimSpace(userName) );
       org.apache.axis.message.MessageElement[] userList = userResp.get_any();
-
-      // MHL
 
       return true;
     }
@@ -436,6 +458,17 @@ public class SPSProxyHelper {
       // So, fail hard if we see it.
       throw new ManifoldCFException("Got an unexpected remote exception accessing site "+site+": "+e.getMessage(),e);
     }
+  }
+  
+  /** Conditionally map SharePoint user login name to claim space.
+  */
+  protected String mapToClaimSpace(String userLoginName)
+  {
+    if (isClaimSpace)
+    {
+      return "i:0#.w|" + userLoginName.toLowerCase(java.util.Locale.ROOT);
+    }
+    return userLoginName;
   }
 
   /**

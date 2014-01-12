@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-754: Add claim space selection for SharePoint native
+authority, so that it works with Claim Space servers.
+(Will Parkinson, Karl Wright)
+
 CONNECTORS-854: Enable stale connection checks on all http fetches.
 Not sure why it was disabled long ago, but it causes problems when
 connections are pooled for longer than the server wants the connection
