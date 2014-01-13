@@ -94,10 +94,10 @@
             <section id="groups">
                 <title>Defining Authority Groups</title>
                 <p>The Framework UI's left-side menu contains a link for listing authority groups.  An authority group is a collection of authorities that all cooperate to furnish
-                      security for each document from repositories that you select.  For example, a SharePoint 2010 repository with the Claim Space feature enabled may
+                      security for each document from repositories that you select.  For example, a SharePoint 2010 repository with the Claims Based authorization feature enabled may
                       contain documents that are authorized by SharePoint itself, by Active Directory, and by others.  Documents from such a SharePoint
                       repository would therefore refer to a authority group which would have a SharePoint native authority, a SharePoint Active Directory authority,
-                      and other SharePoint claim space authorities as members.  But most of the time, an authority group will consist of a single authority that is appropriate for
+                      and other SharePoint claims based authorities as members.  But most of the time, an authority group will consist of a single authority that is appropriate for
                       the repository the authority group is meant to secure.</p>
                 <p>Since you need to select an authority group when you define an authority connection, you should define your authority groups <b>before</b> setting
                       up your authority connections.  If you don't have any authority groups defined, you cannot create authority connections at all.  But if you select the
@@ -1160,7 +1160,7 @@ curl -XGET http://localhost:9200/index/_mapping
             <section id="sharepointadauthority">
                 <title>Microsoft SharePoint ActiveDirectory Authority Connection</title>
                 <p>A Microsoft SharePoint ActiveDirectory authority connection is meant to furnish access tokens from Active Directory for a SharePoint instance that is configured
-                    to use Claim Space authorization.  It cannot be used in any other situation.</p>
+                    to use Claims Based authorization.  It cannot be used in any other situation.</p>
                 <p>The SharePoint ActiveDirectory authority is meant to work in conjunction with a SharePoint Native authority connection, and provides authorization information from one or
                     more Active Directory domain controllers.  Thus, it is only needed if Active Directory groups are used to furnish access to documents for users in the SharePoint system.</p>
                 <p>Documents must be indexed using a Microsoft SharePoint repository connection where the "Authority type" is specified to be "Native".  If the "Authority type" is
@@ -1198,17 +1198,18 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>A Microsoft SharePoint Native authority connection is meant to furnish access tokens from the same SharePoint instance that the documents are coming from.
                     You should use this authority type whenever you are trying to secure documents using a SharePoint repository connection that is configured to the use "Native" 
                     authority type.</p>
-                <p>If your SharePoint instance is configured to use the Claim Space authorization model, you may combine a SharePoint Native authority connection with other
-                    SharePoint authority types, such as the SharePoint ActiveDirectory authority type, to furnish complete authorization support.  However, if Claim Space is not
+                <p>If your SharePoint instance is configured to use the Claims Based authorization model, you may combine a SharePoint Native authority connection with other
+                    SharePoint authority types, such as the SharePoint ActiveDirectory authority type, to furnish complete authorization support.  However, if Claims Based authorization is not
                     configured, the SharePoint Native authority connection is the only authority type you should need to use.</p>
                 <p>A SharePoint authority connection has two special tabs on the authority connection editing screen: the "Server" tab, and the "Cache" tab.
                     The "Server" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/sharepointnativeauthority-configure-server.PNG" alt="SharePoint Native Authority, Server tab" width="80%"/>
                 <br/><br/>
-                <p>Select your SharePoint server version from the pulldown.  If you do not select the correct server version, your documents may either be indexed with
-                    insufficient security protection, or you may not be able to index any documents.  Check with your SharePoint system administrator if you are not sure
+                <p>Select your SharePoint server version from the pulldown.  Check with your SharePoint system administrator if you are not sure
                     what to select.</p>
+                <p>Select whether your SharePoint server is configured for Claims Based authorization or not.  Check with your SharePoint system administrator if you are
+                    not sure what to select.</p>
                 <p>SharePoint uses a web URL model for addressing sites, subsites, libraries, and files.  The best way to figure out how to set up a SharePoint connection 
                     type is therefore to start with your web browser, and visit the topmost root of the site you wish to crawl.  Then, record the URL you see in your browser.</p>
                 <p>Select the server protocol, and enter the server name and port, based on what you recorded from the URL for your SharePoint site.  For the "Site path"
@@ -2199,7 +2200,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/>
                 <ul>
                   <li>You have native SharePoint groups or users created which do not correspond to Active Directory SIDs</li>
-                  <li>Your SharePoint 2010 is configured to use Claim Space authorization mode</li>
+                  <li>Your SharePoint 2010 is configured to use Claims Based authorization mode</li>
                   <li>You have ActiveDirectory groups that have more than roughly 1000 members</li>
                 </ul>
                 <br/>
@@ -2208,7 +2209,7 @@ curl -XGET http://localhost:9200/index/_mapping
                     the sections of this manual that describe how to configure SharePoint/Native and SharePoint/AD authorities.  Bear in mind that SharePoint when configured
                     to run in Claim
                     Space mode (available starting in SharePoint 2010) uses a federated authorization model, so you should expect to create more than one authority when
-                    working with a SharePoint Claim Space installation.  If your SharePoint is not using Claim Space, then a single authority of type "SharePoint/Native" is
+                    working with a SharePoint Claims Based installation.  If your SharePoint is not using Claims Based authorization, then a single authority of type "SharePoint/Native" is
                     sufficient.</p>
                 <p>If you wish to use the legacy support for the Active Directory authority, then read the section titled "Active Directory Authority Connection" instead.</p>
                 <p>A SharePoint connection has two special tabs on the repository connection editing screen: the "Server" tab, and the "Authority type" tab.  The "Server"
