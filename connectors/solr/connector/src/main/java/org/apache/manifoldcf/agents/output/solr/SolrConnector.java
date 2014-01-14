@@ -2330,7 +2330,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 
       int fieldCounter = 0;
       i = 0;
-      SpecificationNode keepMetadata = null;
+      boolean keepMetadata = true;
       while (i < os.getChildCount()) {
         SpecificationNode sn = os.getChild(i++);
         if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
@@ -2368,7 +2368,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
           fieldCounter++;
         }
         else if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
-            keepMetadata = sn;
+          keepMetadata = Boolean.parseBoolean(sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
         }
       }
       
@@ -2379,11 +2379,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         );
       }
       
-      String keepMetadataValue = "";
-      if(keepMetadata != null) {
-          keepMetadataValue = keepMetadata.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
-          keepMetadataValue = !keepMetadataValue.isEmpty() && keepMetadataValue != null && keepMetadataValue.equals("true") ? "checked" : "";
-      }
+      String keepMetadataValue;
+      if (keepMetadata)
+        keepMetadataValue = "checked";
+      else
+        keepMetadataValue = "";
+
       out.print(
 "        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
 "        <tr class=\"formrow\">\n"+
@@ -2401,16 +2402,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "            <nobr><input type=\"text\" size=\"15\" name=\"solr_fieldmapping_target\" value=\"\"/></nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"              <input type=\"checkbox\" "+keepMetadataValue+" name=\"solr_keepallmetadata\" value=\"true\" />\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-              Messages.getAttributeString(locale,"SolrConnector.KeepAllMetadata")+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n</td>\n"+
-"        </tr>\n"+
 "      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+Messages.getBodyString(locale,"SolrConnector.KeepAllMetadata")+"</td>\n"+
+"    <td class=\"value\">\n"+
+"       <input type=\"checkbox\" "+keepMetadataValue+" name=\"solr_keepallmetadata\" value=\"true\" />\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
