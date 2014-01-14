@@ -494,7 +494,7 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
   {
     try
     {
-      return "Ui:0#.w|"+URLEncoder.encode(loginName,"utf-8");
+      return "Ui:0#.w|"+URLEncoder.encode(loginName,"utf-8").toLowerCase(Locale.ROOT);
     }
     catch (UnsupportedEncodingException e)
     {
