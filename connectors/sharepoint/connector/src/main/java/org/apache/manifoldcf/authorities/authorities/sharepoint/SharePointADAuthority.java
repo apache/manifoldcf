@@ -477,24 +477,24 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
 
   protected static String everyoneGroup()
   {
-    return "c:0!.s|windows";
+    return "Uc:0!.s|windows";
   }
   
   protected static String groupTokenFromSID(String SID)
   {
-    return "c:0+.w|"+SID.toLowerCase(Locale.ROOT);
+    return "Uc:0+.w|"+SID.toLowerCase(Locale.ROOT);
   }
 
   protected static String userTokenFromSID(String SID)
   {
-    return "i:0+.w|"+SID.toLowerCase(Locale.ROOT);
+    return "Ui:0+.w|"+SID.toLowerCase(Locale.ROOT);
   }
   
   protected static String userTokenFromLoginName(String loginName)
   {
     try
     {
-      return "i:0#.w|"+URLEncoder.encode(loginName,"utf-8");
+      return "Ui:0#.w|"+URLEncoder.encode(loginName,"utf-8");
     }
     catch (UnsupportedEncodingException e)
     {
