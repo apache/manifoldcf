@@ -2556,6 +2556,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 
     int fieldCounter = 0;
     i = 0;
+    String keepAllMetadataValue = "true";
     while (i < os.getChildCount()) {
       SpecificationNode sn = os.getChild(i++);
       if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
@@ -2579,6 +2580,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         );
         fieldCounter++;
       }
+      else if (sn.getType().equals(SolrConfig.NODE_KEEPMETADATA))
+      {
+        keepAllMetadataValue = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
+      }
     }
     
     if (fieldCounter == 0)
@@ -2590,6 +2595,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     out.print(
 "      </table>\n"+
 "    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.KeepAllMetadata") + "</nobr></td>\n"+
+"    <td class=\"value\"><nobr>" + keepAllMetadataValue + "</nobr></td>\n"+
 "  </tr>\n"+
 "</table>\n"
     );
