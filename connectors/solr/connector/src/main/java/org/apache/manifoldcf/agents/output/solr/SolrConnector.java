@@ -2381,7 +2381,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       
       String keepMetadataValue;
       if (keepMetadata)
-        keepMetadataValue = "checked";
+        keepMetadataValue = " checked=\"true\"";
       else
         keepMetadataValue = "";
 
@@ -2407,9 +2407,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\">\n"+Messages.getBodyString(locale,"SolrConnector.KeepAllMetadata")+"</td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"SolrConnector.KeepAllMetadata")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"       <input type=\"checkbox\" "+keepMetadataValue+" name=\"solr_keepallmetadata\" value=\"true\" />\n"+
+"       <input type=\"checkbox\""+keepMetadataValue+" name=\"solr_keepallmetadata\" value=\"true\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -2420,6 +2420,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       // Hiddens for field mapping
       i = 0;
       int fieldCounter = 0;
+      String keepMetadataValue = "true";
       while (i < os.getChildCount()) {
         SpecificationNode sn = os.getChild(i++);
         if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
@@ -2437,11 +2438,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         }
         else if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA))
         {
-          out.print(
-"<input type=\"hidden\" name=\"solr_keepallmetadata\" value=\""+sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE)+"\"/>\n"
-          );
+          keepMetadataValue = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
         }
       }
+      out.print(
+"<input type=\"hidden\" name=\"solr_keepallmetadata\" value=\""+keepMetadataValue+"\"/>\n"
+      );
       out.print(
 "<input type=\"hidden\" name=\"solr_fieldmapping_count\" value=\""+Integer.toString(fieldCounter)+"\"/>\n"
       );
