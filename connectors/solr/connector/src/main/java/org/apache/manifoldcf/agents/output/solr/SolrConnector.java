@@ -2401,16 +2401,15 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "            <nobr><input type=\"text\" size=\"15\" name=\"solr_fieldmapping_target\" value=\"\"/></nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"+
-    // Adding keep metadata
- "   <tr class=\"formrow\">\n"+
-            "          <td class=\"formcolumncell\">\n"+
-            "              <input type=\"checkbox\" "+keepMetadataValue+" name=\"solr_keepallmetadata\" value=\"true\" />\n"+
-            "          </td>\n"+
-            "          <td class=\"formcolumncell\">\n"+
-                        Messages.getAttributeString(locale,"SolrConnector.KeepAllMetadata")+
-            "          </td>\n"+
-            "          <td class=\"formcolumncell\">\n</td>\n"+
-            "        </tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"              <input type=\"checkbox\" "+keepMetadataValue+" name=\"solr_keepallmetadata\" value=\"true\" />\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+              Messages.getAttributeString(locale,"SolrConnector.KeepAllMetadata")+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n</td>\n"+
+"        </tr>\n"+
 "      </table>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -2437,8 +2436,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
           );
           fieldCounter++;
         }
-        else if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
-            out.print("<input type=\"hidden\" name=\"solr_keepallmetadata\" value=\""+sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE)+"\"/>\n");
+        else if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA))
+        {
+          out.print(
+"<input type=\"hidden\" name=\"solr_keepallmetadata\" value=\""+sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE)+"\"/>\n"
+          );
         }
       }
       out.print(
@@ -2509,11 +2511,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       
       // Gather the keep all metadata parameter to be the last one
       SpecificationNode node = new SpecificationNode(SolrConfig.NODE_KEEPMETADATA);
-      if(variableContext.getParameter("solr_keepallmetadata") != null && !variableContext.getParameter("solr_keepallmetadata").isEmpty()) {
-          node.setAttribute(SolrConfig.ATTRIBUTE_VALUE, "true");
+      String keepAll = variableContext.getParameter("solr_keepallmetadata");
+      if (keepAll != null) {
+        node.setAttribute(SolrConfig.ATTRIBUTE_VALUE, keepAll);
       }
       else {
-          node.setAttribute(SolrConfig.ATTRIBUTE_VALUE, "false");
+        node.setAttribute(SolrConfig.ATTRIBUTE_VALUE, "false");
       }
       // Add the new keepallmetadata config parameter 
       os.addChild(os.getChildCount(), node);
