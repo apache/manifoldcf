@@ -19,8 +19,6 @@
 package org.apache.manifoldcf.agents.output.solr;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.common.Base64;
-import org.apache.manifoldcf.core.common.XMLDoc;
 import org.apache.manifoldcf.core.common.DateParser;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.*;
@@ -28,31 +26,21 @@ import org.apache.manifoldcf.agents.system.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import javax.net.*;
-import javax.net.ssl.*;
 import java.util.regex.*;
-
-import org.apache.log4j.*;
-
-import java.util.concurrent.TimeUnit;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
 
@@ -483,17 +471,18 @@ public class HttpPoster
   
   /**
   * Post the input stream to ingest
-  * @param documentURI is the document's uri.
-  * @param document is the document structure to ingest.
-  * @param arguments are the configuration arguments to pass in the post.  Key is argument name, value is a list of the argument values.
-  * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
-  * @param activities is the activities object, so we can report what's happening.
-  * @return true if the ingestion was successful, or false if the ingestion is illegal.
+  *
+   * @param documentURI is the document's uri.
+   * @param document is the document structure to ingest.
+   * @param arguments are the configuration arguments to pass in the post.  Key is argument name, value is a list of the argument values.
+   * @param keepAllMetadata
+   *@param authorityNameString is the name of the governing authority for this document's acls, or null if none.
+   * @param activities is the activities object, so we can report what's happening.   @return true if the ingestion was successful, or false if the ingestion is illegal.
   * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
     RepositoryDocument document, Map arguments, Map<String, List<String>> sourceTargets,
-    String authorityNameString, IOutputAddActivity activities)
+    boolean keepAllMetadata, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
@@ -515,7 +504,7 @@ public class HttpPoster
     
     try
     {
-      IngestThread t = new IngestThread(documentURI,document,arguments,sourceTargets,shareAcls,shareDenyAcls,acls,denyAcls,commitWithin);
+      IngestThread t = new IngestThread(documentURI,document,arguments,keepAllMetadata,sourceTargets,shareAcls,shareDenyAcls,acls,denyAcls,commitWithin);
       try
       {
         t.start();
@@ -765,15 +754,16 @@ public class HttpPoster
   */
   protected class IngestThread extends java.lang.Thread
   {
-    protected String documentURI;
-    protected RepositoryDocument document;
-    protected Map<String,List<String>> arguments;
-    protected Map<String,List<String>> sourceTargets;
-    protected String[] shareAcls;
-    protected String[] shareDenyAcls;
-    protected String[] acls;
-    protected String[] denyAcls;
-    protected String commitWithin;
+    protected final String documentURI;
+    protected final RepositoryDocument document;
+    protected final Map<String,List<String>> arguments;
+    protected final Map<String,List<String>> sourceTargets;
+    protected final String[] shareAcls;
+    protected final String[] shareDenyAcls;
+    protected final String[] acls;
+    protected final String[] denyAcls;
+    protected final String commitWithin;
+    protected final boolean keepAllMetadata;
     
     protected Long activityStart = null;
     protected Long activityBytes = null;
@@ -784,7 +774,7 @@ public class HttpPoster
     protected boolean rval = false;
 
     public IngestThread(String documentURI, RepositoryDocument document,
-      Map<String,List<String>> arguments, Map<String, List<String>> sourceTargets,
+      Map<String, List<String>> arguments, boolean keepAllMetadata, Map<String, List<String>> sourceTargets,
       String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls, String commitWithin)
     {
       super();
@@ -798,6 +788,7 @@ public class HttpPoster
       this.denyAcls = denyAcls;
       this.sourceTargets = sourceTargets;
       this.commitWithin = commitWithin;
+      this.keepAllMetadata=keepAllMetadata;
     }
 
     public void run()
@@ -868,32 +859,7 @@ public class HttpPoster
           }
 
           // Write the metadata, each in a field by itself
-          Iterator<String> iter = document.getFields();
-          while (iter.hasNext())
-          {
-            String fieldName = iter.next();
-            List<String> mapping = sourceTargets.get(fieldName);
-            if(mapping != null) {
-              for(String newFieldName : mapping) {
-                if(newFieldName != null && !newFieldName.isEmpty()) {
-                  if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
-                    newFieldName = ID_METADATA;
-                  }
-                  String[] values = document.getFieldAsStrings(fieldName);
-                  writeField(out,LITERAL+newFieldName,values);
-                }
-              }
-            } else {
-              String newFieldName = fieldName;
-              if (!newFieldName.isEmpty()) {
-                if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
-                  newFieldName = ID_METADATA;
-                }
-                String[] values = document.getFieldAsStrings(fieldName);
-                writeField(out,LITERAL+newFieldName,values);
-              }
-            }
-          }
+           buildSolrParamsFromMetadata(out);
              
           // These are unnecessary now in the case of non-solrcloud setups, because we overrode the SolrJ posting method to use multipart.
           //writeField(out,LITERAL+"stream_size",String.valueOf(length));
@@ -980,6 +946,52 @@ public class HttpPoster
       catch (Throwable e)
       {
         this.exception = e;
+      }
+    }
+
+    /**
+      * builds the solr parameter maps for the update request.
+      * For each mapping expressed is applied the renaming for the metadata field name.
+      * If we set to keep all the metadata, the metadata non present in the mapping will be kept with their original names.
+      * In the other case ignored
+      * @param out
+      * @throws IOException
+      */
+    private void buildSolrParamsFromMetadata(ModifiableSolrParams out) throws IOException
+    {
+      if (this.keepAllMetadata)
+      {
+        Iterator<String> iter = document.getFields();
+        while (iter.hasNext())
+        {
+          String fieldName = iter.next();
+          List<String> mappings = sourceTargets.get(fieldName);
+          if (mappings != null)
+            for (String newFieldName : mappings)
+              applySingleMapping(fieldName, out, newFieldName);
+          else // the fields not mentioned in the mapping are added only if we have set the keep all metadata=true.
+            applySingleMapping(fieldName, out, fieldName);
+        }
+      }
+      else
+      {
+        //don't keep all the metadata but only the ones in sourceTargets
+        for (String originalFieldName : sourceTargets.keySet())
+        {
+          List<String> mapping = sourceTargets.get(originalFieldName);
+          for (String newFieldName : mapping)
+            applySingleMapping(originalFieldName, out, newFieldName);
+        }
+      }
+    }
+
+    private void applySingleMapping(String originalFieldName, ModifiableSolrParams out, String newFieldName) throws IOException {
+      if(newFieldName != null && !newFieldName.isEmpty()) {
+        if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
+          newFieldName = ID_METADATA;
+        }
+        String[] values = document.getFieldAsStrings(originalFieldName);
+        writeField(out,LITERAL+newFieldName,values);
       }
     }
 
