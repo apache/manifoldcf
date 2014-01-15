@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-840: Add ability to suppress all non-specified metadata
+fields in Solr connector.
+(Alessandro Benedetti, Karl Wright)
+
 CONNECTORS-754: Add claim space selection for SharePoint native
 authority, so that it works with Claim Space servers.
 (Will Parkinson, Karl Wright)
