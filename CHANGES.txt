@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.5 =====================
 
+CONNECTORS-859: Authority tokens should be prefixed with the group name,
+not the connection name.
+(Fran Alvarez, Karl Wright)
+
 CONNECTORS-840: Add ability to suppress all non-specified metadata
 fields in Solr connector.
 (Alessandro Benedetti, Karl Wright)
