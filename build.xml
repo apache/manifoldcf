@@ -3093,7 +3093,7 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="1.5-dev"/>
+      <property name="release-version" value="1.5"/>
     </target>
     
     <target name="create-source-zip" depends="set-version">
