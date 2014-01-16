@@ -43,18 +43,30 @@ import java.util.HashMap;
  */
 public class HDFSSession {
 
-  private FileSystem fileSystem;
-  private String nameNode;
-  private Configuration config;
-  private String user;
+  private final FileSystem fileSystem;
+  private final String nameNode;
+  private final Configuration config;
+  private final String user;
   
-  public HDFSSession(String nameNode, Configuration config, String user) throws URISyntaxException, IOException, InterruptedException {
+  public HDFSSession(String nameNode, String user) throws URISyntaxException, IOException, InterruptedException {
     this.nameNode = nameNode;
-    this.config = config;
     this.user = user;
-    fileSystem = FileSystem.get(new URI(nameNode), config, user);
+    // Switch class loaders so that scheme registration works properly
+    ClassLoader ocl = Thread.currentThread().getContextClassLoader();
+    try {
+      Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+      config = new Configuration();
+      config.set("fs.defaultFS", nameNode);
+      fileSystem = FileSystem.get(new URI(nameNode), config, user);
+    } finally {
+      Thread.currentThread().setContextClassLoader(ocl);
+    }
   }
 
+  public static void runMe()
+  {
+  }
+  
   public Map<String, String> getRepositoryInfo() {
     Map<String, String> info = new HashMap<String, String>();
 

@@ -19,7 +19,6 @@
 package org.apache.manifoldcf.crawler.connectors.hdfs;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -164,22 +163,9 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         Logging.connectors.debug("HDFS: User = '" + user + "'");
       }
 
-      String nameNode = "hdfs://"+nameNodeHost+":"+nameNodePort;
+      String nameNode = "file://"+nameNodeHost+":"+nameNodePort;
 
-      /*
-       * make Configuration
-       */
-      Configuration config = null;
-      ClassLoader ocl = Thread.currentThread().getContextClassLoader();
-      try {
-        Thread.currentThread().setContextClassLoader(org.apache.hadoop.conf.Configuration.class.getClassLoader());
-        config = new Configuration();
-        config.set("fs.default.name", nameNode);
-      } finally {
-        Thread.currentThread().setContextClassLoader(ocl);
-      }
-      
-      GetSessionThread t = new GetSessionThread(nameNode,config,user);
+      GetSessionThread t = new GetSessionThread(nameNode,user);
       try {
         t.start();
         t.finishUp();
@@ -1692,15 +1678,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 
   protected static class GetSessionThread extends Thread {
     protected final String nameNode;
-    protected final Configuration config;
     protected final String user;
     protected Throwable exception = null;
     protected HDFSSession session;
 
-    public GetSessionThread(String nameNode, Configuration config, String user) {
+    public GetSessionThread(String nameNode, String user) {
       super();
       this.nameNode = nameNode;
-      this.config = config;
       this.user = user;
       setDaemon(true);
     }
@@ -1708,7 +1692,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     public void run() {
       try {
         // Create a session
-        session = new HDFSSession(nameNode, config, user);
+        session = new HDFSSession(nameNode, user);
       } catch (Throwable e) {
         this.exception = e;
       }
