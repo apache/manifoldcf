@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.5 =====================
 
+CONNECTORS-858: HDFS repository and output connectors need to be
+fully compatible with multiple Hadoop 2.2.0 file system protocols.
+(Minoru Osuka, Karl Wright)
+
 CONNECTORS-859: Authority tokens should be prefixed with the group name,
 not the connection name.
 (Fran Alvarez, Karl Wright)

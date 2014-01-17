@@ -24,6 +24,7 @@ import java.util.Map;
 
 /** Parameters constants */
 public enum ParameterEnum {
+  namenodeprotocol("file"),
   namenodehost("localhost"),
   namenodeport("9000"),
   user(""),

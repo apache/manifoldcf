@@ -53,6 +53,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   // Activities list
   protected static final String[] activitiesList = new String[]{ACTIVITY_READ};
 
+  protected String nameNodeProtocol = null;
   protected String nameNodeHost = null;
   protected String nameNodePort = null;
   protected String user = null;
@@ -120,6 +121,9 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public void connect(ConfigParams configParams) {
     super.connect(configParams);
 
+    nameNodeProtocol = configParams.getParameter("namenodeprotocol");
+    if (nameNodeProtocol == null)
+      nameNodeProtocol = "file";
     nameNodeHost = configParams.getParameter("namenodehost");
     nameNodePort = configParams.getParameter("namenodeport");
     user = configParams.getParameter("user");
@@ -133,6 +137,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public void disconnect() throws ManifoldCFException {
     closeSession();
     user = null;
+    nameNodeProtocol = null;
     nameNodeHost = null;
     nameNodePort = null;
     super.disconnect();
@@ -143,6 +148,12 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
    */
   protected HDFSSession getSession() throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
+      if (StringUtils.isEmpty(nameNodeProtocol)) {
+        throw new ManifoldCFException("Parameter namenodeprotocol required but not set");
+      }
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("HDFS: NameNodeProtocol = '" + nameNodeProtocol + "'");
+      }
       if (StringUtils.isEmpty(nameNodeHost)) {
         throw new ManifoldCFException("Parameter namenodehost required but not set");
       }
@@ -163,7 +174,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         Logging.connectors.debug("HDFS: User = '" + user + "'");
       }
 
-      String nameNode = "file://"+nameNodeHost+":"+nameNodePort;
+      String nameNode = nameNodeProtocol+"://"+nameNodeHost+":"+nameNodePort;
 
       GetSessionThread t = new GetSessionThread(nameNode,user);
       try {
@@ -591,6 +602,11 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
+    String nameNodeProtocol = parameters.getParameter("namenodeprotocol");
+    if (nameNodeProtocol == null) {
+      nameNodeProtocol = "file";
+    }
+    
     String nameNodeHost = parameters.getParameter("namenodehost");
     if (nameNodeHost == null) {
       nameNodeHost = "localhost";
@@ -610,6 +626,19 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     {
       out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NameNodeProtocol") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"namenodeprotocol\" size=\"2\">\n"+
+"        <option value=\"file\"" + (nameNodeProtocol.equals("file")?" selected=\"true\"":"") + ">file</option>\n"+
+"        <option value=\"ftp\"" + (nameNodeProtocol.equals("ftp")?" selected=\"true\"":"") + ">ftp</option>\n"+
+"        <option value=\"har\"" + (nameNodeProtocol.equals("har")?" selected=\"true\"":"") + ">har</option>\n"+
+"        <option value=\"s3\"" + (nameNodeProtocol.equals("s3")?" selected=\"true\"":"") + ">s3</option>\n"+
+"        <option value=\"s3n\"" + (nameNodeProtocol.equals("s3n")?" selected=\"true\"":"") + ">s3n</option>\n"+
+"        <option value=\"viewfs\"" + (nameNodeProtocol.equals("viewfs")?" selected=\"true\"":"") + ">viewfs</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NameNodeHost") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
@@ -635,6 +664,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     {
       // Server tab hiddens
       out.print(
+"<input type=\"hidden\" name=\"namenodeprotocol\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodeProtocol)+"\"/>\n"+
 "<input type=\"hidden\" name=\"namenodehost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodeHost)+"\"/>\n"+
 "<input type=\"hidden\" name=\"namenodeport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodePort)+"\"/>\n"+
 "<input type=\"hidden\" name=\"user\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(user)+"\"/>\n"
@@ -655,6 +685,11 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
+    String nameNodeProtocol = variableContext.getParameter("namenodeprotocol");
+    if (nameNodeProtocol != null) {
+      parameters.setParameter("namenodeprotocol", nameNodeProtocol);
+    }
+    
     String nameNodeHost = variableContext.getParameter("namenodehost");
     if (nameNodeHost != null) {
       parameters.setParameter("namenodehost", nameNodeHost);
@@ -684,12 +719,20 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
+    String nameNodeProtocol = parameters.getParameter("namenodeprotocol");
+    if (nameNodeProtocol == null)
+      nameNodeProtocol = "file";
+
     String nameNodeHost = parameters.getParameter("namenodehost");
     String nameNodePort = parameters.getParameter("namenodeport");
     String user = parameters.getParameter("user");
     
     out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NameNodeProtocol") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodeProtocol)+"</td>\n"+
+"  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NameNodeHost") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodeHost)+"</td>\n"+
