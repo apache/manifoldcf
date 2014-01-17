@@ -949,7 +949,7 @@
         <mkdir dir="dist/multiprocess-file-example/lib"/>
         <copy todir="dist/multiprocess-file-example/lib">
             <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
+                <!-- include name="zookeeper*.jar"/ -->
                 <include name="json*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="log4j*.jar"/>
@@ -994,7 +994,7 @@
         <mkdir dir="dist/multiprocess-file-example-proprietary/lib"/>
         <copy todir="dist/multiprocess-file-example-proprietary/lib">
             <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
+                <!-- include name="zookeeper*.jar"/ -->
                 <include name="json*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="log4j*.jar"/>
@@ -1145,7 +1145,7 @@
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
             <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
+                <!-- include name="zookeeper*.jar"/ -->
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -1275,7 +1275,7 @@
         <mkdir dir="dist/example-proprietary/lib"/>
         <copy todir="dist/example-proprietary/lib">
             <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
+                <!-- include name="zookeeper*.jar"/ -->
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
