@@ -24,7 +24,6 @@
         <fileset dir="../../lib">
             <include name="solr-solrj*.jar"/>
             <include name="httpmime*.jar"/>
-            <include name="zookeeper*.jar"/>
             <include name="wstx-asl*.jar"/>
             <include name="jcl-over-slf4j*.jar"/>
         </fileset>
@@ -36,7 +35,6 @@
             <fileset dir="../../lib">
                 <include name="solr-solrj*.jar"/>
                 <include name="httpmime*.jar"/>
-                <include name="zookeeper*.jar"/>
                 <include name="wstx-asl*.jar"/>
                 <include name="jcl-over-slf4j*.jar"/>
             </fileset>
