@@ -5,6 +5,12 @@ $Id$
 
 ======================= Release 1.5 =====================
 
+CONNECTORS-860: Remove zookeeper.jar from a number of contexts
+where it should not be.  This will reduce the binary footprint by some
+amount and also prevent more than one zookeeper.jar from being in
+the classpath at a time.
+(Karl Wright)
+
 CONNECTORS-858: HDFS repository and output connectors need to be
 fully compatible with multiple Hadoop 2.2.0 file system protocols.
 (Minoru Osuka, Karl Wright)
