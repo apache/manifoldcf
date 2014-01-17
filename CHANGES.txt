@@ -5,6 +5,10 @@ $Id$
 
 ======================= Release 1.5 =====================
 
+CONNECTORS-861: Reduce the example worker thread count so that we
+don't run out of zookeeper resources on Windows.
+(Karl Wright)
+
 CONNECTORS-860: Remove zookeeper.jar from a number of contexts
 where it should not be.  This will reduce the binary footprint by some
 amount and also prevent more than one zookeeper.jar from being in
