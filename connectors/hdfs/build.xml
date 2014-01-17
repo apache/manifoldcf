@@ -22,11 +22,14 @@
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
+            <include name="commons-cli*.jar"/>
             <include name="commons-configuration*.jar"/>
             <include name="hadoop-common*.jar"/>
             <include name="hadoop-annotations*.jar"/>
             <include name="hadoop-auth*.jar"/>
+            <include name="hadoop-hdfs*.jar"/>
             <include name="guava*.jar"/>
+            <include name="protobuf-java*.jar"/>
         </fileset>
     </path>
 
@@ -34,11 +37,14 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="../../lib">
+                <include name="commons-cli*.jar"/>
                 <include name="commons-configuration*.jar"/>
                 <include name="hadoop-common*.jar"/>
                 <include name="hadoop-annotations*.jar"/>
                 <include name="hadoop-auth*.jar"/>
+                <include name="hadoop-hdfs*.jar"/>
                 <include name="guava*.jar"/>
+                <include name="protobuf-java*.jar"/>
             </fileset>
         </copy>
     </target>

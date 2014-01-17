@@ -38,6 +38,11 @@
   #else
        <option value="har">har</option>
   #end
+  #if($NAMENODEPROTOCOL == 'hdfs')
+       <option value="hdfs" selected="true">hdfs</option>
+  #else
+       <option value="hdfs">hdfs</option>
+  #end
   #if($NAMENODEPROTOCOL == 's3')
        <option value="s3" selected="true">s3</option>
   #else

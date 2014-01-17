@@ -359,7 +359,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
             StringBuilder sb = new StringBuilder();
             // Check if the path is to be converted.  We record that info in the version string so that we'll reindex documents whose
             // URI's change.
-            String nameNode = "hdfs://" + nameNodeHost + ":" + nameNodePort;
+            String nameNode = nameNodeProtocol + "://" + nameNodeHost + ":" + nameNodePort;
             String convertPath = findConvertPath(nameNode, spec, fileStatus.getPath());
             if (convertPath != null)
             {
@@ -633,6 +633,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "        <option value=\"file\"" + (nameNodeProtocol.equals("file")?" selected=\"true\"":"") + ">file</option>\n"+
 "        <option value=\"ftp\"" + (nameNodeProtocol.equals("ftp")?" selected=\"true\"":"") + ">ftp</option>\n"+
 "        <option value=\"har\"" + (nameNodeProtocol.equals("har")?" selected=\"true\"":"") + ">har</option>\n"+
+"        <option value=\"hdfs\"" + (nameNodeProtocol.equals("hdfs")?" selected=\"true\"":"") + ">hdfs</option>\n"+
 "        <option value=\"s3\"" + (nameNodeProtocol.equals("s3")?" selected=\"true\"":"") + ">s3</option>\n"+
 "        <option value=\"s3n\"" + (nameNodeProtocol.equals("s3n")?" selected=\"true\"":"") + ">s3n</option>\n"+
 "        <option value=\"viewfs\"" + (nameNodeProtocol.equals("viewfs")?" selected=\"true\"":"") + ">viewfs</option>\n"+
