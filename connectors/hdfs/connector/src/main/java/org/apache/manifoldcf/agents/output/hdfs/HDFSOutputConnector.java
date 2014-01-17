@@ -115,7 +115,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     super.connect(configParams);
     nameNodeProtocol = configParams.getParameter(ParameterEnum.namenodeprotocol.name());
     if (nameNodeProtocol == null)
-      nameNodeProtocol = "file";
+      nameNodeProtocol = "hdfs";
     nameNodeHost = configParams.getParameter(ParameterEnum.namenodehost.name());
     nameNodePort = configParams.getParameter(ParameterEnum.namenodeport.name());
     user = configParams.getParameter(ParameterEnum.user.name());
@@ -182,7 +182,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   protected HDFSSession getSession() throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
       if (nameNodeProtocol == null)
-        nameNodeProtocol = "file";
+        nameNodeProtocol = "hdfs";
 
       if (nameNodeHost == null)
         throw new ManifoldCFException("Namenodehost must be specified");

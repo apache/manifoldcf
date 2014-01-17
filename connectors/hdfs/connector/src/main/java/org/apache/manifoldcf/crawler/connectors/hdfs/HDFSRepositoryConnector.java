@@ -123,7 +123,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 
     nameNodeProtocol = configParams.getParameter("namenodeprotocol");
     if (nameNodeProtocol == null)
-      nameNodeProtocol = "file";
+      nameNodeProtocol = "hdfs";
     nameNodeHost = configParams.getParameter("namenodehost");
     nameNodePort = configParams.getParameter("namenodeport");
     user = configParams.getParameter("user");
@@ -604,7 +604,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   {
     String nameNodeProtocol = parameters.getParameter("namenodeprotocol");
     if (nameNodeProtocol == null) {
-      nameNodeProtocol = "file";
+      nameNodeProtocol = "hdfs";
     }
     
     String nameNodeHost = parameters.getParameter("namenodehost");
@@ -722,7 +722,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   {
     String nameNodeProtocol = parameters.getParameter("namenodeprotocol");
     if (nameNodeProtocol == null)
-      nameNodeProtocol = "file";
+      nameNodeProtocol = "hdfs";
 
     String nameNodeHost = parameters.getParameter("namenodehost");
     String nameNodePort = parameters.getParameter("namenodeport");
