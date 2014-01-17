@@ -84,6 +84,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   /** Forward to the template to view the specification parameters for the job */
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 
+  protected String nameNodeProtocol = null;
   protected String nameNodeHost = null;
   protected String nameNodePort = null;
   protected String user = null;
@@ -112,6 +113,9 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   @Override
   public void connect(ConfigParams configParams) {
     super.connect(configParams);
+    nameNodeProtocol = configParams.getParameter(ParameterEnum.namenodeprotocol.name());
+    if (nameNodeProtocol == null)
+      nameNodeProtocol = "file";
     nameNodeHost = configParams.getParameter(ParameterEnum.namenodehost.name());
     nameNodePort = configParams.getParameter(ParameterEnum.namenodeport.name());
     user = configParams.getParameter(ParameterEnum.user.name());
@@ -132,6 +136,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   @Override
   public void disconnect() throws ManifoldCFException {
     closeSession();
+    nameNodeProtocol = null;
     nameNodeHost = null;
     nameNodePort = null;
     user = null;
@@ -176,19 +181,19 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   /** Set up a session */
   protected HDFSSession getSession() throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
-      String nameNodeHost = params.getParameter(ParameterEnum.namenodehost.name());
+      if (nameNodeProtocol == null)
+        nameNodeProtocol = "file";
+
       if (nameNodeHost == null)
         throw new ManifoldCFException("Namenodehost must be specified");
 
-      String nameNodePort = params.getParameter(ParameterEnum.namenodeport.name());
       if (nameNodePort == null)
         throw new ManifoldCFException("Namenodeport must be specified");
       
-      String user = params.getParameter(ParameterEnum.user.name());
       if (user == null)
         throw new ManifoldCFException("User must be specified");
       
-      String nameNode = "file://"+nameNodeHost+":"+nameNodePort;
+      String nameNode = nameNodeProtocol + "://"+nameNodeHost+":"+nameNodePort;
       //System.out.println("Namenode = '"+nameNode+"'");
 
       /*

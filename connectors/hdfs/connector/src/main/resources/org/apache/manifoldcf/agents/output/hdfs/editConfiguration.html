@@ -20,6 +20,43 @@
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodeProtocol'))</nobr></td>
+    <td class="value">
+     <select name="namenodeprotocol" size="2">
+  #if($NAMENODEPROTOCOL == 'file')
+       <option value="file" selected="true">file</option>
+  #else
+       <option value="file">file</option>
+  #end
+  #if($NAMENODEPROTOCOL == 'ftp')
+       <option value="ftp" selected="true">ftp</option>
+  #else
+       <option value="ftp">ftp</option>
+  #end
+  #if($NAMENODEPROTOCOL == 'har')
+       <option value="har" selected="true">har</option>
+  #else
+       <option value="har">har</option>
+  #end
+  #if($NAMENODEPROTOCOL == 's3')
+       <option value="s3" selected="true">s3</option>
+  #else
+       <option value="s3">s3</option>
+  #end
+  #if($NAMENODEPROTOCOL == 's3n')
+       <option value="s3n" selected="true">s3n</option>
+  #else
+       <option value="s3n">s3n</option>
+  #end
+  #if($NAMENODEPROTOCOL == 'viewfs')
+       <option value="viewfs" selected="true">viewfs</option>
+  #else
+       <option value="viewfs">viewfs</option>
+  #end
+     </select>
+    </td>
+  </tr>
+  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodeHost'))</nobr></td>
     <td class="value"><input name="namenodehost" type="text" value="$Encoder.attributeEscape($NAMENODEHOST)" size="32" /></td>
   </tr>
