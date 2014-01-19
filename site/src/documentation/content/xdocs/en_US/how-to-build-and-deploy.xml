@@ -78,37 +78,43 @@
         <p></p>
         <ul>
           <li>CMIS connector</li>
-          <li>Documentum connector, built against a Documentum API stub</li>
+          <li>EMC Documentum connector, built against a Documentum API stub</li>
           <li>DropBox connector</li>
+          <li>Email connector</li>
           <li>FileNet connector, built against a FileNet API stub</li>
           <li>WGET-compatible filesystem connector</li>
           <li>Generic XML repository connector</li>
           <li>Google Drive connector</li>
           <li>HDFS connector</li>
           <li>JDBC connector, with just the PostgreSQL jdbc driver</li>
-          <li>Jira connector</li>
-          <li>LiveLink connector, built against a LiveLink API stub</li>
+          <li>Atlassian Jira connector</li>
+          <li>OpenText LiveLink connector, built against a LiveLink API stub</li>
           <li>Meridio connector, built against modified Meridio API WSDLs and XSDs</li>
           <li>RSS connector</li>
-          <li>SharePoint connector, built against SharePoint API WSDLs</li>
+          <li>Microsoft SharePoint connector, built against SharePoint API WSDLs</li>
           <li>Webcrawler connector</li>
           <li>Wiki connector</li>
         </ul>
         <p></p>
-        <p>In addition, the following authority connectors will be built:</p>
+        <p>The following authority connectors will be built:</p>
         <p></p>
         <ul>
           <li>Active Directory authority</li>
           <li>CMIS authority</li>
-          <li>Documentum authority</li>
-          <li>LiveLink authority</li>
-          <li>Null authority</li>
+          <li>EMC Documentum authority</li>
+          <li>Atlassian Jira authority</li>
           <li>LDAP authority</li>
+          <li>OpenText LiveLink authority</li>
+          <li>Meridio authority, built against modified Meridio API WSDLs and XSDs</li>
+          <li>Null authority</li>
+          <li>Microsoft SharePoint/AD authority</li>
+          <li>Microsoft SharePoint/Native authority, built against SharePoint API WSDLs</li>
         </ul>
         <p></p>
-        <p>Finally, the following output connectors will be built:</p>
+        <p>The following output connectors will be built:</p>
         <p></p>
         <ul>
+          <li>WGET-compatible filesystem output connector</li>
           <li>MetaCarta GTS output connector</li>
           <li>Apache Solr output connector</li>
           <li>OpenSearchServer output connector</li>
@@ -116,6 +122,12 @@
           <li>WGET-compatible filesystem output connector</li>
           <li>HDFS output connector</li>
           <li>Null output connector</li>
+        </ul>
+        <p></p>
+        <p>The following mapping connectors will be built:</p>
+        <p></p>
+        <ul>
+          <li>Regular-expression mapping connector</li>
         </ul>
         <p></p>
         <p>The dependencies and build limitations of each individual LGPL and proprietary connector is described in separate sections below.</p>
@@ -318,6 +330,8 @@ mvn clean package
           <tr><td><em>connectors.xml</em></td><td>an xml file describing the connectors that should be registered</td></tr>
           <tr><td><em>connector-lib</em></td><td>jars for all the connectors, referred to by properties.xml</td></tr>
           <tr><td><em>connector-lib-proprietary</em></td><td>proprietary jars for all the connectors, referred to by properties.xml; not included in binary release</td></tr>
+          <tr><td><em>lib</em></td><td>jars for all of the examples, referenced by the example scripts</td></tr>
+          <tr><td><em>lib-proprietary</em></td><td>proprietary jars for all of the examples, referenced by the proprietary example scripts</td></tr>
           <tr><td><em>xxx-process</em></td><td>scripts, classpath jars, and -D switch values needed for a required connector-specific process</td></tr>
           <tr><td><em>script-engine</em></td><td>jars and scripts for running the ManifoldCF script interpreter</td></tr>
           <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), excluding all proprietary libraries</td></tr>

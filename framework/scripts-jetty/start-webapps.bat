@@ -1,3 +1,4 @@
+@echo off
 rem Licensed to the Apache Software Foundation (ASF) under one or more
 rem contributor license agreements.  See the NOTICE file distributed with
 rem this work for additional information regarding copyright ownership.
@@ -13,4 +14,18 @@ rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 rem See the License for the specific language governing permissions and
 rem limitations under the License.
 
-for /f "delims=" %%a in ('type %MCF_HOME%\processes\define\%1') do set JAVADEFINES=-D%1=%%a %JAVADEFINES%
+rem check that JAVA_HOME is set, and that the current directory is correct
+if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
+if not exist ".\properties.xml" goto nolcfhome
+set JAVAOPTIONS=
+for /f "delims=" %%a in ('type jetty-options.env.win') do call setjavaoption.bat "%%a"
+rem invoke java with the jetty class
+"%JAVA_HOME%\bin\java" %JAVAOPTIONS% org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner
+goto done
+:nojavahome
+echo Environment variable JAVA_HOME is not set properly.
+goto done
+:nolcfhome
+echo Current working directory does not contain a properties.xml file.
+goto done
+:done
