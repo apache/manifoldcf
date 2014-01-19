@@ -1210,6 +1210,14 @@
         <copy todir="dist/web-proprietary">
             <fileset dir="framework/dist/web-proprietary"/>
         </copy>
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="framework/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/lib-proprietary"/>
+        <copy todir="dist/lib-proprietary">
+            <fileset dir="framework/dist/lib-proprietary"/>
+        </copy>
         <mkdir dir="dist/multiprocess-file-example"/>
         <copy todir="dist/multiprocess-file-example">
             <fileset dir="framework/dist/multiprocess-file-example"/>
@@ -3181,6 +3189,7 @@
         <zipfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
           <exclude name="connector-lib-proprietary/*.jar"/>
           <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="lib-proprietary/*.jar"/>
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
@@ -3196,6 +3205,7 @@
         <tarfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
           <exclude name="connector-lib-proprietary/*.jar"/>
           <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="lib-proprietary/*.jar"/>
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
@@ -3325,7 +3335,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/surefire-reports/"/>
           <exclude name="**/target/"/>
           <exclude name="lib-proprietary/*.jar"/>
-          <exclude name="scripts/options.env"/>
+          <exclude name="scripts/*.env"/>
+          <exclude name="scripts-jetty/*.env"/>
         </fileset>
         <fileset dir="site/">
           <exclude name="fonts/"/>
@@ -4050,7 +4061,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-xml-apis">
         <mkdir dir="lib"/>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
             <param name="project-path" value="xml-apis"/>
             <param name="artifact-version" value="1.4.01"/>
             <param name="artifact-name" value="xml-apis"/>
@@ -4062,7 +4074,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <property name="jstl-package" value="jstl"/>
         <property name="jstl-version" value="1.2"/>
-        <antcall target="download-via-maven"><param name="target" value="lib"/><param name="project-path" value="${jstl-package}"/><param name="artifact-version" value="${jstl-version}"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="${jstl-package}"/>
+            <param name="artifact-version" value="${jstl-version}"/>
             <param name="artifact-name" value="jstl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -4240,7 +4255,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-	  <target name="download-guava">
+    <target name="download-guava">
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/guava"/>
@@ -4279,7 +4294,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="download-mysql">
-        <antcall target="download-via-maven"><param name="target" value="lib-proprietary"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib-proprietary"/>
             <param name="project-path" value="mysql"/>
             <param name="artifact-version" value="5.1.18"/>
             <param name="artifact-name" value="mysql-connector-java"/>
@@ -4288,7 +4304,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
 
     <target name="download-jtds">
-        <antcall target="download-via-maven"><param name="target" value="lib-proprietary"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib-proprietary"/>
             <param name="project-path" value="net/sourceforge/jtds"/>
             <param name="artifact-version" value="1.2.4"/>
             <param name="artifact-name" value="jtds"/>
