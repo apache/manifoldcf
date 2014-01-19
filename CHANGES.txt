@@ -5,6 +5,10 @@ $Id$
 
 ======================= Release 1.5 =====================
 
+CONNECTORS-863: Increase the number of zookeeper connections allowed;
+this permits agents processes to start on linux.
+(Karl Wright)
+
 CONNECTORS-862: Reduce the binary image footprint by consolidating the 
 various lib directories and just changing classpaths.
 (Karl Wright)
