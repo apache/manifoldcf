@@ -16,9 +16,9 @@
 # limitations under the License.
 
 if [[ $OSTYPE == "cygwin" ]] ; then
-    OPTIONSFILE="jetty-options.env.win"
+    OPTIONSFILE="combined-options.env.win"
 else
-    OPTIONSFILE="jetty-options.env.unix"
+    OPTIONSFILE="combined-options.env.unix"
 fi
 
 #Make sure environment variables are properly set
