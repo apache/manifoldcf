@@ -5,6 +5,9 @@ $Id$
 
 ======================= Release 1.5 =====================
 
+CONNECTORS-865: Wrong version of the parent pom in the alfresco-4-war
+(Piergiorgio Lucidi)
+
 CONNECTORS-863: Increase the number of zookeeper connections allowed;
 this permits agents processes to start on linux.
 (Karl Wright)
