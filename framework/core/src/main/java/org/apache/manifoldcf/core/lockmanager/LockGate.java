@@ -67,6 +67,27 @@ import org.apache.manifoldcf.core.interfaces.*;
 * The problem is that (A) has already obtained permission, but cannot obtain the lock.  (B) is somehow blocking
 * (A) from obtaining the lock even though it has not yet taken its own lock!  Or, maybe it has, and we don't see it in
 * the stack trace.
+* Another example: (C)
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0x00000000ffbdc038> (a org.apache.manifoldcf.core.lockmanager.LockGate)
+	at java.lang.Object.wait(Object.java:503)
+	at org.apache.manifoldcf.core.lockmanager.LockGate.waitForPermission(LockGate.java:91)
+	- locked <0x00000000ffbdc038> (a org.apache.manifoldcf.core.lockmanager.LockGate)
+	at org.apache.manifoldcf.core.lockmanager.LockGate.enterReadLock(LockGate.java:211)
+	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enter(BaseLockManager.java:1532)
+	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enterLocks(BaseLockManager.java:813)
+	at org.apache.manifoldcf.core.lockmanager.LockManager.enterLocks(LockManager.java:355)
+* and (D):
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0x00000000ffbdd2f8> (a org.apache.manifoldcf.core.lockmanager.LockObject)
+	at java.lang.Object.wait(Object.java:503)
+	at org.apache.manifoldcf.core.lockmanager.LockObject.enterWriteLock(LockObject.java:83)
+	- locked <0x00000000ffbdd2f8> (a org.apache.manifoldcf.core.lockmanager.LockObject)
+	at org.apache.manifoldcf.core.lockmanager.LockGate.enterWriteLock(LockGate.java:132)
+	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enter(BaseLockManager.java:1483)
+	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enterLocks(BaseLockManager.java:813)
+	at org.apache.manifoldcf.core.lockmanager.LockManager.enterLocks(LockManager.java:355)
+* Problem here: The LockGate 0x00000000ffbdc038 has no other instance anywhere, which should not be able to happen.
 * Debugging must entail dumping ALL outstanding locks periodically -- and who holds each.
 */
 public class LockGate
@@ -115,22 +136,22 @@ public class LockGate
     }
     catch (InterruptedException e)
     {
-      threadRequests.remove(threadID);
+      freePermission(threadID);
       throw e;
     }
     catch (ExpiredObjectException e)
     {
-      threadRequests.remove(threadID);
+      freePermission(threadID);
       throw e;
     }
     catch (Error e)
     {
-      threadRequests.remove(threadID);
+      freePermission(threadID);
       throw e;
     }
     catch (RuntimeException e)
     {
-      threadRequests.remove(threadID);
+      freePermission(threadID);
       throw e;
     }
   }
@@ -147,28 +168,28 @@ public class LockGate
   public void enterWriteLock(Long threadID)
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    //waitForPermission(threadID);
+    waitForPermission(threadID);
     try
     {
       lockObject.enterWriteLock();
     }
     finally
     {
-      //freePermission(threadID);
+      freePermission(threadID);
     }
   }
   
   public void enterWriteLockNoWait(Long threadID)
     throws ManifoldCFException, LockException, LocalLockException, InterruptedException, ExpiredObjectException
   {
-    //waitForPermission(threadID);
+    waitForPermission(threadID);
     try
     {
       lockObject.enterWriteLockNoWait();
     }
     finally
     {
-      //freePermission(threadID);
+      freePermission(threadID);
     }
   }
   
@@ -188,28 +209,28 @@ public class LockGate
   public void enterNonExWriteLock(Long threadID)
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    //waitForPermission(threadID);
+    waitForPermission(threadID);
     try
     {
       lockObject.enterNonExWriteLock();
     }
     finally
     {
-      //freePermission(threadID);
+      freePermission(threadID);
     }
   }
   
   public void enterNonExWriteLockNoWait(Long threadID)
     throws ManifoldCFException, LockException, LocalLockException, InterruptedException, ExpiredObjectException
   {
-    //waitForPermission(threadID);
+    waitForPermission(threadID);
     try
     {
       lockObject.enterNonExWriteLockNoWait();
     }
     finally
     {
-      //freePermission(threadID);
+      freePermission(threadID);
     }
   }
   
@@ -229,28 +250,28 @@ public class LockGate
   public void enterReadLock(Long threadID)
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    //waitForPermission(threadID);
+    waitForPermission(threadID);
     try
     {
       lockObject.enterReadLock();
     }
     finally
     {
-      //freePermission(threadID);
+      freePermission(threadID);
     }
   }
   
   public void enterReadLockNoWait(Long threadID)
     throws ManifoldCFException, LockException, LocalLockException, InterruptedException, ExpiredObjectException
   {
-    //waitForPermission(threadID);
+    waitForPermission(threadID);
     try
     {
       lockObject.enterReadLockNoWait();
     }
     finally
     {
-      //freePermission(threadID);
+      freePermission(threadID);
     }
   }
   
