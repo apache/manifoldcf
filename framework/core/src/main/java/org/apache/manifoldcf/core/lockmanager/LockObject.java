@@ -57,9 +57,6 @@ public class LockObject
   public synchronized void enterWriteLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    if (lockPool == null)
-      throw new ExpiredObjectException("Invalid");
-
     while (true)
     {
       if (lockPool == null)
@@ -140,22 +137,10 @@ public class LockObject
 
     if (obtainedWrite == false)
       throw new RuntimeException("JVM failure: Don't hold lock for object "+this.toString());
-    obtainedWrite = false;
-    try
-    {
-      clearGlobalWriteLock();
-    }
-    catch (Error e)
-    {
-      obtainedWrite = true;
-      throw e;
-    }
-    catch (RuntimeException e)
-    {
-      obtainedWrite = true;
-      throw e;
-    }
+    
+    clearGlobalWriteLock();
 
+    obtainedWrite = false;
     notifyAll();
   }
 
@@ -269,25 +254,15 @@ public class LockObject
 
     if (obtainedNonExWrite == 0)
       throw new RuntimeException("JVM error: Don't hold lock for object "+this.toString());
-    obtainedNonExWrite--;
-    if (obtainedNonExWrite > 0)
+    if (obtainedNonExWrite > 1)
+    {
+      obtainedNonExWrite--;
       return;
-
-    try
-    {
-      clearGlobalNonExWriteLock();
-    }
-    catch (Error e)
-    {
-      obtainedNonExWrite++;
-      throw e;
-    }
-    catch (RuntimeException e)
-    {
-      obtainedNonExWrite++;
-      throw e;
     }
 
+    clearGlobalNonExWriteLock();
+
+    obtainedNonExWrite--;
     notifyAll();
   }
 
@@ -390,24 +365,15 @@ public class LockObject
 
     if (obtainedRead == 0)
       throw new RuntimeException("JVM error: Don't hold lock for object "+this.toString());
-    obtainedRead--;
-    if (obtainedRead > 0)
+    if (obtainedRead > 1)
+    {
+      obtainedRead--;
       return;
-    try
-    {
-      clearGlobalReadLock();
     }
-    catch (Error e)
-    {
-      obtainedRead++;
-      throw e;
-    }
-    catch (RuntimeException e)
-    {
-      obtainedRead++;
-      throw e;
-    }
+    
+    clearGlobalReadLock();
 
+    obtainedRead--;
     notifyAll();
   }
 
