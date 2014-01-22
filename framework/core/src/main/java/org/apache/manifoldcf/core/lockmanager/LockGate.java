@@ -104,10 +104,13 @@ public class LockGate
     this.lockPool = lockPool;
   }
   
-  public synchronized void makeInvalid()
+  public void makeInvalid()
   {
-    this.lockPool = null;
-    lockObject.makeInvalid();
+    synchronized (lockObject)
+    {
+      this.lockPool = null;
+      lockObject.makeInvalid();
+    }
   }
 
   protected void waitForPermission(Long threadID)
@@ -196,13 +199,14 @@ public class LockGate
   public void leaveWriteLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    // Leave, and if we succeed, flush from pool.
-    lockObject.leaveWriteLock();
-    synchronized (this)
+    synchronized (lockObject)
     {
-      if (lockPool == null)
-        throw new ExpiredObjectException("Invalid");
-      lockPool.releaseObject(lockKey, this);
+      // Leave, and if we succeed, flush from pool.
+      if (lockObject.leaveWriteLock())
+      {
+        if (lockPool != null)
+          lockPool.releaseObject(lockKey, this);
+      }
     }
   }
   
@@ -237,13 +241,14 @@ public class LockGate
   public void leaveNonExWriteLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    // Leave, and if we succeed, flush from pool.
-    lockObject.leaveNonExWriteLock();
-    synchronized (this)
+    synchronized (lockObject)
     {
-      if (lockPool == null)
-        throw new ExpiredObjectException("Invalid");
-      lockPool.releaseObject(lockKey, this);
+      // Leave, and if we succeed, flush from pool.
+      if (lockObject.leaveNonExWriteLock())
+      {
+        if (lockPool != null)
+          lockPool.releaseObject(lockKey, this);
+      }
     }
   }
 
@@ -279,12 +284,13 @@ public class LockGate
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     // Leave, and if we succeed, flush from pool.
-    lockObject.leaveReadLock();
-    synchronized (this)
+    synchronized (lockObject)
     {
-      if (lockPool == null)
-        throw new ExpiredObjectException("Invalid");
-      lockPool.releaseObject(lockKey, this);
+      if (lockObject.leaveReadLock())
+      {
+        if (lockPool != null)
+          lockPool.releaseObject(lockKey, this);
+      }
     }
   }
 

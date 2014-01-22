@@ -129,7 +129,7 @@ public class LockObject
     }
   }
 
-  public synchronized void leaveWriteLock()
+  public synchronized boolean leaveWriteLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     if (lockPool == null)
@@ -142,6 +142,7 @@ public class LockObject
 
     obtainedWrite = false;
     notifyAll();
+    return true;
   }
 
   protected void clearGlobalWriteLockNoWait()
@@ -246,7 +247,7 @@ public class LockObject
     }
   }
 
-  public synchronized void leaveNonExWriteLock()
+  public synchronized boolean leaveNonExWriteLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     if (lockPool == null)
@@ -257,13 +258,14 @@ public class LockObject
     if (obtainedNonExWrite > 1)
     {
       obtainedNonExWrite--;
-      return;
+      return false;
     }
 
     clearGlobalNonExWriteLock();
 
     obtainedNonExWrite--;
     notifyAll();
+    return true;
   }
 
   protected void clearGlobalNonExWriteLockNoWait()
@@ -357,7 +359,7 @@ public class LockObject
     }
   }
   
-  public synchronized void leaveReadLock()
+  public synchronized boolean leaveReadLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     if (lockPool == null)
@@ -368,13 +370,14 @@ public class LockObject
     if (obtainedRead > 1)
     {
       obtainedRead--;
-      return;
+      return false;
     }
     
     clearGlobalReadLock();
 
     obtainedRead--;
     notifyAll();
+    return true;
   }
 
   protected void clearGlobalReadLockNoWait()
