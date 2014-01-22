@@ -75,20 +75,42 @@ public class LockGate
     {
       threadRequests.add(threadID);
     }
-    
-    // Now, wait until we are #1
-    while (true)
+    try
     {
-      synchronized (this)
+      // Now, wait until we are #1
+      while (true)
       {
-        if (lockPool == null)
-          throw new ExpiredObjectException("Invalid");
+        synchronized (this)
+        {
+          if (lockPool == null)
+            throw new ExpiredObjectException("Invalid");
 
-        if (threadRequests.get(0).equals(threadID))
-          return;
-        
-        wait();
+          if (threadRequests.get(0).equals(threadID))
+            return;
+          
+          wait();
+        }
       }
+    }
+    catch (InterruptedException e)
+    {
+      threadRequests.remove(threadID);
+      throw e;
+    }
+    catch (ExpiredObjectException e)
+    {
+      threadRequests.remove(threadID);
+      throw e;
+    }
+    catch (Error e)
+    {
+      threadRequests.remove(threadID);
+      throw e;
+    }
+    catch (RuntimeException e)
+    {
+      threadRequests.remove(threadID);
+      throw e;
     }
   }
   
