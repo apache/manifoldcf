@@ -32,9 +32,9 @@ public class LockObject
   protected final Object lockKey;
 
   private LockPool lockPool;
-  private boolean obtainedWrite = false;  // Set to true if this object already owns the permission to exclusively write
-  private int obtainedRead = 0;           // Set to a count if this object already owns the permission to read
-  private int obtainedNonExWrite = 0;     // Set to a count if this object already owns the permission to non-exclusively write
+  private volatile boolean obtainedWrite = false;  // Set to true if this object already owns the permission to exclusively write
+  private volatile int obtainedRead = 0;           // Set to a count if this object already owns the permission to read
+  private volatile int obtainedNonExWrite = 0;     // Set to a count if this object already owns the permission to non-exclusively write
 
   protected static final String LOCKEDANOTHERTHREAD = "Locked by another thread in this JVM";
   protected static final String LOCKEDANOTHERJVM = "Locked by another JVM";
@@ -54,36 +54,33 @@ public class LockObject
   /** This method WILL NOT BE CALLED UNLESS we are actually committing a write lock for the
   * first time for a given thread.
   */
-  public void enterWriteLock()
+  public synchronized void enterWriteLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
+    if (lockPool == null)
+      throw new ExpiredObjectException("Invalid");
+
     while (true)
     {
+      if (lockPool == null)
+        throw new ExpiredObjectException("Invalid");
+
       try
       {
-        synchronized (this)
-        {
-          if (lockPool == null)
-            throw new ExpiredObjectException("Invalid");
-
-          while (true)
-          {
-            try
-            {
-              enterWriteLockNoWait();
-              return;
-            }
-            catch (LocalLockException le)
-            {
-              wait();
-            }
-          }
-        }
+        // Does another thread in this JVM have the writelock?
+        if (obtainedWrite)
+          throw new LocalLockException(LOCKEDANOTHERTHREAD);
+        // Got the write token!
+        if (obtainedRead > 0 || obtainedNonExWrite > 0)
+          throw new LocalLockException(LOCKEDANOTHERTHREAD);
+        // Attempt to obtain a global write lock
+        obtainGlobalWriteLock();
+        obtainedWrite = true;
+        return;
       }
-      catch (LockException le2)
+      catch (LocalLockException le)
       {
-        // Cross JVM lock; sleep!
-        ManifoldCF.sleep(10);
+        wait();
       }
     }
   }
@@ -117,94 +114,100 @@ public class LockObject
   {
   }
   
-
-  public void leaveWriteLock()
-    throws ManifoldCFException, InterruptedException, ExpiredObjectException
+  protected void obtainGlobalWriteLock()
+    throws ManifoldCFException, InterruptedException
   {
     while (true)
     {
       try
       {
-        synchronized (this)
-        {
-          if (lockPool == null)
-            throw new ExpiredObjectException("Invalid");
-
-          if (obtainedWrite == false)
-            throw new RuntimeException("JVM failure: Don't hold lock for object "+this.toString());
-          obtainedWrite = false;
-          try
-          {
-            clearGlobalWriteLock();
-          }
-          catch (LockException le)
-          {
-            obtainedWrite = true;
-            throw le;
-          }
-          catch (Error e)
-          {
-            obtainedWrite = true;
-            throw e;
-          }
-          catch (RuntimeException e)
-          {
-            obtainedWrite = true;
-            throw e;
-          }
-
-          // Lock is free, so release this object from the pool
-          lockPool.releaseObject(lockKey,this);
-
-          notifyAll();
-          return;
-        }
+        obtainGlobalWriteLockNoWait();
+        return;
       }
-      catch (LockException le)
+      catch (LockException e)
       {
-        ManifoldCF.sleep(10);
-        // Loop around
+        // Cross JVM lock; sleep!
+        ManifoldCF.sleep(10L);
       }
     }
-
   }
 
-  protected void clearGlobalWriteLock()
+  public synchronized void leaveWriteLock()
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
+  {
+    if (lockPool == null)
+      throw new ExpiredObjectException("Invalid");
+
+    if (obtainedWrite == false)
+      throw new RuntimeException("JVM failure: Don't hold lock for object "+this.toString());
+    obtainedWrite = false;
+    try
+    {
+      clearGlobalWriteLock();
+    }
+    catch (Error e)
+    {
+      obtainedWrite = true;
+      throw e;
+    }
+    catch (RuntimeException e)
+    {
+      obtainedWrite = true;
+      throw e;
+    }
+
+    notifyAll();
+  }
+
+  protected void clearGlobalWriteLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
   }
   
-  public void enterNonExWriteLock()
-    throws ManifoldCFException, InterruptedException, ExpiredObjectException
+  protected void clearGlobalWriteLock()
+    throws ManifoldCFException, InterruptedException
   {
     while (true)
     {
       try
       {
-        synchronized (this)
-        {
-          if (lockPool == null)
-            throw new ExpiredObjectException("Invalid");
-
-          // System.out.println("Entering write lock for resource "+lockFileName);
-          while (true)
-          {
-            try
-            {
-              enterNonExWriteLockNoWait();
-              return;
-            }
-            catch (LocalLockException le)
-            {
-              wait();
-            }
-          }
-        }
+        clearGlobalWriteLockNoWait();
+        return;
       }
-      catch (LockException le2)
+      catch (LockException e)
       {
-        // Cross JVM lock; sleep!
-        ManifoldCF.sleep(10);
+        ManifoldCF.sleep(10L);
+      }
+    }
+  }
+
+  public synchronized void enterNonExWriteLock()
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
+  {
+    // System.out.println("Entering write lock for resource "+lockFileName);
+    while (true)
+    {
+      if (lockPool == null)
+        throw new ExpiredObjectException("Invalid");
+
+      try
+      {          
+        // Does another thread in this JVM have the lock?
+        if (obtainedWrite || obtainedRead > 0)
+          throw new LocalLockException(LOCKEDANOTHERTHREAD);
+        // We've got the local non-ex write token
+        if (obtainedNonExWrite > 0)
+        {
+          obtainedNonExWrite++;
+          return;
+        }
+        obtainGlobalNonExWriteLock();
+        obtainedNonExWrite++;
+        return;
+      }
+      catch (LocalLockException le)
+      {
+        wait();
       }
     }
   }
@@ -240,102 +243,100 @@ public class LockObject
   {
   }
   
-
-  public void leaveNonExWriteLock()
-    throws ManifoldCFException, InterruptedException, ExpiredObjectException
+  protected void obtainGlobalNonExWriteLock()
+    throws ManifoldCFException, InterruptedException
   {
-    // System.out.println("Releasing non-ex-write lock for resource "+lockFileName.toString());
     while (true)
     {
       try
       {
-        synchronized (this)
-        {
-          if (lockPool == null)
-            throw new ExpiredObjectException("Invalid");
-
-          if (obtainedNonExWrite == 0)
-            throw new RuntimeException("JVM error: Don't hold lock for object "+this.toString());
-          obtainedNonExWrite--;
-          if (obtainedNonExWrite > 0)
-            return;
-
-          try
-          {
-            clearGlobalNonExWriteLock();
-          }
-          catch (LockException le)
-          {
-            obtainedNonExWrite++;
-            throw le;
-          }
-          catch (Error e)
-          {
-            obtainedNonExWrite++;
-            throw e;
-          }
-          catch (RuntimeException e)
-          {
-            obtainedNonExWrite++;
-            throw e;
-          }
-
-          // Lock is free, so release this object from the pool
-          lockPool.releaseObject(lockKey,this);
-
-          notifyAll();
-          break;
-        }
+        obtainGlobalNonExWriteLockNoWait();
+        return;
       }
-      catch (LockException le)
+      catch (LockException e)
       {
-        ManifoldCF.sleep(10);
-        // Loop around
+        // Cross JVM lock; sleep!
+        ManifoldCF.sleep(10L);
       }
     }
-    // System.out.println("Non-ex Write lock released for resource "+lockFileName.toString());
   }
 
-  protected void clearGlobalNonExWriteLock()
+  public synchronized void leaveNonExWriteLock()
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
+  {
+    if (lockPool == null)
+      throw new ExpiredObjectException("Invalid");
+
+    if (obtainedNonExWrite == 0)
+      throw new RuntimeException("JVM error: Don't hold lock for object "+this.toString());
+    obtainedNonExWrite--;
+    if (obtainedNonExWrite > 0)
+      return;
+
+    try
+    {
+      clearGlobalNonExWriteLock();
+    }
+    catch (Error e)
+    {
+      obtainedNonExWrite++;
+      throw e;
+    }
+    catch (RuntimeException e)
+    {
+      obtainedNonExWrite++;
+      throw e;
+    }
+
+    notifyAll();
+  }
+
+  protected void clearGlobalNonExWriteLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
   }
   
-
-  public void enterReadLock()
-    throws ManifoldCFException, InterruptedException, ExpiredObjectException
+  protected void clearGlobalNonExWriteLock()
+    throws ManifoldCFException, InterruptedException
   {
-    // if (lockFileName != null)
-    //      System.out.println("Entering read lock for resource "+lockFileName.toString()+" "+toString());
     while (true)
     {
       try
       {
-        synchronized (this)
-        {
-          if (lockPool == null)
-            throw new ExpiredObjectException("Invalid");
-
-          while (true)
-          {
-            try
-            {
-              enterReadLockNoWait();
-              // if (lockFileName != null)
-              //      System.out.println("Obtained read permission for resource "+lockFileName.toString());
-              return;
-            }
-            catch (LocalLockException le)
-            {
-              wait();
-            }
-          }
-        }
+        clearGlobalNonExWriteLockNoWait();
+        return;
       }
-      catch (LockException le)
+      catch (LockException e)
       {
-        ManifoldCF.sleep(10);
-        // Loop around
+        ManifoldCF.sleep(10L);
+      }
+    }
+  }
+
+  public synchronized void enterReadLock()
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
+  {
+    while (true)
+    {
+      if (lockPool == null)
+        throw new ExpiredObjectException("Invalid");
+      try
+      {
+        if (obtainedWrite || obtainedNonExWrite > 0)
+          throw new LocalLockException(LOCKEDANOTHERTHREAD);
+        if (obtainedRead > 0)
+        {
+          obtainedRead++;
+          return;
+        }
+        // Got the read token locally!
+        obtainGlobalReadLock();
+        obtainedRead = 1;
+        return;
+      }
+      catch (LocalLockException le)
+      {
+        wait();
       }
     }
   }
@@ -355,7 +356,6 @@ public class LockObject
     }
     // Got the read token locally!
     obtainGlobalReadLockNoWait();
-
     obtainedRead = 1;
   }
 
@@ -364,64 +364,73 @@ public class LockObject
   {
   }
   
-
-  public void leaveReadLock()
-    throws ManifoldCFException, InterruptedException, ExpiredObjectException
+  protected void obtainGlobalReadLock()
+    throws ManifoldCFException, InterruptedException
   {
     while (true)
     {
       try
       {
-        synchronized (this)
-        {
-          if (lockPool == null)
-            throw new ExpiredObjectException("Invalid");
-
-          if (obtainedRead == 0)
-            throw new RuntimeException("JVM error: Don't hold lock for object "+this.toString());
-          obtainedRead--;
-          if (obtainedRead > 0)
-          {
-            return;
-          }
-          try
-          {
-            clearGlobalReadLock();
-          }
-          catch (LockException le)
-          {
-            obtainedRead++;
-            throw le;
-          }
-          catch (Error e)
-          {
-            obtainedRead++;
-            throw e;
-          }
-          catch (RuntimeException e)
-          {
-            obtainedRead++;
-            throw e;
-          }
-
-          // Lock is free, so release this object from the pool
-          lockPool.releaseObject(lockKey,this);
-
-          notifyAll();
-          return;
-        }
+        obtainGlobalReadLockNoWait();
+        return;
       }
-      catch (LockException le)
+      catch (LockException e)
       {
-        ManifoldCF.sleep(10);
-        // Loop around
+        // Cross JVM lock; sleep!
+        ManifoldCF.sleep(10L);
       }
     }
   }
+  
+  public synchronized void leaveReadLock()
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
+  {
+    if (lockPool == null)
+      throw new ExpiredObjectException("Invalid");
 
-  protected void clearGlobalReadLock()
+    if (obtainedRead == 0)
+      throw new RuntimeException("JVM error: Don't hold lock for object "+this.toString());
+    obtainedRead--;
+    if (obtainedRead > 0)
+      return;
+    try
+    {
+      clearGlobalReadLock();
+    }
+    catch (Error e)
+    {
+      obtainedRead++;
+      throw e;
+    }
+    catch (RuntimeException e)
+    {
+      obtainedRead++;
+      throw e;
+    }
+
+    notifyAll();
+  }
+
+  protected void clearGlobalReadLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
+  }
+  
+  protected void clearGlobalReadLock()
+    throws ManifoldCFException, InterruptedException
+  {
+    while (true)
+    {
+      try
+      {
+        clearGlobalReadLockNoWait();
+        return;
+      }
+      catch (LockException e)
+      {
+        ManifoldCF.sleep(10L);
+      }
+    }
   }
   
 }

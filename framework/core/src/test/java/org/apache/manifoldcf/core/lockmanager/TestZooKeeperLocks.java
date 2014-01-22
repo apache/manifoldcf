@@ -117,12 +117,12 @@ public class TestZooKeeperLocks extends ZooKeeperBase
     
   }
   
-  protected static void enterReadLock(LockObject lo)
+  protected static void enterReadLock(Long threadID, LockGate lo)
     throws Exception
   {
     try
     {
-      lo.enterReadLock();
+      lo.enterReadLock(threadID);
     }
     catch (ExpiredObjectException e)
     {
@@ -130,7 +130,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
     }
   }
   
-  protected static void leaveReadLock(LockObject lo)
+  protected static void leaveReadLock(LockGate lo)
     throws Exception
   {
     try
@@ -143,12 +143,12 @@ public class TestZooKeeperLocks extends ZooKeeperBase
     }
   }
 
-  protected static void enterWriteLock(LockObject lo)
+  protected static void enterWriteLock(Long threadID, LockGate lo)
     throws Exception
   {
     try
     {
-      lo.enterWriteLock();
+      lo.enterWriteLock(threadID);
     }
     catch (ExpiredObjectException e)
     {
@@ -156,7 +156,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
     }
   }
   
-  protected static void leaveWriteLock(LockObject lo)
+  protected static void leaveWriteLock(LockGate lo)
     throws Exception
   {
     try
@@ -175,7 +175,8 @@ public class TestZooKeeperLocks extends ZooKeeperBase
     protected final LockObjectFactory factory;
     protected final Object lockKey;
     protected final AtomicInteger ai;
-    
+    protected final Long threadID;
+
     protected Throwable exception = null;
     
     public ReaderThread(LockObjectFactory factory, Object lockKey, AtomicInteger ai)
@@ -184,6 +185,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
       this.factory = factory;
       this.lockKey = lockKey;
       this.ai = ai;
+      this.threadID = Thread.currentThread().getId();
     }
     
     public void run()
@@ -193,13 +195,13 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         // Create a new lock pool since that is the best way to insure real
         // zookeeper action.
         LockPool lp = new LockPool(factory);
-        LockObject lo;
+        LockGate lo;
         // First test: count all reader threads inside read lock.
         // This guarantees that read locks are non-exclusive.
         // Enter read lock
         System.out.println("Entering read lock");
         lo = lp.getObject(lockKey);
-        enterReadLock(lo);
+        enterReadLock(threadID,lo);
         try
         {
           System.out.println(" Read lock entered!");
@@ -223,7 +225,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         {
           System.out.println("Waiting for all write threads to succeed...");
           lo = lp.getObject(lockKey);
-          enterReadLock(lo);
+          enterReadLock(threadID,lo);
           try
           {
             // The writer thread will increment the counter twice for every thread, both times within the lock.
@@ -263,7 +265,8 @@ public class TestZooKeeperLocks extends ZooKeeperBase
     protected final LockObjectFactory factory;
     protected final Object lockKey;
     protected final AtomicInteger ai;
-
+    protected final Long threadID;
+    
     protected Throwable exception = null;
     
     public WriterThread(LockObjectFactory factory, Object lockKey, AtomicInteger ai)
@@ -272,6 +275,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
       this.factory = factory;
       this.lockKey = lockKey;
       this.ai = ai;
+      this.threadID = Thread.currentThread().getId();
     }
     
     public void run()
@@ -282,12 +286,12 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         // zookeeper action.
         // LockPool is a dummy
         LockPool lp = new LockPool(factory);
-        LockObject lo;
+        LockGate lo;
         // Take write locks but free them if read is what's active
         while (true)
         {
           lo = lp.getObject(lockKey);
-          enterWriteLock(lo);
+          enterWriteLock(threadID,lo);
           System.out.println("Made it into write lock");
           try
           {
@@ -306,7 +310,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         
         // Get write lock, increment twice, and leave write lock
         lo = lp.getObject(lockKey);
-        enterWriteLock(lo);
+        enterWriteLock(threadID,lo);
         try
         {
           if ((ai.get() - readerThreadCount) % 2 == 1)
