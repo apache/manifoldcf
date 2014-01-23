@@ -3,10 +3,11 @@ $Id$
 
 ======================= 1.6-dev =====================
 
-CONNECTORS-866: Fix lock-clean scripts.
-(Karl Wright)
 
 ======================= Release 1.5 =====================
+
+CONNECTORS-866: Fix lock-clean scripts.
+(Karl Wright)
 
 CONNECTORS-864: Alfresco only provides 100 search results using CMIS connector with Apache ManifoldCF
 (Piergiorgio Lucidi)
