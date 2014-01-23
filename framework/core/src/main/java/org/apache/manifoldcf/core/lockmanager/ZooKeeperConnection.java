@@ -282,6 +282,21 @@ public class ZooKeeperConnection
     }
   }
   
+  /** Obtain a write lock, with wait.
+  *@param lockPath is the lock node path.
+  */
+  public void obtainWriteLock(String lockPath)
+    throws ManifoldCFException, InterruptedException
+  {
+    // MHL to do this the proper ZooKeeper way
+    while (true)
+    {
+      if (obtainWriteLockNoWait(lockPath))
+        return;
+      ManifoldCF.sleep(10L);
+    }
+  }
+
   /** Obtain a non-ex-write lock, with no wait.
   *@param lockPath is the lock node path.
   *@return true if the lock was obtained, false otherwise.
@@ -325,6 +340,21 @@ public class ZooKeeperConnection
     }
   }
 
+  /** Obtain a non-ex-write lock, with wait.
+  *@param lockPath is the lock node path.
+  */
+  public void obtainNonExWriteLock(String lockPath)
+    throws ManifoldCFException, InterruptedException
+  {
+    // MHL to do this the proper ZooKeeper way
+    while (true)
+    {
+      if (obtainNonExWriteLockNoWait(lockPath))
+        return;
+      ManifoldCF.sleep(10L);
+    }
+  }
+
   /** Obtain a read lock, with no wait.
   *@param lockPath is the lock node path.
   *@return true if the lock was obtained, false otherwise.
@@ -365,6 +395,21 @@ public class ZooKeeperConnection
     catch (KeeperException e)
     {
       throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Obtain a read lock, with wait.
+  *@param lockPath is the lock node path.
+  */
+  public void obtainReadLock(String lockPath)
+    throws ManifoldCFException, InterruptedException
+  {
+    // MHL to do this the proper ZooKeeper way
+    while (true)
+    {
+      if (obtainReadLockNoWait(lockPath))
+        return;
+      ManifoldCF.sleep(10L);
     }
   }
   
