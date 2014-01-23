@@ -17,10 +17,8 @@ rem limitations under the License.
 rem check that JAVA_HOME is set, and that the current directory is correct
 if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
 if not exist ".\properties.xml" goto nolcfhome
-rem set MCF_HOME
-set MCF_HOME=%CD%
 rem invoke the LockClean command
-cmd /c "processes\executecommand.bat org.apache.manifoldcf.core.LockClean"
+cmd /c "executecommand.bat org.apache.manifoldcf.core.LockClean"
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.
