@@ -287,14 +287,22 @@ public class TestZooKeeperLocks extends ZooKeeperBase
         // LockPool is a dummy
         LockPool lp = new LockPool(factory);
         LockGate lo;
-        // Take write locks but free them if read is what's active
+        // The reader threads require ALL of the readers to get into the protected area.  If
+        // we try to write before that happens, ordering requirements produce a deadlock.  So wait.
+        while (ai.get() < readerThreadCount)
+        {
+          Thread.sleep(100L);
+        }
+        
+        /*
+        // Take write locks but free them immediately if read is what's active
         while (true)
         {
           lo = lp.getObject(lockKey);
           enterWriteLock(threadID,lo);
-          System.out.println("Made it into write lock");
           try
           {
+            System.out.println("Made it into read-time write lock");
             // Check if we made it in during read cycle... that would be bad.
             if (ai.get() > 0 && ai.get() < readerThreadCount)
               throw new Exception("Was able to write even when readers were active");
@@ -303,12 +311,15 @@ public class TestZooKeeperLocks extends ZooKeeperBase
           }
           finally
           {
+            System.out.println("Leaving read-time write lock");
             leaveWriteLock(lo);
+            System.out.println("Left read-time write lock");
           }
-          Thread.sleep(100L);
+          Thread.sleep(1000L);
         }
+        */
         
-        // Get write lock, increment twice, and leave write lock
+        // Get write lock, increment twice, and leave write lock.  Meanwhile, reader threads will be trying to gain access.
         lo = lp.getObject(lockKey);
         enterWriteLock(threadID,lo);
         try

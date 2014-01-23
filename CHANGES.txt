@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-867: Make locking system more responsive to UI when
+system under load.  (This is not a complete fix for the issue, but rather
+a pair of partial fixes.)
+(Karl Wright)
 
 ======================= Release 1.5 =====================
 
