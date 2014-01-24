@@ -257,13 +257,7 @@
         <p>A canned version of all configuration files are included as resources.  If you want to change the configuration in any way, you will need to rebuild with Maven accordingly.</p>
         <section>
           <title>Preparation</title>
-          <p>Before you begin, you will need to install Maven (if you haven't already) and prepare by downloading the necessary materials to support the LGPL connector builds, just as you would for the Ant
-              build described in the previous section.  Then, you need to push various ManifoldCF-required jars into your local Maven repository.  To do that, please do the following:</p>
-          <ol>
-              <li>Populate your <em>lib</em> directory with the jars necessary.  You can do this either by downloading and unpacking an appropriate lib distribution, or by executing the appropriate Ant commands.
-                  The command <em>ant download-xerces download-xmlsec download-opensaml</em> should be sufficient.</li>
-              <li>Run the script <em>mvn-bootstrap[.sh|.bat]</em>. This script takes no arguments.</li>
-          </ol>
+          <p>No special preparation is required, other than to have access to the Apache Maven repository.</p>
         </section>
         <section>
           <title>How to build</title>

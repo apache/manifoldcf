@@ -3960,7 +3960,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-opensaml">
         <!-- http://maven.alfresco.com/nexus/content/groups/public/opensaml/opensaml/1.1b/opensaml-1.1b.jar -->
         <!-- This dependency is for alfresco, so we use the jar alfresco has -->
-        <get src="http://mirrors.ibiblio.org/maven2/xfire/opensaml/1.0.1/opensaml-1.0.1.jar" dest="lib/opensaml.jar"/>
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/opensaml"/>
+            <param name="artifact-version" value="1.1"/>
+            <param name="artifact-name" value="opensaml"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
     <target name="download-osgi">
@@ -4056,7 +4062,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-xmlsec">
         <!-- Alfresco dependency, so resolve it from alfresco svn -->
-        <get src="http://repo1.maven.org/maven2/org/apache/santuario/xmlsec/1.4.1/xmlsec-1.4.1.jar" dest="lib/xmlsec.jar"/>
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/santuario"/>
+            <param name="artifact-version" value="1.4.0"/>
+            <param name="artifact-name" value="xmlsec"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
     <target name="download-xml-apis">
