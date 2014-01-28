@@ -95,7 +95,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   private final static String ACTIVITY_FETCH = "fetch document";
 
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
   // Livelink does not have "deny" permissions, and there is no such thing as a document with no tokens, so it is safe to not have a local "deny" token.
   // However, people feel that a suspenders-and-belt approach is called for, so this restriction has been added.
@@ -118,7 +118,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected final static String GENERAL_OWNER = "general_owner";
   protected final static String GENERAL_CREATOR = "general_creator";
   protected final static String GENERAL_MODIFIER = "general_modifier";
-
+  protected final static String GENERAL_PARENTID = "general_parentid";
+  
   // Signal that we have set up connection parameters properly
   private boolean hasSessionParameters = false;
   // Signal that we have set up a connection properly
@@ -702,6 +703,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         connectionManager = null;
       }
     }
+  }
+  
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return hasConnected;
   }
 
   /** Close the connection.  Call this before discarding the repository connector.
@@ -1777,6 +1788,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
     if (serverPassword == null)
       serverPassword = "";
+    else
+      serverPassword = out.mapPasswordToKey(serverPassword);
     String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
     if (serverHTTPCgiPath == null)
       serverHTTPCgiPath = "/livelink/livelink.exe";
@@ -1789,6 +1802,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
     if (serverHTTPNTLMPassword == null)
       serverHTTPNTLMPassword = "";
+    else
+      serverHTTPNTLMPassword = out.mapPasswordToKey(serverHTTPNTLMPassword);
     String serverHTTPSKeystore = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
     IKeystoreManager localServerHTTPSKeystore;
     if (serverHTTPSKeystore == null)
@@ -1812,6 +1827,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String ingestNtlmPassword = parameters.getObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword);
     if (ingestNtlmPassword == null)
       ingestNtlmPassword = "";
+    else
+      ingestNtlmPassword = out.mapPasswordToKey(ingestNtlmPassword);
     String ingestNtlmDomain = parameters.getParameter(LiveLinkParameters.ingestNtlmDomain);
     if (ingestNtlmDomain == null)
       ingestNtlmDomain = "";
@@ -2161,7 +2178,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       parameters.setParameter(LiveLinkParameters.serverUsername,serverUserName);
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,serverPassword);
+      parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
     String serverHTTPCgiPath = variableContext.getParameter("serverhttpcgipath");
     if (serverHTTPCgiPath != null)
       parameters.setParameter(LiveLinkParameters.serverHTTPCgiPath,serverHTTPCgiPath);
@@ -2173,7 +2190,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       parameters.setParameter(LiveLinkParameters.serverHTTPNTLMUsername,serverHTTPNTLMUserName);
     String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
     if (serverHTTPNTLMPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,serverHTTPNTLMPassword);
+      parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
     String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
     if (serverHTTPSKeystoreValue != null)
       parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
@@ -2251,7 +2268,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       parameters.setParameter(LiveLinkParameters.ingestNtlmUsername,ingestNtlmUsername);
     String ingestNtlmPassword = variableContext.getParameter("ingestntlmpassword");
     if (ingestNtlmPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword,ingestNtlmPassword);
+      parameters.setObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword,variableContext.mapKeyToPassword(ingestNtlmPassword));
     String ingestKeystoreValue = variableContext.getParameter("ingestkeystoredata");
     if (ingestKeystoreValue != null)
       parameters.setParameter(LiveLinkParameters.ingestKeystore,ingestKeystoreValue);
@@ -4269,6 +4286,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             String fileName = versInfo.getFileName();
             Date creationDate = objInfo.getCreationDate();
             Date modifyDate = versInfo.getModifyDate();
+            Integer parentID = objInfo.getParentId();
             RepositoryDocument rd = new RepositoryDocument();
 
             
@@ -4288,6 +4306,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               rd.addField(GENERAL_CREATIONDATE_FIELD,creationDate.toString());
             if (modifyDate != null)
               rd.addField(GENERAL_MODIFYDATE_FIELD,modifyDate.toString());
+            if (parentID != null)
+              rd.addField(GENERAL_PARENTID,parentID.toString());
             UserInformation owner = llc.getUserInformation(objInfo.getOwnerId().intValue());
             UserInformation creator = llc.getUserInformation(objInfo.getCreatorId().intValue());
             UserInformation modifier = llc.getUserInformation(versInfo.getOwnerId().intValue());
@@ -5615,7 +5635,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       LLValue elem = getVersionValue();
       if (elem == null)
         return null;
-      return new Long(elem.toInteger("FILEDATASIZE"));
+      return new Long(elem.toLong("FILEDATASIZE"));
     }
 
     /** Get file name.

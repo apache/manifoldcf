@@ -4,6 +4,9 @@ $Id$
 
 ======================= Release 1.5 =====================
 
+CONNECTORS-871: Fix versions caused by the commit for CONNECTORS-833.
+(David Morana, Karl Wright)
+
 CONNECTORS-866: Fix lock-clean scripts.
 (Karl Wright)
 
