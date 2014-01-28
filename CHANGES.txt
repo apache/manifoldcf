@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-870: Avoid line break for login.jsp description
+when locale is Japanese.
+(Shinichiro Abe)
+
 CONNECTORS-868: Remove mvn-bootstrap scripts and all mention of them.
 Direct dependencies on missing artifacts are now possible.
 (Muhammed Olgun)
