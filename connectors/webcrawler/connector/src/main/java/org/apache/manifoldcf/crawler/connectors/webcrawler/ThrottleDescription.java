@@ -91,7 +91,7 @@ public class ThrottleDescription implements IThrottleSpec
               {
                 double kbPerSecond = new Double(value).doubleValue();
                 if (kbPerSecond > 0)
-                  minMillisecondsPerByte = new Double(((double)1.0)/(double)kbPerSecond);
+                  minMillisecondsPerByte = new Double(1000.0/(double)kbPerSecond);
               }
               catch (NumberFormatException e)
               {
@@ -200,6 +200,7 @@ public class ThrottleDescription implements IThrottleSpec
         }
       }
     }
+    System.out.println("Minimum milliseconds per byte is "+minMilliseconds);
     return minMilliseconds;
   }
 

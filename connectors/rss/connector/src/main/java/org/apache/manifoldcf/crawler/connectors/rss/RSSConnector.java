@@ -193,7 +193,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         {
           int maxKBytesPerSecondPerServer = Integer.parseInt(x);
           if (maxKBytesPerSecondPerServer > 0)
-            minimumMillisecondsPerBytePerServer = ((double)1.0)/(double)maxKBytesPerSecondPerServer;
+            minimumMillisecondsPerBytePerServer = 1000.0/(double)maxKBytesPerSecondPerServer;
         }
         catch (NumberFormatException e)
         {
