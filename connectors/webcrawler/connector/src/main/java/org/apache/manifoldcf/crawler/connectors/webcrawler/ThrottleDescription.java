@@ -200,7 +200,6 @@ public class ThrottleDescription implements IThrottleSpec
         }
       }
     }
-    System.out.println("Minimum milliseconds per byte is "+minMilliseconds);
     return minMilliseconds;
   }
 
