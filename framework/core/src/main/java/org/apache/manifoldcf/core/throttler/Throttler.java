@@ -453,9 +453,33 @@ public class Throttler
           if (bin != null)
           {
             // Reserve a slot
-            int result = bin.waitConnectionAvailable(poolCount);
-            if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE ||
-              (currentRecommendation != IConnectionThrottler.CONNECTION_FROM_NOWHERE && currentRecommendation != result))
+            int result;
+            try
+            {
+              result = bin.waitConnectionAvailable(poolCount);
+            }
+            catch (Throwable e)
+            {
+              while (i > 0)
+              {
+                i--;
+                binName = binNames[i];
+                synchronized (connectionBins)
+                {
+                  bin = connectionBins.get(binName);
+                }
+                if (bin != null)
+                  bin.undoReservation(currentRecommendation, poolCount);
+              }
+              if (e instanceof InterruptedException)
+                throw (InterruptedException)e;
+              if (e instanceof Error)
+                throw (Error)e;
+              if (e instanceof RuntimeException)
+                throw (RuntimeException)e;
+              throw new RuntimeException("Unexpected exception of type '"+e.getClass().getName()+"': "+e.getMessage(),e);
+            }
+            if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
             {
               // Release previous reservations, and either return, or retry
               while (i > 0)
@@ -469,12 +493,30 @@ public class Throttler
                 if (bin != null)
                   bin.undoReservation(currentRecommendation, poolCount);
               }
-              if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
-                return result;
+              return result;
+            }
+
+            if (currentRecommendation != IConnectionThrottler.CONNECTION_FROM_NOWHERE && currentRecommendation != result)
+            {
+              // Release all previous reservations, including this one, and either return, or retry
+              bin.undoReservation(result, poolCount);
+              while (i > 0)
+              {
+                i--;
+                binName = binNames[i];
+                synchronized (connectionBins)
+                {
+                  bin = connectionBins.get(binName);
+                }
+                if (bin != null)
+                  bin.undoReservation(currentRecommendation, poolCount);
+              }
+
               // Break out of the outer loop so we can retry
               retry = true;
               break;
             }
+
             if (currentRecommendation == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
               currentRecommendation = result;
           }
