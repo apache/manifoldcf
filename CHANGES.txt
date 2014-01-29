@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 1.5 =====================
 
+CONNECTORS-873: SolrCloud now depends on noggit; include this in the
+build and dependencies.
+(Alessandro Benedetti, Karl Wright)
+
 CONNECTORS-871: Fix versions caused by the commit for CONNECTORS-833.
 (David Morana, Karl Wright)
 

@@ -4274,8 +4274,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/noggit"/>
+            <param name="artifact-version" value="0.5"/>
+            <param name="artifact-name" value="noggit"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
-    
+
     <target name="download-zookeeper">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
