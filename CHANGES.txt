@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 1.5 =====================
 
+CONNECTORS-874: Uncaught runtime exception when SolrJ can't talk
+to zookeeper.
+(Karl Wright)
+
 CONNECTORS-872: Throttling hang for web connector, as well as web
 connector not obeying rate throttling.
 (Erlend Garåsen, Karl Wright)
