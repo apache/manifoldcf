@@ -290,20 +290,7 @@ public class HttpPoster
       try
       {
         t.start();
-        t.join();
-
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof SolrServerException)
-            throw (SolrServerException)thr;
-          if (thr instanceof IOException)
-            throw (IOException)thr;
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         return;
       }
       catch (InterruptedException e)
@@ -322,11 +309,37 @@ public class HttpPoster
       handleSolrException(e, "commit");
       return;
     }
+    catch (RuntimeException e)
+    {
+      handleRuntimeException(e, "commit");
+      return;
+    }
     catch (IOException ioe)
     {
       handleIOException(ioe, "commit");
       return;
     }
+  }
+  
+  /** Handle a RuntimeException.
+  * Unfortunately, SolrCloud 4.6.x throws RuntimeExceptions whenever ZooKeeper is not happy.
+  * We have to catch these too.  I've logged a ticket: SOLR-5678.
+  */
+  protected static void handleRuntimeException(RuntimeException e, String context)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    Throwable childException = e.getCause();
+    if (childException != null && childException instanceof java.util.concurrent.TimeoutException)
+    {
+      Logging.ingest.warn("SolrJ runtime exception during "+context+": "+childException.getMessage(),childException);
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption(childException.getMessage(),childException,
+        currentTime + interruptionRetryTime,
+        currentTime + 2L * 60L * 60000L,
+        -1,
+        true);
+    }
+    throw e;
   }
   
   /** Handle a SolrServerException.
@@ -508,30 +521,38 @@ public class HttpPoster
       try
       {
         t.start();
-        t.join();
+        t.finishUp();
 
-        // Log the activity, if any, regardless of any exception
-        if (t.getActivityCode() != null)
-          activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
-
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof SolrServerException)
-            throw (SolrServerException)thr;
-          if (thr instanceof IOException)
-            throw (IOException)thr;
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
         return t.getRval();
       }
       catch (InterruptedException e)
       {
         t.interrupt();
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
+      }
+      catch (SolrServerException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (SolrException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (RuntimeException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (IOException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
       }
     }
     catch (SolrServerException e)
@@ -542,6 +563,11 @@ public class HttpPoster
     catch (SolrException e)
     {
       handleSolrException(e, "indexing");
+      return false;
+    }
+    catch (RuntimeException e)
+    {
+      handleRuntimeException(e, "indexing");
       return false;
     }
     catch (IOException ioe)
@@ -567,20 +593,7 @@ public class HttpPoster
       try
       {
         t.start();
-        t.join();
-
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof SolrServerException)
-            throw (SolrServerException)thr;
-          if (thr instanceof IOException)
-            throw (IOException)thr;
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         return;
       }
       catch (InterruptedException e)
@@ -597,6 +610,11 @@ public class HttpPoster
     catch (SolrException e)
     {
       handleSolrException(e, "check");
+      return;
+    }
+    catch (RuntimeException e)
+    {
+      handleRuntimeException(e, "check");
       return;
     }
     catch (IOException ioe)
@@ -622,30 +640,37 @@ public class HttpPoster
       try
       {
         t.start();
-        t.join();
-
-        // Log the activity, if any, regardless of any exception
-        if (t.getActivityCode() != null)
-          activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
-
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof SolrServerException)
-            throw (SolrServerException)thr;
-          if (thr instanceof IOException)
-            throw (IOException)thr;
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         return;
       }
       catch (InterruptedException e)
       {
         t.interrupt();
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
+      }
+      catch (SolrServerException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (SolrException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (RuntimeException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (IOException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
       }
     }
     catch (SolrServerException e)
@@ -656,6 +681,11 @@ public class HttpPoster
     catch (SolrException e)
     {
       handleSolrException(e, "delete");
+      return;
+    }
+    catch (RuntimeException e)
+    {
+      handleRuntimeException(e, "delete");
       return;
     }
     catch (IOException ioe)
@@ -995,9 +1025,25 @@ public class HttpPoster
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws InterruptedException, SolrServerException, IOException
     {
-      return exception;
+      join();
+
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof SolrServerException)
+          throw (SolrServerException)thr;
+        if (thr instanceof IOException)
+          throw (IOException)thr;
+        if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
 
     public Long getActivityStart()
@@ -1110,11 +1156,26 @@ public class HttpPoster
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws InterruptedException, SolrServerException, IOException
     {
-      return exception;
-    }
+      join();
 
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof SolrServerException)
+          throw (SolrServerException)thr;
+        if (thr instanceof IOException)
+          throw (IOException)thr;
+        if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
+    }
     public Long getActivityStart()
     {
       return activityStart;
@@ -1175,10 +1236,27 @@ public class HttpPoster
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws InterruptedException, SolrServerException, IOException
     {
-      return exception;
+      join();
+
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof SolrServerException)
+          throw (SolrServerException)thr;
+        if (thr instanceof IOException)
+          throw (IOException)thr;
+        if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
+
   }
 
 
@@ -1225,10 +1303,27 @@ public class HttpPoster
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws InterruptedException, SolrServerException, IOException
     {
-      return exception;
+      join();
+
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof SolrServerException)
+          throw (SolrServerException)thr;
+        if (thr instanceof IOException)
+          throw (IOException)thr;
+        if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
+
   }
 
   /** Class for importing documents into Solr via SolrJ
