@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-875: Handle ArrayIndexOutOfBounds and NumberFormatException
+from LAPI as Livelink runtime errors.
+(David Morana, Karl Wright)
+
 CONNECTORS-870: Avoid line break for login.jsp description
 when locale is Japanese.
 (Shinichiro Abe)

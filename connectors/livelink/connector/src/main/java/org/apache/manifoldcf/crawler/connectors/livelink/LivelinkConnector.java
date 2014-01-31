@@ -7413,7 +7413,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       e instanceof com.opentext.api.LLNoFieldSpecifiedException ||
       e instanceof com.opentext.api.LLNoValueSpecifiedException ||
       e instanceof com.opentext.api.LLSecurityProviderException ||
-      e instanceof com.opentext.api.LLUnknownFieldException
+      e instanceof com.opentext.api.LLUnknownFieldException ||
+      e instanceof NumberFormatException ||
+      e instanceof ArrayIndexOutOfBoundsException
     )
     {
       String details = llServer.getErrors();
