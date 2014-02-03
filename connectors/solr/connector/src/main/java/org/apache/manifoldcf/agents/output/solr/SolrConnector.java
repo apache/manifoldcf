@@ -853,13 +853,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  }\n"+
 "  if (editconnection.removepath.value != \"\" && editconnection.removepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.RemovePathMustStartWACharacter")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.RemovePathMustStartWithACharacter")+"\");\n"+
 "    editconnection.removepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.statuspath.value != \"\" && editconnection.statuspath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.StatusPathMustStartWACharacter")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.StatusPathMustStartWithACharacter")+"\");\n"+
 "    editconnection.statuspath.focus();\n"+
 "    return false;\n"+
 "  }\n"+

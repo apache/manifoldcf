@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-877: Missing Solr i18n key.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-876: Solr indexing exception reports now include the document URI.
 (David Morana, Karl Wright)
 
