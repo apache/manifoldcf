@@ -211,7 +211,10 @@ public class ConnectionBin
       {
         return CONNECTION_DESTROY;
       }
-      return CONNECTION_WITHINBOUNDS;
+      // Hack: always return CONNECTION_DESTROY, because we don't have a good way of allocating
+      // connections in multiple pools that share the same connection bin.  See CONNECTORS-872.
+      //return CONNECTION_WITHINBOUNDS;
+      return CONNECTION_DESTROY;
     }
     return CONNECTION_POOLEMPTY;
   }
