@@ -182,7 +182,7 @@ public class ThrottledFetcher
     if (trustStore != null)
     {
       baseFactory = trustStore.getSecureSocketFactory();
-      trustStoreString = trustStore.getString();
+      trustStoreString = trustStore.getHashString();
     }
     else
     {

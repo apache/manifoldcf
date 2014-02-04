@@ -28,6 +28,13 @@ public interface IKeystoreManager
 {
   public static final String _rcsid = "@(#)$Id: IKeystoreManager.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  /** Get a unique hashstring for this keystore.  The hashcode depends only on the certificates
+  * in the store.
+  *@return the hash string for this keystore.
+  */
+  public String getHashString()
+    throws ManifoldCFException;
+
   /** Grab a list of the aliases in the key store.
   *@return the list, as a string array.
   */
@@ -55,7 +62,8 @@ public interface IKeystoreManager
     throws ManifoldCFException;
 
   /** Convert to a base64 string.
-  *@return the base64-encoded string.
+  *@return the base64-encoded string.  This differs every time it is called, and thus
+  * CANNOT be used for hashing.
   */
   public String getString()
     throws ManifoldCFException;
