@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-882: Solr connector: Keep all metadata fixed.
+(Alessandro Benedetti, Karl Wright)
+
 CONNECTORS-880: Fix handling of output connector errors during
 clean up phase.
 (Florian Schmedding, Karl Wright)

@@ -661,8 +661,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     index = unpackList(nameValues,outputDescription,index,'+');
     ArrayList sts = new ArrayList();
     index = unpackList(sts,outputDescription,index,'+');
-    ArrayList metadataExtraParams = new ArrayList();
-    index = unpackList(metadataExtraParams, outputDescription, index, '+');
+    // extract keep all metadata Flag
+    boolean keepAllMetadata = true;
+    if (index < outputDescription.length())
+    {
+      keepAllMetadata = (outputDescription.charAt(index++) == '+');
+    }
     String[] fixedBuffer = new String[2];
     
     // Do the name/value pairs
@@ -696,13 +700,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       list.add(target);
     }
 
-    // extract keep all metadata Flag
-    boolean keepAllMetadata = true;
-    if (index < outputDescription.length())
-    {
-      keepAllMetadata = (outputDescription.charAt(index++) == '+');
-    }
-    
+
     // Establish a session
     getSession();
 
