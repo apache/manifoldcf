@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-880: Fix handling of output connector errors during
+clean up phase.
+(Florian Schmedding, Karl Wright)
+
 CONNECTORS-878: Come up with a formula for allocating connections
 to pools when a connection bin is used by multiple pools.
 (Karl Wright)

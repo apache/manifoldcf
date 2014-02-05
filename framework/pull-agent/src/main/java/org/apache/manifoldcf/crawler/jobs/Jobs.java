@@ -112,6 +112,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public static final int STATUS_NOTIFYINGOFCOMPLETION = 34;    // Notifying connector of terminating job (either aborted, or finished)
   public static final int STATUS_DELETING = 35;                         // The job is deleting.
   public static final int STATUS_DELETESTARTINGUP = 36;         // The delete is starting up.
+  public static final int STATUS_ABORTINGSHUTTINGDOWN = 37;     // Aborting the cleanup phase.
   
   // These statuses have to do with whether a job has an installed underlying connector or not.
   // There are two reasons to have a special state here: (1) if the behavior of the crawler differs, or (2) if the
@@ -122,13 +123,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   // But, since there is no indication in the jobs table of an uninstalled connector for such jobs, the code which starts
   // jobs up (or otherwise would enter any state that has a corresponding special state) must check to see if the underlying
   // connector exists before deciding what state to put the job into.
-  public static final int STATUS_ACTIVE_UNINSTALLED = 37;               // Active, but repository connector not installed
-  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 38;   // Active and seeding, but repository connector not installed
-  public static final int STATUS_ACTIVE_NOOUTPUT = 39;                  // Active, but output connector not installed
-  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 40;       // Active and seeding, but output connector not installed
-  public static final int STATUS_ACTIVE_NEITHER = 41;                     // Active, but neither repository connector nor output connector installed
-  public static final int STATUS_ACTIVESEEDING_NEITHER = 42;          // Active and seeding, but neither repository connector nor output connector installed
-  public static final int STATUS_DELETING_NOOUTPUT = 43;                // Job is being deleted but there's no output connector installed
+  public static final int STATUS_ACTIVE_UNINSTALLED = 38;               // Active, but repository connector not installed
+  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 39;   // Active and seeding, but repository connector not installed
+  public static final int STATUS_ACTIVE_NOOUTPUT = 40;                  // Active, but output connector not installed
+  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 41;       // Active and seeding, but output connector not installed
+  public static final int STATUS_ACTIVE_NEITHER = 42;                     // Active, but neither repository connector nor output connector installed
+  public static final int STATUS_ACTIVESEEDING_NEITHER = 43;          // Active and seeding, but neither repository connector nor output connector installed
+  public static final int STATUS_DELETING_NOOUTPUT = 44;                // Job is being deleted but there's no output connector installed
 
   // Type field values
   public static final int TYPE_CONTINUOUS = IJobDescription.TYPE_CONTINUOUS;
@@ -226,7 +227,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("z",new Integer(STATUS_PAUSEDWAITSEEDING));
     statusMap.put("y",new Integer(STATUS_ABORTINGFORRESTARTSEEDING));
     statusMap.put("m",new Integer(STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL));
-
+    statusMap.put("q",new Integer(STATUS_ABORTINGSHUTTINGDOWN));
+    
     statusMap.put("H",new Integer(STATUS_ACTIVEWAITING));
     statusMap.put("h",new Integer(STATUS_ACTIVEWAITINGSEEDING));
     statusMap.put("F",new Integer(STATUS_PAUSING));
@@ -2024,11 +2026,15 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     IResultRow row = set.getRow(0);
     int status = stringToStatus(row.getValue(statusField).toString());
     if (status == STATUS_ABORTING || status == STATUS_ABORTINGSEEDING ||
-      status == STATUS_ABORTINGSTARTINGUP || status == STATUS_ABORTINGSTARTINGUPMINIMAL)
+      status == STATUS_ABORTINGSTARTINGUP || status == STATUS_ABORTINGSTARTINGUPMINIMAL ||
+      status == STATUS_ABORTINGSHUTTINGDOWN)
       return false;
     int newStatus;
     switch (status)
     {
+    case STATUS_SHUTTINGDOWN:
+      newStatus = STATUS_ABORTINGSHUTTINGDOWN;
+      break;
     case STATUS_STARTINGUP:
     case STATUS_ABORTINGSTARTINGUPFORRESTART:
       newStatus = STATUS_ABORTINGSTARTINGUP;
@@ -2776,6 +2782,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       return "I";
     case STATUS_RESUMINGSEEDING:
       return "i";
+
+    case STATUS_ABORTINGSHUTTINGDOWN:
+      return "q";
 
     default:
       throw new ManifoldCFException("Bad status value: "+Integer.toString(status));

@@ -7300,6 +7300,7 @@ public class JobManager implements IJobManager
           jobs.statusToString(jobs.STATUS_ABORTING),
           jobs.statusToString(jobs.STATUS_ABORTINGFORRESTART),
           jobs.statusToString(jobs.STATUS_ABORTINGFORRESTARTMINIMAL),
+          jobs.statusToString(jobs.STATUS_ABORTINGSHUTTINGDOWN),
           jobs.statusToString(jobs.STATUS_PAUSING),
           jobs.statusToString(jobs.STATUS_PAUSINGSEEDING),
           jobs.statusToString(jobs.STATUS_ACTIVEWAITING),
@@ -7318,7 +7319,7 @@ public class JobManager implements IJobManager
 
       sb = new StringBuilder("SELECT ");
       list.clear();
-          
+
       sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
         .append(database.buildConjunctionClause(list,new ClauseDescription[]{
           new UnitaryClause(jobQueue.jobIDField,jobID),
@@ -7326,7 +7327,8 @@ public class JobManager implements IJobManager
             jobQueue.statusToString(jobQueue.STATUS_ACTIVE),
             jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY),
             jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN),
-            jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)})}))
+            jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
+            jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)})}))
         .append(" ").append(database.constructOffsetLimitClause(0,1));
 
       IResultSet confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
@@ -7730,6 +7732,7 @@ public class JobManager implements IJobManager
       case Jobs.STATUS_ABORTINGSEEDING:
       case Jobs.STATUS_ABORTINGSTARTINGUP:
       case Jobs.STATUS_ABORTINGSTARTINGUPMINIMAL:
+      case Jobs.STATUS_ABORTINGSHUTTINGDOWN:
         rstatus = JobStatus.JOBSTATUS_ABORTING;
         break;
       case Jobs.STATUS_ABORTINGFORRESTART:
