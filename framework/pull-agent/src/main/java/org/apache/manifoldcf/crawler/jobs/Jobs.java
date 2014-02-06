@@ -55,6 +55,8 @@ import java.util.*;
  * <tr><td>reseedtime</td><td>BIGINT</td><td></td></tr>
  * <tr><td>hopcountmode</td><td>CHAR(1)</td><td></td></tr>
  * <tr><td>processid</td><td>VARCHAR(16)</td><td></td></tr>
+ * <tr><td>failtime</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>failcount</td><td>BIGINT</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -189,7 +191,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public final static String hopcountModeField = "hopcountmode";
   /** Process id field, for keeping track of which process owns transient state */
   public final static String processIDField = "processid";
-  
+  /** When non-null, indicates the time that, when a ServiceInterruption occurs, the attempt will be considered to have actually failed */
+  public static final String failTimeField = "failtime";
+  /** When non-null, indicates the number of retries remaining, after which the attempt will be considered to have actually failed */
+  public static final String failCountField = "failcount";
+
   protected static Map statusMap;
   protected static Map typeMap;
   protected static Map startMap;
@@ -356,6 +362,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         map.put(reseedTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(hopcountModeField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
         map.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
+        map.put(failTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
+        map.put(failCountField,new ColumnDescription("BIGINT",false,true,null,null,false));
         performCreate(map,null);
       }
       else
@@ -371,6 +379,18 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         {
           Map insertMap = new HashMap();
           insertMap.put(maxIntervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+        }
+        if (existing.get(failTimeField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(failTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+        }
+        if (existing.get(failCountField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(failCountField,new ColumnDescription("BIGINT",false,true,null,null,false));
           performAlter(insertMap,null,null,null);
         }
       }
@@ -930,6 +950,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
     map.put(processIDField,null);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
 
     // Starting up or aborting starting up goes back to just being ready
@@ -1097,6 +1119,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(statusField,statusToString(STATUS_NOTIFYINGOFCOMPLETION))});
     map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
     map.put(processIDField,null);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
 
     // Starting up or aborting starting up goes back to just being ready
@@ -1492,6 +1516,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
     map.put(processIDField,null);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
 
   }
