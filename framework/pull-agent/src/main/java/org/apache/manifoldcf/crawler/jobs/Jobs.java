@@ -227,7 +227,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("z",new Integer(STATUS_PAUSEDWAITSEEDING));
     statusMap.put("y",new Integer(STATUS_ABORTINGFORRESTARTSEEDING));
     statusMap.put("m",new Integer(STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL));
-    statusMap.put("q",new Integer(STATUS_ABORTINGSHUTTINGDOWN));
+    statusMap.put("v",new Integer(STATUS_ABORTINGSHUTTINGDOWN));
     
     statusMap.put("H",new Integer(STATUS_ACTIVEWAITING));
     statusMap.put("h",new Integer(STATUS_ACTIVEWAITINGSEEDING));
@@ -2784,7 +2784,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       return "i";
 
     case STATUS_ABORTINGSHUTTINGDOWN:
-      return "q";
+      return "v";
 
     default:
       throw new ManifoldCFException("Bad status value: "+Integer.toString(status));
