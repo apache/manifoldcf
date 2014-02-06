@@ -75,7 +75,7 @@ public class JobNotificationThread extends Thread
           JobNotifyRecord[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity(processID);
           try
           {
-            HashMap connectionNames = new HashMap();
+            Set<OutputAndRepositoryConnection> connectionNames = new HashSet<OutputAndRepositoryConnection>();
             
             int k = 0;
             while (k < jobsNeedingNotification.length)
@@ -89,18 +89,15 @@ public class JobNotificationThread extends Thread
                 String repositoryConnectionName = job.getConnectionName();
                 String outputConnectionName = job.getOutputConnectionName();
                 OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
-                connectionNames.put(c,c);
+                connectionNames.add(c);
               }
             }
             
             // Attempt to notify the specified connections
-            HashMap notifiedConnections = new HashMap();
+            Map<OutputAndRepositoryConnection,Disposition> notifiedConnections = new HashMap<OutputAndRepositoryConnection,Disposition>();
             
-            Iterator iter = connectionNames.keySet().iterator();
-            while (iter.hasNext())
+            for (OutputAndRepositoryConnection connections : connectionNames)
             {
-              OutputAndRepositoryConnection connections = (OutputAndRepositoryConnection)iter.next();
-              
               String outputConnectionName = connections.getOutputConnectionName();
               String repositoryConnectionName = connections.getRepositoryConnectionName();
               
@@ -119,11 +116,11 @@ public class JobNotificationThread extends Thread
                     try
                     {
                       connector.noteJobComplete(activity);
+                      notifiedConnections.put(connections,new Disposition());
                     }
                     catch (ServiceInterruption e)
                     {
-                      Logging.threads.warn("Service interruption notifying connection - retrying: "+e.getMessage(),e);
-                      continue;
+                      notifiedConnections.put(connections,new Disposition(e));
                     }
                     catch (ManifoldCFException e)
                     {
@@ -136,7 +133,6 @@ public class JobNotificationThread extends Thread
                       // Nothing special; report the error and keep going.
                       Logging.threads.error(e.getMessage(),e);
                     }
-                    notifiedConnections.put(connections,connections);
                   }
                   finally
                   {
@@ -160,11 +156,61 @@ public class JobNotificationThread extends Thread
                 String repositoryConnectionName = job.getConnectionName();
                 OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
                 
-                if (notifiedConnections.get(c) != null)
+                Disposition d = notifiedConnections.get(c);
+                if (d != null)
                 {
-                  // When done, put the job into the Inactive state.  Otherwise, the notification will be retried until it succeeds.
-                  jobManager.inactivateJob(jobID);
-                  jsr.noteStarted();
+                  ServiceInterruption e = d.getServiceInterruption();
+                  if (e == null)
+                  {
+                    jobManager.inactivateJob(jobID);
+                    jsr.noteStarted();
+                  }
+                  else
+                  {
+                    if (!e.jobInactiveAbort())
+                    {
+                      Logging.jobs.warn("Notification service interruption reported for job "+
+                        jobID+" output connection '"+outputConnectionName+"': "+
+                        e.getMessage());
+                    }
+
+                    ManifoldCFException abortOnFail;
+                    if (!e.jobInactiveAbort() && e.isAbortOnFail())
+                      abortOnFail = new ManifoldCFException("Failure performing notification"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+                    else
+                      abortOnFail = null;
+
+                    // If either we are going to be requeuing beyond the fail time, OR
+                    // the number of retries available has hit 0, THEN we treat this
+                    // as either an "ignore" or a hard error.
+                    if (!e.jobInactiveAbort() && (jsr.getFailTime() != -1L && jsr.getFailTime() < e.getRetryTime() ||
+                      jsr.getFailRetryCount() == 0))
+                    {
+                      // Treat this as a hard failure.
+                      if (e.isAbortOnFail())
+                      {
+                        // Note the error in the job, and transition to inactive state
+                        if (abortOnFail != null)
+                          Logging.jobs.error(abortOnFail.getMessage(),abortOnFail);
+                        jobManager.notifyAbort(jobID,(abortOnFail==null)?"":"Repeated service interruptions during notification: "+abortOnFail.getMessage()+": ending job");
+                        jsr.noteStarted();
+                      }
+                      else
+                      {
+                        // Not sure this can happen -- but just transition silently to inactive state
+                        jobManager.inactivateJob(jobID);
+                        jsr.noteStarted();
+                      }
+                    }
+                    else
+                    {
+                      // Reset the job to the READYFORNOTIFY state, updating the failtime and failcount fields
+                      if (abortOnFail != null)
+                        Logging.jobs.warn(abortOnFail.getMessage(),abortOnFail);
+                      jobManager.retryNotification(jsr,e.getFailTime(),e.getFailRetryCount());
+                      jsr.noteStarted();
+                    }
+                  }
                 }
               }
             }
@@ -255,11 +301,32 @@ public class JobNotificationThread extends Thread
     }
   }
 
+  /** Disposition of an output/repository connection combination */
+  protected static class Disposition
+  {
+    protected final ServiceInterruption serviceInterruption;
+    
+    public Disposition(ServiceInterruption serviceInterruption)
+    {
+      this.serviceInterruption = serviceInterruption;
+    }
+    
+    public Disposition()
+    {
+      this.serviceInterruption = null;
+    }
+    
+    public ServiceInterruption getServiceInterruption()
+    {
+      return serviceInterruption;
+    }
+  }
+  
   /** Output connection/repository connection pair object */
   protected static class OutputAndRepositoryConnection
   {
-    protected String outputConnectionName;
-    protected String repositoryConnectionName;
+    protected final String outputConnectionName;
+    protected final String repositoryConnectionName;
     
     public OutputAndRepositoryConnection(String outputConnectionName, String repositoryConnectionName)
     {

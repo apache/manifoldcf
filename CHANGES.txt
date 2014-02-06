@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-883: Handle errors from the output connector during
+notification better.
+(Karl Wright)
+
 CONNECTORS-884: Log successful index/delete in Solr connector.
 (Erlend Garåsen, Karl Wright)
 
