@@ -523,6 +523,9 @@ public class HttpPoster
         t.start();
         t.finishUp();
 
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+
         return t.getRval();
       }
       catch (InterruptedException e)
@@ -641,6 +644,10 @@ public class HttpPoster
       {
         t.start();
         t.finishUp();
+        
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+
         return;
       }
       catch (InterruptedException e)
