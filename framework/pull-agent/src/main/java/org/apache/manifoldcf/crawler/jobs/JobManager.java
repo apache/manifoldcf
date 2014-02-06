@@ -7302,7 +7302,7 @@ public class JobManager implements IJobManager
         StringBuilder sb = new StringBuilder("SELECT ");
         ArrayList list = new ArrayList();
         
-        sb.append(jobs.idField).append(",").append(jobs.failTimeField).append(jobs.failCountField)
+        sb.append(jobs.idField).append(",").append(jobs.failTimeField).append(",").append(jobs.failCountField)
           .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
           .append(database.buildConjunctionClause(list,new ClauseDescription[]{
             new UnitaryClause(jobs.statusField,jobs.statusToString(jobs.STATUS_READYFORNOTIFY))}))

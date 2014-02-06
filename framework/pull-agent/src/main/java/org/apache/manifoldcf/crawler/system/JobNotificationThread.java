@@ -176,7 +176,7 @@ public class JobNotificationThread extends Thread
 
                     ManifoldCFException abortOnFail;
                     if (!e.jobInactiveAbort() && e.isAbortOnFail())
-                      abortOnFail = new ManifoldCFException("Repeated service interruptions - failure performing notification"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+                      abortOnFail = new ManifoldCFException("Failure performing notification"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
                     else
                       abortOnFail = null;
 
@@ -192,7 +192,7 @@ public class JobNotificationThread extends Thread
                         // Note the error in the job, and transition to inactive state
                         if (abortOnFail != null)
                           Logging.jobs.error(abortOnFail.getMessage(),abortOnFail);
-                        jobManager.notifyAbort(jobID,(abortOnFail==null)?"":abortOnFail.getMessage());
+                        jobManager.notifyAbort(jobID,(abortOnFail==null)?"":"Repeated service interruptions during notification: "+abortOnFail.getMessage()+": ending job");
                         jsr.noteStarted();
                       }
                       else

@@ -431,6 +431,19 @@ public class HttpPoster
 
     long currentTime = System.currentTimeMillis();
     
+    if (e.getClass().getName().equals("java.net.ConnectException"))
+    {
+      // Server isn't up at all.  Try for a brief time then give up.
+      String message = "Server could not be contacted during "+context+": "+e.getMessage();
+      Logging.ingest.warn(message,e);
+      throw new ServiceInterruption(message,
+        e,
+        currentTime + interruptionRetryTime,
+        -1L,
+        3,
+        false);
+    }
+    
     if (e.getClass().getName().equals("java.net.SocketException"))
     {
       // In the past we would have treated this as a straight document rejection, and
