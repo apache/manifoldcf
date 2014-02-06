@@ -1689,6 +1689,30 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   }
 
 
+  /** Retry notification.
+  *@param jobID is the job identifier.
+  *@param failTime is the fail time, -1 == none
+  *@param failCount is the fail count to use, -1 == none.
+  */
+  public void retryNotification(Long jobID, long failTime, int failCount)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
+    if (failTime == -1L)
+      map.put(failTimeField,null);
+    else
+      map.put(failTimeField,new Long(failTime));
+    if (failCount == -1)
+      map.put(failCountField,null);
+    else
+      map.put(failCountField,failCount);
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+  }
+  
   /** Write job status and window end, and clear the endtime field.  (The start time will be written
   * when the job enters the "active" state.)
   *@param jobID is the job identifier.
@@ -2031,6 +2055,44 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     map.put(statusField,statusToString(newStatus));
     map.put(windowEndField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+  }
+
+  /** Abort a job notification.
+  *@param jobID is the job id.
+  *@param errorText is the error, or null if none.
+  */
+  public boolean notifyAbort(Long jobID, String errorText)
+    throws ManifoldCFException
+  {
+    // Get the current job status
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
+      " WHERE "+query+" FOR UPDATE",list,null,null);
+    if (set.getRowCount() == 0)
+      throw new ManifoldCFException("Job does not exist: "+jobID);
+    IResultRow row = set.getRow(0);
+    int status = stringToStatus(row.getValue(statusField).toString());
+    if (status == STATUS_INACTIVE)
+      return false;
+    int newStatus;
+    switch (status)
+    {
+    case STATUS_NOTIFYINGOFCOMPLETION:
+      newStatus = STATUS_INACTIVE;
+      break;
+    default:
+      throw new ManifoldCFException("Job "+jobID+" is not notifying");
+    }
+    // Pause the job
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(newStatus));
+    map.put(errorField,errorText);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+    return true;
   }
 
   /** Abort a job.
@@ -2555,6 +2617,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_INACTIVE));
     map.put(processIDField,null);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
     // Leave everything else around from the abort/finish.
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }

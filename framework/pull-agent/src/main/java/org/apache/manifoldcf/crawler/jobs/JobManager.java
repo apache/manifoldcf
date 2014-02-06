@@ -3572,6 +3572,68 @@ public class JobManager implements IJobManager
     }
   }
 
+  /** Retry notification.
+  *@param jobNotifyRecord is the current job notification record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failCount is the new fail retry count (-1 if none).
+  */
+  @Override
+  public void retryNotification(JobNotifyRecord jnr, long failTime, int failCount)
+    throws ManifoldCFException
+  {
+    Long jobID = jnr.getJobID();
+    long oldFailTime = jnr.getFailTime();
+    if (oldFailTime == -1L)
+      oldFailTime = failTime;
+    failTime = oldFailTime;
+    int oldFailCount = jnr.getFailRetryCount();
+    if (oldFailCount == -1)
+      oldFailCount = failCount;
+    else
+    {
+      oldFailCount--;
+      if (failCount != -1 && oldFailCount > failCount)
+        oldFailCount = failCount;
+    }
+    failCount = oldFailCount;
+
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.retryNotification(jobID,failTime,failCount);
+        database.performCommit();
+        break;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting job notification: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
+  }
+  
+
   /** Reset a set of cleaning documents for further processing in the future.
   * This method is called after some unknown number of the documents were cleaned, but then an ingestion service interruption occurred.
   * Note well: The logic here basically presumes that we cannot know whether the documents were indeed cleaned or not.
@@ -6107,17 +6169,73 @@ public class JobManager implements IJobManager
   * until the job finishes on its own.
   *@param jobID is the job to abort.
   */
+  @Override
   public void manualAbortRestart(Long jobID)
     throws ManifoldCFException
   {
     manualAbortRestart(jobID,false);
   }
 
+  /** Abort notification.
+  *@param jobID is the job to abort.
+  *@param errorText is the error text.
+  *@return true if this is the first time the job is aborted.
+  */
+  @Override
+  public boolean notifyAbort(Long jobID, String errorText)
+    throws ManifoldCFException
+  {
+    if (Logging.jobs.isDebugEnabled())
+    {
+      Logging.jobs.debug("Aborting notification for "+jobID+" due to error '"+errorText+"'");
+    }
+    boolean rval;
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        rval = jobs.notifyAbort(jobID,errorText);
+        database.performCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction aborting job notification: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+    if (rval && Logging.jobs.isDebugEnabled())
+    {
+      Logging.jobs.debug("Job notification job "+jobID+" abort signal successfully sent");
+    }
+    return rval;
+  }
+  
   /** Abort a running job due to a fatal error condition.
   *@param jobID is the job to abort.
   *@param errorText is the error text.
   *@return true if this is the first logged abort request for this job.
   */
+  @Override
   public boolean errorAbort(Long jobID, String errorText)
     throws ManifoldCFException
   {
@@ -7184,7 +7302,8 @@ public class JobManager implements IJobManager
         StringBuilder sb = new StringBuilder("SELECT ");
         ArrayList list = new ArrayList();
         
-        sb.append(jobs.idField).append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+        sb.append(jobs.idField).append(",").append(jobs.failTimeField).append(jobs.failCountField)
+          .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
           .append(database.buildConjunctionClause(list,new ClauseDescription[]{
             new UnitaryClause(jobs.statusField,jobs.statusToString(jobs.STATUS_READYFORNOTIFY))}))
           .append(" FOR UPDATE");
@@ -7197,13 +7316,26 @@ public class JobManager implements IJobManager
         {
           IResultRow row = set.getRow(i);
           Long jobID = (Long)row.getValue(jobs.idField);
+          Long failTimeLong = (Long)row.getValue(jobs.failTimeField);
+          Long failRetryCountLong = (Long)row.getValue(jobs.failCountField);
+          long failTime;
+          if (failTimeLong == null)
+            failTime = -1L;
+          else
+            failTime = failTimeLong.longValue();
+          int failRetryCount;
+          if (failRetryCountLong == null)
+            failRetryCount = -1;
+          else
+            failRetryCount = (int)failRetryCountLong.longValue();
+      
           // Mark status of job as "starting delete"
           jobs.writeTransientStatus(jobID,jobs.STATUS_NOTIFYINGOFCOMPLETION,processID);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Found job "+jobID+" in need of notification");
           }
-          rval[i++] = new JobNotifyRecord(jobID);
+          rval[i++] = new JobNotifyRecord(jobID,failTime,failRetryCount);
         }
         database.performCommit();
         return rval;

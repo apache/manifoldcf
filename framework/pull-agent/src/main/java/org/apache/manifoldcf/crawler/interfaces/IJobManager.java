@@ -512,6 +512,14 @@ public interface IJobManager
   public void resetCleaningDocumentMultiple(DocumentDescription[] documentDescriptions, long checkTime)
     throws ManifoldCFException;
 
+  /** Retry notification.
+  *@param jobNotifyRecord is the current job notification record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failRetryCount is the new fail retry count (-1 if none).
+  */
+  public void retryNotification(JobNotifyRecord jnr, long failTime, int failRetryCount)
+    throws ManifoldCFException;
+  
   /** Add an initial set of documents to the queue.
   * This method is called during job startup, when the queue is being loaded.
   * A set of document references is passed to this method, which updates the status of the document
@@ -959,6 +967,14 @@ public interface IJobManager
   *@param identifiers is the set of document identifiers.
   */
   public void deleteIngestedDocumentIdentifiers(DocumentDescription[] identifiers)
+    throws ManifoldCFException;
+
+  /** Abort notification.
+  *@param jobID is the job to abort.
+  *@param errorText is the error text.
+  *@return true if this is the first time the job is aborted.
+  */
+  public boolean notifyAbort(Long jobID, String errorText)
     throws ManifoldCFException;
 
   /** Abort a running job due to a fatal error condition.
