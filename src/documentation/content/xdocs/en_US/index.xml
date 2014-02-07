@@ -34,7 +34,7 @@
             defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
 	<p>Currently included connectors support FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows shares
             (Microsoft), and SharePoint (Microsoft).  Also included are a general CMIS connector, a generic file system connector, a general JDBC
-            connector, an RSS feed connector, a Wiki connector, a DropBox connector, and a general web connector.
+            connector, an RSS feed connector, a Wiki connector, a DropBox connector, an email connector, and a general web connector.
             Currently supported targets include Apache Solr, QBase (formerly MetaCarta) GTS , OpenSearchServer and ElasticSearch.  The complete repository
             compatibility list can be found in the release documentation <a href="release-documentation.html">here</a>.</p>
 	<p>The original ManifoldCF code base was granted by MetaCarta, Inc., to the Apache Software Foundation in December 2009.  The MetaCarta effort
@@ -43,7 +43,7 @@
 
     <section>
 	<title>Project status</title>
-	<p>Apache ManifoldCF 1.4.1 is available!  Download it <a href="download.html">here</a>.</p>
+	<p>Apache ManifoldCF 1.5 is available!  Download it <a href="download.html">here</a>.</p>
     </section>
 
     <section>
@@ -59,6 +59,12 @@
 
     <section>
         <title>News</title>
+          <section>
+              <title>07 Feb 2014 - ManifoldCF 1.5 is released!</title>
+                <p>Developer community signs off on release 1.5.  This is a major release, with significant new capabilities in both the platform and the connectors,
+                  including dederated authority support, multiple authorization domains, Apache ZooKeeper process coordination, multiple agents processes,
+                  support for SharePoint Claims-based authorization, an email connector, and a revamped look-and-feel.</p>
+          </section>
           <section>
               <title>16 Nov 2013 - ManifoldCF 1.4.1 is released!</title>
                 <p>Developer community signs off on point bugfix release.</p>
