@@ -431,7 +431,7 @@ public class HttpPoster
 
     long currentTime = System.currentTimeMillis();
     
-    if (e.getClass().getName().equals("java.net.ConnectException"))
+    if (e instanceof java.net.ConnectException)
     {
       // Server isn't up at all.  Try for a brief time then give up.
       String message = "Server could not be contacted during "+context+": "+e.getMessage();
