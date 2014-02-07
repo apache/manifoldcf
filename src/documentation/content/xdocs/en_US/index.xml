@@ -62,7 +62,7 @@
           <section>
               <title>07 Feb 2014 - ManifoldCF 1.5 is released!</title>
                 <p>Developer community signs off on release 1.5.  This is a major release, with significant new capabilities in both the platform and the connectors,
-                  including dederated authority support, multiple authorization domains, Apache ZooKeeper process coordination, multiple agents processes,
+                  including federated authority support, multiple authorization domains, Apache ZooKeeper process coordination, multiple agents processes,
                   support for SharePoint Claims-based authorization, an email connector, and a revamped look-and-feel.</p>
           </section>
           <section>
