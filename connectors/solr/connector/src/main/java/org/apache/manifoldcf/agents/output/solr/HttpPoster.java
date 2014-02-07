@@ -441,7 +441,7 @@ public class HttpPoster
         currentTime + interruptionRetryTime,
         -1L,
         3,
-        false);
+        true);
     }
     
     if (e.getClass().getName().equals("java.net.SocketException"))
