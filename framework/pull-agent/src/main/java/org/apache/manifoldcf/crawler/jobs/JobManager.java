@@ -3572,67 +3572,6 @@ public class JobManager implements IJobManager
     }
   }
 
-  /** Retry notification.
-  *@param jobNotifyRecord is the current job notification record.
-  *@param failTime is the new fail time (-1L if none).
-  *@param failCount is the new fail retry count (-1 if none).
-  */
-  @Override
-  public void retryNotification(JobNotifyRecord jnr, long failTime, int failCount)
-    throws ManifoldCFException
-  {
-    Long jobID = jnr.getJobID();
-    long oldFailTime = jnr.getFailTime();
-    if (oldFailTime == -1L)
-      oldFailTime = failTime;
-    failTime = oldFailTime;
-    int oldFailCount = jnr.getFailRetryCount();
-    if (oldFailCount == -1)
-      oldFailCount = failCount;
-    else
-    {
-      oldFailCount--;
-      if (failCount != -1 && oldFailCount > failCount)
-        oldFailCount = failCount;
-    }
-    failCount = oldFailCount;
-
-    while (true)
-    {
-      long sleepAmt = 0L;
-      database.beginTransaction();
-      try
-      {
-        jobs.retryNotification(jobID,failTime,failCount);
-        database.performCommit();
-        break;
-      }
-      catch (Error e)
-      {
-        database.signalRollback();
-        throw e;
-      }
-      catch (ManifoldCFException e)
-      {
-        database.signalRollback();
-        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
-        {
-          if (Logging.perf.isDebugEnabled())
-            Logging.perf.debug("Aborted transaction resetting job notification: "+e.getMessage());
-          sleepAmt = getRandomAmount();
-          continue;
-        }
-        throw e;
-      }
-      finally
-      {
-        database.endTransaction();
-        sleepFor(sleepAmt);
-      }
-    }
-
-  }
-  
 
   /** Reset a set of cleaning documents for further processing in the future.
   * This method is called after some unknown number of the documents were cleaned, but then an ingestion service interruption occurred.
@@ -3902,6 +3841,128 @@ public class JobManager implements IJobManager
     return map;
   }
 
+  /** Retry startup.
+  *@param jsr is the current job notification record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failCount is the new fail retry count (-1 if none).
+  */
+  @Override
+  public void retryStartup(JobStartRecord jsr, long failTime, int failCount)
+    throws ManifoldCFException
+  {
+    Long jobID = jsr.getJobID();
+    long oldFailTime = jsr.getFailTime();
+    if (oldFailTime == -1L)
+      oldFailTime = failTime;
+    failTime = oldFailTime;
+    int oldFailCount = jsr.getFailRetryCount();
+    if (oldFailCount == -1)
+      oldFailCount = failCount;
+    else
+    {
+      oldFailCount--;
+      if (failCount != -1 && oldFailCount > failCount)
+        oldFailCount = failCount;
+    }
+    failCount = oldFailCount;
+
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.retryStartup(jobID,jsr.getRequestMinimum(),failTime,failCount);
+        database.performCommit();
+        break;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting job startup: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
+
+  /** Retry notification.
+  *@param jnr is the current job notification record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failCount is the new fail retry count (-1 if none).
+  */
+  @Override
+  public void retryNotification(JobNotifyRecord jnr, long failTime, int failCount)
+    throws ManifoldCFException
+  {
+    Long jobID = jnr.getJobID();
+    long oldFailTime = jnr.getFailTime();
+    if (oldFailTime == -1L)
+      oldFailTime = failTime;
+    failTime = oldFailTime;
+    int oldFailCount = jnr.getFailRetryCount();
+    if (oldFailCount == -1)
+      oldFailCount = failCount;
+    else
+    {
+      oldFailCount--;
+      if (failCount != -1 && oldFailCount > failCount)
+        oldFailCount = failCount;
+    }
+    failCount = oldFailCount;
+
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.retryNotification(jobID,failTime,failCount);
+        database.performCommit();
+        break;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting job notification: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
+  }
+  
   /** Add an initial set of documents to the queue.
   * This method is called during job startup, when the queue is being loaded.
   * A set of document references is passed to this method, which updates the status of the document
@@ -6568,6 +6629,8 @@ public class JobManager implements IJobManager
         ArrayList list = new ArrayList();
         
         sb.append(jobs.idField).append(",")
+          .append(jobs.failTimeField).append(",")
+          .append(jobs.failCountField).append(",")
           .append(jobs.lastCheckTimeField).append(",")
           .append(jobs.statusField)
           .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
@@ -6587,6 +6650,18 @@ public class JobManager implements IJobManager
           Long jobID = (Long)row.getValue(jobs.idField);
           Long x = (Long)row.getValue(jobs.lastCheckTimeField);
           int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+          Long failTimeLong = (Long)row.getValue(jobs.failTimeField);
+          Long failRetryCountLong = (Long)row.getValue(jobs.failCountField);
+          long failTime;
+          if (failTimeLong == null)
+            failTime = -1L;
+          else
+            failTime = failTimeLong.longValue();
+          int failRetryCount;
+          if (failRetryCountLong == null)
+            failRetryCount = -1;
+          else
+            failRetryCount = (int)failRetryCountLong.longValue();
 
           boolean requestMinimum = (status == jobs.STATUS_READYFORSTARTUPMINIMAL);
           
@@ -6601,7 +6676,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Marked job "+jobID+" for startup");
           }
 
-          rval[i] = new JobStartRecord(jobID,synchTime,requestMinimum);
+          rval[i] = new JobStartRecord(jobID,synchTime,requestMinimum,failTime,failRetryCount);
           i++;
         }
         database.performCommit();

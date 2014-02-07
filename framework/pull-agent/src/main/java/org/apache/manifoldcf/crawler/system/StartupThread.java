@@ -158,11 +158,49 @@ public class StartupThread extends Thread
                   }
                   catch (ServiceInterruption e)
                   {
-                    // Note the service interruption
-                    Logging.threads.warn("Service interruption for job "+jobID+": "+e.getMessage(),e);
-                    long retryInterval = e.getRetryTime() - currentTime;
-                    if (retryInterval >= 0L && retryInterval < waitTime)
-                      waitTime = retryInterval;
+                    if (!e.jobInactiveAbort())
+                    {
+                      Logging.jobs.warn("Startup service interruption reported for job "+
+                        jobID+" connection '"+connection.getName()+"': "+
+                        e.getMessage());
+                    }
+
+                    ManifoldCFException abortOnFail;
+                    if (!e.jobInactiveAbort() && e.isAbortOnFail())
+                      abortOnFail = new ManifoldCFException("Failure performing startup"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+                    else
+                      abortOnFail = null;
+
+                    // If either we are going to be requeuing beyond the fail time, OR
+                    // the number of retries available has hit 0, THEN we treat this
+                    // as either an "ignore" or a hard error.
+                    if (!e.jobInactiveAbort() && (jsr.getFailTime() != -1L && jsr.getFailTime() < e.getRetryTime() ||
+                      jsr.getFailRetryCount() == 0))
+                    {
+                      // Treat this as a hard failure.
+                      if (e.isAbortOnFail())
+                      {
+                        // Note the error in the job, and transition to inactive state
+                        if (jobManager.errorAbort(jobID,(abortOnFail==null)?"":"Repeated service interruptions during startup: "+abortOnFail.getMessage()+": ending job") &&
+                          abortOnFail != null)
+                          Logging.jobs.error("Repeated service interruptions during startup: "+abortOnFail.getMessage(),abortOnFail);
+                        jsr.noteStarted();
+                      }
+                      else
+                      {
+                        // Not sure this can happen -- but just transition silently to active state
+                        jobManager.noteJobStarted(jobID,currentTime);
+                        jsr.noteStarted();
+                      }
+                    }
+                    else
+                    {
+                      // Reset the job to the READYFORSTARTUP state, updating the failtime and failcount fields
+                      if (abortOnFail != null)
+                        Logging.jobs.warn(abortOnFail.getMessage(),abortOnFail);
+                      jobManager.retryStartup(jsr,e.getFailTime(),e.getFailRetryCount());
+                      jsr.noteStarted();
+                    }
                     // Go on to the next job
                     continue;
                   }
@@ -182,10 +220,10 @@ public class StartupThread extends Thread
                   throw new InterruptedException();
                 if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
                   throw e;
-                // Note: The error abort below will put the job in the "ABORTINGSTARTUP" state.  We still need a reset at that point
-                // to get all the way back to an "aborting" state.
+                // Note: The error abort below will put the job in the "ABORTING" state. 
                 if (jobManager.errorAbort(jobID,e.getMessage()))
                   Logging.threads.error("Exception tossed: "+e.getMessage(),e);
+                jsr.noteStarted();
               }
             }
           }

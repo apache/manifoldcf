@@ -98,7 +98,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public static final int STATUS_ABORTING = 18;                          // Aborting (not yet aborted because documents still being processed)
   public static final int STATUS_STARTINGUP = 19;                        // Loading the queue (will go into ACTIVE if successful, or INACTIVE if not)
   public static final int STATUS_STARTINGUPMINIMAL = 20;           // Loading the queue for minimal job run (will go into ACTIVE if successful, or INACTIVE if not)
+  // This state may not be used anymore!!
   public static final int STATUS_ABORTINGSTARTINGUP = 21;        // Will abort once the queue loading is complete
+  // This state may not be used anymore!!
   public static final int STATUS_ABORTINGSTARTINGUPMINIMAL = 22;  // Will abort once the queue loading is complete
   public static final int STATUS_READYFORSTARTUP = 23;             // Job is marked for minimal startup; startup thread has not taken it yet.
   public static final int STATUS_READYFORSTARTUPMINIMAL = 24;   // Job is marked for startup; startup thread has not taken it yet.
@@ -1688,6 +1690,33 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
+  /** Retry startup.
+  *@param jobID is the job identifier.
+  *@param requestMinimum is true for a minimal crawl.
+  *@param failTime is the fail time, -1 == none
+  *@param failCount is the fail count to use, -1 == none.
+  */
+  public void retryStartup(Long jobID, boolean requestMinimum, long failTime, int failCount)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    HashMap map = new HashMap();
+    if (requestMinimum)
+      map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
+    else
+      map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
+    if (failTime == -1L)
+      map.put(failTimeField,null);
+    else
+      map.put(failTimeField,new Long(failTime));
+    if (failCount == -1)
+      map.put(failCountField,null);
+    else
+      map.put(failCountField,failCount);
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+  }
 
   /** Retry notification.
   *@param jobID is the job identifier.
@@ -1918,6 +1947,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       }
       // The seeding was complete or we wouldn't have gotten called, so at least note that.
       map.put(lastCheckTimeField,new Long(startTime));
+      // Clear out the retry fields we might have set
+      map.put(failTimeField,null);
+      map.put(failCountField,null);
       performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
     }
     catch (ManifoldCFException e)
@@ -2091,6 +2123,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     map.put(errorField,errorText);
     map.put(failTimeField,null);
     map.put(failCountField,null);
+    map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
     return true;
   }
@@ -2125,11 +2158,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       break;
     case STATUS_STARTINGUP:
     case STATUS_ABORTINGSTARTINGUPFORRESTART:
-      newStatus = STATUS_ABORTINGSTARTINGUP;
+      newStatus = STATUS_ABORTING;
       break;
     case STATUS_STARTINGUPMINIMAL:
     case STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:
-      newStatus = STATUS_ABORTINGSTARTINGUPMINIMAL;
+      newStatus = STATUS_ABORTING;
       break;
     case STATUS_READYFORSTARTUP:
     case STATUS_READYFORSTARTUPMINIMAL:
@@ -2168,6 +2201,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(newStatus));
     map.put(errorField,errorText);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
     return true;
   }

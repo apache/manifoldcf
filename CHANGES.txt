@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-885: Handle errors during startup better.
+(Karl Wright)
+
 CONNECTORS-883: Handle errors from the output connector during
 notification better.
 (Karl Wright)

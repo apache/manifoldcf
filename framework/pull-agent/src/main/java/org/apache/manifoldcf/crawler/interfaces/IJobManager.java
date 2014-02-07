@@ -512,12 +512,20 @@ public interface IJobManager
   public void resetCleaningDocumentMultiple(DocumentDescription[] documentDescriptions, long checkTime)
     throws ManifoldCFException;
 
+  /** Retry startup.
+  *@param jobStartRecord is the current job notification record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failRetryCount is the new fail retry count (-1 if none).
+  */
+  public void retryStartup(JobStartRecord jobStartRecord, long failTime, int failRetryCount)
+    throws ManifoldCFException;
+
   /** Retry notification.
   *@param jobNotifyRecord is the current job notification record.
   *@param failTime is the new fail time (-1L if none).
   *@param failRetryCount is the new fail retry count (-1 if none).
   */
-  public void retryNotification(JobNotifyRecord jnr, long failTime, int failRetryCount)
+  public void retryNotification(JobNotifyRecord jobNotifyRecord, long failTime, int failRetryCount)
     throws ManifoldCFException;
   
   /** Add an initial set of documents to the queue.
