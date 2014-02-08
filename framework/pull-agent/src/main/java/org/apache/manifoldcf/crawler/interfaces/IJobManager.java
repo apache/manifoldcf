@@ -513,11 +513,19 @@ public interface IJobManager
     throws ManifoldCFException;
 
   /** Retry startup.
-  *@param jobStartRecord is the current job notification record.
+  *@param jobStartRecord is the current job startup record.
   *@param failTime is the new fail time (-1L if none).
   *@param failRetryCount is the new fail retry count (-1 if none).
   */
   public void retryStartup(JobStartRecord jobStartRecord, long failTime, int failRetryCount)
+    throws ManifoldCFException;
+
+  /** Retry seeding.
+  *@param jobSeedingRecord is the current job seeding record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failRetryCount is the new fail retry count (-1 if none).
+  */
+  public void retrySeeding(JobSeedingRecord jobSeedingRecord, long failTime, int failRetryCount)
     throws ManifoldCFException;
 
   /** Retry notification.

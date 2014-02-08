@@ -3901,6 +3901,65 @@ public class JobManager implements IJobManager
     }
   }
 
+  /** Retry seeding.
+  *@param jsr is the current job seeding record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failCount is the new fail retry count (-1 if none).
+  */
+  @Override
+  public void retrySeeding(JobSeedingRecord jsr, long failTime, int failCount)
+    throws ManifoldCFException
+  {
+    Long jobID = jsr.getJobID();
+    long oldFailTime = jsr.getFailTime();
+    if (oldFailTime == -1L)
+      oldFailTime = failTime;
+    failTime = oldFailTime;
+    int oldFailCount = jsr.getFailRetryCount();
+    if (oldFailCount == -1)
+      oldFailCount = failCount;
+    else
+    {
+      oldFailCount--;
+      if (failCount != -1 && oldFailCount > failCount)
+        oldFailCount = failCount;
+    }
+    failCount = oldFailCount;
+
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.retrySeeding(jobID,failTime,failCount);
+        database.performCommit();
+        break;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting job seeding: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
 
   /** Retry notification.
   *@param jnr is the current job notification record.
@@ -6470,6 +6529,8 @@ public class JobManager implements IJobManager
         
         sb.append(jobs.idField).append(",")
           .append(jobs.lastCheckTimeField).append(",")
+          .append(jobs.failTimeField).append(",")
+          .append(jobs.failCountField).append(",")
           .append(jobs.reseedIntervalField)
           .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
           .append(database.buildConjunctionClause(list,new ClauseDescription[]{
@@ -6501,6 +6562,19 @@ public class JobManager implements IJobManager
           else
             reseedTime = null;
 
+          Long failTimeLong = (Long)row.getValue(jobs.failTimeField);
+          Long failRetryCountLong = (Long)row.getValue(jobs.failCountField);
+          long failTime;
+          if (failTimeLong == null)
+            failTime = -1L;
+          else
+            failTime = failTimeLong.longValue();
+          int failRetryCount;
+          if (failRetryCountLong == null)
+            failRetryCount = -1;
+          else
+            failRetryCount = (int)failRetryCountLong.longValue();
+
           // Mark status of job as "active/seeding".  Special status is needed so that abort
           // will not complete until seeding is completed.
           jobs.writeTransientStatus(jobID,jobs.STATUS_ACTIVESEEDING,reseedTime,processID);
@@ -6509,7 +6583,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Marked job "+jobID+" for seeding");
           }
 
-          rval[i] = new JobSeedingRecord(jobID,synchTime);
+          rval[i] = new JobSeedingRecord(jobID,synchTime,failTime,failRetryCount);
           i++;
         }
         database.performCommit();
