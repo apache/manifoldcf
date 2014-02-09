@@ -985,14 +985,6 @@ public interface IJobManager
   public void deleteIngestedDocumentIdentifiers(DocumentDescription[] identifiers)
     throws ManifoldCFException;
 
-  /** Abort notification.
-  *@param jobID is the job to abort.
-  *@param errorText is the error text.
-  *@return true if this is the first time the job is aborted.
-  */
-  public boolean notifyAbort(Long jobID, String errorText)
-    throws ManifoldCFException;
-
   /** Abort a running job due to a fatal error condition.
   *@param jobID is the job to abort.
   *@param errorText is the error text.

@@ -171,14 +171,8 @@ public class JobNotificationThread extends Thread
                     {
                       Logging.jobs.warn("Notification service interruption reported for job "+
                         jobID+" output connection '"+outputConnectionName+"': "+
-                        e.getMessage());
+                        e.getMessage(),e);
                     }
-
-                    ManifoldCFException abortOnFail;
-                    if (!e.jobInactiveAbort() && e.isAbortOnFail())
-                      abortOnFail = new ManifoldCFException("Failure performing notification"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
-                    else
-                      abortOnFail = null;
 
                     // If either we are going to be requeuing beyond the fail time, OR
                     // the number of retries available has hit 0, THEN we treat this
@@ -190,9 +184,9 @@ public class JobNotificationThread extends Thread
                       if (e.isAbortOnFail())
                       {
                         // Note the error in the job, and transition to inactive state
-                        if (abortOnFail != null)
-                          Logging.jobs.error(abortOnFail.getMessage(),abortOnFail);
-                        jobManager.notifyAbort(jobID,(abortOnFail==null)?"":"Repeated service interruptions during notification: "+abortOnFail.getMessage()+": ending job");
+                        String message = e.jobInactiveAbort()?"":"Repeated service interruptions during notification"+((e.getCause()!=null)?": "+e.getCause().getMessage():"");
+                        if (jobManager.errorAbort(jobID,message) && message.length() > 0)
+                          Logging.jobs.error(message,e.getCause());
                         jsr.noteStarted();
                       }
                       else
@@ -205,8 +199,6 @@ public class JobNotificationThread extends Thread
                     else
                     {
                       // Reset the job to the READYFORNOTIFY state, updating the failtime and failcount fields
-                      if (abortOnFail != null)
-                        Logging.jobs.warn(abortOnFail.getMessage(),abortOnFail);
                       jobManager.retryNotification(jsr,e.getFailTime(),e.getFailRetryCount());
                       jsr.noteStarted();
                     }
