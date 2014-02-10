@@ -279,10 +279,24 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
+    
   }
 
   /** Get the bin name string for a document identifier.  The bin name describes the queue to which the
@@ -533,17 +547,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         try
         {
           t.start();
-          t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else if (thr instanceof ManifoldCFException)
-              throw (ManifoldCFException)thr;
-            else
-              throw (Error)thr;
-          }
+	  t.finishUp();
           hasConnected = true;
           break;
         }
@@ -1001,22 +1005,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           try
           {
             t.start();
-            t.join();
-            Throwable thr = t.getException();
-            if (thr != null)
-            {
-              if (thr instanceof RuntimeException)
-                throw (RuntimeException)thr;
-              else if (thr instanceof ManifoldCFException)
-              {
-                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-                continue;
-              }
-              else
-                throw (Error)thr;
-            }
-
-            LLValue childrenDocs = t.getResponse();
+	    LLValue childrenDocs;
+	    try
+	    {
+	      childrenDocs = t.finishUp();
+	    }
+	    catch (ManifoldCFException e)
+	    {
+	      sanityRetryCount = assessRetry(sanityRetryCount,e);
+	      continue;
+	    }
 
             int size = 0;
 
@@ -1357,9 +1355,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   protected class ListObjectsThread extends Thread
   {
-    protected int vol;
-    protected int objID;
-    protected String filterString;
+    protected final int vol;
+    protected final int objID;
+    protected final String filterString;
     protected Throwable exception = null;
     protected LLValue rval = null;
 
@@ -1390,13 +1388,22 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public LLValue finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public LLValue getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
   }
@@ -1466,22 +1473,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           try
           {
             t.start();
-            t.join();
-            Throwable thr = t.getException();
-            if (thr != null)
-            {
-              if (thr instanceof RuntimeException)
-                throw (RuntimeException)thr;
-              else if (thr instanceof ManifoldCFException)
-              {
-                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-                continue;
-              }
-              else
-                throw (Error)thr;
-            }
-
-            LLValue childrenDocs = t.getResponse();
+	    LLValue childrenDocs;
+	    try
+	    {
+	      childrenDocs = t.finishUp();
+	    }
+	    catch (ManifoldCFException e)
+	    {
+	      sanityRetryCount = assessRetry(sanityRetryCount,e);
+	      continue;
+	    }
 
             int size = 0;
 
@@ -4876,22 +4877,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else if (thr instanceof ManifoldCFException)
-          {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-            continue;
-          }
-          else
-            throw (Error)thr;
-        }
-
-        LLValue children = t.getResponse();
+	LLValue children;
+	try
+	{
+	  children = t.finishUp();
+	}
+	catch (ManifoldCFException e)
+	{
+	  sanityRetryCount = assessRetry(sanityRetryCount,e);
+	  continue;
+	}
 
         String[] rval = new String[children.size()];
         int j = 0;
@@ -4941,22 +4936,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else if (thr instanceof ManifoldCFException)
-          {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-            continue;
-          }
-          else
-            throw (Error)thr;
+	LLValue children;
+	try
+	{
+	  children = t.finishUp();
+	}
+	catch (ManifoldCFException e)
+	{
+	  sanityRetryCount = assessRetry(sanityRetryCount,e);
+	  continue;
         }
-
-        LLValue children = t.getResponse();
 
         String[] rval = new String[children.size()];
         int j = 0;
@@ -4982,7 +4971,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   protected class GetCategoryAttributesThread extends Thread
   {
-    protected int catObjectID;
+    protected final int catObjectID;
     protected Throwable exception = null;
     protected LLValue rval = null;
 
@@ -5025,13 +5014,22 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public LLValue finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public LLValue getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
   }
@@ -5051,22 +5049,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else if (thr instanceof ManifoldCFException)
-          {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-            continue;
-          }
-          else
-            throw (Error)thr;
+	LLValue children;
+	try
+	{
+	  children = t.finishUp();
+	}
+	catch (ManifoldCFException e)
+	{
+	  sanityRetryCount = assessRetry(sanityRetryCount,e);
+	  continue;
         }
 
-        LLValue children = t.getResponse();
         if (children == null)
           return null;
 
@@ -5097,8 +5090,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   protected class GetCategoryVersionThread extends Thread
   {
-    protected int objID;
-    protected int catID;
+    protected final int objID;
+    protected final int catID;
     protected Throwable exception = null;
     protected LLValue rval = null;
 
@@ -5147,15 +5140,25 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public LLValue finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public LLValue getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
+
   }
 
   /** Get a category version for document.
@@ -5170,21 +5173,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else if (thr instanceof ManifoldCFException)
-          {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-            continue;
-          }
-          else
-            throw (Error)thr;
+	try
+	{
+	  return t.finishUp();
+	}
+	catch (ManifoldCFException e)
+	{
+	  sanityRetryCount = assessRetry(sanityRetryCount,e);
+	  continue;
         }
-        return t.getResponse();
       }
       catch (InterruptedException e)
       {
@@ -5211,8 +5208,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   protected class GetAttributeValueThread extends Thread
   {
-    protected LLValue categoryVersion;
-    protected String attributeName;
+    protected final LLValue categoryVersion;
+    protected final String attributeName;
     protected Throwable exception = null;
     protected LLValue rval = null;
 
@@ -5251,15 +5248,25 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public LLValue finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public LLValue getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
+
   }
 
   /** Get an attribute value from a category version.
@@ -5274,21 +5281,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else if (thr instanceof ManifoldCFException)
-          {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-            continue;
-          }
-          else
-            throw (Error)thr;
+	LLValue children;
+	try
+	{
+	  children = t.finishUp();
+	}
+	catch (ManifoldCFException e)
+	{
+	  sanityRetryCount = assessRetry(sanityRetryCount,e);
+	  continue;
         }
-        LLValue children = t.getResponse();
+	
         if (children == null)
           return null;
         String[] rval = new String[children.size()];
@@ -5318,8 +5321,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   protected class GetObjectRightsThread extends Thread
   {
-    protected int vol;
-    protected int objID;
+    protected final int vol;
+    protected final int objID;
     protected Throwable exception = null;
     protected LLValue rval = null;
 
@@ -5354,15 +5357,25 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public LLValue finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public LLValue getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
+
   }
 
   /** Get an object's rights.  This will be an array of right id's, including the special
@@ -5381,22 +5394,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else if (thr instanceof ManifoldCFException)
-          {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-            continue;
-          }
-          else
-            throw (Error)thr;
+	LLValue childrenObjects;
+	try
+	{
+	  childrenObjects = t.finishUp();
+	}
+	catch (ManifoldCFException e)
+	{
+	  sanityRetryCount = assessRetry(sanityRetryCount,e);
+	  continue;
         }
 
-        LLValue childrenObjects = t.getResponse();
         if (childrenObjects == null)
           return null;
 
@@ -5545,23 +5553,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           try
           {
             t.start();
-            t.join();
-            Throwable thr = t.getException();
-            if (thr != null)
-            {
-              if (thr instanceof RuntimeException)
-                throw (RuntimeException)thr;
-              else if (thr instanceof ServiceInterruption)
-                throw (ServiceInterruption)thr;
-              else if (thr instanceof ManifoldCFException)
-              {
-                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-                continue;
-              }
-              else
-                throw (Error)thr;
-            }
-            userValue = t.getResponse();
+	    try
+	    {
+	      userValue = t.finishUp();
+	    }
+	    catch (ManifoldCFException e)
+	    {
+	      sanityRetryCount = assessRetry(sanityRetryCount,e);
+	      continue;
+	    }
             break;
           }
           catch (InterruptedException e)
@@ -5695,23 +5695,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           try
           {
             t.start();
-            t.join();
-            Throwable thr = t.getException();
-            if (thr != null)
-            {
-              if (thr instanceof RuntimeException)
-                throw (RuntimeException)thr;
-              else if (thr instanceof ServiceInterruption)
-                throw (ServiceInterruption)thr;
-              else if (thr instanceof ManifoldCFException)
-              {
-                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-                continue;
-              }
-              else
-                throw (Error)thr;
+	    try
+	    {
+	      versionValue = t.finishUp();
+	    }
+	    catch (ManifoldCFException e)
+	    {
+	      sanityRetryCount = assessRetry(sanityRetryCount,e);
+	      continue;
             }
-            versionValue = t.getResponse();
             break;
           }
           catch (InterruptedException e)
@@ -5841,22 +5833,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           try
           {
             t.start();
-            t.join();
-            Throwable thr = t.getException();
-            if (thr != null)
-            {
-              if (thr instanceof RuntimeException)
-                throw (RuntimeException)thr;
-              else if (thr instanceof ManifoldCFException)
-              {
-                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-                continue;
-              }
-              else
-                throw (Error)thr;
+	    LLValue children;
+	    try
+	    {
+	      children = t.finishUp();
+	    }
+	    catch (ManifoldCFException e)
+	    {
+	      sanityRetryCount = assessRetry(sanityRetryCount,e);
+	      continue;
             }
 
-            LLValue children = t.getResponse();
             if (children == null)
               return null;
 
@@ -5953,22 +5940,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           try
           {
             t.start();
-            t.join();
-            Throwable thr = t.getException();
-            if (thr != null)
-            {
-              if (thr instanceof RuntimeException)
-                throw (RuntimeException)thr;
-              else if (thr instanceof ManifoldCFException)
-              {
-                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-                continue;
-              }
-              else
-                throw (Error)thr;
+	    LLValue children;
+	    try
+	    {
+	      children = t.finishUp();
+	    }
+	    catch (ManifoldCFException e)
+	    {
+	      sanityRetryCount = assessRetry(sanityRetryCount,e);
+	      continue;
             }
 
-            LLValue children = t.getResponse();
             if (children == null)
               return -1;
 
@@ -6120,23 +6102,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           try
           {
             t.start();
-            t.join();
-            Throwable thr = t.getException();
-            if (thr != null)
-            {
-              if (thr instanceof RuntimeException)
-                throw (RuntimeException)thr;
-              else if (thr instanceof ServiceInterruption)
-                throw (ServiceInterruption)thr;
-              else if (thr instanceof ManifoldCFException)
-              {
-                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-                continue;
-              }
-              else
-                throw (Error)thr;
+	    try
+	    {
+	      objectValue = t.finishUp();
+	    }
+	    catch (ManifoldCFException e)
+	    {
+	      sanityRetryCount = assessRetry(sanityRetryCount,e);
+	      continue;
             }
-            objectValue = t.getResponse();
             break;
           }
           catch (InterruptedException e)
@@ -6214,15 +6188,25 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public LLValue finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public LLValue getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
+
   }
 
   /** Thread we can abandon that gets user information for a userID.
@@ -6277,13 +6261,22 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public LLValue finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public LLValue getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
   }
@@ -6344,13 +6337,22 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public LLValue finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public LLValue getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
   }
@@ -6409,13 +6411,22 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public LLValue finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public LLValue getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
   }
@@ -6523,13 +6534,22 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    public Throwable getException()
+    public LLValue finishUp()
+      throws ManifoldCFException, InterruptedException
     {
-      return exception;
-    }
-
-    public LLValue getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
   }
@@ -6549,22 +6569,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else if (thr instanceof ManifoldCFException)
-          {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-            continue;
-          }
-          else
-            throw (Error)thr;
+	LLValue catIDList;
+	try
+	{
+	  catIDList = t.finishUp();
+	}
+	catch (ManifoldCFException e)
+	{
+	  sanityRetryCount = assessRetry(sanityRetryCount,e);
+	  continue;
         }
 
-        LLValue catIDList = t.getResponse();
         if (catIDList == null)
           return null;
 
@@ -7398,7 +7413,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       e instanceof com.opentext.api.LLNoFieldSpecifiedException ||
       e instanceof com.opentext.api.LLNoValueSpecifiedException ||
       e instanceof com.opentext.api.LLSecurityProviderException ||
-      e instanceof com.opentext.api.LLUnknownFieldException
+      e instanceof com.opentext.api.LLUnknownFieldException ||
+      e instanceof NumberFormatException ||
+      e instanceof ArrayIndexOutOfBoundsException
     )
     {
       String details = llServer.getErrors();

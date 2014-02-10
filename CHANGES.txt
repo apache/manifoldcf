@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 1.5.1 =====================
 
+CONNECTORS-875: Handle ArrayIndexOutOfBounds and NumberFormatException
+from LAPI as Livelink runtime errors.
+(David Morana, Karl Wright)
+
 CONNECTORS-884: Log successful index/delete in Solr connector.
 (Erlend Garåsen, Karl Wright)
 
