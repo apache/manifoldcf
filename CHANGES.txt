@@ -4,6 +4,9 @@ $Id$
 
 ======================= Release 1.5.1 =====================
 
+CONNECTORS-876: Solr indexing exception reports now include the document URI.
+(David Morana, Karl Wright)
+
 CONNECTORS-875: Handle ArrayIndexOutOfBounds and NumberFormatException
 from LAPI as Livelink runtime errors.
 (David Morana, Karl Wright)

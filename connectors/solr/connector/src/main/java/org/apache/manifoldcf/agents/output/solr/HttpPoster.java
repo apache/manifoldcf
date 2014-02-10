@@ -560,22 +560,22 @@ public class HttpPoster
     }
     catch (SolrServerException e)
     {
-      handleSolrServerException(e, "indexing");
+      handleSolrServerException(e, "indexing "+documentURI);
       return false;
     }
     catch (SolrException e)
     {
-      handleSolrException(e, "indexing");
+      handleSolrException(e, "indexing "+documentURI);
       return false;
     }
     catch (RuntimeException e)
     {
-      handleRuntimeException(e, "indexing");
+      handleRuntimeException(e, "indexing "+documentURI);
       return false;
     }
     catch (IOException ioe)
     {
-      handleIOException(ioe, "indexing");
+      handleIOException(ioe, "indexing "+documentURI);
       return false;
     }
 
