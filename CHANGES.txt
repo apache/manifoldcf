@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-887: Upgrade issues with MySQL.
+(Florian Schmedding, Karl Wright)
+
 CONNECTORS-885: Handle errors during startup better.
 (Karl Wright)
 
