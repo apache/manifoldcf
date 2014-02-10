@@ -2,6 +2,9 @@ ManifoldCF Change Log
 $Id$
 
 
+======================= Release 1.5.1 =====================
+
+
 ======================= Release 1.5 =====================
 
 CONNECTORS-874: Uncaught runtime exception when SolrJ can't talk
