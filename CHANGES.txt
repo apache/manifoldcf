@@ -4,6 +4,9 @@ $Id$
 
 ======================= Release 1.5.1 =====================
 
+CONNECTORS-887: Upgrade issues with MySQL.
+(Florian Schmedding, Karl Wright)
+
 CONNECTORS-870: Avoid line break for login.jsp description
 when locale is Japanese.
 (Shinichiro Abe)
