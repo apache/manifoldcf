@@ -4,6 +4,8 @@ $Id$
 
 ======================= Release 1.5.1 =====================
 
+CONNECTORS-882: Solr connector: Keep all metadata fixed.
+(Alessandro Benedetti, Karl Wright)
 
 ======================= Release 1.5 =====================
 
