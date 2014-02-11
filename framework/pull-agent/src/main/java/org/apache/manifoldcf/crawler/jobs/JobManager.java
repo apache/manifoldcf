@@ -37,6 +37,8 @@ public class JobManager implements IJobManager
   protected static final String expireStufferLock = "_EXPIRESTUFFER_";
   protected static final String cleanStufferLock = "_CLEANSTUFFER_";
   protected static final String jobStopLock = "_JOBSTOP_";
+  protected static final String jobResumeLock = "_JOBRESUME_";
+  protected static final String jobResetLock = "_JOBRESET_";
   protected static final String hopLock = "_HOPLOCK_";
 
   // Member variables
@@ -7243,36 +7245,44 @@ public class JobManager implements IJobManager
   public void finishJobResumes(long timestamp, ArrayList modifiedJobs)
     throws ManifoldCFException
   {
-    // Do the first query, getting the candidate jobs to be considered
-    StringBuilder sb = new StringBuilder("SELECT ");
-    ArrayList list = new ArrayList();
-        
-    sb.append(jobs.idField)
-      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
-      .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-        new MultiClause(jobs.statusField,new Object[]{
-          jobs.statusToString(jobs.STATUS_RESUMING),
-          jobs.statusToString(jobs.STATUS_RESUMINGSEEDING)
-          })}));
-        
-    IResultSet set = database.performQuery(sb.toString(),list,null,null);
-
-    int i = 0;
-    while (i < set.getRowCount())
+    lockManager.enterWriteLock(jobResumeLock);
+    try
     {
-      IResultRow row = set.getRow(i++);
-      Long jobID = (Long)row.getValue(jobs.idField);
-
-      // There are no secondary checks that need to be made; just resume
-      IJobDescription jobDesc = jobs.load(jobID,true);
-      modifiedJobs.add(jobDesc);
-
-      jobs.finishResumeJob(jobID,timestamp);
+    // Do the first query, getting the candidate jobs to be considered
+      StringBuilder sb = new StringBuilder("SELECT ");
+      ArrayList list = new ArrayList();
           
-      if (Logging.jobs.isDebugEnabled())
+      sb.append(jobs.idField)
+        .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+        .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+          new MultiClause(jobs.statusField,new Object[]{
+            jobs.statusToString(jobs.STATUS_RESUMING),
+            jobs.statusToString(jobs.STATUS_RESUMINGSEEDING)
+            })}));
+          
+      IResultSet set = database.performQuery(sb.toString(),list,null,null);
+
+      int i = 0;
+      while (i < set.getRowCount())
       {
-        Logging.jobs.debug("Resumed job "+jobID);
+        IResultRow row = set.getRow(i++);
+        Long jobID = (Long)row.getValue(jobs.idField);
+
+        // There are no secondary checks that need to be made; just resume
+        IJobDescription jobDesc = jobs.load(jobID,true);
+        modifiedJobs.add(jobDesc);
+
+        jobs.finishResumeJob(jobID,timestamp);
+            
+        if (Logging.jobs.isDebugEnabled())
+        {
+          Logging.jobs.debug("Resumed job "+jobID);
+        }
       }
+    }
+    finally
+    {
+      lockManager.leaveWriteLock(jobResumeLock);
     }
   }
 
@@ -7372,83 +7382,91 @@ public class JobManager implements IJobManager
   public void resetJobs(long currentTime, ArrayList resetJobs)
     throws ManifoldCFException
   {
-    // Query for all jobs that fulfill the criteria
-    // The query used to look like:
-    //
-    // SELECT id FROM jobs t0 WHERE status='D' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
-    //      t0.id=t1.jobid AND t1.status='P')
-    //
-    // Now, the query is broken up, for performance
-
-    // Do the first query, getting the candidate jobs to be considered
-    StringBuilder sb = new StringBuilder("SELECT ");
-    ArrayList list = new ArrayList();
-        
-    sb.append(jobs.idField).append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
-      .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-        new UnitaryClause(jobs.statusField,jobs.statusToString(jobs.STATUS_SHUTTINGDOWN))}));
-            
-    IResultSet set = database.performQuery(sb.toString(),list,null,null);
-
-    int i = 0;
-    while (i < set.getRowCount())
+    lockManager.enterWriteLock(jobResetLock);
+    try
     {
-      IResultRow row = set.getRow(i++);
-      Long jobID = (Long)row.getValue(jobs.idField);
+      // Query for all jobs that fulfill the criteria
+      // The query used to look like:
+      //
+      // SELECT id FROM jobs t0 WHERE status='D' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
+      //      t0.id=t1.jobid AND t1.status='P')
+      //
+      // Now, the query is broken up, for performance
 
-      // Check to be sure the job is a candidate for shutdown
-      sb = new StringBuilder("SELECT ");
-      list.clear();
+      // Do the first query, getting the candidate jobs to be considered
+      StringBuilder sb = new StringBuilder("SELECT ");
+      ArrayList list = new ArrayList();
           
-      sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
+      sb.append(jobs.idField).append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
         .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-          new UnitaryClause(jobQueue.jobIDField,jobID),
-          new MultiClause(jobQueue.statusField,new Object[]{
-            jobQueue.statusToString(jobQueue.STATUS_PURGATORY),
-            jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)})}))
-        .append(" ").append(database.constructOffsetLimitClause(0,1));
+          new UnitaryClause(jobs.statusField,jobs.statusToString(jobs.STATUS_SHUTTINGDOWN))}));
+              
+      IResultSet set = database.performQuery(sb.toString(),list,null,null);
 
-      IResultSet confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
-
-      if (confirmSet.getRowCount() > 0)
-        continue;
-
-      // The shutting-down phase is complete.  However, we need to check if there are any outstanding
-      // PENDING or PENDINGPURGATORY records before we can decide what to do.
-      sb = new StringBuilder("SELECT ");
-      list.clear();
-          
-      sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
-        .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-          new UnitaryClause(jobQueue.jobIDField,jobID),
-          new MultiClause(jobQueue.statusField,new Object[]{
-            jobQueue.statusToString(jobQueue.STATUS_PENDING),
-            jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)})}))
-        .append(" ").append(database.constructOffsetLimitClause(0,1));
-
-      confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
-
-      if (confirmSet.getRowCount() > 0)
+      int i = 0;
+      while (i < set.getRowCount())
       {
-        // This job needs to re-enter the active state.  Make that happen.
-        jobs.returnJobToActive(jobID);
-        if (Logging.jobs.isDebugEnabled())
-        {
-          Logging.jobs.debug("Job "+jobID+" is re-entering active state");
-        }
-      }
-      else
-      {
-        // This job should be marked as finished.
-        IJobDescription jobDesc = jobs.load(jobID,true);
-        resetJobs.add(jobDesc);
+        IResultRow row = set.getRow(i++);
+        Long jobID = (Long)row.getValue(jobs.idField);
+
+        // Check to be sure the job is a candidate for shutdown
+        sb = new StringBuilder("SELECT ");
+        list.clear();
             
-        jobs.finishJob(jobID,currentTime);
-        if (Logging.jobs.isDebugEnabled())
+        sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
+          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobQueue.jobIDField,jobID),
+            new MultiClause(jobQueue.statusField,new Object[]{
+              jobQueue.statusToString(jobQueue.STATUS_PURGATORY),
+              jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)})}))
+          .append(" ").append(database.constructOffsetLimitClause(0,1));
+
+        IResultSet confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
+
+        if (confirmSet.getRowCount() > 0)
+          continue;
+
+        // The shutting-down phase is complete.  However, we need to check if there are any outstanding
+        // PENDING or PENDINGPURGATORY records before we can decide what to do.
+        sb = new StringBuilder("SELECT ");
+        list.clear();
+            
+        sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
+          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobQueue.jobIDField,jobID),
+            new MultiClause(jobQueue.statusField,new Object[]{
+              jobQueue.statusToString(jobQueue.STATUS_PENDING),
+              jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)})}))
+          .append(" ").append(database.constructOffsetLimitClause(0,1));
+
+        confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
+
+        if (confirmSet.getRowCount() > 0)
         {
-          Logging.jobs.debug("Job "+jobID+" now completed");
+          // This job needs to re-enter the active state.  Make that happen.
+          jobs.returnJobToActive(jobID);
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Job "+jobID+" is re-entering active state");
+          }
+        }
+        else
+        {
+          // This job should be marked as finished.
+          IJobDescription jobDesc = jobs.load(jobID,true);
+          resetJobs.add(jobDesc);
+              
+          jobs.finishJob(jobID,currentTime);
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Job "+jobID+" now completed");
+          }
         }
       }
+    }
+    finally
+    {
+      lockManager.leaveWriteLock(jobResetLock);
     }
   }
 
