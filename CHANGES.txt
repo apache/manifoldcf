@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 1.5.1 =====================
 
+CONNECTORS-888: JobResetThread had issues when running on
+multiple agents processes.
+(Florian Schmedding, Karl Wright)
+
 CONNECTORS-887: Upgrade issues with MySQL.
 (Florian Schmedding, Karl Wright)
 
