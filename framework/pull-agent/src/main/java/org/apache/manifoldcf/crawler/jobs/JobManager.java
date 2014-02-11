@@ -36,6 +36,7 @@ public class JobManager implements IJobManager
   protected static final String deleteStufferLock = "_DELETESTUFFER_";
   protected static final String expireStufferLock = "_EXPIRESTUFFER_";
   protected static final String cleanStufferLock = "_CLEANSTUFFER_";
+  protected static final String jobStopLock = "_JOBSTOP_";
   protected static final String hopLock = "_HOPLOCK_";
 
   // Member variables
@@ -7573,72 +7574,80 @@ public class JobManager implements IJobManager
   public void finishJobStops(long timestamp, ArrayList modifiedJobs)
     throws ManifoldCFException
   {
-    // The query I used to emit was:
-    // SELECT jobid FROM jobs t0 WHERE t0.status='X' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
-    //              t0.id=t1.jobid AND t1.status IN ('A','F'))
-    // Now the query is broken up so that Postgresql behaves more efficiently.
-
-    // Do the first query, getting the candidate jobs to be considered
-    StringBuilder sb = new StringBuilder("SELECT ");
-    ArrayList list = new ArrayList();
-        
-    sb.append(jobs.idField)
-      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
-      .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-        new MultiClause(jobs.statusField,new Object[]{
-          jobs.statusToString(jobs.STATUS_ABORTING),
-          jobs.statusToString(jobs.STATUS_ABORTINGFORRESTART),
-          jobs.statusToString(jobs.STATUS_ABORTINGFORRESTARTMINIMAL),
-          jobs.statusToString(jobs.STATUS_ABORTINGSHUTTINGDOWN),
-          jobs.statusToString(jobs.STATUS_PAUSING),
-          jobs.statusToString(jobs.STATUS_PAUSINGSEEDING),
-          jobs.statusToString(jobs.STATUS_ACTIVEWAITING),
-          jobs.statusToString(jobs.STATUS_ACTIVEWAITINGSEEDING),
-          jobs.statusToString(jobs.STATUS_PAUSINGWAITING),
-          jobs.statusToString(jobs.STATUS_PAUSINGWAITINGSEEDING)
-          })}));
-        
-    IResultSet set = database.performQuery(sb.toString(),list,null,null);
-
-    int i = 0;
-    while (i < set.getRowCount())
+    lockManager.enterWriteLock(jobStopLock);
+    try
     {
-      IResultRow row = set.getRow(i++);
-      Long jobID = (Long)row.getValue(jobs.idField);
+      // The query I used to emit was:
+      // SELECT jobid FROM jobs t0 WHERE t0.status='X' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
+      //              t0.id=t1.jobid AND t1.status IN ('A','F'))
+      // Now the query is broken up so that Postgresql behaves more efficiently.
 
-      sb = new StringBuilder("SELECT ");
-      list.clear();
-
-      sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
+      // Do the first query, getting the candidate jobs to be considered
+      StringBuilder sb = new StringBuilder("SELECT ");
+      ArrayList list = new ArrayList();
+          
+      sb.append(jobs.idField)
+        .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
         .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-          new UnitaryClause(jobQueue.jobIDField,jobID),
-          new MultiClause(jobQueue.statusField,new Object[]{
-            jobQueue.statusToString(jobQueue.STATUS_ACTIVE),
-            jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY),
-            jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN),
-            jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
-            jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)})}))
-        .append(" ").append(database.constructOffsetLimitClause(0,1));
-
-      IResultSet confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
-
-      if (confirmSet.getRowCount() > 0)
-        continue;
-
-      // All the job's documents need to have their docpriority set to null, to clear dead wood out of the docpriority index.
-      // See CONNECTORS-290.
-      // We do this BEFORE updating the job state.
-      jobQueue.clearDocPriorities(jobID);
+          new MultiClause(jobs.statusField,new Object[]{
+            jobs.statusToString(jobs.STATUS_ABORTING),
+            jobs.statusToString(jobs.STATUS_ABORTINGFORRESTART),
+            jobs.statusToString(jobs.STATUS_ABORTINGFORRESTARTMINIMAL),
+            jobs.statusToString(jobs.STATUS_ABORTINGSHUTTINGDOWN),
+            jobs.statusToString(jobs.STATUS_PAUSING),
+            jobs.statusToString(jobs.STATUS_PAUSINGSEEDING),
+            jobs.statusToString(jobs.STATUS_ACTIVEWAITING),
+            jobs.statusToString(jobs.STATUS_ACTIVEWAITINGSEEDING),
+            jobs.statusToString(jobs.STATUS_PAUSINGWAITING),
+            jobs.statusToString(jobs.STATUS_PAUSINGWAITINGSEEDING)
+            })}));
           
-      IJobDescription jobDesc = jobs.load(jobID,true);
-      modifiedJobs.add(jobDesc);
+      IResultSet set = database.performQuery(sb.toString(),list,null,null);
 
-      jobs.finishStopJob(jobID,timestamp);
-          
-      if (Logging.jobs.isDebugEnabled())
+      int i = 0;
+      while (i < set.getRowCount())
       {
-        Logging.jobs.debug("Stopped job "+jobID);
+        IResultRow row = set.getRow(i++);
+        Long jobID = (Long)row.getValue(jobs.idField);
+
+        sb = new StringBuilder("SELECT ");
+        list.clear();
+
+        sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
+          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobQueue.jobIDField,jobID),
+            new MultiClause(jobQueue.statusField,new Object[]{
+              jobQueue.statusToString(jobQueue.STATUS_ACTIVE),
+              jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY),
+              jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN),
+              jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
+              jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)})}))
+          .append(" ").append(database.constructOffsetLimitClause(0,1));
+
+        IResultSet confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
+
+        if (confirmSet.getRowCount() > 0)
+          continue;
+
+        // All the job's documents need to have their docpriority set to null, to clear dead wood out of the docpriority index.
+        // See CONNECTORS-290.
+        // We do this BEFORE updating the job state.
+        jobQueue.clearDocPriorities(jobID);
+            
+        IJobDescription jobDesc = jobs.load(jobID,true);
+        modifiedJobs.add(jobDesc);
+
+        jobs.finishStopJob(jobID,timestamp);
+            
+        if (Logging.jobs.isDebugEnabled())
+        {
+          Logging.jobs.debug("Stopped job "+jobID);
+        }
       }
+    }
+    finally
+    {
+      lockManager.leaveWriteLock(jobStopLock);
     }
   }
 
