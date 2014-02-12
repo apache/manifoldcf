@@ -29,7 +29,7 @@
 
   <groupId>org.apache.manifoldcf</groupId>
   <artifactId>mcf-parent</artifactId>
-  <version>1.5-SNAPSHOT</version>
+  <version>1.6-SNAPSHOT</version>
 
   <name>ManifoldCF</name>
   <packaging>pom</packaging>
@@ -38,7 +38,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- dependency versions -->
     <junit.version>4.8.2</junit.version>
-    <powerMock.version>1.5.2</powerMock.version>
     <postgresql.version>9.1-901.jdbc4</postgresql.version>
     <mysql.version>5.1.18</mysql.version>
     <hsqldb.version>2.3.1</hsqldb.version>
@@ -53,6 +52,7 @@
     <httpcomponent.httpcore.version>4.2.5</httpcomponent.httpcore.version>
     <httpcomponent.httpmime.version>4.2.6</httpcomponent.httpmime.version>
     <solr.version>4.6.0</solr.version>
+    <noggit.version>0.5</noggit.version>
     <commons-el.version>1.0</commons-el.version>
     <commons-lang.version>2.6</commons-lang.version>
     <xalan.version>2.7.1</xalan.version>

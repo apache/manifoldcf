@@ -55,6 +55,8 @@ import java.util.*;
  * <tr><td>reseedtime</td><td>BIGINT</td><td></td></tr>
  * <tr><td>hopcountmode</td><td>CHAR(1)</td><td></td></tr>
  * <tr><td>processid</td><td>VARCHAR(16)</td><td></td></tr>
+ * <tr><td>failtime</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>failcount</td><td>BIGINT</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -96,12 +98,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public static final int STATUS_ABORTING = 18;                          // Aborting (not yet aborted because documents still being processed)
   public static final int STATUS_STARTINGUP = 19;                        // Loading the queue (will go into ACTIVE if successful, or INACTIVE if not)
   public static final int STATUS_STARTINGUPMINIMAL = 20;           // Loading the queue for minimal job run (will go into ACTIVE if successful, or INACTIVE if not)
-  public static final int STATUS_ABORTINGSTARTINGUP = 21;        // Will abort once the queue loading is complete
-  public static final int STATUS_ABORTINGSTARTINGUPMINIMAL = 22;  // Will abort once the queue loading is complete
   public static final int STATUS_READYFORSTARTUP = 23;             // Job is marked for minimal startup; startup thread has not taken it yet.
   public static final int STATUS_READYFORSTARTUPMINIMAL = 24;   // Job is marked for startup; startup thread has not taken it yet.
   public static final int STATUS_READYFORDELETE = 25;             // Job is marked for delete; delete thread has not taken it yet.
-  public static final int STATUS_ABORTINGSEEDING = 26;            // Same as aborting, but seeding process is currently active also.
   public static final int STATUS_ABORTINGFORRESTART = 27;       // Same as aborting, except after abort is complete startup will happen.
   public static final int STATUS_ABORTINGFORRESTARTMINIMAL = 28;  // Same as aborting, except after abort is complete startup will happen.
   public static final int STATUS_ABORTINGFORRESTARTSEEDING = 29;  // Seeding version of aborting for restart
@@ -112,6 +111,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public static final int STATUS_NOTIFYINGOFCOMPLETION = 34;    // Notifying connector of terminating job (either aborted, or finished)
   public static final int STATUS_DELETING = 35;                         // The job is deleting.
   public static final int STATUS_DELETESTARTINGUP = 36;         // The delete is starting up.
+  public static final int STATUS_ABORTINGSHUTTINGDOWN = 37;     // Aborting the cleanup phase.
   
   // These statuses have to do with whether a job has an installed underlying connector or not.
   // There are two reasons to have a special state here: (1) if the behavior of the crawler differs, or (2) if the
@@ -122,13 +122,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   // But, since there is no indication in the jobs table of an uninstalled connector for such jobs, the code which starts
   // jobs up (or otherwise would enter any state that has a corresponding special state) must check to see if the underlying
   // connector exists before deciding what state to put the job into.
-  public static final int STATUS_ACTIVE_UNINSTALLED = 37;               // Active, but repository connector not installed
-  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 38;   // Active and seeding, but repository connector not installed
-  public static final int STATUS_ACTIVE_NOOUTPUT = 39;                  // Active, but output connector not installed
-  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 40;       // Active and seeding, but output connector not installed
-  public static final int STATUS_ACTIVE_NEITHER = 41;                     // Active, but neither repository connector nor output connector installed
-  public static final int STATUS_ACTIVESEEDING_NEITHER = 42;          // Active and seeding, but neither repository connector nor output connector installed
-  public static final int STATUS_DELETING_NOOUTPUT = 43;                // Job is being deleted but there's no output connector installed
+  public static final int STATUS_ACTIVE_UNINSTALLED = 38;               // Active, but repository connector not installed
+  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 39;   // Active and seeding, but repository connector not installed
+  public static final int STATUS_ACTIVE_NOOUTPUT = 40;                  // Active, but output connector not installed
+  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 41;       // Active and seeding, but output connector not installed
+  public static final int STATUS_ACTIVE_NEITHER = 42;                     // Active, but neither repository connector nor output connector installed
+  public static final int STATUS_ACTIVESEEDING_NEITHER = 43;          // Active and seeding, but neither repository connector nor output connector installed
+  public static final int STATUS_DELETING_NOOUTPUT = 44;                // Job is being deleted but there's no output connector installed
 
   // Type field values
   public static final int TYPE_CONTINUOUS = IJobDescription.TYPE_CONTINUOUS;
@@ -188,7 +188,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public final static String hopcountModeField = "hopcountmode";
   /** Process id field, for keeping track of which process owns transient state */
   public final static String processIDField = "processid";
-  
+  /** When non-null, indicates the time that, when a ServiceInterruption occurs, the attempt will be considered to have actually failed */
+  public static final String failTimeField = "failtime";
+  /** When non-null, indicates the number of retries remaining, after which the attempt will be considered to have actually failed */
+  public static final String failCountField = "failcount";
+
   protected static Map statusMap;
   protected static Map typeMap;
   protected static Map startMap;
@@ -207,8 +211,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("X",new Integer(STATUS_ABORTING));
     statusMap.put("B",new Integer(STATUS_STARTINGUP));
     statusMap.put("b",new Integer(STATUS_STARTINGUPMINIMAL));
-    statusMap.put("Q",new Integer(STATUS_ABORTINGSTARTINGUP));
-    statusMap.put("q",new Integer(STATUS_ABORTINGSTARTINGUPMINIMAL));
     statusMap.put("C",new Integer(STATUS_READYFORSTARTUP));
     statusMap.put("c",new Integer(STATUS_READYFORSTARTUPMINIMAL));
     statusMap.put("E",new Integer(STATUS_READYFORDELETE));
@@ -220,13 +222,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("t",new Integer(STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL));
 
     statusMap.put("a",new Integer(STATUS_ACTIVESEEDING));
-    statusMap.put("x",new Integer(STATUS_ABORTINGSEEDING));
     statusMap.put("p",new Integer(STATUS_PAUSEDSEEDING));
     statusMap.put("w",new Integer(STATUS_ACTIVEWAITSEEDING));
     statusMap.put("z",new Integer(STATUS_PAUSEDWAITSEEDING));
     statusMap.put("y",new Integer(STATUS_ABORTINGFORRESTARTSEEDING));
     statusMap.put("m",new Integer(STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL));
-
+    statusMap.put("v",new Integer(STATUS_ABORTINGSHUTTINGDOWN));
+    
     statusMap.put("H",new Integer(STATUS_ACTIVEWAITING));
     statusMap.put("h",new Integer(STATUS_ACTIVEWAITINGSEEDING));
     statusMap.put("F",new Integer(STATUS_PAUSING));
@@ -260,34 +262,62 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     hopmodeMap.put("V",new Integer(HOPCOUNT_NEVERDELETE));
   }
 
-  /*
-  protected static Set<Integer> transientStates;
-  static
-  {
-    transientStates = new HashSet<Integer>();
-    transientStates.add(new Integer(STATUS_DELETESTARTINGUP));
-    transientStates.add(new Integer(STATUS_NOTIFYINGOFCOMPLETION));
-    transientStates.add(new Integer(STATUS_STARTINGUP));
-    transientStates.add(new Integer(STATUS_ABORTINGSTARTINGUP));
-    transientStates.add(new Integer(STATUS_STARTINGUPMINIMAL));
-    transientStates.add(new Integer(STATUS_ABORTINGSTARTINGUPMINIMAL));
-    transientStates.add(new Integer(STATUS_ABORTINGSTARTINGUPFORRESTART));
-    transientStates.add(new Integer(STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL));
-    transientStates.add(new Integer(STATUS_ACTIVESEEDING));
-    transientStates.add(new Integer(STATUS_PAUSINGSEEDING));
-    transientStates.add(new Integer(STATUS_ACTIVEWAITINGSEEDING));
-    transientStates.add(new Integer(STATUS_PAUSINGWAITINGSEEDING));
-    transientStates.add(new Integer(STATUS_RESUMINGSEEDING));
-    transientStates.add(new Integer(STATUS_ABORTINGSEEDING));
-    transientStates.add(new Integer(STATUS_ABORTINGFORRESTARTSEEDING));
-    transientStates.add(new Integer(STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL));
-    transientStates.add(new Integer(STATUS_PAUSEDSEEDING));
-    transientStates.add(new Integer(STATUS_ACTIVEWAITSEEDING));
-    transientStates.add(new Integer(STATUS_PAUSEDWAITSEEDING));
-    transientStates.add(new Integer(STATUS_ACTIVESEEDING_UNINSTALLED));
-    transientStates.add(new Integer(STATUS_ACTIVESEEDING_NOOUTPUT));
-    transientStates.add(new Integer(STATUS_ACTIVESEEDING_NEITHER));
-  }
+  /* Transient vs. non-transient states
+  *==================================
+  * There are two kinds of states.  The first kind of state is that which is considered permanent; if the
+  * whole world restarts, the state would not change.  Such states reflect the underlying status of the job.
+  * The second kind of state is that which is clearly transient but is attached to a given process.  So if the
+  * process is killed, the job should leave the transient state and return to a permanent state.  For example,
+  * when a given thread decided to undertake seeding, the job is annotated with the process ID of the thread
+  * that is performing the seeding operation.  These states are called process-transient.
+  *
+  * The permanent states are:
+  * STATUS_INACTIVE
+  * STATUS_ACTIVE
+  * STATUS_ACTIVEWAIT
+  * STATUS_PAUSEDWAIT
+  * STATUS_PAUSED
+  * STATUS_READYFORNOTIFY
+  * STATUS_READYFORDELETE
+  * STATUS_DELETING
+  * STATUS_READYFORSTARTUP
+  * STATUS_READYFORSTARTUPMINIMAL
+  * STATUS_SHUTTINGDOWN
+  * STATUS_ABORTINGFORRESTART
+  * STATUS_ABORTINGFORRESTARTMINIMAL
+  * STATUS_ACTIVE_UNINSTALLED
+  * STATUS_ACTIVE_NOOUTPUT
+  * STATUS_ACTIVE_NEITHER
+  * STATUS_DELETING_NOOUTPUT
+  * STATUS_ABORTING
+  * STATUS_ACTIVEWAITING
+  * STATUS_PAUSING
+  * STATUS_PAUSINGWAITING
+  * STATUS_RESUMING
+  * STATUS_ABORTINGSHUTTINGDOWN
+  *  
+  * These are the process-transient states:
+  * STATUS_DELETESTARTINGUP
+  * STATUS_NOTIFYINGOFCOMPLETION
+  * STATUS_STARTINGUP
+  * STATUS_STARTINGUPMINIMAL
+  * STATUS_ABORTINGSTARTINGUPFORRESTART
+  * STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL
+  * STATUS_ACTIVEWAITINGSEEDING
+  * STATUS_ACTIVEWAITSEEDING
+  * STATUS_ACTIVESEEDING
+  * STATUS_PAUSINGSEEDING
+  * STATUS_PAUSINGWAITINGSEEDING
+  * STATUS_PAUSEDSEEDING
+  * STATUS_PAUSEDWAITSEEDING
+  * STATUS_RESUMINGSEEDING
+  * STATUS_ABORTINGFORRESTARTSEEDING
+  * STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL
+  * STATUS_ACTIVESEEDING_UNINSTALLED
+  * STATUS_ACTIVESEEDING_NOOUTPUT
+  * STATUS_ACTIVESEEDING_NEITHER
+  *
+  *
   */
   
   // Local variables
@@ -354,6 +384,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         map.put(reseedTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(hopcountModeField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
         map.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
+        map.put(failTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
+        map.put(failCountField,new ColumnDescription("BIGINT",false,true,null,null,false));
         performCreate(map,null);
       }
       else
@@ -371,6 +403,18 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           insertMap.put(maxIntervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
           performAlter(insertMap,null,null,null);
         }
+        if (existing.get(failTimeField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(failTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+        }
+        if (existing.get(failCountField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(failCountField,new ColumnDescription("BIGINT",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+        }
       }
 
       // Handle related tables
@@ -383,6 +427,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       IndexDescription statusProcessIndex = new IndexDescription(false,new String[]{statusField,processIDField});
       IndexDescription connectionIndex = new IndexDescription(false,new String[]{connectionNameField});
       IndexDescription outputIndex = new IndexDescription(false,new String[]{outputNameField});
+      IndexDescription failTimeIndex = new IndexDescription(false,new String[]{failTimeField});
 
       // Get rid of indexes that shouldn't be there
       Map indexes = getTableIndexes(null,null);
@@ -400,6 +445,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           connectionIndex = null;
         else if (outputIndex != null && id.equals(outputIndex))
           outputIndex = null;
+        else if (failTimeIndex != null && id.equals(failTimeIndex))
+          failTimeIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
           // This index shouldn't be here; drop it
           performRemoveIndex(indexName);
@@ -414,6 +461,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         performAddIndex(null,connectionIndex);
       if (outputIndex != null)
         performAddIndex(null,outputIndex);
+      if (failTimeIndex != null)
+        performAddIndex(null,failTimeIndex);
 
       break;
 
@@ -928,14 +977,15 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
     map.put(processIDField,null);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
 
     // Starting up or aborting starting up goes back to just being ready
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
-        statusToString(STATUS_STARTINGUP),
-        statusToString(STATUS_ABORTINGSTARTINGUP)}),
+        statusToString(STATUS_STARTINGUP)}),
       new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
     map.put(processIDField,null);
@@ -945,8 +995,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
-        statusToString(STATUS_STARTINGUPMINIMAL),
-        statusToString(STATUS_ABORTINGSTARTINGUPMINIMAL)}),
+        statusToString(STATUS_STARTINGUPMINIMAL)}),
       new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
     map.put(processIDField,null);
@@ -1004,13 +1053,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(statusField,statusToString(STATUS_RESUMINGSEEDING)),
       new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_RESUMING));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSEEDING)),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ABORTING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
@@ -1081,7 +1123,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     HashMap map = new HashMap();
     String query;
-      
+    
+    // All jobs with non-null failTime and failCount get set to null failTime and failCount
+    
     // Starting up delete goes back to just being ready for delete
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_DELETESTARTINGUP))});
@@ -1101,8 +1145,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
-        statusToString(STATUS_STARTINGUP),
-        statusToString(STATUS_ABORTINGSTARTINGUP)})});
+        statusToString(STATUS_STARTINGUP)})});
     map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
@@ -1111,8 +1154,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
-        statusToString(STATUS_STARTINGUPMINIMAL),
-        statusToString(STATUS_ABORTINGSTARTINGUPMINIMAL)})});
+        statusToString(STATUS_STARTINGUPMINIMAL)})});
     map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
@@ -1162,12 +1204,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_RESUMINGSEEDING))});
     map.put(statusField,statusToString(STATUS_RESUMING));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSEEDING))});
-    map.put(statusField,statusToString(STATUS_ABORTING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
@@ -1224,7 +1260,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void restartCluster()
     throws ManifoldCFException
   {
-    // Does nothing
+    HashMap map = new HashMap();
+    map.put(failTimeField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new NullCheckClause(failTimeField,false)});
+    performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Signal to a job that its underlying output connector has gone away.
@@ -1490,6 +1531,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
     map.put(processIDField,null);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
 
   }
@@ -1518,16 +1561,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(statusField,statusToString(STATUS_STARTINGUPMINIMAL)),
       new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
-
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new MultiClause(statusField,new Object[]{
-        statusToString(STATUS_ABORTINGSTARTINGUP),
-        statusToString(STATUS_ABORTINGSTARTINGUPMINIMAL)}),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ABORTING));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
 
@@ -1596,13 +1629,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSEEDING)),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ABORTING));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGFORRESTARTSEEDING)),
       new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_ABORTINGFORRESTART));
@@ -1660,7 +1686,158 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
+  /** Retry startup.
+  *@param jobID is the job identifier.
+  *@param requestMinimum is true for a minimal crawl.
+  *@param failTime is the fail time, -1 == none
+  *@param failCount is the fail count to use, -1 == none.
+  */
+  public void retryStartup(Long jobID, boolean requestMinimum, long failTime, int failCount)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    HashMap map = new HashMap();
+    if (requestMinimum)
+      map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
+    else
+      map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
+    if (failTime == -1L)
+      map.put(failTimeField,null);
+    else
+      map.put(failTimeField,new Long(failTime));
+    if (failCount == -1)
+      map.put(failCountField,null);
+    else
+      map.put(failCountField,failCount);
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+  }
 
+  /** Retry seeding.
+  *@param jobID is the job identifier.
+  *@param failTime is the fail time, -1 == none
+  *@param failCount is the fail count to use, -1 == none.
+  */
+  public void retrySeeding(Long jobID, long failTime, int failCount)
+    throws ManifoldCFException
+  {
+    beginTransaction();
+    try
+    {
+      ArrayList list = new ArrayList();
+      String query = buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(idField,jobID)});
+      // Map the field values we see to those we want.
+      // This is exactly equivalent to finishing seeding, except for fail time etc.
+      IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+" WHERE "+
+        query+" FOR UPDATE",list,null,null);
+      if (set.getRowCount() == 0)
+        throw new ManifoldCFException("Can't find job "+jobID.toString());
+      IResultRow row = set.getRow(0);
+      int status = stringToStatus((String)row.getValue(statusField));
+      int newStatus;
+      switch (status)
+      {
+      case STATUS_ACTIVESEEDING:
+        newStatus = STATUS_ACTIVE;
+        break;
+      case STATUS_PAUSINGSEEDING:
+        newStatus = STATUS_PAUSING;
+        break;
+      case STATUS_ACTIVEWAITINGSEEDING:
+        newStatus = STATUS_ACTIVEWAITING;
+        break;
+      case STATUS_PAUSINGWAITINGSEEDING:
+        newStatus = STATUS_PAUSINGWAITING;
+        break;
+      case STATUS_ACTIVESEEDING_UNINSTALLED:
+        newStatus = STATUS_ACTIVE_UNINSTALLED;
+        break;
+      case STATUS_ACTIVESEEDING_NOOUTPUT:
+        newStatus = STATUS_ACTIVE_NOOUTPUT;
+        break;
+      case STATUS_ACTIVESEEDING_NEITHER:
+        newStatus = STATUS_ACTIVE_NEITHER;
+        break;
+      case STATUS_ACTIVEWAITSEEDING:
+        newStatus = STATUS_ACTIVEWAIT;
+        break;
+      case STATUS_PAUSEDSEEDING:
+        newStatus = STATUS_PAUSED;
+        break;
+      case STATUS_PAUSEDWAITSEEDING:
+        newStatus = STATUS_PAUSEDWAIT;
+        break;
+      case STATUS_ABORTINGFORRESTARTSEEDING:
+        newStatus = STATUS_ABORTINGFORRESTART;
+        break;
+      case STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL:
+        newStatus = STATUS_ABORTINGFORRESTARTMINIMAL;
+        break;
+      default:
+        throw new ManifoldCFException("Unexpected job status encountered: "+Integer.toString(status));
+      }
+      HashMap map = new HashMap();
+      map.put(statusField,statusToString(newStatus));
+      if (failTime == -1L)
+        map.put(failTimeField,null);
+      else
+        map.put(failTimeField,new Long(failTime));
+      if (failCount == -1)
+        map.put(failCountField,null);
+      else
+        map.put(failCountField,failCount);
+      map.put(processIDField,null);
+      performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (RuntimeException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
+  }
+
+  /** Retry notification.
+  *@param jobID is the job identifier.
+  *@param failTime is the fail time, -1 == none
+  *@param failCount is the fail count to use, -1 == none.
+  */
+  public void retryNotification(Long jobID, long failTime, int failCount)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
+    if (failTime == -1L)
+      map.put(failTimeField,null);
+    else
+      map.put(failTimeField,new Long(failTime));
+    if (failCount == -1)
+      map.put(failCountField,null);
+    else
+      map.put(failCountField,failCount);
+    map.put(processIDField,null);
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+  }
+  
   /** Write job status and window end, and clear the endtime field.  (The start time will be written
   * when the job enters the "active" state.)
   *@param jobID is the job identifier.
@@ -1734,6 +1911,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       signalRollback();
       throw e;
     }
+    catch (RuntimeException e)
+    {
+      signalRollback();
+      throw e;
+    }
     catch (Error e)
     {
       signalRollback();
@@ -1792,6 +1974,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       signalRollback();
       throw e;
     }
+    catch (RuntimeException e)
+    {
+      signalRollback();
+      throw e;
+    }
     catch (Error e)
     {
       signalRollback();
@@ -1842,10 +2029,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
             newStatus = STATUS_ACTIVE_NEITHER;
         }
         break;
-      case STATUS_ABORTINGSTARTINGUP:
-      case STATUS_ABORTINGSTARTINGUPMINIMAL:
-        newStatus = STATUS_ABORTING;
-        break;
       case STATUS_ABORTINGSTARTINGUPFORRESTART:
         newStatus = STATUS_ABORTINGFORRESTART;
         break;
@@ -1866,9 +2049,18 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       }
       // The seeding was complete or we wouldn't have gotten called, so at least note that.
       map.put(lastCheckTimeField,new Long(startTime));
+      // Clear out the retry fields we might have set
+      map.put(failTimeField,null);
+      map.put(failCountField,null);
+      map.put(processIDField,null);
       performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
     }
     catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (RuntimeException e)
     {
       signalRollback();
       throw e;
@@ -1937,9 +2129,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       case STATUS_PAUSEDWAITSEEDING:
         newStatus = STATUS_PAUSEDWAIT;
         break;
-      case STATUS_ABORTINGSEEDING:
-        newStatus = STATUS_ABORTING;
-        break;
       case STATUS_ABORTINGFORRESTARTSEEDING:
         newStatus = STATUS_ABORTINGFORRESTART;
         break;
@@ -1951,10 +2140,18 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       }
       HashMap map = new HashMap();
       map.put(statusField,statusToString(newStatus));
+      map.put(processIDField,null);
       map.put(lastCheckTimeField,new Long(seedTime));
+      map.put(failTimeField,null);
+      map.put(failCountField,null);
       performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
     }
     catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (RuntimeException e)
     {
       signalRollback();
       throw e;
@@ -2023,19 +2220,25 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       throw new ManifoldCFException("Job does not exist: "+jobID);
     IResultRow row = set.getRow(0);
     int status = stringToStatus(row.getValue(statusField).toString());
-    if (status == STATUS_ABORTING || status == STATUS_ABORTINGSEEDING ||
-      status == STATUS_ABORTINGSTARTINGUP || status == STATUS_ABORTINGSTARTINGUPMINIMAL)
+    if (status == STATUS_ABORTING ||
+      status == STATUS_ABORTINGSHUTTINGDOWN)
       return false;
     int newStatus;
     switch (status)
     {
+    case STATUS_NOTIFYINGOFCOMPLETION:
+      newStatus = STATUS_INACTIVE;
+      break;
     case STATUS_STARTINGUP:
     case STATUS_ABORTINGSTARTINGUPFORRESTART:
-      newStatus = STATUS_ABORTINGSTARTINGUP;
+      newStatus = STATUS_ABORTING;
       break;
     case STATUS_STARTINGUPMINIMAL:
     case STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:
-      newStatus = STATUS_ABORTINGSTARTINGUPMINIMAL;
+      newStatus = STATUS_ABORTING;
+      break;
+    case STATUS_SHUTTINGDOWN:
+      newStatus = STATUS_ABORTINGSHUTTINGDOWN;
       break;
     case STATUS_READYFORSTARTUP:
     case STATUS_READYFORSTARTUPMINIMAL:
@@ -2065,7 +2268,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_PAUSEDWAITSEEDING:
     case STATUS_ABORTINGFORRESTARTSEEDING:
     case STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL:
-      newStatus = STATUS_ABORTINGSEEDING;
+      newStatus = STATUS_ABORTING;
       break;
     default:
       throw new ManifoldCFException("Job "+jobID+" is not active");
@@ -2074,6 +2277,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(newStatus));
     map.put(errorField,errorText);
+    map.put(processIDField,null);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
     return true;
   }
@@ -2244,7 +2450,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void writeTransientStatus(Long jobID, int status, Long reseedTime, String processID)
     throws ManifoldCFException
   {
-    writeStatus(jobID, status, reseedTime, processID);
+    writeStatus(jobID, status, reseedTime, processID, false);
   }
 
   /** Update a job's status, and its reseed time.
@@ -2255,7 +2461,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void writePermanentStatus(Long jobID, int status, Long reseedTime)
     throws ManifoldCFException
   {
-    writeStatus(jobID, status, reseedTime, null);
+    writeStatus(jobID, status, reseedTime, null, false);
   }
 
   /** Update a job's status, and its reseed time.
@@ -2263,7 +2469,18 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   *@param status is the desired status.
   *@param reseedTime is the reseed time.
   */
-  protected void writeStatus(Long jobID, int status, Long reseedTime, String processID)
+  public void writePermanentStatus(Long jobID, int status, Long reseedTime, boolean clearFailTime)
+    throws ManifoldCFException
+  {
+    writeStatus(jobID, status, reseedTime, null, clearFailTime);
+  }
+
+  /** Update a job's status, and its reseed time.
+  *@param jobID is the job id.
+  *@param status is the desired status.
+  *@param reseedTime is the reseed time.
+  */
+  protected void writeStatus(Long jobID, int status, Long reseedTime, String processID, boolean clearFailTime)
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
@@ -2273,6 +2490,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     map.put(statusField,statusToString(status));
     map.put(processIDField,processID);
     map.put(reseedTimeField,reseedTime);
+    if (clearFailTime)
+    {
+      map.put(failTimeField,null);
+      map.put(failCountField,null);
+    }
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }
 
@@ -2283,7 +2505,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void writeTransientStatus(Long jobID, int status, String processID)
     throws ManifoldCFException
   {
-    writeStatus(jobID, status, processID);
+    writeStatus(jobID, status, processID, false);
   }
   
   /** Update a job's status.
@@ -2293,14 +2515,24 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void writePermanentStatus(Long jobID, int status)
     throws ManifoldCFException
   {
-    writeStatus(jobID, status, null);
+    writeStatus(jobID, status, null, false);
   }
 
   /** Update a job's status.
   *@param jobID is the job id.
   *@param status is the desired status.
   */
-  protected void writeStatus(Long jobID, int status, String processID)
+  public void writePermanentStatus(Long jobID, int status, boolean clearFailTime)
+    throws ManifoldCFException
+  {
+    writeStatus(jobID, status, null, clearFailTime);
+  }
+
+  /** Update a job's status.
+  *@param jobID is the job id.
+  *@param status is the desired status.
+  */
+  protected void writeStatus(Long jobID, int status, String processID, boolean clearFailTime)
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
@@ -2309,6 +2541,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(status));
     map.put(processIDField,processID);
+    if (clearFailTime)
+    {
+      map.put(failTimeField,null);
+      map.put(failCountField,null);
+    }
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }
 
@@ -2523,6 +2760,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_INACTIVE));
     map.put(processIDField,null);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
     // Leave everything else around from the abort/finish.
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }
@@ -2713,10 +2952,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       return "B";
     case STATUS_STARTINGUPMINIMAL:
       return "b";
-    case STATUS_ABORTINGSTARTINGUP:
-      return "Q";
-    case STATUS_ABORTINGSTARTINGUPMINIMAL:
-      return "q";
     case STATUS_ABORTINGSTARTINGUPFORRESTART:
       return "T";
     case STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:
@@ -2733,8 +2968,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       return "e";
     case STATUS_ACTIVESEEDING:
       return "a";
-    case STATUS_ABORTINGSEEDING:
-      return "x";
     case STATUS_PAUSEDSEEDING:
       return "p";
     case STATUS_ACTIVEWAITSEEDING:
@@ -2776,6 +3009,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       return "I";
     case STATUS_RESUMINGSEEDING:
       return "i";
+
+    case STATUS_ABORTINGSHUTTINGDOWN:
+      return "v";
 
     default:
       throw new ManifoldCFException("Bad status value: "+Integer.toString(status));

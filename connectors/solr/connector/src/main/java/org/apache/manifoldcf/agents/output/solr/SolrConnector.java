@@ -661,8 +661,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     index = unpackList(nameValues,outputDescription,index,'+');
     ArrayList sts = new ArrayList();
     index = unpackList(sts,outputDescription,index,'+');
-    ArrayList metadataExtraParams = new ArrayList();
-    index = unpackList(metadataExtraParams, outputDescription, index, '+');
+    // extract keep all metadata Flag
+    boolean keepAllMetadata = true;
+    if (index < outputDescription.length())
+    {
+      keepAllMetadata = (outputDescription.charAt(index++) == '+');
+    }
     String[] fixedBuffer = new String[2];
     
     // Do the name/value pairs
@@ -696,13 +700,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       list.add(target);
     }
 
-    // extract keep all metadata Flag
-    boolean keepAllMetadata = true;
-    if (index < outputDescription.length())
-    {
-      keepAllMetadata = (outputDescription.charAt(index++) == '+');
-    }
-    
+
     // Establish a session
     getSession();
 
@@ -853,13 +851,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  }\n"+
 "  if (editconnection.removepath.value != \"\" && editconnection.removepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.RemovePathMustStartWACharacter")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.RemovePathMustStartWithACharacter")+"\");\n"+
 "    editconnection.removepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.statuspath.value != \"\" && editconnection.statuspath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.StatusPathMustStartWACharacter")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.StatusPathMustStartWithACharacter")+"\");\n"+
 "    editconnection.statuspath.focus();\n"+
 "    return false;\n"+
 "  }\n"+

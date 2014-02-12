@@ -421,7 +421,7 @@ public class Throttler
     * are available in the current pool, across all bins.
     *@return the IConnectionThrottler codes for results.
     */
-    public int waitConnectionAvailable(String[] binNames, AtomicInteger poolCount)
+    public int waitConnectionAvailable(String[] binNames, AtomicInteger[] poolCounts)
       throws InterruptedException
     {
       // Each bin can signal something different.  Bins that signal
@@ -453,9 +453,33 @@ public class Throttler
           if (bin != null)
           {
             // Reserve a slot
-            int result = bin.waitConnectionAvailable(poolCount);
-            if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE ||
-              (currentRecommendation != IConnectionThrottler.CONNECTION_FROM_NOWHERE && currentRecommendation != result))
+            int result;
+            try
+            {
+              result = bin.waitConnectionAvailable(poolCounts[i]);
+            }
+            catch (Throwable e)
+            {
+              while (i > 0)
+              {
+                i--;
+                binName = binNames[i];
+                synchronized (connectionBins)
+                {
+                  bin = connectionBins.get(binName);
+                }
+                if (bin != null)
+                  bin.undoReservation(currentRecommendation, poolCounts[i]);
+              }
+              if (e instanceof InterruptedException)
+                throw (InterruptedException)e;
+              if (e instanceof Error)
+                throw (Error)e;
+              if (e instanceof RuntimeException)
+                throw (RuntimeException)e;
+              throw new RuntimeException("Unexpected exception of type '"+e.getClass().getName()+"': "+e.getMessage(),e);
+            }
+            if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
             {
               // Release previous reservations, and either return, or retry
               while (i > 0)
@@ -467,14 +491,32 @@ public class Throttler
                   bin = connectionBins.get(binName);
                 }
                 if (bin != null)
-                  bin.undoReservation(currentRecommendation, poolCount);
+                  bin.undoReservation(currentRecommendation, poolCounts[i]);
               }
-              if (result == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
-                return result;
+              return result;
+            }
+
+            if (currentRecommendation != IConnectionThrottler.CONNECTION_FROM_NOWHERE && currentRecommendation != result)
+            {
+              // Release all previous reservations, including this one, and either return, or retry
+              bin.undoReservation(result, poolCounts[i]);
+              while (i > 0)
+              {
+                i--;
+                binName = binNames[i];
+                synchronized (connectionBins)
+                {
+                  bin = connectionBins.get(binName);
+                }
+                if (bin != null)
+                  bin.undoReservation(currentRecommendation, poolCounts[i]);
+              }
+
               // Break out of the outer loop so we can retry
               retry = true;
               break;
             }
+
             if (currentRecommendation == IConnectionThrottler.CONNECTION_FROM_NOWHERE)
               currentRecommendation = result;
           }
@@ -531,7 +573,7 @@ public class Throttler
       }
     }
     
-    public boolean checkDestroyPooledConnection(String[] binNames, AtomicInteger poolCount)
+    public boolean checkDestroyPooledConnection(String[] binNames, AtomicInteger[] poolCounts)
     {
       // Only if all believe we can destroy a pool connection, will we do it.
       // This is because some pools may be empty, etc.
@@ -546,7 +588,7 @@ public class Throttler
           ConnectionBin bin = connectionBins.get(binName);
           if (bin != null)
           {
-            int result = bin.shouldPooledConnectionBeDestroyed(poolCount);
+            int result = bin.shouldPooledConnectionBeDestroyed(poolCounts[i]);
             if (result == ConnectionBin.CONNECTION_POOLEMPTY)
             {
               // Give up now, and undo all the other bins
@@ -555,7 +597,7 @@ public class Throttler
                 i--;
                 binName = binNames[i];
                 bin = connectionBins.get(binName);
-                bin.undoPooledConnectionDecision(poolCount);
+                bin.undoPooledConnectionDecision(poolCounts[i]);
               }
               return false;
             }
@@ -571,11 +613,11 @@ public class Throttler
           return true;
         
         // Undo pool reservation, since everything is apparently within bounds.
-        for (String binName : binNames)
+        for (int j = 0; j < binNames.length; j++)
         {
-          ConnectionBin bin = connectionBins.get(binName);
+          ConnectionBin bin = connectionBins.get(binNames[j]);
           if (bin != null)
-            bin.undoPooledConnectionDecision(poolCount);
+            bin.undoPooledConnectionDecision(poolCounts[j]);
         }
         
         return false;
@@ -594,7 +636,7 @@ public class Throttler
     *@return true if a connection from the pool can be expired.  If true is returned, noteConnectionDestruction()
     *  MUST be called once the connection has actually been destroyed.
     */
-    public boolean checkExpireConnection(String[] binNames, AtomicInteger poolCount)
+    public boolean checkExpireConnection(String[] binNames, AtomicInteger[] poolCounts)
     {
       synchronized (connectionBins)
       {
@@ -605,7 +647,7 @@ public class Throttler
           ConnectionBin bin = connectionBins.get(binName);
           if (bin != null)
           {
-            if (!bin.hasPooledConnection(poolCount))
+            if (!bin.hasPooledConnection(poolCounts[i]))
             {
               // Give up now, and undo all the other bins
               while (i > 0)
@@ -613,7 +655,7 @@ public class Throttler
                 i--;
                 binName = binNames[i];
                 bin = connectionBins.get(binName);
-                bin.undoPooledConnectionDecision(poolCount);
+                bin.undoPooledConnectionDecision(poolCounts[i]);
               }
               return false;
             }
@@ -624,15 +666,15 @@ public class Throttler
       }
     }
 
-    public void noteConnectionReturnedToPool(String[] binNames, AtomicInteger poolCount)
+    public void noteConnectionReturnedToPool(String[] binNames, AtomicInteger[] poolCounts)
     {
       synchronized (connectionBins)
       {
-        for (String binName : binNames)
+        for (int j = 0; j < binNames.length; j++)
         {
-          ConnectionBin bin = connectionBins.get(binName);
+          ConnectionBin bin = connectionBins.get(binNames[j]);
           if (bin != null)
-            bin.noteConnectionReturnedToPool(poolCount);
+            bin.noteConnectionReturnedToPool(poolCounts[j]);
         }
       }
     }
@@ -922,16 +964,17 @@ public class Throttler
   {
     protected final ThrottlingGroup parent;
     protected final String[] binNames;
+    protected final AtomicInteger[] poolCounts;
     
     // Keep track of local pool parameters.
-
-    /** This is the number of connections in the pool, times the number of bins per connection */
-    protected final AtomicInteger poolCount = new AtomicInteger(0);
 
     public ConnectionThrottler(ThrottlingGroup parent, String[] binNames)
     {
       this.parent = parent;
       this.binNames = binNames;
+      this.poolCounts = new AtomicInteger[binNames.length];
+      for (int i = 0; i < poolCounts.length; i++)
+        poolCounts[i] = new AtomicInteger(0);
     }
     
     /** Get permission to grab a connection for use.  If this object believes there is a connection
@@ -945,7 +988,7 @@ public class Throttler
     public int waitConnectionAvailable()
       throws InterruptedException
     {
-      return parent.waitConnectionAvailable(binNames, poolCount);
+      return parent.waitConnectionAvailable(binNames, poolCounts);
     }
     
     /** For a new connection, obtain the fetch throttler to use for the connection.
@@ -981,7 +1024,7 @@ public class Throttler
     @Override
     public boolean checkDestroyPooledConnection()
     {
-      return parent.checkDestroyPooledConnection(binNames, poolCount);
+      return parent.checkDestroyPooledConnection(binNames, poolCounts);
     }
     
     /** Connection expiration is tricky, because even though a connection may be identified as
@@ -998,7 +1041,7 @@ public class Throttler
     @Override
     public boolean checkExpireConnection()
     {
-      return parent.checkExpireConnection(binNames, poolCount);
+      return parent.checkExpireConnection(binNames, poolCounts);
     }
     
     /** Note that a connection has been returned to the pool.  Call this method after a connection has been
@@ -1007,7 +1050,7 @@ public class Throttler
     @Override
     public void noteConnectionReturnedToPool()
     {
-      parent.noteConnectionReturnedToPool(binNames, poolCount);
+      parent.noteConnectionReturnedToPool(binNames, poolCounts);
     }
 
     /** Note that a connection has been destroyed.  Call this method ONLY after noteReturnedConnection()

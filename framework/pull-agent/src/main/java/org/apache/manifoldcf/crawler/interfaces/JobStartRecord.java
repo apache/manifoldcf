@@ -29,14 +29,20 @@ public class JobStartRecord extends JobRecord
   protected final long synchTime;
   /** The requestMinimum flag */
   protected final boolean requestMinimum;
+  /** The fail time, or -1L if none */
+  protected final long failTime;
+  /** The fail count, or -1 if none */
+  protected final int failRetryCount;
 
   /** Constructor.
   */
-  public JobStartRecord(Long jobID, long synchTime, boolean requestMinimum)
+  public JobStartRecord(Long jobID, long synchTime, boolean requestMinimum, long failTime, int failRetryCount)
   {
     super(jobID);
     this.synchTime = synchTime;
     this.requestMinimum = requestMinimum;
+    this.failTime = failTime;
+    this.failRetryCount = failRetryCount;
   }
 
   /** Get the synch time.
@@ -55,4 +61,20 @@ public class JobStartRecord extends JobRecord
     return requestMinimum;
   }
   
+  /** Get the hard fail time.
+  *@return the fail time in ms since epoch, or -1L if none.
+  */
+  public long getFailTime()
+  {
+    return failTime;
+  }
+
+  /** Get the hard fail retry count.
+  *@return the fail retry count, or -1 if none.
+  */
+  public int getFailRetryCount()
+  {
+    return failRetryCount;
+  }
+
 }

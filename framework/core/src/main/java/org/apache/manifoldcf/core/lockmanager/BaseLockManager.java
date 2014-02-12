@@ -41,6 +41,9 @@ public class BaseLockManager implements ILockManager
   protected final static int TYPE_WRITENONEX = 2;
   protected final static int TYPE_WRITE = 3;
 
+  // This is the local thread ID
+  protected final Long threadID;
+  
   // These are for locks which putatitively cross JVM boundaries.
   // In this implementation, they ar strictly local, and are distinct from sections
   // just because of the namespace issues.
@@ -60,6 +63,7 @@ public class BaseLockManager implements ILockManager
   public BaseLockManager()
     throws ManifoldCFException
   {
+    threadID = new Long(Thread.currentThread().getId());
   }
 
   // Node synchronization
@@ -734,14 +738,14 @@ public class BaseLockManager implements ILockManager
   public final void enterNonExWriteLock(String lockKey)
     throws ManifoldCFException
   {
-    enterNonExWrite(lockKey, "lock", localLocks, getGlobalLockPool());
+    enterNonExWrite(threadID, lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
   public final void enterNonExWriteLockNoWait(String lockKey)
     throws ManifoldCFException, LockException
   {
-    enterNonExWriteNoWait(lockKey, "lock", localLocks, getGlobalLockPool());
+    enterNonExWriteNoWait(threadID, lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   /** Leave a non-exclusive write lock.
@@ -760,14 +764,14 @@ public class BaseLockManager implements ILockManager
   public final void enterWriteLock(String lockKey)
     throws ManifoldCFException
   {
-    enterWrite(lockKey, "lock", localLocks, getGlobalLockPool());
+    enterWrite(threadID, lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
   public final void enterWriteLockNoWait(String lockKey)
     throws ManifoldCFException, LockException
   {
-    enterWriteNoWait(lockKey, "lock", localLocks, getGlobalLockPool());
+    enterWriteNoWait(threadID, lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
@@ -783,14 +787,14 @@ public class BaseLockManager implements ILockManager
   public final void enterReadLock(String lockKey)
     throws ManifoldCFException
   {
-    enterRead(lockKey, "lock", localLocks, getGlobalLockPool());
+    enterRead(threadID, lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
   public final void enterReadLockNoWait(String lockKey)
     throws ManifoldCFException, LockException
   {
-    enterReadNoWait(lockKey, "lock", localLocks, getGlobalLockPool());
+    enterReadNoWait(threadID, lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
@@ -806,14 +810,14 @@ public class BaseLockManager implements ILockManager
   public final void enterLocks(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
     throws ManifoldCFException
   {
-    enter(readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, getGlobalLockPool());
+    enter(threadID, readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, getGlobalLockPool());
   }
 
   @Override
   public final void enterLocksNoWait(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
     throws ManifoldCFException, LockException
   {
-    enterNoWait(readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, getGlobalLockPool());
+    enterNoWait(threadID, readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, getGlobalLockPool());
   }
 
   /** Leave multiple locks
@@ -841,7 +845,7 @@ public class BaseLockManager implements ILockManager
   public final void enterReadCriticalSection(String sectionKey)
     throws ManifoldCFException
   {
-    enterRead(sectionKey, "critical section", localSections, mySections);
+    enterRead(threadID, sectionKey, "critical section", localSections, mySections);
   }
 
   /** Leave a named, read critical section (NOT a lock).  Critical sections never cross JVM boundaries.
@@ -865,7 +869,7 @@ public class BaseLockManager implements ILockManager
   public final void enterNonExWriteCriticalSection(String sectionKey)
     throws ManifoldCFException
   {
-    enterNonExWrite(sectionKey, "critical section", localSections, mySections);
+    enterNonExWrite(threadID, sectionKey, "critical section", localSections, mySections);
   }
 
   /** Leave a named, non-exclusive write critical section (NOT a lock).  Critical sections never cross JVM boundaries.
@@ -889,7 +893,7 @@ public class BaseLockManager implements ILockManager
   public final void enterWriteCriticalSection(String sectionKey)
     throws ManifoldCFException
   {
-    enterWrite(sectionKey, "critical section", localSections, mySections);
+    enterWrite(threadID, sectionKey, "critical section", localSections, mySections);
   }
   
   /** Leave a named, exclusive critical section (NOT a lock).  Critical sections never cross JVM boundaries.
@@ -913,7 +917,7 @@ public class BaseLockManager implements ILockManager
   public final void enterCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
     throws ManifoldCFException
   {
-    enter(readSectionKeys, nonExSectionKeys, writeSectionKeys, "critical section", localSections, mySections);
+    enter(threadID, readSectionKeys, nonExSectionKeys, writeSectionKeys, "critical section", localSections, mySections);
   }
 
   /** Leave multiple critical sections simultaneously.
@@ -931,7 +935,7 @@ public class BaseLockManager implements ILockManager
 
   // Protected methods
 
-  protected static void enterNonExWrite(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
+  protected static void enterNonExWrite(Long threadID, String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
     if (Logging.lock.isDebugEnabled())
@@ -959,10 +963,10 @@ public class BaseLockManager implements ILockManager
     // to know if we already have a a read lock.
     while (true)
     {
-      LockObject lo = crossLocks.getObject(lockKey);
+      LockGate lo = crossLocks.getObject(lockKey);
       try
       {
-        lo.enterNonExWriteLock();
+        lo.enterNonExWriteLock(threadID);
         break;
       }
       catch (InterruptedException e)
@@ -979,7 +983,7 @@ public class BaseLockManager implements ILockManager
       Logging.lock.debug(" Successfully obtained "+description+"!");
   }
 
-  protected static void enterNonExWriteNoWait(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
+  protected static void enterNonExWriteNoWait(Long threadID, String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException, LockException
   {
     if (Logging.lock.isDebugEnabled())
@@ -1008,12 +1012,12 @@ public class BaseLockManager implements ILockManager
     // to know if we already have a a read lock.
     while (true)
     {
-      LockObject lo = crossLocks.getObject(lockKey);
+      LockGate lo = crossLocks.getObject(lockKey);
       try
       {
         synchronized (lo)
         {
-          lo.enterNonExWriteLockNoWait();
+          lo.enterNonExWriteLockNoWait(threadID);
           break;
         }
       }
@@ -1056,7 +1060,7 @@ public class BaseLockManager implements ILockManager
     {
       while (true)
       {
-        LockObject lo = crossLocks.getObject(lockKey);
+        LockGate lo = crossLocks.getObject(lockKey);
         try
         {
           lo.leaveNonExWriteLock();
@@ -1091,7 +1095,7 @@ public class BaseLockManager implements ILockManager
     }
   }
 
-  protected static void enterWrite(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
+  protected static void enterWrite(Long threadID, String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
     if (Logging.lock.isDebugEnabled())
@@ -1120,10 +1124,10 @@ public class BaseLockManager implements ILockManager
     // it's illegal.
     while (true)
     {
-      LockObject lo = crossLocks.getObject(lockKey);
+      LockGate lo = crossLocks.getObject(lockKey);
       try
       {
-        lo.enterWriteLock();
+        lo.enterWriteLock(threadID);
         break;
       }
       catch (InterruptedException e)
@@ -1140,7 +1144,7 @@ public class BaseLockManager implements ILockManager
       Logging.lock.debug(" Successfully obtained "+description+"!");
   }
 
-  protected static void enterWriteNoWait(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
+  protected static void enterWriteNoWait(Long threadID, String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException, LockException
   {
     if (Logging.lock.isDebugEnabled())
@@ -1169,12 +1173,12 @@ public class BaseLockManager implements ILockManager
     // it's illegal.
     while (true)
     {
-      LockObject lo = crossLocks.getObject(lockKey);
+      LockGate lo = crossLocks.getObject(lockKey);
       try
       {
         synchronized (lo)
         {
-          lo.enterWriteLockNoWait();
+          lo.enterWriteLockNoWait(threadID);
           break;
         }
       }
@@ -1216,7 +1220,7 @@ public class BaseLockManager implements ILockManager
     {
       while (true)
       {
-        LockObject lo = crossLocks.getObject(lockKey);
+        LockGate lo = crossLocks.getObject(lockKey);
         try
         {
           lo.leaveWriteLock();
@@ -1251,7 +1255,7 @@ public class BaseLockManager implements ILockManager
     }
   }
 
-  protected static void enterRead(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
+  protected static void enterRead(Long threadID, String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
     if (Logging.lock.isDebugEnabled())
@@ -1273,10 +1277,10 @@ public class BaseLockManager implements ILockManager
     // We don't own a local read lock.  Get one.
     while (true)
     {
-      LockObject lo = crossLocks.getObject(lockKey);
+      LockGate lo = crossLocks.getObject(lockKey);
       try
       {
-        lo.enterReadLock();
+        lo.enterReadLock(threadID);
         break;
       }
       catch (InterruptedException e)
@@ -1293,7 +1297,7 @@ public class BaseLockManager implements ILockManager
       Logging.lock.debug(" Successfully obtained "+description+"!");
   }
 
-  protected static void enterReadNoWait(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
+  protected static void enterReadNoWait(Long threadID, String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException, LockException
   {
     if (Logging.lock.isDebugEnabled())
@@ -1314,12 +1318,12 @@ public class BaseLockManager implements ILockManager
     // We don't own a local read lock.  Get one.
     while (true)
     {
-      LockObject lo = crossLocks.getObject(lockKey);
+      LockGate lo = crossLocks.getObject(lockKey);
       try
       {
         synchronized (lo)
         {
-          lo.enterReadLockNoWait();
+          lo.enterReadLockNoWait(threadID);
           break;
         }
       }
@@ -1359,7 +1363,7 @@ public class BaseLockManager implements ILockManager
     {
       while (true)
       {
-        LockObject lo = crossLocks.getObject(lockKey);
+        LockGate lo = crossLocks.getObject(lockKey);
         try
         {
           lo.leaveReadLock();
@@ -1411,7 +1415,7 @@ public class BaseLockManager implements ILockManager
     }
   }
 
-  protected static void enter(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks, String description, LocalLockPool localLocks, LockPool crossLocks)
+  protected static void enter(Long threadID, String[] readLocks, String[] nonExWriteLocks, String[] writeLocks, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
     if (Logging.lock.isDebugEnabled())
@@ -1473,10 +1477,10 @@ public class BaseLockManager implements ILockManager
             // We don't own a local write lock.  Get one.
             while (true)
             {
-              LockObject lo = crossLocks.getObject(lockKey);
+              LockGate lo = crossLocks.getObject(lockKey);
               try
               {
-                lo.enterWriteLock();
+                lo.enterWriteLock(threadID);
                 break;
               }
               catch (ExpiredObjectException e)
@@ -1501,10 +1505,10 @@ public class BaseLockManager implements ILockManager
             // We don't own a local write lock.  Get one.
             while (true)
             {
-              LockObject lo = crossLocks.getObject(lockKey);
+              LockGate lo = crossLocks.getObject(lockKey);
               try
               {
-                lo.enterNonExWriteLock();
+                lo.enterNonExWriteLock(threadID);
                 break;
               }
               catch (ExpiredObjectException e)
@@ -1522,10 +1526,10 @@ public class BaseLockManager implements ILockManager
             // We don't own a local read lock.  Get one.
             while (true)
             {
-              LockObject lo = crossLocks.getObject(lockKey);
+              LockGate lo = crossLocks.getObject(lockKey);
               try
               {
-                lo.enterReadLock();
+                lo.enterReadLock(threadID);
                 break;
               }
               catch (ExpiredObjectException e)
@@ -1596,7 +1600,7 @@ public class BaseLockManager implements ILockManager
     }
   }
 
-  protected static void enterNoWait(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks, String description, LocalLockPool localLocks, LockPool crossLocks)
+  protected static void enterNoWait(Long threadID, String[] readLocks, String[] nonExWriteLocks, String[] writeLocks, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException, LockException
   {
     if (Logging.lock.isDebugEnabled())
@@ -1658,12 +1662,12 @@ public class BaseLockManager implements ILockManager
             // We don't own a local write lock.  Get one.
             while (true)
             {
-              LockObject lo = crossLocks.getObject(lockKey);
+              LockGate lo = crossLocks.getObject(lockKey);
               synchronized (lo)
               {
                 try
                 {
-                  lo.enterWriteLockNoWait();
+                  lo.enterWriteLockNoWait(threadID);
                   break;
                 }
                 catch (ExpiredObjectException e)
@@ -1689,12 +1693,12 @@ public class BaseLockManager implements ILockManager
             // We don't own a local write lock.  Get one.
             while (true)
             {
-              LockObject lo = crossLocks.getObject(lockKey);
+              LockGate lo = crossLocks.getObject(lockKey);
               synchronized (lo)
               {
                 try
                 {
-                  lo.enterNonExWriteLockNoWait();
+                  lo.enterNonExWriteLockNoWait(threadID);
                   break;
                 }
                 catch (ExpiredObjectException e)
@@ -1713,12 +1717,12 @@ public class BaseLockManager implements ILockManager
             // We don't own a local read lock.  Get one.
             while (true)
             {
-              LockObject lo = crossLocks.getObject(lockKey);
+              LockGate lo = crossLocks.getObject(lockKey);
               synchronized (lo)
               {
                 try
                 {
-                  lo.enterReadLockNoWait();
+                  lo.enterReadLockNoWait(threadID);
                   break;
                 }
                 catch (ExpiredObjectException e)

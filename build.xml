@@ -1210,6 +1210,14 @@
         <copy todir="dist/web-proprietary">
             <fileset dir="framework/dist/web-proprietary"/>
         </copy>
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="framework/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/lib-proprietary"/>
+        <copy todir="dist/lib-proprietary">
+            <fileset dir="framework/dist/lib-proprietary"/>
+        </copy>
         <mkdir dir="dist/multiprocess-file-example"/>
         <copy todir="dist/multiprocess-file-example">
             <fileset dir="framework/dist/multiprocess-file-example"/>
@@ -3093,7 +3101,7 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="1.5-dev"/>
+      <property name="release-version" value="1.6-dev"/>
     </target>
     
     <target name="create-source-zip" depends="set-version">
@@ -3181,6 +3189,7 @@
         <zipfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
           <exclude name="connector-lib-proprietary/*.jar"/>
           <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="lib-proprietary/*.jar"/>
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
@@ -3196,6 +3205,7 @@
         <tarfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
           <exclude name="connector-lib-proprietary/*.jar"/>
           <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="lib-proprietary/*.jar"/>
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
@@ -3325,7 +3335,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/surefire-reports/"/>
           <exclude name="**/target/"/>
           <exclude name="lib-proprietary/*.jar"/>
-          <exclude name="scripts/options.env"/>
+          <exclude name="scripts/*.env"/>
+          <exclude name="scripts-jetty/*.env"/>
         </fileset>
         <fileset dir="site/">
           <exclude name="fonts/"/>
@@ -3631,6 +3642,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="commons-configuration"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-cli"/>
+            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-name" value="commons-cli"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
   
     <target name="download-slf4j">
@@ -3899,72 +3916,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
-
-    <target name="download-mock">
-        <mkdir dir="lib"/>
-        <property name="powermock-version" value="1.5.2"/>
-        <property name="powermock-package" value="org/powermock"/>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="${powermock-package}"/>
-            <param name="artifact-version" value="${powermock-version}"/>
-            <param name="artifact-name" value="powermock-module-junit4"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="${powermock-package}"/>
-            <param name="artifact-version" value="${powermock-version}"/>
-            <param name="artifact-name" value="powermock-api-mockito"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="${powermock-package}"/>
-            <param name="artifact-version" value="${powermock-version}"/>
-            <param name="artifact-name" value="powermock-api-support"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="${powermock-package}"/>
-            <param name="artifact-version" value="${powermock-version}"/>
-            <param name="artifact-name" value="powermock-core"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="${powermock-package}"/>
-            <param name="artifact-version" value="${powermock-version}"/>
-            <param name="artifact-name" value="powermock-reflect"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="${powermock-package}"/>
-            <param name="artifact-version" value="${powermock-version}"/>
-            <param name="artifact-name" value="powermock-module-junit4-common"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/mockito"/>
-            <param name="artifact-version" value="1.9.5"/>
-            <param name="artifact-name" value="mockito-all"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/noggit"/>
-            <param name="artifact-version" value="0.5"/>
-            <param name="artifact-name" value="noggit"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/javassist"/>
-            <param name="artifact-version" value="3.18.0-GA"/>
-            <param name="artifact-name" value="javassist"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/objenesis"/>
-            <param name="artifact-version" value="1.2"/>
-            <param name="artifact-name" value="objenesis"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-    </target>
     
     <target name="download-junit">
         <mkdir dir="lib"/>
@@ -3975,7 +3926,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
-
+    
     <target name="download-log4j">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -4009,7 +3960,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-opensaml">
         <!-- http://maven.alfresco.com/nexus/content/groups/public/opensaml/opensaml/1.1b/opensaml-1.1b.jar -->
         <!-- This dependency is for alfresco, so we use the jar alfresco has -->
-        <get src="http://mirrors.ibiblio.org/maven2/xfire/opensaml/1.0.1/opensaml-1.0.1.jar" dest="lib/opensaml.jar"/>
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/opensaml"/>
+            <param name="artifact-version" value="1.1"/>
+            <param name="artifact-name" value="opensaml"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
     <target name="download-osgi">
@@ -4105,12 +4062,19 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-xmlsec">
         <!-- Alfresco dependency, so resolve it from alfresco svn -->
-        <get src="http://repo1.maven.org/maven2/org/apache/santuario/xmlsec/1.4.1/xmlsec-1.4.1.jar" dest="lib/xmlsec.jar"/>
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/santuario"/>
+            <param name="artifact-version" value="1.4.0"/>
+            <param name="artifact-name" value="xmlsec"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
     <target name="download-xml-apis">
         <mkdir dir="lib"/>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
             <param name="project-path" value="xml-apis"/>
             <param name="artifact-version" value="1.4.01"/>
             <param name="artifact-name" value="xml-apis"/>
@@ -4122,7 +4086,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <property name="jstl-package" value="jstl"/>
         <property name="jstl-version" value="1.2"/>
-        <antcall target="download-via-maven"><param name="target" value="lib"/><param name="project-path" value="${jstl-package}"/><param name="artifact-version" value="${jstl-version}"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="${jstl-package}"/>
+            <param name="artifact-version" value="${jstl-version}"/>
             <param name="artifact-name" value="jstl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -4280,13 +4247,31 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="hadoop-auth"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-hdfs"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
+    <target name="download-protobuf">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/protobuf"/>
+            <param name="artifact-version" value="2.5.0"/>
+            <param name="artifact-name" value="protobuf-java"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
     <target name="download-guava">
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/guava"/>
-            <param name="artifact-version" value="r09"/>
+            <param name="artifact-version" value="11.0.2"/>
             <param name="artifact-name" value="guava"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -4301,8 +4286,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/noggit"/>
+            <param name="artifact-version" value="0.5"/>
+            <param name="artifact-name" value="noggit"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
-    
+
     <target name="download-zookeeper">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
@@ -4314,14 +4306,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-mock,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop">
+    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
     </target>
     
     <target name="download-mysql">
-        <antcall target="download-via-maven"><param name="target" value="lib-proprietary"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib-proprietary"/>
             <param name="project-path" value="mysql"/>
             <param name="artifact-version" value="5.1.18"/>
             <param name="artifact-name" value="mysql-connector-java"/>
@@ -4330,7 +4323,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
 
     <target name="download-jtds">
-        <antcall target="download-via-maven"><param name="target" value="lib-proprietary"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib-proprietary"/>
             <param name="project-path" value="net/sourceforge/jtds"/>
             <param name="artifact-version" value="1.2.4"/>
             <param name="artifact-name" value="jtds"/>
