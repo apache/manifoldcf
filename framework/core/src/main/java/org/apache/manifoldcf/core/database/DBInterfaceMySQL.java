@@ -338,13 +338,13 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
         queryBuffer.append(',');
       else
         first = false;
-      appendDescription(queryBuffer,columnName,cd,false);
+      appendDescription(queryBuffer,columnName,cd,false,true);
     }
     queryBuffer.append(')');
     performModification(queryBuffer.toString(),null,invalidateKeys);
   }
 
-  protected static void appendDescription(StringBuilder queryBuffer, String columnName, ColumnDescription cd, boolean forceNull)
+  protected static void appendDescription(StringBuilder queryBuffer, String columnName, ColumnDescription cd, boolean forceNull, boolean includeRestrict)
   {
     queryBuffer.append(columnName);
     queryBuffer.append(' ');
@@ -355,7 +355,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
       queryBuffer.append(" NOT NULL");
     if (cd.getIsPrimaryKey())
       queryBuffer.append(" PRIMARY KEY");
-    if (cd.getReferenceTable() != null)
+    if (cd.getReferenceTable() != null && includeRestrict)
     {
       queryBuffer.append(" REFERENCES ");
       queryBuffer.append(cd.getReferenceTable());
@@ -419,8 +419,8 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
           String columnName = iter.next();
           ColumnDescription cd = columnModifyMap.get(columnName);
           StringBuilder sb = new StringBuilder();
-          appendDescription(sb,columnName,cd,false);
-          performModification("ALTER TABLE "+tableName+" MODIFY "+sb.toString(),null,invalidateKeys);
+          appendDescription(sb,columnName,cd,false,false);
+          performModification("ALTER TABLE "+tableName+" CHANGE "+columnName+" "+sb.toString(),null,invalidateKeys);
         }
       }
 
@@ -433,7 +433,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
           String columnName = iter.next();
           ColumnDescription cd = columnMap.get(columnName);
           StringBuilder sb = new StringBuilder();
-          appendDescription(sb,columnName,cd,false);
+          appendDescription(sb,columnName,cd,false,true);
           performModification("ALTER TABLE "+tableName+" ADD "+sb.toString(),null,invalidateKeys);
         }
       }

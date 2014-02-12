@@ -62,13 +62,13 @@ if (value != null && value.equals("true"))
 }
 %>
 							<tr>
-								<td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.UserIDColon")%></td>
+								<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.UserIDColon")%></nobr></td>
 								<td class="value">
 									<input name="userID" type="text" size="32" value=""/>
 								</td>
 							</tr>
 							<tr>
-								<td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.PasswordColon")%></td>
+								<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.PasswordColon")%></nobr></td>
 								<td class="value">
 									<input name="password" type="password" size="32" value=""/>
 								</td>

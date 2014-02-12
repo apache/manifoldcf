@@ -1452,16 +1452,16 @@ public class WorkerThread extends Thread
     protected final String parameterVersion;
     
     // We submit references in bulk, because that's way more efficient.
-    protected HashMap referenceList = new HashMap();
+    protected final Map<DocumentReference,DocumentReference> referenceList = new HashMap<DocumentReference,DocumentReference>();
 
     // Keep track of lower and upper reschedule bounds separately.  Contains a Long and is keyed by a document identifier.
-    protected HashMap lowerRescheduleBounds = new HashMap();
-    protected HashMap upperRescheduleBounds = new HashMap();
-    protected HashMap lowerExpireBounds = new HashMap();
-    protected HashMap upperExpireBounds = new HashMap();
+    protected final Map<String,Long> lowerRescheduleBounds = new HashMap<String,Long>();
+    protected final Map<String,Long> upperRescheduleBounds = new HashMap<String,Long>();
+    protected final Map<String,Long> lowerExpireBounds = new HashMap<String,Long>();
+    protected final Map<String,Long> upperExpireBounds = new HashMap<String,Long>();
 
     // Origination times
-    protected HashMap originationTimes = new HashMap();
+    protected final Map<String,Long> originationTimes = new HashMap<String,Long>();
 
     /** Constructor.
     *@param jobManager is the job manager
@@ -1495,10 +1495,8 @@ public class WorkerThread extends Thread
     public void discard()
       throws ManifoldCFException
     {
-      Iterator iter = referenceList.keySet().iterator();
-      while (iter.hasNext())
+      for (DocumentReference dr : referenceList.keySet())
       {
-        DocumentReference dr = (DocumentReference)iter.next();
         dr.discard();
       }
       referenceList.clear();
@@ -1558,7 +1556,7 @@ public class WorkerThread extends Thread
         processDocumentReferences();
       }
       DocumentReference dr = new DocumentReference(localIdentifierHash,localIdentifier,new DocumentBin(parentIdentifierHash,relationshipType));
-      DocumentReference existingDr = (DocumentReference)referenceList.get(dr);
+      DocumentReference existingDr = referenceList.get(dr);
       if (existingDr == null)
       {
         referenceList.put(dr,dr);
@@ -1840,31 +1838,31 @@ public class WorkerThread extends Thread
     /** Find a document's lower rescheduling time bound, if any */
     public Long getDocumentRescheduleLowerBoundTime(String localIdentifier)
     {
-      return (Long)lowerRescheduleBounds.get(localIdentifier);
+      return lowerRescheduleBounds.get(localIdentifier);
     }
 
     /** Find a document's upper rescheduling time bound, if any */
     public Long getDocumentRescheduleUpperBoundTime(String localIdentifier)
     {
-      return (Long)upperRescheduleBounds.get(localIdentifier);
+      return upperRescheduleBounds.get(localIdentifier);
     }
 
     /** Find a document's lower expiration time bound, if any */
     public Long getDocumentExpirationLowerBoundTime(String localIdentifier)
     {
-      return (Long)lowerExpireBounds.get(localIdentifier);
+      return lowerExpireBounds.get(localIdentifier);
     }
 
     /** Find a document's upper expiration time bound, if any */
     public Long getDocumentExpirationUpperBoundTime(String localIdentifier)
     {
-      return (Long)upperExpireBounds.get(localIdentifier);
+      return upperExpireBounds.get(localIdentifier);
     }
 
     /** Get a document's origination time */
     public Long getDocumentOriginationTime(String localIdentifier)
     {
-      return (Long)originationTimes.get(localIdentifier);
+      return originationTimes.get(localIdentifier);
     }
 
     public Long calculateDocumentRescheduleTime(long currentTime, long timeAmt, String localIdentifier)
@@ -1872,7 +1870,13 @@ public class WorkerThread extends Thread
       Long recrawlTime = null;
       Long recrawlInterval = job.getInterval();
       if (recrawlInterval != null)
-        recrawlTime = new Long(currentTime + timeAmt + recrawlInterval.longValue());
+      {
+        Long maxInterval = job.getMaxInterval();
+        long actualInterval = recrawlInterval.longValue() + timeAmt;
+        if (maxInterval != null && actualInterval > maxInterval.longValue())
+          actualInterval = maxInterval.longValue();
+        recrawlTime = new Long(currentTime + actualInterval);
+      }
       if (Logging.scheduling.isDebugEnabled())
         Logging.scheduling.debug("Default rescan time for document '"+localIdentifier+"' is "+((recrawlTime==null)?"NEVER":recrawlTime.toString()));
       Long lowerBound = getDocumentRescheduleLowerBoundTime(localIdentifier);
@@ -1974,27 +1978,23 @@ public class WorkerThread extends Thread
         return;
 
       // We have to segregate the references by link type and parent.
-      HashMap linkBins = new HashMap();
-      Iterator iter = referenceList.keySet().iterator();
-      while (iter.hasNext())
+      Map<DocumentBin,List<DocumentReference>> linkBins = new HashMap<DocumentBin,List<DocumentReference>>();
+      for (DocumentReference dr : referenceList.keySet())
       {
-        DocumentReference dr = (DocumentReference)iter.next();
         DocumentBin key = dr.getKey();
-        ArrayList set = (ArrayList)linkBins.get(key);
+        List<DocumentReference> set = linkBins.get(key);
         if (set == null)
         {
-          set = new ArrayList();
+          set = new ArrayList<DocumentReference>();
           linkBins.put(key,set);
         }
         set.add(dr);
       }
 
       // Now, go through link types.
-      iter = linkBins.keySet().iterator();
-      while (iter.hasNext())
+      for (DocumentBin db : linkBins.keySet())
       {
-        DocumentBin db = (DocumentBin)iter.next();
-        ArrayList set = (ArrayList)linkBins.get(db);
+        List<DocumentReference> set = linkBins.get(db);
 
         String[] docidHashes = new String[set.size()];
         String[] docids = new String[set.size()];
@@ -2008,7 +2008,7 @@ public class WorkerThread extends Thread
         rt.clearPreloadRequests();
         for (int j = 0; j < docidHashes.length; j++)
         {
-          DocumentReference dr = (DocumentReference)set.get(j);
+          DocumentReference dr = set.get(j);
           docidHashes[j] = dr.getLocalIdentifierHash();
           docids[j] = dr.getLocalIdentifier();
           dataNames[j] = dr.getDataNames();

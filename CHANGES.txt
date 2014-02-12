@@ -1,7 +1,189 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.5-dev =====================
+======================= 1.6-dev =====================
+
+CONNECTORS-888: JobResetThread had issues when running on
+multiple agents processes.
+(Florian Schmedding, Karl Wright)
+
+CONNECTORS-887: Upgrade issues with MySQL.
+(Florian Schmedding, Karl Wright)
+
+CONNECTORS-885: Handle errors during startup better.
+(Karl Wright)
+
+CONNECTORS-883: Handle errors from the output connector during
+notification better.
+(Karl Wright)
+
+CONNECTORS-884: Log successful index/delete in Solr connector.
+(Erlend Garåsen, Karl Wright)
+
+CONNECTORS-882: Solr connector: Keep all metadata fixed.
+(Alessandro Benedetti, Karl Wright)
+
+CONNECTORS-880: Fix handling of output connector errors during
+clean up phase.
+(Florian Schmedding, Karl Wright)
+
+CONNECTORS-878: Come up with a formula for allocating connections
+to pools when a connection bin is used by multiple pools.
+(Karl Wright)
+
+CONNECTORS-877: Missing Solr i18n key.
+(Erlend Garåsen, Karl Wright)
+
+CONNECTORS-876: Solr indexing exception reports now include the document URI.
+(David Morana, Karl Wright)
+
+CONNECTORS-875: Handle ArrayIndexOutOfBounds and NumberFormatException
+from LAPI as Livelink runtime errors.
+(David Morana, Karl Wright)
+
+CONNECTORS-870: Avoid line break for login.jsp description
+when locale is Japanese.
+(Shinichiro Abe)
+
+CONNECTORS-868: Remove mvn-bootstrap scripts and all mention of them.
+Direct dependencies on missing artifacts are now possible.
+(Muhammed Olgun)
+
+CONNECTORS-867: Make locking system more responsive to UI when
+system under load.  (This is not a complete fix for the issue, but rather
+a pair of partial fixes.)
+(Karl Wright)
+
+======================= Release 1.5 =====================
+
+CONNECTORS-874: Uncaught runtime exception when SolrJ can't talk
+to zookeeper.
+(Karl Wright)
+
+CONNECTORS-872: Throttling hang for web connector, as well as web
+connector not obeying rate throttling.
+(Erlend Garåsen, Karl Wright)
+
+CONNECTORS-873: SolrCloud now depends on noggit; include this in the
+build and dependencies.
+(Alessandro Benedetti, Karl Wright)
+
+CONNECTORS-871: Fix versions caused by the commit for CONNECTORS-833.
+(David Morana, Karl Wright)
+
+CONNECTORS-866: Fix lock-clean scripts.
+(Karl Wright)
+
+CONNECTORS-864: Alfresco only provides 100 search results using CMIS connector with Apache ManifoldCF
+(Piergiorgio Lucidi)
+
+CONNECTORS-865: Wrong version of the parent pom in the alfresco-4-war
+(Piergiorgio Lucidi)
+
+CONNECTORS-863: Increase the number of zookeeper connections allowed;
+this permits agents processes to start on linux.
+(Karl Wright)
+
+CONNECTORS-862: Reduce the binary image footprint by consolidating the 
+various lib directories and just changing classpaths.
+(Karl Wright)
+
+CONNECTORS-861: Reduce the example worker thread count so that we
+don't run out of zookeeper resources on Windows.
+(Karl Wright)
+
+CONNECTORS-860: Remove zookeeper.jar from a number of contexts
+where it should not be.  This will reduce the binary footprint by some
+amount and also prevent more than one zookeeper.jar from being in
+the classpath at a time.
+(Karl Wright)
+
+CONNECTORS-858: HDFS repository and output connectors need to be
+fully compatible with multiple Hadoop 2.2.0 file system protocols.
+(Minoru Osuka, Karl Wright)
+
+CONNECTORS-859: Authority tokens should be prefixed with the group name,
+not the connection name.
+(Fran Alvarez, Karl Wright)
+
+CONNECTORS-840: Add ability to suppress all non-specified metadata
+fields in Solr connector.
+(Alessandro Benedetti, Karl Wright)
+
+CONNECTORS-754: Add claim space selection for SharePoint native
+authority, so that it works with Claim Space servers.
+(Will Parkinson, Karl Wright)
+
+CONNECTORS-854: Enable stale connection checks on all http fetches.
+Not sure why it was disabled long ago, but it causes problems when
+connections are pooled for longer than the server wants the connection
+to survive.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-855: Use -D switch in start-webapps scripts to point
+to the right properties.xml file.  Otherwise who knows where the
+properties may come from.
+(David Morana, Karl Wright)
+
+CONNECTORS-851: Add mail.jar to connector wsdl builder to turn off
+warnings.  Also provide ability to extend build with optional include.
+(B. Scott Michel, Karl Wright)
+
+CONNECTORS-850: Add maximum recrawl interval parameter for all
+jobs.  NOTE: Schema change!!
+(Florian Schmedding, Karl Wright)
+
+CONNECTORS-849: Upgrade to Hadoop 2.2.0.
+(Karl Wright)
+
+CONNECTORS-847: Upgrade to SolrJ 4.6.0.
+(Karl Wright)
+
+CONNECTORS-814: Make File System output connector handle
+directory/file conflicts.
+(Karl Wright)
+
+CONNECTORS-733: Write a test which exercises database connection
+interruption logic, and debug the same.
+(Ahmet Arslan, Karl Wright)
+
+CONNECTORS-816: Document revisions to SharePoint connector,
+and new SharePoint authorities.
+(Karl Wright)
+
+CONNECTORS-553: Add email connector.
+(Tishan DahanaYakage, Piergiorgio Lucidi, Karl Wright)
+
+CONNECTORS-846: Once a service had grabbed all connector
+instances, but was not using them any more, it would not release
+them for other cluster members to use.
+(Karl Wright)
+
+CONNECTORS-844: Remove "per JVM" from connection maximum
+messages in crawler UI.
+(Karl Wright)
+
+CONNECTORS-842: Update documentation to describe the functioning
+of the org.apache.manifoldcf.mysql.client property.
+(Chris Griffin, Karl Wright)
+
+CONNECTORS-843: Solr Connector methods do not call getSession()
+when they should, leading to unpredictable results.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-841: Always reset document schedules on job start.
+(David Morana, Karl Wright)
+
+CONNECTORS-839: Fix our CloudSolrServer usage to use multipart
+post instead of putting everything in the URL.
+(Alessandro Benedetti, Raymond Wiker, Karl Wright)
+
+CONNECTORS-838: Character-stuff names that ZooKeeper sees, to
+prevent issues with '/' characters.
+(Karl Wright)
+
+CONNECTORS-837: Specifying 1 connection causes hang.
+(Karl Wright)
 
 CONNECTORS-836: Use the same thread context in the registered
 shutdown objects.

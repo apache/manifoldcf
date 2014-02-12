@@ -36,9 +36,9 @@ public class KeystoreManager implements IKeystoreManager
   public static final String _rcsid = "@(#)$Id: KeystoreManager.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // The keystore passcode
-  protected String passcode;
+  protected final String passcode;
   // The keystore itself
-  protected KeyStore keystore;
+  protected final KeyStore keystore;
 
   /** Create the keystore object.
   */
@@ -115,9 +115,29 @@ public class KeystoreManager implements IKeystoreManager
     }
   }
 
+  /** Get a unique hashstring for this keystore.  The hashcode depends only on the certificates
+  * in the store.
+  *@return the hash string for this keystore.
+  */
+  @Override
+  public String getHashString()
+    throws ManifoldCFException
+  {
+    StringBuilder sb = new StringBuilder();
+    // Get the certs in the store
+    String[] aliases = getContents();
+    for (String alias : aliases)
+    {
+      String description = getDescription(alias);
+      sb.append(":").append(alias).append(":").append(description);
+    }
+    return sb.toString();
+  }
+
   /** Grab a list of the aliases in the key store.
   *@return the list, as a string array.
   */
+  @Override
   public String[] getContents()
     throws ManifoldCFException
   {
@@ -145,6 +165,7 @@ public class KeystoreManager implements IKeystoreManager
   *@param alias is the alias name.
   *@return a description of what's in the alias.
   */
+  @Override
   public String getDescription(String alias)
     throws ManifoldCFException
   {
@@ -165,6 +186,7 @@ public class KeystoreManager implements IKeystoreManager
   *@param alias is the name of the certificate.
   *@param certData is the binary data for the certificate.
   */
+  @Override
   public void importCertificate(String alias, InputStream certData)
     throws ManifoldCFException
   {
@@ -193,6 +215,7 @@ public class KeystoreManager implements IKeystoreManager
 
   /** Read a certificate from the keystore.
   */
+  @Override
   public java.security.cert.Certificate getCertificate(String alias)
     throws ManifoldCFException
   {
@@ -208,6 +231,7 @@ public class KeystoreManager implements IKeystoreManager
 
   /** Add a certificate to the keystore.
   */
+  @Override
   public void addCertificate(String alias, java.security.cert.Certificate certificate)
     throws ManifoldCFException
   {
@@ -231,6 +255,7 @@ public class KeystoreManager implements IKeystoreManager
   /** Remove a certificate.
   *@param alias is the name of the certificate to remove.
   */
+  @Override
   public void remove(String alias)
     throws ManifoldCFException
   {
@@ -245,8 +270,10 @@ public class KeystoreManager implements IKeystoreManager
   }
 
   /** Convert to a base64 string.
-  *@return the base64-encoded string.
+  *@return the base64-encoded string.  NOTE WELL: as of JDK 1.6, you will not get the same exact string twice from this method --
+  *  so it cannot be used for a hash!!
   */
+  @Override
   public String getString()
     throws ManifoldCFException
   {
@@ -295,6 +322,7 @@ public class KeystoreManager implements IKeystoreManager
 
   /** Build a secure socket factory based on this keystore.
   */
+  @Override
   public javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
     throws ManifoldCFException
   {

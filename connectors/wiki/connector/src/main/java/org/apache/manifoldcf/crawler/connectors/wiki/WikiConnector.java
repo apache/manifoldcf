@@ -237,7 +237,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
       params.setIntParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE,socketTimeout);
       params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
       params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
       params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);

@@ -52,7 +52,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 {
   public static final String _rcsid = "@(#)$Id: RSSConnector.java 994959 2010-09-08 10:04:42Z kwright $";
 
-
+  protected final static String rssThrottleGroupType = "_RSS_";
 
   // Usage flag values
   protected static final int ROBOTS_NONE = 0;
@@ -105,7 +105,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   protected Robots robots = null;
 
   /** Storage for fetcher objects */
-  protected static Map fetcherMap = new HashMap();
+  protected static Map<String,ThrottledFetcher> fetcherMap = new HashMap<String,ThrottledFetcher>();
   /** Storage for robots objects */
   protected static Map robotsMap = new HashMap();
 
@@ -193,7 +193,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         {
           int maxKBytesPerSecondPerServer = Integer.parseInt(x);
           if (maxKBytesPerSecondPerServer > 0)
-            minimumMillisecondsPerBytePerServer = ((double)1.0)/(double)maxKBytesPerSecondPerServer;
+            minimumMillisecondsPerBytePerServer = 1000.0/(double)maxKBytesPerSecondPerServer;
         }
         catch (NumberFormatException e)
         {
@@ -231,10 +231,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
       }
 
+      IThrottleGroups tg = ThrottleGroupsFactory.make(currentContext);
+      // Create the throttle group
+      tg.createOrUpdateThrottleGroup(rssThrottleGroupType, throttleGroupName, new ThrottleSpec(maxOpenConnectionsPerServer,
+        minimumMillisecondsPerFetchPerServer, minimumMillisecondsPerBytePerServer));
+      
       isInitialized = true;
     }
   }
 
+  
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
@@ -936,11 +942,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             String pathPart = url.getFile();
 
             // Check with robots to see if it's allowed
-            if (robotsUsage >= ROBOTS_DATA && !robots.isFetchAllowed(protocol,port,hostName,url.getPath(),
+            if (robotsUsage >= ROBOTS_DATA && !robots.isFetchAllowed(currentContext,throttleGroupName,
+              protocol,port,hostName,url.getPath(),
               userAgent,from,
-              minimumMillisecondsPerBytePerServer,
-              maxOpenConnectionsPerServer,
-              minimumMillisecondsPerFetchPerServer,
               proxyHost, proxyPort, proxyAuthDomain, proxyAuthUsername, proxyAuthPassword,
               activities, connectionLimit))
             {
@@ -955,10 +959,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             {
 
               // Now, use the fetcher, and get the file.
-              IThrottledConnection connection = fetcher.createConnection(hostName,
-                minimumMillisecondsPerBytePerServer,
-                maxOpenConnectionsPerServer,
-                minimumMillisecondsPerFetchPerServer,
+              IThrottledConnection connection = fetcher.createConnection(currentContext,
+                throttleGroupName,
+                hostName,
                 connectionLimit,
                 feedTimeout,
                 proxyHost,
@@ -5404,7 +5407,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   {
     synchronized (fetcherMap)
     {
-      ThrottledFetcher tf = (ThrottledFetcher)fetcherMap.get(throttleGroupName);
+      ThrottledFetcher tf = fetcherMap.get(throttleGroupName);
       if (tf == null)
       {
         tf = new ThrottledFetcher();
@@ -5496,6 +5499,47 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
   // Protected classes
+
+  /** The throttle specification class.  Each server name is a different bin in this model.
+  */
+  protected static class ThrottleSpec implements IThrottleSpec
+  {
+    protected final int maxOpenConnectionsPerServer;
+    protected final long minimumMillisecondsPerFetchPerServer;
+    protected final double minimumMillisecondsPerBytePerServer;
+    
+    public ThrottleSpec(int maxOpenConnectionsPerServer, long minimumMillisecondsPerFetchPerServer,
+      double minimumMillisecondsPerBytePerServer)
+    {
+      this.maxOpenConnectionsPerServer = maxOpenConnectionsPerServer;
+      this.minimumMillisecondsPerFetchPerServer = minimumMillisecondsPerFetchPerServer;
+      this.minimumMillisecondsPerBytePerServer = minimumMillisecondsPerBytePerServer;
+    }
+    
+    /** Given a bin name, find the max open connections to use for that bin.
+    *@return Integer.MAX_VALUE if no limit found.
+    */
+    public int getMaxOpenConnections(String binName)
+    {
+      return maxOpenConnectionsPerServer;
+    }
+
+    /** Look up minimum milliseconds per byte for a bin.
+    *@return 0.0 if no limit found.
+    */
+    public double getMinimumMillisecondsPerByte(String binName)
+    {
+      return minimumMillisecondsPerBytePerServer;
+    }
+
+    /** Look up minimum milliseconds for a fetch for a bin.
+    *@return 0 if no limit found.
+    */
+    public long getMinimumMillisecondsPerFetch(String binName)
+    {
+      return minimumMillisecondsPerFetchPerServer;
+    }
+  }
 
   /** Name/value class */
   protected static class NameValue

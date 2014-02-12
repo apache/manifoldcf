@@ -32,7 +32,9 @@ public class DocumentCleanupQueue
   public static final String _rcsid = "@(#)$Id$";
 
   // Since the queue has a maximum size, an ArrayList is a fine way to keep it
-  protected ArrayList queue = new ArrayList();
+  protected final List<DocumentCleanupSet> queue = new ArrayList<DocumentCleanupSet>();
+  // This flag gets set to 'true' if the queue is being cleared due to a reset
+  protected boolean resetFlag = false;
 
   /** Constructor.
   */
@@ -46,6 +48,7 @@ public class DocumentCleanupQueue
   {
     synchronized (queue)
     {
+      resetFlag = true;
       queue.notifyAll();
     }
   }
@@ -57,6 +60,7 @@ public class DocumentCleanupQueue
     synchronized (queue)
     {
       queue.clear();
+      resetFlag = false;
     }
   }
 
@@ -96,14 +100,19 @@ public class DocumentCleanupQueue
     synchronized (queue)
     {
       // If queue is empty, go to sleep
-      while (queue.size() == 0)
+      if (resetFlag)
+        return null;
+        
+      while (queue.size() == 0 && resetFlag == false)
         queue.wait();
+      
       // If we've been awakened, there's either an entry to grab, or we've been
       // awakened because it's time to reset.
-      if (queue.size() == 0)
-        return null;
+      if (resetFlag)
+          return null;
+      
       // If we've been awakened, there's an entry to grab
-      DocumentCleanupSet dd = (DocumentCleanupSet)queue.remove(queue.size()-1);
+      DocumentCleanupSet dd = queue.remove(queue.size()-1);
       return dd;
     }
   }

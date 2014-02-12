@@ -72,6 +72,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   
   // SharePoint server parameters
   // These are needed for caching, so they are set at connect() time
+  private boolean isClaimSpace = false;
   private String serverProtocol = null;
   private String serverUrl = null;
   private String fileBaseUrl = null;
@@ -164,7 +165,12 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     if (serverVersion == null)
       serverVersion = "2.0";
     // Authority needs to do nothing with SharePoint version right now.
-      
+
+    String serverClaimSpace = configParams.getParameter( SharePointConfig.PARAM_SERVERCLAIMSPACE);
+    if (serverClaimSpace == null)
+      serverClaimSpace = "false";
+    isClaimSpace = serverClaimSpace.equals("true");
+    
     serverProtocol = configParams.getParameter( SharePointConfig.PARAM_SERVERPROTOCOL );
     if (serverProtocol == null)
       serverProtocol = "http";
@@ -267,6 +273,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     
     // Clean up SharePoint parameters
     
+    isClaimSpace = false;
     serverUrl = null;
     fileBaseUrl = null;
     serverUserName = null;
@@ -421,6 +428,10 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     String serverVersion = parameters.getParameter(SharePointConfig.PARAM_SERVERVERSION);
     if (serverVersion == null)
       serverVersion = "2.0";
+    
+    String serverClaimSpace = parameters.getParameter(SharePointConfig.PARAM_SERVERCLAIMSPACE);
+    if (serverClaimSpace == null)
+      serverClaimSpace = "false";
 
     String serverProtocol = parameters.getParameter(SharePointConfig.PARAM_SERVERPROTOCOL);
     if (serverProtocol == null)
@@ -471,6 +482,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     
     // Fill in context
     velocityContext.put("SERVERVERSION", serverVersion);
+    velocityContext.put("SERVERCLAIMSPACE", serverClaimSpace);
     velocityContext.put("SERVERPROTOCOL", serverProtocol);
     velocityContext.put("SERVERNAME", serverName);
     velocityContext.put("SERVERPORT", serverPort);
@@ -523,6 +535,10 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     if (serverVersion != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERVERSION,serverVersion);
 
+    String serverClaimSpace = variableContext.getParameter("serverClaimSpace");
+    if (serverClaimSpace != null)
+      parameters.setParameter(SharePointConfig.PARAM_SERVERCLAIMSPACE,serverClaimSpace);
+    
     String serverProtocol = variableContext.getParameter("serverProtocol");
     if (serverProtocol != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERPROTOCOL,serverProtocol);
@@ -703,7 +719,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
 
       BasicHttpParams params = new BasicHttpParams();
       params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
       params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
       params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
@@ -732,7 +748,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, serverUserName, password,
         org.apache.manifoldcf.sharepoint.CommonsHTTPSender.class, "sharepoint-client-config.wsdd",
-        httpClient );
+        httpClient, isClaimSpace );
       
     }
     sharepointSessionTimeout = System.currentTimeMillis() + SharePointExpirationInterval;

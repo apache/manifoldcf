@@ -36,11 +36,12 @@
         <tr><th>コネクタ名</th><th>コネクタプラットフォーム</th><th>サーバプラットフォーム</th><th>クライアントバージョン</th><th>サーババージョン</th></tr>
         <tr><td>CMIS</td><td>Java</td><td>複数</td><td>CMIS 1.0</td><td>CMIS 1.0</td></tr>
         <tr><td>DropBox</td><td>Java</td><td>複数</td><td>1.5.3</td><td>N/A</td></tr>
+        <tr><td>Email</td><td>Java</td><td>複数</td><td>Javamail 1.4</td><td>N/A</td></tr>
         <tr><td>ファイルシステム</td><td>Java</td><td>Win/*NIX</td><td>N/A</td><td>N/A</td></tr>
         <tr><td>Google Drive</td><td>Java</td><td>複数</td><td>v2-rev64-1.14.1-beta</td><td>N/A</td></tr>
-        <tr><td>HDFS</td><td>Java</td><td>複数</td><td>1.1.2</td><td>1.1.2</td></tr>
+        <tr><td>HDFS</td><td>Java</td><td>複数</td><td>2.2.0</td><td>1.1.2</td></tr>
         <tr><td>Windows共有</td><td>Java</td><td> Win, Samba, NetApp,その他のNASシステム</td><td>N/A</td><td>N/A</td></tr>
-        <tr><td>JDBC</td><td>Java </td><td>複数</td><td>JDBC V2, V3, V4対応;Oracle 10, JTDS 1.2, Postgresql 9.1ドライバで検証済み</td><td>複数</td></tr>
+        <tr><td>JDBC</td><td>Java </td><td>複数</td><td>JDBC V2, V3, V4対応;Oracle 10, JTDS 1.2, Postgresql 9.1, MySQL 5.5ドライバで検証済み</td><td>複数</td></tr>
         <tr><td>Jira</td><td>Java </td><td>複数</td><td>N/A</td><td>5.0-6.1</td></tr>
         <tr><td>RSS</td><td>Java </td><td> N/A </td><td> N/A </td><td>Atom, RSS 2.0, others </td></tr>
         <tr><td>Web</td><td>Java </td><td>N/A</td><td> N/A </td><td>HTML 1.0, 1.1, 2.0, Atom, RSS 2.0,その他</td></tr>

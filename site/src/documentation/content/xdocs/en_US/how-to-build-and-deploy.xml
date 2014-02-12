@@ -78,37 +78,43 @@
         <p></p>
         <ul>
           <li>CMIS connector</li>
-          <li>Documentum connector, built against a Documentum API stub</li>
+          <li>EMC Documentum connector, built against a Documentum API stub</li>
           <li>DropBox connector</li>
+          <li>Email connector</li>
           <li>FileNet connector, built against a FileNet API stub</li>
           <li>WGET-compatible filesystem connector</li>
           <li>Generic XML repository connector</li>
           <li>Google Drive connector</li>
           <li>HDFS connector</li>
           <li>JDBC connector, with just the PostgreSQL jdbc driver</li>
-          <li>Jira connector</li>
-          <li>LiveLink connector, built against a LiveLink API stub</li>
+          <li>Atlassian Jira connector</li>
+          <li>OpenText LiveLink connector, built against a LiveLink API stub</li>
           <li>Meridio connector, built against modified Meridio API WSDLs and XSDs</li>
           <li>RSS connector</li>
-          <li>SharePoint connector, built against SharePoint API WSDLs</li>
+          <li>Microsoft SharePoint connector, built against SharePoint API WSDLs</li>
           <li>Webcrawler connector</li>
           <li>Wiki connector</li>
         </ul>
         <p></p>
-        <p>In addition, the following authority connectors will be built:</p>
+        <p>The following authority connectors will be built:</p>
         <p></p>
         <ul>
           <li>Active Directory authority</li>
           <li>CMIS authority</li>
-          <li>Documentum authority</li>
-          <li>LiveLink authority</li>
-          <li>Null authority</li>
+          <li>EMC Documentum authority</li>
+          <li>Atlassian Jira authority</li>
           <li>LDAP authority</li>
+          <li>OpenText LiveLink authority</li>
+          <li>Meridio authority, built against modified Meridio API WSDLs and XSDs</li>
+          <li>Null authority</li>
+          <li>Microsoft SharePoint/AD authority</li>
+          <li>Microsoft SharePoint/Native authority, built against SharePoint API WSDLs</li>
         </ul>
         <p></p>
-        <p>Finally, the following output connectors will be built:</p>
+        <p>The following output connectors will be built:</p>
         <p></p>
         <ul>
+          <li>WGET-compatible filesystem output connector</li>
           <li>MetaCarta GTS output connector</li>
           <li>Apache Solr output connector</li>
           <li>OpenSearchServer output connector</li>
@@ -116,6 +122,12 @@
           <li>WGET-compatible filesystem output connector</li>
           <li>HDFS output connector</li>
           <li>Null output connector</li>
+        </ul>
+        <p></p>
+        <p>The following mapping connectors will be built:</p>
+        <p></p>
+        <ul>
+          <li>Regular-expression mapping connector</li>
         </ul>
         <p></p>
         <p>The dependencies and build limitations of each individual LGPL and proprietary connector is described in separate sections below.</p>
@@ -245,13 +257,7 @@
         <p>A canned version of all configuration files are included as resources.  If you want to change the configuration in any way, you will need to rebuild with Maven accordingly.</p>
         <section>
           <title>Preparation</title>
-          <p>Before you begin, you will need to install Maven (if you haven't already) and prepare by downloading the necessary materials to support the LGPL connector builds, just as you would for the Ant
-              build described in the previous section.  Then, you need to push various ManifoldCF-required jars into your local Maven repository.  To do that, please do the following:</p>
-          <ol>
-              <li>Populate your <em>lib</em> directory with the jars necessary.  You can do this either by downloading and unpacking an appropriate lib distribution, or by executing the appropriate Ant commands.
-                  The command <em>ant download-xerces download-xmlsec download-opensaml</em> should be sufficient.</li>
-              <li>Run the script <em>mvn-bootstrap[.sh|.bat]</em>. This script takes no arguments.</li>
-          </ol>
+          <p>No special preparation is required, other than to have access to the Apache Maven repository.</p>
         </section>
         <section>
           <title>How to build</title>
@@ -318,6 +324,8 @@ mvn clean package
           <tr><td><em>connectors.xml</em></td><td>an xml file describing the connectors that should be registered</td></tr>
           <tr><td><em>connector-lib</em></td><td>jars for all the connectors, referred to by properties.xml</td></tr>
           <tr><td><em>connector-lib-proprietary</em></td><td>proprietary jars for all the connectors, referred to by properties.xml; not included in binary release</td></tr>
+          <tr><td><em>lib</em></td><td>jars for all of the examples, referenced by the example scripts</td></tr>
+          <tr><td><em>lib-proprietary</em></td><td>proprietary jars for all of the examples, referenced by the proprietary example scripts</td></tr>
           <tr><td><em>xxx-process</em></td><td>scripts, classpath jars, and -D switch values needed for a required connector-specific process</td></tr>
           <tr><td><em>script-engine</em></td><td>jars and scripts for running the ManifoldCF script interpreter</td></tr>
           <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), excluding all proprietary libraries</td></tr>
@@ -873,6 +881,7 @@ cd example
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseport</td><td>No</td><td>The HSQLDB remote server port.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseinstance</td><td>No</td><td>The HSQLDB remote database instance name.</td></tr>
             <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL server name.  Defaults to 'localhost'.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.client</td><td>No</td><td>The MySQL client property.  Defaults to 'localhost'.  You may want to set this to '%' for a multi-machine setup.</td></tr>
             <tr><td>org.apache.manifoldcf.lockmanagerclass</td><td>No</td><td>Specifies the class to use to implement synchronization.  Default
                 is either file-based synchronization or in-memory synchronization, using the org.apache.manifoldcf.core.lockmanager.LockManager class.
                 Options include org.apache.manifoldcf.core.lockmanager.BaseLockManager, org.apache.manifoldcf.core.FileLockManager, and

@@ -109,10 +109,9 @@ public class Robots
   *@param pathString is the path (non-query) part of the URL
   *@return true if fetch is allowed, false otherwise.
   */
-  public boolean isFetchAllowed(String protocol, int port, String hostName, String pathString,
+  public boolean isFetchAllowed(IThreadContext threadContext, String throttleGroupName,
+    String protocol, int port, String hostName, String pathString,
     String userAgent, String from,
-    double minimumMillisecondsPerBytePerServer, int maxOpenConnectionsPerServer,
-    long minimumMillisecondsPerFetchPerServer,
     String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
     IVersionActivity activities, int connectionLimit)
     throws ManifoldCFException, ServiceInterruption
@@ -134,9 +133,9 @@ public class Robots
       }
     }
 
-    return host.isFetchAllowed(System.currentTimeMillis(),pathString,
+    return host.isFetchAllowed(threadContext,throttleGroupName,
+      System.currentTimeMillis(),pathString,
       userAgent,from,
-      minimumMillisecondsPerBytePerServer,maxOpenConnectionsPerServer,minimumMillisecondsPerFetchPerServer,
       proxyHost, proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,activities,connectionLimit);
   }
 
@@ -257,10 +256,9 @@ public class Robots
     *@param pathString is the path string to check.
     *@return true if crawling is allowed, false otherwise.
     */
-    public boolean isFetchAllowed(long currentTime, String pathString,
+    public boolean isFetchAllowed(IThreadContext threadContext, String throttleGroupName,
+      long currentTime, String pathString,
       String userAgent, String from,
-      double minimumMillisecondsPerBytePerServer, int maxOpenConnectionsPerServer,
-      long minimumMillisecondsPerFetchPerServer,
       String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
       IVersionActivity activities, int connectionLimit)
       throws ServiceInterruption, ManifoldCFException
@@ -323,9 +321,7 @@ public class Robots
 
         if (readingRobots)
           // This doesn't need to be synchronized because readingRobots blocks all other threads from getting at this object
-          makeValid(currentTime,userAgent,from,
-          minimumMillisecondsPerBytePerServer,maxOpenConnectionsPerServer,
-          minimumMillisecondsPerFetchPerServer,
+          makeValid(threadContext,throttleGroupName,currentTime,userAgent,from,
           proxyHost, proxyPort, proxyAuthDomain, proxyAuthUsername, proxyAuthPassword,
           hostName, activities, connectionLimit);
 
@@ -435,9 +431,8 @@ public class Robots
     /** Initialize the record.  This method reads the robots file on the specified protocol/host/port,
     * and parses it according to the rules.
     */
-    protected void makeValid(long currentTime, String userAgent, String from,
-      double minimumMillisecondsPerBytePerServer, int maxOpenConnectionsPerServer,
-      long minimumMillisecondsPerFetchPerServer,
+    protected void makeValid(IThreadContext threadContext, String throttleGroupName,
+      long currentTime, String userAgent, String from,
       String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
       String hostName, IVersionActivity activities, int connectionLimit)
       throws ServiceInterruption, ManifoldCFException
@@ -445,8 +440,8 @@ public class Robots
       invalidTime = currentTime + 24L * 60L * 60L * 1000L;
 
       // Do the fetch
-      IThrottledConnection connection = fetcher.createConnection(hostName,minimumMillisecondsPerBytePerServer,
-        maxOpenConnectionsPerServer,minimumMillisecondsPerFetchPerServer,connectionLimit,ROBOT_TIMEOUT_MILLISECONDS,
+      IThrottledConnection connection = fetcher.createConnection(threadContext,throttleGroupName,
+        hostName,connectionLimit,ROBOT_TIMEOUT_MILLISECONDS,
         proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
       try
       {

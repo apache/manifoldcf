@@ -155,11 +155,41 @@ public class SeedingThread extends Thread
                   }
                   catch (ServiceInterruption e)
                   {
-                    // Note the service interruption
-                    Logging.threads.warn("Service interruption for job "+jobID,e);
-                    long retryInterval = e.getRetryTime() - currentTime;
-                    if (retryInterval >= 0L && retryInterval < waitTime)
-                      waitTime = retryInterval;
+                    if (!e.jobInactiveAbort())
+                    {
+                      Logging.jobs.warn("Seeding service interruption reported for job "+
+                        jobID+" connection '"+connection.getName()+"': "+
+                        e.getMessage(),e);
+                    }
+
+                    // If either we are going to be requeuing beyond the fail time, OR
+                    // the number of retries available has hit 0, THEN we treat this
+                    // as either an "ignore" or a hard error.
+                    if (!e.jobInactiveAbort() && (jsr.getFailTime() != -1L && jsr.getFailTime() < e.getRetryTime() ||
+                      jsr.getFailRetryCount() == 0))
+                    {
+                      // Treat this as a hard failure.
+                      if (e.isAbortOnFail())
+                      {
+                        // Note the error in the job, and transition to inactive state
+                        String message = e.jobInactiveAbort()?"":"Repeated service interruptions during seeding"+((e.getCause()!=null)?": "+e.getCause().getMessage():"");
+                        if (jobManager.errorAbort(jobID,message) && message.length() > 0)
+                          Logging.jobs.error(message,e.getCause());
+                        jsr.noteStarted();
+                      }
+                      else
+                      {
+                        // Not sure this can happen -- but just transition silently to active state
+                        jobManager.noteJobSeeded(jobID,currentTime);
+                        jsr.noteStarted();
+                      }
+                    }
+                    else
+                    {
+                      // Reset the job to the READYFORSTARTUP state, updating the failtime and failcount fields
+                      jobManager.retrySeeding(jsr,e.getFailTime(),e.getFailRetryCount());
+                      jsr.noteStarted();
+                    }
                     // Go on to the next job
                     continue;
                   }
@@ -186,8 +216,7 @@ public class SeedingThread extends Thread
                   throw e;
                 if (jobManager.errorAbort(jobID,e.getMessage()))
                   Logging.threads.error("Exception tossed: "+e.getMessage(),e);
-                // We DO have to clean up, because there is otherwise no
-                // way the job will be reset from the seeding state.
+                jsr.noteStarted();
               }
             }
           }

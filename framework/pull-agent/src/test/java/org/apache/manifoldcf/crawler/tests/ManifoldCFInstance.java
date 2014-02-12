@@ -67,7 +67,7 @@ public class ManifoldCFInstance
 
   public ManifoldCFInstance()
   {
-    this(ManifoldCF.getProcessID(), 8346, false, true);
+    this("", 8346, false, true);
   }
   
   public ManifoldCFInstance(String processID)
@@ -77,7 +77,7 @@ public class ManifoldCFInstance
 
   public ManifoldCFInstance(boolean singleWar)
   {
-    this(ManifoldCF.getProcessID(), 8346, singleWar, true);
+    this("", 8346, singleWar, true);
   }
   
   public ManifoldCFInstance(String processID, boolean singleWar)
@@ -87,7 +87,7 @@ public class ManifoldCFInstance
 
   public ManifoldCFInstance(boolean singleWar, boolean webapps)
   {
-    this(ManifoldCF.getProcessID(), 8346, singleWar, webapps);
+    this("", 8346, singleWar, webapps);
   }
 
   public ManifoldCFInstance(String processID, boolean singleWar, boolean webapps)

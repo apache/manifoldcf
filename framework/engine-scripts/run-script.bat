@@ -16,20 +16,15 @@ rem limitations under the License.
 
 rem check that JAVA_HOME is set
 if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
-if not exist "%ENGINE_HOME%\lib" goto nolcfhome
-rem save existing path here
-set OLDDIR=%CD%
-cd "%ENGINE_HOME%"
-set CLASSPATH=.
-for %%f in (lib/*) do call setclasspath.bat %%f
-rem restore old path here
-cd "%OLDDIR%"
-"%JAVA_HOME%\bin\java" -classpath "%CLASSPATH%" org.apache.manifoldcf.scriptengine.ScriptParser %*
+if not exist "..\lib" goto nolcfhome
+set JAVAOPTIONS=
+for /f "delims=" %%a in ('type options.env.win') do call setjavaoption.bat "%%a"
+"%JAVA_HOME%\bin\java" %JAVAOPTIONS% org.apache.manifoldcf.scriptengine.ScriptParser %*
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.
 goto done
 :nolcfhome
-echo Environment variable ENGINE_HOME is not set properly.
+echo Script must be run from script-engine directory.
 goto done
 :done

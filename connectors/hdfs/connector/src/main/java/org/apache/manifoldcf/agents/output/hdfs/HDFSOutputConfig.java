@@ -32,6 +32,7 @@ public class HDFSOutputConfig extends HDFSOutputParam {
 
   /** Parameters used for the configuration */
   final private static ParameterEnum[] CONFIGURATIONLIST = {
+    ParameterEnum.namenodeprotocol,
     ParameterEnum.namenodehost,
     ParameterEnum.namenodeport,
     ParameterEnum.user

@@ -33,6 +33,18 @@
     </td>
   </tr>
   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerClaimSpace'))</nobr></td>
+    <td class="value">
+  #if($SERVERCLAIMSPACE == 'false')
+        $Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Disabled'))
+  #elseif($SERVERCLAIMSPACE == 'true')
+        $Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Enabled'))
+  #else
+        Unknown
+  #end
+    </td>
+  </tr>
+  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerProtocol'))</nobr></td>
     <td class="value">
       $SERVERPROTOCOL

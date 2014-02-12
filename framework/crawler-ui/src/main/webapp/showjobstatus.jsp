@@ -202,14 +202,15 @@ if (maintenanceUnderway == false)
 %>
 		<tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
 			<td class="columncell">
+				<nobr>
 <%
 		if (status == JobStatus.JOBSTATUS_NOTYETRUN ||
 			status == JobStatus.JOBSTATUS_COMPLETED ||
 			status == JobStatus.JOBSTATUS_ERROR)
 		{
 %>
-				<a href='<%="javascript:Start(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Start")%></nobr></a>&nbsp;
-				<a href='<%="javascript:StartMinimal(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Startminimal")%></nobr></a>&nbsp;
+					<a href='<%="javascript:Start(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Start")%></a>
+					<a href='<%="javascript:StartMinimal(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Startminimal")%></a>
 <%
 		}
 		if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -219,8 +220,8 @@ if (maintenanceUnderway == false)
 			status == JobStatus.JOBSTATUS_STARTING)
 		{
 %>
-				<a href='<%="javascript:Restart(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restart")%></nobr></a>&nbsp;
-				<a href='<%="javascript:RestartMinimal(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restartminimal")%></nobr></a>&nbsp;
+					<a href='<%="javascript:Restart(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restart")%></a>
+					<a href='<%="javascript:RestartMinimal(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restartminimal")%></a>
 <%
 		}
 		if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -228,7 +229,7 @@ if (maintenanceUnderway == false)
 			status == JobStatus.JOBSTATUS_WINDOWWAIT)
 		{
 %>
-				<a href='<%="javascript:Pause(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Pausejob")+" "+js.getJobID()%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Pause")%></nobr></a>&nbsp;
+					<a href='<%="javascript:Pause(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Pausejob")+" "+js.getJobID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Pause")%></a>
 <%
 		}
 		if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -241,16 +242,17 @@ if (maintenanceUnderway == false)
 			status == JobStatus.JOBSTATUS_RESTARTING)
 		{
 %>
-				<a href='<%="javascript:Abort(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Abortjob")+" "+js.getJobID()%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Abort")%></nobr></a>&nbsp;
+					<a href='<%="javascript:Abort(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Abortjob")+" "+js.getJobID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Abort")%></a>
 <%
 		}
 		if (status == JobStatus.JOBSTATUS_PAUSED)
 		{
 %>
-				<a href='<%="javascript:Resume(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Resumejob")+" "+js.getJobID()%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Resume")%></nobr></a>&nbsp;
+					<a href='<%="javascript:Resume(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Resumejob")+" "+js.getJobID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Resume")%></a>
 <%
 		}
 %>
+				</nobr>
 			</td>
 			<td class="columncell"><%="<!--jobid="+js.getJobID()+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(js.getDescription())%></td><td class="columncell"><%=statusName%></td><td class="columncell"><%=startTime%></td><td class="columncell"><%=endTime%></td>
 			<td class="columncell"><%=(js.getQueueCountExact()?"":"&gt; ")%><%=new Long(js.getDocumentsInQueue()).toString()%></td>

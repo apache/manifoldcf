@@ -38,7 +38,11 @@
 <ul class="menusecond">
 	<li class="menuitem">
 		<nobr><a class="menulink" href="listgroups.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthoritygroups")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityGroups")%></a></nobr>
+	</li>
+	<li class="menuitem">
 		<nobr><a class="menulink" href="listmappers.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listusermappings")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListUserMappings")%></a></nobr>
+	</li>
+	<li class="menuitem">
 		<nobr><a class="menulink" href="listauthorities.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthorities")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityConnections")%></a></nobr>
 	</li>
 </ul>

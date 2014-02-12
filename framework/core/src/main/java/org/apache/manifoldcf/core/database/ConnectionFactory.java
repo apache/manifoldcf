@@ -64,14 +64,7 @@ public class ConnectionFactory
     {
       // Hope for a connection now
       WrappedConnection rval;
-      ConnectionPool cp = null;
-      try
-      {
-        cp = cpm.getPool(database);
-      }
-      catch (Exception e)
-      {
-      }
+      ConnectionPool cp = cpm.getPool(database);
       if (cp == null)
       {
         cpm.addAlias(database, jdbcDriver, jdbcUrl,
@@ -81,9 +74,25 @@ public class ConnectionFactory
       }
       return getConnectionWithRetries(cp);
     }
-    catch (Exception e)
+    catch (InterruptedException e)
     {
-      throw new ManifoldCFException("Error getting connection: "+e.getMessage(),e,ManifoldCFException.DATABASE_ERROR);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+    catch (SQLException e)
+    {
+      throw new ManifoldCFException("Error getting connection: "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+    }
+    catch (ClassNotFoundException e)
+    {
+      throw new ManifoldCFException("Fatal error getting connection: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
+    }
+    catch (InstantiationException e)
+    {
+      throw new ManifoldCFException("Fatal error getting connection: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
+    }
+    catch (IllegalAccessException e)
+    {
+      throw new ManifoldCFException("Fatal error getting connection: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
     }
   }
 
@@ -100,7 +109,7 @@ public class ConnectionFactory
   }
 
   protected static WrappedConnection getConnectionWithRetries(ConnectionPool cp)
-    throws SQLException, ManifoldCFException
+    throws SQLException, InterruptedException
   {
     // If we have a problem, we will wait a grand total of 30 seconds
     int retryCount = 3;
@@ -117,19 +126,8 @@ public class ConnectionFactory
         // Eat the exception and try again
         retryCount--;
       }
-      catch (InterruptedException e)
-      {
-        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-      }
-      try
-      {
-        // Ten seconds is a long time
-        ManifoldCF.sleep(10000L);
-      }
-      catch (InterruptedException e)
-      {
-        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-      }
+      // Ten seconds is a long time
+      ManifoldCF.sleep(10000L);
     }
 
   }

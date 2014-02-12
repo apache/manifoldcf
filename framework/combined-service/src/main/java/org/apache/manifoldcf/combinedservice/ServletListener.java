@@ -31,6 +31,7 @@ public class ServletListener implements ServletContextListener
   public static final String _rcsid = "@(#)$Id$";
 
   protected static AgentsThread agentsThread = null;
+  protected IdleCleanupThread idleCleanupThread = null;
 
   public void contextInitialized(ServletContextEvent sce)
   {
@@ -44,8 +45,14 @@ public class ServletListener implements ServletContextListener
       ManifoldCF.registerThisAgent(tc);
       ManifoldCF.reregisterAllConnectors(tc);
 
+      // This is for the UI and API components
+      idleCleanupThread = new IdleCleanupThread();
+      idleCleanupThread.start();
+
+      // This is for the agents process
       agentsThread = new AgentsThread(ManifoldCF.getProcessID());
       agentsThread.start();
+
     }
     catch (ManifoldCFException e)
     {
@@ -64,6 +71,15 @@ public class ServletListener implements ServletContextListener
         agentsThread.finishUp();
         agentsThread = null;
         AgentsDaemon.clearAgentsShutdownSignal(tc);
+      }
+      
+      while (true)
+      {
+        if (idleCleanupThread == null)
+          break;
+        idleCleanupThread.interrupt();
+        if (!idleCleanupThread.isAlive())
+          idleCleanupThread = null;
       }
     }
     catch (InterruptedException e)
