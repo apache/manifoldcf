@@ -42,16 +42,24 @@ import java.util.HashMap;
  */
 public class HDFSSession {
 
-  private FileSystem fileSystem;
+  private final FileSystem fileSystem;
   private final String nameNode;
   private final Configuration config;
   private final String user;
   
-  public HDFSSession(String nameNode, Configuration config, String user) throws URISyntaxException, IOException, InterruptedException {
+  public HDFSSession(String nameNode, String user) throws URISyntaxException, IOException, InterruptedException {
     this.nameNode = nameNode;
-    this.config = config;
     this.user = user;
-    fileSystem = FileSystem.get(new URI(nameNode), config, user);
+    // Switch class loaders so that scheme registration works properly
+    ClassLoader ocl = Thread.currentThread().getContextClassLoader();
+    try {
+      Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+      config = new Configuration();
+      config.set("fs.defaultFS", nameNode);
+      fileSystem = FileSystem.get(new URI(nameNode), config, user);
+    } finally {
+      Thread.currentThread().setContextClassLoader(ocl);
+    }
   }
 
   public Map<String, String> getRepositoryInfo() {
@@ -61,10 +69,10 @@ public class HDFSSession {
     info.put("Config", config.toString());
     info.put("User", user);
     info.put("Canonical Service Name", fileSystem.getCanonicalServiceName());
-    info.put("Default Block Size", Long.toString(fileSystem.getDefaultBlockSize()));
-    info.put("Default Replication", Short.toString(fileSystem.getDefaultReplication()));
-    info.put("Home Directory", fileSystem.getHomeDirectory().toUri().toString());
-    info.put("Working Directory", fileSystem.getWorkingDirectory().toUri().toString());
+    //info.put("Default Block Size", Long.toString(fileSystem.getDefaultBlockSize()));
+    //info.put("Default Replication", Short.toString(fileSystem.getDefaultReplication()));
+    //info.put("Home Directory", fileSystem.getHomeDirectory().toUri().toString());
+    //info.put("Working Directory", fileSystem.getWorkingDirectory().toUri().toString());
     return info;
   }
 

@@ -21,15 +21,13 @@ package org.apache.manifoldcf.core.lockmanager;
 import java.util.*;
 import java.io.*;
 
-/** Base class of all lock pools.  A lock pool is a global set of lock objects looked up by
-* a key.  Lock object instantiation differs for different kinds of lock objects, so this
-* base class is expected to be extended accordingly.
+/** Lock pool class. This is a pool of LockGate objects.
 */
 public class LockPool
 {
   public static final String _rcsid = "@(#)$Id: LockPool.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  protected final Map<Object,LockObject> myLocks = new HashMap<Object,LockObject>();
+  protected final Map<Object,LockGate> myLocks = new HashMap<Object,LockGate>();
 
   protected final LockObjectFactory factory;
   
@@ -38,20 +36,21 @@ public class LockPool
     this.factory = factory;
   }
   
-  public synchronized LockObject getObject(Object lockKey)
+  public synchronized LockGate getObject(Object lockKey)
   {
-    LockObject lo = myLocks.get(lockKey);
-    if (lo == null)
+    LockGate lg = myLocks.get(lockKey);
+    if (lg == null)
     {
-      lo = factory.newLockObject(this,lockKey);
-      myLocks.put(lockKey,lo);
+      LockObject lo = factory.newLockObject(this,lockKey);
+      lg = new LockGate(lockKey,lo,this);
+      myLocks.put(lockKey,lg);
     }
-    return lo;
+    return lg;
   }
 
-  public synchronized void releaseObject(Object lockKey, LockObject lockObject)
+  public synchronized void releaseObject(Object lockKey, LockGate lockGate)
   {
-    lockObject.makeInvalid();
+    lockGate.makeInvalid();
     myLocks.remove(lockKey);
   }
 }

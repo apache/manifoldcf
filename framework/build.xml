@@ -746,6 +746,298 @@
         </copy>
     </target>
 
+    <target name="lib" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,jar-script-engine">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
+                <include name="json*.jar"/>
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl*.jar"/>
+                <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
+                <include name="mail*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="jetty*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="ecj*.jar"/>
+                <include name="jasper*.jar"/>
+                <include name="juli*.jar"/>
+                <include name="jsp-api*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
+            </fileset>
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-ui-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-jetty-runner.jar"/>
+                <include name="mcf-script-engine.jar"/>
+            </fileset>
+        </copy>
+    </target>
+    
+    <target name="lib-proprietary">
+        <mkdir dir="dist/lib-proprietary"/>
+        <copy todir="dist/lib-proprietary">
+            <fileset dir="../lib-proprietary">
+                <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="general-add-lib-classpath">
+        <replace file="${processes-dir}/options.env.win" token=".;" value=".;..\lib\${lib-jar};"/>
+        <replace file="${processes-dir}/options.env.unix" token=".:" value=".:../lib/${lib-jar}:"/>
+    </target>
+
+    <target name="general-add-lib-proprietary-classpath">
+        <replace file="${processes-dir}/options.env.win" token=".;" value=".;..\lib-proprietary\${lib-proprietary-jar};"/>
+        <replace file="${processes-dir}/options.env.unix" token=".:" value=".:../lib-proprietary/${lib-proprietary-jar}:"/>
+    </target>
+
+    <target name="general-engine-add-lib-classpath">
+        <replace file="${processes-dir}/options.env.win" token=".;" value=".;..\lib\${lib-jar};"/>
+        <replace file="${processes-dir}/options.env.unix" token=".:" value=".:../lib/${lib-jar}:"/>
+    </target>
+
+    <target name="general-jetty-add-lib-classpath">
+        <replace file="${processes-dir}/jetty-options.env.win" token=".;" value=".;..\lib\${lib-jar};"/>
+        <replace file="${processes-dir}/jetty-options.env.unix" token=".:" value=".:../lib/${lib-jar}:"/>
+    </target>
+
+    <target name="general-jetty-add-lib-proprietary-classpath">
+        <replace file="${processes-dir}/jetty-options.env.win" token=".;" value=".;..\lib-proprietary\${lib-proprietary-jar};"/>
+        <replace file="${processes-dir}/jetty-options.env.unix" token=".:" value=".:../lib-proprietary/${lib-proprietary-jar}:"/>
+    </target>
+
+    <target name="general-combined-add-lib-classpath">
+        <replace file="${processes-dir}/combined-options.env.win" token=".;" value=".;..\lib\${lib-jar};"/>
+        <replace file="${processes-dir}/combined-options.env.unix" token=".:" value=".:../lib/${lib-jar}:"/>
+    </target>
+
+    <target name="general-combined-add-lib-proprietary-classpath">
+        <replace file="${processes-dir}/combined-options.env.win" token=".;" value=".;..\lib-proprietary\${lib-proprietary-jar};"/>
+        <replace file="${processes-dir}/combined-options.env.unix" token=".:" value=".:../lib-proprietary/${lib-proprietary-jar}:"/>
+    </target>
+
+    <target name="preclean-processes">
+        <mkdir dir="${processes-dir}"/>
+        <delete file="${processes-dir}/options.env.win"/>
+        <delete file="${processes-dir}/options.env.unix"/>
+    </target>
+
+    <target name="preclean-engine-processes">
+        <mkdir dir="${processes-dir}"/>
+        <delete file="${processes-dir}/options.env.win"/>
+        <delete file="${processes-dir}/options.env.unix"/>
+    </target>
+
+    <target name="preclean-jetty-processes">
+        <mkdir dir="${processes-dir}"/>
+        <delete file="${processes-dir}/jetty-options.env.win"/>
+        <delete file="${processes-dir}/jetty-options.env.unix"/>
+    </target>
+
+    <target name="preclean-combined-processes">
+        <mkdir dir="${processes-dir}"/>
+        <delete file="${processes-dir}/combined-options.env.win"/>
+        <delete file="${processes-dir}/combined-options.env.unix"/>
+    </target>
+
+    <target name="scripts-common">
+        <mkdir dir="${processes-dir}"/>
+        <copy todir="${processes-dir}">
+            <fileset dir="scripts-common"/>
+        </copy>
+    </target>
+    
+    <target name="scripts" depends="scripts-common">
+        <mkdir dir="${processes-dir}"/>
+        <copy todir="${processes-dir}">
+            <fileset dir="scripts"/>
+        </copy>
+    </target>
+
+    <target name="scripts-jetty" depends="scripts-common">
+        <mkdir dir="${processes-dir}"/>
+        <copy todir="${processes-dir}">
+            <fileset dir="scripts-jetty"/>
+        </copy>
+    </target>
+
+    <target name="scripts-combined" depends="scripts-common">
+        <mkdir dir="${processes-dir}"/>
+        <copy todir="${processes-dir}">
+            <fileset dir="scripts-combined"/>
+        </copy>
+    </target>
+
+    <target name="scripts-engine" depends="scripts-common">
+        <mkdir dir="${processes-dir}"/>
+        <copy todir="${processes-dir}">
+            <fileset dir="engine-scripts"/>
+        </copy>
+    </target>
+
+    <target name="setup-engine-processes" depends="preclean-engine-processes,scripts-engine">
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="json.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="json-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="commons-codec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="commons-collections.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="httpcore.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="httpclient.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="commons-io.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="commons-lang.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="commons-logging.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="mcf-core.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-engine-add-lib-classpath"><param name="lib-jar" value="mcf-script-engine.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+    </target>
+    
+    <target name="setup-jetty-processes" depends="preclean-jetty-processes,scripts-jetty">
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="zookeeper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="json.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="json-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="commons-logging.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="log4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="slf4j-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="slf4j-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="servlet-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="ecj.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-continuation.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-http.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-io.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-jndi.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-jsp-2.1.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-plus.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-security.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-server.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-servlet.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-util.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-webapp.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-xml.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jasper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jasper-el.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="juli.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jsp-api-2.1-glassfish.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="mcf-core.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="mcf-ui-core.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="mcf-agents.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="mcf-pull-agent.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="mcf-jetty-runner.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+    </target>
+
+    <target name="setup-combined-processes" depends="preclean-combined-processes,scripts-combined">
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="zookeeper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="json.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="json-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="commons-logging.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="log4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="slf4j-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="slf4j-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="servlet-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="ecj.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-continuation.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-http.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-io.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-jndi.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-jsp-2.1.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-plus.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-security.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-server.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-servlet.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-util.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-webapp.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-xml.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jasper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jasper-el.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="juli.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jsp-api-2.1-glassfish.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="mcf-core.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="mcf-ui-core.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="mcf-agents.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="mcf-pull-agent.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="mcf-jetty-runner.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+    </target>
+
+    <target name="setup-processes" depends="preclean-processes,scripts">
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="zookeeper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="json.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="json-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="commons-codec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="commons-collections.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="commons-el.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="commons-fileupload.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="httpcore.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="httpclient.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="commons-io.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="commons-lang.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="commons-logging.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="log4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="serializer.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="servlet-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="xalan.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="xercesImpl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="xml-apis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="velocity.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="slf4j-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="slf4j-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="mail.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="postgresql.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derby.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbynet.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbytools.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_cs.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_de_DE.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_es.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_fr.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_hu.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_it.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_ja_JP.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_ko_KR.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_pl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_pt_BR.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_ru.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_zh_CN.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_zh_TW.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="hsqldb.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="mcf-core.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="mcf-agents.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="mcf-pull-agent.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+    </target>
+
+    <target name="setup-jetty-processes-proprietary" depends="setup-jetty-processes">
+    </target>
+
+    <target name="setup-combined-processes-proprietary" depends="setup-combined-processes">
+    </target>
+
+    <target name="setup-processes-proprietary" depends="setup-processes">
+        <antcall target="general-add-lib-proprietary-classpath"><param name="lib-proprietary-jar" value="mysql-connector-java.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-proprietary-classpath"><param name="lib-proprietary-jar" value="ojdbc.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-proprietary-classpath"><param name="lib-proprietary-jar" value="jtds.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+    </target>
+
     <target name="example-common" depends="wars,wars-proprietary">
         <copy file="example-common/connectors.xml" tofile="dist/connectors.xml"/>
         <copy file="example-common/connectors.xml" tofile="dist/connectors-proprietary.xml"/>
@@ -754,183 +1046,39 @@
         <copy file="example-common/README.txt" todir="dist/connector-lib-proprietary"/>
     </target>
     
-    <target name="multi-processes-file" depends="jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/multiprocess-file-example/processes/lib"/>
-        <copy todir="dist/multiprocess-file-example/processes/lib">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="commons-collections*.jar"/>
-                <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
-                <include name="httpcore*.jar"/>
-                <include name="httpclient*.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-lang*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
-                <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="velocity*.jar"/>
-                <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
-                <include name="hsqldb*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="dist/multiprocess-file-example/processes">
-            <fileset dir="scripts"/>
-        </copy>
+    <target name="multi-processes-file" depends="lib">
+        <antcall target="setup-processes">
+            <param name="processes-dir" value="dist/multiprocess-file-example"/>
+        </antcall>
         <mkdir dir="dist/multiprocess-file-example/syncharea"/>
     </target>
 
-    <target name="multi-processes-file-proprietary" depends="jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/multiprocess-file-example-proprietary/processes/lib"/>
-        <copy todir="dist/multiprocess-file-example-proprietary/processes/lib">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="commons-collections*.jar"/>
-                <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
-                <include name="httpcore*.jar"/>
-                <include name="httpclient*.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-lang*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
-                <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="velocity*.jar"/>
-                <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
-                <include name="hsqldb*.jar"/>
-            </fileset>
-            <fileset dir="../lib-proprietary">
-                <include name="mysql*.jar"/>
-                <include name="ojdbc*.jar"/>
-                <include name="jtds*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="dist/multiprocess-file-example-proprietary/processes">
-            <fileset dir="scripts"/>
-        </copy>
+    <target name="multi-processes-file-proprietary" depends="lib,lib-proprietary">
+        <antcall target="setup-processes-proprietary">
+            <param name="processes-dir" value="dist/multiprocess-file-example-proprietary"/>
+        </antcall>
         <mkdir dir="dist/multiprocess-file-example-proprietary/syncharea"/>
     </target>
 
-    <target name="multi-processes-zk" depends="jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/multiprocess-zk-example/processes/lib"/>
-        <copy todir="dist/multiprocess-zk-example/processes/lib">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="commons-collections*.jar"/>
-                <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
-                <include name="httpcore*.jar"/>
-                <include name="httpclient*.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-lang*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
-                <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="velocity*.jar"/>
-                <include name="slf4j*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
-                <include name="hsqldb*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="dist/multiprocess-zk-example/processes">
-            <fileset dir="scripts"/>
-        </copy>
+    <target name="multi-processes-zk" depends="lib">
+        <antcall target="setup-processes">
+            <param name="processes-dir" value="dist/multiprocess-zk-example"/>
+        </antcall>
         <mkdir dir="dist/multiprocess-zk-example/zookeeper"/>
     </target>
 
-    <target name="multi-processes-zk-proprietary" depends="jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/multiprocess-zk-example-proprietary/processes/lib"/>
-        <copy todir="dist/multiprocess-zk-example-proprietary/processes/lib">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="commons-collections*.jar"/>
-                <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
-                <include name="httpcore*.jar"/>
-                <include name="httpclient*.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-lang*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
-                <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="velocity*.jar"/>
-                <include name="slf4j*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
-                <include name="hsqldb*.jar"/>
-            </fileset>
-            <fileset dir="../lib-proprietary">
-                <include name="mysql*.jar"/>
-                <include name="ojdbc*.jar"/>
-                <include name="jtds*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="dist/multiprocess-zk-example-proprietary/processes">
-            <fileset dir="scripts"/>
-        </copy>
+    <target name="multi-processes-zk-proprietary" depends="lib,lib-proprietary">
+        <antcall target="setup-processes-proprietary">
+            <param name="processes-dir" value="dist/multiprocess-zk-example-proprietary"/>
+        </antcall>
         <mkdir dir="dist/multiprocess-zk-example-proprietary/zookeeper"/>
     </target>
 
-    <target name="multi-process-file-example" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-file">
+    <target name="multi-process-file-example" depends="lib,multi-processes-file">
+        <antcall target="setup-jetty-processes">
+            <param name="processes-dir" value="dist/multiprocess-file-example"/>
+        </antcall>
+
         <mkdir dir="dist/multiprocess-file-example"/>
         <copy todir="dist/multiprocess-file-example">
             <fileset dir="example-multiprocess-common">
@@ -946,36 +1094,15 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/multiprocess-file-example/lib"/>
-        <copy todir="dist/multiprocess-file-example/lib">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-ui-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-                <include name="mcf-jetty-runner.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="jetty*.jar"/>
-                <include name="slf4j*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="ecj*.jar"/>
-                <include name="jasper*.jar"/>
-                <include name="juli*.jar"/>
-                <include name="jsp-api*.jar"/>
-            </fileset>
-        </copy>
+        
         <mkdir dir="dist/multiprocess-file-example/logs"/>
         <chmod dir="dist/multiprocess-file-example" perm="a+x" includes="**/*.sh"/>
     </target>
   
-      <target name="multi-process-file-example-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-file-proprietary">
+      <target name="multi-process-file-example-proprietary" depends="lib,lib-proprietary,multi-processes-file-proprietary">
+        <antcall target="setup-jetty-processes-proprietary">
+            <param name="processes-dir" value="dist/multiprocess-file-example-proprietary"/>
+        </antcall>
         <mkdir dir="dist/multiprocess-file-example-proprietary"/>
         <copy todir="dist/multiprocess-file-example-proprietary">
             <fileset dir="example-multiprocess-common">
@@ -991,36 +1118,14 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/multiprocess-file-example-proprietary/lib"/>
-        <copy todir="dist/multiprocess-file-example-proprietary/lib">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-ui-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-                <include name="mcf-jetty-runner.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="jetty*.jar"/>
-                <include name="slf4j*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="ecj*.jar"/>
-                <include name="jasper*.jar"/>
-                <include name="juli*.jar"/>
-                <include name="jsp-api*.jar"/>
-            </fileset>
-        </copy>
         <mkdir dir="dist/multiprocess-file-example-proprietary/logs"/>
         <chmod dir="dist/multiprocess-file-example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>
 
-    <target name="multi-process-zk-example" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-zk">
+    <target name="multi-process-zk-example" depends="lib,multi-processes-zk">
+        <antcall target="setup-jetty-processes">
+            <param name="processes-dir" value="dist/multiprocess-zk-example"/>
+        </antcall>
         <mkdir dir="dist/multiprocess-zk-example"/>
         <copy todir="dist/multiprocess-zk-example">
             <fileset dir="example-multiprocess-common">
@@ -1038,36 +1143,14 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/multiprocess-zk-example/lib"/>
-        <copy todir="dist/multiprocess-zk-example/lib">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-ui-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-                <include name="mcf-jetty-runner.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="jetty*.jar"/>
-                <include name="slf4j*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="ecj*.jar"/>
-                <include name="jasper*.jar"/>
-                <include name="juli*.jar"/>
-                <include name="jsp-api*.jar"/>
-            </fileset>
-        </copy>
         <mkdir dir="dist/multiprocess-zk-example/logs"/>
         <chmod dir="dist/multiprocess-zk-example" perm="a+x" includes="**/*.sh"/>
     </target>
   
-      <target name="multi-process-zk-example-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-zk-proprietary">
+      <target name="multi-process-zk-example-proprietary" depends="lib,lib-proprietary,multi-processes-zk-proprietary">
+        <antcall target="setup-jetty-processes-proprietary">
+            <param name="processes-dir" value="dist/multiprocess-zk-example-proprietary"/>
+        </antcall>
         <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
         <copy todir="dist/multiprocess-zk-example-proprietary">
             <fileset dir="example-multiprocess-common">
@@ -1085,106 +1168,24 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/multiprocess-zk-example-proprietary/lib"/>
-        <copy todir="dist/multiprocess-zk-example-proprietary/lib">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-ui-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-                <include name="mcf-jetty-runner.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="jetty*.jar"/>
-                <include name="slf4j*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="ecj*.jar"/>
-                <include name="jasper*.jar"/>
-                <include name="juli*.jar"/>
-                <include name="jsp-api*.jar"/>
-            </fileset>
-        </copy>
         <mkdir dir="dist/multiprocess-zk-example-proprietary/logs"/>
         <chmod dir="dist/multiprocess-zk-example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>
 
-    <target name="script-engine" depends="jar-script-engine,jar-core">
-        <mkdir dir="dist/script-engine/lib"/>
-        <copy todir="dist/script-engine/lib">
-            <fileset dir="../lib">
-                <include name="json*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="commons-collections*.jar"/>
-                <include name="httpcore*.jar"/>
-                <include name="httpclient*.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-lang*.jar"/>
-                <include name="commons-logging*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-script-engine.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="dist/script-engine">
-            <fileset dir="engine-scripts"/>
-        </copy>
+    <target name="script-engine" depends="lib">
+        <antcall target="setup-engine-processes">
+            <param name="processes-dir" value="dist/script-engine"/>
+        </antcall>
         <copy todir="dist/script-engine">
             <fileset dir="script-example"/>
         </copy>
         <chmod dir="dist/script-engine" perm="a+x" includes="**/*.sh"/>
     </target>
     
-    <target name="single-process-example" depends="jar-jetty-runner,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/example/lib"/>
-        <copy todir="dist/example/lib">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="commons-collections*.jar"/>
-                <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
-                <include name="httpcore*.jar"/>
-                <include name="httpclient*.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-lang*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="ecj*.jar"/>
-                <include name="jasper*.jar"/>
-                <include name="jetty*.jar"/>
-                <include name="slf4j*.jar"/>
-                <include name="jsp-api*.jar"/>
-                <include name="jsp-2.5*.jar"/>
-                <include name="log4j*.jar"/>
-                <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="juli*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="velocity*.jar"/>
-                <include name="mail*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
-                <include name="hsqldb*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-ui-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-                <include name="mcf-jetty-runner.jar"/>
-            </fileset>
-        </copy>
+    <target name="single-process-example" depends="lib">
+        <antcall target="setup-combined-processes">
+            <param name="processes-dir" value="dist/example"/>
+        </antcall>
         <mkdir dir="dist/example/logs"/>
         <copy todir="dist/example">
             <fileset dir="example-singleprocess-common">
@@ -1201,66 +1202,67 @@
         custom task, so I've hard coded all the class path libs. -->
         <property name="manifest-cp-0" value=""/>
         
-        <property name="manifest-cp-1" value="${manifest-cp-0} lib/commons-lang.jar"/>
-        <property name="manifest-cp-2" value="${manifest-cp-1} lib/commons-codec.jar"/>
-        <property name="manifest-cp-3" value="${manifest-cp-2} lib/commons-collections.jar"/>
-        <property name="manifest-cp-4" value="${manifest-cp-3} lib/commons-el.jar"/>
-        <property name="manifest-cp-5" value="${manifest-cp-4} lib/commons-fileupload.jar"/>
-        <property name="manifest-cp-7" value="${manifest-cp-5} lib/commons-io.jar"/>
-        <property name="manifest-cp-8" value="${manifest-cp-7} lib/commons-logging.jar"/>
-        <property name="manifest-cp-9" value="${manifest-cp-8} lib/hsqldb.jar"/>
-        <property name="manifest-cp-10" value="${manifest-cp-9} lib/derbyclient.jar"/>
-        <property name="manifest-cp-11" value="${manifest-cp-10} lib/derby.jar"/>
-        <property name="manifest-cp-12" value="${manifest-cp-11} lib/derbyLocale_cs.jar"/>
-        <property name="manifest-cp-13" value="${manifest-cp-12} lib/derbyLocale_de_DE.jar"/>
-        <property name="manifest-cp-14" value="${manifest-cp-13} lib/derbyLocale_es.jar"/>
-        <property name="manifest-cp-15" value="${manifest-cp-14} lib/derbyLocale_fr.jar"/>
-        <property name="manifest-cp-16" value="${manifest-cp-15} lib/derbyLocale_hu.jar"/>
-        <property name="manifest-cp-17" value="${manifest-cp-16} lib/derbyLocale_it.jar"/>
-        <property name="manifest-cp-18" value="${manifest-cp-17} lib/derbyLocale_ja_JP"/>
-        <property name="manifest-cp-19" value="${manifest-cp-18} lib/derbyLocale_ko_KR.jar"/>
-        <property name="manifest-cp-20" value="${manifest-cp-19} lib/derbyLocale_pl.jar"/>
-        <property name="manifest-cp-21" value="${manifest-cp-20} lib/derbyLocale_pt_BR.jar"/>
-        <property name="manifest-cp-22" value="${manifest-cp-21} lib/derbyLocale_ru.jar"/>
-        <property name="manifest-cp-23" value="${manifest-cp-22} lib/derbyLocale_zh_CN.jar"/>
-        <property name="manifest-cp-24" value="${manifest-cp-23} lib/derbyLocale_zh_TW.jar"/>
-        <property name="manifest-cp-25" value="${manifest-cp-24} lib/derbyrun.jar"/>
-        <property name="manifest-cp-26" value="${manifest-cp-25} lib/derbytools.jar"/>
-        <property name="manifest-cp-27" value="${manifest-cp-26} lib/jasper.jar"/>
-        <property name="manifest-cp-28" value="${manifest-cp-27} lib/jasper-el.jar"/>
-        <property name="manifest-cp-30" value="${manifest-cp-28} lib/jetty-server.jar"/>
-        <property name="manifest-cp-31" value="${manifest-cp-30} lib/jetty-util.jar"/>
-        <property name="manifest-cp-32" value="${manifest-cp-31} lib/jsp-api-2.1-glassfish.jar"/>
-        <property name="manifest-cp-33" value="${manifest-cp-32} lib/json.jar"/>
-        <property name="manifest-cp-34" value="${manifest-cp-33} lib/mcf-core.jar"/>
-        <property name="manifest-cp-35" value="${manifest-cp-34} lib/mcf-agents.jar"/>
-        <property name="manifest-cp-36" value="${manifest-cp-35} lib/mcf-jetty-runner.jar"/>
-        <property name="manifest-cp-37" value="${manifest-cp-36} lib/mcf-pull-agent.jar"/>
-        <property name="manifest-cp-38" value="${manifest-cp-37} lib/mcf-ui-core.jar"/>
-        <property name="manifest-cp-39" value="${manifest-cp-38} lib/log4j.jar"/>
-        <property name="manifest-cp-40" value="${manifest-cp-39} lib/postgresql.jar"/>
-        <property name="manifest-cp-42" value="${manifest-cp-40} lib/serializer.jar"/>
-        <property name="manifest-cp-43" value="${manifest-cp-42} lib/servlet-api.jar"/>
-        <property name="manifest-cp-44" value="${manifest-cp-43} lib/juli.jar"/>
-        <property name="manifest-cp-45" value="${manifest-cp-44} lib/xalan.jar"/>
-        <property name="manifest-cp-46" value="${manifest-cp-45} lib/xercesImpl.jar"/>
-        <property name="manifest-cp-47" value="${manifest-cp-46} lib/xml-apis.jar"/>
-        <property name="manifest-cp-48" value="${manifest-cp-47} lib/derbynet.jar"/>
-        <property name="manifest-cp-49" value="${manifest-cp-48} lib/ecj.jar"/>
-        <property name="manifest-cp-50" value="${manifest-cp-49} lib/jetty-webapp.jar"/>
-        <property name="manifest-cp-51" value="${manifest-cp-50} lib/jetty-servlet.jar"/>
-        <property name="manifest-cp-52" value="${manifest-cp-51} lib/velocity.jar"/>
-        <property name="manifest-cp-53" value="${manifest-cp-52} lib/jetty-http.jar"/>
-        <property name="manifest-cp-54" value="${manifest-cp-53} lib/jetty-io.jar"/>
-        <property name="manifest-cp-55" value="${manifest-cp-54} lib/jetty-security.jar"/>
-        <property name="manifest-cp-56" value="${manifest-cp-55} lib/jetty-continuation.jar"/>
-        <property name="manifest-cp-57" value="${manifest-cp-56} lib/jetty-xml.jar"/>
-        <property name="manifest-cp-58" value="${manifest-cp-57} lib/slf4j-api.jar"/>
-        <property name="manifest-cp-59" value="${manifest-cp-58} lib/slf4j-simple.jar"/>
-        <property name="manifest-cp-60" value="${manifest-cp-59} lib/httpcore.jar"/>
-        <property name="manifest-cp-61" value="${manifest-cp-60} lib/httpclient.jar"/>
-        <property name="manifest-cp-62" value="${manifest-cp-61} lib/mail.jar"/>
-        <property name="manifest-cp" value="${manifest-cp-62}"/>
+        <property name="manifest-cp-1" value="${manifest-cp-0} ../lib/commons-lang.jar"/>
+        <property name="manifest-cp-2" value="${manifest-cp-1} ../lib/commons-codec.jar"/>
+        <property name="manifest-cp-3" value="${manifest-cp-2} ../lib/commons-collections.jar"/>
+        <property name="manifest-cp-4" value="${manifest-cp-3} ../lib/commons-el.jar"/>
+        <property name="manifest-cp-5" value="${manifest-cp-4} ../lib/commons-fileupload.jar"/>
+        <property name="manifest-cp-7" value="${manifest-cp-5} ../lib/commons-io.jar"/>
+        <property name="manifest-cp-8" value="${manifest-cp-7} ../lib/commons-logging.jar"/>
+        <property name="manifest-cp-9" value="${manifest-cp-8} ../lib/hsqldb.jar"/>
+        <property name="manifest-cp-10" value="${manifest-cp-9} ../lib/derbyclient.jar"/>
+        <property name="manifest-cp-11" value="${manifest-cp-10} ../lib/derby.jar"/>
+        <property name="manifest-cp-12" value="${manifest-cp-11} ../lib/derbyLocale_cs.jar"/>
+        <property name="manifest-cp-13" value="${manifest-cp-12} ../lib/derbyLocale_de_DE.jar"/>
+        <property name="manifest-cp-14" value="${manifest-cp-13} ../lib/derbyLocale_es.jar"/>
+        <property name="manifest-cp-15" value="${manifest-cp-14} ../lib/derbyLocale_fr.jar"/>
+        <property name="manifest-cp-16" value="${manifest-cp-15} ../lib/derbyLocale_hu.jar"/>
+        <property name="manifest-cp-17" value="${manifest-cp-16} ../lib/derbyLocale_it.jar"/>
+        <property name="manifest-cp-18" value="${manifest-cp-17} ../lib/derbyLocale_ja_JP"/>
+        <property name="manifest-cp-19" value="${manifest-cp-18} ../lib/derbyLocale_ko_KR.jar"/>
+        <property name="manifest-cp-20" value="${manifest-cp-19} ../lib/derbyLocale_pl.jar"/>
+        <property name="manifest-cp-21" value="${manifest-cp-20} ../lib/derbyLocale_pt_BR.jar"/>
+        <property name="manifest-cp-22" value="${manifest-cp-21} ../lib/derbyLocale_ru.jar"/>
+        <property name="manifest-cp-23" value="${manifest-cp-22} ../lib/derbyLocale_zh_CN.jar"/>
+        <property name="manifest-cp-24" value="${manifest-cp-23} ../lib/derbyLocale_zh_TW.jar"/>
+        <property name="manifest-cp-25" value="${manifest-cp-24} ../lib/derbyrun.jar"/>
+        <property name="manifest-cp-26" value="${manifest-cp-25} ../lib/derbytools.jar"/>
+        <property name="manifest-cp-27" value="${manifest-cp-26} ../lib/jasper.jar"/>
+        <property name="manifest-cp-28" value="${manifest-cp-27} ../lib/jasper-el.jar"/>
+        <property name="manifest-cp-30" value="${manifest-cp-28} ../lib/jetty-server.jar"/>
+        <property name="manifest-cp-31" value="${manifest-cp-30} ../lib/jetty-util.jar"/>
+        <property name="manifest-cp-32" value="${manifest-cp-31} ../lib/jsp-api-2.1-glassfish.jar"/>
+        <property name="manifest-cp-33" value="${manifest-cp-32} ../lib/json.jar"/>
+        <property name="manifest-cp-34" value="${manifest-cp-33} ../lib/mcf-core.jar"/>
+        <property name="manifest-cp-35" value="${manifest-cp-34} ../lib/mcf-agents.jar"/>
+        <property name="manifest-cp-36" value="${manifest-cp-35} ../lib/mcf-jetty-runner.jar"/>
+        <property name="manifest-cp-37" value="${manifest-cp-36} ../lib/mcf-pull-agent.jar"/>
+        <property name="manifest-cp-38" value="${manifest-cp-37} ../lib/mcf-ui-core.jar"/>
+        <property name="manifest-cp-39" value="${manifest-cp-38} ../lib/log4j.jar"/>
+        <property name="manifest-cp-40" value="${manifest-cp-39} ../lib/postgresql.jar"/>
+        <property name="manifest-cp-42" value="${manifest-cp-40} ../lib/serializer.jar"/>
+        <property name="manifest-cp-43" value="${manifest-cp-42} ../lib/servlet-api.jar"/>
+        <property name="manifest-cp-44" value="${manifest-cp-43} ../lib/juli.jar"/>
+        <property name="manifest-cp-45" value="${manifest-cp-44} ../lib/xalan.jar"/>
+        <property name="manifest-cp-46" value="${manifest-cp-45} ../lib/xercesImpl.jar"/>
+        <property name="manifest-cp-47" value="${manifest-cp-46} ../lib/xml-apis.jar"/>
+        <property name="manifest-cp-48" value="${manifest-cp-47} ../lib/derbynet.jar"/>
+        <property name="manifest-cp-49" value="${manifest-cp-48} ../lib/ecj.jar"/>
+        <property name="manifest-cp-50" value="${manifest-cp-49} ../lib/jetty-webapp.jar"/>
+        <property name="manifest-cp-51" value="${manifest-cp-50} ../lib/jetty-servlet.jar"/>
+        <property name="manifest-cp-52" value="${manifest-cp-51} ../lib/velocity.jar"/>
+        <property name="manifest-cp-53" value="${manifest-cp-52} ../lib/jetty-http.jar"/>
+        <property name="manifest-cp-54" value="${manifest-cp-53} ../lib/jetty-io.jar"/>
+        <property name="manifest-cp-55" value="${manifest-cp-54} ../lib/jetty-security.jar"/>
+        <property name="manifest-cp-56" value="${manifest-cp-55} ../lib/jetty-continuation.jar"/>
+        <property name="manifest-cp-57" value="${manifest-cp-56} ../lib/jetty-xml.jar"/>
+        <property name="manifest-cp-58" value="${manifest-cp-57} ../lib/slf4j-api.jar"/>
+        <property name="manifest-cp-59" value="${manifest-cp-58} ../lib/slf4j-simple.jar"/>
+        <property name="manifest-cp-60" value="${manifest-cp-59} ../lib/httpcore.jar"/>
+        <property name="manifest-cp-61" value="${manifest-cp-60} ../lib/httpclient.jar"/>
+        <property name="manifest-cp-62" value="${manifest-cp-61} ../lib/mail.jar"/>
+        <property name="manifest-cp-63" value="${manifest-cp-62} ../lib/zookeeper.jar"/>
+        <property name="manifest-cp" value="${manifest-cp-63}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1271,55 +1273,10 @@
 
     </target>
 
-    <target name="single-process-example-proprietary" depends="jar-jetty-runner,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/example-proprietary/lib"/>
-        <copy todir="dist/example-proprietary/lib">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="commons-collections*.jar"/>
-                <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
-                <include name="httpcore*.jar"/>
-                <include name="httpclient*.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-lang*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="ecj*.jar"/>
-                <include name="jasper*.jar"/>
-                <include name="jetty*.jar"/>
-                <include name="slf4j*.jar"/>
-                <include name="jsp-api*.jar"/>
-                <include name="jsp-2.5*.jar"/>
-                <include name="log4j*.jar"/>
-                <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="juli*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="velocity*.jar"/>
-                <include name="mail*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
-                <include name="hsqldb*.jar"/>
-            </fileset>
-            <fileset dir="../lib-proprietary">
-                <include name="mysql*.jar"/>
-                <include name="ojdbc*.jar"/>
-                <include name="jtds*.jar"/>
-            </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-ui-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-                <include name="mcf-jetty-runner.jar"/>
-            </fileset>
-        </copy>
+    <target name="single-process-example-proprietary" depends="lib,lib-proprietary">
+        <antcall target="setup-combined-processes-proprietary">
+            <param name="processes-dir" value="dist/example-proprietary"/>
+        </antcall>
         <mkdir dir="dist/example-proprietary/logs"/>
         <copy todir="dist/example-proprietary">
             <fileset dir="example-singleprocess-common">
@@ -1336,69 +1293,70 @@
         custom task, so I've hard coded all the class path libs. -->
         <property name="manifest-cp-proprietary-0" value=""/>
         
-        <property name="manifest-cp-proprietary-1" value="${manifest-cp-proprietary-0} lib/commons-lang.jar"/>
-        <property name="manifest-cp-proprietary-2" value="${manifest-cp-proprietary-1} lib/commons-codec.jar"/>
-        <property name="manifest-cp-proprietary-3" value="${manifest-cp-proprietary-2} lib/commons-collections.jar"/>
-        <property name="manifest-cp-proprietary-4" value="${manifest-cp-proprietary-3} lib/commons-el.jar"/>
-        <property name="manifest-cp-proprietary-5" value="${manifest-cp-proprietary-4} lib/commons-fileupload.jar"/>
-        <property name="manifest-cp-proprietary-7" value="${manifest-cp-proprietary-5} lib/commons-io.jar"/>
-        <property name="manifest-cp-proprietary-8" value="${manifest-cp-proprietary-7} lib/commons-logging.jar"/>
-        <property name="manifest-cp-proprietary-9" value="${manifest-cp-proprietary-8} lib/hsqldb.jar"/>
-        <property name="manifest-cp-proprietary-10" value="${manifest-cp-proprietary-9} lib/derbyclient.jar"/>
-        <property name="manifest-cp-proprietary-11" value="${manifest-cp-proprietary-10} lib/derby.jar"/>
-        <property name="manifest-cp-proprietary-12" value="${manifest-cp-proprietary-11} lib/derbyLocale_cs.jar"/>
-        <property name="manifest-cp-proprietary-13" value="${manifest-cp-proprietary-12} lib/derbyLocale_de_DE.jar"/>
-        <property name="manifest-cp-proprietary-14" value="${manifest-cp-proprietary-13} lib/derbyLocale_es.jar"/>
-        <property name="manifest-cp-proprietary-15" value="${manifest-cp-proprietary-14} lib/derbyLocale_fr.jar"/>
-        <property name="manifest-cp-proprietary-16" value="${manifest-cp-proprietary-15} lib/derbyLocale_hu.jar"/>
-        <property name="manifest-cp-proprietary-17" value="${manifest-cp-proprietary-16} lib/derbyLocale_it.jar"/>
-        <property name="manifest-cp-proprietary-18" value="${manifest-cp-proprietary-17} lib/derbyLocale_ja_JP"/>
-        <property name="manifest-cp-proprietary-19" value="${manifest-cp-proprietary-18} lib/derbyLocale_ko_KR.jar"/>
-        <property name="manifest-cp-proprietary-20" value="${manifest-cp-proprietary-19} lib/derbyLocale_pl.jar"/>
-        <property name="manifest-cp-proprietary-21" value="${manifest-cp-proprietary-20} lib/derbyLocale_pt_BR.jar"/>
-        <property name="manifest-cp-proprietary-22" value="${manifest-cp-proprietary-21} lib/derbyLocale_ru.jar"/>
-        <property name="manifest-cp-proprietary-23" value="${manifest-cp-proprietary-22} lib/derbyLocale_zh_CN.jar"/>
-        <property name="manifest-cp-proprietary-24" value="${manifest-cp-proprietary-23} lib/derbyLocale_zh_TW.jar"/>
-        <property name="manifest-cp-proprietary-25" value="${manifest-cp-proprietary-24} lib/derbyrun.jar"/>
-        <property name="manifest-cp-proprietary-26" value="${manifest-cp-proprietary-25} lib/derbytools.jar"/>
-        <property name="manifest-cp-proprietary-27" value="${manifest-cp-proprietary-26} lib/jasper.jar"/>
-        <property name="manifest-cp-proprietary-28" value="${manifest-cp-proprietary-27} lib/jasper-el.jar"/>
-        <property name="manifest-cp-proprietary-30" value="${manifest-cp-proprietary-28} lib/jetty-server.jar"/>
-        <property name="manifest-cp-proprietary-31" value="${manifest-cp-proprietary-30} lib/jetty-util.jar"/>
-        <property name="manifest-cp-proprietary-32" value="${manifest-cp-proprietary-31} lib/jsp-api-2.1-glassfish.jar"/>
-        <property name="manifest-cp-proprietary-33" value="${manifest-cp-proprietary-32} lib/json.jar"/>
-        <property name="manifest-cp-proprietary-34" value="${manifest-cp-proprietary-33} lib/mcf-core.jar"/>
-        <property name="manifest-cp-proprietary-35" value="${manifest-cp-proprietary-34} lib/mcf-agents.jar"/>
-        <property name="manifest-cp-proprietary-36" value="${manifest-cp-proprietary-35} lib/mcf-jetty-runner.jar"/>
-        <property name="manifest-cp-proprietary-37" value="${manifest-cp-proprietary-36} lib/mcf-pull-agent.jar"/>
-        <property name="manifest-cp-proprietary-38" value="${manifest-cp-proprietary-37} lib/mcf-ui-core.jar"/>
-        <property name="manifest-cp-proprietary-39" value="${manifest-cp-proprietary-38} lib/log4j.jar"/>
-        <property name="manifest-cp-proprietary-40" value="${manifest-cp-proprietary-39} lib/postgresql.jar"/>
-        <property name="manifest-cp-proprietary-41" value="${manifest-cp-proprietary-40} lib/mysql-connector-java.jar"/>
-        <property name="manifest-cp-proprietary-42" value="${manifest-cp-proprietary-41} lib/serializer.jar"/>
-        <property name="manifest-cp-proprietary-43" value="${manifest-cp-proprietary-42} lib/servlet-api.jar"/>
-        <property name="manifest-cp-proprietary-44" value="${manifest-cp-proprietary-43} lib/juli.jar"/>
-        <property name="manifest-cp-proprietary-45" value="${manifest-cp-proprietary-44} lib/xalan.jar"/>
-        <property name="manifest-cp-proprietary-46" value="${manifest-cp-proprietary-45} lib/xercesImpl.jar"/>
-        <property name="manifest-cp-proprietary-47" value="${manifest-cp-proprietary-46} lib/xml-apis.jar"/>
-        <property name="manifest-cp-proprietary-48" value="${manifest-cp-proprietary-47} lib/derbynet.jar"/>
-        <property name="manifest-cp-proprietary-49" value="${manifest-cp-proprietary-48} lib/ecj.jar"/>
-        <property name="manifest-cp-proprietary-50" value="${manifest-cp-proprietary-49} lib/ojdbc.jar"/>
-        <property name="manifest-cp-proprietary-51" value="${manifest-cp-proprietary-50} lib/jtds.jar"/>
-        <property name="manifest-cp-proprietary-52" value="${manifest-cp-proprietary-51} lib/velocity.jar"/>
-        <property name="manifest-cp-proprietary-53" value="${manifest-cp-proprietary-52} lib/jetty-webapp.jar"/>
-        <property name="manifest-cp-proprietary-54" value="${manifest-cp-proprietary-53} lib/jetty-servlet.jar"/>
-        <property name="manifest-cp-proprietary-55" value="${manifest-cp-proprietary-54} lib/jetty-http.jar"/>
-        <property name="manifest-cp-proprietary-56" value="${manifest-cp-proprietary-55} lib/jetty-io.jar"/>
-        <property name="manifest-cp-proprietary-57" value="${manifest-cp-proprietary-56} lib/jetty-security.jar"/>
-        <property name="manifest-cp-proprietary-58" value="${manifest-cp-proprietary-57} lib/jetty-continuation.jar"/>
-        <property name="manifest-cp-proprietary-59" value="${manifest-cp-proprietary-58} lib/jetty-xml.jar"/>
-        <property name="manifest-cp-proprietary-60" value="${manifest-cp-proprietary-59} lib/slf4j-api.jar"/>
-        <property name="manifest-cp-proprietary-61" value="${manifest-cp-proprietary-60} lib/slf4j-simple.jar"/>
-        <property name="manifest-cp-proprietary-62" value="${manifest-cp-proprietary-61} lib/httpcore.jar"/>
-        <property name="manifest-cp-proprietary-63" value="${manifest-cp-proprietary-62} lib/httpclient.jar"/>
-        <property name="manifest-cp-proprietary-64" value="${manifest-cp-proprietary-63} lib/mail.jar"/>
-        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-64}"/>
+        <property name="manifest-cp-proprietary-1" value="${manifest-cp-proprietary-0} ../lib/commons-lang.jar"/>
+        <property name="manifest-cp-proprietary-2" value="${manifest-cp-proprietary-1} ../lib/commons-codec.jar"/>
+        <property name="manifest-cp-proprietary-3" value="${manifest-cp-proprietary-2} ../lib/commons-collections.jar"/>
+        <property name="manifest-cp-proprietary-4" value="${manifest-cp-proprietary-3} ../lib/commons-el.jar"/>
+        <property name="manifest-cp-proprietary-5" value="${manifest-cp-proprietary-4} ../lib/commons-fileupload.jar"/>
+        <property name="manifest-cp-proprietary-7" value="${manifest-cp-proprietary-5} ../lib/commons-io.jar"/>
+        <property name="manifest-cp-proprietary-8" value="${manifest-cp-proprietary-7} ../lib/commons-logging.jar"/>
+        <property name="manifest-cp-proprietary-9" value="${manifest-cp-proprietary-8} ../lib/hsqldb.jar"/>
+        <property name="manifest-cp-proprietary-10" value="${manifest-cp-proprietary-9} ../lib/derbyclient.jar"/>
+        <property name="manifest-cp-proprietary-11" value="${manifest-cp-proprietary-10} ../lib/derby.jar"/>
+        <property name="manifest-cp-proprietary-12" value="${manifest-cp-proprietary-11} ../lib/derbyLocale_cs.jar"/>
+        <property name="manifest-cp-proprietary-13" value="${manifest-cp-proprietary-12} ../lib/derbyLocale_de_DE.jar"/>
+        <property name="manifest-cp-proprietary-14" value="${manifest-cp-proprietary-13} ../lib/derbyLocale_es.jar"/>
+        <property name="manifest-cp-proprietary-15" value="${manifest-cp-proprietary-14} ../lib/derbyLocale_fr.jar"/>
+        <property name="manifest-cp-proprietary-16" value="${manifest-cp-proprietary-15} ../lib/derbyLocale_hu.jar"/>
+        <property name="manifest-cp-proprietary-17" value="${manifest-cp-proprietary-16} ../lib/derbyLocale_it.jar"/>
+        <property name="manifest-cp-proprietary-18" value="${manifest-cp-proprietary-17} ../lib/derbyLocale_ja_JP"/>
+        <property name="manifest-cp-proprietary-19" value="${manifest-cp-proprietary-18} ../lib/derbyLocale_ko_KR.jar"/>
+        <property name="manifest-cp-proprietary-20" value="${manifest-cp-proprietary-19} ../lib/derbyLocale_pl.jar"/>
+        <property name="manifest-cp-proprietary-21" value="${manifest-cp-proprietary-20} ../lib/derbyLocale_pt_BR.jar"/>
+        <property name="manifest-cp-proprietary-22" value="${manifest-cp-proprietary-21} ../lib/derbyLocale_ru.jar"/>
+        <property name="manifest-cp-proprietary-23" value="${manifest-cp-proprietary-22} ../lib/derbyLocale_zh_CN.jar"/>
+        <property name="manifest-cp-proprietary-24" value="${manifest-cp-proprietary-23} ../lib/derbyLocale_zh_TW.jar"/>
+        <property name="manifest-cp-proprietary-25" value="${manifest-cp-proprietary-24} ../lib/derbyrun.jar"/>
+        <property name="manifest-cp-proprietary-26" value="${manifest-cp-proprietary-25} ../lib/derbytools.jar"/>
+        <property name="manifest-cp-proprietary-27" value="${manifest-cp-proprietary-26} ../lib/jasper.jar"/>
+        <property name="manifest-cp-proprietary-28" value="${manifest-cp-proprietary-27} ../lib/jasper-el.jar"/>
+        <property name="manifest-cp-proprietary-30" value="${manifest-cp-proprietary-28} ../lib/jetty-server.jar"/>
+        <property name="manifest-cp-proprietary-31" value="${manifest-cp-proprietary-30} ../lib/jetty-util.jar"/>
+        <property name="manifest-cp-proprietary-32" value="${manifest-cp-proprietary-31} ../lib/jsp-api-2.1-glassfish.jar"/>
+        <property name="manifest-cp-proprietary-33" value="${manifest-cp-proprietary-32} ../lib/json.jar"/>
+        <property name="manifest-cp-proprietary-34" value="${manifest-cp-proprietary-33} ../lib/mcf-core.jar"/>
+        <property name="manifest-cp-proprietary-35" value="${manifest-cp-proprietary-34} ../lib/mcf-agents.jar"/>
+        <property name="manifest-cp-proprietary-36" value="${manifest-cp-proprietary-35} ../lib/mcf-jetty-runner.jar"/>
+        <property name="manifest-cp-proprietary-37" value="${manifest-cp-proprietary-36} ../lib/mcf-pull-agent.jar"/>
+        <property name="manifest-cp-proprietary-38" value="${manifest-cp-proprietary-37} ../lib/mcf-ui-core.jar"/>
+        <property name="manifest-cp-proprietary-39" value="${manifest-cp-proprietary-38} ../lib/log4j.jar"/>
+        <property name="manifest-cp-proprietary-40" value="${manifest-cp-proprietary-39} ../lib/postgresql.jar"/>
+        <property name="manifest-cp-proprietary-41" value="${manifest-cp-proprietary-40} ../lib-proprietary/mysql-connector-java.jar"/>
+        <property name="manifest-cp-proprietary-42" value="${manifest-cp-proprietary-41} ../lib/serializer.jar"/>
+        <property name="manifest-cp-proprietary-43" value="${manifest-cp-proprietary-42} ../lib/servlet-api.jar"/>
+        <property name="manifest-cp-proprietary-44" value="${manifest-cp-proprietary-43} ../lib/juli.jar"/>
+        <property name="manifest-cp-proprietary-45" value="${manifest-cp-proprietary-44} ../lib/xalan.jar"/>
+        <property name="manifest-cp-proprietary-46" value="${manifest-cp-proprietary-45} ../lib/xercesImpl.jar"/>
+        <property name="manifest-cp-proprietary-47" value="${manifest-cp-proprietary-46} ../lib/xml-apis.jar"/>
+        <property name="manifest-cp-proprietary-48" value="${manifest-cp-proprietary-47} ../lib/derbynet.jar"/>
+        <property name="manifest-cp-proprietary-49" value="${manifest-cp-proprietary-48} ../lib/ecj.jar"/>
+        <property name="manifest-cp-proprietary-50" value="${manifest-cp-proprietary-49} ../lib-proprietary/ojdbc.jar"/>
+        <property name="manifest-cp-proprietary-51" value="${manifest-cp-proprietary-50} ../lib-proprietary/jtds.jar"/>
+        <property name="manifest-cp-proprietary-52" value="${manifest-cp-proprietary-51} ../lib/velocity.jar"/>
+        <property name="manifest-cp-proprietary-53" value="${manifest-cp-proprietary-52} ../lib/jetty-webapp.jar"/>
+        <property name="manifest-cp-proprietary-54" value="${manifest-cp-proprietary-53} ../lib/jetty-servlet.jar"/>
+        <property name="manifest-cp-proprietary-55" value="${manifest-cp-proprietary-54} ../lib/jetty-http.jar"/>
+        <property name="manifest-cp-proprietary-56" value="${manifest-cp-proprietary-55} ../lib/jetty-io.jar"/>
+        <property name="manifest-cp-proprietary-57" value="${manifest-cp-proprietary-56} ../lib/jetty-security.jar"/>
+        <property name="manifest-cp-proprietary-58" value="${manifest-cp-proprietary-57} ../lib/jetty-continuation.jar"/>
+        <property name="manifest-cp-proprietary-59" value="${manifest-cp-proprietary-58} ../lib/jetty-xml.jar"/>
+        <property name="manifest-cp-proprietary-60" value="${manifest-cp-proprietary-59} ../lib/slf4j-api.jar"/>
+        <property name="manifest-cp-proprietary-61" value="${manifest-cp-proprietary-60} ../lib/slf4j-simple.jar"/>
+        <property name="manifest-cp-proprietary-62" value="${manifest-cp-proprietary-61} ../lib/httpcore.jar"/>
+        <property name="manifest-cp-proprietary-63" value="${manifest-cp-proprietary-62} ../lib/httpclient.jar"/>
+        <property name="manifest-cp-proprietary-64" value="${manifest-cp-proprietary-63} ../lib/mail.jar"/>
+        <property name="manifest-cp-proprietary-65" value="${manifest-cp-proprietary-63} ../lib/zookeeper.jar"/>
+        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-65}"/>
         <mkdir dir="build/example-proprietary"/>
         <manifest file="build/example-proprietary/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>

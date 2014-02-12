@@ -16,30 +16,23 @@
 # limitations under the License.
 
 if [[ $OSTYPE == "cygwin" ]] ; then
-    PATHSEP=";"
+    OPTIONSFILE="options.env.win"
 else
-    PATHSEP=":"
+    OPTIONSFILE="options.env.unix"
 fi
 
 #Make sure environment variables are properly set
 if [ -e "$JAVA_HOME"/bin/java ] ; then
-    if [ -e "$ENGINE_HOME"/lib ] ; then
+    if [ -e ../lib ] ; then
     
-        # Build the classpath
-        CLASSPATH=""
-        for filename in $(ls -1 "$ENGINE_HOME"/lib) ; do
-            if [ -n "$CLASSPATH" ] ; then
-                CLASSPATH="$CLASSPATH""$PATHSEP""$ENGINE_HOME"/lib/"$filename"
-            else
-                CLASSPATH="$ENGINE_HOME"/lib/"$filename"
-            fi
-        done
+        # Build the global options
+        OPTIONS=$(cat "$OPTIONSFILE")
 
-        "$JAVA_HOME/bin/java" -cp "$CLASSPATH" org.apache.manifoldcf.scriptengine.ScriptParser "$@"
+        "$JAVA_HOME/bin/java" $OPTIONS org.apache.manifoldcf.scriptengine.ScriptParser "$@"
         exit $?
         
     else
-        echo "Environment variable ENGINE_HOME is not properly set." 1>&2
+        echo "Script must be run from script-engine directory." 1>&2
         exit 1
     fi
     

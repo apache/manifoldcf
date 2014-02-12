@@ -182,7 +182,7 @@ public class ThrottledFetcher
     if (trustStore != null)
     {
       baseFactory = trustStore.getSecureSocketFactory();
-      trustStoreString = trustStore.getString();
+      trustStoreString = trustStore.getHashString();
     }
     else
     {
@@ -1983,7 +1983,7 @@ public class ThrottledFetcher
         {
           connection = connections.remove(0);
         }
-        connection.close();
+        connection.destroy();
         connectionThrottler.noteConnectionDestroyed();
       }
       // Now, get rid of expired connections

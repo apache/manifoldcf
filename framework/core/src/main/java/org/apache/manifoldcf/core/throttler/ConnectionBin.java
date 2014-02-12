@@ -65,7 +65,11 @@ public class ConnectionBin
   /** This is the number of connections in this bin that are connected; immaterial whether they are
   * in use or in a pool somewhere. */
   protected int inUseConnections = 0;
-
+  /** This is the number of active referring connection pools.  We increment this number
+  * whenever a poolCount goes from zero to 1, and we decrement it whenever a poolCount
+  * goes from one to zero. */
+  protected int referencingPools = 0;
+  
   /** The service type prefix for connection bins */
   protected final static String serviceTypePrefix = "_CONNECTIONBIN_";
 
@@ -136,6 +140,8 @@ public class ConnectionBin
       {
         // Recommendation is to pull the connection from the pool.
         poolCount.set(currentPoolCount - 1);
+        if (currentPoolCount == 1)
+          referencingPools--;
         return IConnectionThrottler.CONNECTION_FROM_POOL;
       }
       if (inUseConnections + reservedConnections < localMax)
@@ -162,7 +168,10 @@ public class ConnectionBin
     }
     else if (recommendation == IConnectionThrottler.CONNECTION_FROM_POOL)
     {
-      poolCount.set(poolCount.get() + 1);
+      int currentCount = poolCount.get();
+      poolCount.set(currentCount + 1);
+      if (currentCount == 0)
+        referencingPools++;
       notifyAll();
     }
   }
@@ -203,11 +212,14 @@ public class ConnectionBin
     int currentPoolCount = poolCount.get();
     if (currentPoolCount > 0)
     {
+      int individualPoolAllocation = localMax / referencingPools;
       // Consider it removed from the pool for the purposes of consideration.  If we change our minds, we'll
       // return it, and no harm done.
       poolCount.set(currentPoolCount-1);
+      if (currentPoolCount == 1)
+        referencingPools--;
       // We don't count reserved connections here because those are not yet committed.
-      if (inUseConnections > localMax)
+      if (inUseConnections > individualPoolAllocation)
       {
         return CONNECTION_DESTROY;
       }
@@ -224,6 +236,8 @@ public class ConnectionBin
     if (currentPoolCount > 0)
     {
       poolCount.set(currentPoolCount-1);
+      if (currentPoolCount == 1)
+        referencingPools--;
       return true;
     }
     return false;
@@ -233,7 +247,10 @@ public class ConnectionBin
   */
   public synchronized void undoPooledConnectionDecision(AtomicInteger poolCount)
   {
-    poolCount.set(poolCount.get() + 1);
+    int currentPoolCount = poolCount.get();
+    poolCount.set(currentPoolCount + 1);
+    if (currentPoolCount == 0)
+      referencingPools++;
     notifyAll();
   }
   
@@ -241,7 +258,10 @@ public class ConnectionBin
   */
   public synchronized void noteConnectionReturnedToPool(AtomicInteger poolCount)
   {
-    poolCount.set(poolCount.get() + 1);
+    int currentPoolCount = poolCount.get();
+    poolCount.set(currentPoolCount + 1);
+    if (currentPoolCount == 0)
+      referencingPools++;
     // Wake up threads possibly waiting on a pool return.
     notifyAll();
   }

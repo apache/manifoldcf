@@ -69,7 +69,30 @@ public class ZooKeeperLockObject extends LockObject
   }
 
   @Override
-  protected void clearGlobalWriteLock()
+  protected void obtainGlobalWriteLock()
+    throws ManifoldCFException, InterruptedException
+  {
+    if (currentConnection != null)
+      throw new IllegalStateException("Already have a connection before write locking: "+lockPath);
+    boolean succeeded = false;
+    currentConnection = pool.grab();
+    try
+    {
+      currentConnection.obtainWriteLock(lockPath);
+      succeeded = true;
+    }
+    finally
+    {
+      if (!succeeded)
+      {
+        pool.release(currentConnection);
+        currentConnection = null;
+      }
+    }
+  }
+
+  @Override
+  protected void clearGlobalWriteLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
     if (currentConnection == null)
@@ -102,7 +125,30 @@ public class ZooKeeperLockObject extends LockObject
   }
 
   @Override
-  protected void clearGlobalNonExWriteLock()
+  protected void obtainGlobalNonExWriteLock()
+    throws ManifoldCFException, InterruptedException
+  {
+    if (currentConnection != null)
+      throw new IllegalStateException("Already have a connection before non-ex-write locking: "+lockPath);
+    boolean succeeded = false;
+    currentConnection = pool.grab();
+    try
+    {
+      currentConnection.obtainNonExWriteLock(lockPath);
+      succeeded = true;
+    }
+    finally
+    {
+      if (!succeeded)
+      {
+        pool.release(currentConnection);
+        currentConnection = null;
+      }
+    }
+  }
+
+  @Override
+  protected void clearGlobalNonExWriteLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
     if (currentConnection == null)
@@ -135,7 +181,30 @@ public class ZooKeeperLockObject extends LockObject
   }
 
   @Override
-  protected void clearGlobalReadLock()
+  protected void obtainGlobalReadLock()
+    throws ManifoldCFException, InterruptedException
+  {
+    if (currentConnection != null)
+      throw new IllegalStateException("Already have a connection before read locking: "+lockPath);
+    boolean succeeded = false;
+    currentConnection = pool.grab();
+    try
+    {
+      currentConnection.obtainReadLock(lockPath);
+      succeeded = true;
+    }
+    finally
+    {
+      if (!succeeded)
+      {
+        pool.release(currentConnection);
+        currentConnection = null;
+      }
+    }
+  }
+
+  @Override
+  protected void clearGlobalReadLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
     if (currentConnection == null)

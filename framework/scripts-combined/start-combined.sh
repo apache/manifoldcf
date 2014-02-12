@@ -16,26 +16,18 @@
 # limitations under the License.
 
 if [[ $OSTYPE == "cygwin" ]] ; then
-    PATHSEP=";"
+    OPTIONSFILE="combined-options.env.win"
 else
-    PATHSEP=":"
+    OPTIONSFILE="combined-options.env.unix"
 fi
 
 #Make sure environment variables are properly set
 if [ -e "$JAVA_HOME"/bin/java ] ; then
     if [ -f ./properties.xml ] ; then
-        # Set the MCF_HOME variable
-        export MCF_HOME=$PWD
-        CLASSPATH=""
-        for filename in $(ls -1 ./lib) ; do
-            if [ -n "$CLASSPATH" ] ; then
-                CLASSPATH="$CLASSPATH""$PATHSEP"./lib/"$filename"
-            else
-                CLASSPATH=./lib/"$filename"
-            fi
-        done
-        DEFINES="-Dorg.apache.manifoldcf.configfile=$MCF_HOME/properties.xml"
-        "$JAVA_HOME"/bin/java -cp "$CLASSPATH" $DEFINES org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner
+        # Build the global options
+        OPTIONS=$(cat "$OPTIONSFILE")
+        
+        "$JAVA_HOME/bin/java" $OPTIONS org.apache.manifoldcf.jettyrunner.ManifoldCFCombinedJettyRunner
         exit $?
         
     else
