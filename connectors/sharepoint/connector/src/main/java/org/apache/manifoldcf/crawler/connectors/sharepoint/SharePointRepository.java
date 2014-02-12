@@ -159,7 +159,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (serverVersion == null)
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
-      dspStsWorks = serverVersion.equals("2.0") || serverVersion.equals("3.0");
+      dspStsWorks = !serverVersion.equals("4.0");
       attachmentsSupported = !serverVersion.equals("2.0");
       
       String authorityType = params.getParameter( SharePointConfig.PARAM_AUTHORITYTYPE );
@@ -243,7 +243,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
       BasicHttpParams params = new BasicHttpParams();
       params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
       params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
       params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);

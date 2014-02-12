@@ -37,6 +37,7 @@
       <p><a href="../api/cmis/index.html">CMIS権限コネクタ</a></p>
       <p><a href="../api/documentum/index.html">Documentum権限コネクタ</a></p>
       <p><a href="../api/dropbox/index.html">Dropboxコネクタ</a></p>
+      <p><a href="../api/email/index.html">Email connector</a></p>
       <p><a href="../api/filenet/index.html">FileNetコネクタ</a></p>
       <p><a href="../api/filesystem/index.html">File system repository and output connector</a></p>
       <p><a href="../api/googledrive/index.html">GoogleDriveコネクタ</a></p>

@@ -32,7 +32,7 @@ public class DocumentQueue
   public static final String _rcsid = "@(#)$Id: DocumentQueue.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Since the queue has a maximum size, an ArrayList is a fine way to keep it
-  protected ArrayList queue = new ArrayList();
+  protected final List<QueuedDocumentSet> queue = new ArrayList<QueuedDocumentSet>();
   // This flag gets set to 'true' if the queue is being cleared due to a reset
   protected boolean resetFlag = false;
 
@@ -111,7 +111,7 @@ public class DocumentQueue
 
       // If we've been awakened, there's either an entry to grab, or we've been
       // awakened because it's time to reset.
-      if (queue.size() == 0)
+      if (resetFlag)
         return null;
 
       // Go through all the documents and pick the one with the best rating
@@ -120,7 +120,7 @@ public class DocumentQueue
       double bestRating = Double.NEGATIVE_INFINITY;
       while (i < queue.size())
       {
-        QueuedDocumentSet dd = (QueuedDocumentSet)queue.get(i);
+        QueuedDocumentSet dd = queue.get(i);
         // Evaluate each document's bins.  These will be saved in the QueuedDocumentSet.
         double rating = dd.calculateAssignmentRating(overlapCalculator);
         if (bestIndex == -1 || rating > bestRating)
@@ -131,7 +131,7 @@ public class DocumentQueue
         i++;
       }
       // Pull off the best one.  DON'T REORDER!!
-      QueuedDocumentSet rval = (QueuedDocumentSet)queue.remove(bestIndex);
+      QueuedDocumentSet rval = queue.remove(bestIndex);
       return rval;
     }
   }

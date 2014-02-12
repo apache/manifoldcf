@@ -768,52 +768,50 @@ if (maintenanceUnderway == false)
 <%
 		}
 %>
-		<table class="displaytable">
-		    <tr>
-			<td class="separator" colspan="5"><hr/></td>
-		    </tr>
-		    <tr>
-			<td class="value">
+		<table class="reportfootertable">
+		    <tr class="reportfooterrow">
+			<td class="reportfootercell">
 				<nobr>
 <%
 		if (startRow == 0)
 		{
 %>
-				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%>
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%></a>
+					<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%></a>
 <%
 		}
 %>
-				&nbsp;
+				</nobr>
+				<nobr>
 <%
 		if (hasMoreRows == false)
 		{
 %>
-				Next
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%></a>
+					<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%></a>
 <%
 		}
 %>
 				</nobr>
 			</td>
-			<td class="description"><nobr>Rows:</nobr></td><td class="value"><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></td>
-			<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.RowsPerPage")%></nobr></td>
-			<td class="value">
-				<input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/>
+			<td class="reportfootercell">
+				<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Rows")%></nobr>
+				<nobr><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></nobr>
 			</td>
-		    </tr>
-		    <tr>
-			<td class="separator" colspan="5"><hr/></td>
+			<td class="reportfootercell">
+				<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.RowsPerPage")%></nobr>
+				<nobr><input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/></nobr>
+			</td>
 		    </tr>
 		</table>
 

@@ -23,8 +23,8 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
             <include name="solr-solrj*.jar"/>
+            <include name="noggit*.jar"/>
             <include name="httpmime*.jar"/>
-            <include name="zookeeper*.jar"/>
             <include name="wstx-asl*.jar"/>
             <include name="jcl-over-slf4j*.jar"/>
         </fileset>
@@ -35,8 +35,8 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
                 <include name="solr-solrj*.jar"/>
+                <include name="noggit*.jar"/>
                 <include name="httpmime*.jar"/>
-                <include name="zookeeper*.jar"/>
                 <include name="wstx-asl*.jar"/>
                 <include name="jcl-over-slf4j*.jar"/>
             </fileset>

@@ -154,6 +154,16 @@ public interface IJobDescription
   */
   public Long getInterval();
 
+  /** Set the maximum rescheduling interval, in milliseconds, or null if forever.
+  *@param interval is the maximum interval.
+  */
+  public void setMaxInterval(Long interval);
+
+  /** Get the maximum rescheduling interval, in milliseconds.
+  *@return the max interval, or null if forever.
+  */
+  public Long getMaxInterval();
+
   /** Set the expiration time, in milliseconds.
   *@param time is the maximum expiration time of a document, in milliseconds, or null if none.
   */

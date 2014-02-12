@@ -251,6 +251,7 @@
                     <include name="axis*.jar"/>
                     <include name="saaj*.jar"/>
                     <include name="wsdl*.jar"/>
+                    <include name="mail*.jar"/>
                     <include name="activation*.jar"/>
                     <include name="commons-discovery*.jar"/>
                     <include name="commons-logging*.jar"/>

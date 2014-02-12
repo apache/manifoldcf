@@ -25,8 +25,18 @@
         SharePoint Services 3.0 (2007)
   #elseif($SERVERVERSION == '4.0')
         SharePoint Services 4.0 (2010)
-  #elseif($SERVERVERSION == '5.0')
-        SharePoint Services 5.0 (2013)
+  #else
+        Unknown
+  #end
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerClaimSpace'))</nobr></td>
+    <td class="value">
+  #if($SERVERCLAIMSPACE == 'false')
+        $Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Disabled'))
+  #elseif($SERVERCLAIMSPACE == 'true')
+        $Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Enabled'))
   #else
         Unknown
   #end

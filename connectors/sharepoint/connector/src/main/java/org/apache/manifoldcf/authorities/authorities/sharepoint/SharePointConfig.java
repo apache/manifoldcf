@@ -34,6 +34,8 @@ public class SharePointConfig
 
   /** SharePoint server version */
   public static final String PARAM_SERVERVERSION = "serverVersion";
+  /** Claim space enabled? */
+  public static final String PARAM_SERVERCLAIMSPACE = "serverClaimSpace";
   /** SharePoint server protocol */
   public static final String PARAM_SERVERPROTOCOL = "serverProtocol";
   /** SharePoint server name */

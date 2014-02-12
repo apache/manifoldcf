@@ -29,11 +29,16 @@ public class ServletListener implements ServletContextListener
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  protected IdleCleanupThread idleCleanupThread = null;
+
   public void contextInitialized(ServletContextEvent sce)
   {
     try
     {
-      ManifoldCF.initializeEnvironment(ThreadContextFactory.make());
+      IThreadContext threadContext = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(threadContext);
+      idleCleanupThread = new IdleCleanupThread();
+      idleCleanupThread.start();
     }
     catch (ManifoldCFException e)
     {
@@ -43,7 +48,21 @@ public class ServletListener implements ServletContextListener
   
   public void contextDestroyed(ServletContextEvent sce)
   {
-    ManifoldCF.cleanUpEnvironment(ThreadContextFactory.make());
+    try
+    {
+      while (true)
+      {
+        if (idleCleanupThread == null)
+          break;
+        idleCleanupThread.interrupt();
+        if (!idleCleanupThread.isAlive())
+          idleCleanupThread = null;
+      }
+    }
+    finally
+    {
+      ManifoldCF.cleanUpEnvironment(ThreadContextFactory.make());
+    }
   }
 
 }

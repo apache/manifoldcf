@@ -134,7 +134,7 @@ public class ExpireStufferThread extends Thread
           // The theory is that we need to allow stuff to accumulate.
           if (descs.length == 0)
           {
-            ManifoldCF.sleep(60000L);      // 1 minute
+            ManifoldCF.sleep(5000L);      // 5 seconds
             continue;
           }
 

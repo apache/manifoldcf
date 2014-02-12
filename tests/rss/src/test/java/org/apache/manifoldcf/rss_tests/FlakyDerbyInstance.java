@@ -26,11 +26,14 @@ import org.junit.*;
 import java.sql.*;
 import javax.naming.*;
 import javax.sql.*;
+import java.util.concurrent.atomic.*;
 
 /** This is a very basic sanity check */
 public class FlakyDerbyInstance extends org.apache.manifoldcf.core.database.DBInterfaceDerby
 {
 
+  protected final static AtomicBoolean lostConnection = new AtomicBoolean(false);
+  
   public FlakyDerbyInstance(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
@@ -48,8 +51,25 @@ public class FlakyDerbyInstance extends org.apache.manifoldcf.core.database.DBIn
     ResultSpecification spec, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
-    // MHL
-    return super.execute(connection,query,params,bResults,maxResults,spec,returnLimit);
+    if (!lostConnection.get())
+      return super.execute(connection,query,params,bResults,maxResults,spec,returnLimit);
+    // Simulate a dead connection by throwing a database error
+    try
+    {
+      // Sleep, to limit log noise.
+      Thread.sleep(1000L);
+    }
+    catch (InterruptedException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
+    }
+    
+    throw new ManifoldCFException("Database error", new Exception("Manufactured db error"), ManifoldCFException.DATABASE_CONNECTION_ERROR);
   }
 
+  public static void setConnectionWorking(boolean value)
+  {
+    lostConnection.set(!value);
+  }
+  
 }

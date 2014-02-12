@@ -88,9 +88,9 @@ public class ThrottledFetcher
   /** This is the lock object for that global handle counter */
   protected static Integer globalHandleCounterLock = new Integer(0);
 
-  /** This hash maps the server string (without port) to a server object, where
+  /** This hash maps the server string (without port) to a pool throttling object, where
   * we can track the statistics and make sure we throttle appropriately */
-  protected Map serverMap = new HashMap();
+  protected final Map<String,IConnectionThrottler> serverMap = new HashMap<String,IConnectionThrottler>();
 
   /** Reference count for how many connections to this pool there are */
   protected int refCount = 0;
@@ -151,35 +151,25 @@ public class ThrottledFetcher
 
   /** Establish a connection to a specified URL.
   * @param serverName is the FQDN of the server, e.g. foo.metacarta.com
-  * @param minimumMillisecondsPerBytePerServer is the average number of milliseconds to wait
-  *       between bytes, on
-  *       average, over all streams reading from this server.  That means that the
-  *       stream will block on fetch until the number of bytes being fetched, done
-  *       in the average time interval required for that fetch, would not exceed
-  *       the desired bandwidth.
-  * @param minimumMillisecondsPerFetchPerServer is the number of milliseconds
-  *        between fetches, as a minimum, on a per-server basis.  Set
-  *        to zero for no limit.
-  * @param maxOpenConnectionsPerServer is the maximum number of open connections to allow for a single server.
-  *        If more than this number of connections would need to be open, then this connection request will block
-  *        until this number will no longer be exceeded.
   * @param connectionLimit is the maximum desired outstanding connections at any one time.
   * @param connectionTimeoutMilliseconds is the number of milliseconds to wait for the connection before timing out.
   */
-  public synchronized IThrottledConnection createConnection(String serverName, double minimumMillisecondsPerBytePerServer,
-    int maxOpenConnectionsPerServer, long minimumMillisecondsPerFetchPerServer, int connectionLimit, int connectionTimeoutMilliseconds,
+  public synchronized IThrottledConnection createConnection(IThreadContext threadContext, String throttleGroupName,
+    String serverName, int connectionLimit, int connectionTimeoutMilliseconds,
     String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
     throws ManifoldCFException, ServiceInterruption
   {
-    Server server;
-    server = (Server)serverMap.get(serverName);
+    IConnectionThrottler server;
+    server = serverMap.get(serverName);
     if (server == null)
     {
-      server = new Server(serverName);
+      // Create a connection throttler for this server
+      IThrottleGroups tg = ThrottleGroupsFactory.make(threadContext);
+      server = tg.obtainConnectionThrottler(RSSConnector.rssThrottleGroupType, throttleGroupName, new String[]{serverName});
       serverMap.put(serverName,server);
     }
 
-    return new ThrottledConnection(server,minimumMillisecondsPerBytePerServer,maxOpenConnectionsPerServer,minimumMillisecondsPerFetchPerServer,
+    return new ThrottledConnection(serverName, server,
       connectionTimeoutMilliseconds,connectionLimit,
       proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
   }
@@ -206,14 +196,8 @@ public class ThrottledFetcher
     refCount--;
     if (refCount == 0)
     {
-      // Close all the servers one by one
-      Iterator iter = serverMap.keySet().iterator();
-      while (iter.hasNext())
-      {
-        String serverName = (String)iter.next();
-        Server server = (Server)serverMap.get(serverName);
-        server.discard();
-      }
+      // Since we don't have any actual pools here, this can be a no-op for now
+      // MHL
       serverMap.clear();
     }
   }
@@ -222,14 +206,12 @@ public class ThrottledFetcher
   */
   protected static class ThrottledConnection implements IThrottledConnection
   {
-    /** The connection bandwidth we want */
-    protected final double minimumMillisecondsPerBytePerServer;
-    /** The maximum open connections per server */
-    protected final int maxOpenConnectionsPerServer;
-    /** The minimum time between fetches */
-    protected final long minimumMillisecondsPerFetchPerServer;
-    /** The server object we use to track connections and fetches. */
-    protected final Server server;
+    /** The server fqdn */
+    protected final String serverName;
+    /** The throttling object we use to track connections */
+    protected final IConnectionThrottler connectionThrottler;
+    /** The throttling object we use to track fetches */
+    protected final IFetchThrottler fetchThrottler;
     /** Connection timeout in milliseconds */
     protected final int connectionTimeoutMilliseconds;
     /** The client connection manager */
@@ -259,15 +241,14 @@ public class ThrottledFetcher
     
     /** Constructor.
     */
-    public ThrottledConnection(Server server, double minimumMillisecondsPerBytePerServer, int maxOpenConnectionsPerServer,
-      long minimumMillisecondsPerFetchPerServer, int connectionTimeoutMilliseconds, int connectionLimit,
+    public ThrottledConnection(String serverName,
+      IConnectionThrottler connectionThrottler,
+      int connectionTimeoutMilliseconds, int connectionLimit,
       String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
       throws ManifoldCFException
     {
-      this.minimumMillisecondsPerBytePerServer = minimumMillisecondsPerBytePerServer;
-      this.maxOpenConnectionsPerServer = maxOpenConnectionsPerServer;
-      this.minimumMillisecondsPerFetchPerServer = minimumMillisecondsPerFetchPerServer;
-      this.server = server;
+      this.serverName = serverName;
+      this.connectionThrottler = connectionThrottler;
       this.connectionTimeoutMilliseconds = connectionTimeoutMilliseconds;
 
       // Create the https scheme for this connection
@@ -285,7 +266,7 @@ public class ThrottledFetcher
 
       BasicHttpParams params = new BasicHttpParams();
       params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
       params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,connectionTimeoutMilliseconds);
       params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeoutMilliseconds);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
@@ -330,7 +311,17 @@ public class ThrottledFetcher
       httpClient = localHttpClient;
 
       registerGlobalHandle(connectionLimit);
-      server.registerConnection(maxOpenConnectionsPerServer);
+      try
+      {
+        int result = connectionThrottler.waitConnectionAvailable();
+        if (result != IConnectionThrottler.CONNECTION_FROM_CREATION)
+          throw new IllegalStateException("Got back unexpected value from waitForAConnection() of "+result);
+        fetchThrottler = connectionThrottler.getNewConnectionFetchThrottler();
+      }
+      catch (InterruptedException e)
+      {
+        throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
+      }
     }
 
     /** Begin the fetch process.
@@ -344,7 +335,8 @@ public class ThrottledFetcher
       fetchCounter = 0L;
       try
       {
-        server.beginFetch(minimumMillisecondsPerFetchPerServer);
+        if (fetchThrottler.obtainFetchDocumentPermission() == false)
+          throw new IllegalStateException("obtainFetchDocumentPermission() had unexpected return value");
       }
       catch (InterruptedException e)
       {
@@ -386,7 +378,7 @@ public class ThrottledFetcher
     {
 
       StringBuilder sb = new StringBuilder(protocol);
-      sb.append("://").append(server.getServerName());
+      sb.append("://").append(serverName);
       if (port != -1)
         sb.append(":").append(Integer.toString(port));
       sb.append(urlPath);
@@ -407,8 +399,8 @@ public class ThrottledFetcher
       if (lastModified != null)
         executeMethod.setHeader(new BasicHeader("Last-Modified",lastModified));
       // Create the execution thread.
-      methodThread = new ExecuteMethodThread(this, server,
-        minimumMillisecondsPerBytePerServer, httpClient, executeMethod);
+      methodThread = new ExecuteMethodThread(this, fetchThrottler,
+        httpClient, executeMethod);
       // Start the method thread, which will start the transaction
       try
       {
@@ -702,7 +694,6 @@ public class ThrottledFetcher
         if (methodThread != null && threadStarted)
           methodThread.abort();
         long endTime = System.currentTimeMillis();
-        server.endFetch();
 
         activities.recordActivity(new Long(startFetchTime),RSSConnector.ACTIVITY_FETCH,
           new Long(fetchCounter),myUrl,Integer.toString(statusCode),(throwable==null)?null:throwable.getMessage(),null);
@@ -749,7 +740,7 @@ public class ThrottledFetcher
     {
       // Clean up the connection pool.  This should do the necessary bookkeeping to release the one connection that's sitting there.
       connectionManager.shutdown();
-      server.releaseConnection();
+      connectionThrottler.noteConnectionDestroyed();
       releaseGlobalHandle();
     }
 
@@ -760,23 +751,20 @@ public class ThrottledFetcher
   */
   protected static class ThrottledInputstream extends InputStream
   {
-    /** Stream throttling parameters */
-    protected double minimumMillisecondsPerBytePerServer;
-    /** The throttled connection we belong to */
-    protected ThrottledConnection throttledConnection;
-    /** The server object we use to track throttling */
-    protected Server server;
+    /** Throttled connection */
+    protected final ThrottledConnection throttledConnection;
+    /** Stream throttler */
+    protected final IStreamThrottler streamThrottler;
     /** The stream we are wrapping. */
-    protected InputStream inputStream;
+    protected final InputStream inputStream;
 
     /** Constructor.
     */
-    public ThrottledInputstream(ThrottledConnection connection, Server server, InputStream is, double minimumMillisecondsPerBytePerServer)
+    public ThrottledInputstream(ThrottledConnection throttledConnection, IStreamThrottler streamThrottler, InputStream is)
     {
-      this.throttledConnection = connection;
-      this.server = server;
+      this.throttledConnection = throttledConnection;
+      this.streamThrottler = streamThrottler;
       this.inputStream = is;
-      this.minimumMillisecondsPerBytePerServer = minimumMillisecondsPerBytePerServer;
     }
 
     /** Read a byte.
@@ -839,7 +827,8 @@ public class ThrottledFetcher
     {
       try
       {
-        server.beginRead(len,minimumMillisecondsPerBytePerServer);
+        if (streamThrottler.obtainReadPermission(len) == false)
+          throw new IllegalStateException("Throttler shut down while still active");
         int amt = 0;
         try
         {
@@ -849,10 +838,10 @@ public class ThrottledFetcher
         finally
         {
           if (amt == -1)
-            server.endRead(len,0);
+            streamThrottler.releaseReadPermission(len,0);
           else
           {
-            server.endRead(len,amt);
+            streamThrottler.releaseReadPermission(len,amt);
             throttledConnection.logFetchCount(amt);
           }
         }
@@ -909,308 +898,14 @@ public class ThrottledFetcher
     public void close()
       throws IOException
     {
-      inputStream.close();
-    }
-
-  }
-
-  /** This class represents the throttling stuff kept around for a single server.
-  *
-  * In order to calculate
-  * the effective "burst" fetches per second and bytes per second, we need to have some idea what the window is.
-  * For example, a long hiatus from fetching could cause overuse of the server when fetching resumes, if the
-  * window length is too long.
-  *
-  * One solution to this problem would be to keep a list of the individual fetches as records.  Then, we could
-  * "expire" a fetch by discarding the old record.  However, this is quite memory consumptive for all but the
-  * smallest intervals.
-  *
-  * Another, better, solution is to hook into the start and end of individual fetches.  These will, presumably, occur
-  * at the fastest possible rate without long pauses spent doing something else.  The only complication is that
-  * fetches may well overlap, so we need to "reference count" the fetches to know when to reset the counters.
-  * For "fetches per second", we can simply make sure we "schedule" the next fetch at an appropriate time, rather
-  * than keep records around.  The overall rate may therefore be somewhat less than the specified rate, but that's perfectly
-  * acceptable.
-  *
-  * For the "maximum open connections" limit, the best thing would be to establish a separate MultiThreadedConnectionPool
-  * for each Server.  Then, the limit would be automatic.
-  *
-  * Some notes on the algorithms used to limit server bandwidth impact
-  * ==================================================================
-  *
-  * In a single connection case, the algorithm we'd want to use works like this.  On the first chunk of a series,
-  * the total length of time and the number of bytes are recorded.  Then, prior to each subsequent chunk, a calculation
-  * is done which attempts to hit the bandwidth target by the end of the chunk read, using the rate of the first chunk
-  * access as a way of estimating how long it will take to fetch those next n bytes.
-  *
-  * For a multi-connection case, which this is, it's harder to either come up with a good maximum bandwidth estimate,
-  * and harder still to "hit the target", because simultaneous fetches will intrude.  The strategy is therefore:
-  *
-  * 1) The first chunk of any series should proceed without interference from other connections to the same server.
-  *    The goal here is to get a decent quality estimate without any possibility of overwhelming the server.
-  *
-  * 2) The bandwidth of the first chunk is treated as the "maximum bandwidth per connection".  That is, if other
-  *    connections are going on, we can presume that each connection will use at most the bandwidth that the first fetch
-  *    took.  Thus, by generating end-time estimates based on this number, we are actually being conservative and
-  *    using less server bandwidth.
-  *
-  * 3) For chunks that have started but not finished, we keep track of their size and estimated elapsed time in order to schedule when
-  *    new chunks from other connections can start.
-  *
-  */
-  protected class Server
-  {
-    /** The fqdn of the server */
-    protected final String serverName;
-    /** This is the time of the next allowed fetch (in ms since epoch) */
-    protected long nextFetchTime = 0L;
-
-    // Bandwidth throttling variables
-    /** Reference count for bandwidth variables */
-    protected volatile int refCount = 0;
-    /** The inverse rate estimate of the first fetch, in ms/byte */
-    protected double rateEstimate = 0.0;
-    /** Flag indicating whether a rate estimate is needed */
-    protected volatile boolean estimateValid = false;
-    /** Flag indicating whether rate estimation is in progress yet */
-    protected volatile boolean estimateInProgress = false;
-    /** The start time of this series */
-    protected long seriesStartTime = -1L;
-    /** Total actual bytes read in this series; this includes fetches in progress */
-    protected long totalBytesRead = -1L;
-
-    /** Outstanding connection counter */
-    protected volatile int outstandingConnections = 0;
-
-    /** Constructor */
-    public Server(String serverName)
-    {
-      this.serverName = serverName;
-    }
-
-    /** Get the fqdn of the server */
-    public String getServerName()
-    {
-      return serverName;
-    }
-
-    /** Register an outstanding connection (and wait until it can be obtained before proceeding) */
-    public synchronized void registerConnection(int maxOutstandingConnections)
-      throws ManifoldCFException
-    {
       try
       {
-        while (outstandingConnections >= maxOutstandingConnections)
-        {
-          wait();
-        }
-        outstandingConnections++;
-      }
-      catch (InterruptedException e)
-      {
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-    }
-
-    /** Release an outstanding connection back into the pool */
-    public synchronized void releaseConnection()
-    {
-      outstandingConnections--;
-      notifyAll();
-    }
-
-    /** Note the start of a fetch operation.  Call this method just before the actual stream access begins.
-    * May wait until schedule allows.
-    */
-    public void beginFetch(long minimumMillisecondsPerFetchPerServer)
-      throws InterruptedException
-    {
-      //if (Logging.connectors.isTraceEnabled())
-      //      Logging.connectors.trace("RSS: Note begin fetch for '"+serverName+"'");
-      // First, do any waiting, and reschedule as needed
-      long waitAmount = 0L;
-      long currentTime = System.currentTimeMillis();
-
-      // System.out.println("Begin fetch for server "+this.toString()+" with minimum milliseconds per fetch of "+new Long(minimumMillisecondsPerFetchPerServer).toString()+
-      //      " Current time: "+new Long(currentTime).toString()+ " Next fetch time: "+new Long(nextFetchTime).toString());
-
-      synchronized (this)
-      {
-        if (currentTime < nextFetchTime)
-        {
-          waitAmount = nextFetchTime-currentTime;
-          nextFetchTime = nextFetchTime + minimumMillisecondsPerFetchPerServer;
-        }
-        else
-          nextFetchTime = currentTime + minimumMillisecondsPerFetchPerServer;
-      }
-      if (waitAmount > 0L)
-      {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("RSS: Performing a fetch wait for server '"+serverName+"' for "+
-          new Long(waitAmount).toString()+" ms.");
-        ManifoldCF.sleep(waitAmount);
-      }
-
-      // System.out.println("For server "+this.toString()+", at "+new Long(System.currentTimeMillis()).toString()+", the next fetch time is now "+new Long(nextFetchTime).toString());
-
-      synchronized (this)
-      {
-        if (refCount == 0)
-        {
-          // Now, reset bandwidth throttling counters
-          estimateValid = false;
-          rateEstimate = 0.0;
-          totalBytesRead = 0L;
-          estimateInProgress = false;
-          seriesStartTime = -1L;
-        }
-        refCount++;
-      }
-      //if (Logging.connectors.isTraceEnabled())
-      //      Logging.connectors.trace("RSS: Begin fetch noted for '"+serverName+"'");
-
-    }
-
-    /** Note the end of a fetch operation.  Call this method just after the fetch completes.
-    */
-    public void endFetch()
-    {
-      //if (Logging.connectors.isTraceEnabled())
-      //      Logging.connectors.trace("RSS: Note end fetch for '"+serverName+"'");
-
-      synchronized (this)
-      {
-        refCount--;
-      }
-
-      //if (Logging.connectors.isTraceEnabled())
-      //      Logging.connectors.trace("RSS: End fetch noted for '"+serverName+"'");
-
-    }
-
-    /** Note the start of an individual byte read of a specified size.  Call this method just before the
-    * read request takes place.  Performs the necessary delay prior to reading specified number of bytes from the server.
-    */
-    public void beginRead(int byteCount, double minimumMillisecondsPerBytePerServer)
-      throws InterruptedException
-    {
-      //if (Logging.connectors.isTraceEnabled())
-      //      Logging.connectors.trace("RSS: Note begin read for '"+serverName+"'");
-
-      long currentTime = System.currentTimeMillis();
-
-      synchronized (this)
-      {
-        while (estimateInProgress)
-          wait();
-        if (estimateValid == false)
-        {
-          seriesStartTime = currentTime;
-          estimateInProgress = true;
-          // Add these bytes to the estimated total
-          totalBytesRead += (long)byteCount;
-          // Exit early; this thread isn't going to do any waiting
-          //if (Logging.connectors.isTraceEnabled())
-          //      Logging.connectors.trace("RSS: Read begin noted; gathering stats for '"+serverName+"'");
-
-          return;
-        }
-      }
-
-      // It is possible for the following code to get interrupted.  If that happens,
-      // we have to unstick the threads that are waiting on the estimate!
-      boolean finished = false;
-      try
-      {
-        long waitTime = 0L;
-        synchronized (this)
-        {
-          // Add these bytes to the estimated total
-          totalBytesRead += (long)byteCount;
-
-          // Estimate the time this read will take, and wait accordingly
-          long estimatedTime = (long)(rateEstimate * (double)byteCount);
-
-          // Figure out how long the total byte count should take, to meet the constraint
-          long desiredEndTime = seriesStartTime + (long)(((double)totalBytesRead) * minimumMillisecondsPerBytePerServer);
-
-          // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
-          // current time.  But it can't be negative.
-          waitTime = (desiredEndTime - estimatedTime) - currentTime;
-        }
-
-        if (waitTime > 0L)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("RSS: Performing a read wait on server '"+serverName+"' of "+
-            new Long(waitTime).toString()+" ms.");
-          ManifoldCF.sleep(waitTime);
-        }
-
-        //if (Logging.connectors.isTraceEnabled())
-        //      Logging.connectors.trace("RSS: Begin read noted for '"+serverName+"'");
-        finished = true;
+        inputStream.close();
       }
       finally
       {
-        if (!finished)
-        {
-          abortRead();
-        }
+        streamThrottler.closeStream();
       }
-    }
-
-    /** Abort a read in progress.
-    */
-    public void abortRead()
-    {
-      synchronized (this)
-      {
-        if (estimateInProgress)
-        {
-          estimateInProgress = false;
-          notifyAll();
-        }
-      }
-    }
-
-    /** Note the end of an individual read from the server.  Call this just after an individual read completes.
-    * Pass the actual number of bytes read to the method.
-    */
-    public void endRead(int originalCount, int actualCount)
-    {
-      //if (Logging.connectors.isTraceEnabled())
-      //      Logging.connectors.trace("RSS: Note end read for '"+serverName+"'");
-
-      long currentTime = System.currentTimeMillis();
-
-      synchronized (this)
-      {
-        totalBytesRead = totalBytesRead + (long)actualCount - (long)originalCount;
-        if (estimateInProgress)
-        {
-          if (actualCount == 0)
-            // Didn't actually get any bytes, so use 0.0
-            rateEstimate = 0.0;
-          else
-            rateEstimate = ((double)(currentTime - seriesStartTime))/(double)actualCount;
-          estimateValid = true;
-          estimateInProgress = false;
-          notifyAll();
-        }
-      }
-
-      //if (Logging.connectors.isTraceEnabled())
-      //      Logging.connectors.trace("RSS: End read noted for '"+serverName+"'");
-
-    }
-
-    /** Discard this server.
-    */
-    public void discard()
-    {
-      // Nothing needed anymore
     }
 
   }
@@ -1235,10 +930,8 @@ public class ThrottledFetcher
   {
     /** The connection */
     protected final ThrottledConnection theConnection;
-    /** The connection bandwidth we want */
-    protected final double minimumMillisecondsPerBytePerServer;
-    /** The server object we use to track connections and fetches. */
-    protected final Server server;
+    /** The fetch throttler */
+    protected final IFetchThrottler fetchThrottler;
     /** Client and method, all preconfigured */
     protected final HttpClient httpClient;
     protected final HttpRequestBase executeMethod;
@@ -1256,15 +949,13 @@ public class ThrottledFetcher
 
     protected Throwable generalException = null;
     
-    public ExecuteMethodThread(ThrottledConnection theConnection, Server server,
-      double minimumMillisecondsPerBytePerServer,
+    public ExecuteMethodThread(ThrottledConnection theConnection, IFetchThrottler fetchThrottler,
       HttpClient httpClient, HttpRequestBase executeMethod)
     {
       super();
       setDaemon(true);
       this.theConnection = theConnection;
-      this.server = server;
-      this.minimumMillisecondsPerBytePerServer = minimumMillisecondsPerBytePerServer;
+      this.fetchThrottler = fetchThrottler;
       this.httpClient = httpClient;
       this.executeMethod = executeMethod;
     }
@@ -1316,7 +1007,7 @@ public class ThrottledFetcher
                   bodyStream = response.getEntity().getContent();
                   if (bodyStream != null)
                   {
-                    bodyStream = new ThrottledInputstream(theConnection,server,bodyStream,minimumMillisecondsPerBytePerServer);
+                    bodyStream = new ThrottledInputstream(theConnection,fetchThrottler.createFetchStream(),bodyStream);
                     threadStream = new XThreadInputStream(bodyStream);
                   }
                   streamCreated = true;

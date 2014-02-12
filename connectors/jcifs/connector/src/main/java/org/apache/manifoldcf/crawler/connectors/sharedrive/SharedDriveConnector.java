@@ -3378,8 +3378,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.ShareSecurity") + "</nobr></td>\n"+
 "    <td colspan=\"3\" class=\"value\">\n"+
 "      <nobr>\n"+
-"        <input type=\"radio\" name=\"specsharesecurity\" value=\"on\" "+(shareSecurityOn?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
-"        <input type=\"radio\" name=\"specsharesecurity\" value=\"off\" "+((shareSecurityOn==false)?"checked=\"true\"":"")+" />Disabled\n"+
+"        <input type=\"radio\" name=\"specsharesecurity\" value=\"on\" "+(shareSecurityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Enabled") + "&nbsp;\n"+
+"        <input type=\"radio\" name=\"specsharesecurity\" value=\"off\" "+((shareSecurityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Disabled") + "\n"+
 "      </nobr>\n"+
 "    </td>\n"+
 "  </tr>\n"+

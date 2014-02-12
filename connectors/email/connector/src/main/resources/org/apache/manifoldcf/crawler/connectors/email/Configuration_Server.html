@@ -1,0 +1,189 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+#if($TabName == $ResourceBundle.getString('EmailConnector.Server'))
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ProtocolColon'))</nobr>
+    </td>
+    <td class="value">
+      <select id="protocol" name="protocol" size="2">
+  #if($PROTOCOL == 'IMAP')
+        <option value="IMAP" selected="selected">IMAP</option>
+  #else
+        <option value="IMAP">IMAP</option>
+  #end
+  #if($PROTOCOL == 'IMAP-SSL')
+        <option value="IMAP-SSL" selected="selected">IMAP-SSL</option>
+  #else
+        <option value="IMAP-SSL">IMAP-SSL</option>
+  #end
+  #if($PROTOCOL == 'POP3')
+        <option value="POP3" selected="selected">POP3</option>
+  #else
+        <option value="POP3">POP3</option>
+  #end
+  #if($PROTOCOL == 'POP3-SSL')
+        <option value="POP3-SSL" selected="selected">POP3-SSL</option>
+  #else
+        <option value="POP3-SSL">POP3-SSL</option>
+  #end
+      </select>
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.HostNameColon'))</nobr>
+    </td>
+    <td class="value">
+      <input id="server" name="server" type="text" size="32" value="$Encoder.attributeEscape($SERVER)"/>
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.PortColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" id="port" name="port" value="$Encoder.attributeEscape($PORT)"/>
+    </td>
+  </tr>
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.UserNameColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" id="username" name="username" value="$Encoder.attributeEscape($USERNAME)"/>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.PasswordColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="password" id="password" name="password" value="$Encoder.attributeEscape($PASSWORD)"/>
+    </td>
+  </tr>
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ConfigurationPropertiesColon'))</nobr>
+    </td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"></td>
+          <td class="formcolumnheader">
+            <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ServerProperty'))</nobr>
+          </td>
+          <td class="formcolumnheader">
+            <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.Value'))</nobr>
+          </td>
+        </tr>
+
+  #set($k = 0)
+  #foreach($property in $PROPERTIES)
+
+    #if(($k % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <input type="hidden" name="findop_$k" value=""/>
+            <input type="hidden" name="findname_$k" value="$Encoder.attributeEscape($property.get('name'))"/>
+            <input type="hidden" name="findvalue_$k" value="$Encoder.attributeEscape($property.get('value'))"/>
+            <a name="find_$k">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.Delete'))" onClick='Javascript:FindDelete("$k")' alt="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.DeletePropertyNumber'))$k"/>
+            </a>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($property.get('name'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($property.get('value'))</nobr>
+          </td>
+        </tr>
+
+    #set($k = $k + 1)
+  #end
+
+  #if($k == 0)
+        <tr class="formrow">
+          <td class="formcolumnmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.NoServerPropertiesSpecified'))</td>
+        </tr>
+  #end
+
+        <tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
+
+  #set($nextk = $k + 1)
+
+        <tr class="formrow">
+          <td class="formcolumncell">
+            <nobr>
+              <a name="find_$k">
+                <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.Add'))" onClick='Javascript:FindAdd("$nextk")' alt="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.AddNewProperty'))"/>
+                <input type="hidden" name="findcount" value="$k"/>
+                <input type="hidden" name="findop" value=""/>
+              </a>
+            </nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="32" name="findname" value=""/></nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="32" name="findvalue" value=""/></nobr>
+          </td>
+        </tr>
+
+
+      </table>
+    </td>
+  </tr>
+
+</table>
+
+#else
+
+<input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)"/>
+<input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)"/>
+<input type="hidden" name="protocol" value="$Encoder.attributeEscape($PROTOCOL)"/>
+<input type="hidden" name="server" value="$Encoder.attributeEscape($SERVER)"/>
+<input type="hidden" name="port" value="$Encoder.attributeEscape($PORT)"/>
+
+  #set($k = 0)
+  #foreach($property in $PROPERTIES)
+
+<input type="hidden" name="findname_$k" value="$Encoder.attributeEscape($property.get('name'))"/>
+<input type="hidden" name="findvalue_$k" value="$Encoder.attributeEscape($property.get('value'))"/>
+
+    #set($k = $k + 1)
+  #end
+
+<input type="hidden" name="findcount" value="$k"/>
+
+#end

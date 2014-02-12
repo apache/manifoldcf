@@ -711,52 +711,50 @@ if (maintenanceUnderway == false)
 		}
 %>
 		</table>
-		<table class="displaytable">
-		    <tr>
-			<td class="separator" colspan="5"><hr/></td>
-		    </tr>
-		    <tr>
-			<td class="value">
+		<table class="reportfootertable">
+		    <tr class="reportfooterrow">
+			<td class="reportfootercell">
 				<nobr>
 <%
 		if (startRow == 0)
 		{
 %>
-				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Previous")%>
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Previous")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Previous")%></a>
+					<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Previous")%></a>
 <%
 		}
 %>
-				&nbsp;
+				</nobr>
+				<nobr>
 <%
 		if (hasMoreRows == false)
 		{
 %>
-				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Next")%>
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Next")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Next")%></a>
+					<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Next")%></a>
 <%
 		}
 %>
 				</nobr>
 			</td>
-			<td class="description"><nobr>Rows:</nobr></td><td class="value"><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></td>
-			<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.RowsPerPage")%></nobr></td>
-			<td class="value">
-				<input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/>
+			<td class="reportfootercell">
+				<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Rows")%></nobr>
+				<nobr><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></nobr>
 			</td>
-		    </tr>
-		    <tr>
-			<td class="separator" colspan="5"><hr/></td>
+			<td class="reportfootercell">
+				<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.RowsPerPage")%></nobr>
+				<nobr><input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/></nobr>
+			</td>
 		    </tr>
 		</table>
 

@@ -42,10 +42,22 @@
   #else
         <option value="4.0">SharePoint Services 4.0 (2010)</option>
   #end
-  #if($SERVERVERSION == '5.0')
-        <option value="5.0" selected="true">SharePoint Services 5.0 (2013)</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerClaimSpace'))</nobr></td>
+    <td class="value">
+      <select name="serverClaimSpace">
+  #if($SERVERCLAIMSPACE == 'false')
+        <option value="false" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Disabled'))</option>
   #else
-        <option value="5.0">SharePoint Services 5.0 (2013)</option>
+        <option value="false">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Disabled'))</option>
+  #end
+  #if($SERVERCLAIMSPACE == 'true')
+        <option value="true" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Enabled'))</option>
+  #else
+        <option value="true">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Enabled'))</option>
   #end
       </select>
     </td>
@@ -117,6 +129,8 @@
 
 #else
 
+<input type="hidden" name="serverVersion" value="$SERVERVERSION"/>
+<input type="hidden" name="serverClaimSpace" value="$SERVERCLAIMSPACE"/>
 <input type="hidden" name="serverProtocol" value="$SERVERPROTOCOL"/>
 <input type="hidden" name="serverName" value="$Encoder.attributeEscape($SERVERNAME)"/>
 <input type="hidden" name="serverPort" value="$SERVERPORT"/>
