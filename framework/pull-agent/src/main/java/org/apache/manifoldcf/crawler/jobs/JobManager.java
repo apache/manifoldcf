@@ -7533,6 +7533,8 @@ public class JobManager implements IJobManager
   public void finishJobResumes(long timestamp, ArrayList modifiedJobs)
     throws ManifoldCFException
   {
+    // Alternative to using a write lock here: Put this in a transaction, with a "FOR UPDATE" on the first query.
+    // I think that still causes way too much locking, though, on some databases.
     lockManager.enterWriteLock(jobResumeLock);
     try
     {
@@ -7584,6 +7586,8 @@ public class JobManager implements IJobManager
   public void finishJobStops(long timestamp, ArrayList modifiedJobs)
     throws ManifoldCFException
   {
+    // Alternative to using a write lock here: Put this in a transaction, with a "FOR UPDATE" on the first query.
+    // I think that still causes way too much locking, though, on some databases.
     lockManager.enterWriteLock(jobStopLock);
     try
     {
@@ -7674,6 +7678,8 @@ public class JobManager implements IJobManager
   public void resetJobs(long currentTime, ArrayList resetJobs)
     throws ManifoldCFException
   {
+    // Alternative to using a write lock here: Put this in a transaction, with a "FOR UPDATE" on the first query.
+    // I think that still causes way too much locking, though, on some databases.
     lockManager.enterWriteLock(jobResetLock);
     try
     {
