@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-891: SharePoint AD groups not properly authorized.
+(Will Parkinson, Karl Wright)
+
 CONNECTORS-888: JobResetThread had issues when running on
 multiple agents processes.
 (Florian Schmedding, Karl Wright)

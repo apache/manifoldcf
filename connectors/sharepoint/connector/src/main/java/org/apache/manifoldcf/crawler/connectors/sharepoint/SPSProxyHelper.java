@@ -1304,8 +1304,7 @@ public class SPSProxyHelper {
     
     if (!activeDirectoryAuthority)
     {
-      // Do we want to return user ID via getUserInfo?
-      // MHL
+      // Do we want to return user ID via getUserInfo?  A:No; user login is the right thing to return.
       rval = "U"+userLogin;
     }
     else
@@ -1352,26 +1351,47 @@ public class SPSProxyHelper {
     throws ManifoldCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException, java.rmi.RemoteException
   {
     List<String> rval = new ArrayList<String>();
+    
+    com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromGroupResponseGetUserCollectionFromGroupResult roleResp = userCall.getUserCollectionFromGroup(groupName);
+    org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();
+
+    if (roleList.length != 1)
+      throw new ManifoldCFException("Bad response - expecting one outer 'GetUserCollectionFromGroup' node, saw "+Integer.toString(roleList.length));
+
+    MessageElement roles = roleList[0];
+    if (!roles.getElementName().getLocalName().equals("GetUserCollectionFromGroup"))
+      throw new ManifoldCFException("Bad response - outer node should have been 'GetUserCollectionFromGroup' node");
+
+    Iterator rolesIter = roles.getChildElements();
+
     if (!activeDirectoryAuthority)
     {
-      // Do we want to map this to an ID using usergroup.getGroupInfo?  Or will we be unable to find the group
-      // then if it is an AD group?
-      // MHL
+      // We need not only the group itself, but its user children that are Claims-based entities
       rval.add("G"+groupName);
+      while (rolesIter.hasNext())
+      {
+        MessageElement child = (MessageElement)rolesIter.next();
+        if (child.getElementName().getLocalName().equals("Users"))
+        {
+          Iterator usersIterator = child.getChildElements();
+          while (usersIterator.hasNext())
+          {
+            MessageElement user = (MessageElement)usersIterator.next();
+            if (user.getElementName().getLocalName().equals("User"))
+            {
+              String isDomainGroup = user.getAttribute("IsDomainGroup");
+              if (isDomainGroup != null && isDomainGroup.equals("True"))
+              {
+                // Add a user token for the domain group
+                rval.add("U"+user.getAttribute("LoginName"));
+              }
+            }
+          }
+        }
+      }      
     }
     else
     {
-      com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromGroupResponseGetUserCollectionFromGroupResult roleResp = userCall.getUserCollectionFromGroup(groupName);
-      org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();
-
-      if (roleList.length != 1)
-        throw new ManifoldCFException("Bad response - expecting one outer 'GetUserCollectionFromGroup' node, saw "+Integer.toString(roleList.length));
-
-      MessageElement roles = roleList[0];
-      if (!roles.getElementName().getLocalName().equals("GetUserCollectionFromGroup"))
-        throw new ManifoldCFException("Bad response - outer node should have been 'GetUserCollectionFromGroup' node");
-
-      Iterator rolesIter = roles.getChildElements();
       while (rolesIter.hasNext())
       {
         MessageElement child = (MessageElement)rolesIter.next();
