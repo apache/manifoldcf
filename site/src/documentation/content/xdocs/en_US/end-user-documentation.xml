@@ -1730,7 +1730,7 @@ curl -XGET http://localhost:9200/index/_mapping
                         the second column names the output data type for the query phrase, and
                         the third gives the query phrase itself using "$(STARTTIME)"
                         as an example time in milliseconds since epoch. These query phrases
-                        are intended as guidlines for creating an appropriate query phrase in
+                        are intended as guidelines for creating an appropriate query phrase in
                         each language. Each query phrase is designed to work with the most
                         current version of the database software available at the time of
                         publishing for this document. If your modified date field is not of
