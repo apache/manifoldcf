@@ -3215,6 +3215,24 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return WRITERESULT_FOUND;
   }
 
+  /** Clear repository connection history.
+  */
+  protected static int apiWriteClearHistoryRepositoryConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      connectionManager.cleanUpHistoryData(connectionName);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+
   /** Reset output connection (reset version of all recorded documents).
   */
   protected static int apiWriteResetOutputConnection(IThreadContext tc, Configuration output, String connectionName)
@@ -3328,6 +3346,29 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
       return apiWriteRepositoryConnection(tc,output,input,connectionName);
+    }
+    else if (path.startsWith("clearhistory/"))
+    {
+      int firstSeparator = "clearhistory/".length();
+      int secondSeparator = path.indexOf("/",firstSeparator);
+      if (secondSeparator == -1)
+      {
+        createErrorNode(output,"Need connection name.");
+        return WRITERESULT_NOTFOUND;
+      }
+      
+      String connectionType = path.substring(firstSeparator,secondSeparator);
+      String connectionName = decodeAPIPathElement(path.substring(secondSeparator+1));
+
+      if (connectionType.equals("repositoryconnections"))
+      {
+        return apiWriteClearHistoryRepositoryConnection(tc,output,connectionName);
+      }
+      else
+      {
+        createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
+        return WRITERESULT_NOTFOUND;
+      }
     }
     else if (path.startsWith("reset/"))
     {
