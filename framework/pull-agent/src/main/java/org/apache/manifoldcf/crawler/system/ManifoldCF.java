@@ -3235,7 +3235,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Reset output connection (reset version of all recorded documents).
   */
-  protected static int apiWriteResetOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiWriteClearVersionsOutputConnection(IThreadContext tc, Configuration output, String connectionName)
     throws ManifoldCFException
   {
     try
@@ -3350,28 +3350,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (path.startsWith("clearhistory/"))
     {
       int firstSeparator = "clearhistory/".length();
-      int secondSeparator = path.indexOf("/",firstSeparator);
-      if (secondSeparator == -1)
-      {
-        createErrorNode(output,"Need connection name.");
-        return WRITERESULT_NOTFOUND;
-      }
-      
-      String connectionType = path.substring(firstSeparator,secondSeparator);
-      String connectionName = decodeAPIPathElement(path.substring(secondSeparator+1));
-
-      if (connectionType.equals("repositoryconnections"))
-      {
-        return apiWriteClearHistoryRepositoryConnection(tc,output,connectionName);
-      }
-      else
-      {
-        createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
-        return WRITERESULT_NOTFOUND;
-      }
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiWriteClearHistoryRepositoryConnection(tc,output,connectionName);
     }
     else if (path.startsWith("reset/"))
     {
+      // This form is deprecated
       int firstSeparator = "reset/".length();
       int secondSeparator = path.indexOf("/",firstSeparator);
       if (secondSeparator == -1)
@@ -3385,7 +3369,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
       if (connectionType.equals("outputconnections"))
       {
-        return apiWriteResetOutputConnection(tc,output,connectionName);
+        return apiWriteClearVersionsOutputConnection(tc,output,connectionName);
       }
       else
       {
@@ -3393,28 +3377,17 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         return WRITERESULT_NOTFOUND;
       }
     }
-    else if (path.startsWith("clear/"))
+    else if (path.startsWith("clearversions/"))
     {
-      int firstSeparator = "clear/".length();
-      int secondSeparator = path.indexOf("/",firstSeparator);
-      if (secondSeparator == -1)
-      {
-        createErrorNode(output,"Need connection name.");
-        return WRITERESULT_NOTFOUND;
-      }
-      
-      String connectionType = path.substring(firstSeparator,secondSeparator);
-      String connectionName = decodeAPIPathElement(path.substring(secondSeparator+1));
-      
-      if (connectionType.equals("outputconnections"))
-      {
-        return apiWriteClearOutputConnection(tc,output,connectionName);
-      }
-      else
-      {
-        createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
-        return WRITERESULT_NOTFOUND;
-      }
+      int firstSeparator = "clearversions/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiWriteClearVersionsOutputConnection(tc,output,connectionName);
+    }
+    else if (path.startsWith("clearrecords/"))
+    {
+      int firstSeparator = "clearrecords/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiWriteClearOutputConnection(tc,output,connectionName);
     }
     else
     {

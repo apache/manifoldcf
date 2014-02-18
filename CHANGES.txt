@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-895: Add missing REST API methods for connection and
+job control, and revamp API for operations that are specific to only one
+kind of connection.
+(Karl Wright)
+
 CONNECTORS-894: Cosmetic display problem with SharePoint specification
 view.
 (Ahmet Arlsan, Karl Wright)
