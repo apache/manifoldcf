@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-892: Add ability in UI reset incremental job seeding state.
+(Karl Wright)
+
 CONNECTORS-891: SharePoint AD groups not properly authorized.
 (Will Parkinson, Karl Wright)
 

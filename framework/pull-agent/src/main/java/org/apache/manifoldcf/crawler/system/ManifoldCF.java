@@ -2983,6 +2983,24 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     return WRITERESULT_FOUND;
   }
+
+  /** Reset incremental seeding for a job.
+  */
+  protected static int apiWriteReseedJob(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.clearJobSeedingState(jobID);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
   
   /** Write job.
   */
@@ -3197,7 +3215,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return WRITERESULT_FOUND;
   }
 
-  /** Reset output connection.
+  /** Reset output connection (reset version of all recorded documents).
   */
   protected static int apiWriteResetOutputConnection(IThreadContext tc, Configuration output, String connectionName)
     throws ManifoldCFException
@@ -3205,6 +3223,23 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     try
     {
       signalOutputConnectionRedo(tc,connectionName);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+
+  /** Clear output connection (remove all recorded documents).
+  */
+  protected static int apiWriteClearOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      signalOutputConnectionRemoved(tc,connectionName);
       return WRITERESULT_CREATED;
     }
     catch (ManifoldCFException e)
@@ -3259,6 +3294,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       Long jobID = new Long(path.substring("resume/".length()));
       return apiWriteResumeJob(tc,output,jobID);
     }
+    else if (path.startsWith("reseed/"))
+    {
+      Long jobID = new Long(path.substring("reseed/".length()));
+      return apiWriteReseedJob(tc,output,jobID);
+    }
     else if (path.startsWith("jobs/"))
     {
       Long jobID = new Long(path.substring("jobs/".length()));
@@ -3305,6 +3345,29 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (connectionType.equals("outputconnections"))
       {
         return apiWriteResetOutputConnection(tc,output,connectionName);
+      }
+      else
+      {
+        createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
+        return WRITERESULT_NOTFOUND;
+      }
+    }
+    else if (path.startsWith("clear/"))
+    {
+      int firstSeparator = "clear/".length();
+      int secondSeparator = path.indexOf("/",firstSeparator);
+      if (secondSeparator == -1)
+      {
+        createErrorNode(output,"Need connection name.");
+        return WRITERESULT_NOTFOUND;
+      }
+      
+      String connectionType = path.substring(firstSeparator,secondSeparator);
+      String connectionName = decodeAPIPathElement(path.substring(secondSeparator+1));
+      
+      if (connectionType.equals("outputconnections"))
+      {
+        return apiWriteClearOutputConnection(tc,output,connectionName);
       }
       else
       {
