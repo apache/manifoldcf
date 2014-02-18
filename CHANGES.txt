@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-893: Update end-user documentation to describe view
+pages and the buttons that are found on them.
+(Karl Wright)
+
 CONNECTORS-895: Add missing REST API methods for connection and
 job control, and revamp API for operations that are specific to only one
 kind of connection.

@@ -85,10 +85,25 @@
                 </p>
                 <p>Please refer to the section of the manual describing your chosen output connection type for a description of the tabs appropriate for that connection type.</p>
                 
-                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This summary screen contains a line where the connection's status
-                       is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.  If there was a problem, you will see a connection-type-specific diagnostic message instead.
-                       If this happens, you will need to correct the problem, by either fixing your infrastructure, or by editing the connection configuration appropriately, before the output connection
-                       will work correctly.</p>
+                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This looks something like this (although the details will differ
+                      somewhat based on what connection type you chose):</p>
+                <br/><br/>
+                <figure src="images/en_US/view-output-connection.PNG" alt="View Output Connection" width="80%"/>
+                <br/><br/>
+                <p>The summary screen contains a line where the connection's status is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.
+                      If there was a problem, you will see a connection-type-specific diagnostic message instead.  If this happens, you will need to correct the problem, by either fixing your infrastructure,
+                      or by editing the connection configuration appropriately, before the output connection will work correctly.</p>
+                <p>Also note that there are five buttons along the bottom of the display: "Refresh", "Edit", "Delete", "Re-index all associated documents", and "Remove all associated records".  We'll
+                      go into the purpose for each of these buttons in turn.</p>
+                <p>The "Refresh" button simply reloads the view page for the output connection, and updates the connection status.  Use this button when you have made changes to the external system
+                      your output connection is connected to that might affect whether the connection will succeed or not.</p>
+                <p>The "Edit" button allows you to go back and edit the connection parameters.  Use this button if you want to change the connection's characteristics or specifications in any way.</p>
+                <p>The "Delete" button allows you to delete the connection.  Use this button if you no longer want the connection to remain in the available list of output connections.  Note that ManifoldCF
+                      will not allow you to delete a connection that is being referenced by a job.</p>
+                <p>The "Re-index all associated documents" button will nullify the recorded versions of all documents currently indexed via this connection.  This is not a button you would use often.  Click
+                      it when you have changed the configuration of whatever system the output connection is describing, and therefore all documents will eventually need to be reindexed.</p>
+                <p>The "Remove all associated documents" button will remove from ManifoldCF all knowledge that any indexing has taken place at all to this connection.  This is also not a button you would use
+                      often.  Click it when you have removed the entire index that the output connection describes from the target repository.</p>
             </section>
 
             <section id="groups">
@@ -185,11 +200,24 @@
                 <p>If no throttle descriptions are added, no fetch-rate throttling will be performed.</p>
                 <p>Please refer to the section of the manual describing your chosen repository connection type for a description of the tabs appropriate for that connection type.</p>
 
-                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This summary screen contains a line where the connection's status
-                       is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.  If there was a problem, you will see a connection-type-specific diagnostic message instead.
-                       If this happens, you will need to correct the problem, by either fixing your infrastructure, or by editing the connection configuration appropriately, before the authority connection
-                       will work correctly.</p>
-                       
+                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This looks something like this (although the details will differ
+                      somewhat based on what connection type you chose):</p>
+                <br/><br/>
+                <figure src="images/en_US/view-repository-connection.PNG" alt="View Repository Connection" width="80%"/>
+                <br/><br/>
+                <p>The summary screen contains a line where the connection's status is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.
+                      If there was a problem, you will see a connection-type-specific diagnostic message instead.  If this happens, you will need to correct the problem, by either fixing your infrastructure,
+                      or by editing the connection configuration appropriately, before the repository connection will work correctly.</p>
+                <p>Also note that there are four buttons along the bottom of the display: "Refresh", "Edit", "Delete", and "Clear all related history".  We'll
+                      go into the purpose for each of these buttons in turn.</p>
+                <p>The "Refresh" button simply reloads the view page for the repository connection, and updates the connection status.  Use this button when you have made changes to the external system
+                      your repository connection is connected to that might affect whether the connection will succeed or not.</p>
+                <p>The "Edit" button allows you to go back and edit the connection parameters.  Use this button if you want to change the connection's characteristics or specifications in any way.</p>
+                <p>The "Delete" button allows you to delete the connection.  Use this button if you no longer want the connection to remain in the available list of repository connections.  Note that ManifoldCF
+                      will not allow you to delete a connection that is being referenced by a job.</p>
+                <p>The "Clear all related history" button will remove all history data associated with the current repository connection.  This is not a button you would use often.  History data is used to construct
+                      reports, such as the "Simple History" report.  It is valuable as a diagnostic aid to understand what the crawler has been doing.  There is an automated way of configuring ManifoldCF to
+                      remove history that is older than a specified interval before the current time.  But if you want to remove all the history right away, this button will do that.</p>
             </section>
 
             <section id="mappers">
@@ -244,11 +272,21 @@
                 </p>
                 <p>Please refer to the section of the manual describing your chosen mapping connection type for a description of the tabs appropriate for that connection type.</p>
 
-                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This summary screen contains a line where the connection's status
-                       is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.  If there was a problem, you will see a connection-type-specific diagnostic message instead.
-                       If this happens, you will need to correct the problem, by either fixing your infrastructure, or by editing the connection configuration appropriately, before the mapping connection
-                       will work correctly.</p>
-                       
+                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This looks something like this (although the details will differ
+                      somewhat based on what connection type you chose):</p>
+                <br/><br/>
+                <figure src="images/en_US/view-mapping-connection.PNG" alt="View Mapping Connection" width="80%"/>
+                <br/><br/>
+                <p>The summary screen contains a line where the connection's status is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.
+                      If there was a problem, you will see a connection-type-specific diagnostic message instead.  If this happens, you will need to correct the problem, by either fixing your infrastructure,
+                      or by editing the connection configuration appropriately, before the mapping connection will work correctly.</p>
+                <p>Also note that there are three buttons along the bottom of the display: "Refresh", "Edit", and "Delete".  We'll
+                      go into the purpose for each of these buttons in turn.</p>
+                <p>The "Refresh" button simply reloads the view page for the mapping connection, and updates the connection status.  Use this button when you have made changes to the external system
+                      your mapping connection is connected to that might affect whether the connection will succeed or not.</p>
+                <p>The "Edit" button allows you to go back and edit the connection parameters.  Use this button if you want to change the connection's characteristics or specifications in any way.</p>
+                <p>The "Delete" button allows you to delete the connection.  Use this button if you no longer want the connection to remain in the available list of mapping connections.  Note that ManifoldCF
+                      will not allow you to delete a connection that is being referenced by another mapping connection or an authority connection.</p>
             </section>
 
             <section id="authorities">
@@ -304,11 +342,20 @@
                 </p>
                 <p>Please refer to the section of the manual describing your chosen authority connection type for a description of the tabs appropriate for that connection type.</p>
 
-                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This summary screen contains a line where the connection's status
-                       is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.  If there was a problem, you will see a connection-type-specific diagnostic message instead.
-                       If this happens, you will need to correct the problem, by either fixing your infrastructure, or by editing the connection configuration appropriately, before the authority connection
-                       will work correctly.</p>
-                       
+                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This looks something like this (although the details will differ
+                      somewhat based on what connection type you chose):</p>
+                <br/><br/>
+                <figure src="images/en_US/view-authority-connection.PNG" alt="View Authority Connection" width="80%"/>
+                <br/><br/>
+                <p>The summary screen contains a line where the connection's status is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.
+                      If there was a problem, you will see a connection-type-specific diagnostic message instead.  If this happens, you will need to correct the problem, by either fixing your infrastructure,
+                      or by editing the connection configuration appropriately, before the authority connection will work correctly.</p>
+                <p>Also note that there are three buttons along the bottom of the display: "Refresh", "Edit", and "Delete".  We'll
+                      go into the purpose for each of these buttons in turn.</p>
+                <p>The "Refresh" button simply reloads the view page for the authority connection, and updates the connection status.  Use this button when you have made changes to the external system
+                      your authority connection is connected to that might affect whether the connection will succeed or not.</p>
+                <p>The "Edit" button allows you to go back and edit the connection parameters.  Use this button if you want to change the connection's characteristics or specifications in any way.</p>
+                <p>The "Delete" button allows you to delete the connection.  Use this button if you no longer want the connection to remain in the available list of authority connections.</p>
             </section>
 
             <section id="jobs">
@@ -406,7 +453,25 @@
                 <figure src="images/en_US/add-new-job-forced-metadata-example.PNG" alt="Add New Job, forced metadata tab with example" width="80%"/>
                 <br/><br/>
                 <p>You may add multiple parameter values, or delete values you do not want by clicking the appropriate "Delete" button.</p>
+                
+                <p>After you save your job, a summary screen will be displayed that describes your job's specification.  This looks something like this (although the details will differ
+                      somewhat based on what connections you chose):</p>
+                <br/><br/>
+                <figure src="images/en_US/view-job.PNG" alt="View Job" width="80%"/>
+                <br/><br/>
+                <p>Also note that there are four buttons along the bottom of the display: "Edit", "Delete", "Copy", and "Reset seeding".  We'll
+                      go into the purpose for each of these buttons in turn.</p>
+                <p>The "Edit" button allows you to go back and edit the job specification.  Use this button if you want to change the job's details in any way.</p>
+                <p>The "Delete" button allows you to delete the job.  Use this button if you no longer want the job to exist.  Note that when you delete a job in ManifoldCF, all
+                      documents that were indexed using that job are removed from the index.</p>
+                <p>The "Copy" button allows you to edit a copy of the current job.  Use this button if you want to create a new job that is based largely on the current job's specification.
+                      This can be helpful if you have many similar jobs to create.</p>
+                <p>The "Reset seeding" button will cause ManifoldCF to forget the seeding history of the job.  Seeding is the process of discovering documents that have been added
+                      or modified.  Clicking this button insures that ManifoldCF will examine all documents in the repository on the next crawl.  This is not something that is done frequently;
+                      ManifoldCF is pretty good at managing this information itself, and will automatically do the same thing whenever a job specification is changed.  Use this option if
+                      you've updated your connector software in a way that requires all documents to be re-examined.</p>
             </section>
+
             <section id="executing">
                 <title>Executing Jobs</title>
                 <p>You can follow what is going on, and control the execution of your jobs, by clicking on the "Status and Job Management" link on the left-side navigation menu.  When you do, you might
