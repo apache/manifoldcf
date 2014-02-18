@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-894: Cosmetic display problem with SharePoint specification
+view.
+(Ahmet Arlsan, Karl Wright)
+
 CONNECTORS-892: Add ability in UI reset incremental job seeding state.
 (Karl Wright)
 
