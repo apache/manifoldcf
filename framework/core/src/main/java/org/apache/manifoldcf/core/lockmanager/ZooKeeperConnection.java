@@ -309,35 +309,58 @@ public class ZooKeeperConnection
             if (otherLock.compareTo(lockSequenceNumber) < 0)
             {
               // We didn't get the lock.  Clean up and exit
-              zookeeper.delete(lockNode,-1);
-              lockNode = null;
+              while (true)
+              {
+                try
+                {
+                  zookeeper.delete(lockNode,-1);
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException.NoNodeException e)
+                {
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException e)
+                {
+                  handleKeeperException(e);
+                }
+              }
               return false;
             }
           }
         }
-        catch (KeeperException e)
+        catch (Throwable e)
         {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (InterruptedException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (Error e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (RuntimeException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
         }
         // We got it!
         return true;
@@ -424,30 +447,37 @@ public class ZooKeeperConnection
             //  System.out.println(" Retrying for write lock '"+lockSequenceNumber+"'");
           }
         }
-        catch (KeeperException e)
+        catch (Throwable e)
         {
           //System.out.println("Unexpected keeper exception: "+e.getMessage());
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (InterruptedException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (Error e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (RuntimeException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
         }
       }
       catch (KeeperException e)
@@ -477,7 +507,29 @@ public class ZooKeeperConnection
         {
           String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length());
           // See if we got it
-          List<String> children = zookeeper.getChildren(lockPath,false);
+          List<String> children = null;
+          while (true)
+          {
+            try
+            {
+              children = zookeeper.getChildren(lockPath,false);
+              break;
+            }
+            catch (KeeperException.NoNodeException e)
+            {
+              // New session; back around again.
+              break;
+            }
+            catch (KeeperException e)
+            {
+              handleKeeperException(e);
+            }
+          }
+          if (children == null)
+          {
+            // Reassert ephemeral node b/c we had a session restart
+            continue;
+          }
           for (String x : children)
           {
             String otherLock;
@@ -490,35 +542,60 @@ public class ZooKeeperConnection
             if (otherLock.compareTo(lockSequenceNumber) < 0)
             {
               // We didn't get the lock.  Clean up and exit
-              zookeeper.delete(lockNode,-1);
-              lockNode = null;
+              while (true)
+              {
+                try
+                {
+                  zookeeper.delete(lockNode,-1);
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException.NoNodeException e)
+                {
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException e)
+                {
+                  handleKeeperException(e);
+                }
+              }
               return false;
             }
           }
         }
-        catch (KeeperException e)
+        catch (Throwable e)
         {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (InterruptedException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (Error e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (RuntimeException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
         }
         // We got it!
         return true;
@@ -551,7 +628,27 @@ public class ZooKeeperConnection
           while (true)
           {
             // See if we got it
-            List<String> children = zookeeper.getChildren(lockPath,false);
+            List<String> children = null;
+            while (true)
+            {
+              try
+              {
+                children = zookeeper.getChildren(lockPath,false);
+                break;
+              }
+              catch (KeeperException.NoNodeException e)
+              {
+                break;
+              }
+              catch (KeeperException e)
+              {
+                handleKeeperException(e);
+              }
+            }
+
+            if (children == null)
+              break;
+
             String previousLock = null;
             boolean gotLock = true;
             long highestPreviousLockIndex = -1L;
@@ -595,29 +692,38 @@ public class ZooKeeperConnection
             }
           }
         }
-        catch (KeeperException e)
+        catch (Throwable e)
         {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (InterruptedException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (Error e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (RuntimeException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
         }
       }
       catch (KeeperException e)
@@ -647,7 +753,25 @@ public class ZooKeeperConnection
         {
           String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length());
           // See if we got it
-          List<String> children = zookeeper.getChildren(lockPath,false);
+          List<String> children = null;
+          while (true)
+          {
+            try
+            {
+              children = zookeeper.getChildren(lockPath,false);
+              break;
+            }
+            catch (KeeperException.NoNodeException e)
+            {
+              break;
+            }
+            catch (KeeperException e)
+            {
+              handleKeeperException(e);
+            }
+          }
+          if (children == null)
+            continue;
           for (String x : children)
           {
             String otherLock;
@@ -660,35 +784,60 @@ public class ZooKeeperConnection
             if (otherLock.compareTo(lockSequenceNumber) < 0)
             {
               // We didn't get the lock.  Clean up and exit
-              zookeeper.delete(lockNode,-1);
-              lockNode = null;
+              while (true)
+              {
+                try
+                {
+                  zookeeper.delete(lockNode,-1);
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException.NoNodeException e)
+                {
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException e)
+                {
+                  handleKeeperException(e);
+                }
+              }
               return false;
             }
           }
         }
-        catch (KeeperException e)
+        catch (Throwable e)
         {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (InterruptedException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (Error e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (RuntimeException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
         }
         // We got it!
         return true;
@@ -722,7 +871,28 @@ public class ZooKeeperConnection
           while (true)
           {
             // See if we got it
-            List<String> children = zookeeper.getChildren(lockPath,false);
+            List<String> children = null;
+            while (true)
+            {
+              try
+              {
+                children = zookeeper.getChildren(lockPath,false);
+                break;
+              }
+              catch (KeeperException.NoNodeException e)
+              {
+                break;
+              }
+              catch (KeeperException e)
+              {
+                handleKeeperException(e);
+              }
+            }
+
+            // Handle new session
+            if (children == null)
+              break;
+            
             String previousLock = null;
             boolean gotLock = true;
             long highestPreviousLockIndex = -1L;
@@ -773,30 +943,38 @@ public class ZooKeeperConnection
 
           }
         }
-        catch (KeeperException e)
+        catch (Throwable e)
         {
-          //System.out.println("Unexpected keeper exception: "+e.getMessage());
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (InterruptedException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (Error e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
-        }
-        catch (RuntimeException e)
-        {
-          zookeeper.delete(lockNode,-1);
-          lockNode = null;
-          throw e;
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
         }
       }
       catch (KeeperException e)
@@ -820,6 +998,11 @@ public class ZooKeeperConnection
       try
       {
         zookeeper.delete(lockNode,-1);
+        lockNode = null;
+        break;
+      }
+      catch (KeeperException.NoNodeException e)
+      {
         lockNode = null;
         break;
       }
