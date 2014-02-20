@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-898: Handle zookeeper connection loss and session
+expiration conditions.
+(Graeme Seaton, Karl Wright)
+
 CONNECTORS-886: Add support for Parent folder security
 in SharedDriveConnector.
 (Shinichiro Abe)
