@@ -514,10 +514,6 @@ public class HttpPoster
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("indexPost(): '" + documentURI + "'");
 
-    // The SOLR connector cannot deal with folder-level security at this time.  If they are seen, reject the document.
-    if (document.countDirectoryACLs() != 0)
-      return false;
-    
     // If the document is too long, reject it.
     if (maxDocumentLength != null && document.getBinaryLength() > maxDocumentLength.longValue())
       return false;
@@ -527,10 +523,24 @@ public class HttpPoster
     String[] shareDenyAcls = convertACL(document.getShareDenyACL(),authorityNameString,activities);
     String[] acls = convertACL(document.getACL(),authorityNameString,activities);
     String[] denyAcls = convertACL(document.getDenyACL(),authorityNameString,activities);
-    
+
+    Map<Integer,String[]> directoryAclsMap = new HashMap<Integer,String[]>();
+    Map<Integer,String[]> directoryDenyAclsMap = new HashMap<Integer,String[]>();
+    int directoryCount = document.countDirectoryACLs();
+    int q = 0;
+    while (q < directoryCount)
+    {
+      String[] directoryAcls = convertACL(document.getDirectoryACL(q),authorityNameString,activities);
+      String[] directoryDenyAcls = convertACL(document.getDirectoryDenyACL(q),authorityNameString,activities);
+      directoryAclsMap.put(Integer.valueOf(q), directoryAcls);
+      directoryDenyAclsMap.put(Integer.valueOf(q), directoryDenyAcls);
+      q++;
+    }
+
     try
     {
-      IngestThread t = new IngestThread(documentURI,document,arguments,keepAllMetadata,sourceTargets,shareAcls,shareDenyAcls,acls,denyAcls,commitWithin);
+      IngestThread t = new IngestThread(documentURI,document,arguments,keepAllMetadata,sourceTargets,
+                                        shareAcls,shareDenyAcls,directoryAclsMap,directoryDenyAclsMap,acls,denyAcls,commitWithin);
       try
       {
         t.start();
@@ -810,6 +820,8 @@ public class HttpPoster
     protected final Map<String,List<String>> sourceTargets;
     protected final String[] shareAcls;
     protected final String[] shareDenyAcls;
+    protected final Map<Integer,String[]> directoryAclsMap;
+    protected final Map<Integer,String[]> directoryDenyAclsMap;
     protected final String[] acls;
     protected final String[] denyAcls;
     protected final String commitWithin;
@@ -825,7 +837,7 @@ public class HttpPoster
 
     public IngestThread(String documentURI, RepositoryDocument document,
       Map<String, List<String>> arguments, boolean keepAllMetadata, Map<String, List<String>> sourceTargets,
-      String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls, String commitWithin)
+      String[] shareAcls, String[] shareDenyAcls, Map<Integer,String[]> directoryAclsMap, Map<Integer,String[]> directoryDenyAclsMap, String[] acls, String[] denyAcls, String commitWithin)
     {
       super();
       setDaemon(true);
@@ -834,6 +846,8 @@ public class HttpPoster
       this.arguments = arguments;
       this.shareAcls = shareAcls;
       this.shareDenyAcls = shareDenyAcls;
+      this.directoryAclsMap = directoryAclsMap;
+      this.directoryDenyAclsMap = directoryDenyAclsMap;
       this.acls = acls;
       this.denyAcls = denyAcls;
       this.sourceTargets = sourceTargets;
@@ -900,6 +914,17 @@ public class HttpPoster
           // Write the access token information
           writeACLs(out,"share",shareAcls,shareDenyAcls);
           writeACLs(out,"document",acls,denyAcls);
+
+          int directoryCount = directoryAclsMap.size();
+          int q = 0;
+          while (q < directoryCount)
+          {
+            Integer index = Integer.valueOf(q);
+            String[] directoryAcls = directoryAclsMap.get(index);
+            String[] directoryDenyAcls = directoryDenyAclsMap.get(index);
+            writeACLs(out,"directory_"+index.toString(),directoryAcls,directoryDenyAcls);
+            q++;
+          }
 
           // Write the arguments
           for (String name : arguments.keySet())

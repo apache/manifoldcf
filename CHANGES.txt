@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-886: Add support for Parent folder security
+in SharedDriveConnector.
+(Shinichiro Abe)
+
 CONNECTORS-893: Update end-user documentation to describe view
 pages and the buttons that are found on them.
 (Karl Wright)

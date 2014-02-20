@@ -112,6 +112,14 @@ public class ElasticSearchIndex extends ElasticSearchConnection
         needComma = writeACLs(pw, needComma, "document", document.getACL(), document.getDenyACL());
         needComma = writeACLs(pw, needComma, "share", document.getShareACL(), document.getShareDenyACL());
 
+        int directoryCount = document.countDirectoryACLs();
+        int q = 0;
+        while (q < directoryCount)
+        {
+          needComma = writeACLs(pw, needComma, "directory_" + q, document.getDirectoryACL(q), document.getDirectoryDenyACL(q));
+          q++;
+        }
+
         if(inputStream!=null){
           if(needComma){
             pw.print(",");
@@ -166,11 +174,26 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   {
     if (fieldValues == null)
       return needComma;
-    for(int j=0; j<fieldValues.length; j++){
+
+    if (fieldValues.length == 1){
       if (needComma)
         pw.print(",");
-      String fieldValue = fieldValues[j];
-      pw.print(jsonStringEscape(fieldName)+" : "+jsonStringEscape(fieldValue));
+      pw.print(jsonStringEscape(fieldName)+" : "+jsonStringEscape(fieldValues[0]));
+      needComma = true;
+      return needComma;
+    }
+
+    if (fieldValues.length > 1){
+      if (needComma)
+        pw.print(",");
+      StringBuilder sb = new StringBuilder();
+      sb.append("[");
+      for(int j=0; j<fieldValues.length; j++){
+        sb.append(jsonStringEscape(fieldValues[j])).append(",");
+      }
+      sb.setLength(sb.length() - 1); // discard last ","
+      sb.append("]");
+      pw.print(jsonStringEscape(fieldName)+" : "+sb.toString());
       needComma = true;
     }
     return needComma;
