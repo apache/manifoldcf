@@ -138,16 +138,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   protected final static String FETCH_LOGIN = "LOGIN";
 
   // Reserved headers
-  protected static Map<String,String> reservedHeaders;
+  protected final static Set<String> reservedHeaders;
   static
   {
-    reservedHeaders = new HashMap<String,String>();
-    reservedHeaders.put("age","age");
-    reservedHeaders.put("www-authenticate","www-authenticate");
-    reservedHeaders.put("proxy-authenticate","proxy-authenticate");
-    reservedHeaders.put("date","date");
-    reservedHeaders.put("set-cookie","set-cookie");
-    reservedHeaders.put("via","via");
+    reservedHeaders = new HashSet<String>();
+    reservedHeaders.add("age");
+    reservedHeaders.add("www-authenticate");
+    reservedHeaders.add("proxy-authenticate");
+    reservedHeaders.add("date");
+    reservedHeaders.add("set-cookie");
+    reservedHeaders.add("via");
+  }
+  
+  // Potentially excluded headers
+  protected final static List<String> potentiallyExcludedHeaders;
+  static
+  {
+    potentiallyExcludedHeaders = new ArrayList<String>();
+    potentiallyExcludedHeaders.add("last-modified");
   }
   
   /** Robots usage flag */
@@ -517,7 +525,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     // Break up the seeds string and iterate over the results.
-    ArrayList list = stringToArray(seeds);
+    List<String> list = stringToArray(seeds);
     // We must only return valid urls here!!!
     int index = 0;
     while (index < list.size())
@@ -1171,7 +1179,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             while (headerIterator.hasNext())
             {
               String headerName = headerIterator.next();
-              if (reservedHeaders.get(headerName.toLowerCase()) == null)
+              if (!reservedHeaders.contains(headerName.toLowerCase()))
                 headerCount += headerData.get(headerName).size();
             }
             String[] fullMetadata = new String[metadata.length + headerCount];
@@ -1180,7 +1188,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             while (headerIterator.hasNext())
             {
               String headerName = headerIterator.next();
-              if (reservedHeaders.get(headerName.toLowerCase()) == null)
+              if (!reservedHeaders.contains(headerName.toLowerCase()))
               {
                 List<String> headerValues = headerData.get(headerName);
                 for (String headerValue : headerValues)
@@ -3770,6 +3778,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String inclusionsIndex = ".*\n";
     String exclusionsIndex = "";
     boolean includeMatching = true;
+    Set<String> excludeHeaders = new HashSet<String>();
     
     // Now, loop through description
     i = 0;
@@ -3814,8 +3823,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         else
           includeMatching = true;
       }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
+      {
+        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        excludeHeaders.add(value);
+      }
+
     }
 
+    //???
+    
     // Seeds tab
 
     if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Seeds")))
@@ -3866,28 +3883,58 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (q < ds.getChildCount())
       {
         SpecificationNode specNode = ds.getChild(q++);
-        if (specNode.getType().equals("urlspec"))
+        if (specNode.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
         {
           // Ok, this node matters to us
-          String regexpString = specNode.getAttributeValue("regexp");
-          String description = specNode.getAttributeValue("description");
+          String regexpString = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
+          String description = specNode.getAttributeValue(WebcrawlerConfig.ATTR_DESCRIPTION);
           if (description == null)
             description = "";
-          String allowReorder = specNode.getAttributeValue("reorder");
+          String allowReorder = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
+          String allowReorderOutput;
           if (allowReorder == null || allowReorder.length() == 0)
-            allowReorder = "no";
-          String allowJavaSessionRemoval = specNode.getAttributeValue("javasessionremoval");
+          {
+            allowReorder = WebcrawlerConfig.ATTRVALUE_NO;
+            allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+          }
+          else
+            allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+          String allowJavaSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
+          String allowJavaSessionRemovalOutput;
           if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-            allowJavaSessionRemoval = "no";
-          String allowASPSessionRemoval = specNode.getAttributeValue("aspsessionremoval");
+          {
+            allowJavaSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+            allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+          }
+          else
+            allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+          String allowASPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
+          String allowASPSessionRemovalOutput;
           if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-            allowASPSessionRemoval = "no";
-          String allowPHPSessionRemoval = specNode.getAttributeValue("phpsessionremoval");
+          {
+            allowASPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+            allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+          }
+          else
+            allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+          String allowPHPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
+          String allowPHPSessionRemovalOutput;
           if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-            allowPHPSessionRemoval = "no";
-          String allowBVSessionRemoval = specNode.getAttributeValue("bvsessionremoval");
+          {
+            allowPHPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+            allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+          }
+          else
+            allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+          String allowBVSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
+          String allowBVSessionRemovalOutput;
           if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-            allowBVSessionRemoval = "no";
+          {
+            allowBVSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+            allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+          }
+          else
+            allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
           out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -3906,11 +3953,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexpString)+"</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowReorder+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowJavaSessionRemoval+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowASPSessionRemoval+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowPHPSessionRemoval+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowBVSessionRemoval+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowReorderOutput+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowJavaSessionRemovalOutput+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowASPSessionRemovalOutput+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowPHPSessionRemovalOutput+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowBVSessionRemovalOutput+"</td>\n"+
 "        </tr>\n"
           );
 
@@ -3934,11 +3981,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "          </td>\n"+
 "          <td class=\"formcolumncell\"><input type=\"text\" name=\"urlregexp\" size=\"30\" value=\"\"/></td>\n"+
 "          <td class=\"formcolumncell\"><input type=\"text\" name=\"urlregexpdesc\" size=\"30\" value=\"\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpreorder\" value=\"yes\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpjava\" value=\"yes\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpasp\" value=\"yes\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpphp\" value=\"yes\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpbv\" value=\"yes\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpreorder\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpjava\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpasp\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpphp\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpbv\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
 "        </tr>\n"+
 "      </table>\n"+
 "    </td>\n"+
@@ -3954,28 +4001,28 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (q < ds.getChildCount())
       {
         SpecificationNode specNode = ds.getChild(q++);
-        if (specNode.getType().equals("urlspec"))
+        if (specNode.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
         {
           // Ok, this node matters to us
-          String regexpString = specNode.getAttributeValue("regexp");
-          String description = specNode.getAttributeValue("description");
+          String regexpString = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
+          String description = specNode.getAttributeValue(WebcrawlerConfig.ATTR_DESCRIPTION);
           if (description == null)
             description = "";
-          String allowReorder = specNode.getAttributeValue("reorder");
+          String allowReorder = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
           if (allowReorder == null || allowReorder.length() == 0)
-            allowReorder = "no";
-          String allowJavaSessionRemoval = specNode.getAttributeValue("javasessionremoval");
+            allowReorder = WebcrawlerConfig.ATTRVALUE_NO;
+          String allowJavaSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
           if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-            allowJavaSessionRemoval = "no";
-          String allowASPSessionRemoval = specNode.getAttributeValue("aspsessionremoval");
+            allowJavaSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          String allowASPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
           if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-            allowASPSessionRemoval = "no";
-          String allowPHPSessionRemoval = specNode.getAttributeValue("phpsessionremoval");
+            allowASPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          String allowPHPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
           if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-            allowPHPSessionRemoval = "no";
-          String allowBVSessionRemoval = specNode.getAttributeValue("bvsessionremoval");
+            allowPHPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          String allowBVSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
           if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-            allowBVSessionRemoval = "no";
+            allowBVSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
           out.print(
 "<input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexpString)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)+"\"/>\n"+
@@ -4388,7 +4435,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("urlspec"))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
           ds.removeChild(j);
         else
           j++;
@@ -4417,20 +4464,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           String aspSession = variableContext.getParameter("urlregexpasp_"+Integer.toString(j));
           String phpSession = variableContext.getParameter("urlregexpphp_"+Integer.toString(j));
           String bvSession = variableContext.getParameter("urlregexpbv_"+Integer.toString(j));
-          SpecificationNode newSn = new SpecificationNode("urlspec");
-          newSn.setAttribute("regexp",regexp);
+          SpecificationNode newSn = new SpecificationNode(WebcrawlerConfig.NODE_URLSPEC);
+          newSn.setAttribute(WebcrawlerConfig.ATTR_REGEXP,regexp);
           if (regexpDescription != null && regexpDescription.length() > 0)
-            newSn.setAttribute("description",regexpDescription);
+            newSn.setAttribute(WebcrawlerConfig.ATTR_DESCRIPTION,regexpDescription);
           if (reorder != null && reorder.length() > 0)
-            newSn.setAttribute("reorder",reorder);
+            newSn.setAttribute(WebcrawlerConfig.ATTR_REORDER,reorder);
           if (javaSession != null && javaSession.length() > 0)
-            newSn.setAttribute("javasessionremoval",javaSession);
+            newSn.setAttribute(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL,javaSession);
           if (aspSession != null && aspSession.length() > 0)
-            newSn.setAttribute("aspsessionremoval",aspSession);
+            newSn.setAttribute(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL,aspSession);
           if (phpSession != null && phpSession.length() > 0)
-            newSn.setAttribute("phpsessionremoval",phpSession);
+            newSn.setAttribute(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL,phpSession);
           if (bvSession != null && bvSession.length() > 0)
-            newSn.setAttribute("bvsessionremoval",bvSession);
+            newSn.setAttribute(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL,bvSession);
           ds.addChild(ds.getChildCount(),newSn);
         }
         j++;
@@ -4446,20 +4493,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         String bvSession = variableContext.getParameter("urlregexpbv");
 
         // Add a new node at the end
-        SpecificationNode newSn = new SpecificationNode("urlspec");
-        newSn.setAttribute("regexp",regexp);
+        SpecificationNode newSn = new SpecificationNode(WebcrawlerConfig.NODE_URLSPEC);
+        newSn.setAttribute(WebcrawlerConfig.ATTR_REGEXP,regexp);
         if (regexpDescription != null && regexpDescription.length() > 0)
-          newSn.setAttribute("description",regexpDescription);
+          newSn.setAttribute(WebcrawlerConfig.ATTR_DESCRIPTION,regexpDescription);
         if (reorder != null && reorder.length() > 0)
-          newSn.setAttribute("reorder",reorder);
+          newSn.setAttribute(WebcrawlerConfig.ATTR_REORDER,reorder);
         if (javaSession != null && javaSession.length() > 0)
-          newSn.setAttribute("javasessionremoval",javaSession);
+          newSn.setAttribute(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL,javaSession);
         if (aspSession != null && aspSession.length() > 0)
-          newSn.setAttribute("aspsessionremoval",aspSession);
+          newSn.setAttribute(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL,aspSession);
         if (phpSession != null && phpSession.length() > 0)
-          newSn.setAttribute("phpsessionremoval",phpSession);
+          newSn.setAttribute(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL,phpSession);
         if (bvSession != null && bvSession.length() > 0)
-          newSn.setAttribute("bvsessionremoval",bvSession);
+          newSn.setAttribute(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL,bvSession);
         ds.addChild(ds.getChildCount(),newSn);
       }
     }
@@ -4676,7 +4723,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("urlspec"))
+      if (sn.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
       {
         if (l == 0)
         {
@@ -4696,34 +4743,50 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "        </tr>\n"
           );
         }
-        String regexpString = sn.getAttributeValue("regexp");
-        String description = sn.getAttributeValue("description");
+        String regexpString = sn.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
+        String description = sn.getAttributeValue(WebcrawlerConfig.ATTR_DESCRIPTION);
         if (description == null)
           description = "";
-        String allowReorder = sn.getAttributeValue("reorder");
+        String allowReorder = sn.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
+        String allowReorderOutput;
         if (allowReorder == null || allowReorder.length() == 0)
-          allowReorder = "no";
-        String allowJavaSessionRemoval = sn.getAttributeValue("javasessionremoval");
+          allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        else
+          allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+        String allowJavaSessionRemoval = sn.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
+        String allowJavaSessionRemovalOutput;
         if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-          allowJavaSessionRemoval = "no";
-        String allowASPSessionRemoval = sn.getAttributeValue("aspsessionremoval");
+          allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        else
+          allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+        String allowASPSessionRemoval = sn.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
+        String allowASPSessionRemovalOutput;
         if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-          allowASPSessionRemoval = "no";
-        String allowPHPSessionRemoval = sn.getAttributeValue("phpsessionremoval");
+          allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        else
+          allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+        String allowPHPSessionRemoval = sn.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
+        String allowPHPSessionRemovalOutput;
         if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-          allowPHPSessionRemoval = "no";
-        String allowBVSessionRemoval = sn.getAttributeValue("bvsessionremoval");
+          allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        else
+          allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+        String allowBVSessionRemoval = sn.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
+        String allowBVSessionRemovalOutput;
         if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-          allowBVSessionRemoval = "no";
+          allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        else
+          allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+          
         out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexpString)+"</nobr></td>\n"+
 "          <td class=\"formcolumncell\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allowReorder+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allowJavaSessionRemoval+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allowASPSessionRemoval+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allowPHPSessionRemoval+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allowBVSessionRemoval+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowReorderOutput+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowJavaSessionRemovalOutput+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowASPSessionRemovalOutput+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowPHPSessionRemovalOutput+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowBVSessionRemovalOutput+"</nobr></td>\n"+
 "        </tr>\n"
         );
         l++;
@@ -4748,7 +4811,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeOnlyHostsMatchingSeeds") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"    "+(includeMatching?"yes":"no")+"\n"+
+"    "+(includeMatching?Messages.getBodyString(locale,"WebcrawlerConnector.yes"):Messages.getBodyString(locale,"WebcrawlerConnector.no"))+"\n"+
 "    </td>\n"+
 "  </tr>\n"
     );
@@ -6986,9 +7049,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Read a string as a sequence of individual expressions, urls, etc.
   */
-  protected static ArrayList stringToArray(String input)
+  protected static List<String> stringToArray(String input)
   {
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     try
     {
       java.io.Reader str = new java.io.StringReader(input);
@@ -7030,13 +7093,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Compile all regexp entries in the passed in list, and add them to the output
   * list.
   */
-  protected static void compileList(ArrayList output, ArrayList input)
+  protected static void compileList(List<Pattern> output, List<String> input)
     throws ManifoldCFException
   {
     int i = 0;
     while (i < input.size())
     {
-      String inputString = (String)input.get(i++);
+      String inputString = input.get(i++);
       try
       {
         output.add(Pattern.compile(inputString));
@@ -7153,8 +7216,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Name/value class */
   protected static class NameValue
   {
-    protected String name;
-    protected String value;
+    protected final String name;
+    protected final String value;
 
     public NameValue(String name, String value)
     {
@@ -7176,12 +7239,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Class representing a URL regular expression match, for the purposes of determining canonicalization policy */
   protected static class CanonicalizationPolicy
   {
-    protected Pattern matchPattern;
-    protected boolean reorder;
-    protected boolean removeJavaSession;
-    protected boolean removeAspSession;
-    protected boolean removePhpSession;
-    protected boolean removeBVSession;
+    protected final Pattern matchPattern;
+    protected final boolean reorder;
+    protected final boolean removeJavaSession;
+    protected final boolean removeAspSession;
+    protected final boolean removePhpSession;
+    protected final boolean removeBVSession;
 
     public CanonicalizationPolicy(Pattern matchPattern, boolean reorder, boolean removeJavaSession, boolean removeAspSession,
       boolean removePhpSession, boolean removeBVSession)
@@ -7230,7 +7293,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Class representing a list of canonicalization rules */
   protected static class CanonicalizationPolicies
   {
-    protected ArrayList rules = new ArrayList();
+    protected final List<CanonicalizationPolicy> rules = new ArrayList<CanonicalizationPolicy>();
 
     public CanonicalizationPolicies()
     {
@@ -7246,7 +7309,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       int i = 0;
       while (i < rules.size())
       {
-        CanonicalizationPolicy rule = (CanonicalizationPolicy)rules.get(i++);
+        CanonicalizationPolicy rule = rules.get(i++);
         if (rule.checkMatch(url))
           return rule;
       }
@@ -7261,18 +7324,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** The version string */
     protected String versionString;
     /** The arraylist of include patterns */
-    protected ArrayList includePatterns = new ArrayList();
+    protected final List<Pattern> includePatterns = new ArrayList<Pattern>();
     /** The arraylist of exclude patterns */
-    protected ArrayList excludePatterns = new ArrayList();
+    protected final List<Pattern> excludePatterns = new ArrayList<Pattern>();
     /** The arraylist of index include patterns */
-    protected ArrayList includeIndexPatterns = new ArrayList();
+    protected final List<Pattern> includeIndexPatterns = new ArrayList<Pattern>();
     /** The arraylist of index exclude patterns */
-    protected ArrayList excludeIndexPatterns = new ArrayList();
+    protected final List<Pattern> excludeIndexPatterns = new ArrayList<Pattern>();
     /** The hash map of seed hosts, to limit urls by, if non-null */
-    protected HashMap seedHosts = null;
+    protected Set<String> seedHosts = null;
     
     /** Canonicalization policies */
-    protected CanonicalizationPolicies canonicalizationPolicies = new CanonicalizationPolicies();
+    protected final CanonicalizationPolicies canonicalizationPolicies = new CanonicalizationPolicies();
 
     /** Process a document specification to produce a filter.
     * Note that we EXPECT the regexp's in the document specification to be properly formed.
@@ -7326,74 +7389,59 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
         {
           String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-          if (value == null || value.equals("false"))
+          if (value == null || value.equals(WebcrawlerConfig.ATTRVALUE_FALSE))
             limitToSeeds = false;
           else
             limitToSeeds = true;
         }
-        else if (sn.getType().equals("urlspec"))
+        else if (sn.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
         {
-          String urlRegexp = sn.getAttributeValue("regexp");
+          String urlRegexp = sn.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
           if (urlRegexp == null)
             urlRegexp = "";
-          String reorder = sn.getAttributeValue("reorder");
+          String reorder = sn.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
           boolean reorderValue;
           if (reorder == null)
             reorderValue = false;
           else
           {
-            if (reorder.equals("yes"))
-              reorderValue = true;
-            else
-              reorderValue = false;
+            reorderValue = reorder.equals(WebcrawlerConfig.ATTRVALUE_YES);
           }
 
-          String javaSession = sn.getAttributeValue("javasessionremoval");
+          String javaSession = sn.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
           boolean javaSessionValue;
           if (javaSession == null)
             javaSessionValue = false;
           else
           {
-            if (javaSession.equals("yes"))
-              javaSessionValue = true;
-            else
-              javaSessionValue = false;
+            javaSessionValue = javaSession.equals(WebcrawlerConfig.ATTRVALUE_YES);
           }
 
-          String aspSession = sn.getAttributeValue("aspsessionremoval");
+          String aspSession = sn.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
           boolean aspSessionValue;
           if (aspSession == null)
             aspSessionValue = false;
           else
           {
-            if (aspSession.equals("yes"))
-              aspSessionValue = true;
-            else
-              aspSessionValue = false;
+            aspSessionValue = aspSession.equals(WebcrawlerConfig.ATTRVALUE_YES);
           }
 
-          String phpSession = sn.getAttributeValue("phpsessionremoval");
+          String phpSession = sn.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
           boolean phpSessionValue;
           if (phpSession == null)
             phpSessionValue = false;
           else
           {
-            if (phpSession.equals("yes"))
-              phpSessionValue = true;
-            else
-              phpSessionValue = false;
+            phpSessionValue = phpSession.equals(WebcrawlerConfig.ATTRVALUE_YES);
           }
 
-          String bvSession = sn.getAttributeValue("bvsessionremoval");
+          String bvSession = sn.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
           boolean bvSessionValue;
           if (bvSession == null)
             bvSessionValue = false;
           else
           {
-            if (bvSession.equals("yes"))
-              bvSessionValue = true;
-            else
-              bvSessionValue = false;
+            bvSessionValue = bvSession.equals(WebcrawlerConfig.ATTRVALUE_YES);
           }
           try
           {
@@ -7409,7 +7457,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
       versionString = includesIndex + "+" + excludesIndex;
       
-      ArrayList list = stringToArray(includes);
+      List<String> list;
+      list = stringToArray(includes);
       compileList(includePatterns,list);
       list = stringToArray(excludes);
       compileList(excludePatterns,list);
@@ -7420,7 +7469,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       
       if (limitToSeeds)
       {
-        seedHosts = new HashMap();
+        seedHosts = new HashSet<String>();
         // Parse all URLs, and put their hosts into the hash table.
         // Break up the seeds string and iterate over the results.
         list = stringToArray(seeds);
@@ -7428,7 +7477,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         int index = 0;
         while (index < list.size())
         {
-          String urlCandidate = (String)list.get(index++);
+          String urlCandidate = list.get(index++);
           try
           {
             java.net.URI url = new java.net.URI(urlCandidate);
@@ -7436,7 +7485,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             String host = url.getHost();
 
             if (host != null)
-              seedHosts.put(host,host);
+              seedHosts.add(host);
           }
           catch (java.net.URISyntaxException e)
           {
@@ -7492,7 +7541,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       if (seedHosts == null)
         return true;
-      return seedHosts.get(host) != null;
+      return seedHosts.contains(host);
     }
     
     /** Check if the document identifier is legal.
@@ -7503,7 +7552,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       int i = 0;
       while (i < includePatterns.size())
       {
-        Pattern p = (Pattern)includePatterns.get(i);
+        Pattern p = includePatterns.get(i);
         Matcher m = p.matcher(url);
         if (m.find())
           break;
@@ -7520,7 +7569,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       i = 0;
       while (i < excludePatterns.size())
       {
-        Pattern p = (Pattern)excludePatterns.get(i);
+        Pattern p = excludePatterns.get(i);
         Matcher m = p.matcher(url);
         if (m.find())
         {
@@ -7542,7 +7591,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       int i = 0;
       while (i < includeIndexPatterns.size())
       {
-        Pattern p = (Pattern)includeIndexPatterns.get(i);
+        Pattern p = includeIndexPatterns.get(i);
         Matcher m = p.matcher(url);
         if (m.find())
           break;
@@ -7559,7 +7608,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       i = 0;
       while (i < excludeIndexPatterns.size())
       {
-        Pattern p = (Pattern)excludeIndexPatterns.get(i);
+        Pattern p = excludeIndexPatterns.get(i);
         Matcher m = p.matcher(url);
         if (m.find())
         {
