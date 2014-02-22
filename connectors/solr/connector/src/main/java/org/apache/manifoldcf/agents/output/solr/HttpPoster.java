@@ -518,29 +518,29 @@ public class HttpPoster
     if (maxDocumentLength != null && document.getBinaryLength() > maxDocumentLength.longValue())
       return false;
     
-    // Convert the incoming acls to qualified forms
-    String[] shareAcls = convertACL(document.getShareACL(),authorityNameString,activities);
-    String[] shareDenyAcls = convertACL(document.getShareDenyACL(),authorityNameString,activities);
-    String[] acls = convertACL(document.getACL(),authorityNameString,activities);
-    String[] denyAcls = convertACL(document.getDenyACL(),authorityNameString,activities);
+    // Convert the incoming acls that we know about to qualified forms, and reject the document if
+    // we don't know how to deal with its acls
+    Map<String,String[]> aclsMap = new HashMap<String,String[]>();
+    Map<String,String[]> denyAclsMap = new HashMap<String,String[]>();
 
-    Map<Integer,String[]> directoryAclsMap = new HashMap<Integer,String[]>();
-    Map<Integer,String[]> directoryDenyAclsMap = new HashMap<Integer,String[]>();
-    int directoryCount = document.countDirectoryACLs();
-    int q = 0;
-    while (q < directoryCount)
+    Iterator<String> aclTypes = document.securityTypesIterator();
+    while (aclTypes.hasNext())
     {
-      String[] directoryAcls = convertACL(document.getDirectoryACL(q),authorityNameString,activities);
-      String[] directoryDenyAcls = convertACL(document.getDirectoryDenyACL(q),authorityNameString,activities);
-      directoryAclsMap.put(Integer.valueOf(q), directoryAcls);
-      directoryDenyAclsMap.put(Integer.valueOf(q), directoryDenyAcls);
-      q++;
+      String aclType = aclTypes.next();
+      aclsMap.put(aclType,convertACL(document.getSecurityACL(aclType),authorityNameString,activities));
+      denyAclsMap.put(aclType,convertACL(document.getSecurityDenyACL(aclType),authorityNameString,activities));
+      
+      // Reject documents that have security we don't know how to deal with in the Solr plugin!!  Only safe thing to do.
+      if (!aclType.equals(RepositoryDocument.SECURITY_TYPE_DOCUMENT) &&
+        !aclType.equals(RepositoryDocument.SECURITY_TYPE_SHARE) &&
+        !aclType.startsWith(RepositoryDocument.SECURITY_TYPE_DIRECTORY_LEVEL))
+        return false;
     }
 
     try
     {
       IngestThread t = new IngestThread(documentURI,document,arguments,keepAllMetadata,sourceTargets,
-                                        shareAcls,shareDenyAcls,directoryAclsMap,directoryDenyAclsMap,acls,denyAcls,commitWithin);
+                                        aclsMap,denyAclsMap,commitWithin);
       try
       {
         t.start();
@@ -818,12 +818,8 @@ public class HttpPoster
     protected final RepositoryDocument document;
     protected final Map<String,List<String>> arguments;
     protected final Map<String,List<String>> sourceTargets;
-    protected final String[] shareAcls;
-    protected final String[] shareDenyAcls;
-    protected final Map<Integer,String[]> directoryAclsMap;
-    protected final Map<Integer,String[]> directoryDenyAclsMap;
-    protected final String[] acls;
-    protected final String[] denyAcls;
+    protected final Map<String,String[]> aclsMap;
+    protected final Map<String,String[]> denyAclsMap;
     protected final String commitWithin;
     protected final boolean keepAllMetadata;
     
@@ -837,19 +833,16 @@ public class HttpPoster
 
     public IngestThread(String documentURI, RepositoryDocument document,
       Map<String, List<String>> arguments, boolean keepAllMetadata, Map<String, List<String>> sourceTargets,
-      String[] shareAcls, String[] shareDenyAcls, Map<Integer,String[]> directoryAclsMap, Map<Integer,String[]> directoryDenyAclsMap, String[] acls, String[] denyAcls, String commitWithin)
+      Map<String,String[]> aclsMap, Map<String,String[]> denyAclsMap,
+      String commitWithin)
     {
       super();
       setDaemon(true);
       this.documentURI = documentURI;
       this.document = document;
       this.arguments = arguments;
-      this.shareAcls = shareAcls;
-      this.shareDenyAcls = shareDenyAcls;
-      this.directoryAclsMap = directoryAclsMap;
-      this.directoryDenyAclsMap = directoryDenyAclsMap;
-      this.acls = acls;
-      this.denyAcls = denyAcls;
+      this.aclsMap = aclsMap;
+      this.denyAclsMap = denyAclsMap;
       this.sourceTargets = sourceTargets;
       this.commitWithin = commitWithin;
       this.keepAllMetadata=keepAllMetadata;
@@ -912,18 +905,12 @@ public class HttpPoster
           }
           
           // Write the access token information
-          writeACLs(out,"share",shareAcls,shareDenyAcls);
-          writeACLs(out,"document",acls,denyAcls);
-
-          int directoryCount = directoryAclsMap.size();
-          int q = 0;
-          while (q < directoryCount)
+          // Both maps have the same keys.
+          Iterator<String> typeIterator = aclsMap.keySet().iterator();
+          while (typeIterator.hasNext())
           {
-            Integer index = Integer.valueOf(q);
-            String[] directoryAcls = directoryAclsMap.get(index);
-            String[] directoryDenyAcls = directoryDenyAclsMap.get(index);
-            writeACLs(out,"directory_"+index.toString(),directoryAcls,directoryDenyAcls);
-            q++;
+            String aclType = typeIterator.next();
+            writeACLs(out,aclType,aclsMap.get(aclType),denyAclsMap.get(aclType));
           }
 
           // Write the arguments

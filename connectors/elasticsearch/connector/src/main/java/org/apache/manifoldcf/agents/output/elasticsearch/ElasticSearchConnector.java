@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.conn.ClientConnectionManager;
@@ -404,6 +405,29 @@ public class ElasticSearchConnector extends BaseOutputConnector
     return null;
   }
 
+  /** Convert an unqualified ACL to qualified form.
+  * @param acl is the initial, unqualified ACL.
+  * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
+  * @param activities is the activities object, so we can report what's happening.
+  * @return the modified ACL.
+  */
+  protected static String[] convertACL(String[] acl, String authorityNameString, IOutputAddActivity activities)
+    throws ManifoldCFException
+  {
+    if (acl != null)
+    {
+      String[] rval = new String[acl.length];
+      int i = 0;
+      while (i < rval.length)
+      {
+        rval[i] = activities.qualifyAccessToken(authorityNameString,acl[i]);
+        i++;
+      }
+      return rval;
+    }
+    return new String[0];
+  }
+
   @Override
   public int addOrReplaceDocument(String documentURI, String outputDescription,
       RepositoryDocument document, String authorityNameString,
@@ -413,11 +437,40 @@ public class ElasticSearchConnector extends BaseOutputConnector
     HttpClient client = getSession();
     ElasticSearchConfig config = getConfigParameters(null);
     InputStream inputStream = document.getBinaryStream();
+    // For ES, we have to have fixed fields only; nothing else is possible b/c we don't have
+    // default field values.
+    String[] acls = null;
+    String[] denyAcls = null;
+    String[] shareAcls = null;
+    String[] shareDenyAcls = null;
+    Iterator<String> a = document.securityTypesIterator();
+    while (a.hasNext())
+    {
+      String securityType = a.next();
+      String[] convertedAcls = convertACL(document.getSecurityACL(securityType),authorityNameString,activities);
+      String[] convertedDenyAcls = convertACL(document.getSecurityDenyACL(securityType),authorityNameString,activities);
+      if (securityType.equals(RepositoryDocument.SECURITY_TYPE_DOCUMENT))
+      {
+        acls = convertedAcls;
+        denyAcls = convertedDenyAcls;
+      }
+      else if (securityType.equals(RepositoryDocument.SECURITY_TYPE_SHARE))
+      {
+        shareAcls = convertedAcls;
+        shareDenyAcls = convertedDenyAcls;
+      }
+      else
+      {
+        // Don't know how to deal with it
+        return DOCUMENTSTATUS_REJECTED;
+      }
+    }
+    
     long startTime = System.currentTimeMillis();
     ElasticSearchIndex oi = new ElasticSearchIndex(client, config);
     try
     {
-      oi.execute(documentURI, document, inputStream);
+      oi.execute(documentURI, document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls);
       if (oi.getResult() != Result.OK)
         return DOCUMENTSTATUS_REJECTED;
       return DOCUMENTSTATUS_ACCEPTED;

@@ -57,14 +57,23 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   private class IndexRequestEntity implements HttpEntity
   {
 
-    private RepositoryDocument document;
-    private InputStream inputStream;
+    private final RepositoryDocument document;
+    private final InputStream inputStream;
+    private final String[] acls;
+    private final String[] denyAcls;
+    private final String[] shareAcls;
+    private final String[] shareDenyAcls;
 
-    public IndexRequestEntity(RepositoryDocument document, InputStream inputStream)
+    public IndexRequestEntity(RepositoryDocument document, InputStream inputStream,
+      String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls)
       throws ManifoldCFException
     {
       this.document = document;
       this.inputStream = inputStream;
+      this.acls = acls;
+      this.denyAcls = denyAcls;
+      this.shareAcls = shareAcls;
+      this.shareDenyAcls = shareDenyAcls;
     }
 
     @Override
@@ -109,16 +118,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           needComma = writeField(pw, needComma, fieldName, fieldValues);
         }
 
-        needComma = writeACLs(pw, needComma, "document", document.getACL(), document.getDenyACL());
-        needComma = writeACLs(pw, needComma, "share", document.getShareACL(), document.getShareDenyACL());
-
-        int directoryCount = document.countDirectoryACLs();
-        int q = 0;
-        while (q < directoryCount)
-        {
-          needComma = writeACLs(pw, needComma, "directory_" + q, document.getDirectoryACL(q), document.getDirectoryDenyACL(q));
-          q++;
-        }
+        needComma = writeACLs(pw, needComma, "document", acls, denyAcls);
+        needComma = writeACLs(pw, needComma, "share", shareAcls, shareDenyAcls);
 
         if(inputStream!=null){
           if(needComma){
@@ -254,7 +255,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   *@return false to indicate that the document was rejected.
   */
   public boolean execute(String documentURI, RepositoryDocument document, 
-      InputStream inputStream) throws ManifoldCFException, ServiceInterruption
+    InputStream inputStream, String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls)
+    throws ManifoldCFException, ServiceInterruption
   {
     String idField;
     try
@@ -268,7 +270,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
 
     StringBuffer url = getApiUrl(config.getIndexType() + "/" + idField, false);
     HttpPut put = new HttpPut(url.toString());
-    put.setEntity(new IndexRequestEntity(document, inputStream));
+    put.setEntity(new IndexRequestEntity(document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls));
     if (call(put) == false)
       return false;
     if ("true".equals(checkJson(jsonStatus)))
