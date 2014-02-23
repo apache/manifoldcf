@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-899: Allow some headers to be included/excluded from
+metadata for web connector.
+(Florian Schmedding, Karl Wright)
+
 CONNECTORS-898: Handle zookeeper connection loss and session
 expiration conditions.
 (Graeme Seaton, Karl Wright)

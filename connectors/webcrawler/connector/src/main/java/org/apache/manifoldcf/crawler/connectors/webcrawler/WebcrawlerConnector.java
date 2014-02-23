@@ -23,6 +23,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.apache.manifoldcf.ui.util.Encoder;
 
 import org.apache.manifoldcf.core.fuzzyml.*;
 
@@ -98,22 +99,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     "Text/html"
   };
 
-  protected static final Map interestingMimeTypeMap = new HashMap();
+  protected static final Set<String> interestingMimeTypeMap;
   static
   {
+    interestingMimeTypeMap = new HashSet<String>();
     int i = 0;
     while (i < interestingMimeTypeArray.length)
     {
       String type = interestingMimeTypeArray[i++];
-      interestingMimeTypeMap.put(type,type);
+      interestingMimeTypeMap.add(type);
     }
   }
 
-  protected static final Map understoodProtocols = new HashMap();
+  protected static final Set<String> understoodProtocols;
   static
   {
-    understoodProtocols.put("http","http");
-    understoodProtocols.put("https","https");
+    understoodProtocols = new HashSet<String>();
+    understoodProtocols.add("http");
+    understoodProtocols.add("https");
   }
 
 
@@ -589,14 +592,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     java.util.Arrays.sort(acls);
 
     // Build a map of the metadata names and values from the spec
-    ArrayList namesAndValues = findMetadata(spec);
+    List<NameValue> namesAndValues = findMetadata(spec);
     // Create an array of name/value fixedlists
     String[] metadata = new String[namesAndValues.size()];
     int k = 0;
     String[] fixedListStrings = new String[2];
     while (k < metadata.length)
     {
-      NameValue nv = (NameValue)namesAndValues.get(k);
+      NameValue nv = namesAndValues.get(k);
       String name = nv.getName();
       String value = nv.getValue();
       fixedListStrings[0] = name;
@@ -607,6 +610,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     java.util.Arrays.sort(metadata);
 
+    // Get the excluded headers
+    Set<String> excludedHeaders = findExcludedHeaders(spec);
+    
     // Since document specifications can change, we need to look at each url and filter it as part of the
     // process of getting version strings.  To do that, we need to compile the DocumentSpecification into
     // an object that knows how to do this.
@@ -1179,7 +1185,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             while (headerIterator.hasNext())
             {
               String headerName = headerIterator.next();
-              if (!reservedHeaders.contains(headerName.toLowerCase()))
+              String lowerHeaderName = headerName.toLowerCase(Locale.ROOT);
+              if (!reservedHeaders.contains(lowerHeaderName) && !excludedHeaders.contains(lowerHeaderName))
                 headerCount += headerData.get(headerName).size();
             }
             String[] fullMetadata = new String[metadata.length + headerCount];
@@ -1188,7 +1195,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             while (headerIterator.hasNext())
             {
               String headerName = headerIterator.next();
-              if (!reservedHeaders.contains(headerName.toLowerCase()))
+              String lowerHeaderName = headerName.toLowerCase(Locale.ROOT);
+              if (!reservedHeaders.contains(lowerHeaderName) && !excludedHeaders.contains(lowerHeaderName))
               {
                 List<String> headerValues = headerData.get(headerName);
                 for (String headerValue : headerValues)
@@ -1381,11 +1389,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             aclArray[j] = (String)acls.get(j);
             j++;
           }
-          rd.setACL(aclArray);
+          rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray);
           if (denyAclBuffer.length() > 0)
           {
             String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-            rd.setDenyACL(denyAclArray);
+            rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
           }
 
           // Grab metadata
@@ -1898,23 +1906,23 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyHostColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"proxyhost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyHost)+"\"/></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"proxyhost\" value=\""+Encoder.attributeEscape(proxyHost)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyPortColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"proxyport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyPort)+"\"/></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"proxyport\" value=\""+Encoder.attributeEscape(proxyPort)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationDomainColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthDomain)+"\"/></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthdomain\" value=\""+Encoder.attributeEscape(proxyAuthDomain)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationUserNameColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthUsername)+"\"/></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthusername\" value=\""+Encoder.attributeEscape(proxyAuthUsername)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationPasswordColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"password\" size=\"16\" name=\"proxyauthpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthPassword)+"\"/></td>\n"+
+"    <td class=\"value\"><input type=\"password\" size=\"16\" name=\"proxyauthpassword\" value=\""+Encoder.attributeEscape(proxyAuthPassword)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -1922,11 +1930,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"proxyhost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyHost)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyPort)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyauthusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthUsername)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyauthdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthDomain)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyauthpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthPassword)+"\"/>\n"
+"<input type=\"hidden\" name=\"proxyhost\" value=\""+Encoder.attributeEscape(proxyHost)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyport\" value=\""+Encoder.attributeEscape(proxyPort)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyauthusername\" value=\""+Encoder.attributeEscape(proxyAuthUsername)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyauthdomain\" value=\""+Encoder.attributeEscape(proxyAuthDomain)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyauthpassword\" value=\""+Encoder.attributeEscape(proxyAuthPassword)+"\"/>\n"
       );
     }
 
@@ -1939,7 +1947,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.EmailAddressToContact") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\"email\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(email)+"\"/>\n"+
+"      <input type=\"text\" size=\"32\" name=\"email\" value=\""+Encoder.attributeEscape(email)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1948,7 +1956,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"email\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(email)+"\"/>\n"
+"<input type=\"hidden\" name=\"email\" value=\""+Encoder.attributeEscape(email)+"\"/>\n"
       );
     }
 
@@ -2039,11 +2047,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "            <a name=\""+prefix+"\">\n"+
 "              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteBinRegularExpression")+Integer.toString(binCounter+1)+"\" onclick='javascript:deleteRegexp("+Integer.toString(binCounter)+");'/>\n"+
 "              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
 "            </a>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr>\n"+
+"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr><input type=\"checkbox\" name=\"insensitive_"+prefix+"\" value=\"true\" "+(isCaseInsensitive.equals("true")?"checked=\"\"":"")+" /></nobr>\n"+
@@ -2175,7 +2183,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           // It's prefix will be...
           String prefix = "bandwidth_" + Integer.toString(binCounter);
           out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"insensitive_"+prefix+"\" value=\""+isCaseInsensitive+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"connections_"+prefix+"\" value=\""+maxConnections+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"rate_"+prefix+"\" value=\""+maxKBPerSecond+"\"/>\n"+
@@ -2251,24 +2259,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "            <a name=\""+prefix+"\">\n"+
 "              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeletePageAuthenticationUrlRegularExpression")+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteARegexp("+Integer.toString(accessCounter)+");'/>\n"+
 "              <input type=\"hidden\" name=\"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\"regexp_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"              <input type=\"hidden\" name=\"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
 "            </a>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr>\n"+
+"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr><input type=\"radio\" name=\"type_"+prefix+"\" value=\"basic\" "+(type.equals("basic")?"checked=\"\"":"")+" />&nbsp;" + Messages.getBodyString(locale,"WebcrawlerConnector.BasicAuthentication") + "</nobr><br/>\n"+
 "            <nobr><input type=\"radio\" name=\"type_"+prefix+"\" value=\"ntlm\" "+(type.equals("ntlm")?"checked=\"\"":"")+" />&nbsp;" + Messages.getBodyString(locale,"WebcrawlerConnector.NTLMAuthentication") + "</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"16\" name=\""+"domain_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domain)+"\"/></nobr>\n"+
+"            <nobr><input type=\"text\" size=\"16\" name=\""+"domain_"+prefix+"\" value=\""+Encoder.attributeEscape(domain)+"\"/></nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"16\" name=\""+"username_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/></nobr>\n"+
+"            <nobr><input type=\"text\" size=\"16\" name=\""+"username_"+prefix+"\" value=\""+Encoder.attributeEscape(userName)+"\"/></nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"password\" size=\"16\" name=\""+"password_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></nobr>\n"+
+"            <nobr><input type=\"password\" size=\"16\" name=\""+"password_"+prefix+"\" value=\""+Encoder.attributeEscape(password)+"\"/></nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"
             );
@@ -2347,11 +2355,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "            <a name=\""+prefix+"\">\n"+
 "              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteSessionAuthenticationUrlRegularExpression")+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteSRegexp("+Integer.toString(accessCounter)+");'/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_op"+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_regexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+prefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
 "            </a>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr>\n"+
+"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"boxcell\">\n"+
 "            <table class=\"formtable\">\n"+
@@ -2386,15 +2394,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "                  <a name=\""+authpagePrefix+"\">\n"+
 "                    <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteLoginPage")+(authPageCounter+1)+" for url regular expression #"+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteLoginPage("+Integer.toString(accessCounter)+","+Integer.toString(authPageCounter)+");'/>\n"+
 "                    <input type=\"hidden\" name=\""+authpagePrefix+"_op"+"\" value=\"Continue\"/>\n"+
-"                    <input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
 "                    <input type=\"hidden\" name=\""+authpagePrefix+"_type"+"\" value=\""+pageType+"\"/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "\n"+
-"                <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pageRegexp)+"</nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(pageRegexp)+"</nobr></td>\n"+
 "                <td class=\"formcolumncell\"><nobr>"+pageType+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchRegexp)+"\"/></nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_overridetargeturl"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(overrideTargetURL)+"\"/></nobr></td>\n"
+"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+Encoder.attributeEscape(matchRegexp)+"\"/></nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_overridetargeturl"+"\" value=\""+Encoder.attributeEscape(overrideTargetURL)+"\"/></nobr></td>\n"
                 );
                 if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
                 {
@@ -2436,13 +2444,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "                        </a>\n"+
 "                      </td>\n"+
 "                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"text\" size=\"30\" name=\""+authParamPrefix+"_param"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(param)+"\"/></nobr>\n"+
+"                        <nobr><input type=\"text\" size=\"30\" name=\""+authParamPrefix+"_param"+"\" value=\""+Encoder.attributeEscape(param)+"\"/></nobr>\n"+
 "                      </td>\n"+
 "                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"text\" size=\"15\" name=\""+authParamPrefix+"_value"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/></nobr>\n"+
+"                        <nobr><input type=\"text\" size=\"15\" name=\""+authParamPrefix+"_value"+"\" value=\""+Encoder.attributeEscape(value)+"\"/></nobr>\n"+
 "                      </td>\n"+
 "                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"password\" size=\"15\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></nobr>\n"+
+"                        <nobr><input type=\"password\" size=\"15\" name=\""+authParamPrefix+"_password"+"\" value=\""+Encoder.attributeEscape(password)+"\"/></nobr>\n"+
 "                      </td>\n"+
 "                    </tr>\n"
                       );
@@ -2578,11 +2586,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             // It's prefix will be...
             String prefix = "acredential_" + Integer.toString(accessCounter);
             out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"type_"+prefix+"\" value=\""+type+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"domain_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domain)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"username_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"password_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+"<input type=\"hidden\" name=\""+"domain_"+prefix+"\" value=\""+Encoder.attributeEscape(domain)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"username_"+prefix+"\" value=\""+Encoder.attributeEscape(userName)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"password_"+prefix+"\" value=\""+Encoder.attributeEscape(password)+"\"/>\n"
             );
             accessCounter++;
           }
@@ -2608,7 +2616,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             // It's identifier will be...
             String prefix = "scredential_" + Integer.toString(accessCounter);
             out.print(
-"<input type=\"hidden\" name=\""+prefix+"_regexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"
+"<input type=\"hidden\" name=\""+prefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"
             );
             // Loop through login pages...
             int q = 0;
@@ -2628,10 +2636,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   overrideTargetURL = "";
                 String authpagePrefix = prefix + "_" + authPageCounter;
                 out.print(
-"<input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+authpagePrefix+"_type"+"\" value=\""+pageType+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchRegexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authpagePrefix+"_overridetargeturl"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(overrideTargetURL)+"\"/>\n"
+"<input type=\"hidden\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+Encoder.attributeEscape(matchRegexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+authpagePrefix+"_overridetargeturl"+"\" value=\""+Encoder.attributeEscape(overrideTargetURL)+"\"/>\n"
                 );
                 if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
                 {
@@ -2655,9 +2663,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         password = out.mapPasswordToKey(ManifoldCF.deobfuscate(password));
                       String authParamPrefix = authpagePrefix + "_" + paramCounter;
                       out.print(
-"<input type=\"hidden\" name=\""+authParamPrefix+"_param"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(param)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authParamPrefix+"_value"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+"<input type=\"hidden\" name=\""+authParamPrefix+"_param"+"\" value=\""+Encoder.attributeEscape(param)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+authParamPrefix+"_value"+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+authParamPrefix+"_password"+"\" value=\""+Encoder.attributeEscape(password)+"\"/>\n"
                       );
                       paramCounter++;
                     }
@@ -2717,13 +2725,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "          <td class=\"formcolumncell\">\n"+
 "            <a name=\""+prefix+"\"><input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteTrustUrlRegularExpression")+Integer.toString(trustsCounter+1)+"\" onclick='javascript:deleteTRegexp("+Integer.toString(trustsCounter)+");'/>\n"+
 "            <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"            <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
 "            <input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"true\"/>\n"+
 "            <input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\"\"/>\n"+
 "            </a>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr>\n"+
+"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr><i>"+Messages.getBodyString(locale,"WebcrawlerConnector.TrustEverything")+"</i></nobr>\n"+
@@ -2754,16 +2762,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "            <a name=\""+prefix+"\">\n"+
 "              <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteTrustUrlRegularExpression")+Integer.toString(trustsCounter+1)+"\" onclick='javascript:deleteTRegexp("+Integer.toString(trustsCounter)+");'/>\n"+
 "              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"false\"/>\n"+
-"              <input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(trustStore)+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+Encoder.attributeEscape(trustStore)+"\"/>\n"+
 "            </a>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr>\n"+
+"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(shortenedDescription)+"</nobr>\n"+
+"            <nobr>"+Encoder.bodyEscape(shortenedDescription)+"</nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"
               );
@@ -2821,7 +2829,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           {
             // We trust everything that matches this regexp
             out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\"\"/>\n"+
 "<input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"true\"/>\n"
             );
@@ -2831,8 +2839,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           {
             String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
             out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(trustStore)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+Encoder.attributeEscape(trustStore)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"false\"/>\n"
             );
             trustsCounter++;
@@ -3282,21 +3290,21 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.EmailAddress")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(email)+"</td>\n"+
+"    <td class=\"value\" colspan=\"1\">"+Encoder.bodyEscape(email)+"</td>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.RobotsUsage")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(robots)+"</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\"><nobr>"+Encoder.bodyEscape(robots)+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyHostColon") + "</nobr></td>\n"+
-"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(proxyHost)+"</td>\n"+
+"    <td class=\"value\">"+Encoder.bodyEscape(proxyHost)+"</td>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyPortColon") + "</nobr></td>\n"+
-"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(proxyPort)+"</td>\n"+
+"    <td class=\"value\">"+Encoder.bodyEscape(proxyPort)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationDomainColon") + "</nobr></td>\n"+
-"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(proxyAuthDomain)+"</td>\n"+
+"    <td class=\"value\">"+Encoder.bodyEscape(proxyAuthDomain)+"</td>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationUserNameColon") + "</nobr></td>\n"+
-"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(proxyAuthUsername)+"</td>\n"+
+"    <td class=\"value\">"+Encoder.bodyEscape(proxyAuthUsername)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.BandwidthThrottling")+"</nobr></td>\n"+
@@ -3344,7 +3352,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           isCaseInsensitive = "false";
         out.print(
 "        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
 "          <td class=\"formcolumncell\">"+isCaseInsensitive+"</td>\n"+
 "          <td class=\"formcolumncell\"><nobr>"+maxConnections+"</nobr></td>\n"+
 "          <td class=\"formcolumncell\"><nobr>"+maxKBPerSecond+"</nobr></td>\n"+
@@ -3395,10 +3403,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
           out.print(
 "        <tr>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
 "          <td class=\"formcolumncell\"><nobr>"+type+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(domain)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(userName)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(domain)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(userName)+"</nobr></td>\n"+
 "        </tr>\n"
           );
           instanceNumber++;
@@ -3440,7 +3448,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           // Session-based auth.  Display this as a nested table.
           out.print(
 "        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
 "          <td class=\"boxcell\">\n"
           );
           int q = 0;
@@ -3473,10 +3481,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               }
               out.print(
 "              <tr class=\""+(((authPageInstanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"                <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authURLRegexp)+"</nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(authURLRegexp)+"</nobr></td>\n"+
 "                <td class=\"formcolumncell\"><nobr>"+pageType+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authMatchRegexp)+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authOverrideTargetURL)+"</nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(authMatchRegexp)+"</nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(authOverrideTargetURL)+"</nobr></td>\n"+
 "                <td class=\"formcolumncell\">\n"
               );
               if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
@@ -3497,7 +3505,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                     if (password != null && password.length() > 0)
                       paramValue = "*****";
                     out.print(
-"                  <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(paramName+": "+paramValue)+"</nobr><br/>\n"
+"                  <nobr>"+Encoder.bodyEscape(paramName+": "+paramValue)+"</nobr><br/>\n"
                     );
                   }
                 }
@@ -3564,7 +3572,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           // We trust everything that matches this regexp
           out.print(
 "        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
 "          <td class=\"formcolumncell\"><i>" + Messages.getBodyString(locale,"WebcrawlerConnector.TrustEverything") + "</i></td>\n"+
 "        </tr>\n"
           );
@@ -3588,8 +3596,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               shortenedDescription = shortenedDescription.substring(0,100) + "...";
             out.print(
 "        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(shortenedDescription)+"</td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\">"+Encoder.bodyEscape(shortenedDescription)+"</td>\n"+
 "        </tr>\n"
             );
             instanceNumber++;
@@ -3778,7 +3786,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String inclusionsIndex = ".*\n";
     String exclusionsIndex = "";
     boolean includeMatching = true;
-    Set<String> excludeHeaders = new HashSet<String>();
+    Set<String> excludedHeaders = new HashSet<String>();
     
     // Now, loop through description
     i = 0;
@@ -3826,13 +3834,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
       {
         String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-        excludeHeaders.add(value);
+        excludedHeaders.add(value);
       }
 
     }
 
-    //???
-    
     // Seeds tab
 
     if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Seeds")))
@@ -3842,7 +3848,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"value\" colspan=\"2\">\n"+
-"      <textarea rows=\"25\" cols=\"80\" name=\"seeds\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(seeds)+"</textarea>\n"+
+"      <textarea rows=\"25\" cols=\"80\" name=\"seeds\">"+Encoder.bodyEscape(seeds)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -3851,7 +3857,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"seeds\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(seeds)+"\"/>\n"
+"<input type=\"hidden\" name=\"seeds\" value=\""+Encoder.attributeEscape(seeds)+"\"/>\n"
       );
     }
 
@@ -3939,20 +3945,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <a name=\""+"urlregexp_"+Integer.toString(l)+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteUrlRegexp")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexpString)+"\" onclick='javascript:URLRegexpDelete("+Integer.toString(l)+",\"urlregexp_"+Integer.toString(l)+"\");'/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteUrlRegexp")+Encoder.attributeEscape(regexpString)+"\" onclick='javascript:URLRegexpDelete("+Integer.toString(l)+",\"urlregexp_"+Integer.toString(l)+"\");'/>\n"+
 "            </a>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexpString)+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(regexpString)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(description)+"\"/>\n"+
 "            <input type=\"hidden\" name=\""+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
 "            <input type=\"hidden\" name=\""+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
 "            <input type=\"hidden\" name=\""+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
 "            <input type=\"hidden\" name=\""+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
 "            <input type=\"hidden\" name=\""+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexpString)+"</nobr>\n"+
+"            <nobr>"+Encoder.bodyEscape(regexpString)+"</nobr>\n"+
 "          </td>\n"+
-"          <td class=\"formcolumncell\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"          <td class=\"formcolumncell\">"+Encoder.bodyEscape(description)+"</td>\n"+
 "          <td class=\"formcolumncell\">"+allowReorderOutput+"</td>\n"+
 "          <td class=\"formcolumncell\">"+allowJavaSessionRemovalOutput+"</td>\n"+
 "          <td class=\"formcolumncell\">"+allowASPSessionRemovalOutput+"</td>\n"+
@@ -4024,8 +4030,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
             allowBVSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
           out.print(
-"<input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexpString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(regexpString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(description)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
@@ -4049,13 +4055,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeInCrawl") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"25\" cols=\"60\" name=\"inclusions\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(inclusions)+"</textarea>\n"+
+"      <textarea rows=\"25\" cols=\"60\" name=\"inclusions\">"+Encoder.bodyEscape(inclusions)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeInIndex") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"10\" cols=\"60\" name=\"inclusionsindex\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(inclusionsIndex)+"</textarea>\n"+
+"      <textarea rows=\"10\" cols=\"60\" name=\"inclusionsindex\">"+Encoder.bodyEscape(inclusionsIndex)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
@@ -4071,8 +4077,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"inclusions\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(inclusions)+"\"/>\n"+
-"<input type=\"hidden\" name=\"inclusionsindex\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(inclusionsIndex)+"\"/>\n"+
+"<input type=\"hidden\" name=\"inclusions\" value=\""+Encoder.attributeEscape(inclusions)+"\"/>\n"+
+"<input type=\"hidden\" name=\"inclusionsindex\" value=\""+Encoder.attributeEscape(inclusionsIndex)+"\"/>\n"+
 "<input type=\"hidden\" name=\"matchinghosts\" value=\""+(includeMatching?"true":"false")+"\"/>\n"+
 "<input type=\"hidden\" name=\"matchinghosts_present\" value=\"true\"/>\n"
       );
@@ -4088,13 +4094,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeFromCrawl") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"25\" cols=\"60\" name=\"exclusions\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(exclusions)+"</textarea>\n"+
+"      <textarea rows=\"25\" cols=\"60\" name=\"exclusions\">"+Encoder.bodyEscape(exclusions)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeFromIndex") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"10\" cols=\"60\" name=\"exclusionsindex\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(exclusionsIndex)+"</textarea>\n"+
+"      <textarea rows=\"10\" cols=\"60\" name=\"exclusionsindex\">"+Encoder.bodyEscape(exclusionsIndex)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -4103,8 +4109,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"exclusions\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(exclusions)+"\"/>\n"+
-"<input type=\"hidden\" name=\"exclusionsindex\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(exclusionsIndex)+"\"/>\n"
+"<input type=\"hidden\" name=\"exclusions\" value=\""+Encoder.attributeEscape(exclusions)+"\"/>\n"+
+"<input type=\"hidden\" name=\"exclusionsindex\" value=\""+Encoder.attributeEscape(exclusionsIndex)+"\"/>\n"
       );
     }
   
@@ -4124,22 +4130,22 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
         {
           String accessDescription = "_"+Integer.toString(k);
           String accessOpName = "accessop"+accessDescription;
-          String token = sn.getAttributeValue("token");
+          String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+Encoder.attributeEscape(token)+"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
 "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token)+"\n"+
+"      "+Encoder.bodyEscape(token)+"\n"+
 "    </td>\n"+
 "  </tr>\n"
           );
@@ -4179,12 +4185,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
         {
           String accessDescription = "_"+Integer.toString(k);
-          String token = sn.getAttributeValue("token");
+          String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
           out.print(
-"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+Encoder.attributeEscape(token)+"\"/>\n"
           );
           k++;
         }
@@ -4199,6 +4205,22 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale, "WebcrawlerConnector.ExcludedHeadersColon")+"</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      <input type=\"hidden\" name=\"excludedheaders_present\" value=\"true\"/>\n"
+      );
+      
+      for (String potentiallyExcludedHeader : potentiallyExcludedHeaders)
+      {
+        out.print(
+"      <input type=\"checkbox\" name=\"excludedheaders\" value=\""+Encoder.attributeEscape(potentiallyExcludedHeader)+"\""+(excludedHeaders.contains(potentiallyExcludedHeader)?" checked=\"true\"":"")+">"+Encoder.bodyEscape(potentiallyExcludedHeader)+"</input><br/>\n"
+        );
+      }
+      out.print(
+"    </td>\n"+
+"  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
       );
       // Go through metadata
@@ -4207,28 +4229,28 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("metadata"))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_METADATA))
         {
           String metadataDescription = "_"+Integer.toString(k);
           String metadataOpName = "metadataop"+metadataDescription;
-          String name = sn.getAttributeValue("name");
-          String value = sn.getAttributeValue("value");
+          String name = sn.getAttributeValue(WebcrawlerConfig.ATTR_NAME);
+          String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <input type=\"hidden\" name=\""+metadataOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+Encoder.attributeEscape(name)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"+
 "      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
 "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" onClick='Javascript:SpecOp(\""+metadataOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)+"\n"+
+"      "+Encoder.bodyEscape(name)+"\n"+
 "    </td>\n"+
 "    <td class=\"value\">=</td>\n"+
 "    <td class=\"value\">\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"\n"+
+"      "+Encoder.bodyEscape(value)+"\n"+
 "    </td>\n"+
 "  </tr>\n"
           );
@@ -4268,20 +4290,29 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     else
     {
+      out.print(
+"<input type=\"hidden\" name=\"excludedheaders_present\" value=\"true\"/>\n"
+      );
+      for (String excludedHeader : excludedHeaders)
+      {
+        out.print(
+"<input type=\"hidden\" name=\"excludedheaders\" value=\""+Encoder.attributeEscape(excludedHeader)+"\"/>\n"
+        );
+      }
       // Finally, go through metadata
       i = 0;
       k = 0;
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("metadata"))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_METADATA))
         {
           String metadataDescription = "_"+Integer.toString(k);
-          String name = sn.getAttributeValue("name");
-          String value = sn.getAttributeValue("value");
+          String name = sn.getAttributeValue(WebcrawlerConfig.ATTR_NAME);
+          String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
           out.print(
-"<input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"
+"<input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+Encoder.attributeEscape(name)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"
           );
           k++;
         }
@@ -4305,6 +4336,32 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
+    // Get excluded headers
+    String excludedHeadersPresent = variableContext.getParameter("excludedheaders_present");
+    if (excludedHeadersPresent != null)
+    {
+      // Delete existing excludedheader record first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      String[] excludedHeaders = variableContext.getParameterValues("excludedheaders");
+      if (excludedHeaders != null)
+      {
+        for (String excludedHeader : excludedHeaders)
+        {
+          SpecificationNode cn = new SpecificationNode(WebcrawlerConfig.NODE_EXCLUDEHEADER);
+          cn.setAttribute(WebcrawlerConfig.ATTR_VALUE, excludedHeader);
+          ds.addChild(ds.getChildCount(),cn);
+        }
+      }
+    }
+    
     // Get the seeds
     String seeds = variableContext.getParameter("seeds");
     if (seeds != null)
@@ -4519,7 +4576,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals("access"))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
           ds.removeChild(i);
         else
           i++;
@@ -4540,8 +4597,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         }
         // Get the stuff we need
         String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
-        SpecificationNode node = new SpecificationNode("access");
-        node.setAttribute("token",accessSpec);
+        SpecificationNode node = new SpecificationNode(WebcrawlerConfig.NODE_ACCESS);
+        node.setAttribute(WebcrawlerConfig.ATTR_TOKEN,accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
@@ -4550,8 +4607,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       if (op != null && op.equals("Add"))
       {
         String accessspec = variableContext.getParameter("spectoken");
-        SpecificationNode node = new SpecificationNode("access");
-        node.setAttribute("token",accessspec);
+        SpecificationNode node = new SpecificationNode(WebcrawlerConfig.NODE_ACCESS);
+        node.setAttribute(WebcrawlerConfig.ATTR_TOKEN,accessspec);
         ds.addChild(ds.getChildCount(),node);
       }
     }
@@ -4564,7 +4621,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals("metadata"))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_METADATA))
           ds.removeChild(i);
         else
           i++;
@@ -4586,9 +4643,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         // Get the stuff we need
         String metaNameSpec = variableContext.getParameter("specmetaname"+metadataDescription);
         String metaValueSpec = variableContext.getParameter("specmetavalue"+metadataDescription);
-        SpecificationNode node = new SpecificationNode("metadata");
-        node.setAttribute("name",metaNameSpec);
-        node.setAttribute("value",metaValueSpec);
+        SpecificationNode node = new SpecificationNode(WebcrawlerConfig.NODE_METADATA);
+        node.setAttribute(WebcrawlerConfig.ATTR_NAME,metaNameSpec);
+        node.setAttribute(WebcrawlerConfig.ATTR_VALUE,metaValueSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
@@ -4599,9 +4656,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         String metaNameSpec = variableContext.getParameter("specmetaname");
         String metaValueSpec = variableContext.getParameter("specmetavalue");
         
-        SpecificationNode node = new SpecificationNode("metadata");
-        node.setAttribute("name",metaNameSpec);
-        node.setAttribute("value",metaValueSpec);
+        SpecificationNode node = new SpecificationNode(WebcrawlerConfig.NODE_METADATA);
+        node.setAttribute(WebcrawlerConfig.ATTR_NAME,metaNameSpec);
+        node.setAttribute(WebcrawlerConfig.ATTR_VALUE,metaValueSpec);
         
         ds.addChild(ds.getChildCount(),node);
       }
@@ -4628,6 +4685,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String inclusionsIndex = ".*\n";
     String exclusionsIndex = "";
     boolean includeMatching = false;
+    Set<String> excludedHeaders = new HashSet<String>();
     
     int i = 0;
     while (i < ds.getChildCount())
@@ -4671,6 +4729,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         else
           includeMatching = true;
       }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
+      {
+        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        excludedHeaders.add(value);
+      }
     }
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -4694,7 +4757,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             if (nextString.length() == 0)
               continue;
             out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
             );
           }
         }
@@ -4780,8 +4843,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           
         out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexpString)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexpString)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\">"+Encoder.bodyEscape(description)+"</td>\n"+
 "          <td class=\"formcolumncell\"><nobr>"+allowReorderOutput+"</nobr></td>\n"+
 "          <td class=\"formcolumncell\"><nobr>"+allowJavaSessionRemovalOutput+"</nobr></td>\n"+
 "          <td class=\"formcolumncell\"><nobr>"+allowASPSessionRemovalOutput+"</nobr></td>\n"+
@@ -4838,7 +4901,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             if (nextString.length() == 0)
               continue;
             out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
             );
           }
         }
@@ -4880,7 +4943,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             if (nextString.length() == 0)
               continue;
             out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
             );
           }
         }
@@ -4922,7 +4985,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             if (nextString.length() == 0)
               continue;
             out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
             );
           }
         }
@@ -4964,7 +5027,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             if (nextString.length() == 0)
               continue;
             out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
             );
           }
         }
@@ -4994,7 +5057,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("access"))
+      if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
       {
         if (seenAny == false)
         {
@@ -5005,9 +5068,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           );
           seenAny = true;
         }
-        String token = sn.getAttributeValue("token");
+        String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
         out.print(
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
+"      "+Encoder.bodyEscape(token)+"<br/>\n"
         );
       }
     }
@@ -5026,6 +5089,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       );
     }
     out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.ExcludedHeadersColon")+"</nobr></td>\n"+
+"    <td class=\"value\">\n"
+    );
+    for (String excludedHeader : excludedHeaders)
+    {
+      out.print(
+"      "+Encoder.bodyEscape(excludedHeader)+"<br/>\n"
+      );
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
     // Go through looking for metadata
@@ -5034,7 +5111,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("metadata"))
+      if (sn.getType().equals(WebcrawlerConfig.NODE_METADATA))
       {
         if (seenAny == false)
         {
@@ -5045,10 +5122,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           );
           seenAny = true;
         }
-        String name = sn.getAttributeValue("name");
-        String value = sn.getAttributeValue("value");
+        String name = sn.getAttributeValue(WebcrawlerConfig.ATTR_NAME);
+        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
         out.print(
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)+"&nbsp;=&nbsp;"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"<br/>\n"
+"      "+Encoder.bodyEscape(name)+"&nbsp;=&nbsp;"+Encoder.bodyEscape(value)+"<br/>\n"
         );
       }
     }
@@ -5401,7 +5478,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           Logging.connectors.debug("WEB: Can't use url '"+rawURL+"' because it has no protocol or host");
         return null;
       }
-      if (understoodProtocols.get(protocol) == null)
+      if (!understoodProtocols.contains(protocol))
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: Can't use url '"+rawURL+"' because it has an unsupported protocol '"+protocol+"'");
@@ -5689,7 +5766,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     contentType = contentType.trim();
 
     // There are presumably mime types we can extract links from that we can't index?
-    if (interestingMimeTypeMap.get(contentType) != null)
+    if (interestingMimeTypeMap.contains(contentType))
       return true;
     
     boolean rval = activities.checkMimeTypeIndexable(contentType);
@@ -7136,41 +7213,41 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   */
   protected static String[] getAcls(DocumentSpecification spec)
   {
-    HashMap map = new HashMap();
+    Set<String> map = new HashSet<String>();
     int i = 0;
     while (i < spec.getChildCount())
     {
       SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals("access"))
+      if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
       {
-        String token = sn.getAttributeValue("token");
-        map.put(token,token);
+        String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
+        map.add(token);
       }
     }
 
     String[] rval = new String[map.size()];
-    Iterator iter = map.keySet().iterator();
+    Iterator<String> iter = map.iterator();
     i = 0;
     while (iter.hasNext())
     {
-      rval[i++] = (String)iter.next();
+      rval[i++] = iter.next();
     }
     return rval;
   }
 
   /** Read a document specification to yield a map of name/value pairs for metadata */
-  protected static ArrayList findMetadata(DocumentSpecification spec)
+  protected static List<NameValue> findMetadata(DocumentSpecification spec)
     throws ManifoldCFException
   {
-    ArrayList rval = new ArrayList();
+    List<NameValue> rval = new ArrayList<NameValue>();
     int i = 0;
     while (i < spec.getChildCount())
     {
       SpecificationNode n = spec.getChild(i++);
-      if (n.getType().equals("metadata"))
+      if (n.getType().equals(WebcrawlerConfig.NODE_METADATA))
       {
-        String name = n.getAttributeValue("name");
-        String value = n.getAttributeValue("value");
+        String name = n.getAttributeValue(WebcrawlerConfig.ATTR_NAME);
+        String value = n.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
         if (name != null && name.length() > 0 && value != null && value.length() > 0)
           rval.add(new NameValue(name,value));
       }
@@ -7178,6 +7255,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     return rval;
   }
 
+  /** Read a document specification to get a set of excluded headers */
+  protected static Set<String> findExcludedHeaders(DocumentSpecification spec)
+    throws ManifoldCFException
+  {
+    Set<String> rval = new HashSet<String>();
+    int i = 0;
+    while (i < spec.getChildCount())
+    {
+      SpecificationNode n = spec.getChild(i++);
+      if (n.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
+      {
+        String value = n.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        rval.add(value);
+      }
+    }
+    return rval;
+  }
+  
   /** Calculate events that should be associated with a document. */
   protected String[] calculateDocumentEvents(INamingActivity activities, String documentIdentifier)
   {

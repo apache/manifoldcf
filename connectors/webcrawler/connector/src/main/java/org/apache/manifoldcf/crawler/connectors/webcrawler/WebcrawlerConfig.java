@@ -140,6 +140,10 @@ public class WebcrawlerConfig
   /** Canonicalization rule.  Attributes are regexp, description, reorder, 
   *javasessionremoval, aspsessionremoval, phpsessionremoval, bvsessionremoval */
   public static final String NODE_URLSPEC = "urlspec";
+  /** Forced metadata.  Attributes are name and value. */
+  public static final String NODE_METADATA = "metadata";
+  /** Forced acl access token node.  Attribute is "token". */
+  public static final String NODE_ACCESS = "access";
   /** Exclude header node.  The value of this node lists a single header (in lower case) that 
   * should be excluded from the document metadata */
   public static final String NODE_EXCLUDEHEADER = "excludeheader";
@@ -158,6 +162,10 @@ public class WebcrawlerConfig
   public static final String ATTR_PHPSESSIONREMOVAL = "phpsessionremoval";
   /** bvsessionremoval attribute */
   public static final String ATTR_BVSESSIONREMOVAL = "bvsessionremoval";
+  /** name attribute */
+  public static final String ATTR_NAME = "name";
+  /** token attribute */
+  public static final String ATTR_TOKEN = "token";
   /** Value yes */
   public static final String ATTRVALUE_YES = "yes";
   /** Value no */

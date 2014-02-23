@@ -59,7 +59,7 @@ public class FindHandler implements IDiscoveredLinkHandler
       {
         return;
       }
-      if (WebcrawlerConnector.understoodProtocols.get(protocol) == null)
+      if (!WebcrawlerConnector.understoodProtocols.contains(protocol))
       {
         return;
       }
