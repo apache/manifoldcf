@@ -2120,7 +2120,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         Logging.connectors.debug( sb.toString() );
       }
 
-      data.setACL( actualAcls );
+      data.setSecurityACL( RepositoryDocument.SECURITY_TYPE_DOCUMENT, actualAcls );
     }
 
     if (denyAcls != null)
@@ -2142,7 +2142,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         Logging.connectors.debug( sb.toString() );
       }
 
-      data.setDenyACL(actualDenyAcls);
+      data.setSecurityDenyACL( RepositoryDocument.SECURITY_TYPE_DOCUMENT, actualDenyAcls);
     }
   }
 

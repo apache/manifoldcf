@@ -4375,14 +4375,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                   aclArray[j] = (String)acls.get(j);
                   j++;
                 }
-                rd.setACL(aclArray);
 
                 StringBuilder denyBuffer = new StringBuilder();
                 startPos = unpack(denyBuffer,version,startPos,'+');
                 String denyAcl = denyBuffer.toString();
                 String[] denyAclArray = new String[1];
                 denyAclArray[0] = denyAcl;
-                rd.setDenyACL(denyAclArray);
+                
+                rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray,denyAclArray);
               }
             }
 

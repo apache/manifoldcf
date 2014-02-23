@@ -1326,11 +1326,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
               denyAcls = null;
           }
 
-          if (allowAcls != null)
-            repositoryDocument.setACL(allowAcls);
-
-          if (denyAcls != null)
-            repositoryDocument.setDenyACL(denyAcls);
+          repositoryDocument.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,allowAcls,denyAcls);
 
           /*=================================================================
           * Get the object's content, and ingest the document

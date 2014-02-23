@@ -47,8 +47,8 @@ public class SetSeedList
 
     try
     {
-      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
       IJobManager jobManager = JobManagerFactory.make(tc);
       IJobDescription desc = jobManager.load(new Long(jobString));
 

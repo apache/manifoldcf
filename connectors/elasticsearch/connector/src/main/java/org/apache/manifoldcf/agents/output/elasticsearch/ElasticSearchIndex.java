@@ -63,9 +63,11 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     private final String[] denyAcls;
     private final String[] shareAcls;
     private final String[] shareDenyAcls;
+    private final String[] parentAcls;
+    private final String[] parentDenyAcls;
 
     public IndexRequestEntity(RepositoryDocument document, InputStream inputStream,
-      String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls)
+      String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls)
       throws ManifoldCFException
     {
       this.document = document;
@@ -74,6 +76,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
       this.denyAcls = denyAcls;
       this.shareAcls = shareAcls;
       this.shareDenyAcls = shareDenyAcls;
+      this.parentAcls = parentAcls;
+      this.parentDenyAcls = parentDenyAcls;
     }
 
     @Override
@@ -120,6 +124,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
 
         needComma = writeACLs(pw, needComma, "document", acls, denyAcls);
         needComma = writeACLs(pw, needComma, "share", shareAcls, shareDenyAcls);
+        needComma = writeACLs(pw, needComma, "parent", parentAcls, parentDenyAcls);
 
         if(inputStream!=null){
           if(needComma){
@@ -255,7 +260,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   *@return false to indicate that the document was rejected.
   */
   public boolean execute(String documentURI, RepositoryDocument document, 
-    InputStream inputStream, String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls)
+    InputStream inputStream,
+    String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls)
     throws ManifoldCFException, ServiceInterruption
   {
     String idField;
@@ -270,7 +276,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
 
     StringBuffer url = getApiUrl(config.getIndexType() + "/" + idField, false);
     HttpPut put = new HttpPut(url.toString());
-    put.setEntity(new IndexRequestEntity(document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls));
+    put.setEntity(new IndexRequestEntity(document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls));
     if (call(put) == false)
       return false;
     if ("true".equals(checkJson(jsonStatus)))

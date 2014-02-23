@@ -1567,10 +1567,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    if (accessAcls != null)
-      rd.setACL(accessAcls);
-    if (denyAcls != null)
-      rd.setDenyACL(denyAcls);
+    rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,accessAcls,denyAcls);
 
   }
   

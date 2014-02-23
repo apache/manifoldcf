@@ -1683,7 +1683,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               strarrACL[0] = docbaseName + ":" + object.getACLDomain() + "." + object.getACLName();
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("DCTM: Processing document (" + objName + ") with ACL=" + strarrACL[0] + " and size=" + object.getContentSize() + " bytes.");
-              rval.setACL(strarrACL);
+              rval.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,strarrACL);
             }
             else if (acls != null)
             {
@@ -1694,7 +1694,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                 forcedAcls[z] = (String)acls.get(z);
                 z++;
               }
-              rval.setACL(forcedAcls);
+              rval.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,forcedAcls);
 
 
               if (Logging.connectors.isDebugEnabled())
@@ -1704,7 +1704,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             if (denyAcl != null)
             {
               String[] denyAcls = new String[]{denyAcl};
-              rval.setDenyACL(denyAcls);
+              rval.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAcls);
             }
 
             contentType = object.getContentType();

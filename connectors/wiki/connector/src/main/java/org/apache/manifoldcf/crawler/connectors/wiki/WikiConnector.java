@@ -3869,9 +3869,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
                   String[] denyACL = new String[]{
                     defaultAuthorityDenyToken
                   };
-                  rd.setDenyACL(denyACL);
-
-                  rd.setACL(allowACL);
+                  rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,allowACL,denyACL);
                 }
 
                 activities.ingestDocument(documentIdentifier,documentVersion,fullURL,rd);

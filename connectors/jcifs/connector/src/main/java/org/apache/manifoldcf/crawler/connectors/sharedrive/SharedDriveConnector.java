@@ -1397,8 +1397,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
 
       // set share acls
-      rd.setShareACL(shareAllow);
-      rd.setShareDenyACL(shareDeny);
+      rd.setSecurity(RepositoryDocument.SECURITY_TYPE_SHARE,shareAllow,shareDeny);
     }
     if (startPosition < version.length() && version.charAt(startPosition++) == '+')
     {
@@ -1423,7 +1422,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
 
       // set parent folder acls
-      rd.addDirectoryACLs(parentAllow, parentDeny);
+      rd.setSecurity(RepositoryDocument.SECURITY_TYPE_PARENT,parentAllow,parentDeny);
     }
     if (startPosition < version.length() && version.charAt(startPosition++) == '+')
     {
@@ -1448,8 +1447,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
 
       // set native file acls
-      rd.setACL(allow);
-      rd.setDenyACL(deny);
+      rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,allow,deny);
     }
     return startPosition;
   }

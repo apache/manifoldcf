@@ -443,6 +443,8 @@ public class ElasticSearchConnector extends BaseOutputConnector
     String[] denyAcls = null;
     String[] shareAcls = null;
     String[] shareDenyAcls = null;
+    String[] parentAcls = null;
+    String[] parentDenyAcls = null;
     Iterator<String> a = document.securityTypesIterator();
     while (a.hasNext())
     {
@@ -459,6 +461,11 @@ public class ElasticSearchConnector extends BaseOutputConnector
         shareAcls = convertedAcls;
         shareDenyAcls = convertedDenyAcls;
       }
+      else if (securityType.equals(RepositoryDocument.SECURITY_TYPE_PARENT))
+      {
+        parentAcls = convertedAcls;
+        parentDenyAcls = convertedDenyAcls;
+      }
       else
       {
         // Don't know how to deal with it
@@ -470,7 +477,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
     ElasticSearchIndex oi = new ElasticSearchIndex(client, config);
     try
     {
-      oi.execute(documentURI, document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls);
+      oi.execute(documentURI, document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls);
       if (oi.getResult() != Result.OK)
         return DOCUMENTSTATUS_REJECTED;
       return DOCUMENTSTATUS_ACCEPTED;
