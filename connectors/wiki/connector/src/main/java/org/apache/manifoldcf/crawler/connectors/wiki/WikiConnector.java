@@ -69,6 +69,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
+import org.apache.http.ParseException;
 
 import java.nio.charset.Charset;
 import java.util.*;
@@ -4649,12 +4650,19 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       InputStream is = entity.getContent();
       try
       {
-        ContentType contentType = ContentType.getOrDefault(entity);
         Charset charSet;
-        if (contentType == null)
-          charSet = UTF_8;
-        else
-          charSet = contentType.getCharset();
+        try
+        {
+          ContentType contentType = ContentType.getOrDefault(entity);
+          if (contentType == null)
+            charSet = UTF_8;
+          else
+            charSet = contentType.getCharset();
+        }
+        catch (ParseException e)
+        {
+          charSet = null;
+        }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
         Writer w = new StringWriter();
