@@ -63,12 +63,14 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.entity.ContentType;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
 
+import java.nio.charset.Charset;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -147,6 +149,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
     }
   }
+
+  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /** Constructor.
   */
@@ -1989,7 +1993,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       pairs.add(new BasicNameValuePair(key, params.get(key)));
     }
     
-    method.setEntity(new UrlEncodedFormEntity(pairs, HTTP.UTF_8));
+    method.setEntity(new UrlEncodedFormEntity(pairs, UTF_8));
     
     return method;
   }
@@ -4645,9 +4649,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       InputStream is = entity.getContent();
       try
       {
-        String charSet = EntityUtils.getContentCharSet(entity);
-        if (charSet == null)
-          charSet = "utf-8";
+        ContentType contentType = ContentType.getOrDefault(entity);
+        Charset charSet;
+        if (contentType == null)
+          charSet = UTF_8;
+        else
+          charSet = contentType.getCharset();
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
         Writer w = new StringWriter();
