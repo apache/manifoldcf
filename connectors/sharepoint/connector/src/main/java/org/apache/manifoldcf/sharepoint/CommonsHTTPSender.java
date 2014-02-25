@@ -691,7 +691,7 @@ public class CommonsHTTPSender extends BasicHandler {
                     threadStream = new XThreadInputStream(bodyStream);
                     try
                     {
-                      ContentType ct = ContentType.getOrDefault(entity);
+                      ContentType ct = ContentType.get(entity);
                       if (ct == null)
                         charSet = null;
                       else
