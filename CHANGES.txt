@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-901: Clean up httpclient-related deprecation warnings.
+(Karl Wright)
+
 CONNECTORS-899: Allow some headers to be included/excluded from
 metadata for web connector.
 (Florian Schmedding, Karl Wright)

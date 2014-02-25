@@ -34,8 +34,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.entity.ContentType;
+import org.apache.http.ParseException;
 import java.util.*;
 import java.io.*;
+import java.nio.charset.Charset;
 
 /** Class to parse various syntactical parts of a script and execute them.
 */
@@ -58,6 +61,8 @@ public class ScriptParser
   
   /** A table of "new" operations that we know how to deal with. */
   protected Map<String,NewOperation> newOperations = new HashMap<String,NewOperation>();
+
+  protected final static Charset UTF_8 = Charset.forName("UTF-8");
 
   public ScriptParser()
   {
@@ -1164,9 +1169,19 @@ public class ScriptParser
       InputStream is = entity.getContent();
       try
       {
-        String charSet = EntityUtils.getContentCharSet(entity);
-        if (charSet == null)
-          charSet = "utf-8";
+        Charset charSet;
+        try
+        {
+          ContentType ct = ContentType.get(entity);
+          if (ct == null)
+            charSet = UTF_8;
+          else
+            charSet = ct.getCharset();
+        }
+        catch (ParseException e)
+        {
+          charSet = UTF_8;
+        }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
         Writer w = new StringWriter();
