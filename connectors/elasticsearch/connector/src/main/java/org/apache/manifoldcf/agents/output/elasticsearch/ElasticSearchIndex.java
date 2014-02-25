@@ -86,6 +86,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     }
     
     @Override
+    @Deprecated
     public void consumeContent()
       throws IOException {
       EntityUtils.consume(this);
