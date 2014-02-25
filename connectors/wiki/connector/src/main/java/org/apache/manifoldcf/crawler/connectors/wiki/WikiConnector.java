@@ -4653,15 +4653,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         Charset charSet;
         try
         {
-          ContentType contentType = ContentType.getOrDefault(entity);
-          if (contentType == null)
+          ContentType ct = ContentType.get(entity);
+          if (ct == null)
             charSet = UTF_8;
           else
-            charSet = contentType.getCharset();
+            charSet = ct.getCharset();
         }
         catch (ParseException e)
         {
-          charSet = null;
+          charSet = UTF_8;
         }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
