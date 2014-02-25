@@ -32,6 +32,7 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -63,6 +64,9 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.entity.ContentType;
+
+import org.apache.http.ParseException;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -97,6 +101,8 @@ public class JiraSession {
     {
     }
   }
+
+  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /**
    * Constructor. Create a session.
@@ -209,10 +215,7 @@ public class JiraSession {
     if (entity != null) {
       InputStream is = entity.getContent();
       try {
-        String charSet = EntityUtils.getContentCharSet(entity);
-        if (charSet == null)
-          charSet = "utf-8";
-        Reader r = new InputStreamReader(is,charSet);
+        Reader r = new InputStreamReader(is,getCharSet(entity));
         return JSONValue.parse(r);
       } finally {
         is.close();
@@ -227,11 +230,8 @@ public class JiraSession {
     if (entity != null) {
       InputStream is = entity.getContent();
       try {
-        String charSet = EntityUtils.getContentCharSet(entity);
-        if (charSet == null)
-          charSet = "utf-8";
         char[] buffer = new char[65536];
-        Reader r = new InputStreamReader(is,charSet);
+        Reader r = new InputStreamReader(is,getCharSet(entity));
         Writer w = new StringWriter();
         try {
           while (true) {
@@ -249,6 +249,24 @@ public class JiraSession {
       }
     }
     return "";
+  }
+
+  private static Charset getCharSet(HttpEntity entity)
+  {
+    Charset charSet;
+    try
+    {
+      ContentType ct = ContentType.get(entity);
+      if (ct == null)
+        charSet = UTF_8;
+      else
+        charSet = ct.getCharset();
+    }
+    catch (ParseException e)
+    {
+      charSet = UTF_8;
+    }
+    return charSet;
   }
 
   private void getRest(String rightside, JiraJSONResponse response)
