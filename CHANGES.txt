@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-903: Remove deprecation warnings from framework.
+(Karl Wright)
+
 CONNECTORS-901: Clean up httpclient-related deprecation warnings.
 (Karl Wright)
 
