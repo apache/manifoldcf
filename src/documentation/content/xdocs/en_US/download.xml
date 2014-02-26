@@ -291,60 +291,121 @@
       <section>
         <title>Plugin for Apache Solr 3.x</title>
         <section>
-          <title>Latest release (Apache ManifoldCF Plugin for Apache Solr 3.x , version 1.1, 2013 Dec 08)</title>
+          <title>Latest release (Apache ManifoldCF Plugin for Apache Solr 3.x , version 2.0, 2014 Feb 27)</title>
           <p>
-            <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1.KEYS">KEYS</a><br/>
-            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1.CHANGES.txt">CHANGES.txt</a><br/>
+            <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0.KEYS">KEYS</a><br/>
+            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0.CHANGES.txt">CHANGES.txt</a><br/>
           </p>
 
           <p>Sources only:<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.tar.gz">apache-manifoldcf-solr-3.x-plugin-1.1-src.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.zip">apache-manifoldcf-solr-3.x-plugin-1.1-src.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.zip.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-src.tar.gz">apache-manifoldcf-solr-3.x-plugin-2.0-src.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-src.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-src.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-src.zip">apache-manifoldcf-solr-3.x-plugin-2.0-src.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-src.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-src.zip.md5">MD5</a>]<br/>
           </p>
 
           <p>Binary:<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.tar.gz">apache-manifoldcf-solr-3.x-plugin-1.1-bin.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.zip">apache-manifoldcf-solr-3.x-plugin-1.1-bin.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.zip.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-bin.tar.gz">apache-manifoldcf-solr-3.x-plugin-2.0-bin.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-bin.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-bin.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-bin.zip">apache-manifoldcf-solr-3.x-plugin-2.0-bin.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-bin.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-bin.zip.md5">MD5</a>]<br/>
           </p>
+        </section>
+        <section>
+          <title>Earlier releases</title>
+
+          <section>
+            <title>Apache ManifoldCF Plugin for Apache Solr 3.x , version 1.1, 2013 Dec 08</title>
+            <p>
+              <a href="https://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1.KEYS">KEYS</a><br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1.CHANGES.txt">CHANGES.txt</a><br/>
+            </p>
+
+            <p>Sources only:<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.tar.gz">apache-manifoldcf-solr-3.x-plugin-1.1-src.tar.gz</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.tar.gz.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.tar.gz.md5">MD5</a>]<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.zip">apache-manifoldcf-solr-3.x-plugin-1.1-src.zip</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.zip.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-src.zip.md5">MD5</a>]<br/>
+            </p>
+
+            <p>Binary:<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.tar.gz">apache-manifoldcf-solr-3.x-plugin-1.1-bin.tar.gz</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.tar.gz.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.tar.gz.md5">MD5</a>]<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.zip">apache-manifoldcf-solr-3.x-plugin-1.1-bin.zip</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.zip.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.zip.md5">MD5</a>]<br/>
+            </p>
+          </section>
+
         </section>
       </section>
       
       <section>
         <title>Plugin for Apache Solr 4.x</title>
         <section>
-          <title>Latest release (Apache ManifoldCF Plugin for Apache Solr 4.x, version 1.1.1, 2013 Dec 08)</title>
+          <title>Latest release (Apache ManifoldCF Plugin for Apache Solr 4.x, version 2.0, 2014 Feb 27)</title>
           <p>
-            <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1.KEYS">KEYS</a><br/>
-            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1.CHANGES.txt">CHANGES.txt</a><br/>
+            <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0.KEYS">KEYS</a><br/>
+            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0.CHANGES.txt">CHANGES.txt</a><br/>
           </p>
 
           <p>Sources only:<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.tar.gz">apache-manifoldcf-solr-4.x-plugin-1.1.1-src.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.zip">apache-manifoldcf-solr-4.x-plugin-1.1.1-src.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.zip.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-src.tar.gz">apache-manifoldcf-solr-4.x-plugin-2.0-src.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-src.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-src.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-src.zip">apache-manifoldcf-solr-4.x-plugin-2.0-src.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-src.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-src.zip.md5">MD5</a>]<br/>
           </p>
 
           <p>Binary:<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.tar.gz">apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.zip">apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.zip.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-bin.tar.gz">apache-manifoldcf-solr-4.x-plugin-2.0-bin.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-bin.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-bin.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-bin.zip">apache-manifoldcf-solr-4.x-plugin-2.0-bin.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-bin.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-bin.zip.md5">MD5</a>]<br/>
           </p>
         </section>
 
+        <section>
+          <title>Earlier releases</title>
+          
+          <section>
+            <title>Apache ManifoldCF Plugin for Apache Solr 4.x, version 1.1.1, 2013 Dec 08</title>
+            <p>
+              <a href="https://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1.KEYS">KEYS</a><br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1.CHANGES.txt">CHANGES.txt</a><br/>
+            </p>
+
+            <p>Sources only:<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.tar.gz">apache-manifoldcf-solr-4.x-plugin-1.1.1-src.tar.gz</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.tar.gz.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.tar.gz.md5">MD5</a>]<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.zip">apache-manifoldcf-solr-4.x-plugin-1.1.1-src.zip</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.zip.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-src.zip.md5">MD5</a>]<br/>
+            </p>
+
+            <p>Binary:<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.tar.gz">apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.tar.gz</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.tar.gz.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.tar.gz.md5">MD5</a>]<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.zip">apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.zip</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.zip.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.zip.md5">MD5</a>]<br/>
+            </p>
+          </section>
+
+        </section>
+        
       </section>
       
       <section>
@@ -418,35 +479,68 @@
       <section>
         <title>Plugin for Elastic Search</title>
         <section>
-          <title>Latest release (Apache ManifoldCF Plugin for Elastic Search, version 1.1, 2013 Dec 03)</title>
+          <title>Latest release (Apache ManifoldCF Plugin for Elastic Search, version 2.0, 2014 Feb 27)</title>
           <p>
-            <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1.KEYS">KEYS</a><br/>
-            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1.CHANGES.txt">CHANGES.txt</a><br/>
+            <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0.KEYS">KEYS</a><br/>
+            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0.CHANGES.txt">CHANGES.txt</a><br/>
           </p>
 
           <p>Sources only:<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.tar.gz">apache-manifoldcf-elasticsearch-plugin-1.1-src.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.zip">apache-manifoldcf-elasticsearch-plugin-1.1-src.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.zip.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.zip.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-src.tar.gz">apache-manifoldcf-elasticsearch-plugin-2.0-src.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-src.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-src.tar.gz.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-src.tar.gz.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-src.zip">apache-manifoldcf-elasticsearch-plugin-2.0-src.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-src.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-src.zip.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-src.zip.sha">SHA</a>]<br/>
           </p>
 
           <p>Binary:<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.tar.gz">apache-manifoldcf-elasticsearch-plugin-1.1-bin.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip">apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-bin.tar.gz">apache-manifoldcf-elasticsearch-plugin-2.0-bin.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-bin.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-bin.tar.gz.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-bin.tar.gz.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-bin.zip">apache-manifoldcf-elasticsearch-plugin-2.0-bin.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-bin.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-bin.zip.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-bin.zip.sha">SHA</a>]<br/>
           </p>
         </section>
 
+        <section>
+          <title>Earlier releases</title>
+          <section>
+            <title>Apache ManifoldCF Plugin for Elastic Search, version 1.1, 2013 Dec 03</title>
+            <p>
+              <a href="https://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1.KEYS">KEYS</a><br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1.CHANGES.txt">CHANGES.txt</a><br/>
+            </p>
+
+            <p>Sources only:<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.tar.gz">apache-manifoldcf-elasticsearch-plugin-1.1-src.tar.gz</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.tar.gz.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.tar.gz.md5">MD5</a>]<br/>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.tar.gz.sha">SHA</a>]<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.zip">apache-manifoldcf-elasticsearch-plugin-1.1-src.zip</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.zip.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.zip.md5">MD5</a>]<br/>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-src.zip.sha">SHA</a>]<br/>
+            </p>
+
+            <p>Binary:<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.tar.gz">apache-manifoldcf-elasticsearch-plugin-1.1-bin.tar.gz</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.tar.gz.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.tar.gz.md5">MD5</a>]<br/>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.tar.gz.sha">SHA</a>]<br/>
+              <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip">apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip</a>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip.asc">PGP</a>]
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip.md5">MD5</a>]<br/>
+                [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip.sha">SHA</a>]<br/>
+            </p>
+          </section>
+        </section>
+        
       </section>
 
     </section>
