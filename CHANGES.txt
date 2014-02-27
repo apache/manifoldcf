@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-904: JDBC Connector with MySQL should convert
+from binary columns to strings.
+(Karl Wright)
+
 CONNECTORS-903: Remove deprecation warnings from framework.
 (Karl Wright)
 
