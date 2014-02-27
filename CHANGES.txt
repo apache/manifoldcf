@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-890: Upgrade to Solr 4.7.0, and Httpclient 4.3.2.
+(Karl Wright)
+
 CONNECTORS-905: Add property which disables history recording.
 (Graeme Seaton)
 
