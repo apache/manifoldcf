@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-905: Add property which disables history recording.
+(Graeme Seaton)
+
 CONNECTORS-904: JDBC Connector with MySQL should convert
 from binary columns to strings.
 (Karl Wright)
