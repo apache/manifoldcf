@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-906: Include documentation section on advanced
+properties.xml settings.
+(Graeme Seaton)
+
 CONNECTORS-890: Upgrade to Solr 4.7.0, and Httpclient 4.3.2.
 (Karl Wright)
 

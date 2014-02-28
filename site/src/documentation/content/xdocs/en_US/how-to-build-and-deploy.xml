@@ -900,7 +900,7 @@ cd example
           <p>The following table describes the configuration property file properties, and what they do:</p>
           <p></p>
           <table>
-            <caption>Property.xml properties</caption>
+            <caption>property.xml properties</caption>
             <tr><th>Property</th><th>Required?</th><th>Function</th></tr>
             <tr><td>org.apache.manifoldcf.login.name</td><td>No</td><td>Crawler UI login user ID (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.login.password</td><td>No</td><td>Crawler UI login user password (defaults to "admin")</td></tr>
@@ -963,6 +963,17 @@ cd example
             <tr><td>org.apache.manifoldcf.authorityconnectors</td><td>No</td><td>Log authority connector activity.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservice</td><td>No</td><td>Log authority service activity.  Legal values are INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.salt</td><td>Yes, if file encryption is used</td><td>Specify the salt value to be used for encrypting the file to which the crawler configuration is exported.</td></tr>
+          </table>
+          <p></p>
+          <p>The following table describes 'advanced' configuration property file properties.  They shouldn't need to be changed but provide a greater level of customization:</p>
+          <p></p>
+          <table>
+            <caption>Advanced property.xml properties</caption>
+            <tr><th>Property</th><th>Required?</th><th>Default</th><th>Function</th></tr>
+            <tr><td>org.apache.manifoldcf.crawler.repository.store_history</td><td>No</td><td>true</td><td>If you do not require reports from within this will disable logging to the repository history (although the reports will still run they will not contain any content). This can increase throughput and reduce the rate of growth of the database.</td></tr>
+            <tr><td>org.apache.manifoldcf.db.postgres.analyze.&#60;tablename&#62;</td><td>No</td>2000<td></td><td>For postgresql, specify how many changes should be carried out before carrying out an 'ANALYZE' on the specified table.</td></tr>
+            <tr><td>org.apache.manifoldcf.db.postgres.analyze.&#60;tablename&#62;</td><td>No</td>250000<td></td><td>For postgresql, specify how many changes should be carried out before carrying out an 'REINDEX' on the specified table.</td></tr>
+            <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>10000</td><td>Set the upper limit for the precise document count to be returned on the 'Status and Job Management' page.</td></tr>
           </table>
           <p></p>
           <p>The configuration file can also specify a set of directories which will be searched for connector jars.  The directive that adds to the class path is:</p>
