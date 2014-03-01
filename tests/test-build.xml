@@ -100,7 +100,7 @@
 
     <target name="compile-tests" depends="compile-test-resources">
         <mkdir dir="build/test/classes"/>
-        <javac srcdir="src/test/java" destdir="build/test/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="src/test/java" destdir="build/test/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <path refid="test-classpath"/>
             </classpath>

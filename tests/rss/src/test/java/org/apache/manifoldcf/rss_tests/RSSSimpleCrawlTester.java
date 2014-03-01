@@ -59,7 +59,8 @@ public class RSSSimpleCrawlTester
     conn.setClassName("org.apache.manifoldcf.crawler.connectors.rss.RSSConnector");
     conn.setMaxConnections(100);
     ConfigParams cp = conn.getConfigParams();
-    cp.setParameter(RSSConfig.PARAMETER_EMAIL,"somebody@somewhere.com");
+    // Put some utf-8 into the config data somewhere; it's the only way we test non-ascii functionality at the moment
+    cp.setParameter(RSSConfig.PARAMETER_EMAIL,"somebody李敏慧@somewhere.com");
     cp.setParameter(RSSConfig.PARAMETER_MAXOPEN,"100");
     cp.setParameter(RSSConfig.PARAMETER_MAXFETCHES,"1000000");
     cp.setParameter(RSSConfig.PARAMETER_BANDWIDTH,"1000000");
