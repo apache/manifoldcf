@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-908: Update Solr 3.x, Solr 4.x, and ElasticSearch
+plugin versions bundled with ManifoldCF.
+(Karl Wright)
+
 CONNECTORS-906: Include documentation section on advanced
 properties.xml settings.
 (Graeme Seaton)
