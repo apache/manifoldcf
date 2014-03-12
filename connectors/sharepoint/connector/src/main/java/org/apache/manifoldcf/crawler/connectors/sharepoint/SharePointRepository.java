@@ -1748,7 +1748,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 }
 
                 int cutoff = decodedLibPath.lastIndexOf("/");
-                metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff+1), dspStsWorks );
+                metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff), dspStsWorks );
                 if (metadataValues == null)
                 {
                   // Document has vanished

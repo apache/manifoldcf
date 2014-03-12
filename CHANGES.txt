@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-910: SharePoint connector does not fetch metadata values
+for sub-site document libraries.
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-908: Update Solr 3.x, Solr 4.x, and ElasticSearch
 plugin versions bundled with ManifoldCF.
 (Karl Wright)
