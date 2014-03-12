@@ -54,7 +54,7 @@ kind of connection.
 
 CONNECTORS-894: Cosmetic display problem with SharePoint specification
 view.
-(Ahmet Arlsan, Karl Wright)
+(Ahmet Arslan, Karl Wright)
 
 CONNECTORS-892: Add ability in UI reset incremental job seeding state.
 (Karl Wright)
