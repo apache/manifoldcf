@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-900: Clean up Hadoop deprecation warnings.
+(Karl Wright)
+
 CONNECTORS-910: SharePoint connector does not fetch metadata values
 for sub-site document libraries.
 (Ahmet Arslan, Karl Wright)
