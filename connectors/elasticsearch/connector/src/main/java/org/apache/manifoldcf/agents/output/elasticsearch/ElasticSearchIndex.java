@@ -36,6 +36,7 @@ import org.apache.http.Header;
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnection.Result;
 import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.crawler.system.Logging;
@@ -280,9 +281,9 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     put.setEntity(new IndexRequestEntity(document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls));
     if (call(put) == false)
       return false;
-    if ("true".equals(checkJson(jsonStatus)))
-      return true;
     String error = checkJson(jsonException);
+    if (getResult() == Result.OK && error == null)
+      return true;
     setResult(Result.ERROR, error);
     Logging.connectors.warn("ES: Index failed: "+getResponse());
     return true;

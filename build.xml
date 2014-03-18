@@ -2250,7 +2250,7 @@
     </target>
 
     <target name="calculate-elasticsearch-testmaterials-condition" depends="calculate-elasticsearch-condition">
-        <available file="connectors/elasticsearch/test-materials-proprietary/elasticsearch-0.19.0" type="dir" property="elasticsearch-testmaterials.exists"/>
+        <available file="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1" type="dir" property="elasticsearch-testmaterials.exists"/>
         <condition property="elasticsearch-testmaterials.include">
           <and>
               <isset property="elasticsearch-testmaterials.exists"/>
@@ -3139,7 +3139,7 @@
           <exclude name="**/test-materials-proprietary/*.wsdl"/>
           <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
-          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-0.19.0/"/>
+          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
           <exclude name="/legacy-*/"/>
           <exclude name="apache-manifoldcf-*"/>
         </zipfileset>
@@ -3179,7 +3179,7 @@
           <exclude name="**/test-materials-proprietary/*.wsdl"/>
           <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
-          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-0.19.0/"/>
+          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
           <exclude name="/legacy-*/"/>
           <exclude name="apache-manifoldcf-*"/>
         </tarfileset>
@@ -3310,7 +3310,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </fileset>
         <fileset dir="connectors/">
           <exclude name="**/*"/>
-          <exclude name="elasticsearch/test-materials-proprietary/elasticsearch-0.19.0/"/>
+          <exclude name="elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>

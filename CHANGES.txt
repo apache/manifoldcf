@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-909: Upgrade to Elasticsearch 1.0.1.
+(Shinichiro Abe)
+
 CONNECTORS-900: Clean up Hadoop deprecation warnings.
 (Karl Wright)
 
