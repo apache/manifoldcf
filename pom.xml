@@ -48,9 +48,9 @@
     <commons-logging.version>1.1.1</commons-logging.version>
     <commons-collections.version>3.2.1</commons-collections.version>
     <commons-fileupload.version>1.2.2</commons-fileupload.version>
-    <httpcomponent.httpclient.version>4.3.2</httpcomponent.httpclient.version>
-    <httpcomponent.httpcore.version>4.3.1</httpcomponent.httpcore.version>
-    <httpcomponent.httpmime.version>4.3.2</httpcomponent.httpmime.version>
+    <httpcomponent.httpclient.version>4.3.3</httpcomponent.httpclient.version>
+    <httpcomponent.httpcore.version>4.3.2</httpcomponent.httpcore.version>
+    <httpcomponent.httpmime.version>4.3.3</httpcomponent.httpmime.version>
     <solr.version>4.7.0</solr.version>
     <noggit.version>0.5</noggit.version>
     <commons-el.version>1.0</commons-el.version>
