@@ -28,19 +28,18 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Locale;
 
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.HttpClientParams;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -103,7 +102,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   /** Connection expiration interval */
   private static final long EXPIRATION_INTERVAL = 60000L;
 
-  private ClientConnectionManager connectionManager = null;
+  private HttpClientConnectionManager connectionManager = null;
   private HttpClient client = null;
   private long expirationTime = -1L;
 
@@ -128,38 +127,34 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   {
     if (client == null)
     {
-      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
-      localConnectionManager.setMaxTotal(1);
-      connectionManager = localConnectionManager;
+      connectionManager = new PoolingHttpClientConnectionManager();
 
       int socketTimeout = 900000;
       int connectionTimeout = 60000;
       
-      BasicHttpParams params = new BasicHttpParams();
-      // This one is essential to prevent us from reading from the content stream before necessary during auth, but
-      // is incompatible with some proxies.
-      params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
-      // Enabled for Solr, but probably not necessary for better-behaved ES
-      //params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
-      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
-      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
-      params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,true);
-      DefaultHttpClient localClient = new DefaultHttpClient(connectionManager,params);
-      // No retries
-      localClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-        {
-          public boolean retryRequest(
-            IOException exception,
-            int executionCount,
-            HttpContext context)
-          {
-            return false;
-          }
-       
-        });
-      client = localClient;
+      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
+      RequestConfig.Builder requestBuilder = RequestConfig.custom()
+          .setCircularRedirectsAllowed(true)
+          .setSocketTimeout(socketTimeout)
+          .setStaleConnectionCheckEnabled(true)
+          .setExpectContinueEnabled(true)
+          .setConnectTimeout(connectionTimeout)
+          .setConnectionRequestTimeout(socketTimeout);
+          
+      client = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setMaxConnTotal(1)
+        .disableAutomaticRetries()
+        .setDefaultRequestConfig(requestBuilder.build())
+        .setDefaultSocketConfig(SocketConfig.custom()
+          //.setTcpNoDelay(true)
+          .setSoTimeout(socketTimeout)
+          .build())
+        .setDefaultCredentialsProvider(credentialsProvider)
+        .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+        .build();
+
     }
     expirationTime = System.currentTimeMillis() + EXPIRATION_INTERVAL;
     return client;
