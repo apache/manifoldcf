@@ -43,8 +43,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.Header;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
@@ -157,7 +155,7 @@ public class CommonsHTTPSender extends BasicHandler {
         HttpPost postMethod = new HttpPost(targetURL.toString());
           
         // set false as default, addContetInfo can overwrite
-        HttpProtocolParams.setUseExpectContinue(postMethod.getParams(),false);
+        //HttpProtocolParams.setUseExpectContinue(postMethod.getParams(),false);
 
         Message reqMessage = msgContext.getRequestMessage();
           
@@ -172,8 +170,8 @@ public class CommonsHTTPSender extends BasicHandler {
         method = new HttpGet(targetURL.toString());
       }
         
-      if (http10)
-        HttpProtocolParams.setVersion(method.getParams(),new ProtocolVersion("HTTP",1,0));
+      //if (http10)
+      //  HttpProtocolParams.setVersion(method.getParams(),new ProtocolVersion("HTTP",1,0));
 
       BackgroundHTTPThread methodThread = new BackgroundHTTPThread(httpClient,method);
       methodThread.start();
@@ -335,10 +333,11 @@ public class CommonsHTTPSender extends BasicHandler {
         String key = keyObj.toString().trim();
         String value = me.getValue().toString().trim();
 
-        if (key.equalsIgnoreCase(HTTPConstants.HEADER_EXPECT) &&
-          value.equalsIgnoreCase(HTTPConstants.HEADER_EXPECT_100_Continue)) {
-          HttpProtocolParams.setUseExpectContinue(method.getParams(),true);
-        } else if (key.equalsIgnoreCase(HTTPConstants.HEADER_TRANSFER_ENCODING_CHUNKED)) {
+        //if (key.equalsIgnoreCase(HTTPConstants.HEADER_EXPECT) &&
+        //  value.equalsIgnoreCase(HTTPConstants.HEADER_EXPECT_100_Continue)) {
+        //  HttpProtocolParams.setUseExpectContinue(method.getParams(),true);
+        //} else 
+        if (key.equalsIgnoreCase(HTTPConstants.HEADER_TRANSFER_ENCODING_CHUNKED)) {
           String val = me.getValue().toString();
           if (null != val)  {
             httpChunkStream = JavaUtils.isTrue(val);
