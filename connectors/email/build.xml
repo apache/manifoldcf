@@ -18,7 +18,7 @@ limitations under the License.
 <project name="email" default="all">
 
     <property environment="env"/>
-    <condition property="mcf-dst" value="${env.MCFDISTPATH}">
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
         <isset property="env.MCFDISTPATH"/>
     </condition>
     <condition property="mcf-dist" value="../../dist">
@@ -28,5 +28,12 @@ limitations under the License.
     </condition>
 
     <import file="${mcf-dist}/connector-build.xml"/>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="EMail"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.email.EmailConnector"/>
+        </antcall>
+    </target>
 
 </project>

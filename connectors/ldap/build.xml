@@ -17,7 +17,23 @@
 
 <project name="ldap" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <condition property="mcf-dist" value="../../dist">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
     
-    
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-authority-connector">
+            <param name="connector-label" value="LDAP"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.ldap.LDAPAuthority"/>
+        </antcall>
+    </target>
+
 </project>

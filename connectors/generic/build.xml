@@ -17,11 +17,21 @@
 
 <project name="generic" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <condition property="mcf-dist" value="../../dist">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="../../lib">
+        <fileset dir="${mcf-dist}/lib">
             <include name="jaxb-impl*.jar"/>
         </fileset>
     </path>
@@ -29,10 +39,21 @@
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
-            <fileset dir="../../lib">
+            <fileset dir="${mcf-dist}/lib">
                 <include name="jaxb-impl*.jar"/>
             </fileset>
         </copy>
+    </target>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="Generic"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.generic.GenericConnector"/>
+        </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-label" value="Generic"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.generic.GenericAuthority"/>
+        </antcall>
     </target>
 
 </project>

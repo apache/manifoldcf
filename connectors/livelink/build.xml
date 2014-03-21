@@ -17,7 +17,17 @@
 
 <project name="livelink" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <condition property="mcf-dist" value="../../dist">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
@@ -49,6 +59,17 @@
     </target>
     
     <target name="lib" depends="mcf-connector-build.lib,copy-proprietary-libs,precompile-check" if="canBuild">
+    </target>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-authority-connector">
+            <param name="connector-label" value="LiveLink"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.livelink.LivelinkAuthority"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="LiveLink"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.livelink.LivelinkConnector"/>
+        </antcall>
     </target>
 
 </project>

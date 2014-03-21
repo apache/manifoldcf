@@ -17,7 +17,17 @@
 
 <project name="gts" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <condition property="mcf-dist" value="../../dist">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
@@ -35,4 +45,11 @@
         </copy>
     </target>
     
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-output-connector">
+            <param name="connector-label" value="MetaCarta GTS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.gts.GTSConnector"/>
+        </antcall>
+    </target>
+
 </project>

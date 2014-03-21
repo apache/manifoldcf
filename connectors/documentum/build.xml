@@ -17,7 +17,17 @@
 
 <project name="documentum" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <condition property="mcf-dist" value="../../dist">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
 
     <target name="has-proprietary-materials-check">
         <available file="lib-proprietary/dfc.jar" property="dfcStatus"/>
@@ -62,6 +72,17 @@
             <fileset dir="lib-proprietary" includes="*.jar"/>
         </copy>
         <copy todir="dist/server-process/lib-proprietary" file="server/README.txt"/>
+    </target>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-authority-connector">
+            <param name="connector-label" value="Documentum"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="Documentum"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.DCTM.DCTM"/>
+        </antcall>
     </target>
 
 </project>

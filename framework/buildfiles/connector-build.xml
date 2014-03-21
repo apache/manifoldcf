@@ -29,7 +29,6 @@
         <delete dir="test-HSQLDBext-output"/>
     </target>
 
-
     <path id="mcf-connector-build.connector-classpath">
         <fileset dir="${mcf-dist}/lib">
             <include name="mcf-core.jar"/>

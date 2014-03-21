@@ -17,8 +17,17 @@
 
 <project name="alfresco" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <condition property="mcf-dist" value="../../dist">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
 
+    <import file="${mcf-dist}/connector-build.xml"/>
   
     <target name="calculate-condition">
         <available file="lib-proprietary/alfresco-web-service-client-4.2.c.jar" property="alfrescoStatus"/>
@@ -107,6 +116,13 @@
         <delete>
             <fileset dir="lib-proprietary" excludes="README*.txt"/>
         </delete>
+    </target>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="Alfresco"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.alfresco.AlfrescoRepositoryConnector"/>
+        </antcall>
     </target>
 
 </project>
