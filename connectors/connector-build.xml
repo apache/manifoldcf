@@ -556,6 +556,11 @@
         <copy tofile="dist/lib-proprietary-only/${ant.project.name}-PLACEHOLDER.txt" file="proprietary-library-instructions.txt"/>
     </target>
     
+    <target name="test-lib" depends="jar-tests" if="hasTests">
+        <mkdir dir="dist/test-lib"/>
+        <copy todir="dist/test-lib" file="build/jar/mcf-${ant.project.name}-connector-tests.jar"/>
+    </target>
+    
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,has-RMI-check" if="hasRMI">
         <mkdir dir="dist/server-process/lib"/>
         <copy todir="dist/server-process/lib">
@@ -661,6 +666,17 @@
         </copy>
     </target>
 
+    <target name="general-connector-testjar-check" depends="test-lib">
+        <available file="dist/test-lib" type="dir" property="has-tests"/>
+    </target>
+    
+    <target name="general-connector-testjar-delivery" depends="general-connector-testjar-check" if="has-tests">
+        <mkdir dir="${mcf-dist}/connector-test-lib"/>
+        <copy todir="${mcf-dist}/connector-test-lib">
+            <fileset dir="dist/test-lib"/>
+        </copy>
+    </target>
+    
     <target name="general-connector-proprietary-runnable-check" depends="lib-proprietary-instructions">
         <available file="dist/lib-proprietary-only/${ant.project.name}-PLACEHOLDER.txt" property="has-placeholder"/>
         <condition property="is-proprietary-runnable">
@@ -757,6 +773,11 @@
     
     <!-- Main targets -->
     
+    <target name="deliver-connector" depends="general-connector-delivery"/>
+    
+    <target name="deliver-doc" depends="general-connector-doc-delivery"/>
+    
+    <target name="deliver-test-jars" depends="general-connector-testjar-delivery"/>
     
     <target name="build" depends="lib,lib-proprietary-instructions,lib-proprietary-README,server-process,registry-process,integration"/>
     
