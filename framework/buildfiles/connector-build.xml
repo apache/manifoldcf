@@ -32,6 +32,13 @@
 
     <path id="mcf-connector-build.connector-classpath">
         <fileset dir="${mcf-dist}/lib">
+            <include name="mcf-core.jar"/>
+            <include name="mcf-ui-core.jar"/>
+            <include name="mcf-agents.jar"/>
+            <include name="mcf-pull-agent.jar"/>
+        </fileset>
+        <fileset dir="${mcf-dist}/lib">
+            <include name="mail*.jar"/>
             <include name="json*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections*.jar"/>
@@ -70,12 +77,6 @@
             <include name="geronimo-activation_1.1_spec*.jar"/>
             <include name="geronimo-javamail_1.4_spec*.jar"/>
             <include name="commons-discovery*.jar"/>
-        </fileset>
-        <fileset dir="${mcf-dist}/lib">
-            <include name="mcf-core.jar"/>
-            <include name="mcf-agents.jar"/>
-            <include name="mcf-pullagent.jar"/>
-            <include name="mcf-ui-core.jar"/>
         </fileset>
         <pathelement location="build/stubclasses"/>
         <pathelement location="build/wsdlclasses"/>
