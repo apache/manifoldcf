@@ -17,8 +17,6 @@
 
 <project default="all">
 
-    <import file="../common-build.xml"/>
-
     <target name="clean">
       <delete dir="build"/>
       <delete dir="dist"/>
@@ -746,6 +744,13 @@
         </copy>
     </target>
 
+    <target name="buildfiles">
+        <mkdir dir="dist"/>
+        <copy todir="dist">
+            <fileset dir="buildfiles"/>
+        </copy>
+    </target>
+    
     <target name="lib" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,jar-script-engine">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
@@ -1639,7 +1644,7 @@
         </java>
     </target>
     
-    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine"/>
+    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,buildfiles"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB,run-tests-HSQLDBext"/>
     
