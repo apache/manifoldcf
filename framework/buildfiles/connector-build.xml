@@ -596,21 +596,21 @@
     </target>
 
     <!-- Override this target to provide integration materials to the connector dist area -->
-    <target name="integration"/>
+    <target name="integration" depends="precompile-check" if="canBuild"/>
 
     <!-- Delivery targets.  These targets conditionally deliver code and connectors.xml lines
         into the main distribution area.
     -->
     
-    <target name="general-connector-integration-check" depends="integration">
+    <target name="general-connector-integration-check" depends="integration" if="canBuild">
         <available file="dist/integration" type="dir" property="has-integration"/>
     </target>
 
-    <target name="general-server-process-check" depends="server-process">
+    <target name="general-server-process-check" depends="server-process" if="canBuild">
         <available file="dist/server-process" type="dir" property="has-server-process"/>
     </target>
 
-    <target name="general-registry-process-check" depends="registry-process">
+    <target name="general-registry-process-check" depends="registry-process" if="canBuild">
         <available file="dist/registry-process" type="dir" property="has-registry-process"/>
     </target>
 
@@ -648,7 +648,11 @@
         </copy>
     </target>
 
-    <target name="general-connector-delivery" depends="general-connector-proprietary-only-delivery,general-connector-delivery-integration,general-connector-delivery-processes">
+    <target name="general-connector-delivery-check" depends="lib">
+        <available file="dist/lib" type="dir" property="has-lib"/>
+    </target>
+    
+    <target name="general-connector-delivery" depends="general-connector-delivery-check,general-connector-proprietary-only-delivery,general-connector-delivery-integration,general-connector-delivery-processes" if="has-lib">
         <mkdir dir="${mcf-dist}/connector-lib"/>
         <copy todir="${mcf-dist}/connector-lib">
             <fileset dir="dist/lib"/>
@@ -775,9 +779,9 @@
     
     <target name="deliver-connector" depends="general-connector-delivery"/>
     
-    <target name="deliver-doc" depends="general-connector-doc-delivery"/>
+    <target name="deliver-connector-doc" depends="general-connector-doc-delivery"/>
     
-    <target name="deliver-test-jars" depends="general-connector-testjar-delivery"/>
+    <target name="deliver-connector-test-jars" depends="general-connector-testjar-delivery"/>
     
     <target name="build" depends="lib,lib-proprietary-instructions,lib-proprietary-README,server-process,registry-process,integration"/>
     

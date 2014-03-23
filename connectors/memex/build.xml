@@ -17,7 +17,17 @@
 
 <project name="memex" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <condition property="mcf-dist" value="../../dist">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
 
     <target name="calculate-condition">
         <available file="mxie-java/JavaMXIELIB.jar" property="mxieStatus"/>
@@ -40,6 +50,17 @@
         <copy todir="dist/lib">
             <fileset dir="mxie-java" includes="*.jar"/>
         </copy>
+    </target>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-authority-connector">
+            <param name="connector-label" value="Memex Patriarch"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.memex.MemexAuthority"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="Memex Patriarch"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.memex.MemexConnector"/>
+        </antcall>
     </target>
 
 </project>

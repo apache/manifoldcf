@@ -1286,162 +1286,79 @@
         </copy>
     </target>
 
-    <target name="general-connector-integration-check">
-        <available file="connectors/${connector-name}/dist/integration" type="dir" property="${connector-name}.has-integration"/>
-    </target>
-
-    <target name="general-connector-processes-check">
-        <available file="connectors/${connector-name}/dist/server-process" type="dir" property="${connector-name}.has-server-process"/>
-        <available file="connectors/${connector-name}/dist/registry-process" type="dir" property="${connector-name}.has-registry-process"/>
-        <condition property="${connector-name}.has-processes">
-          <and>
-              <isset property="${connector-name}.has-server-process"/>
-              <isset property="${connector-name}.has-registry-process"/>
-          </and>
-        </condition>
-    </target>
-
-    <target name="general-connector-delivery-integration" depends="general-connector-integration-check" if="${connector-name}.has-integration">
-        <mkdir dir="dist/${connector-name}-integration"/>
-        <copy todir="dist/${connector-name}-integration">
-            <fileset dir="connectors/${connector-name}/dist/integration"/>
-        </copy>
-    </target>
-
-    <target name="general-connector-delivery-processes" depends="general-connector-processes-check" if="${connector-name}.has-processes">
-        <mkdir dir="dist/${connector-name}-server-process"/>
-        <copy todir="dist/${connector-name}-server-process">
-            <fileset dir="connectors/${connector-name}/dist/server-process"/>
-        </copy>
-        <mkdir dir="dist/${connector-name}-registry-process"/>
-        <copy todir="dist/${connector-name}-registry-process">
-            <fileset dir="connectors/${connector-name}/dist/registry-process"/>
-        </copy>
-    </target>
-
-    <target name="general-connector-proprietary-only-check">
-        <available file="connectors/${connector-name}/dist/lib-proprietary-only" type="dir" property="${connector-name}.has-proprietary-only"/>
-    </target>
-
-    <target name="general-connector-proprietary-only-delivery" depends="general-connector-proprietary-only-check" if="${connector-name}.has-proprietary-only">
-        <mkdir dir="dist/connector-lib-proprietary"/>
-        <copy todir="dist/connector-lib-proprietary">
-            <fileset dir="connectors/${connector-name}/dist/lib-proprietary-only"/>
-        </copy>
-    </target>
-
-    <target name="general-connector-delivery" depends="general-connector-proprietary-only-delivery,general-connector-delivery-integration,general-connector-delivery-processes">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/${connector-name}/dist/lib"/>
-        </copy>
-    </target>
-
-    <target name="general-connector-doc-check">
-        <available file="connectors/${connector-name}/dist/doc" type="dir" property="${connector-name}.has-doc"/>
-    </target>
-
-    <target name="general-connector-doc-delivery" depends="general-connector-doc-check" if="${connector-name}.has-doc">
-        <mkdir dir="dist/doc/api/${connector-name}"/>
-        <copy todir="dist/doc/api/${connector-name}">
-            <fileset dir="connectors/${connector-name}/dist/doc"/>
-        </copy>
-    </target>
-
-    <target name="general-connector-proprietary-runnable-check">
-        <available file="connectors/${connector-name}/dist/lib-proprietary-only/${connector-name}-PLACEHOLDER.txt" property="${connector-name}.has-placeholder"/>
-        <condition property="${connector-name}.is-proprietary-runnable">
-            <not>
-                <isset property="${connector-name}.has-placeholder"/>
-            </not>
-        </condition>
-    </target>
-
-    <target name="general-connector-runnable-check" depends="general-connector-proprietary-runnable-check">
-        <available file="connectors/${connector-name}/lib-proprietary" type="dir" property="${connector-name}.has-lib-proprietary"/>
-        <condition property="${connector-name}.is-runnable">
-            <not>
-                <isset property="${connector-name}.has-lib-proprietary"/>
-            </not>
-        </condition>
+    <target name="deliver-framework-test-jars" depends="deliver-framework" if="downloaded">
+        <!-- MHL -->
     </target>
     
-    <target name="general-add-mapping-connector-commented" depends="general-connector-runnable-check" unless="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;!--mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    <!-- Connector crawler.  This iterates over all connector makefiles, invoking the specified target of each. -->
+    <macrodef name="connectors-crawl">
+        <attribute name="target" default=""/>
+        <attribute name="failonerror" default="true"/>
+        <sequential>
+            <subant target="@{target}" failonerror="@{failonerror}" inheritall="false">
+                <!-- propertyset refid="uptodate.and.compiled.properties"/ -->
+                <fileset dir="connectors" includes="*/build.xml" excludes="build/**,build-stubs/**,connector/**,dist/**,test-output*/**"/>
+            </subant>
+        </sequential>
+    </macrodef>
+
+    <!-- Generic connector targets -->
+    
+    <target name="download-connectors-dependencies">
+        <connectors-crawl target="download-dependencies"/>
     </target>
 
-    <target name="general-add-mapping-connector-non-commented" depends="general-connector-runnable-check" if="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="cleanup-connectors-dependencies">
+        <connectors-crawl target="download-cleanup"/>
     </target>
 
-    <target name="general-add-mapping-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;!--mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
-    </target>
-
-    <target name="general-add-mapping-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
-    </target>
-
-    <target name="general-add-mapping-connector" depends="general-add-mapping-connector-commented,general-add-mapping-connector-non-commented,general-add-mapping-connector-proprietary-commented,general-add-mapping-connector-proprietary-non-commented">
-    </target>
-
-    <target name="general-add-authority-connector-commented" depends="general-connector-runnable-check" unless="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;!--authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
-    </target>
-
-    <target name="general-add-authority-connector-non-commented" depends="general-connector-runnable-check" if="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
-    </target>
-
-    <target name="general-add-authority-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;!--authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
-    </target>
-
-    <target name="general-add-authority-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
-    </target>
-
-    <target name="general-add-authority-connector" depends="general-add-authority-connector-commented,general-add-authority-connector-non-commented,general-add-authority-connector-proprietary-commented,general-add-authority-connector-proprietary-non-commented">
-    </target>
-
-    <target name="general-add-output-connector-commented" depends="general-connector-runnable-check" unless="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;!--outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
-    </target>
-
-    <target name="general-add-output-connector-non-commented" depends="general-connector-runnable-check" if="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
-    </target>
-
-    <target name="general-add-output-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;!--outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
-    </target>
-
-    <target name="general-add-output-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
-    </target>
-
-    <target name="general-add-output-connector" depends="general-add-output-connector-commented,general-add-output-connector-non-commented,general-add-output-connector-proprietary-commented,general-add-output-connector-proprietary-non-commented">
-    </target>
-
-    <target name="general-add-repository-connector-commented" depends="general-connector-runnable-check" unless="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;!--repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
-    </target>
-
-    <target name="general-add-repository-connector-non-commented" depends="general-connector-runnable-check" if="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
-    </target>
-
-    <target name="general-add-repository-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;!--repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
-    </target>
-
-    <target name="general-add-repository-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
-    </target>
-
-    <target name="general-add-repository-connector" depends="general-add-repository-connector-commented,general-add-repository-connector-non-commented,general-add-repository-connector-proprietary-commented,general-add-repository-connector-proprietary-non-commented">
+    <target name="deliver-connectors" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="deliver-connector"/>
     </target>
     
+    <target name="deliver-connectors-doc" depends="deliver-connectors,deliver-framework-doc" if="downloaded">
+        <connectors-crawl target="deliver-connector-doc"/>
+    </target>
+
+    <target name="deliver-connectors-test-jars" depends="deliver-connectors,deliver-framework-test-jars" if="downloaded">
+        <connectors-crawl target="deliver-connector-test-jars"/>
+    </target>
+    
+    <target name="run-connectors-tests" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+        <connectors-crawl target="run-tests"/>
+    </target>
+
+    <target name="run-connectors-tests-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+        <connectors-crawl target="run-tests-derby"/>
+    </target>
+
+    <target name="run-connectors-tests-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+        <connectors-crawl target="run-tests-HSQLDB"/>
+    </target>
+
+    <target name="run-connectors-tests-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+        <connectors-crawl target="run-tests-HSQLDBext"/>
+    </target>
+
+    <target name="run-connectors-tests-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+        <connectors-crawl target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-connectors-tests-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+        <connectors-crawl target="run-tests-mysql"/>
+    </target>
+    
+    <target name="clean-connectors">
+        <connectors-crawl target="clean"/>
+    </target>
+    
+    <!-- Generic test targets -->
+    
+    <!-- MHL -->
+    
+    
+    
+
     <target name="calculate-activedirectory-condition" depends="build-activedirectory-connector">
         <available file="connectors/activedirectory/dist/lib" type="dir" property="activedirectory.exists"/>
         <condition property="activedirectory.include">
