@@ -33,7 +33,6 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
             <include name="chemistry*.jar"/>
-            <include name="saaj*.jar"/>
             <include name="stax*.jar"/>
             <include name="streambuffer*.jar"/>
             <include name="jaxb*.jar"/>
@@ -42,7 +41,6 @@
             <include name="mimepull*.jar"/>
             <include name="resolver*.jar"/>
             <include name="org.osgi.core*.jar"/>
-            <include name="activation*.jar"/>
             <include name="commons-lang*.jar"/>
         </fileset>
     </path>
@@ -52,7 +50,6 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
                 <include name="chemistry*.jar"/>
-                <include name="saaj*.jar"/>
                 <include name="stax*.jar"/>
                 <include name="streambuffer*.jar"/>
                 <include name="jaxb*.jar"/>
@@ -61,7 +58,6 @@
                 <include name="mimepull*.jar"/>
                 <include name="resolver*.jar"/>
                 <include name="org.osgi.core*.jar"/>
-                <include name="activation*.jar"/>
             </fileset>
         </copy>
     </target>
