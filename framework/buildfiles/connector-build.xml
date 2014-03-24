@@ -67,15 +67,11 @@
         <fileset dir="${mcf-dist}/lib">
             <include name="axis*.jar"/>
             <include name="saaj*.jar"/>
-            <include name="wsdl*.jar"/>
+            <include name="wsdl4j*.jar"/>
             <include name="commons-discovery*.jar"/>
             <include name="activation*.jar"/>
-        </fileset>
-        <fileset dir="${mcf-dist}/lib">
             <include name="castor*.jar"/>
-            <include name="geronimo-activation_1.1_spec*.jar"/>
             <include name="geronimo-javamail_1.4_spec*.jar"/>
-            <include name="commons-discovery*.jar"/>
         </fileset>
         <pathelement location="build/stubclasses"/>
         <pathelement location="build/wsdlclasses"/>
@@ -518,7 +514,7 @@
     </target>
     
     <target name="lib-wsdls" depends="has-wsdls-check" if="hasWSDLs">
-        <mkdir dir="dist/lib"/>
+        <!-- mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="${mcf-dist}/lib">
                 <include name="axis*.jar"/>
@@ -527,18 +523,18 @@
                 <include name="activation*.jar"/>
                 <include name="commons-discovery*.jar"/>
             </fileset>
-        </copy>
+        </copy -->
     </target>
 
     <target name="lib-xsds" depends="has-xsds-check" if="hasXSDs">
-        <mkdir dir="dist/lib"/>
+        <!-- mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="${mcf-dist}/lib">
                 <include name="castor*.jar"/>
                 <include name="geronimo-activation_1.1_spec*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
             </fileset>
-        </copy>
+        </copy -->
     </target>
 
     <target name="lib" depends="lib-rmi,lib-wsdls,lib-xsds,jar-connector,precompile-check" if="canBuild">

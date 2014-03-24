@@ -308,6 +308,15 @@
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
@@ -347,6 +356,15 @@
     <target name="webapp-authority-service-proprietary" depends="jar-core,jar-agents,jar-pull-agent,jar-authority-servlet,compile-authority-service">
         <mkdir dir="build/webapp/authority-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -393,6 +411,15 @@
         <mkdir dir="build/webapp/api-service/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
@@ -433,6 +460,15 @@
     <target name="webapp-api-service-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,compile-api-service">
         <mkdir dir="build/webapp/api-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -479,6 +515,15 @@
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
@@ -528,6 +573,15 @@
       <target name="webapp-crawler-ui-proprietary" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
@@ -585,6 +639,15 @@
         <mkdir dir="build/webapp/combined-service/WEB-INF/lib"/>
         <copy todir="build/webapp/combined-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -635,6 +698,15 @@
       <target name="webapp-combined-service-proprietary" depends="compile-combined-service,jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,jar-authority-servlet">
         <mkdir dir="build/webapp/combined-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/combined-service-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
@@ -754,6 +826,15 @@
     <target name="lib" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,jar-script-engine">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -920,6 +1001,15 @@
     </target>
     
     <target name="setup-jetty-processes" depends="preclean-jetty-processes,scripts-jetty">
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="castor.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="geronimo-javamail_1.4_spec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="commons-discovery.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="axis-jaxrpc.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="axis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="wsdl4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="saaj-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="saaj-impl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="activation.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="zookeeper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="json.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="json-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -953,6 +1043,15 @@
     </target>
 
     <target name="setup-combined-processes" depends="preclean-combined-processes,scripts-combined">
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="castor.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="geronimo-javamail_1.4_spec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="commons-discovery.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="axis-jaxrpc.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="axis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="wsdl4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="saaj-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="saaj-impl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="activation.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="zookeeper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="json.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="json-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -986,6 +1085,15 @@
     </target>
 
     <target name="setup-processes" depends="preclean-processes,scripts">
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="castor.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="geronimo-javamail_1.4_spec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="commons-discovery.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="axis-jaxrpc.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="axis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="wsdl4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="saaj-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="saaj-impl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="activation.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="zookeeper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="json.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="json-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -1267,7 +1375,17 @@
         <property name="manifest-cp-61" value="${manifest-cp-60} ../lib/httpclient.jar"/>
         <property name="manifest-cp-62" value="${manifest-cp-61} ../lib/mail.jar"/>
         <property name="manifest-cp-63" value="${manifest-cp-62} ../lib/zookeeper.jar"/>
-        <property name="manifest-cp" value="${manifest-cp-63}"/>
+        <property name="manifest-cp-64" value="${manifest-cp-63} ../lib/castor.jar"/>
+        <property name="manifest-cp-65" value="${manifest-cp-64} ../lib/geronimo-javamail_1.4_spec.jar"/>
+        <property name="manifest-cp-66" value="${manifest-cp-65} ../lib/commons-discovery.jar"/>
+        <property name="manifest-cp-67" value="${manifest-cp-66} ../lib/axis-jaxrpc.jar"/>
+        <property name="manifest-cp-68" value="${manifest-cp-67} ../lib/axis.jar"/>
+        <property name="manifest-cp-69" value="${manifest-cp-68} ../lib/wsdl4j.jar"/>
+        <property name="manifest-cp-70" value="${manifest-cp-69} ../lib/saaj-api.jar"/>
+        <property name="manifest-cp-71" value="${manifest-cp-70} ../lib/saaj-impl.jar"/>
+        <property name="manifest-cp-72" value="${manifest-cp-71} ../lib/activation.jar"/>
+
+        <property name="manifest-cp" value="${manifest-cp-72}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1360,8 +1478,18 @@
         <property name="manifest-cp-proprietary-62" value="${manifest-cp-proprietary-61} ../lib/httpcore.jar"/>
         <property name="manifest-cp-proprietary-63" value="${manifest-cp-proprietary-62} ../lib/httpclient.jar"/>
         <property name="manifest-cp-proprietary-64" value="${manifest-cp-proprietary-63} ../lib/mail.jar"/>
-        <property name="manifest-cp-proprietary-65" value="${manifest-cp-proprietary-63} ../lib/zookeeper.jar"/>
-        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-65}"/>
+        <property name="manifest-cp-proprietary-65" value="${manifest-cp-proprietary-64} ../lib/zookeeper.jar"/>
+        <property name="manifest-cp-proprietary-66" value="${manifest-cp-proprietary-65} ../lib/castor.jar"/>
+        <property name="manifest-cp-proprietary-67" value="${manifest-cp-proprietary-66} ../lib/geronimo-javamail_1.4_spec.jar"/>
+        <property name="manifest-cp-proprietary-68" value="${manifest-cp-proprietary-67} ../lib/commons-discovery.jar"/>
+        <property name="manifest-cp-proprietary-69" value="${manifest-cp-proprietary-68} ../lib/axis-jaxrpc.jar"/>
+        <property name="manifest-cp-proprietary-70" value="${manifest-cp-proprietary-69} ../lib/axis.jar"/>
+        <property name="manifest-cp-proprietary-71" value="${manifest-cp-proprietary-70} ../lib/wsdl4j.jar"/>
+        <property name="manifest-cp-proprietary-72" value="${manifest-cp-proprietary-71} ../lib/saaj-api.jar"/>
+        <property name="manifest-cp-proprietary-73" value="${manifest-cp-proprietary-72} ../lib/saaj-impl.jar"/>
+        <property name="manifest-cp-proprietary-74" value="${manifest-cp-proprietary-73} ../lib/activation.jar"/>
+        
+        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-74}"/>
         <mkdir dir="build/example-proprietary"/>
         <manifest file="build/example-proprietary/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
