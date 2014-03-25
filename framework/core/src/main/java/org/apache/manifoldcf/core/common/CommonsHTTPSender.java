@@ -13,9 +13,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* $Id: CommonsHTTPSender.java 988245 2010-08-23 18:39:35Z kwright $
+* $Id$
 */
-package org.apache.manifoldcf.sharepoint;
+package org.apache.manifoldcf.core.common;
 
 import org.apache.manifoldcf.core.common.XThreadInputStream;
 
