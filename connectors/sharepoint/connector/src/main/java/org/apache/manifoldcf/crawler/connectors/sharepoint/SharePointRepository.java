@@ -255,7 +255,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
           .setStaleConnectionCheckEnabled(true)
-          .setExpectContinueEnabled(true)
+          .setExpectContinueEnabled(false)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
 

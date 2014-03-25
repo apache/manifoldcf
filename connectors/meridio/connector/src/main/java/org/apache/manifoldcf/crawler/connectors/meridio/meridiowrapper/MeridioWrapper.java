@@ -270,7 +270,7 @@ public class MeridioWrapper
       .setCircularRedirectsAllowed(true)
       .setSocketTimeout(socketTimeout)
       .setStaleConnectionCheckEnabled(true)
-      .setExpectContinueEnabled(true)
+      .setExpectContinueEnabled(false)
       .setConnectTimeout(connectionTimeout)
       .setConnectionRequestTimeout(socketTimeout);
     RequestConfig.Builder rmwsRequestBuilder = RequestConfig.custom()

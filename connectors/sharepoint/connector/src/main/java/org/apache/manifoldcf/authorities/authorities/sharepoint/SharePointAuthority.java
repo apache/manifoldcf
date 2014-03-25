@@ -731,7 +731,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
           .setStaleConnectionCheckEnabled(true)
-          .setExpectContinueEnabled(true)
+          .setExpectContinueEnabled(false)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
 
