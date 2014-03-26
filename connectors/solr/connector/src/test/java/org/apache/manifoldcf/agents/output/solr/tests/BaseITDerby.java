@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.solr_tests;
+package org.apache.manifoldcf.agents.output.solr.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -28,16 +28,16 @@ import java.util.*;
 import org.junit.*;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
+public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
 {
   protected String[] getConnectorNames()
   {
-    return new String[]{"File Connector"};
+    return new String[]{"Test Connector"};
   }
   
   protected String[] getConnectorClasses()
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"};
+    return new String[]{"org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector"};
   }
   
   protected String[] getOutputNames()

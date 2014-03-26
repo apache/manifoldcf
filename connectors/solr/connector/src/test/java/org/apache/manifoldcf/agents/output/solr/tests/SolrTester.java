@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.solr_tests;
+package org.apache.manifoldcf.agents.output.solr.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -38,39 +38,6 @@ public class SolrTester
     this.instance = instance;
   }
   
-  public void setupTestArea()
-    throws Exception
-  {
-    File f = new File("testdata");
-    FileHelper.removeDirectory(f);
-    FileHelper.createDirectory(f);
-    // Create the test data files.
-    String baseFileName = "testdata/";
-    int i0 = 0;
-    while (i0 < 10)
-    {
-      String fileName0 = baseFileName + "/dir-" + i0;
-      FileHelper.createDirectory(new File(fileName0));
-      int i1 = 0;
-      while (i1 < 10)
-      {
-        String fileName1 = fileName0 + "/file-"+i1;
-        FileHelper.createFile(new File(fileName1),"Test file "+i0+":"+i1);
-        i1++;
-      }
-      i0++;
-    }
-    System.err.println("Done generating files");
-  }
-  
-  public void teardownTestArea()
-    throws Exception
-  {
-    System.err.println("Removing generated files");
-    File f = new File("testdata");
-    FileHelper.removeDirectory(f);
-  }
-  
   public void executeTest()
     throws Exception
   {
@@ -81,9 +48,9 @@ public class SolrTester
     // Create a basic file system connection, and save it.
     IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
     IRepositoryConnection conn = mgr.create();
-    conn.setName("File Connection");
-    conn.setDescription("File Connection");
-    conn.setClassName("org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector");
+    conn.setName("Test Connection");
+    conn.setDescription("Test Connection");
+    conn.setClassName("org.apache.manifoldcf.crawler.tests.TestRepositoryConnector");
     conn.setMaxConnections(100);
     // Now, save
     mgr.save(conn);
@@ -120,22 +87,8 @@ public class SolrTester
       
     // Now, set up the document specification.
     DocumentSpecification ds = job.getSpecification();
-    // Crawl everything underneath the 'testdata' area
-    File testDataFile = new File("testdata").getCanonicalFile();
-    if (!testDataFile.exists())
-      throw new ManifoldCFException("Test data area not found!  Looking in "+testDataFile.toString());
-    if (!testDataFile.isDirectory())
-      throw new ManifoldCFException("Test data area not a directory!  Looking in "+testDataFile.toString());
-    SpecificationNode sn = new SpecificationNode("startpoint");
-    sn.setAttribute("path",testDataFile.toString());
-    SpecificationNode n = new SpecificationNode("include");
-    n.setAttribute("type","file");
-    n.setAttribute("match","*");
-    sn.addChild(sn.getChildCount(),n);
-    n = new SpecificationNode("include");
-    n.setAttribute("type","directory");
-    n.setAttribute("match","*");
-    sn.addChild(sn.getChildCount(),n);
+    SpecificationNode sn = new SpecificationNode("documentcount");
+    sn.setAttribute("count","111");
     ds.addChild(ds.getChildCount(),sn);
       
     // Set up the output specification.

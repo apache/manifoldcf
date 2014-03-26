@@ -16,14 +16,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.solr_tests;
+package org.apache.manifoldcf.agents.output.solr.tests;
 
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class SolrCrawlDerbyIT extends BaseDerby
+public class SolrCrawlDerbyIT extends BaseITDerby
 {
 
   protected SolrTester tester;
@@ -54,20 +54,6 @@ public class SolrCrawlDerbyIT extends BaseDerby
       solrService.stop();
   }
 
-  @Before
-  public void setupTestArea()
-    throws Exception
-  {
-    tester.setupTestArea();
-  }
-  
-  @After
-  public void teardownTestArea()
-    throws Exception
-  {
-    tester.teardownTestArea();
-  }
-  
   @Test
   public void simpleCrawl()
     throws Exception
