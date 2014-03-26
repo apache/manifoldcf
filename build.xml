@@ -1221,6 +1221,10 @@
         <copy todir="dist/lib">
             <fileset dir="framework/dist/lib"/>
         </copy>
+        <mkdir dir="dist/test-lib"/>
+        <copy todir="dist/test-lib">
+            <fileset dir="framework/dist/test-lib"/>
+        </copy>
         <mkdir dir="dist/lib-proprietary"/>
         <copy todir="dist/lib-proprietary">
             <fileset dir="framework/dist/lib-proprietary"/>

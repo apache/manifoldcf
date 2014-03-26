@@ -837,6 +837,7 @@
         </copy>
     </target>
     
+
     <target name="lib" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,jar-script-engine">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
@@ -1587,6 +1588,21 @@
 
     <target name="jar-tests" depends="jar-core-tests,jar-agents-tests,jar-pull-agent-tests,jar-script-engine-tests"/>
 
+    <target name="test-lib" depends="jar-tests">
+        <mkdir dir="dist/test-lib"/>
+        <copy todir="dist/test-lib">
+            <fileset dir="../lib">
+                <include name="junit*.jar"/>
+            </fileset>
+            <fileset dir="build/test-jar">
+                <include name="mcf-core-tests.jar"/>
+                <include name="mcf-agents-tests.jar"/>
+                <include name="mcf-pull-agent-tests.jar"/>
+                <include name="mcf-script-engine-tests.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
     <target name="build-tests" depends="jar-tests"/>
 
     <target name="run-core-tests" depends="compile-core,compile-core-tests">
@@ -1786,7 +1802,7 @@
         </java>
     </target>
     
-    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,buildfiles"/>
+    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,buildfiles,test-lib"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB,run-tests-HSQLDBext"/>
     
