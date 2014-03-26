@@ -1,4 +1,4 @@
-/* $Id: NavigationDerbyUI.java 1422222 2012-12-15 11:29:02Z kwright $ */
+/* $Id: BaseUIDerby.java 1231798 2012-01-15 23:58:22Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.hdfs_tests;
+package org.apache.manifoldcf.crawler.connectors.hdfs.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -27,17 +27,27 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-import org.apache.manifoldcf.core.tests.HTMLTester;
-
-/** Basic UI navigation tests */
-public class NavigationDerbyUI extends BaseUIDerby
+/** Tests that run the "agents daemon" should be derived from this */
+public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIDerby
 {
-
-  @Test
-  public void createConnectionsAndJob()
-    throws Exception
+  protected String[] getConnectorNames()
   {
-    new NavigationUITester(testerInstance,"http://localhost:8346/mcf-crawler-ui/index.jsp").createConnectionsAndJob();
+    return new String[]{"HDFS Repository Connector"};
   }
   
+  protected String[] getConnectorClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.crawler.connectors.hdfs.HDFSRepositoryConnector"};
+  }
+  
+  protected String[] getOutputNames()
+  {
+    return new String[]{"Null Output"};
+  }
+  
+  protected String[] getOutputClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
+  }
+
 }
