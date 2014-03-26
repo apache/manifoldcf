@@ -446,8 +446,8 @@
     </target>
 
     <target name="compile-test-resources" depends="has-test-resources-check" if="hasTestResources">
-        <mkdir dir="build/connector-test/classes"/>
-        <copy todir="build/connector-test/classes">
+        <mkdir dir="build/connector-tests/classes"/>
+        <copy todir="build/connector-tests/classes">
             <fileset dir="connector/src/test/resources"/>
         </copy>
     </target>
@@ -470,11 +470,6 @@
           <fileset dir="build/xsdclasses"/>
           <fileset dir="build/wsdlclasses"/>
         </jar>
-    </target>
-
-    <target name="jar-tests" depends="compile-tests,has-tests-check" if="hasTests">
-        <mkdir dir="build/test-jar"/>
-        <jar destfile="build/test-jar/mcf-${ant.project.name}-connector-tests.jar" basedir="build/connector-tests/classes"/>
     </target>
 
     <target name="jar-interface" depends="compile-interface,has-RMI-check" if="hasRMI">
@@ -550,11 +545,6 @@
     <target name="lib-proprietary-instructions" depends="include-proprietary-instructions-lib-proprietary-check" if="includeProprietaryInstructionsLibProprietary">
         <mkdir dir="dist/lib-proprietary-only"/>
         <copy tofile="dist/lib-proprietary-only/${ant.project.name}-PLACEHOLDER.txt" file="proprietary-library-instructions.txt"/>
-    </target>
-    
-    <target name="test-lib" depends="jar-tests" if="hasTests">
-        <mkdir dir="dist/test-lib"/>
-        <copy todir="dist/test-lib" file="build/jar/mcf-${ant.project.name}-connector-tests.jar"/>
     </target>
     
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,has-RMI-check" if="hasRMI">
@@ -666,17 +656,6 @@
         </copy>
     </target>
 
-    <target name="general-connector-testjar-check" depends="test-lib">
-        <available file="dist/test-lib" type="dir" property="has-tests"/>
-    </target>
-    
-    <target name="general-connector-testjar-delivery" depends="general-connector-testjar-check" if="has-tests">
-        <mkdir dir="${mcf-dist}/connector-test-lib"/>
-        <copy todir="${mcf-dist}/connector-test-lib">
-            <fileset dir="dist/test-lib"/>
-        </copy>
-    </target>
-    
     <target name="general-connector-proprietary-runnable-check" depends="lib-proprietary-instructions">
         <available file="dist/lib-proprietary-only/${ant.project.name}-PLACEHOLDER.txt" property="has-placeholder"/>
         <condition property="is-proprietary-runnable">
@@ -777,13 +756,311 @@
     
     <target name="deliver-connector-doc" depends="general-connector-doc-delivery"/>
     
-    <target name="deliver-connector-test-jars" depends="general-connector-testjar-delivery"/>
-    
     <target name="build" depends="lib,lib-proprietary-instructions,lib-proprietary-README,server-process,registry-process,integration"/>
     
-    <target name="build-tests" depends="build,jar-tests"/>
+    <target name="build-tests" depends="build,compile-tests"/>
 
     <target name="build-test-materials"/>
+
+    <target name="run-IT-derby" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-derby-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-derby-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*DerbyIT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-IT-postgresql" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-postgresql-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-postgresql-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*PostgresqlIT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-IT-HSQLDB" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-HSQLDB-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-HSQLDB-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBIT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-IT-HSQLDBext" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-HSQLDBext-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-HSQLDBext-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBextIT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-IT-mysql" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-mysql-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web-proprietary/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web-proprietary/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web-proprietary/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web-proprietary/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-mysql-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*MySQLIT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-LT-derby" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-derby-output"/>
+        <junit fork="true" maxmemory="384m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-derby-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*DerbyLT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-LT-postgresql" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-postgresql-output"/>
+        <junit fork="true" maxmemory="384m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-postgresql-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*PostgresqlLT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-LT-HSQLDB" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-HSQLDB-output"/>
+        <junit fork="true" maxmemory="384m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-HSQLDB-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBLT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-LT-HSQLDBext" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-HSQLDBext-output"/>
+        <junit fork="true" maxmemory="384m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-HSQLDBext-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBextLT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-LT-mysql" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-mysql-output"/>
+        <junit fork="true" maxmemory="384m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web-proprietary/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web-proprietary/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web-proprietary/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web-proprietary/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-mysql-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*MySQLLT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-UI-derby" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-derby-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-derby-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*DerbyUI.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-UI-postgresql" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-postgresql-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-postgresql-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*PostgresqlUI.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="run-UI-HSQLDB" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-HSQLDB-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-HSQLDB-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBUI.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-UI-HSQLDBext" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-HSQLDBext-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-HSQLDBext-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBextUI.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="run-UI-mysql" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-mysql-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web-proprietary/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web-proprietary/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web-proprietary/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web-proprietary/war/mcf-combined-service.war"/>
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-mysql-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*MySQLUI.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
 
     <target name="run-tests" depends="compile-tests,has-tests-check" if="hasTests">
         <mkdir dir="test-output"/>
