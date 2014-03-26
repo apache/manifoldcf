@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.rss_tests;
+package org.apache.manifoldcf.crawler.connectors.rss.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -28,17 +28,23 @@ import org.apache.manifoldcf.crawler.connectors.rss.RSSConfig;
 import java.io.*;
 import java.util.*;
 
-/** This is a 100000-document crawl */
-public class BigCrawlTester
+/** This is a small simple crawl */
+public class RSSSimpleCrawlTester
 {
   protected org.apache.manifoldcf.crawler.tests.ManifoldCFInstance instance;
   
-  public BigCrawlTester(org.apache.manifoldcf.crawler.tests.ManifoldCFInstance instance)
+  public RSSSimpleCrawlTester(org.apache.manifoldcf.crawler.tests.ManifoldCFInstance instance)
   {
     this.instance = instance;
   }
   
   public void executeTest()
+    throws Exception
+  {
+    executeTest(null);
+  }
+  
+  public void executeTest(TestNotification tn)
     throws Exception
   {
     // Hey, we were able to install the file system connector etc.
@@ -53,20 +59,21 @@ public class BigCrawlTester
     conn.setClassName("org.apache.manifoldcf.crawler.connectors.rss.RSSConnector");
     conn.setMaxConnections(100);
     ConfigParams cp = conn.getConfigParams();
-    cp.setParameter(RSSConfig.PARAMETER_EMAIL,"somebody@somewhere.com");
+    // Put some utf-8 into the config data somewhere; it's the only way we test non-ascii functionality at the moment
+    cp.setParameter(RSSConfig.PARAMETER_EMAIL,"somebody李敏慧@somewhere.com");
     cp.setParameter(RSSConfig.PARAMETER_MAXOPEN,"100");
     cp.setParameter(RSSConfig.PARAMETER_MAXFETCHES,"1000000");
     cp.setParameter(RSSConfig.PARAMETER_BANDWIDTH,"1000000");
     cp.setParameter(RSSConfig.PARAMETER_ROBOTSUSAGE,"none");
     // Now, save
     mgr.save(conn);
-      
+    
     // Create a basic null output connection, and save it.
     IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(tc);
     IOutputConnection outputConn = outputMgr.create();
     outputConn.setName("Null Connection");
     outputConn.setDescription("Null Connection");
-    outputConn.setClassName("org.apache.manifoldcf.agents.output.nullconnector.NullConnector");
+    outputConn.setClassName("org.apache.manifoldcf.agents.tests.TestingOutputConnector");
     outputConn.setMaxConnections(100);
     // Now, save
     outputMgr.save(outputConn);
@@ -83,8 +90,8 @@ public class BigCrawlTester
       
     // Now, set up the document specification.
     DocumentSpecification ds = job.getSpecification();
-    // For 100000 documents, set up 10000 seeds
-    for (int i = 0 ; i < 10000 ; i++)
+    // For 100 documents, set up 10 seeds
+    for (int i = 0 ; i < 10 ; i++)
     {
       SpecificationNode sn = new SpecificationNode("feed");
       sn.setAttribute("url","http://localhost:8189/rss/gen.php?type=feed&feed="+i);
@@ -101,20 +108,30 @@ public class BigCrawlTester
     // Now, start the job, and wait until it completes.
     long startTime = System.currentTimeMillis();
     jobManager.manualStart(job.getID());
-    instance.waitJobInactiveNative(jobManager,job.getID(),44000000L);
+    // Wait 15 seconds, then do a notification
+    if (tn != null)
+    {
+      tn.notifyMe();
+    }
+    instance.waitJobInactiveNative(jobManager,job.getID(),600000L);
     System.err.println("Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
 
     // Check to be sure we actually processed the right number of documents.
     JobStatus status = jobManager.getStatus(job.getID());
     // The test data area has 3 documents and one directory, and we have to count the root directory too.
-    if (status.getDocumentsProcessed() != 110000)
-      throw new ManifoldCFException("Wrong number of documents processed - expected 110000, saw "+new Long(status.getDocumentsProcessed()).toString());
+    if (status.getDocumentsProcessed() != 110)
+      throw new ManifoldCFException("Wrong number of documents processed - expected 110, saw "+new Long(status.getDocumentsProcessed()).toString());
       
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
-    instance.waitJobDeletedNative(jobManager,job.getID(),18000000L);
+    instance.waitJobDeletedNative(jobManager,job.getID(),60000L);
       
     // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
   }
   
+  public static interface TestNotification
+  {
+    public void notifyMe()
+      throws Exception;
+  }
 }

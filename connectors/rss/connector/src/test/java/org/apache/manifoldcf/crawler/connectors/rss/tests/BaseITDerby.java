@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.rss_tests;
+package org.apache.manifoldcf.crawler.connectors.rss.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -28,21 +28,11 @@ import java.util.*;
 import org.junit.*;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class BaseHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB
+public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
 {
-  public BaseHSQLDB()
-  {
-    super();
-  }
-  
-  public BaseHSQLDB(boolean singleWar)
-  {
-    super(singleWar);
-  }
-  
   protected String[] getConnectorNames()
   {
-    return new String[]{"File Connector"};
+    return new String[]{"RSS Connector"};
   }
   
   protected String[] getConnectorClasses()
@@ -57,7 +47,7 @@ public class BaseHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB
   
   protected String[] getOutputClasses()
   {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
   }
   
 }

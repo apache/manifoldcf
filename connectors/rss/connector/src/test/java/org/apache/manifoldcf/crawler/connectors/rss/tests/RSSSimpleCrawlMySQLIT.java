@@ -16,22 +16,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.rss_tests;
+package org.apache.manifoldcf.crawler.connectors.rss.tests;
 
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class BigCrawlDerbyLT extends BaseDerby
+public class RSSSimpleCrawlMySQLIT extends BaseITMySQL
 {
 
-  protected BigCrawlTester tester;
+  protected RSSSimpleCrawlTester tester;
   protected MockRSSService rssService = null;
   
-  public BigCrawlDerbyLT()
+  public RSSSimpleCrawlMySQLIT()
   {
-    tester = new BigCrawlTester(mcfInstance);
+    tester = new RSSSimpleCrawlTester(mcfInstance);
   }
   
   // Setup and teardown the mock wiki service
@@ -53,7 +53,7 @@ public class BigCrawlDerbyLT extends BaseDerby
   }
 
   @Test
-  public void bigCrawl()
+  public void simpleCrawl()
     throws Exception
   {
     tester.executeTest();

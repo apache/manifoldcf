@@ -16,20 +16,20 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.rss_tests;
+package org.apache.manifoldcf.crawler.connectors.rss.tests;
 
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class RSSSimpleCrawlMySQLIT extends BaseMySQL
+public class RSSSimpleCrawlHSQLDBIT extends BaseITHSQLDB
 {
 
   protected RSSSimpleCrawlTester tester;
   protected MockRSSService rssService = null;
   
-  public RSSSimpleCrawlMySQLIT()
+  public RSSSimpleCrawlHSQLDBIT()
   {
     tester = new RSSSimpleCrawlTester(mcfInstance);
   }

@@ -16,38 +16,46 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.rss_tests;
-
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ManifoldCF;
+package org.apache.manifoldcf.crawler.connectors.rss.tests;
 
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** Tests that run the "agents daemon" should be derived from this */
-public class BaseMySQL extends org.apache.manifoldcf.crawler.tests.BaseITMySQL
+/** This is a very basic sanity check */
+public class BigCrawlHSQLDBLT extends BaseITHSQLDB
 {
-  protected String[] getConnectorNames()
+
+  protected BigCrawlTester tester;
+  protected MockRSSService rssService = null;
+  
+  public BigCrawlHSQLDBLT()
   {
-    return new String[]{"File Connector"};
+    tester = new BigCrawlTester(mcfInstance);
   }
   
-  protected String[] getConnectorClasses()
+  // Setup and teardown the mock wiki service
+  
+  @Before
+  public void createRSSService()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.rss.RSSConnector"};
+    rssService = new MockRSSService(10);
+    rssService.start();
   }
   
-  protected String[] getOutputNames()
+  @After
+  public void shutdownRSSService()
+    throws Exception
   {
-    return new String[]{"Null Output"};
+    if (rssService != null)
+      rssService.stop();
   }
-  
-  protected String[] getOutputClasses()
+
+  @Test
+  public void bigCrawl()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
+    tester.executeTest();
   }
-  
 }
