@@ -62,7 +62,7 @@ public class SchedulerTester
     IOutputConnection outputConn = outputMgr.create();
     outputConn.setName("Null Connection");
     outputConn.setDescription("Null Connection");
-    outputConn.setClassName("org.apache.manifoldcf.crawler.tests.NullOutputConnector");
+    outputConn.setClassName("org.apache.manifoldcf.crawler.tests.TestingOutputConnector");
     outputConn.setMaxConnections(100);
     // Now, save
     outputMgr.save(outputConn);

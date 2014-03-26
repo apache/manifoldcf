@@ -26,12 +26,12 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.io.*;
 import java.util.*;
 
-/** Output connector class to be used by scheduling tests.  This connector never expects to see any documents at all,
+/** Output connector class to be used by tests.  This connector never expects to see any documents at all,
 * which is fine because it rejects them all. */
-public class NullOutputConnector extends org.apache.manifoldcf.agents.output.BaseOutputConnector
+public class TestingOutputConnector extends org.apache.manifoldcf.agents.output.BaseOutputConnector
 {
 
-  public NullOutputConnector()
+  public TestingOutputConnector()
   {
     super();
   }
