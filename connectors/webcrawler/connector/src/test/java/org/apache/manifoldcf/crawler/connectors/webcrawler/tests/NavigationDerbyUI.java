@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.webcrawler_tests;
+package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -78,7 +78,7 @@ public class NavigationDerbyUI extends BaseUIDerby
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
     selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
-    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.agents.output.nullconnector.NullConnector"));
+    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.agents.tests.TestingOutputConnector"));
     button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
     button.click();
     // Visit the Throttling tab

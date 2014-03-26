@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.webcrawler_tests;
+package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -84,7 +84,7 @@ public class ThrottlingTester
     IOutputConnection outputConn = outputMgr.create();
     outputConn.setName("Null Connection");
     outputConn.setDescription("Null Connection");
-    outputConn.setClassName("org.apache.manifoldcf.agents.output.nullconnector.NullConnector");
+    outputConn.setClassName("org.apache.manifoldcf.agents.tests.TestingOutputConnector");
     outputConn.setMaxConnections(100);
     // Now, save
     outputMgr.save(outputConn);

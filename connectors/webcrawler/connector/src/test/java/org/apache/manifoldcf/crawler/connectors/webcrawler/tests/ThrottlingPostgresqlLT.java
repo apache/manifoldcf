@@ -16,38 +16,46 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.webcrawler_tests;
-
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ManifoldCF;
+package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
 
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** Tests that run the "agents daemon" should be derived from this */
-public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIDerby
+/** This is a very basic sanity check */
+public class ThrottlingPostgresqlLT extends BaseITPostgresql
 {
-  protected String[] getConnectorNames()
+
+  protected ThrottlingTester tester;
+  protected MockWebService webService = null;
+  
+  public ThrottlingPostgresqlLT()
   {
-    return new String[]{"Web Connector"};
+    tester = new ThrottlingTester(mcfInstance);
   }
   
-  protected String[] getConnectorClasses()
+  // Setup and teardown the mock wiki service
+  
+  @Before
+  public void createWebService()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector"};
+    webService = new MockWebService(10,2,true);
+    webService.start();
   }
   
-  protected String[] getOutputNames()
+  @After
+  public void shutdownWebService()
+    throws Exception
   {
-    return new String[]{"Null Output"};
-  }
-  
-  protected String[] getOutputClasses()
-  {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
+    if (webService != null)
+      webService.stop();
   }
 
+  @Test
+  public void bigCrawl()
+    throws Exception
+  {
+    tester.executeTest();
+  }
 }

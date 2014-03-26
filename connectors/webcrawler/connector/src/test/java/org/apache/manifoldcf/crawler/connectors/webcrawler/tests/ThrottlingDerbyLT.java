@@ -16,22 +16,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.webcrawler_tests;
+package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
 
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class BigCrawlPostgresqlIT extends BasePostgresql
+public class ThrottlingDerbyLT extends BaseITDerby
 {
 
-  protected BigCrawlTester tester;
+  protected ThrottlingTester tester;
   protected MockWebService webService = null;
   
-  public BigCrawlPostgresqlIT()
+  public ThrottlingDerbyLT()
   {
-    tester = new BigCrawlTester(mcfInstance);
+    tester = new ThrottlingTester(mcfInstance);
   }
   
   // Setup and teardown the mock wiki service
@@ -40,7 +40,7 @@ public class BigCrawlPostgresqlIT extends BasePostgresql
   public void createWebService()
     throws Exception
   {
-    webService = new MockWebService(10);
+    webService = new MockWebService(10,2,true);
     webService.start();
   }
   

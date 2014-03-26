@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.webcrawler_tests;
+package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -28,7 +28,7 @@ import java.util.*;
 import org.junit.*;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class BaseMySQL extends org.apache.manifoldcf.crawler.tests.BaseITMySQL
+public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
 {
   protected String[] getConnectorNames()
   {
@@ -47,7 +47,7 @@ public class BaseMySQL extends org.apache.manifoldcf.crawler.tests.BaseITMySQL
   
   protected String[] getOutputClasses()
   {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
   }
   
 }

@@ -16,22 +16,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.webcrawler_tests;
+package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
 
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a very basic sanity check */
-public class BigCrawlMySQLLT extends BaseMySQL
+/** Web connector session login test */
+public class SessionLoginDerbyIT extends BaseITDerby
 {
 
-  protected BigCrawlTester tester;
-  protected MockWebService webService = null;
+  protected SessionTester tester;
+  protected MockSessionWebService webService = null;
   
-  public BigCrawlMySQLLT()
+  public SessionLoginDerbyIT()
   {
-    tester = new BigCrawlTester(mcfInstance);
+    tester = new SessionTester(mcfInstance);
   }
   
   // Setup and teardown the mock wiki service
@@ -40,7 +40,7 @@ public class BigCrawlMySQLLT extends BaseMySQL
   public void createWebService()
     throws Exception
   {
-    webService = new MockWebService(10);
+    webService = new MockSessionWebService(100,"foo","bar");
     webService.start();
   }
   
@@ -53,7 +53,7 @@ public class BigCrawlMySQLLT extends BaseMySQL
   }
 
   @Test
-  public void bigCrawl()
+  public void sessionCrawl()
     throws Exception
   {
     tester.executeTest();
