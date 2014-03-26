@@ -121,25 +121,12 @@ public class NavigationDerbyUI extends BaseUIDerby
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
     selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
-    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.tests.TestingRepositoryConnector"));
+    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector"));
     button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
     button.click();
     // Visit the Throttling tab
     window = testerInstance.findWindow(null);
     link = window.findLink(testerInstance.createStringDescription("Throttling tab"));
-    link.click();
-    // Server tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Server tab"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("username"));
-    textarea.setValue(testerInstance.createStringDescription("foo"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("password"));
-    textarea.setValue(testerInstance.createStringDescription("bar"));
-    // Go back to the Name tab
-    link = window.findLink(testerInstance.createStringDescription("Name tab"));
     link.click();
     window = testerInstance.findWindow(null);
     // Now save the connection.
