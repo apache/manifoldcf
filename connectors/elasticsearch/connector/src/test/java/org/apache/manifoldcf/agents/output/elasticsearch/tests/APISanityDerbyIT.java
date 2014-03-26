@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.elasticsearch_tests;
+package org.apache.manifoldcf.agents.output.elasticsearch.tests;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,19 +25,6 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.chemistry.opencmis.client.api.Document;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.ItemIterable;
-import org.apache.chemistry.opencmis.client.api.QueryResult;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.client.api.SessionFactory;
-import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
-import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.SessionParameter;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.enums.BindingType;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
-import org.apache.chemistry.opencmis.commons.spi.ObjectService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.core.interfaces.Configuration;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
@@ -53,140 +40,6 @@ import org.junit.Test;
  */
 public class APISanityDerbyIT extends BaseDerby
 {
-  private static final String REPLACER = "?";
-  private static final String CMIS_TEST_QUERY_CHANGE_DOC = "SELECT * FROM cmis:document WHERE cmis:name='"+REPLACER+"'";
-  private static final String CMIS_TEST_QUERY = "SELECT * FROM cmis:folder WHERE cmis:name='testdata'";
-    
-  private Session cmisClientSession = null;
-  
-  private Session getCmisClientSession(){
-    // default factory implementation
-    SessionFactory factory = SessionFactoryImpl.newInstance();
-    Map<String, String> parameters = new HashMap<String, String>();
-
-    // user credentials
-    parameters.put(SessionParameter.USER, CmisConfig.USERNAME_DEFAULT_VALUE);
-    parameters.put(SessionParameter.PASSWORD, CmisConfig.PASSWORD_DEFAULT_VALUE);
-
-    // connection settings
-    String endpoint =
-        CmisConfig.PROTOCOL_DEFAULT_VALUE + "://" + 
-        CmisConfig.SERVER_DEFAULT_VALUE + ":" +
-        CmisConfig.PORT_DEFAULT_VALUE + 
-        CmisConfig.PATH_DEFAULT_VALUE;
-    
-    parameters.put(SessionParameter.ATOMPUB_URL, endpoint);
-    parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
-
-    // create session
-    return factory.getRepositories(parameters).get(0).createSession();
-  }
-  
-  public Folder getTestFolder(Session session){
-    Folder testFolder = null;
-    ItemIterable<QueryResult> results = session.query(CMIS_TEST_QUERY, false);
-    for (QueryResult result : results) {
-      String folderId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
-      testFolder = (Folder)session.getObject(folderId);
-    }
-    return testFolder;
-  }
-  
-  public void createNewDocument(Folder folder, String name) throws IOException{
-    // properties 
-    // (minimal set: name and object type id)
-    Map<String, Object> contentProperties = new HashMap<String, Object>();
-    contentProperties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
-    contentProperties.put(PropertyIds.NAME, name);
-  
-    // content
-    String contentString = "CMIS Testdata "+name;
-    byte[] content = contentString.getBytes();
-    InputStream stream = new ByteArrayInputStream(content);
-    ContentStream contentStream = new ContentStreamImpl(name, new BigInteger(content), "text/plain", stream);
-  
-    // create a major version
-    folder.createDocument(contentProperties, contentStream, null);
-    stream.close();
-  }
-  
-  /**
-   * change the document content with the new one provided as an argument
-   * @param session
-   * @param name
-   * @param newContent
-   */
-  public void changeDocument(Session session, String name, String newContent){
-    String cmisQuery = StringUtils.replace(CMIS_TEST_QUERY_CHANGE_DOC, REPLACER, name);
-    ItemIterable<QueryResult> results = session.query(cmisQuery, false);
-    String objectId = StringUtils.EMPTY;
-    for (QueryResult result : results) {
-      objectId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
-    }
-    
-    byte[] newContentByteArray = newContent.getBytes();
-    InputStream stream = new ByteArrayInputStream(newContentByteArray);
-    ContentStream contentStream = new ContentStreamImpl(name, new BigInteger(newContentByteArray), "text/plain", stream);
-    Document documentToUpdate = (Document) session.getObject(objectId);
-    documentToUpdate.setContentStream(contentStream, true);
-  }
-  
-  public void removeDocument(Session session, String name){
-    String cmisQuery = StringUtils.replace(CMIS_TEST_QUERY_CHANGE_DOC, REPLACER, name);
-    ItemIterable<QueryResult> results = session.query(cmisQuery, false);
-    String objectId = StringUtils.EMPTY;
-    for (QueryResult result : results) {
-      objectId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
-    }
-    String repositoryId = session.getRepositoryInfo().getId();
-    ObjectService objectService = session.getBinding().getObjectService();
-    objectService.deleteObject(repositoryId, objectId, true, null);
-  }
-  
-  @Before
-  public void createTestArea()
-    throws Exception
-  {
-    try
-    {
-      cmisClientSession = getCmisClientSession();
-
-      //creating a new folder
-      Folder root = cmisClientSession.getRootFolder();
-      
-      ItemIterable<QueryResult> results = cmisClientSession.query(CMIS_TEST_QUERY, false);
-      for (QueryResult result : results) {
-         String repositoryId = cmisClientSession.getRepositoryInfo().getId();
-        String folderId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
-        cmisClientSession.getBinding().getObjectService().deleteTree(repositoryId, folderId, true, null, false, null);
-      }
-
-      Map<String, Object> folderProperties = new HashMap<String, Object>();
-      folderProperties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
-      folderProperties.put(PropertyIds.NAME, "testdata");
-  
-      Folder newFolder = root.createFolder(folderProperties);
-
-      String name = "testdata1.txt";
-      createNewDocument(newFolder, name);
-      
-      name = "testdata2.txt";
-      createNewDocument(newFolder,name);
-      
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-      throw e;
-    }
-  }
-  
-  @After
-  public void removeTestArea()
-    throws Exception
-  {
-    // we don't need to remove anything
-  }
   
   @Test
   public void sanityCheck()
@@ -206,15 +59,15 @@ public class APISanityDerbyIT extends BaseDerby
       connectionObject = new ConfigurationNode("repositoryconnection");
       
       child = new ConfigurationNode("name");
-      child.setValue("CMIS Connection");
+      child.setValue("Test Connection");
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("class_name");
-      child.setValue("org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector");
+      child.setValue("org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector");
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("description");
-      child.setValue("CMIS Connection");
+      child.setValue("Test Connection");
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       child = new ConfigurationNode("max_connections");
@@ -223,56 +76,23 @@ public class APISanityDerbyIT extends BaseDerby
       
       child = new ConfigurationNode("configuration");
       
-      //CMIS Repository Connector parameters
+      //Testing Repository Connector parameters
       
-      //binding
+      // MHL
+      
+      /*
       ConfigurationNode cmisBindingNode = new ConfigurationNode("_PARAMETER_");
       cmisBindingNode.setAttribute("name", CmisConfig.BINDING_PARAM);
       cmisBindingNode.setValue(CmisConfig.BINDING_DEFAULT_VALUE);
       child.addChild(child.getChildCount(), cmisBindingNode);
-      
-      //username
-      ConfigurationNode cmisUsernameNode = new ConfigurationNode("_PARAMETER_");
-      cmisUsernameNode.setAttribute("name", CmisConfig.USERNAME_PARAM);
-      cmisUsernameNode.setValue(CmisConfig.USERNAME_DEFAULT_VALUE);
-      child.addChild(child.getChildCount(), cmisUsernameNode);
-      
-      //password
-      ConfigurationNode cmisPasswordNode = new ConfigurationNode("_PARAMETER_");
-      cmisPasswordNode.setAttribute("name", CmisConfig.PASSWORD_PARAM);
-      cmisPasswordNode.setValue(CmisConfig.PASSWORD_DEFAULT_VALUE);
-      child.addChild(child.getChildCount(), cmisPasswordNode);
-      
-      //protocol
-      ConfigurationNode cmisProtocolNode = new ConfigurationNode("_PARAMETER_");
-      cmisProtocolNode.setAttribute("name", CmisConfig.PROTOCOL_PARAM);
-      cmisProtocolNode.setValue(CmisConfig.PROTOCOL_DEFAULT_VALUE);
-      child.addChild(child.getChildCount(), cmisProtocolNode);
-      
-      //server
-      ConfigurationNode cmisServerNode = new ConfigurationNode("_PARAMETER_");
-      cmisServerNode.setAttribute("name", CmisConfig.SERVER_PARAM);
-      cmisServerNode.setValue(CmisConfig.SERVER_DEFAULT_VALUE);
-      child.addChild(child.getChildCount(), cmisServerNode);
-      
-      //port
-      ConfigurationNode cmisPortNode = new ConfigurationNode("_PARAMETER_");
-      cmisPortNode.setAttribute("name", CmisConfig.PORT_PARAM);
-      cmisPortNode.setValue(CmisConfig.PORT_DEFAULT_VALUE);
-      child.addChild(child.getChildCount(), cmisPortNode);
-      
-      //path
-      ConfigurationNode cmisPathNode = new ConfigurationNode("_PARAMETER_");
-      cmisPathNode.setAttribute("name", CmisConfig.PATH_PARAM);
-      cmisPathNode.setValue(CmisConfig.PATH_DEFAULT_VALUE);
-      child.addChild(child.getChildCount(), cmisPathNode);
+      */
       
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       requestObject = new Configuration();
       requestObject.addChild(0,connectionObject);
       
-      result = performAPIPutOperationViaNodes("repositoryconnections/CMIS%20Connection",201,requestObject);
+      result = performAPIPutOperationViaNodes("repositoryconnections/Test%20Connection",201,requestObject);
       
       i = 0;
       while (i < result.getChildCount())
@@ -346,7 +166,7 @@ public class APISanityDerbyIT extends BaseDerby
       jobObject.addChild(jobObject.getChildCount(),child);
 
       child = new ConfigurationNode("repository_connection");
-      child.setValue("CMIS Connection");
+      child.setValue("Test Connection");
       jobObject.addChild(jobObject.getChildCount(),child);
 
       child = new ConfigurationNode("output_connection");
@@ -367,12 +187,6 @@ public class APISanityDerbyIT extends BaseDerby
 
       child = new ConfigurationNode("document_specification");
       
-      
-      //Job configuration
-      ConfigurationNode sn = new ConfigurationNode("startpoint");
-      sn.setAttribute("cmisQuery",CMIS_TEST_QUERY);
-      
-      child.addChild(child.getChildCount(),sn);
       jobObject.addChild(jobObject.getChildCount(),child);
       
       requestObject = new Configuration();
@@ -404,48 +218,6 @@ public class APISanityDerbyIT extends BaseDerby
       if (count != 3)
         throw new ManifoldCFException("Wrong number of documents processed - expected 3, saw "+new Long(count).toString());
       
-      // Add a file and recrawl
-      Folder testFolder = getTestFolder(cmisClientSession);
-      createNewDocument(testFolder, "testdata3.txt");
-      createNewDocument(testFolder, "testdata4.txt");
-
-      // Now, start the job, and wait until it completes.
-      startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
-
-      // The test data area has 4 documents and one directory, and we have to count the root directory too.
-      count = getJobDocumentsProcessed(jobIDString);
-      if (count != 5)
-        throw new ManifoldCFException("Wrong number of documents processed after add - expected 5, saw "+new Long(count).toString());
-
-      // Change a document, and recrawl
-      changeDocument(cmisClientSession,"testdata1.txt","MODIFIED - CMIS Testdata - MODIFIED");
-      
-      // Now, start the job, and wait until it completes.
-      startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
-
-      // The test data area has 4 documents and one directory, and we have to count the root directory too.
-      count = getJobDocumentsProcessed(jobIDString);
-      if (count != 5)
-        throw new ManifoldCFException("Wrong number of documents processed after change - expected 5, saw "+new Long(count).toString());
-      
-      // We also need to make sure the new document was indexed.  Have to think about how to do this though.
-      // MHL
-      
-      // Delete a file, and recrawl
-      removeDocument(cmisClientSession, "testdata2.txt");
-      
-      // Now, start the job, and wait until it completes.
-      startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
-
-      // Check to be sure we actually processed the right number of documents.
-      // The test data area has 3 documents and one directory, and we have to count the root directory too.
-      count = getJobDocumentsProcessed(jobIDString);
-      if (count != 4)
-        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
-
       // Now, delete the job.
       deleteJob(jobIDString);
 

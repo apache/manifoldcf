@@ -16,21 +16,37 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.elasticsearch_tests;
+package org.apache.manifoldcf.agents.output.elasticsearch.tests;
 
-/** Tests that run the "agents daemon" should be derived from this */
-public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIDerby
+import org.elasticsearch.node.Node;
+import org.junit.After;
+import org.junit.Before;
+
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
+
+import static org.elasticsearch.node.NodeBuilder.*;
+
+/**  
+ *  Base integration tests class for Elastic Search tested against a CMIS repository
+ *  @author Piergiorgio Lucidi
+ * 
+ * */
+public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
 {
+  protected Node node = null;
+
   protected String[] getConnectorNames()
   {
-    return new String[]{"CMIS Connector"};
+    return new String[]{"CMIS"};
   }
   
   protected String[] getConnectorClasses()
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector"};
+    return new String[]{"org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector"};
   }
-  
+
   protected String[] getOutputNames()
   {
     return new String[]{"ElasticSearch"};
@@ -41,14 +57,22 @@ public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBa
     return new String[]{"org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnector"};
   }
 
-  protected String[] getAuthorityClasses()
+  @Before
+  public void setupElasticSearch()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"};
+    //Initialize ElasticSearch server
+    //the default port is 9200
+    System.out.println("ElasticSearch is starting...");
+    node = nodeBuilder().local(true).node();
+    System.out.println("ElasticSearch is started on port 9200");
   }
   
-  protected String[] getAuthorityNames()
-  {
-    return new String[]{"CMIS authority"};
+  
+  @After
+  public void cleanUpElasticSearch(){
+    if(node!=null)
+      node.close();
   }
-
+  
 }
