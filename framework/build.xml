@@ -1593,6 +1593,7 @@
         <copy todir="dist/test-lib">
             <fileset dir="../lib">
                 <include name="junit*.jar"/>
+                <include name="juli*.jar"/>
             </fileset>
             <fileset dir="build/test-jar">
                 <include name="mcf-core-tests.jar"/>

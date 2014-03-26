@@ -57,7 +57,7 @@ public class SchedulerHSQLDBTest extends ConnectorBaseHSQLDB
   @Override
   protected String[] getOutputClasses()
   {
-    return new String[]{"org.apache.manifoldcf.crawler.tests.TestingOutputConnector"};
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
   }
   
   @Override
