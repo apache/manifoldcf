@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.opensearchserver_tests;
+package org.apache.manifoldcf.agents.output.opensearchserver.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -114,7 +114,7 @@ public class NavigationDerbyUI extends BaseUIDerby
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
     selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
-    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"));
+    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector"));
     button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
     button.click();
     // Visit the Throttling tab

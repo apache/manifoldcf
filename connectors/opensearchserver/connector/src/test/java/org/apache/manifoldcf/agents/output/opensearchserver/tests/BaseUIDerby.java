@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.opensearchserver_tests;
+package org.apache.manifoldcf.agents.output.opensearchserver.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -32,12 +32,12 @@ public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBa
 {
   protected String[] getConnectorNames()
   {
-    return new String[]{"File Connector"};
+    return new String[]{"Test Connector"};
   }
   
   protected String[] getConnectorClasses()
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"};
+    return new String[]{"org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector"};
   }
   
   protected String[] getOutputNames()
