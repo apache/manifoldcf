@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.nullauthority_tests;
+package org.apache.manifoldcf.authorities.authorities.nullauthority.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -58,9 +58,22 @@ public class NavigationDerbyUI extends BaseUIDerby
     textarea.setValue(testerInstance.createStringDescription("admin"));
     button = window.findButton(testerInstance.createStringDescription("Login"));
     button.click();
-    window = testerInstance.findWindow(null);
-
+    
     // Define an authority connection via the UI
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("List authority groups"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Add new authority group"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editgroup"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("groupname"));
+    textarea.setValue(testerInstance.createStringDescription("MyAuthorityConnection"));
+    button = window.findButton(testerInstance.createStringDescription("Save this authority group"));
+    button.click();
+
+    window = testerInstance.findWindow(null);
     link = window.findLink(testerInstance.createStringDescription("List authorities"));
     link.click();
     window = testerInstance.findWindow(null);
@@ -78,6 +91,8 @@ public class NavigationDerbyUI extends BaseUIDerby
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
     selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
     selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("authoritygroup"));
+    selectbox.selectValue(testerInstance.createStringDescription("MyAuthorityConnection"));
     button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
     button.click();
     // Go back to the Name tab
