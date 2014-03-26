@@ -30,8 +30,6 @@ import java.nio.charset.Charset;
 /** Connector class to be used by general integration tests that need documents */
 public class TestingRepositoryConnector extends org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector
 {
-  protected final static String[] documents = new String[]{"test1.txt","test2.txt","test3.txt"};
-  
   private final static Charset UTF_8 = Charset.forName("UTF-8");
   
   public TestingRepositoryConnector()
@@ -43,8 +41,18 @@ public class TestingRepositoryConnector extends org.apache.manifoldcf.crawler.co
     long startTime, long endTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
   {
-    for (String doc : documents)
+    String docCount = "3";
+    for (int i = 0; i < spec.getChildCount(); i++)
     {
+      SpecificationNode sn = spec.getChild(i);
+      if (sn.getType().equals("documentcount"))
+        docCount = sn.getAttributeValue("count");
+    }
+    int count = Integer.parseInt(docCount);
+    
+    for (int i = 0; i < count; i++)
+    {
+      String doc = "test"+i+".txt";
       activities.addSeedDocument(doc,null);
     }
   }

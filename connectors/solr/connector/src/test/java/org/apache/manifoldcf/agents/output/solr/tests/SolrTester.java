@@ -50,7 +50,7 @@ public class SolrTester
     IRepositoryConnection conn = mgr.create();
     conn.setName("Test Connection");
     conn.setDescription("Test Connection");
-    conn.setClassName("org.apache.manifoldcf.crawler.tests.TestRepositoryConnector");
+    conn.setClassName("org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector");
     conn.setMaxConnections(100);
     // Now, save
     mgr.save(conn);
@@ -79,7 +79,7 @@ public class SolrTester
     IJobManager jobManager = JobManagerFactory.make(tc);
     IJobDescription job = jobManager.createJob();
     job.setDescription("Test Job");
-    job.setConnectionName("File Connection");
+    job.setConnectionName("Test Connection");
     job.setOutputConnectionName("Solr Connection");
     job.setType(job.TYPE_SPECIFIED);
     job.setStartMethod(job.START_DISABLE);
