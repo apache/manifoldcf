@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.alfresco_tests;
+package org.apache.manifoldcf.crawler.connectors.alfresco.tests;
 
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -32,7 +32,7 @@ import org.junit.Before;
  *  @author Piergiorgio Lucidi
  * 
  * */
-public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
+public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
 {
   protected Server alfrescoServer = null;
 
@@ -54,7 +54,7 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
   
   protected String[] getOutputClasses()
   {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
   }
   
   // Setup/teardown

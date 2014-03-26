@@ -17,7 +17,7 @@
 * limitations under the License.
 */
 
-package org.apache.manifoldcf.alfresco_tests;
+package org.apache.manifoldcf.crawler.connectors.alfresco.tests;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -55,7 +55,7 @@ import org.junit.Test;
 /**
  * @author Piergiorgio Lucidi
  */
-public class APISanityIT extends BaseDerby
+public class APISanityIT extends BaseITDerby
 {
   
   private static final String REPLACER = "?";
@@ -396,7 +396,7 @@ public class APISanityIT extends BaseDerby
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("class_name");
-      child.setValue("org.apache.manifoldcf.agents.output.nullconnector.NullConnector");
+      child.setValue("org.apache.manifoldcf.agents.tests.TestingOutputConnector");
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("description");
