@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.cmis_tests;
+package org.apache.manifoldcf.crawler.connectors.cmis.tests;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -51,7 +51,7 @@ import org.junit.Test;
 /**
  * @author Piergiorgio Lucidi
  */
-public class APISanityIT extends BaseDerby
+public class APISanityIT extends BaseITDerby
 {
   private static final String REPLACER = "?";
   private static final String CMIS_TEST_QUERY_CHANGE_DOC = "SELECT * FROM cmis:document WHERE cmis:name='"+REPLACER+"'";
@@ -290,7 +290,7 @@ public class APISanityIT extends BaseDerby
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("class_name");
-      child.setValue("org.apache.manifoldcf.agents.output.nullconnector.NullConnector");
+      child.setValue("org.apache.manifoldcf.agents.tests.TestingOutputConnector");
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("description");

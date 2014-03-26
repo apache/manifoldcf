@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.cmis_tests;
+package org.apache.manifoldcf.crawler.connectors.cmis.tests;
 
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.junit.After;
@@ -27,7 +27,7 @@ import org.junit.Before;
  *  @author Piergiorgio Lucidi
  * 
  * */
-public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
+public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
 {
   protected CMISServer cmisServer = null;
 
@@ -49,7 +49,7 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
   
   protected String[] getOutputClasses()
   {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
   }
   
   // Setup/teardown
