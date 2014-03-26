@@ -17,6 +17,8 @@
 
 <project name="mcf-connector-build">
 
+    <property environment="env"/>
+
     <import file="common-build.xml"/>
     
     <target name="clean">
@@ -770,6 +772,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -790,6 +795,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -810,6 +818,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -830,6 +841,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -850,6 +864,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web-proprietary/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web-proprietary/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -870,6 +887,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -890,6 +910,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -910,6 +933,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -930,6 +956,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -950,6 +979,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web-proprietary/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web-proprietary/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -970,6 +1002,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -990,6 +1025,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -1010,6 +1048,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -1030,6 +1071,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
@@ -1050,6 +1094,9 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web-proprietary/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web-proprietary/war/mcf-combined-service.war"/>
             <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
