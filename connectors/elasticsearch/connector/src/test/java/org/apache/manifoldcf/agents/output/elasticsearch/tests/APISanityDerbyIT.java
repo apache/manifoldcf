@@ -29,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.core.interfaces.Configuration;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.apache.manifoldcf.crawler.connectors.cmis.CmisConfig;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.junit.After;
 import org.junit.Before;
@@ -38,7 +37,7 @@ import org.junit.Test;
 /**
  * @author Piergiorgio Lucidi
  */
-public class APISanityDerbyIT extends BaseDerby
+public class APISanityDerbyIT extends BaseITDerby
 {
   
   @Test
