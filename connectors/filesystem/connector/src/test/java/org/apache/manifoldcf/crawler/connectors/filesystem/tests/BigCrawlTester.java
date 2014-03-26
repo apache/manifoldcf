@@ -112,7 +112,7 @@ public class BigCrawlTester
     IOutputConnection outputConn = outputMgr.create();
     outputConn.setName("Null Connection");
     outputConn.setDescription("Null Connection");
-    outputConn.setClassName("org.apache.manifoldcf.agents.output.nullconnector.NullConnector");
+    outputConn.setClassName("org.apache.manifoldcf.agents.tests.TestingOutputConnector");
     outputConn.setMaxConnections(100);
     // Now, save
     outputMgr.save(outputConn);

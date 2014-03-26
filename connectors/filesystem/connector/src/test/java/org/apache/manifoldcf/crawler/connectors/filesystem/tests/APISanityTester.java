@@ -103,7 +103,7 @@ public class APISanityTester
     connectionObject.addChild(connectionObject.getChildCount(),child);
       
     child = new ConfigurationNode("class_name");
-    child.setValue("org.apache.manifoldcf.agents.output.nullconnector.NullConnector");
+    child.setValue("org.apache.manifoldcf.agents.tests.TestingOutputConnector");
     connectionObject.addChild(connectionObject.getChildCount(),child);
       
     child = new ConfigurationNode("description");
