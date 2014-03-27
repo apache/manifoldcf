@@ -144,6 +144,19 @@
       <!-- Test plugin configuration -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/*Postgresql*.java</exclude>
+            <exclude>**/*MySQL*.java</exclude>
+          </excludes>
+          <forkMode>always</forkMode>
+          <workingDirectory>target/test-output</workingDirectory>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>2.12.3</version>
         <configuration>
