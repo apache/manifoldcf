@@ -43,8 +43,20 @@
           <include>**/*.properties</include>
         </includes>
       </resource>
+      <resource>
+        <directory>${basedir}/connector/src/main/resources</directory>
+        <includes>
+          <include>**/*.html</include>
+          <include>**/*.js</include>
+        </includes>
+      </resource>
     </resources> 
-
+    <testResources>
+      <testResource>
+        <directory>${basedir}/connector/src/test/resources</directory>
+      </testResource>
+    </testResources>
+    
     <plugins>
 
       <plugin>
