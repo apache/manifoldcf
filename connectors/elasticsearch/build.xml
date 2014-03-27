@@ -75,8 +75,8 @@
     <path id="connector-test-classpath">
         <path refid="mcf-connector-build.connector-test-classpath"/>
         <fileset dir="test-materials-proprietary/elasticsearch-1.0.1">
-            <include name="elasticsearch*/lib/*.jar"/>
-        	  <include name="elasticsearch*/plugins/mapper-attachments/*.jar"/>
+            <include name="lib/*.jar"/>
+        	  <include name="plugins/mapper-attachments/*.jar"/>
         </fileset>
     </path>
 
