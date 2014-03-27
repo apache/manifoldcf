@@ -56,15 +56,9 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="lib-proprietary" includes="*.jar"/>
         <fileset dir="../../lib">
-            <include name="axis*.jar"/>	
-            <include name="saaj*.jar"/>	
-            <include name="commons-discovery*.jar"/>
             <include name="jaxrpc*.jar"/>
             <include name="opensaml*.jar"/>
-            <include name="wsdl4j*.jar"/>
             <include name="wss4j*.jar"/>
-            <!--include name="xalan*.jar"/-->
-            <!--include name="xercesImpl*.jar"/-->
             <include name="xmlsec*.jar"/>
         </fileset>
     </path>
@@ -72,21 +66,16 @@
     <path id="connector-test-classpath">
         <path refid="mcf-connector-build.connector-test-classpath"/>
         <fileset file="../../lib/h2*.jar"/>
+        <fileset file="lib-proprietary/alfresco-web-service-client*.jar"/>
     </path>
     
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="../../lib">
-                <include name="axis*.jar"/>	
-                <include name="saaj*.jar"/>	
-                <include name="commons-discovery*.jar"/>
                 <include name="jaxrpc*.jar"/>
                 <include name="opensaml*.jar"/>
-                <include name="wsdl4j*.jar"/>
                 <include name="wss4j*.jar"/>
-                <!--include name="xalan*.jar"/-->
-                <!--include name="xercesImpl*.jar"/-->
                 <include name="xmlsec*.jar"/>
             </fileset>
         </copy>
@@ -94,15 +83,6 @@
         <copy todir="dist/lib-proprietary-only">
             <fileset dir="lib-proprietary">
                 <include name="alfresco-web-service-client*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
-    <target name="build-test-materials" depends="pretest-check" if="canTest">
-        <mkdir dir="build/alfresco-4-war"/>
-        <copy todir="build/alfresco-4-war">
-            <fileset dir="test-materials-proprietary">
-                <include name="alfresco*.war"/>
             </fileset>
         </copy>
     </target>
@@ -124,6 +104,35 @@
             <param name="connector-label" value="Alfresco"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.alfresco.AlfrescoRepositoryConnector"/>
         </antcall>
+    </target>
+
+    <target name="run-IT-derby" depends="compile-tests,pretest-check" if="canTest">
+        <mkdir dir="test-derby-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <jvmarg value="-DalfrescoServerWarPath=../test-materials-proprietary/alfresco.war"/>
+            <jvmarg value="-Xms512m"/>
+            <jvmarg value="-Xmx1024m"/>
+            <jvmarg value="-Xss1024k"/>
+            <jvmarg value="-XX:MaxPermSize=256m"/>
+            <jvmarg value="-XX:NewSize=256m"/>
+            <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-derby-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*DerbyIT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
     </target>
 
 </project>
