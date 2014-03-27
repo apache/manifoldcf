@@ -1233,63 +1233,63 @@
         <connectors-crawl target="run-tests-mysql"/>
     </target>
 
-    <target name="run-connectors-IT-tests-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-IT-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-IT-derby"/>
     </target>
 
-    <target name="run-connectors-IT-tests-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-IT-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-IT-HSQLDB"/>
     </target>
 
-    <target name="run-connectors-IT-tests-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-IT-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-IT-HSQLDBext"/>
     </target>
 
-    <target name="run-connectors-IT-tests-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-IT-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-IT-postgresql"/>
     </target>
 
-    <target name="run-connectors-IT-tests-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-IT-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-IT-mysql"/>
     </target>
 
-    <target name="run-connectors-UI-tests-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-UI-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-UI-derby"/>
     </target>
 
-    <target name="run-connectors-UI-tests-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-UI-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-UI-HSQLDB"/>
     </target>
 
-    <target name="run-connectors-UI-tests-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-UI-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-UI-HSQLDBext"/>
     </target>
 
-    <target name="run-connectors-UI-tests-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-UI-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-UI-postgresql"/>
     </target>
 
-    <target name="run-connectors-UI-tests-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-UI-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-UI-mysql"/>
     </target>
 
-    <target name="run-connectors-LT-tests-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-LT-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-LT-derby"/>
     </target>
 
-    <target name="run-connectors-LT-tests-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-LT-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-LT-HSQLDB"/>
     </target>
 
-    <target name="run-connectors-LT-tests-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-LT-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-LT-HSQLDBext"/>
     </target>
 
-    <target name="run-connectors-LT-tests-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-LT-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-LT-postgresql"/>
     </target>
 
-    <target name="run-connectors-LT-tests-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-LT-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
         <connectors-crawl target="run-LT-mysql"/>
     </target>
 
@@ -2571,7 +2571,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <delete dir="lib"/>
     </target>
 
-    <target name="clean-deps" depends="download-proprietary-cleanup,download-connectors-cleanup">
+    <target name="clean-deps" depends="download-proprietary-cleanup,cleanup-connectors-dependencies">
         <ant dir="site" target="download-cleanup"/>
     </target>
     
