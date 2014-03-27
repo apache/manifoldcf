@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.wiki_tests;
+package org.apache.manifoldcf.crawler.connectors.wiki.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -28,7 +28,7 @@ import java.util.*;
 import org.junit.*;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
+public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIDerby
 {
   protected MockWikiService wikiService = null;
   
@@ -49,7 +49,7 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
   
   protected String[] getOutputClasses()
   {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
   }
   
   // Setup and teardown the mock wiki service
@@ -58,7 +58,7 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
   public void createWikiService()
     throws Exception
   {
-    wikiService = new MockWikiService(getClass());
+    wikiService = new MockWikiService(BaseUIDerby.class);
     wikiService.start();
   }
   

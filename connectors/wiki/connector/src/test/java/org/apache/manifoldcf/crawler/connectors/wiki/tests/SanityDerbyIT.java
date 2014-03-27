@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.wiki_tests;
+package org.apache.manifoldcf.crawler.connectors.wiki.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -30,7 +30,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class SanityDerbyIT extends BaseDerby
+public class SanityDerbyIT extends BaseITDerby
 {
   protected static Map<String,String> initialCheckResources;
   protected static Map<String,String> initialListResources;
@@ -153,7 +153,7 @@ public class SanityDerbyIT extends BaseDerby
       IOutputConnection outputConn = outputMgr.create();
       outputConn.setName("Null Connection");
       outputConn.setDescription("Null Connection");
-      outputConn.setClassName("org.apache.manifoldcf.agents.output.nullconnector.NullConnector");
+      outputConn.setClassName("org.apache.manifoldcf.agents.tests.TestingOutputConnector");
       outputConn.setMaxConnections(100);
       // Now, save
       outputMgr.save(outputConn);
