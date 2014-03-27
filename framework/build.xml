@@ -17,7 +17,7 @@
 
 <project default="all">
 
-    <import file="buildfiles/common-build.xml"/>
+    <import file="../common-build.xml"/>
     
     <target name="clean">
       <delete dir="build"/>

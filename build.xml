@@ -19,7 +19,7 @@
 
     <import file="site-options.xml" optional="true"/>
 
-    <import file="framework/buildfiles/common-build.xml"/>
+    <import file="common-build.xml"/>
     
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
@@ -1086,7 +1086,6 @@
         <copy todir="dist">
             <fileset dir="framework/dist">
                 <include name="connector-build.xml"/>
-                <include name="common-build.xml"/>
             </fileset>
         </copy>
         <mkdir dir="dist/web"/>
