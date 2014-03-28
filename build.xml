@@ -1188,11 +1188,11 @@
 
     <!-- Generic connector targets -->
     
-    <target name="download-connectors-dependencies">
+    <target name="download-connectors-dependencies" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="download-dependencies"/>
     </target>
 
-    <target name="cleanup-connectors-dependencies">
+    <target name="cleanup-connectors-dependencies" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="download-cleanup"/>
     </target>
 
@@ -1294,7 +1294,7 @@
 
     <!-- General connectors utility targets -->
     
-    <target name="clean-connectors">
+    <target name="clean-connectors" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="clean"/>
     </target>
     
