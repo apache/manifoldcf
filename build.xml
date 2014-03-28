@@ -1061,6 +1061,12 @@
           </copy>
     </target>
 
+    <target name="preclean-registry">
+        <mkdir dir="dist"/>
+        <delete file="dist/connectors.xml"/>
+        <delete file="dist/connectors-proprietary.xml"/>
+    </target>
+
     <target name="preclean-for-delivery">
         <mkdir dir="dist"/>
         <mkdir dir="dist/example"/>
@@ -1069,8 +1075,6 @@
         <mkdir dir="dist/multiprocess-zk-example"/>
         <mkdir dir="dist/multiprocess-file-example-proprietary"/>
         <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
-        <delete file="dist/connectors.xml"/>
-        <delete file="dist/connectors-proprietary.xml"/>
         <delete file="dist/example/properties.xml"/>
         <delete file="dist/example-proprietary/properties.xml"/>
         <delete file="dist/multiprocess-file-example/properties.xml"/>
@@ -1170,10 +1174,6 @@
         </copy>
     </target>
 
-    <target name="deliver-framework-test-jars" depends="deliver-framework" if="downloaded">
-        <!-- MHL -->
-    </target>
-    
     <!-- Connector crawler.  This iterates over all connector makefiles, invoking the specified target of each. -->
     <macrodef name="connectors-crawl">
         <attribute name="target" default=""/>
@@ -1196,7 +1196,7 @@
         <connectors-crawl target="download-cleanup"/>
     </target>
 
-    <target name="deliver-connectors" depends="deliver-framework" if="downloaded">
+    <target name="deliver-connectors" depends="preclean-registry,deliver-framework" if="downloaded">
         <connectors-crawl target="deliver-connector"/>
     </target>
     
@@ -1204,91 +1204,87 @@
         <connectors-crawl target="deliver-connector-doc"/>
     </target>
 
-    <target name="deliver-connectors-test-jars" depends="deliver-connectors,deliver-framework-test-jars" if="downloaded">
-        <connectors-crawl target="deliver-connector-test-jars"/>
-    </target>
-    
-    <target name="run-connectors-tests" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-tests" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-tests"/>
     </target>
 
-    <target name="run-connectors-tests-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-tests-derby" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-tests-derby"/>
     </target>
 
-    <target name="run-connectors-tests-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-tests-HSQLDB" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="run-connectors-tests-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-tests-HSQLDBext" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-tests-HSQLDBext"/>
     </target>
 
-    <target name="run-connectors-tests-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-tests-postgresql" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-tests-postgresql"/>
     </target>
 
-    <target name="run-connectors-tests-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-tests-mysql" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-tests-mysql"/>
     </target>
 
-    <target name="run-connectors-IT-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-IT-derby" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-IT-derby"/>
     </target>
 
-    <target name="run-connectors-IT-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-IT-HSQLDB" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-IT-HSQLDB"/>
     </target>
 
-    <target name="run-connectors-IT-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-IT-HSQLDBext" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-IT-HSQLDBext"/>
     </target>
 
-    <target name="run-connectors-IT-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-IT-postgresql" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-IT-postgresql"/>
     </target>
 
-    <target name="run-connectors-IT-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-IT-mysql" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-IT-mysql"/>
     </target>
 
-    <target name="run-connectors-UI-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-UI-derby" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-UI-derby"/>
     </target>
 
-    <target name="run-connectors-UI-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-UI-HSQLDB" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-UI-HSQLDB"/>
     </target>
 
-    <target name="run-connectors-UI-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-UI-HSQLDBext" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-UI-HSQLDBext"/>
     </target>
 
-    <target name="run-connectors-UI-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-UI-postgresql" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-UI-postgresql"/>
     </target>
 
-    <target name="run-connectors-UI-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-UI-mysql" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-UI-mysql"/>
     </target>
 
-    <target name="run-connectors-LT-derby" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-LT-derby" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-LT-derby"/>
     </target>
 
-    <target name="run-connectors-LT-HSQLDB" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-LT-HSQLDB" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-LT-HSQLDB"/>
     </target>
 
-    <target name="run-connectors-LT-HSQLDBext" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-LT-HSQLDBext" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-LT-HSQLDBext"/>
     </target>
 
-    <target name="run-connectors-LT-postgresql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-LT-postgresql" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-LT-postgresql"/>
     </target>
 
-    <target name="run-connectors-LT-mysql" depends="deliver-framework,deliver-framework-test-jars" if="downloaded">
+    <target name="run-connectors-LT-mysql" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-LT-mysql"/>
     </target>
 

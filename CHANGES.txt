@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-913: Only remove connector registration when connectors
+are being delivered.
+(Karl Wright)
+
 CONNECTORS-912: Revamp build system, so that individual connectors
 can build directly against a distribution.  This makes it much easier for
 developers to do their own connectors using our infrastructure, and
