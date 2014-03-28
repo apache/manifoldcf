@@ -73,8 +73,8 @@
 
   <modules>
     <module>framework</module>
-    <module>connectors</module>
     <module>test-materials</module>
+    <module>connectors</module>
     <module>framework/jetty-runner</module>
   </modules>
 
