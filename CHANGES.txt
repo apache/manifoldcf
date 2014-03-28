@@ -3,6 +3,12 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-912: Revamp build system, so that individual connectors
+can build directly against a distribution.  This makes it much easier for
+developers to do their own connectors using our infrastructure, and
+contribute complete working connectors with tests as well.
+(Graeme Seaton, Karl Wright)
+
 CONNECTORS-909: Upgrade to Elasticsearch 1.0.1.
 (Shinichiro Abe)
 
