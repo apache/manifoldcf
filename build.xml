@@ -721,8 +721,19 @@
         <ant dir="connectors/opensearchserver" target="run-tests-HSQLDB"/>
     </target>
 	
-
-
+    <target name="setup-amazoncloudsearch-connector" depends="build-framework" if="downloaded"/>
+<!--
+    <target name="setup-amazoncloudsearch-connector-tests" depends="build-tests-framework" if="downloaded"/>
+-->
+    <target name="build-amazoncloudsearch-connector" depends="setup-amazoncloudsearch-connector" if="downloaded">
+      <ant dir="connectors/amazoncloudsearch" target="build"/>
+    </target>
+<!--
+    <target name="doc-amazoncloudsearch-connector" depends="setup-amazoncloudsearch-connector" if="downloaded">
+        <ant dir="connectors/amazoncloudsearch" target="doc"/>
+    </target>
+-->
+	
     <target name="setup-elasticsearch-connector" depends="build-framework" if="downloaded"/>
 
     <target name="setup-elasticsearch-connector-tests" depends="build-tests-framework" if="downloaded"/>
