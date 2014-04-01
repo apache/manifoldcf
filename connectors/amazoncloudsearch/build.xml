@@ -35,6 +35,9 @@
         <fileset dir="../../lib">
             <include name="httpclient*.jar"/>
             <include name="jackson-core*.jar"/>
+            <include name="jackson-databind*.jar"/>
+        	<include name="jackson-annotations*.jar"/>
+            <include name="tika-core*.jar"/>
         </fileset>
     </path>
 
@@ -44,6 +47,9 @@
             <fileset dir="../../lib">
             	<include name="httpclient*.jar"/>
             	<include name="jackson-core*.jar"/>
+            	<include name="jackson-databind*.jar"/>
+            	<include name="jackson-annotations*.jar"/>
+                <include name="tika-core*.jar"/>
             </fileset>
         </copy>
     </target>
