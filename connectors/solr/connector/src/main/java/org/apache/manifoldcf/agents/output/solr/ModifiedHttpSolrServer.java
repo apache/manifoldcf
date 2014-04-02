@@ -47,6 +47,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.entity.ContentType;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.ResponseParser;
 import org.apache.solr.client.solrj.SolrRequest;
@@ -321,7 +322,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
         shouldClose = false;
         return rsp;
       }
-      String charset = EntityUtils.getContentCharSet(response.getEntity());
+      String charset = ContentType.getOrDefault(response.getEntity()).getCharset().name();
       NamedList<Object> rsp = processor.processResponse(respBody, charset);
       if (httpStatus != HttpStatus.SC_OK) {
         String reason = null;

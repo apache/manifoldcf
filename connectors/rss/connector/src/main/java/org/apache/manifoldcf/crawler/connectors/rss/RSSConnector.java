@@ -1361,13 +1361,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               aclArray[j] = (String)acls.get(j);
               j++;
             }
-            rd.setACL(aclArray);
+            rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray);
 
             // Deny acl too
             if (denyAclBuffer.length() > 0)
             {
               String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-              rd.setDenyACL(denyAclArray);
+              rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
             }
 
             // Grab metadata

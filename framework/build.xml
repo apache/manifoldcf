@@ -18,7 +18,7 @@
 <project default="all">
 
     <import file="../common-build.xml"/>
-
+    
     <target name="clean">
       <delete dir="build"/>
       <delete dir="dist"/>
@@ -31,6 +31,15 @@
     </target>
     
     <path id="framework-classpath">
+        <fileset dir="../lib">
+            <include name="castor*.jar"/>
+            <include name="geronimo-javamail_1.4_spec*.jar"/>
+            <include name="commons-discovery*.jar"/>
+            <include name="axis*.jar"/>
+            <include name="saaj*.jar"/>
+            <include name="wsdl4j*.jar"/>
+            <include name="activation*.jar"/>
+        </fileset>
         <fileset dir="../lib">
             <include name="zookeeper*.jar"/>
             <include name="json*.jar"/>
@@ -49,7 +58,6 @@
             <include name="slf4j*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
-            <include name="junit*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
             <include name="servlet-api*.jar"/>
@@ -72,6 +80,22 @@
         </fileset>
 
     </path>
+
+    <path id="framework-test-classpath">
+        <path refid="framework-classpath"/>
+        <fileset dir="../lib">
+            <include name="junit*.jar"/>
+            <include name="powermock-module-junit4*.jar"/>
+            <include name="powermock-core*.jar"/>
+            <include name="powermock-reflect*.jar"/>
+            <include name="powermock-api-support*.jar"/>
+            <include name="powermock-api-mockito*.jar"/>
+            <include name="mockito-all*.jar"/>
+            <include name="noggit*.jar"/>
+            <include name="javassist*.jar"/>
+            <include name="objenesis*.jar"/>
+        </fileset>
+    </path>
     
     <target name="doc">
         <mkdir dir="dist/doc"/>
@@ -90,7 +114,10 @@
     
     <target name="compile-core">
         <mkdir dir="build/core/classes"/>
-        <javac srcdir="core/src/main/java" destdir="build/core/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <copy todir="build/core/classes">
+            <fileset dir="core/src/main/resources"/>
+        </copy>
+        <javac srcdir="core/src/main/java" destdir="build/core/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
             </classpath>
@@ -99,7 +126,7 @@
 
     <target name="compile-ui-core" depends="compile-core">
         <mkdir dir="build/ui-core/classes"/>
-        <javac srcdir="ui-core/src/main/java" destdir="build/ui-core/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="ui-core/src/main/java" destdir="build/ui-core/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -110,7 +137,7 @@
 
     <target name="compile-agents" depends="compile-core">
         <mkdir dir="build/agents/classes"/>
-        <javac srcdir="agents/src/main/java" destdir="build/agents/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="agents/src/main/java" destdir="build/agents/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -120,7 +147,7 @@
 
     <target name="compile-pull-agent" depends="compile-core,compile-agents">
         <mkdir dir="build/pull-agent/classes"/>
-        <javac srcdir="pull-agent/src/main/java" destdir="build/pull-agent/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="pull-agent/src/main/java" destdir="build/pull-agent/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -131,7 +158,7 @@
 
     <target name="compile-jetty-runner" depends="compile-core,compile-agents">
         <mkdir dir="build/jetty-runner/classes"/>
-        <javac srcdir="jetty-runner/src/main/java" destdir="build/jetty-runner/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="jetty-runner/src/main/java" destdir="build/jetty-runner/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -143,7 +170,7 @@
 
     <target name="compile-script-engine" depends="compile-core">
         <mkdir dir="build/script-engine/classes"/>
-        <javac srcdir="script-engine/src/main/java" destdir="build/script-engine/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="script-engine/src/main/java" destdir="build/script-engine/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -153,7 +180,7 @@
 
     <target name="compile-authority-servlet" depends="compile-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/authority-servlet/classes"/>
-        <javac srcdir="authority-servlet/src/main/java" destdir="build/authority-servlet/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="authority-servlet/src/main/java" destdir="build/authority-servlet/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -165,7 +192,7 @@
 
     <target name="compile-authority-service" depends="compile-core,compile-agents,compile-pull-agent,compile-authority-servlet">
         <mkdir dir="build/authority-service/classes"/>
-        <javac srcdir="authority-service/src/main/java" destdir="build/authority-service/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="authority-service/src/main/java" destdir="build/authority-service/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -178,7 +205,7 @@
 
     <target name="compile-api-servlet" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/api-servlet/classes"/>
-        <javac srcdir="api-servlet/src/main/java" destdir="build/api-servlet/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="api-servlet/src/main/java" destdir="build/api-servlet/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -191,7 +218,7 @@
 
     <target name="compile-api-service" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-api-servlet">
         <mkdir dir="build/api-service/classes"/>
-        <javac srcdir="api-service/src/main/java" destdir="build/api-service/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="api-service/src/main/java" destdir="build/api-service/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -205,7 +232,7 @@
 
     <target name="compile-combined-service" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-api-servlet,compile-authority-servlet">
         <mkdir dir="build/combined-service/classes"/>
-        <javac srcdir="combined-service/src/main/java" destdir="build/combined-service/classes" target="1.6" source="1.6" encoding="utf-8" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="combined-service/src/main/java" destdir="build/combined-service/classes" deprecation="true" target="1.6" source="1.6" encoding="utf-8" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -220,7 +247,7 @@
 
     <target name="compile-crawler-ui" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="crawler-ui/src/main/java" destdir="build/crawler-ui/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="crawler-ui/src/main/java" destdir="build/crawler-ui/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -246,7 +273,7 @@
         <jasper2 validateXml="false" uriroot="crawler-ui/src/main/webapp" webXmlFragment="build/crawler-ui/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <path refid="framework-classpath"/>
@@ -310,6 +337,15 @@
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
@@ -349,6 +385,15 @@
     <target name="webapp-authority-service-proprietary" depends="jar-core,jar-agents,jar-pull-agent,jar-authority-servlet,compile-authority-service">
         <mkdir dir="build/webapp/authority-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -395,6 +440,15 @@
         <mkdir dir="build/webapp/api-service/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
@@ -435,6 +489,15 @@
     <target name="webapp-api-service-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,compile-api-service">
         <mkdir dir="build/webapp/api-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -481,6 +544,15 @@
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
@@ -530,6 +602,15 @@
       <target name="webapp-crawler-ui-proprietary" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
@@ -587,6 +668,15 @@
         <mkdir dir="build/webapp/combined-service/WEB-INF/lib"/>
         <copy todir="build/webapp/combined-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -637,6 +727,15 @@
       <target name="webapp-combined-service-proprietary" depends="compile-combined-service,jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,jar-authority-servlet">
         <mkdir dir="build/webapp/combined-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/combined-service-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
@@ -746,9 +845,26 @@
         </copy>
     </target>
 
+    <target name="buildfiles">
+        <mkdir dir="dist"/>
+        <copy todir="dist">
+            <fileset dir="buildfiles"/>
+        </copy>
+    </target>
+    
+
     <target name="lib" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,jar-script-engine">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -915,6 +1031,15 @@
     </target>
     
     <target name="setup-jetty-processes" depends="preclean-jetty-processes,scripts-jetty">
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="castor.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="geronimo-javamail_1.4_spec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="commons-discovery.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="axis-jaxrpc.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="axis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="wsdl4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="saaj-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="saaj-impl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="activation.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="zookeeper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="json.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="json-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -948,6 +1073,15 @@
     </target>
 
     <target name="setup-combined-processes" depends="preclean-combined-processes,scripts-combined">
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="castor.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="geronimo-javamail_1.4_spec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="commons-discovery.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="axis-jaxrpc.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="axis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="wsdl4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="saaj-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="saaj-impl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="activation.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="zookeeper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="json.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="json-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -981,6 +1115,15 @@
     </target>
 
     <target name="setup-processes" depends="preclean-processes,scripts">
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="castor.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="geronimo-javamail_1.4_spec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="commons-discovery.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="axis-jaxrpc.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="axis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="wsdl4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="saaj-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="saaj-impl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="activation.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="zookeeper.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="json.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="json-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -1262,7 +1405,17 @@
         <property name="manifest-cp-61" value="${manifest-cp-60} ../lib/httpclient.jar"/>
         <property name="manifest-cp-62" value="${manifest-cp-61} ../lib/mail.jar"/>
         <property name="manifest-cp-63" value="${manifest-cp-62} ../lib/zookeeper.jar"/>
-        <property name="manifest-cp" value="${manifest-cp-63}"/>
+        <property name="manifest-cp-64" value="${manifest-cp-63} ../lib/castor.jar"/>
+        <property name="manifest-cp-65" value="${manifest-cp-64} ../lib/geronimo-javamail_1.4_spec.jar"/>
+        <property name="manifest-cp-66" value="${manifest-cp-65} ../lib/commons-discovery.jar"/>
+        <property name="manifest-cp-67" value="${manifest-cp-66} ../lib/axis-jaxrpc.jar"/>
+        <property name="manifest-cp-68" value="${manifest-cp-67} ../lib/axis.jar"/>
+        <property name="manifest-cp-69" value="${manifest-cp-68} ../lib/wsdl4j.jar"/>
+        <property name="manifest-cp-70" value="${manifest-cp-69} ../lib/saaj-api.jar"/>
+        <property name="manifest-cp-71" value="${manifest-cp-70} ../lib/saaj-impl.jar"/>
+        <property name="manifest-cp-72" value="${manifest-cp-71} ../lib/activation.jar"/>
+
+        <property name="manifest-cp" value="${manifest-cp-72}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1355,8 +1508,18 @@
         <property name="manifest-cp-proprietary-62" value="${manifest-cp-proprietary-61} ../lib/httpcore.jar"/>
         <property name="manifest-cp-proprietary-63" value="${manifest-cp-proprietary-62} ../lib/httpclient.jar"/>
         <property name="manifest-cp-proprietary-64" value="${manifest-cp-proprietary-63} ../lib/mail.jar"/>
-        <property name="manifest-cp-proprietary-65" value="${manifest-cp-proprietary-63} ../lib/zookeeper.jar"/>
-        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-65}"/>
+        <property name="manifest-cp-proprietary-65" value="${manifest-cp-proprietary-64} ../lib/zookeeper.jar"/>
+        <property name="manifest-cp-proprietary-66" value="${manifest-cp-proprietary-65} ../lib/castor.jar"/>
+        <property name="manifest-cp-proprietary-67" value="${manifest-cp-proprietary-66} ../lib/geronimo-javamail_1.4_spec.jar"/>
+        <property name="manifest-cp-proprietary-68" value="${manifest-cp-proprietary-67} ../lib/commons-discovery.jar"/>
+        <property name="manifest-cp-proprietary-69" value="${manifest-cp-proprietary-68} ../lib/axis-jaxrpc.jar"/>
+        <property name="manifest-cp-proprietary-70" value="${manifest-cp-proprietary-69} ../lib/axis.jar"/>
+        <property name="manifest-cp-proprietary-71" value="${manifest-cp-proprietary-70} ../lib/wsdl4j.jar"/>
+        <property name="manifest-cp-proprietary-72" value="${manifest-cp-proprietary-71} ../lib/saaj-api.jar"/>
+        <property name="manifest-cp-proprietary-73" value="${manifest-cp-proprietary-72} ../lib/saaj-impl.jar"/>
+        <property name="manifest-cp-proprietary-74" value="${manifest-cp-proprietary-73} ../lib/activation.jar"/>
+        
+        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-74}"/>
         <mkdir dir="build/example-proprietary"/>
         <manifest file="build/example-proprietary/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1368,9 +1531,9 @@
 
     <target name="compile-core-tests" depends="compile-core">
         <mkdir dir="build/core-tests/classes"/>
-        <javac srcdir="core/src/test/java" destdir="build/core-tests/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="core/src/test/java" destdir="build/core-tests/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
             </classpath>
         </javac>
@@ -1378,9 +1541,9 @@
 
     <target name="compile-agents-tests" depends="compile-core-tests,compile-agents">
         <mkdir dir="build/agents-tests/classes"/>
-        <javac srcdir="agents/src/test/java" destdir="build/agents-tests/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="agents/src/test/java" destdir="build/agents-tests/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1390,9 +1553,9 @@
 
     <target name="compile-pull-agent-tests" depends="compile-agents-tests,compile-pull-agent">
         <mkdir dir="build/pull-agent-tests/classes"/>
-        <javac srcdir="pull-agent/src/test/java" destdir="build/pull-agent-tests/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="pull-agent/src/test/java" destdir="build/pull-agent-tests/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1404,9 +1567,9 @@
 
     <target name="compile-script-engine-tests" depends="compile-core,compile-script-engine">
         <mkdir dir="build/script-engine-tests/classes"/>
-        <javac srcdir="script-engine/src/test/java" destdir="build/script-engine-tests/classes" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="script-engine/src/test/java" destdir="build/script-engine-tests/classes" deprecation="true" target="1.6" source="1.6" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/script-engine/classes"/>
             </classpath>
@@ -1440,13 +1603,38 @@
 
     <target name="jar-tests" depends="jar-core-tests,jar-agents-tests,jar-pull-agent-tests,jar-script-engine-tests"/>
 
+    <target name="test-lib" depends="jar-tests">
+        <mkdir dir="dist/test-lib"/>
+        <copy todir="dist/test-lib">
+            <fileset dir="../lib">
+                <include name="junit*.jar"/>
+                <include name="juli*.jar"/>
+                <include name="powermock-module-junit4*.jar"/>
+                <include name="powermock-core*.jar"/>
+                <include name="powermock-reflect*.jar"/>
+                <include name="powermock-api-support*.jar"/>
+                <include name="powermock-api-mockito*.jar"/>
+                <include name="mockito-all*.jar"/>
+                <include name="noggit*.jar"/>
+                <include name="javassist*.jar"/>
+                <include name="objenesis*.jar"/>
+            </fileset>
+            <fileset dir="build/test-jar">
+                <include name="mcf-core-tests.jar"/>
+                <include name="mcf-agents-tests.jar"/>
+                <include name="mcf-pull-agent-tests.jar"/>
+                <include name="mcf-script-engine-tests.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
     <target name="build-tests" depends="jar-tests"/>
 
     <target name="run-core-tests" depends="compile-core,compile-core-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
             </classpath>
@@ -1464,7 +1652,7 @@
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1483,7 +1671,7 @@
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/script-engine/classes"/>
                 <pathelement location="build/script-engine-tests/classes"/>
@@ -1500,7 +1688,7 @@
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <fileset dir="build/test-jar">
                     <include name="mcf-core-tests.jar"/>
                 </fileset>
@@ -1518,7 +1706,7 @@
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1541,7 +1729,7 @@
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1564,7 +1752,7 @@
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1587,7 +1775,7 @@
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1610,7 +1798,7 @@
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-classpath"/>
+                <path refid="framework-test-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1639,7 +1827,7 @@
         </java>
     </target>
     
-    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine"/>
+    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,buildfiles,test-lib"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB,run-tests-HSQLDBext"/>
     

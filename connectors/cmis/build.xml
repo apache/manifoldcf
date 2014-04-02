@@ -17,13 +17,23 @@
 
 <project name="cmis" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <property name="abs-dist" location="../../dist"/>
+    <condition property="mcf-dist" value="${abs-dist}">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
     
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
             <include name="chemistry*.jar"/>
-            <include name="saaj*.jar"/>
             <include name="stax*.jar"/>
             <include name="streambuffer*.jar"/>
             <include name="jaxb*.jar"/>
@@ -32,7 +42,6 @@
             <include name="mimepull*.jar"/>
             <include name="resolver*.jar"/>
             <include name="org.osgi.core*.jar"/>
-            <include name="activation*.jar"/>
             <include name="commons-lang*.jar"/>
         </fileset>
     </path>
@@ -42,7 +51,6 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
                 <include name="chemistry*.jar"/>
-                <include name="saaj*.jar"/>
                 <include name="stax*.jar"/>
                 <include name="streambuffer*.jar"/>
                 <include name="jaxb*.jar"/>
@@ -51,9 +59,19 @@
                 <include name="mimepull*.jar"/>
                 <include name="resolver*.jar"/>
                 <include name="org.osgi.core*.jar"/>
-                <include name="activation*.jar"/>
             </fileset>
         </copy>
+    </target>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="CMIS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector"/>
+        </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-label" value="CMIS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"/>
+        </antcall>
     </target>
 
 </project>

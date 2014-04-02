@@ -17,6 +17,24 @@
 
 <project name="opensearchserver" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <property name="abs-dist" location="../../dist"/>
+    <condition property="mcf-dist" value="${abs-dist}">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-output-connector">
+            <param name="connector-label" value="OpenSearchServer"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.opensearchserver.OpenSearchServerConnector"/>
+        </antcall>
+    </target>
 
 </project>

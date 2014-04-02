@@ -157,15 +157,40 @@ public class HttpPoster
     throws ManifoldCFException, ServiceInterruption
   {
     StringBuilder aclXml = new StringBuilder();
-    writeACLs(aclXml,"share",document.getShareACL(),document.getShareDenyACL(),authorityNameString,activities);
-    int directoryCount = document.countDirectoryACLs();
-    int q = 0;
-    while (q < directoryCount)
+    Iterator<String> securityTypeIterator = document.securityTypesIterator();
+    String[] shareAcls = null;
+    String[] shareDenyAcls = null;
+    String[] documentAcls = null;
+    String[] documentDenyAcls = null;
+    String[] parentAcls = null;
+    String[] parentDenyAcls = null;
+    while (securityTypeIterator.hasNext())
     {
-      writeACLs(aclXml,"directory",document.getDirectoryACL(q),document.getDirectoryDenyACL(q),authorityNameString,activities);
-      q++;
+      String securityType = securityTypeIterator.next();
+      if (securityType.equals(RepositoryDocument.SECURITY_TYPE_SHARE))
+      {
+        shareAcls = document.getSecurityACL(securityType);
+        shareDenyAcls = document.getSecurityDenyACL(securityType);
+      }
+      else if (securityType.equals(RepositoryDocument.SECURITY_TYPE_DOCUMENT))
+      {
+        documentAcls = document.getSecurityACL(securityType);
+        documentDenyAcls = document.getSecurityDenyACL(securityType);
+      }
+      else if (securityType.equals(RepositoryDocument.SECURITY_TYPE_PARENT))
+      {
+        parentAcls = document.getSecurityACL(securityType);
+        parentDenyAcls = document.getSecurityDenyACL(securityType);
+      }
+      else
+        // Can't accept the document, because we don't know how to secure it
+        return false;
     }
-    writeACLs(aclXml,"file",document.getACL(),document.getDenyACL(),authorityNameString,activities);
+
+    writeACLs(aclXml,"share",shareAcls,shareDenyAcls,authorityNameString,activities);
+    writeACLs(aclXml,"directory",parentAcls,parentDenyAcls,authorityNameString,activities);
+    writeACLs(aclXml,"file",documentAcls,documentDenyAcls,authorityNameString,activities);
+
     if (aclXml.length() > 0)
       aclXml.append("</document-acl>");
     String aclXmlString = aclXml.toString();

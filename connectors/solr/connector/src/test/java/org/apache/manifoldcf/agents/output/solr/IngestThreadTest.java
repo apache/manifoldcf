@@ -95,14 +95,20 @@ public class IngestThreadTest
     String[] shareDenyAcls = new String[]{ "denyShareAcl1", "denyShareAcl2" };
     String[] acls = new String[]{ "acl1", "acl2" };
     String[] denyAcls = new String[]{ "denyAcl1", "denyAcl2" };
+    Map<String,String[]> aclsMap = new HashMap<String,String[]>();
+    Map<String,String[]> denyAclsMap = new HashMap<String,String[]>();
+    aclsMap.put("share",shareAcls);
+    aclsMap.put("document",acls);
+    denyAclsMap.put("share",shareDenyAcls);
+    denyAclsMap.put("document",denyAcls);
     String commitWithin = "true";
 
     ingestThreadToTestKeepAllMetadata = spy(
-      poster.new IngestThread( "document id", document, streamParam, true, sourceTargets, shareAcls,
-                   shareDenyAcls, acls, denyAcls, commitWithin ) );
+      poster.new IngestThread( "document id", document, streamParam, true, sourceTargets,
+                   aclsMap, denyAclsMap, commitWithin ) );
     ingestThreadToTest = spy(
-      poster.new IngestThread( "document id", document, streamParam, false, sourceTargets, shareAcls,
-                   shareDenyAcls, acls, denyAcls, commitWithin ) );
+      poster.new IngestThread( "document id", document, streamParam, false, sourceTargets,
+                   aclsMap, denyAclsMap, commitWithin ) );
 
   }
 

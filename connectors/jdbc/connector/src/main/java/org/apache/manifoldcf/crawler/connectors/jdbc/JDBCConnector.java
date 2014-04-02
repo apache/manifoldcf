@@ -1513,9 +1513,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // Consider this column to contain metadata.
         // We can only accept non-binary metadata at this time.
         Object metadata = row.getValue(columnName);
-        if (metadata instanceof BinaryInput)
-          throw new ManifoldCFException("Metadata column '"+columnName+"' must be convertible to a string, and cannot be binary");
-        rd.addField(columnName,metadata.toString());
+        rd.addField(columnName,JDBCConnection.readAsString(metadata));
       }
     }
   }
@@ -1567,10 +1565,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    if (accessAcls != null)
-      rd.setACL(accessAcls);
-    if (denyAcls != null)
-      rd.setDenyACL(denyAcls);
+    rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,accessAcls,denyAcls);
 
   }
   

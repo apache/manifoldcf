@@ -20,29 +20,35 @@
 package org.apache.manifoldcf.scriptengine;
 
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpEntity;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.entity.ContentType;
+import org.apache.http.ParseException;
 import java.util.*;
 import java.io.*;
+import java.nio.charset.Charset;
 
 /** Class to parse various syntactical parts of a script and execute them.
 */
 public class ScriptParser
 {
   /** The connection manager. */
-  protected ClientConnectionManager connectionManager = null;
+  protected HttpClientConnectionManager connectionManager = null;
   
   /** The client instance */
   protected HttpClient httpClient = null;
@@ -58,6 +64,8 @@ public class ScriptParser
   
   /** A table of "new" operations that we know how to deal with. */
   protected Map<String,NewOperation> newOperations = new HashMap<String,NewOperation>();
+
+  protected final static Charset UTF_8 = Charset.forName("UTF-8");
 
   public ScriptParser()
   {
@@ -1164,9 +1172,19 @@ public class ScriptParser
       InputStream is = entity.getContent();
       try
       {
-        String charSet = EntityUtils.getContentCharSet(entity);
-        if (charSet == null)
-          charSet = "utf-8";
+        Charset charSet;
+        try
+        {
+          ContentType ct = ContentType.get(entity);
+          if (ct == null)
+            charSet = UTF_8;
+          else
+            charSet = ct.getCharset();
+        }
+        catch (ParseException e)
+        {
+          charSet = UTF_8;
+        }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
         Writer w = new StringWriter();
@@ -1200,14 +1218,36 @@ public class ScriptParser
     {
       if (httpClient == null)
       {
-        connectionManager = new PoolingClientConnectionManager();
-        BasicHttpParams params = new BasicHttpParams();
-        params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-        params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
-        //params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeOut);
-        DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
-        localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
-        httpClient = localHttpClient;
+        int socketTimeout = 900000;
+        int connectionTimeout = 300000;
+
+        connectionManager = new PoolingHttpClientConnectionManager();
+        
+        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
+        RequestConfig.Builder requestBuilder = RequestConfig.custom()
+          .setCircularRedirectsAllowed(true)
+          .setSocketTimeout(socketTimeout)
+          .setStaleConnectionCheckEnabled(false)
+          .setExpectContinueEnabled(true)
+          .setConnectTimeout(connectionTimeout)
+          .setConnectionRequestTimeout(socketTimeout);
+
+        httpClient = HttpClients.custom()
+          .setConnectionManager(connectionManager)
+          .setMaxConnTotal(1)
+          .disableAutomaticRetries()
+          .setDefaultRequestConfig(requestBuilder.build())
+          .setDefaultSocketConfig(SocketConfig.custom()
+            .setTcpNoDelay(true)
+            .setSoTimeout(socketTimeout)
+            .build())
+          .setDefaultCredentialsProvider(credentialsProvider)
+          //.setSSLSocketFactory(myFactory)
+          .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+          .setRedirectStrategy(new DefaultRedirectStrategy())
+          .build();
+
       }
     }
     return httpClient;

@@ -71,19 +71,19 @@ import com.meridio.www.MeridioRMWS.ApplyChangesWTResponseApplyChangesWTResult;
 import org.tempuri.*;
 import org.tempuri.holders.*;
 
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.HttpHost;
@@ -128,7 +128,9 @@ public class MeridioWrapper
   protected Logger oLog                                   = null;
   protected String clientWorkstation                      = null;
 
-  protected ClientConnectionManager connectionManager = null;
+  protected HttpClientConnectionManager dmwsConnectionManager = null;
+  protected HttpClientConnectionManager rmwsConnectionManager = null;
+  protected HttpClientConnectionManager mcwsConnectionManager = null;
   protected HttpClient dmwsHttpClient = null;
   protected HttpClient rmwsHttpClient = null;
   protected HttpClient mcwsHttpClient = null;
@@ -213,20 +215,17 @@ public class MeridioWrapper
     this.engineConfiguration = new ResourceProvider(resourceClass,engineConfigurationFile);
     this.clientWorkstation = clientWorkstation;
 
+    SSLConnectionSocketFactory myFactory = null;
+    if (mySSLFactory != null)
+    {
+      myFactory = new SSLConnectionSocketFactory(mySSLFactory, new BrowserCompatHostnameVerifier());
+    }
+
     // Set up the pool.
     // We have a choice: We can either have one httpclient instance, which gets reinitialized for every service
     // it connects with (because each one has a potentially different proxy setup), OR we can have a different
     // httpclient for each service.  The latter approach is obviously the more efficient, so I've chosen to do it
     // that way.
-    PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
-    localConnectionManager.setMaxTotal(1);
-    if (mySSLFactory != null)
-    {
-      SSLSocketFactory myFactory = new SSLSocketFactory(mySSLFactory, new BrowserCompatHostnameVerifier());
-      Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
-      localConnectionManager.getSchemeRegistry().register(myHttpsProtocol);
-    }
-    connectionManager = localConnectionManager;
 
     // Parse the user and password values
     int index = userName.indexOf("\\");
@@ -255,148 +254,157 @@ public class MeridioWrapper
         oLog.debug("Meridio: Password is null");
     }
 
-    // Initialize the three httpclient objects
-    
-    // dmws first
-    BasicHttpParams dmwsParams = new BasicHttpParams();
-    dmwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-    dmwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
-    dmwsParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
-    dmwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
-    dmwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-    DefaultHttpClient localDmwsHttpClient = new DefaultHttpClient(connectionManager,dmwsParams);
-    // No retries
-    localDmwsHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-      {
-	public boolean retryRequest(
-	  IOException exception,
-	  int executionCount,
-          HttpContext context)
-	{
-	  return false;
-	}
-     
-      });
+    int socketTimeout = 900000;
+    int connectionTimeout = 300000;
 
-    localDmwsHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+    dmwsConnectionManager = new PoolingHttpClientConnectionManager();
+    rmwsConnectionManager = new PoolingHttpClientConnectionManager();
+    mcwsConnectionManager = new PoolingHttpClientConnectionManager();
+
+    // Initialize the three httpclient objects
+
+    CredentialsProvider dmwsCredentialsProvider = new BasicCredentialsProvider();
+    CredentialsProvider rmwsCredentialsProvider = new BasicCredentialsProvider();
+
+    RequestConfig.Builder dmwsRequestBuilder = RequestConfig.custom()
+      .setCircularRedirectsAllowed(true)
+      .setSocketTimeout(socketTimeout)
+      .setStaleConnectionCheckEnabled(true)
+      .setExpectContinueEnabled(false)
+      .setConnectTimeout(connectionTimeout)
+      .setConnectionRequestTimeout(socketTimeout);
+    RequestConfig.Builder rmwsRequestBuilder = RequestConfig.custom()
+      .setCircularRedirectsAllowed(true)
+      .setSocketTimeout(socketTimeout)
+      .setStaleConnectionCheckEnabled(true)
+      .setExpectContinueEnabled(true)
+      .setConnectTimeout(connectionTimeout)
+      .setConnectionRequestTimeout(socketTimeout);
+
+    // Set up credentials
     if (domainUser != null)
     {
-      localDmwsHttpClient.getCredentialsProvider().setCredentials(
+      dmwsCredentialsProvider.setCredentials(
         new AuthScope(meridioDmwsUrl.getHost(),meridioDmwsUrl.getPort()),
         new NTCredentials(domainUser, password, currentHost, domain));
+      rmwsCredentialsProvider.setCredentials(
+        new AuthScope(meridioRmwsUrl.getHost(),meridioRmwsUrl.getPort()),
+        new NTCredentials(domainUser, password, currentHost, domain));
     }
-    // Initialize proxy
+    
+    // Initialize DMWS proxy
     if (dmwsProxyHost != null && dmwsProxyHost.length() > 0)
     {
       int port = (dmwsProxyPort == null || dmwsProxyPort.length() == 0)?8080:Integer.parseInt(dmwsProxyPort);
       // Configure proxy authentication
       if (domainUser != null && domainUser.length() > 0)
       {
-        localDmwsHttpClient.getCredentialsProvider().setCredentials(
+        dmwsCredentialsProvider.setCredentials(
           new AuthScope(dmwsProxyHost, port),
           new NTCredentials(domainUser, password, currentHost, domain));
       }
 
       HttpHost proxy = new HttpHost(dmwsProxyHost, port);
-      localDmwsHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+      dmwsRequestBuilder.setProxy(proxy);
     }
-    dmwsHttpClient = localDmwsHttpClient;
-    
-    // rmws
-    BasicHttpParams rmwsParams = new BasicHttpParams();
-    rmwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-    rmwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
-    rmwsParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
-    rmwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
-    rmwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-    DefaultHttpClient localRmwsHttpClient = new DefaultHttpClient(connectionManager,rmwsParams);
-    // No retries
-    localRmwsHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-      {
-	public boolean retryRequest(
-	  IOException exception,
-	  int executionCount,
-          HttpContext context)
-	{
-	  return false;
-	}
-     
-      });
 
-    localRmwsHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
-    if (domainUser != null)
-    {
-      localRmwsHttpClient.getCredentialsProvider().setCredentials(
-        new AuthScope(meridioRmwsUrl.getHost(),meridioRmwsUrl.getPort()),
-        new NTCredentials(domainUser, password, currentHost, domain));
-    }
-    // Initialize proxy
+    // Initialize RMWS proxy
     if (rmwsProxyHost != null && rmwsProxyHost.length() > 0)
     {
       int port = (rmwsProxyPort == null || rmwsProxyPort.length() == 0)?8080:Integer.parseInt(rmwsProxyPort);
       // Configure proxy authentication
       if (domainUser != null && domainUser.length() > 0)
       {
-        localRmwsHttpClient.getCredentialsProvider().setCredentials(
+        rmwsCredentialsProvider.setCredentials(
           new AuthScope(rmwsProxyHost, port),
           new NTCredentials(domainUser, password, currentHost, domain));
       }
 
       HttpHost proxy = new HttpHost(rmwsProxyHost, port);
-      localRmwsHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+      rmwsRequestBuilder.setProxy(proxy);
     }
-    rmwsHttpClient = localRmwsHttpClient;
 
-    // mcws
+    dmwsHttpClient = HttpClients.custom()
+      .setConnectionManager(dmwsConnectionManager)
+      .setMaxConnTotal(1)
+      .disableAutomaticRetries()
+      .setDefaultRequestConfig(dmwsRequestBuilder.build())
+      .setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build())
+      .setDefaultCredentialsProvider(dmwsCredentialsProvider)
+      .setSSLSocketFactory(myFactory)
+      .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+      .setRedirectStrategy(new DefaultRedirectStrategy())
+      .build();
+    
+    rmwsHttpClient = HttpClients.custom()
+      .setConnectionManager(rmwsConnectionManager)
+      .setMaxConnTotal(1)
+      .disableAutomaticRetries()
+      .setDefaultRequestConfig(rmwsRequestBuilder.build())
+      .setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build())
+      .setDefaultCredentialsProvider(rmwsCredentialsProvider)
+      .setSSLSocketFactory(myFactory)
+      .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+      .setRedirectStrategy(new DefaultRedirectStrategy())
+      .build();
+
     if (meridioManifoldCFWSUrl != null)
     {
-      BasicHttpParams mcwsParams = new BasicHttpParams();
-      mcwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      mcwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
-      mcwsParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
-      mcwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
-      mcwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-      DefaultHttpClient localMcwsHttpClient = new DefaultHttpClient(connectionManager,mcwsParams);
-      // No retries
-      localMcwsHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-        {
-          public boolean retryRequest(
-            IOException exception,
-            int executionCount,
-            HttpContext context)
-          {
-            return false;
-          }
-       
-        });
+      CredentialsProvider mcwsCredentialsProvider = new BasicCredentialsProvider();
 
-      localMcwsHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+      RequestConfig.Builder mcwsRequestBuilder = RequestConfig.custom()
+        .setCircularRedirectsAllowed(true)
+        .setSocketTimeout(socketTimeout)
+        .setStaleConnectionCheckEnabled(true)
+        .setExpectContinueEnabled(true)
+        .setConnectTimeout(connectionTimeout)
+        .setConnectionRequestTimeout(socketTimeout);
+
       if (domainUser != null)
       {
-        localMcwsHttpClient.getCredentialsProvider().setCredentials(
+        mcwsCredentialsProvider.setCredentials(
           new AuthScope(meridioManifoldCFWSUrl.getHost(),meridioManifoldCFWSUrl.getPort()),
           new NTCredentials(domainUser, password, currentHost, domain));
       }
-      // Initialize proxy
+
+      // Initialize MCWS proxy
       if (mcwsProxyHost != null && mcwsProxyHost.length() > 0)
       {
         int port = (mcwsProxyPort == null || mcwsProxyPort.length() == 0)?8080:Integer.parseInt(mcwsProxyPort);
         // Configure proxy authentication
         if (domainUser != null && domainUser.length() > 0)
         {
-          localMcwsHttpClient.getCredentialsProvider().setCredentials(
+          mcwsCredentialsProvider.setCredentials(
             new AuthScope(mcwsProxyHost, port),
             new NTCredentials(domainUser, password, currentHost, domain));
         }
 
         HttpHost proxy = new HttpHost(mcwsProxyHost, port);
-        localMcwsHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        mcwsRequestBuilder.setProxy(proxy);
       }
-      mcwsHttpClient = localMcwsHttpClient;
+      
+      mcwsHttpClient = HttpClients.custom()
+        .setConnectionManager(mcwsConnectionManager)
+        .setMaxConnTotal(1)
+        .disableAutomaticRetries()
+        .setDefaultRequestConfig(mcwsRequestBuilder.build())
+        .setDefaultSocketConfig(SocketConfig.custom()
+          .setTcpNoDelay(true)
+          .setSoTimeout(socketTimeout)
+          .build())
+        .setDefaultCredentialsProvider(mcwsCredentialsProvider)
+        .setSSLSocketFactory(myFactory)
+        .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+        .setRedirectStrategy(new DefaultRedirectStrategy())
+        .build();
     }
-    else
-      mcwsHttpClient = null;
-    
+
     // Set up the stub handles
     /*=================================================================
     * Get a handle to the DMWS
@@ -489,8 +497,12 @@ public class MeridioWrapper
       finally
       {
         loginToken_ = null;
-        connectionManager.shutdown();
-        connectionManager = null;
+        dmwsConnectionManager.shutdown();
+        dmwsConnectionManager = null;
+        rmwsConnectionManager.shutdown();
+        rmwsConnectionManager = null;
+        mcwsConnectionManager.shutdown();
+        mcwsConnectionManager = null;
       }
     }
   }

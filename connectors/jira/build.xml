@@ -17,24 +17,28 @@
 
 <project name="jira" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <property name="abs-dist" location="../../dist"/>
+    <condition property="mcf-dist" value="${abs-dist}">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
 
-    <path id="connector-classpath">
-        <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="../../lib">
-            <include name="google-*.jar"/>
-	    <include name="jackson-core.jar"/>
-        </fileset>
-    </path>
+    <import file="${mcf-dist}/connector-build.xml"/>
 
-    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-            <fileset dir="../../lib">
-                <include name="google-*.jar"/>
-		<include name="jackson-core.jar"/>
-            </fileset>
-        </copy>
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="Jira"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.jira.JiraRepositoryConnector"/>
+        </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-label" value="Jira"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.jira.JiraAuthorityConnector"/>
+        </antcall>
     </target>
 
 </project>

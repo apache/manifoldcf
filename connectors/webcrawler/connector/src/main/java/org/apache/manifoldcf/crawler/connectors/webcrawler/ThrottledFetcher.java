@@ -31,6 +31,7 @@ import java.io.*;
 import java.net.*;
 import java.util.zip.GZIPInputStream;
 import java.util.concurrent.TimeUnit;
+import java.nio.charset.Charset;
 
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.client.HttpClient;
@@ -138,6 +139,8 @@ public class ThrottledFetcher
     {
     }
   }
+
+  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /** Constructor.  Private since we never instantiate.
   */
@@ -614,14 +617,7 @@ public class ThrottledFetcher
             nvps.add(new BasicNameValuePair(param,value));
           }
         }
-        try
-        {
-          postMethod.setEntity(new UrlEncodedFormEntity(nvps,HTTP.UTF_8));
-        }
-        catch (java.io.UnsupportedEncodingException e)
-        {
-          throw new ManifoldCFException("Unsupported UTF-8 encoding: "+e.getMessage(),e);
-        }
+        postMethod.setEntity(new UrlEncodedFormEntity(nvps,UTF_8));
         fetchMethod = postMethod;
         break;
       default:
