@@ -113,6 +113,7 @@
             <include name="mcf-pull-agent.jar"/>
         </fileset>
         <fileset dir="${mcf-dist}/lib">
+            <include name="zookeeper*.jar"/>
             <include name="mail*.jar"/>
             <include name="json*.jar"/>
             <include name="commons-codec*.jar"/>
