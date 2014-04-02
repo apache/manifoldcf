@@ -18,8 +18,6 @@
 */
 package org.apache.manifoldcf.agents.output.amazoncloudsearch.tests;
 
-import static org.junit.Assert.*;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,18 +28,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
-import org.apache.manifoldcf.agents.output.amazoncloudsearch.AmazonCloudSearchConnector;
 import org.apache.manifoldcf.agents.output.amazoncloudsearch.SDFModel;
 import org.apache.manifoldcf.agents.output.amazoncloudsearch.SDFModel.Document;
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.BodyContentHandler;
-import org.junit.Test;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 

@@ -250,9 +250,6 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     // Establish a session
     getSession();
     try {
-      
-      System.out.println(" ************************* DEBUG!!! : " + documentURI);
-
       InputStream is = document.getBinaryStream();
       Parser parser = new HtmlParser();
       ContentHandler handler = new BodyContentHandler();
@@ -299,10 +296,7 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
       
       //post data..
       String responsbody = postData(jsondata);
-      
-      System.out.println(" ************************* SUCCESS!!! : ");
-      System.out.println(responsbody);
-      
+            
       activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,"OK",null);
       return DOCUMENTSTATUS_ACCEPTED;
       
@@ -343,8 +337,6 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     }
     String responsbody = postData(jsonData);
     
-    System.out.println(jsonData);
-    System.out.println(responsbody);
     
     activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,"OK",null);
   }
