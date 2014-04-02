@@ -45,6 +45,16 @@
 		}
 	}
 
+	function StartOver(jobID)
+	{
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewjob.StartOverConfirmation")%>"))
+		{
+			document.viewjob.op.value="StartOver";
+			document.viewjob.jobid.value=jobID;
+			document.viewjob.submit();
+		}
+	}
+
 	//-->
 	</script>
 
@@ -685,8 +695,15 @@
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
-		<tr><td class="message" colspan="4"><a href='<%="editjob.jsp?jobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.EditThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Edit")%></a>
-		&nbsp;<a href='<%="javascript:Delete(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.DeleteThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Delete")%></a>&nbsp;<a href='<%="editjob.jsp?origjobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.CopyThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Copy")%></a></td>
+		<tr>
+			<td class="message" colspan="4">
+				<nobr>
+					<a href='<%="editjob.jsp?jobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.EditThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Edit")%></a>
+					<a href='<%="javascript:Delete(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.DeleteThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Delete")%></a>
+					<a href='<%="editjob.jsp?origjobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.CopyThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Copy")%></a>
+					<a href='<%="javascript:StartOver(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.ResetSeedingThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ResetSeeding")%></a>
+				</nobr>
+			</td>
 		</tr>
 		</table>
 

@@ -3,6 +3,81 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-913: Only remove connector registration when connectors
+are being delivered.
+(Karl Wright)
+
+CONNECTORS-912: Revamp build system, so that individual connectors
+can build directly against a distribution.  This makes it much easier for
+developers to do their own connectors using our infrastructure, and
+contribute complete working connectors with tests as well.
+(Graeme Seaton, Karl Wright)
+
+CONNECTORS-909: Upgrade to Elasticsearch 1.0.1.
+(Shinichiro Abe)
+
+CONNECTORS-900: Clean up Hadoop deprecation warnings.
+(Karl Wright)
+
+CONNECTORS-910: SharePoint connector does not fetch metadata values
+for sub-site document libraries.
+(Ahmet Arslan, Karl Wright)
+
+CONNECTORS-908: Update Solr 3.x, Solr 4.x, and ElasticSearch
+plugin versions bundled with ManifoldCF.
+(Karl Wright)
+
+CONNECTORS-906: Include documentation section on advanced
+properties.xml settings.
+(Graeme Seaton)
+
+CONNECTORS-890: Upgrade to Solr 4.7.0, and Httpclient 4.3.2.
+(Karl Wright)
+
+CONNECTORS-905: Add property which disables history recording.
+(Graeme Seaton)
+
+CONNECTORS-904: JDBC Connector with MySQL should convert
+from binary columns to strings.
+(Karl Wright)
+
+CONNECTORS-903: Remove deprecation warnings from framework.
+(Karl Wright)
+
+CONNECTORS-901: Clean up httpclient-related deprecation warnings.
+(Karl Wright)
+
+CONNECTORS-899: Allow some headers to be included/excluded from
+metadata for web connector.
+(Florian Schmedding, Karl Wright)
+
+CONNECTORS-898: Handle zookeeper connection loss and session
+expiration conditions.
+(Graeme Seaton, Karl Wright)
+
+CONNECTORS-886: Add support for Parent folder security
+in SharedDriveConnector.
+(Shinichiro Abe)
+
+CONNECTORS-893: Update end-user documentation to describe view
+pages and the buttons that are found on them.
+(Karl Wright)
+
+CONNECTORS-895: Add missing REST API methods for connection and
+job control, and revamp API for operations that are specific to only one
+kind of connection.
+(Karl Wright)
+
+CONNECTORS-894: Cosmetic display problem with SharePoint specification
+view.
+(Ahmet Arslan, Karl Wright)
+
+CONNECTORS-892: Add ability in UI reset incremental job seeding state.
+(Karl Wright)
+
+CONNECTORS-891: SharePoint AD groups not properly authorized.
+(Will Parkinson, Karl Wright)
+
 CONNECTORS-888: JobResetThread had issues when running on
 multiple agents processes.
 (Florian Schmedding, Karl Wright)

@@ -19,10 +19,11 @@ package org.apache.manifoldcf.agents.output.solr;
 import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.impl.BinaryResponseParser;
+import org.apache.solr.client.solrj.request.RequestWriter;
 import org.apache.solr.client.solrj.*;
 import java.net.MalformedURLException;
 import org.apache.http.client.HttpClient;
-
+import java.util.Set;
 
 /** This class overrides and somewhat changes the behavior of the
 * SolrJ LBHttpSolrServer class.  This is so it instantiates our modified
@@ -52,8 +53,17 @@ public class ModifiedLBHttpSolrServer extends LBHttpSolrServer
   }
   
   @Override
-  protected HttpSolrServer makeServer(String server) throws MalformedURLException {
-    return new ModifiedHttpSolrServer(server, httpClient, parser);
+  protected HttpSolrServer makeServer(String server) {
+    HttpSolrServer s = new ModifiedHttpSolrServer(server, httpClient, parser);
+    RequestWriter r = getRequestWriter();
+    Set<String> qp = getQueryParams();
+    if (r != null) {
+      s.setRequestWriter(r);
+    }
+    if (qp != null) {
+      s.setQueryParams(qp);
+    }
+    return s;
   }
 
 }

@@ -36,10 +36,16 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.auth.NTCredentials;
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -47,28 +53,23 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.ContentType;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
+import org.apache.http.ParseException;
 
+import java.nio.charset.Charset;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -127,7 +128,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected String proxyPassword = null;
   
   /** Connection management */
-  protected ClientConnectionManager connectionManager = null;
+  protected HttpClientConnectionManager connectionManager = null;
 
   protected HttpClient httpClient = null;
   
@@ -147,6 +148,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
     }
   }
+
+  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /** Constructor.
   */
@@ -222,48 +225,31 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int connectionTimeout = 300000;
 
       javax.net.ssl.SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();
-      SSLSocketFactory myFactory = new SSLSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
-        new AllowAllHostnameVerifier());
-      Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
+      SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
+        SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
       // Set up connection manager
-      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
-      localConnectionManager.setMaxTotal(1);
-      connectionManager = localConnectionManager;
-      // Set up protocol registry
-      connectionManager.getSchemeRegistry().register(myHttpsProtocol);
+      connectionManager = new PoolingHttpClientConnectionManager();
 
-      BasicHttpParams params = new BasicHttpParams();
-      params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
-      params.setIntParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE,socketTimeout);
-      params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
-      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
-      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
-      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-      DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
-      // No retries
-      localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-        {
-          public boolean retryRequest(
-            IOException exception,
-            int executionCount,
-            HttpContext context)
-          {
-            return false;
-          }
-       
-        });
+      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
       if (accessUser != null && accessUser.length() > 0 && accessPassword != null)
       {
         Credentials credentials = new UsernamePasswordCredentials(accessUser, accessPassword);
         if (accessRealm != null && accessRealm.length() > 0)
-          localHttpClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, accessRealm), credentials);
+          credentialsProvider.setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, accessRealm), credentials);
         else
-          localHttpClient.getCredentialsProvider().setCredentials(AuthScope.ANY, credentials);
+          credentialsProvider.setCredentials(AuthScope.ANY, credentials);
       }
 
+      RequestConfig.Builder requestBuilder = RequestConfig.custom()
+          .setCircularRedirectsAllowed(true)
+          .setSocketTimeout(socketTimeout)
+          .setStaleConnectionCheckEnabled(true)
+          .setExpectContinueEnabled(true)
+          .setConnectTimeout(connectionTimeout)
+          .setConnectionRequestTimeout(socketTimeout);
+          
       // If there's a proxy, set that too.
       if (proxyHost != null && proxyHost.length() > 0)
       {
@@ -291,17 +277,52 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           if (proxyDomain == null)
             proxyDomain = "";
 
-          localHttpClient.getCredentialsProvider().setCredentials(
+          credentialsProvider.setCredentials(
             new AuthScope(proxyHost, proxyPortInt),
             new NTCredentials(proxyUsername, proxyPassword, currentHost, proxyDomain));
         }
 
         HttpHost proxy = new HttpHost(proxyHost, proxyPortInt);
-
-        localHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        requestBuilder.setProxy(proxy);
       }
 
-      httpClient = localHttpClient;
+      httpClient = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setMaxConnTotal(1)
+        .disableAutomaticRetries()
+        .setDefaultRequestConfig(requestBuilder.build())
+        .setDefaultSocketConfig(SocketConfig.custom()
+          .setTcpNoDelay(true)
+          .setSoTimeout(socketTimeout)
+          .build())
+        .setDefaultCredentialsProvider(credentialsProvider)
+        .setSSLSocketFactory(myFactory)
+        .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+        .build();
+
+      /*
+      BasicHttpParams params = new BasicHttpParams();
+      params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
+      params.setIntParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE,socketTimeout);
+      params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
+      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
+      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
+      DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+      // No retries
+      localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+       
+        });
+      */
       
       loginToAPI();
       
@@ -1989,7 +2010,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       pairs.add(new BasicNameValuePair(key, params.get(key)));
     }
     
-    method.setEntity(new UrlEncodedFormEntity(pairs, HTTP.UTF_8));
+    method.setEntity(new UrlEncodedFormEntity(pairs, UTF_8));
     
     return method;
   }
@@ -3869,9 +3890,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
                   String[] denyACL = new String[]{
                     defaultAuthorityDenyToken
                   };
-                  rd.setDenyACL(denyACL);
-
-                  rd.setACL(allowACL);
+                  rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,allowACL,denyACL);
                 }
 
                 activities.ingestDocument(documentIdentifier,documentVersion,fullURL,rd);
@@ -4647,9 +4666,19 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       InputStream is = entity.getContent();
       try
       {
-        String charSet = EntityUtils.getContentCharSet(entity);
-        if (charSet == null)
-          charSet = "utf-8";
+        Charset charSet;
+        try
+        {
+          ContentType ct = ContentType.get(entity);
+          if (ct == null)
+            charSet = UTF_8;
+          else
+            charSet = ct.getCharset();
+        }
+        catch (ParseException e)
+        {
+          charSet = UTF_8;
+        }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
         Writer w = new StringWriter();

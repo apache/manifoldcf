@@ -1314,7 +1314,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
                       acls[j] = (String)aclValues.get(j);
                       j++;
                     }
-                    rd.setACL(acls);
+                    rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls);
                   }
                   if (denyAclValues != null)
                   {
@@ -1325,7 +1325,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
                       denyAcls[j] = (String)denyAclValues.get(j);
                       j++;
                     }
-                    rd.setDenyACL(denyAcls);
+                    rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAcls);
                   }
 
                   // Ingest

@@ -32,27 +32,6 @@ import javax.naming.*;
 import javax.naming.ldap.*;
 import javax.naming.directory.*;
 
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.NTCredentials;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.protocol.HttpContext;
-
 
 /** This is the Active Directory implementation of the IAuthorityConnector interface, as used
 * by SharePoint in Claim Space.  It is meant to be used in conjunction with other SharePoint authorities,

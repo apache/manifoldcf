@@ -28,11 +28,9 @@ import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpGet;
@@ -42,17 +40,17 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.Header;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.entity.ContentType;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
+import org.apache.http.ParseException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -74,7 +72,6 @@ public class ElasticSearchConnection
 
   private String response;
 
-  protected final static String jsonStatus = "\"ok\"";
   protected final static String jsonException = "\"error\"";
 
   public enum Result
@@ -84,6 +81,8 @@ public class ElasticSearchConnection
 
   private Result result;
 
+  private final static Charset UTF_8 = Charset.forName("UTF-8");
+  
   protected ElasticSearchConnection(ElasticSearchConfig config, HttpClient client)
   {
     this.config = config;
@@ -287,9 +286,19 @@ public class ElasticSearchConnection
     {
       try
       {
-        String charSet = EntityUtils.getContentCharSet(entity);
-        if (charSet == null)
-          charSet = "utf-8";
+        Charset charSet;
+        try
+        {
+          ContentType ct = ContentType.get(entity);
+          if (ct == null)
+            charSet = UTF_8;
+          else
+            charSet = ct.getCharset();
+        }
+        catch (ParseException e)
+        {
+          charSet = UTF_8;
+        }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
         Writer w = new StringWriter();

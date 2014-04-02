@@ -44,6 +44,9 @@ public class ZooKeeperConnection
 
   private static final String CHILD_PREFIX = "child-";
   
+  protected final String connectString;
+  protected final int sessionTimeout;
+  
   // Our zookeeper client
   protected ZooKeeper zookeeper = null;
   protected ZooKeeperWatcher zookeeperWatcher = null;
@@ -55,9 +58,17 @@ public class ZooKeeperConnection
   public ZooKeeperConnection(String connectString, int sessionTimeout)
     throws ManifoldCFException, InterruptedException
   {
+    this.connectString = connectString;
+    this.sessionTimeout = sessionTimeout;
+    zookeeperWatcher = new ZooKeeperWatcher();
+    createSession();
+  }
+  
+  protected void createSession()
+    throws ManifoldCFException, InterruptedException
+  {
     try
     {
-      zookeeperWatcher = new ZooKeeperWatcher();
       zookeeper = new ZooKeeper(connectString, sessionTimeout, zookeeperWatcher);
     }
     catch (InterruptedIOException e)
@@ -75,13 +86,17 @@ public class ZooKeeperConnection
   public void createNode(String nodePath, byte[] nodeData)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
-      zookeeper.create(nodePath, nodeData, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      try
+      {
+        zookeeper.create(nodePath, nodeData, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        break;
+      }
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
   
@@ -92,13 +107,16 @@ public class ZooKeeperConnection
   public boolean checkNodeExists(String nodePath)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
-      return (zookeeper.exists(nodePath,false) != null);
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      try
+      {
+        return (zookeeper.exists(nodePath,false) != null);
+      }
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
 
@@ -125,13 +143,17 @@ public class ZooKeeperConnection
   public void deleteNode(String nodePath)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
-      zookeeper.delete(nodePath,-1);
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      try
+      {
+        zookeeper.delete(nodePath,-1);
+        return;
+      }
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
   
@@ -140,20 +162,25 @@ public class ZooKeeperConnection
   public void deleteNodeChildren(String nodePath)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
-      List<String> children = zookeeper.getChildren(nodePath,false);
-      for (String child : children)
+      try
       {
-        zookeeper.delete(nodePath + "/" + child,-1);
+        List<String> children = zookeeper.getChildren(nodePath,false);
+        for (String child : children)
+        {
+          zookeeper.delete(nodePath + "/" + child,-1);
+        }
+        break;
       }
-    }
-    catch (KeeperException.NoNodeException e)
-    {
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      catch (KeeperException.NoNodeException e)
+      {
+        break;
+      }
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
   
@@ -163,26 +190,29 @@ public class ZooKeeperConnection
   public List<String> getChildren(String nodePath)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
-      //System.out.println("Children of '"+nodePath+"':");
-      List<String> children = zookeeper.getChildren(nodePath,false);
-      List<String> rval = new ArrayList<String>();
-      for (String child : children)
+      try
       {
-        //System.out.println(" '"+child+"'");
-        if (child.startsWith(CHILD_PREFIX))
-          rval.add(child.substring(CHILD_PREFIX.length()));
+        //System.out.println("Children of '"+nodePath+"':");
+        List<String> children = zookeeper.getChildren(nodePath,false);
+        List<String> rval = new ArrayList<String>();
+        for (String child : children)
+        {
+          //System.out.println(" '"+child+"'");
+          if (child.startsWith(CHILD_PREFIX))
+            rval.add(child.substring(CHILD_PREFIX.length()));
+        }
+        return rval;
       }
-      return rval;
-    }
-    catch (KeeperException.NoNodeException e)
-    {
-      return new ArrayList<String>();
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      catch (KeeperException.NoNodeException e)
+      {
+        return new ArrayList<String>();
+      }
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
   
@@ -191,31 +221,35 @@ public class ZooKeeperConnection
   public void createChild(String nodePath, String childName)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
-      //System.out.println("Creating child '"+childName+"' of nodepath '"+nodePath+"'");
-      while (true)
+      try
       {
-        try
-        {
-          zookeeper.create(nodePath + "/" + CHILD_PREFIX + childName, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-          break;
-        }
-        catch (KeeperException.NoNodeException e)
+        //System.out.println("Creating child '"+childName+"' of nodepath '"+nodePath+"'");
+        while (true)
         {
           try
           {
-            zookeeper.create(nodePath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            zookeeper.create(nodePath + "/" + CHILD_PREFIX + childName, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            break;
           }
-          catch (KeeperException.NodeExistsException e2)
+          catch (KeeperException.NoNodeException e)
           {
+            try
+            {
+              zookeeper.create(nodePath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            }
+            catch (KeeperException.NodeExistsException e2)
+            {
+            }
           }
         }
+        break;
       }
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
   
@@ -224,15 +258,19 @@ public class ZooKeeperConnection
   public void deleteChild(String nodePath, String childName)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
-      //System.out.println("Deleting child '"+childName+"' of nodePath '"+nodePath+"'");
-      zookeeper.delete(nodePath + "/" + CHILD_PREFIX + childName, -1);
-      //System.out.println("...done");
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      try
+      {
+        //System.out.println("Deleting child '"+childName+"' of nodePath '"+nodePath+"'");
+        zookeeper.delete(nodePath + "/" + CHILD_PREFIX + childName, -1);
+        //System.out.println("...done");
+        break;
+      }
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
   
@@ -246,65 +284,91 @@ public class ZooKeeperConnection
     if (lockNode != null)
       throw new IllegalStateException("Already have a lock in place: '"+lockNode+"'; can't also write lock '"+lockPath+"'");
 
-    try
+    while (true)
     {
-      // Assert that we want a write lock
-      lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
       try
       {
-        String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length());
-        // See if we got it
-        List<String> children = zookeeper.getChildren(lockPath,false);
-        for (String x : children)
+        // Assert that we want a write lock
+        lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
+        try
         {
-          String otherLock;
-          if (x.startsWith(WRITE_PREFIX))
-            otherLock = x.substring(WRITE_PREFIX.length());
-          else if (x.startsWith(NONEXWRITE_PREFIX))
-            otherLock = x.substring(NONEXWRITE_PREFIX.length());
-          else if (x.startsWith(READ_PREFIX))
-            otherLock = x.substring(READ_PREFIX.length());
-          else
-            continue;
-          if (otherLock.compareTo(lockSequenceNumber) < 0)
+          String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length());
+          // See if we got it
+          List<String> children = zookeeper.getChildren(lockPath,false);
+          for (String x : children)
           {
-            // We didn't get the lock.  Clean up and exit
-            zookeeper.delete(lockNode,-1);
-            lockNode = null;
-            return false;
+            String otherLock;
+            if (x.startsWith(WRITE_PREFIX))
+              otherLock = x.substring(WRITE_PREFIX.length());
+            else if (x.startsWith(NONEXWRITE_PREFIX))
+              otherLock = x.substring(NONEXWRITE_PREFIX.length());
+            else if (x.startsWith(READ_PREFIX))
+              otherLock = x.substring(READ_PREFIX.length());
+            else
+              continue;
+            if (otherLock.compareTo(lockSequenceNumber) < 0)
+            {
+              // We didn't get the lock.  Clean up and exit
+              while (true)
+              {
+                try
+                {
+                  zookeeper.delete(lockNode,-1);
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException.NoNodeException e)
+                {
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException e)
+                {
+                  handleKeeperException(e);
+                }
+              }
+              return false;
+            }
           }
         }
+        catch (Throwable e)
+        {
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
+        }
+        // We got it!
+        return true;
       }
       catch (KeeperException e)
       {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
+        handleKeeperException(e);
       }
-      catch (InterruptedException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (Error e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (RuntimeException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      // We got it!
-      return true;
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
   
@@ -317,99 +381,109 @@ public class ZooKeeperConnection
     if (lockNode != null)
       throw new IllegalStateException("Already have a lock in place: '"+lockNode+"'; can't also write lock '"+lockPath+"'");
 
-    try
+    while (true)
     {
-      // Assert that we want a write lock
-      lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
       try
       {
-        long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length())).longValue();
-        //System.out.println("Trying to get write lock for '"+lockSequenceNumber+"'");
-        while (true)
+        // Assert that we want a write lock
+        lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
+        try
         {
-          //System.out.println("Assessing whether we got lock for '"+lockNode+"'...");
-          // See if we got it
-          List<String> children = zookeeper.getChildren(lockPath,false);
-          String previousLock = null;
-          boolean gotLock = true;
-          long highestPreviousLockIndex = -1L;
-          for (String x : children)
+          long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length())).longValue();
+          //System.out.println("Trying to get write lock for '"+lockSequenceNumber+"'");
+          while (true)
           {
-            String otherLock;
-            if (x.startsWith(WRITE_PREFIX))
-              otherLock = x.substring(WRITE_PREFIX.length());
-            else if (x.startsWith(NONEXWRITE_PREFIX))
-              otherLock = x.substring(NONEXWRITE_PREFIX.length());
-            else if (x.startsWith(READ_PREFIX))
-              otherLock = x.substring(READ_PREFIX.length());
-            else
-              continue;
-            long otherLockSequenceNumber = new Long(otherLock).longValue();
-            //System.out.println("Saw other child sequence number "+otherLockSequenceNumber);
-            if (otherLockSequenceNumber < lockSequenceNumber)
+            //System.out.println("Assessing whether we got lock for '"+lockNode+"'...");
+            // See if we got it
+            List<String> children = zookeeper.getChildren(lockPath,false);
+            String previousLock = null;
+            boolean gotLock = true;
+            long highestPreviousLockIndex = -1L;
+            for (String x : children)
             {
-              // We didn't get the lock.  But keep going because we're looking for the node right before the
-              // one we just asserted.
-              gotLock = false;
-              if (otherLockSequenceNumber > highestPreviousLockIndex)
+              String otherLock;
+              if (x.startsWith(WRITE_PREFIX))
+                otherLock = x.substring(WRITE_PREFIX.length());
+              else if (x.startsWith(NONEXWRITE_PREFIX))
+                otherLock = x.substring(NONEXWRITE_PREFIX.length());
+              else if (x.startsWith(READ_PREFIX))
+                otherLock = x.substring(READ_PREFIX.length());
+              else
+                continue;
+              long otherLockSequenceNumber = new Long(otherLock).longValue();
+              //System.out.println("Saw other child sequence number "+otherLockSequenceNumber);
+              if (otherLockSequenceNumber < lockSequenceNumber)
               {
-                previousLock = x;
-                highestPreviousLockIndex = otherLockSequenceNumber;
+                // We didn't get the lock.  But keep going because we're looking for the node right before the
+                // one we just asserted.
+                gotLock = false;
+                if (otherLockSequenceNumber > highestPreviousLockIndex)
+                {
+                  previousLock = x;
+                  highestPreviousLockIndex = otherLockSequenceNumber;
+                }
               }
             }
-          }
 
-          if (gotLock)
-          {
-            // We got it!
-            //System.out.println("Got write lock for '"+lockSequenceNumber+"'");
-            return;
-          }
+            if (gotLock)
+            {
+              // We got it!
+              //System.out.println("Got write lock for '"+lockSequenceNumber+"'");
+              return;
+            }
 
-          // There SHOULD be a previous node immediately prior to the one we asserted.  If we didn't find one, go back around;
-          // the previous lock was probably created and destroyed before we managed to get the children.
-          if (previousLock != null)
-          {
-            //System.out.println(" Waiting on '"+previousLock+"' for write lock '"+lockSequenceNumber+"'");
-            // Create an exists() watch on the previous node, and wait until we are awakened by that watch firing.
-            ExistsWatcher w = new ExistsWatcher();
-            Stat s = zookeeper.exists(lockPath+"/"+previousLock, w);
-            if (s != null)
-              w.waitForEvent();
+            // There SHOULD be a previous node immediately prior to the one we asserted.  If we didn't find one, go back around;
+            // the previous lock was probably created and destroyed before we managed to get the children.
+            if (previousLock != null)
+            {
+              //System.out.println(" Waiting on '"+previousLock+"' for write lock '"+lockSequenceNumber+"'");
+              // Create an exists() watch on the previous node, and wait until we are awakened by that watch firing.
+              ExistsWatcher w = new ExistsWatcher();
+              Stat s = zookeeper.exists(lockPath+"/"+previousLock, w);
+              if (s != null)
+                w.waitForEvent();
+            }
+            //else
+            //  System.out.println(" Retrying for write lock '"+lockSequenceNumber+"'");
           }
-          //else
-          //  System.out.println(" Retrying for write lock '"+lockSequenceNumber+"'");
+        }
+        catch (Throwable e)
+        {
+          //System.out.println("Unexpected keeper exception: "+e.getMessage());
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
         }
       }
       catch (KeeperException e)
       {
-        //System.out.println("Unexpected keeper exception: "+e.getMessage());
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
+        handleKeeperException(e);
       }
-      catch (InterruptedException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (Error e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (RuntimeException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
@@ -423,63 +497,113 @@ public class ZooKeeperConnection
     if (lockNode != null)
       throw new IllegalStateException("Already have a lock in place: '"+lockNode+"'; can't also non-ex write lock '"+lockPath+"'");
 
-    try
+    while (true)
     {
-      // Assert that we want a read lock
-      lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
       try
       {
-        String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length());
-        // See if we got it
-        List<String> children = zookeeper.getChildren(lockPath,false);
-        for (String x : children)
+        // Assert that we want a read lock
+        lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
+        try
         {
-          String otherLock;
-          if (x.startsWith(WRITE_PREFIX))
-            otherLock = x.substring(WRITE_PREFIX.length());
-          else if (x.startsWith(READ_PREFIX))
-            otherLock = x.substring(READ_PREFIX.length());
-          else
-            continue;
-          if (otherLock.compareTo(lockSequenceNumber) < 0)
+          String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length());
+          // See if we got it
+          List<String> children = null;
+          while (true)
           {
-            // We didn't get the lock.  Clean up and exit
-            zookeeper.delete(lockNode,-1);
-            lockNode = null;
-            return false;
+            try
+            {
+              children = zookeeper.getChildren(lockPath,false);
+              break;
+            }
+            catch (KeeperException.NoNodeException e)
+            {
+              // New session; back around again.
+              break;
+            }
+            catch (KeeperException e)
+            {
+              handleKeeperException(e);
+            }
+          }
+          if (children == null)
+          {
+            // Reassert ephemeral node b/c we had a session restart
+            continue;
+          }
+          for (String x : children)
+          {
+            String otherLock;
+            if (x.startsWith(WRITE_PREFIX))
+              otherLock = x.substring(WRITE_PREFIX.length());
+            else if (x.startsWith(READ_PREFIX))
+              otherLock = x.substring(READ_PREFIX.length());
+            else
+              continue;
+            if (otherLock.compareTo(lockSequenceNumber) < 0)
+            {
+              // We didn't get the lock.  Clean up and exit
+              while (true)
+              {
+                try
+                {
+                  zookeeper.delete(lockNode,-1);
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException.NoNodeException e)
+                {
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException e)
+                {
+                  handleKeeperException(e);
+                }
+              }
+              return false;
+            }
           }
         }
+        catch (Throwable e)
+        {
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
+        }
+        // We got it!
+        return true;
       }
       catch (KeeperException e)
       {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
+        handleKeeperException(e);
       }
-      catch (InterruptedException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (Error e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (RuntimeException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      // We got it!
-      return true;
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
@@ -492,88 +616,120 @@ public class ZooKeeperConnection
     if (lockNode != null)
       throw new IllegalStateException("Already have a lock in place: '"+lockNode+"'; can't also non-ex write lock '"+lockPath+"'");
 
-    try
+    while (true)
     {
-      // Assert that we want a read lock
-      lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
       try
       {
-        long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length())).longValue();
-        while (true)
+        // Assert that we want a read lock
+        lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
+        try
         {
-          // See if we got it
-          List<String> children = zookeeper.getChildren(lockPath,false);
-          String previousLock = null;
-          boolean gotLock = true;
-          long highestPreviousLockIndex = -1L;
-          for (String x : children)
+          long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length())).longValue();
+          while (true)
           {
-            String otherLock;
-            if (x.startsWith(WRITE_PREFIX))
-              otherLock = x.substring(WRITE_PREFIX.length());
-            else if (x.startsWith(READ_PREFIX))
-              otherLock = x.substring(READ_PREFIX.length());
-            else
-              continue;
-            long otherLockSequenceNumber = new Long(otherLock).longValue();
-            //System.out.println("Saw other child sequence number "+otherLockSequenceNumber);
-            if (otherLockSequenceNumber < lockSequenceNumber)
+            // See if we got it
+            List<String> children = null;
+            while (true)
             {
-              // We didn't get the lock.  But keep going because we're looking for the node right before the
-              // one we just asserted.
-              gotLock = false;
-              if (otherLockSequenceNumber > highestPreviousLockIndex)
+              try
               {
-                previousLock = x;
-                highestPreviousLockIndex = otherLockSequenceNumber;
+                children = zookeeper.getChildren(lockPath,false);
+                break;
+              }
+              catch (KeeperException.NoNodeException e)
+              {
+                break;
+              }
+              catch (KeeperException e)
+              {
+                handleKeeperException(e);
               }
             }
-          }
-          
-          if (gotLock)
-            // We got it!
-            return;
 
-          // There SHOULD be a previous node immediately prior to the one we asserted.  If we didn't find one, go back around;
-          // the previous lock was probably created and destroyed before we managed to get the children.
-          if (previousLock != null)
-          {
-            // Create an exists() watch on the previous node, and wait until we are awakened by that watch firing.
-            ExistsWatcher w = new ExistsWatcher();
-            Stat s = zookeeper.exists(lockPath+"/"+previousLock, w);
-            if (s != null)
-              w.waitForEvent();
+            if (children == null)
+              break;
+
+            String previousLock = null;
+            boolean gotLock = true;
+            long highestPreviousLockIndex = -1L;
+            for (String x : children)
+            {
+              String otherLock;
+              if (x.startsWith(WRITE_PREFIX))
+                otherLock = x.substring(WRITE_PREFIX.length());
+              else if (x.startsWith(READ_PREFIX))
+                otherLock = x.substring(READ_PREFIX.length());
+              else
+                continue;
+              long otherLockSequenceNumber = new Long(otherLock).longValue();
+              //System.out.println("Saw other child sequence number "+otherLockSequenceNumber);
+              if (otherLockSequenceNumber < lockSequenceNumber)
+              {
+                // We didn't get the lock.  But keep going because we're looking for the node right before the
+                // one we just asserted.
+                gotLock = false;
+                if (otherLockSequenceNumber > highestPreviousLockIndex)
+                {
+                  previousLock = x;
+                  highestPreviousLockIndex = otherLockSequenceNumber;
+                }
+              }
+            }
+            
+            if (gotLock)
+              // We got it!
+              return;
+
+            // There SHOULD be a previous node immediately prior to the one we asserted.  If we didn't find one, go back around;
+            // the previous lock was probably created and destroyed before we managed to get the children.
+            if (previousLock != null)
+            {
+              // Create an exists() watch on the previous node, and wait until we are awakened by that watch firing.
+              ExistsWatcher w = new ExistsWatcher();
+              Stat s = zookeeper.exists(lockPath+"/"+previousLock, w);
+              if (s != null)
+                w.waitForEvent();
+            }
           }
+        }
+        catch (Throwable e)
+        {
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
         }
       }
       catch (KeeperException e)
       {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
+        handleKeeperException(e);
       }
-      catch (InterruptedException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (Error e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (RuntimeException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
@@ -587,63 +743,109 @@ public class ZooKeeperConnection
     if (lockNode != null)
       throw new IllegalStateException("Already have a lock in place: '"+lockNode+"'; can't also read lock '"+lockPath+"'");
 
-    try
+    while (true)
     {
-      // Assert that we want a read lock
-      lockNode = createSequentialChild(lockPath,READ_PREFIX);
       try
       {
-        String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length());
-        // See if we got it
-        List<String> children = zookeeper.getChildren(lockPath,false);
-        for (String x : children)
+        // Assert that we want a read lock
+        lockNode = createSequentialChild(lockPath,READ_PREFIX);
+        try
         {
-          String otherLock;
-          if (x.startsWith(WRITE_PREFIX))
-            otherLock = x.substring(WRITE_PREFIX.length());
-          else if (x.startsWith(NONEXWRITE_PREFIX))
-            otherLock = x.substring(NONEXWRITE_PREFIX.length());
-          else
-            continue;
-          if (otherLock.compareTo(lockSequenceNumber) < 0)
+          String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length());
+          // See if we got it
+          List<String> children = null;
+          while (true)
           {
-            // We didn't get the lock.  Clean up and exit
-            zookeeper.delete(lockNode,-1);
-            lockNode = null;
-            return false;
+            try
+            {
+              children = zookeeper.getChildren(lockPath,false);
+              break;
+            }
+            catch (KeeperException.NoNodeException e)
+            {
+              break;
+            }
+            catch (KeeperException e)
+            {
+              handleKeeperException(e);
+            }
+          }
+          if (children == null)
+            continue;
+          for (String x : children)
+          {
+            String otherLock;
+            if (x.startsWith(WRITE_PREFIX))
+              otherLock = x.substring(WRITE_PREFIX.length());
+            else if (x.startsWith(NONEXWRITE_PREFIX))
+              otherLock = x.substring(NONEXWRITE_PREFIX.length());
+            else
+              continue;
+            if (otherLock.compareTo(lockSequenceNumber) < 0)
+            {
+              // We didn't get the lock.  Clean up and exit
+              while (true)
+              {
+                try
+                {
+                  zookeeper.delete(lockNode,-1);
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException.NoNodeException e)
+                {
+                  lockNode = null;
+                  break;
+                }
+                catch (KeeperException e)
+                {
+                  handleKeeperException(e);
+                }
+              }
+              return false;
+            }
           }
         }
+        catch (Throwable e)
+        {
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
+        }
+        // We got it!
+        return true;
       }
       catch (KeeperException e)
       {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
+        handleKeeperException(e);
       }
-      catch (InterruptedException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (Error e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (RuntimeException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      // We got it!
-      return true;
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
   
@@ -656,97 +858,129 @@ public class ZooKeeperConnection
     if (lockNode != null)
       throw new IllegalStateException("Already have a lock in place: '"+lockNode+"'; can't also read lock '"+lockPath+"'");
 
-    try
+    while (true)
     {
-      // Assert that we want a read lock
-      lockNode = createSequentialChild(lockPath,READ_PREFIX);
       try
       {
-        long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length())).longValue();
-        //System.out.println("Trying to get read lock for '"+lockSequenceNumber+"'");
-        while (true)
+        // Assert that we want a read lock
+        lockNode = createSequentialChild(lockPath,READ_PREFIX);
+        try
         {
-          // See if we got it
-          List<String> children = zookeeper.getChildren(lockPath,false);
-          String previousLock = null;
-          boolean gotLock = true;
-          long highestPreviousLockIndex = -1L;
-          for (String x : children)
+          long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length())).longValue();
+          //System.out.println("Trying to get read lock for '"+lockSequenceNumber+"'");
+          while (true)
           {
-            String otherLock;
-            if (x.startsWith(WRITE_PREFIX))
-              otherLock = x.substring(WRITE_PREFIX.length());
-            else if (x.startsWith(NONEXWRITE_PREFIX))
-              otherLock = x.substring(NONEXWRITE_PREFIX.length());
-            else
-              continue;
-            long otherLockSequenceNumber = new Long(otherLock).longValue();
-            //System.out.println("Saw other child sequence number "+otherLockSequenceNumber);
-            if (otherLockSequenceNumber < lockSequenceNumber)
+            // See if we got it
+            List<String> children = null;
+            while (true)
             {
-              // We didn't get the lock.  But keep going because we're looking for the node right before the
-              // one we just asserted.
-              gotLock = false;
-              if (otherLockSequenceNumber > highestPreviousLockIndex)
+              try
               {
-                previousLock = x;
-                highestPreviousLockIndex = otherLockSequenceNumber;
+                children = zookeeper.getChildren(lockPath,false);
+                break;
+              }
+              catch (KeeperException.NoNodeException e)
+              {
+                break;
+              }
+              catch (KeeperException e)
+              {
+                handleKeeperException(e);
               }
             }
-          }
-          
-          if (gotLock)
-          {
-            // We got it!
-            //System.out.println("Got read lock for '"+lockSequenceNumber+"'");
-            return;
-          }
 
-          // There SHOULD be a previous node immediately prior to the one we asserted.  If we didn't find one, go back around;
-          // the previous lock was probably created and destroyed before we managed to get the children.
-          if (previousLock != null)
-          {
-            //System.out.println(" Waiting on '"+previousLock+"' for read lock '"+lockSequenceNumber+"'");
-            // Create an exists() watch on the previous node, and wait until we are awakened by that watch firing.
-            ExistsWatcher w = new ExistsWatcher();
-            Stat s = zookeeper.exists(lockPath+"/"+previousLock, w);
-            if (s != null)
-              w.waitForEvent();
-          }
-          //else
-          //  System.out.println(" Retrying for read lock '"+lockSequenceNumber+"'");
+            // Handle new session
+            if (children == null)
+              break;
+            
+            String previousLock = null;
+            boolean gotLock = true;
+            long highestPreviousLockIndex = -1L;
+            for (String x : children)
+            {
+              String otherLock;
+              if (x.startsWith(WRITE_PREFIX))
+                otherLock = x.substring(WRITE_PREFIX.length());
+              else if (x.startsWith(NONEXWRITE_PREFIX))
+                otherLock = x.substring(NONEXWRITE_PREFIX.length());
+              else
+                continue;
+              long otherLockSequenceNumber = new Long(otherLock).longValue();
+              //System.out.println("Saw other child sequence number "+otherLockSequenceNumber);
+              if (otherLockSequenceNumber < lockSequenceNumber)
+              {
+                // We didn't get the lock.  But keep going because we're looking for the node right before the
+                // one we just asserted.
+                gotLock = false;
+                if (otherLockSequenceNumber > highestPreviousLockIndex)
+                {
+                  previousLock = x;
+                  highestPreviousLockIndex = otherLockSequenceNumber;
+                }
+              }
+            }
+            
+            if (gotLock)
+            {
+              // We got it!
+              //System.out.println("Got read lock for '"+lockSequenceNumber+"'");
+              return;
+            }
 
+            // There SHOULD be a previous node immediately prior to the one we asserted.  If we didn't find one, go back around;
+            // the previous lock was probably created and destroyed before we managed to get the children.
+            if (previousLock != null)
+            {
+              //System.out.println(" Waiting on '"+previousLock+"' for read lock '"+lockSequenceNumber+"'");
+              // Create an exists() watch on the previous node, and wait until we are awakened by that watch firing.
+              ExistsWatcher w = new ExistsWatcher();
+              Stat s = zookeeper.exists(lockPath+"/"+previousLock, w);
+              if (s != null)
+                w.waitForEvent();
+            }
+            //else
+            //  System.out.println(" Retrying for read lock '"+lockSequenceNumber+"'");
+
+          }
+        }
+        catch (Throwable e)
+        {
+          while (true)
+          {
+            try
+            {
+              zookeeper.delete(lockNode,-1);
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException.NoNodeException e2)
+            {
+              lockNode = null;
+              break;
+            }
+            catch (KeeperException e2)
+            {
+              handleKeeperException(e2);
+            }
+          }
+          if (e instanceof KeeperException)
+            throw (KeeperException)e;
+          else if (e instanceof InterruptedException)
+            throw (InterruptedException)e;
+          else if (e instanceof Error)
+            throw (Error)e;
+          else if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          else if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          else
+            throw new RuntimeException("Unknown exception type '"+e.getClass().getName()+"': "+e.getMessage(),e);
         }
       }
       catch (KeeperException e)
       {
-        //System.out.println("Unexpected keeper exception: "+e.getMessage());
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
+        handleKeeperException(e);
       }
-      catch (InterruptedException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (Error e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-      catch (RuntimeException e)
-      {
-        zookeeper.delete(lockNode,-1);
-        lockNode = null;
-        throw e;
-      }
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
   
@@ -758,128 +992,160 @@ public class ZooKeeperConnection
     if (lockNode == null)
       throw new IllegalStateException("Can't release lock we don't hold");
     //System.out.println("Releasing lock '"+lockNode+"'");
-    try
+    
+    while (true)
     {
-      zookeeper.delete(lockNode,-1);
-      lockNode = null;
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      try
+      {
+        zookeeper.delete(lockNode,-1);
+        lockNode = null;
+        break;
+      }
+      catch (KeeperException.NoNodeException e)
+      {
+        lockNode = null;
+        break;
+      }
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
 
   public byte[] readData(String resourcePath)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
-      return zookeeper.getData(resourcePath,false,null);
-    }
-    catch (KeeperException.NoNodeException e)
-    {
-      return null;
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      try
+      {
+        return zookeeper.getData(resourcePath,false,null);
+      }
+      catch (KeeperException.NoNodeException e)
+      {
+        return null;
+      }
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
   
   public void writeData(String resourcePath, byte[] data)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
-      if (data == null)
+      try
       {
-        try
-        {
-          zookeeper.delete(resourcePath, -1);
-        }
-        catch (KeeperException.NoNodeException e)
-        {
-        }
-      }
-      else
-      {
-        while (true)
+        if (data == null)
         {
           try
           {
-            zookeeper.setData(resourcePath, data, -1);
+            zookeeper.delete(resourcePath, -1);
             break;
           }
           catch (KeeperException.NoNodeException e)
           {
-            try
-            {
-              zookeeper.create(resourcePath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-              break;
-            }
-            catch (KeeperException.NodeExistsException e2)
-            {
-              continue;
-            }
+            break;
           }
         }
+        else
+        {
+          while (true)
+          {
+            try
+            {
+              zookeeper.setData(resourcePath, data, -1);
+              break;
+            }
+            catch (KeeperException.NoNodeException e)
+            {
+              try
+              {
+                zookeeper.create(resourcePath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+                break;
+              }
+              catch (KeeperException.NodeExistsException e2)
+              {
+                continue;
+              }
+            }
+          }
+          break;
+        }
       }
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
 
   public void setGlobalFlag(String flagPath)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
       try
       {
-        zookeeper.create(flagPath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        try
+        {
+          zookeeper.create(flagPath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+          break;
+        }
+        catch (KeeperException.NodeExistsException e)
+        {
+          break;
+        }
       }
-      catch (KeeperException.NodeExistsException e)
+      catch (KeeperException e)
       {
+        handleKeeperException(e);
       }
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
   public void clearGlobalFlag(String flagPath)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
       try
       {
-        zookeeper.delete(flagPath,-1);
+        try
+        {
+          zookeeper.delete(flagPath,-1);
+          break;
+        }
+        catch (KeeperException.NoNodeException e)
+        {
+          break;
+        }
       }
-      catch (KeeperException.NoNodeException e)
+      catch (KeeperException e)
       {
+        handleKeeperException(e);
       }
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
   
   public boolean checkGlobalFlag(String flagPath)
     throws ManifoldCFException, InterruptedException
   {
-    try
+    while (true)
     {
-      Stat s = zookeeper.exists(flagPath,false);
-      return s != null;
-    }
-    catch (KeeperException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
+      try
+      {
+        Stat s = zookeeper.exists(flagPath,false);
+        return s != null;
+      }
+      catch (KeeperException e)
+      {
+        handleKeeperException(e);
+      }
     }
   }
   
@@ -892,6 +1158,27 @@ public class ZooKeeperConnection
     zookeeper.close();
     zookeeper = null;
     zookeeperWatcher = null;
+  }
+  
+  protected void handleKeeperException(KeeperException e)
+    throws ManifoldCFException, InterruptedException
+  {
+    if (e instanceof KeeperException.ConnectionLossException)
+    {
+      // Retry if connection loss
+      ManifoldCF.sleep(100L);
+    }
+    else if (e instanceof KeeperException.SessionExpiredException)
+    {
+      // Close the handle, open a new one
+      zookeeper.close();
+      createSession();
+    }
+    else
+    {
+      // If nothing we know how to deal with, throw.
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
   
   public static String zooKeeperSafeName(String input)

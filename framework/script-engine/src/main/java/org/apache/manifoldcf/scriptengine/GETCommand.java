@@ -25,12 +25,7 @@ import org.apache.http.HttpException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.HttpResponse;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
 import java.io.*;
 
 /** GET command.  This performs a REST-style GET operation, designed to work
