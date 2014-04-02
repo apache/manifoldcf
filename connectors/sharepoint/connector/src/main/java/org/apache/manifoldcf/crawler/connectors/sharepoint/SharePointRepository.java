@@ -42,24 +42,25 @@ import java.net.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
 
@@ -113,7 +114,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   private String keystoreData = null;
   private IKeystoreManager keystoreManager = null;
   
-  private ClientConnectionManager connectionManager = null;
+  private HttpClientConnectionManager connectionManager = null;
   private HttpClient httpClient = null;
 
   // Current host name
@@ -159,7 +160,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (serverVersion == null)
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
-      dspStsWorks = serverVersion.equals("2.0") || serverVersion.equals("3.0");
+      dspStsWorks = !serverVersion.equals("4.0");
       attachmentsSupported = !serverVersion.equals("2.0");
       
       String authorityType = params.getParameter( SharePointConfig.PARAM_AUTHORITYTYPE );
@@ -223,55 +224,59 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (serverPort != 80)
           serverUrl += ":" + Integer.toString(serverPort);
       }
+      
+      fileBaseUrl = serverUrl + encodedServerLocation;
 
       // Set up ssl if indicated
       keystoreData = params.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
 
-      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
-      localConnectionManager.setMaxTotal(1);
-      connectionManager = localConnectionManager;
+      int connectionTimeout = 60000;
+      int socketTimeout = 900000;
 
+      connectionManager = new PoolingHttpClientConnectionManager();
+
+      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
+      SSLConnectionSocketFactory myFactory = null;
       if (keystoreData != null)
       {
         keystoreManager = KeystoreManagerFactory.make("",keystoreData);
-        SSLSocketFactory myFactory = new SSLSocketFactory(keystoreManager.getSecureSocketFactory(), new BrowserCompatHostnameVerifier());
-        Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
-        connectionManager.getSchemeRegistry().register(myHttpsProtocol);
+        myFactory = new SSLConnectionSocketFactory(keystoreManager.getSecureSocketFactory(), new BrowserCompatHostnameVerifier());
       }
 
-      fileBaseUrl = serverUrl + encodedServerLocation;
-
-      BasicHttpParams params = new BasicHttpParams();
-      params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
-      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
-      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
-      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-      DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
-      // No retries
-      localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-        {
-          public boolean retryRequest(
-            IOException exception,
-            int executionCount,
-            HttpContext context)
-          {
-            return false;
-          }
-       
-        });
-      localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
       if (strippedUserName != null)
       {
-        localHttpClient.getCredentialsProvider().setCredentials(
+        credentialsProvider.setCredentials(
           new AuthScope(serverName,serverPort),
           new NTCredentials(strippedUserName, password, currentHost, ntlmDomain));
       }
 
-      httpClient = localHttpClient;
-      
+      RequestConfig.Builder requestBuilder = RequestConfig.custom()
+          .setCircularRedirectsAllowed(true)
+          .setSocketTimeout(socketTimeout)
+          .setStaleConnectionCheckEnabled(true)
+          .setExpectContinueEnabled(false)
+          .setConnectTimeout(connectionTimeout)
+          .setConnectionRequestTimeout(socketTimeout);
+
+      HttpClientBuilder builder = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setMaxConnTotal(1)
+        .disableAutomaticRetries()
+        .setDefaultRequestConfig(requestBuilder.build())
+        .setDefaultSocketConfig(SocketConfig.custom()
+          .setTcpNoDelay(true)
+          .setSoTimeout(socketTimeout)
+          .build())
+        .setDefaultCredentialsProvider(credentialsProvider);
+      if (myFactory != null)
+        builder.setSSLSocketFactory(myFactory);
+      builder.setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+        .setRedirectStrategy(new DefaultRedirectStrategy());
+      httpClient = builder.build();
+
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password,
-        org.apache.manifoldcf.sharepoint.CommonsHTTPSender.class, "sharepoint-client-config.wsdd",
+        org.apache.manifoldcf.core.common.CommonsHTTPSender.class, "client-config.wsdd",
         httpClient );
       
     }
@@ -1748,7 +1753,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 }
 
                 int cutoff = decodedLibPath.lastIndexOf("/");
-                metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff+1), dspStsWorks );
+                metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff), dspStsWorks );
                 if (metadataValues == null)
                 {
                   // Document has vanished
@@ -2120,7 +2125,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         Logging.connectors.debug( sb.toString() );
       }
 
-      data.setACL( actualAcls );
+      data.setSecurityACL( RepositoryDocument.SECURITY_TYPE_DOCUMENT, actualAcls );
     }
 
     if (denyAcls != null)
@@ -2142,7 +2147,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         Logging.connectors.debug( sb.toString() );
       }
 
-      data.setDenyACL(actualDenyAcls);
+      data.setSecurityDenyACL( RepositoryDocument.SECURITY_TYPE_DOCUMENT, actualDenyAcls);
     }
   }
 

@@ -474,6 +474,8 @@ public abstract class ConnectorPool<T extends IConnector>
         if (stack.size() == 0)
         {
           T newrc = createConnectorInstance(threadContext,className);
+          if (newrc == null)
+            return null;
           newrc.connect(configParams);
           stack.add(newrc);
         }

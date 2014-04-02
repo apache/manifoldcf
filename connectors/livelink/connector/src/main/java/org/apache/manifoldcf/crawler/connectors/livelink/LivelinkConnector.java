@@ -34,14 +34,21 @@ import java.util.concurrent.TimeUnit;
 
 import com.opentext.api.*;
 
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.NameValuePair;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -49,20 +56,12 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpHost;
 import org.apache.http.Header;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -169,8 +168,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   private IKeystoreManager ingestKeystoreManager = null;
 
   // Connection management
-  private ClientConnectionManager connectionManager = null;
-  private AbstractHttpClient httpClient = null;
+  private HttpClientConnectionManager connectionManager = null;
+  private HttpClient httpClient = null;
   
   // Base path for viewing
   private String viewBasePath = null;
@@ -493,50 +492,50 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       int connectionTimeout = 300000;
 
       // Set up connection manager
-      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
-      localConnectionManager.setMaxTotal(1);
+      connectionManager = new PoolingHttpClientConnectionManager();
+
+      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
       // Set up ingest ssl if indicated
+      SSLConnectionSocketFactory myFactory = null;
       if (ingestKeystoreManager != null)
       {
-        SSLSocketFactory myFactory = new SSLSocketFactory(new InterruptibleSocketFactory(ingestKeystoreManager.getSecureSocketFactory(), connectionTimeout),
+        myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(ingestKeystoreManager.getSecureSocketFactory(), connectionTimeout),
           new BrowserCompatHostnameVerifier());
-        Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
-        localConnectionManager.getSchemeRegistry().register(myHttpsProtocol);
       }
-      connectionManager = localConnectionManager;
 
-      // Create the httpclient
-      BasicHttpParams params = new BasicHttpParams();
-      params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
-      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
-      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,300000);
-      params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,true);
-      DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
-      // No retries
-      localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-        {
-          public boolean retryRequest(
-            IOException exception,
-            int executionCount,
-            HttpContext context)
-          {
-            return false;
-          }
-       
-        });
-
-      localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
       // Set up authentication to use
       if (ingestNtlmDomain != null)
       {
-        localHttpClient.getCredentialsProvider().setCredentials(AuthScope.ANY,
+        credentialsProvider.setCredentials(AuthScope.ANY,
           new NTCredentials(ingestNtlmUsername,ingestNtlmPassword,currentHost,ingestNtlmDomain));
       }
-      httpClient = localHttpClient;
+
+      HttpClientBuilder builder = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setMaxConnTotal(1)
+        .disableAutomaticRetries()
+        .setDefaultRequestConfig(RequestConfig.custom()
+          .setCircularRedirectsAllowed(true)
+          .setSocketTimeout(socketTimeout)
+          .setStaleConnectionCheckEnabled(true)
+          .setExpectContinueEnabled(true)
+          .setConnectTimeout(connectionTimeout)
+          .setConnectionRequestTimeout(socketTimeout)
+          .build())
+        .setDefaultSocketConfig(SocketConfig.custom()
+          .setTcpNoDelay(true)
+          .setSoTimeout(socketTimeout)
+          .build())
+        .setDefaultCredentialsProvider(credentialsProvider)
+        .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+        .setRedirectStrategy(new DefaultRedirectStrategy());
+
+      if (myFactory != null)
+        builder.setSSLSocketFactory(myFactory);
       
+      httpClient = builder.build();
+
       // System.out.println("Connection server object = "+llServer.toString());
 
       // Establish the actual connection
@@ -4375,14 +4374,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                   aclArray[j] = (String)acls.get(j);
                   j++;
                 }
-                rd.setACL(aclArray);
 
                 StringBuilder denyBuffer = new StringBuilder();
                 startPos = unpack(denyBuffer,version,startPos,'+');
                 String denyAcl = denyBuffer.toString();
                 String[] denyAclArray = new String[1];
                 denyAclArray[0] = denyAcl;
-                rd.setDenyACL(denyAclArray);
+                
+                rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray,denyAclArray);
               }
             }
 

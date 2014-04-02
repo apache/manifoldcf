@@ -32,15 +32,23 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpHost;
@@ -49,20 +57,14 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
-import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.ContentType;
+
+import org.apache.http.ParseException;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -78,7 +80,7 @@ public class JiraSession {
   private final String clientId;
   private final String clientSecret;
   
-  private ClientConnectionManager connectionManager;
+  private HttpClientConnectionManager connectionManager;
   private HttpClient httpClient;
   
   // Current host name
@@ -98,6 +100,8 @@ public class JiraSession {
     }
   }
 
+  protected static final Charset UTF_8 = Charset.forName("UTF-8");
+
   /**
    * Constructor. Create a session.
    */
@@ -112,46 +116,28 @@ public class JiraSession {
     int connectionTimeout = 60000;
 
     javax.net.ssl.SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();
-    SSLSocketFactory myFactory = new SSLSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
-      new AllowAllHostnameVerifier());
-    Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
+    SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
+      SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
-    PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
-    localConnectionManager.setMaxTotal(1);
-    connectionManager = localConnectionManager;
-    // Set up protocol registry
-    connectionManager.getSchemeRegistry().register(myHttpsProtocol);
+    connectionManager = new PoolingHttpClientConnectionManager();
 
-    BasicHttpParams params = new BasicHttpParams();
-    params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
-    params.setIntParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE,socketTimeout);
-    params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-    params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
-    params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
-    params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
-    params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-    DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
-    // No retries
-    localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-      {
-        public boolean retryRequest(
-          IOException exception,
-          int executionCount,
-          HttpContext context)
-        {
-          return false;
-        }
-       
-      });
-    localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
-      
+    CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
     // If authentication needed, set that
     if (clientId != null)
     {
-      localHttpClient.getCredentialsProvider().setCredentials(
+      credentialsProvider.setCredentials(
         AuthScope.ANY,
         new UsernamePasswordCredentials(clientId,clientSecret));
     }
+
+    RequestConfig.Builder requestBuilder = RequestConfig.custom()
+      .setCircularRedirectsAllowed(true)
+      .setSocketTimeout(socketTimeout)
+      .setStaleConnectionCheckEnabled(true)
+      .setExpectContinueEnabled(true)
+      .setConnectTimeout(connectionTimeout)
+      .setConnectionRequestTimeout(socketTimeout);
 
     // If there's a proxy, set that too.
     if (proxyHost != null && proxyHost.length() > 0)
@@ -180,17 +166,30 @@ public class JiraSession {
         if (proxyDomain == null)
           proxyDomain = "";
 
-        localHttpClient.getCredentialsProvider().setCredentials(
+        credentialsProvider.setCredentials(
           new AuthScope(proxyHost, proxyPortInt),
           new NTCredentials(proxyUsername, proxyPassword, currentHost, proxyDomain));
       }
 
       HttpHost proxy = new HttpHost(proxyHost, proxyPortInt);
-
-      localHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+      requestBuilder.setProxy(proxy);
     }
 
-    httpClient = localHttpClient;
+    httpClient = HttpClients.custom()
+      .setConnectionManager(connectionManager)
+      .setMaxConnTotal(1)
+      .disableAutomaticRetries()
+      .setDefaultRequestConfig(requestBuilder.build())
+      .setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build())
+      .setDefaultCredentialsProvider(credentialsProvider)
+      .setSSLSocketFactory(myFactory)
+      .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+      .setRedirectStrategy(new DefaultRedirectStrategy())
+      .build();
+
   }
 
   /**
@@ -209,10 +208,7 @@ public class JiraSession {
     if (entity != null) {
       InputStream is = entity.getContent();
       try {
-        String charSet = EntityUtils.getContentCharSet(entity);
-        if (charSet == null)
-          charSet = "utf-8";
-        Reader r = new InputStreamReader(is,charSet);
+        Reader r = new InputStreamReader(is,getCharSet(entity));
         return JSONValue.parse(r);
       } finally {
         is.close();
@@ -227,11 +223,8 @@ public class JiraSession {
     if (entity != null) {
       InputStream is = entity.getContent();
       try {
-        String charSet = EntityUtils.getContentCharSet(entity);
-        if (charSet == null)
-          charSet = "utf-8";
         char[] buffer = new char[65536];
-        Reader r = new InputStreamReader(is,charSet);
+        Reader r = new InputStreamReader(is,getCharSet(entity));
         Writer w = new StringWriter();
         try {
           while (true) {
@@ -251,6 +244,24 @@ public class JiraSession {
     return "";
   }
 
+  private static Charset getCharSet(HttpEntity entity)
+  {
+    Charset charSet;
+    try
+    {
+      ContentType ct = ContentType.get(entity);
+      if (ct == null)
+        charSet = UTF_8;
+      else
+        charSet = ct.getCharset();
+    }
+    catch (ParseException e)
+    {
+      charSet = UTF_8;
+    }
+    return charSet;
+  }
+  
   private void getRest(String rightside, JiraJSONResponse response) 
     throws IOException, ResponseException {
 

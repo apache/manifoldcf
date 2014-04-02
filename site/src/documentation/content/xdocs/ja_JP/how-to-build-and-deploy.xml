@@ -245,6 +245,51 @@
           <p></p>
         </section>
         
+        <section>
+          <title>Running the Apache Solr output connector</title>
+          <p></p>
+          <p>The Apache Solr output connector requires no special attention to build or run within ManifoldCF.  However, in order for Apache Solr to be able to enforce
+              document security, you must install and properly configure a plugin for Solr.  This plugin is available for both Solr 3.x and for Solr 4.x, and can be used either
+              as a query parser plugin, or as a search component.  Additional index fields are also required to contain the necessary security information.  Much more
+              information can be found in the README.txt file in the plugins themselves.</p>
+          <p>The correct versions of the plugins are included in the solr-integration directory of the main ManifoldCF distribution.  You can also download updated versions
+              of the plugins from the ManifoldCF download page.  The compatibility matrix is as follows:</p>
+          <p></p>
+          <table>
+            <caption>Apache ManifoldCF Solr 3.x and Solr 4.x plugin compatibility</caption>
+            <tr><th>ManifoldCF versions</th><th>Plugin version</th></tr>
+            <tr><td>0.1.x-1.4.x</td><td>0.x</td></tr>
+            <tr><td>1.5.x</td><td>1.x</td></tr>
+            <tr><td>1.6.x</td><td>2.x</td></tr>
+          </table>
+          <p></p>
+          <p><strong>If the proper version of the plugin is not deployed on Solr, documents will not be properly secured.</strong>  Thus, it is essential to verify that the
+              proper plugin version has been deployed for the version of ManifoldCF you are using.</p>
+        </section>
+
+        <section>
+          <title>Running the ElasticSearch output connector</title>
+          <p></p>
+          <p>The ElasticSearch output connector requires no special attention to build or run within ManifoldCF.  However, in order for ElasticSearch to be able to enforce
+              document security, you must install, properly configure, and code against a toolkit plugin for ElasticSearch.
+              Additional index fields are also required to contain the necessary security information.  Much more information can be found in the README.txt file in the
+              plugin itself.</p>
+          <p>The correct versions of the plugin is included in the elasticsearch-integration directory of the main ManifoldCF distribution.  You can also download updated versions
+              of the plugin from the ManifoldCF download page.  The compatibility matrix is as follows:</p>
+          <p></p>
+          <table>
+            <caption>Apache ManifoldCF ElasticSearch plugin compatibility</caption>
+            <tr><th>ManifoldCF versions</th><th>Plugin version</th></tr>
+            <tr><td>0.1.x-1.4.x</td><td>0.x</td></tr>
+            <tr><td>1.5.x</td><td>1.x</td></tr>
+            <tr><td>1.6.x</td><td>2.x</td></tr>
+          </table>
+          <p></p>
+          <p><strong>If the proper version of the plugin is not deployed and properly integrated, documents will not be properly secured.</strong>  Thus, it is essential to verify that the
+              proper plugin version has been deployed for the version of ManifoldCF you are using.</p>
+
+        </section>
+
       </section>
       
       <section>
@@ -855,7 +900,7 @@ cd example
           <p>The following table describes the configuration property file properties, and what they do:</p>
           <p></p>
           <table>
-            <caption>Property.xml properties</caption>
+            <caption>property.xml properties</caption>
             <tr><th>Property</th><th>Required?</th><th>Function</th></tr>
             <tr><td>org.apache.manifoldcf.login.name</td><td>No</td><td>Crawler UI login user ID (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.login.password</td><td>No</td><td>Crawler UI login user password (defaults to "admin")</td></tr>
@@ -918,6 +963,17 @@ cd example
             <tr><td>org.apache.manifoldcf.authorityconnectors</td><td>No</td><td>Log authority connector activity.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservice</td><td>No</td><td>Log authority service activity.  Legal values are INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.salt</td><td>Yes, if file encryption is used</td><td>Specify the salt value to be used for encrypting the file to which the crawler configuration is exported.</td></tr>
+          </table>
+          <p></p>
+          <p>The following table describes 'advanced' configuration property file properties.  They shouldn't need to be changed but provide a greater level of customization:</p>
+          <p></p>
+          <table>
+            <caption>Advanced property.xml properties</caption>
+            <tr><th>Property</th><th>Required?</th><th>Default</th><th>Function</th></tr>
+            <tr><td>org.apache.manifoldcf.crawler.repository.store_history</td><td>No</td><td>true</td><td>If you do not require reports from within this will disable logging to the repository history (although the reports will still run they will not contain any content). This can increase throughput and reduce the rate of growth of the database.</td></tr>
+            <tr><td>org.apache.manifoldcf.db.postgres.analyze.&#60;tablename&#62;</td><td>No</td><td>2000</td><td>For postgresql, specify how many changes should be carried out before carrying out an 'ANALYZE' on the specified table.</td></tr>
+            <tr><td>org.apache.manifoldcf.db.postgres.analyze.&#60;tablename&#62;</td><td>No</td><td>250000</td><td>For postgresql, specify how many changes should be carried out before carrying out an 'REINDEX' on the specified table.</td></tr>
+            <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>10000</td><td>Set the upper limit for the precise document count to be returned on the 'Status and Job Management' page.</td></tr>
           </table>
           <p></p>
           <p>The configuration file can also specify a set of directories which will be searched for connector jars.  The directive that adds to the class path is:</p>

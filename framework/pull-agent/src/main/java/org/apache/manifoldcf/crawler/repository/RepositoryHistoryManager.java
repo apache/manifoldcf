@@ -60,6 +60,9 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   /** Thread context */
   protected IThreadContext threadContext;
 
+  /** A lock manager handle. */
+  protected final ILockManager lockManager;
+
   /** Constructor.
   *@param database is the database instance.
   */
@@ -68,6 +71,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   {
     super(database,"repohistory");
     this.threadContext = tc;
+    this.lockManager = LockManagerFactory.make(tc);
   }
 
   /** Install or upgrade the table.
@@ -188,22 +192,25 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     String entityIdentifier, String resultCode, String resultDescription)
     throws ManifoldCFException
   {
-    Long id = new Long(IDFactory.make(threadContext));
-    HashMap map = new HashMap();
-    map.put(idField,id);
-    map.put(ownerNameField,connectionName);
-    map.put(startTimeField,new Long(startTime));
-    map.put(endTimeField,new Long(endTime));
-    map.put(dataSizeField,new Long(dataSize));
-    map.put(activityTypeField,activityType);
-    map.put(entityIdentifierField,entityIdentifier);
-    if (resultCode != null)
-      map.put(resultCodeField,resultCode);
-    if (resultDescription != null)
-      map.put(resultDescriptionField,resultDescription);
-    performInsert(map,null);
-    // Not accurate, but best we can do without overhead
-    noteModifications(1,0,0);
+    Long id = new Long(IDFactory.make(threadContext));   
+    if (lockManager.getSharedConfiguration().getBooleanProperty("org.apache.manifoldcf.crawler.repository.store_history",true))
+    {
+      HashMap map = new HashMap();
+      map.put(idField,id);
+      map.put(ownerNameField,connectionName);
+      map.put(startTimeField,new Long(startTime));
+      map.put(endTimeField,new Long(endTime));
+      map.put(dataSizeField,new Long(dataSize));
+      map.put(activityTypeField,activityType);
+      map.put(entityIdentifierField,entityIdentifier);
+      if (resultCode != null)
+        map.put(resultCodeField,resultCode);
+      if (resultDescription != null)
+        map.put(resultDescriptionField,resultDescription);
+      performInsert(map,null);
+      // Not accurate, but best we can do without overhead
+      noteModifications(1,0,0);
+    }
     return id;
   }
 
