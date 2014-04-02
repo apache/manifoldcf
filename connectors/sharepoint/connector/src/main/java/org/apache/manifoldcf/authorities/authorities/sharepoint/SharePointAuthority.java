@@ -731,7 +731,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
           .setStaleConnectionCheckEnabled(true)
-          .setExpectContinueEnabled(true)
+          .setExpectContinueEnabled(false)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
 
@@ -752,7 +752,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       httpClient = builder.build();
       
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, serverUserName, password,
-        org.apache.manifoldcf.sharepoint.CommonsHTTPSender.class, "sharepoint-client-config.wsdd",
+        org.apache.manifoldcf.core.common.CommonsHTTPSender.class, "client-config.wsdd",
         httpClient, isClaimSpace );
       
     }

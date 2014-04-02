@@ -255,7 +255,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
           .setStaleConnectionCheckEnabled(true)
-          .setExpectContinueEnabled(true)
+          .setExpectContinueEnabled(false)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
 
@@ -276,7 +276,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       httpClient = builder.build();
 
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password,
-        org.apache.manifoldcf.sharepoint.CommonsHTTPSender.class, "sharepoint-client-config.wsdd",
+        org.apache.manifoldcf.core.common.CommonsHTTPSender.class, "client-config.wsdd",
         httpClient );
       
     }

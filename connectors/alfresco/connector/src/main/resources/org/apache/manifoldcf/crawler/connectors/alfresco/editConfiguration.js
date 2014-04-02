@@ -45,7 +45,7 @@ function checkConfigForSave()
     editconnection.server.focus();
     return false;
   }
-  else if(!editconnection.server.value.indexOf('/')==-1)
+  else if(editconnection.server.value.indexOf('/')!=-1)
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.ServerNameCantContainSlash'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.Server'))");
