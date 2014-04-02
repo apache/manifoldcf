@@ -721,8 +721,19 @@
         <ant dir="connectors/opensearchserver" target="run-tests-HSQLDB"/>
     </target>
 	
-
-
+    <target name="setup-amazoncloudsearch-connector" depends="build-framework" if="downloaded"/>
+<!--
+    <target name="setup-amazoncloudsearch-connector-tests" depends="build-tests-framework" if="downloaded"/>
+-->
+    <target name="build-amazoncloudsearch-connector" depends="setup-amazoncloudsearch-connector" if="downloaded">
+      <ant dir="connectors/amazoncloudsearch" target="build"/>
+    </target>
+<!--
+    <target name="doc-amazoncloudsearch-connector" depends="setup-amazoncloudsearch-connector" if="downloaded">
+        <ant dir="connectors/amazoncloudsearch" target="doc"/>
+    </target>
+-->
+	
     <target name="setup-elasticsearch-connector" depends="build-framework" if="downloaded"/>
 
     <target name="setup-elasticsearch-connector-tests" depends="build-tests-framework" if="downloaded"/>
@@ -2518,7 +2529,45 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf">
+    <target name="download-tika">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-name" value="tika-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-name" value="tika-parsers"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ccil/cowan/tagsoup"/>
+            <param name="artifact-version" value="1.2.1"/>
+            <param name="artifact-name" value="tagsoup"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+	
+	<target name="download-jackson">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/jackson/core"/>
+            <param name="artifact-version" value="2.1.3"/>
+            <param name="artifact-name" value="jackson-databind"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/jackson/core"/>
+            <param name="artifact-version" value="2.1.2"/>
+            <param name="artifact-name" value="jackson-annotations"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+	</target>
+	
+    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
