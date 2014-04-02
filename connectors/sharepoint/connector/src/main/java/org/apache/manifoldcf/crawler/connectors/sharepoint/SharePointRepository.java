@@ -160,7 +160,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (serverVersion == null)
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
-      dspStsWorks = !serverVersion.equals("4.0");
+      dspStsWorks = serverVersion.equals("2.0") || serverVersion.equals("3.0");
       attachmentsSupported = !serverVersion.equals("2.0");
       
       String authorityType = params.getParameter( SharePointConfig.PARAM_AUTHORITYTYPE );
