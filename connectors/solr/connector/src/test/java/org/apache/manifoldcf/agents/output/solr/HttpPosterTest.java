@@ -83,6 +83,13 @@ public class HttpPosterTest
     String[] acls = new String[]{ "acl1", "acl2" };
     String[] denyAcls = new String[]{ "denyAcl1", "denyAcl2" };
 
+    Map<String,String[]> aclsMap = new HashMap<String,String[]>();
+    Map<String,String[]> denyAclsMap = new HashMap<String,String[]>();
+    aclsMap.put("share",shareAcls);
+    aclsMap.put("document",acls);
+    denyAclsMap.put("share",shareDenyAcls);
+    denyAclsMap.put("document",denyAcls);
+
     Logging.ingest = mock( Logger.class );
     when( Logging.ingest.isDebugEnabled() ).thenReturn( false );
     initRepositoryDocumentMock( shareAcls, shareDenyAcls, acls, denyAcls );
@@ -103,13 +110,13 @@ public class HttpPosterTest
     HttpPoster.IngestThread mockIngestionThread=mock(HttpPoster.IngestThread.class);
     Mockito.doThrow(new RuntimeException()).when( mockIngestionThread ).run();
 
-    whenNew( HttpPoster.IngestThread.class).withArguments("Document Id", document, streamParam, true, sourceTargets,shareAcls,
-      shareDenyAcls, acls, denyAcls,commitWithin).thenReturn(mockIngestionThread);
+    whenNew( HttpPoster.IngestThread.class).withArguments("Document Id", document, streamParam, true, sourceTargets,
+      aclsMap, denyAclsMap, commitWithin).thenReturn(mockIngestionThread);
     httpPosterToTest.indexPost("Document Id", document, streamParam,
       sourceTargets,true, "AuthorityString",act);
 
-    verifyNew(HttpPoster.IngestThread.class).withArguments("Document Id", document, streamParam, true, sourceTargets, shareAcls,
-      shareDenyAcls, acls, denyAcls, commitWithin );
+    verifyNew(HttpPoster.IngestThread.class).withArguments("Document Id", document, streamParam, true, sourceTargets,
+      aclsMap, denyAclsMap, commitWithin );
   }
 
   private void initRepositoryDocumentMock( String[] shareAcls, String[] shareDenyAcls, String[] acls,
@@ -118,7 +125,9 @@ public class HttpPosterTest
   {
     document = mock( RepositoryDocument.class );
     List<String> fields = getFields();
+    List<String> securityTypes = getSecurityTypes();
     Iterator<String> fieldsIterator = fields.iterator();
+    Iterator<String> securityTypesIterator = securityTypes.iterator();
     when( document.getFields() ).thenReturn( fieldsIterator );
     when( document.getFieldAsStrings( "cm:description" ) ).thenReturn( new String[]{ "description" } );
     when( document.getFieldAsStrings( "cm:name" ) ).thenReturn( new String[]{ "name" } );
@@ -126,10 +135,11 @@ public class HttpPosterTest
     when( document.getFieldAsStrings( "extraMetadata1" ) ).thenReturn( new String[]{ "value1" } );
     when( document.getFieldAsStrings( "extraMetadata2" ) ).thenReturn( new String[]{ "value2" } );
     when( document.getFieldAsStrings( "extraMetadata3" ) ).thenReturn( new String[]{ "value3" } );
-    when( document.getACL()).thenReturn(acls);
-    when( document.getShareACL()).thenReturn(shareAcls);
-    when( document.getShareDenyACL()).thenReturn( shareDenyAcls );
-    when( document.getDenyACL()).thenReturn(denyAcls);
+    when( document.securityTypesIterator()).thenReturn(securityTypesIterator);
+    when( document.getSecurityACL( "document" ) ).thenReturn(acls);
+    when( document.getSecurityACL( "share" ) ).thenReturn(shareAcls);
+    when( document.getSecurityDenyACL( "document" ) ).thenReturn(shareAcls);
+    when( document.getSecurityDenyACL( "share" ) ).thenReturn(shareDenyAcls);
   }
 
   /**
@@ -184,6 +194,14 @@ public class HttpPosterTest
     return fields;
   }
 
+  private List<String> getSecurityTypes()
+  {
+    List<String> securityTypes = new ArrayList<String>();
+    securityTypes.add( "document" );
+    securityTypes.add( "share" );
+    return securityTypes;
+  }
+  
   /**
    * returns a testing mapping map
    *

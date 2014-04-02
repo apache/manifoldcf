@@ -64,7 +64,7 @@ public class SolrConnectorTest extends TestCase{
     Map<String,List<String>> expectedStreamParams = getStreamTypeMap();
 
     connectorToTest.poster=poster;
-    String outputDescription = "1+stream.type=text/plain=+3+cm:description=cm_description_s=+cm:name=cm_name_s=+cm:title=cm_title_s=+1+keepAllMetadata=true=+";
+    String outputDescription = "1+stream.type=text/plain=+3+cm:description=cm_description_s=+cm:name=cm_name_s=+cm:title=cm_title_s=++";
     connectorToTest.addOrReplaceDocument("Document Id", outputDescription,document,"",act);
     verify(poster).indexPost(eq("Document Id"),eq(document),eq(expectedStreamParams),eq(expectedSourceTargets),eq(true),eq(""),eq(act));
   }
