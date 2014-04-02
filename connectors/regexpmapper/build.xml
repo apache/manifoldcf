@@ -17,7 +17,24 @@
 
 <project name="regexpmapper" default="all">
 
-    <import file="../connector-build.xml"/>
-    
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <property name="abs-dist" location="../../dist"/>
+    <condition property="mcf-dist" value="${abs-dist}">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-mapping-connector">
+            <param name="connector-label" value="Regular expression mapper"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.mappers.regexp.RegexpMapper"/>
+        </antcall>
+    </target>
     
 </project>

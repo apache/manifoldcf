@@ -17,7 +17,18 @@
 
 <project name="filenet" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <property name="abs-dist" location="../../dist"/>
+    <condition property="mcf-dist" value="${abs-dist}">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
 
     <target name="has-proprietary-materials-check">
         <available file="lib-proprietary/Jace.jar" property="JaceStatus"/>
@@ -49,6 +60,13 @@
             <fileset dir="lib-proprietary" includes="*.jar"/>
         </copy>
         <copy todir="dist/server-process/lib-proprietary" file="server/README.txt"/>
+    </target>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="FileNet"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector"/>
+        </antcall>
     </target>
 
 </project>

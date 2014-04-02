@@ -46,9 +46,10 @@ public class ElasticSearchAction extends ElasticSearchConnection
     StringBuffer url = getApiUrl(cmd.toString(), checkConnection);
     HttpGet method = new HttpGet(url.toString());
     call(method);
-    if ("true".equals(checkJson(jsonStatus)))
+    String error = checkJson(jsonException);
+    if (getResult() == Result.OK && error == null)
       return;
-    setResult(Result.ERROR, checkJson(jsonException));
+    setResult(Result.ERROR, error);
     Logging.connectors.warn("ES: Commit failed: "+getResponse());
   }
 }

@@ -152,7 +152,9 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           if (serviceName == null)
             serviceName = constructUniqueServiceName(connection, serviceType);
 
-          String activePath = buildServiceTypeActivePath(serviceType, serviceName);
+          String encodedServiceName = ZooKeeperConnection.zooKeeperSafeName(serviceName);
+          
+          String activePath = buildServiceTypeActivePath(serviceType, encodedServiceName);
           if (connection.checkNodeExists(activePath))
             throw new ManifoldCFException("Service '"+serviceName+"' of type '"+serviceType+"' is already active");
           // First, see where we stand.
@@ -162,11 +164,11 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           List<String> children = connection.getChildren(registrationNodePath);
           boolean foundService = false;
           boolean foundActiveService = false;
-          for (String registeredServiceName : children)
+          for (String encodedRegisteredServiceName : children)
           {
-            if (registeredServiceName.equals(serviceName))
+            if (encodedRegisteredServiceName.equals(encodedServiceName))
               foundService = true;
-            if (connection.checkNodeExists(buildServiceTypeActivePath(serviceType, registeredServiceName)))
+            if (connection.checkNodeExists(buildServiceTypeActivePath(serviceType, encodedRegisteredServiceName)))
               foundActiveService = true;
           }
           
@@ -197,17 +199,17 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           if (unregisterAll)
           {
             // Unregister all (since we did a global cleanup)
-            for (String registeredServiceName : children)
+            for (String encodedRegisteredServiceName : children)
             {
-              if (!registeredServiceName.equals(serviceName))
-                connection.deleteChild(registrationNodePath, registeredServiceName);
+              if (!encodedRegisteredServiceName.equals(encodedServiceName))
+                connection.deleteChild(registrationNodePath, encodedRegisteredServiceName);
             }
           }
 
           // Now, register (if needed)
           if (!foundService)
           {
-            connection.createChild(registrationNodePath, serviceName);
+            connection.createChild(registrationNodePath, encodedServiceName);
           }
           
           // Last, set the appropriate active flag
@@ -248,7 +250,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         enterServiceRegistryWriteLock(connection, serviceType);
         try
         {
-          String activePath = buildServiceTypeActivePath(serviceType, serviceName);
+          String activePath = buildServiceTypeActivePath(serviceType, ZooKeeperConnection.zooKeeperSafeName(serviceName));
           connection.setNodeData(activePath, (serviceData==null)?new byte[0]:serviceData);
         }
         finally
@@ -284,7 +286,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         enterServiceRegistryReadLock(connection, serviceType);
         try
         {
-          String activePath = buildServiceTypeActivePath(serviceType, serviceName);
+          String activePath = buildServiceTypeActivePath(serviceType, ZooKeeperConnection.zooKeeperSafeName(serviceName));
           return connection.getNodeData(activePath);
         }
         finally
@@ -321,13 +323,13 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         {
           String registrationNodePath = buildServiceTypeRegistrationPath(serviceType);
           List<String> children = connection.getChildren(registrationNodePath);
-          for (String registeredServiceName : children)
+          for (String encodedRegisteredServiceName : children)
           {
-            String activeNodePath = buildServiceTypeActivePath(serviceType, registeredServiceName);
+            String activeNodePath = buildServiceTypeActivePath(serviceType, encodedRegisteredServiceName);
             if (connection.checkNodeExists(activeNodePath))
             {
               byte[] serviceData = connection.getNodeData(activeNodePath);
-              if (dataAcceptor.acceptServiceData(registeredServiceName, serviceData))
+              if (dataAcceptor.acceptServiceData(ZooKeeperConnection.zooKeeperDecodeSafeName(encodedRegisteredServiceName), serviceData))
                 break;
             }
           }
@@ -368,9 +370,9 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           String registrationNodePath = buildServiceTypeRegistrationPath(serviceType);
           List<String> children = connection.getChildren(registrationNodePath);
           int activeServiceCount = 0;
-          for (String registeredServiceName : children)
+          for (String encodedRegisteredServiceName : children)
           {
-            if (connection.checkNodeExists(buildServiceTypeActivePath(serviceType, registeredServiceName)))
+            if (connection.checkNodeExists(buildServiceTypeActivePath(serviceType, encodedRegisteredServiceName)))
               activeServiceCount++;
           }
           return activeServiceCount;
@@ -417,25 +419,25 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           // Presumably the caller will lather, rinse, and repeat.
           String registrationNodePath = buildServiceTypeRegistrationPath(serviceType);
           List<String> children = connection.getChildren(registrationNodePath);
-          String serviceName = null;
-          for (String registeredServiceName : children)
+          String encodedServiceName = null;
+          for (String encodedRegisteredServiceName : children)
           {
-            if (!connection.checkNodeExists(buildServiceTypeActivePath(serviceType, registeredServiceName)))
+            if (!connection.checkNodeExists(buildServiceTypeActivePath(serviceType, encodedRegisteredServiceName)))
             {
-              serviceName = registeredServiceName;
+              encodedServiceName = encodedRegisteredServiceName;
               break;
             }
           }
-          if (serviceName == null)
+          if (encodedServiceName == null)
             return true;
           
           // Found one, in serviceName, at position i
           // Ideally, we should signal at this point that we're cleaning up after it, and then leave
           // the exclusive lock, so that other activity can take place.  MHL
-          cleanup.cleanUpService(serviceName);
+          cleanup.cleanUpService(ZooKeeperConnection.zooKeeperDecodeSafeName(encodedServiceName));
 
           // Unregister the service.
-          connection.deleteChild(registrationNodePath, serviceName);
+          connection.deleteChild(registrationNodePath, encodedServiceName);
           return false;
         }
         finally
@@ -473,7 +475,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         enterServiceRegistryWriteLock(connection, serviceType);
         try
         {
-          connection.deleteNode(buildServiceTypeActivePath(serviceType, serviceName));
+          connection.deleteNode(buildServiceTypeActivePath(serviceType, ZooKeeperConnection.zooKeeperSafeName(serviceName)));
         }
         finally
         {
@@ -510,7 +512,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         enterServiceRegistryReadLock(connection, serviceType);
         try
         {
-          return connection.checkNodeExists(buildServiceTypeActivePath(serviceType, serviceName));
+          return connection.checkNodeExists(buildServiceTypeActivePath(serviceType, ZooKeeperConnection.zooKeeperSafeName(serviceName)));
         }
         finally
         {
@@ -576,7 +578,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   */
   protected static String makeServiceCounterName(String serviceType)
   {
-    return SERVICETYPE_ANONYMOUS_COUNTER_PREFIX + serviceType;
+    return SERVICETYPE_ANONYMOUS_COUNTER_PREFIX + ZooKeeperConnection.zooKeeperSafeName(serviceType);
   }
   
   /** Read service counter.
@@ -621,21 +623,21 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   */
   protected static String buildServiceTypeLockPath(String serviceType)
   {
-    return SERVICETYPE_LOCK_PATH_PREFIX + serviceType;
+    return SERVICETYPE_LOCK_PATH_PREFIX + ZooKeeperConnection.zooKeeperSafeName(serviceType);
   }
   
   /** Build a zk path for the active node for a specific service of a specific type.
   */
-  protected static String buildServiceTypeActivePath(String serviceType, String serviceName)
+  protected static String buildServiceTypeActivePath(String serviceType, String encodedServiceName)
   {
-    return SERVICETYPE_ACTIVE_PATH_PREFIX + serviceType + "-" + serviceName;
+    return SERVICETYPE_ACTIVE_PATH_PREFIX + ZooKeeperConnection.zooKeeperSafeName(serviceType) + "-" + encodedServiceName;
   }
   
   /** Build a zk path for the registration node for a specific service type.
   */
   protected static String buildServiceTypeRegistrationPath(String serviceType)
   {
-    return SERVICETYPE_REGISTER_PATH_PREFIX + serviceType;
+    return SERVICETYPE_REGISTER_PATH_PREFIX + ZooKeeperConnection.zooKeeperSafeName(serviceType);
   }
   
   // Shared configuration
@@ -731,7 +733,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        connection.setGlobalFlag(FLAG_PATH_PREFIX + flagName);
+        connection.setGlobalFlag(FLAG_PATH_PREFIX + ZooKeeperConnection.zooKeeperSafeName(flagName));
       }
       finally
       {
@@ -756,7 +758,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        connection.clearGlobalFlag(FLAG_PATH_PREFIX + flagName);
+        connection.clearGlobalFlag(FLAG_PATH_PREFIX + ZooKeeperConnection.zooKeeperSafeName(flagName));
       }
       finally
       {
@@ -782,7 +784,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        return connection.checkGlobalFlag(FLAG_PATH_PREFIX + flagName);
+        return connection.checkGlobalFlag(FLAG_PATH_PREFIX + ZooKeeperConnection.zooKeeperSafeName(flagName));
       }
       finally
       {
@@ -809,7 +811,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        return connection.readData(RESOURCE_PATH_PREFIX + resourceName);
+        return connection.readData(RESOURCE_PATH_PREFIX + ZooKeeperConnection.zooKeeperSafeName(resourceName));
       }
       finally
       {
@@ -836,7 +838,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       ZooKeeperConnection connection = pool.grab();
       try
       {
-        connection.writeData(RESOURCE_PATH_PREFIX + resourceName, data);
+        connection.writeData(RESOURCE_PATH_PREFIX + ZooKeeperConnection.zooKeeperSafeName(resourceName), data);
       }
       finally
       {

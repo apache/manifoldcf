@@ -169,6 +169,7 @@ public class ModifiedMultipartEntity implements HttpEntity {
         return null;
     }
 
+    @Deprecated
     public void consumeContent()
         throws IOException, UnsupportedOperationException{
         if (isStreaming()) {

@@ -301,7 +301,21 @@ public abstract class ConnectorPool<T extends IConnector>
       p = poolHash.get(connectionName);
     }
 
-    p.releaseConnector(threadContext, connector);
+    if (p != null)
+      p.releaseConnector(threadContext, connector);
+    else
+    {
+      // Destroy the connector instance, since the pool is gone and that means we're shutting down
+      connector.setThreadContext(threadContext);
+      try
+      {
+        connector.disconnect();
+      }
+      finally
+      {
+        connector.clearThreadContext();
+      }
+    }
   }
 
   /** Idle notification for inactive output connector handles.
@@ -460,6 +474,8 @@ public abstract class ConnectorPool<T extends IConnector>
         if (stack.size() == 0)
         {
           T newrc = createConnectorInstance(threadContext,className);
+          if (newrc == null)
+            return null;
           newrc.connect(configParams);
           stack.add(newrc);
         }
@@ -572,6 +588,8 @@ public abstract class ConnectorPool<T extends IConnector>
         // Compute MaximumTarget
         SumClass sumClass = new SumClass(serviceName);
         lockManager.scanServiceData(serviceTypeName, sumClass);
+        //System.out.println("numServices = "+sumClass.getNumServices()+"; globalTarget = "+sumClass.getGlobalTarget()+"; globalInUse = "+sumClass.getGlobalInUse());
+        
         int numServices = sumClass.getNumServices();
         if (numServices == 0)
           return;
@@ -614,11 +632,13 @@ public abstract class ConnectorPool<T extends IConnector>
         {
           // We want a fast ramp up, so make this proportional to globalMax
           int increment = globalMax >> 2;
-          if (increment < 0)
+          if (increment == 0)
             increment = 1;
           optimalTarget += increment;
         }
         
+        //System.out.println(serviceTypeName+":maxTarget = "+maximumTarget+"; fairTarget = "+fairTarget+"; optimalTarget = "+optimalTarget);
+
         // Now compute actual target
         int target = maximumTarget;
         if (target > fairTarget)
@@ -626,6 +646,7 @@ public abstract class ConnectorPool<T extends IConnector>
         if (target > optimalTarget)
           target = optimalTarget;
         
+        //System.out.println(serviceTypeName+":Picking target="+target+"; localInUse="+localInUse);
         // Write these values to the service data variables.
         // NOTE that there is a race condition here; the target value depends on all the calculations above being accurate, and not changing out from under us.
         // So, that's why we have a write lock around the pool calculations.
@@ -635,6 +656,7 @@ public abstract class ConnectorPool<T extends IConnector>
         // Now, update our localMax
         if (target == localMax)
           return;
+        //System.out.println(serviceTypeName+":Updating target: "+target);
         // Compute the number of instances in use locally
         localInUse = localMax - numFree;
         localMax = target;
@@ -647,6 +669,35 @@ public abstract class ConnectorPool<T extends IConnector>
       {
         lockManager.leaveWriteLock(targetCalcLockName);
       }
+      
+      // Finally, free pooled instances in excess of target
+      while (stack.size() > 0 && stack.size() > numFree)
+      {
+        // Try to find a connector instance that is not actually connected.
+        // These are likely to be at the front of the queue, since those are the
+        // oldest.
+        int j;
+        for (j = 0; j < stack.size(); j++)
+        {
+          if (!stack.get(j).isConnected())
+            break;
+        }
+        T rc;
+        if (j == stack.size())
+          rc = stack.remove(stack.size()-1);
+        else
+          rc = stack.remove(j);
+        rc.setThreadContext(threadContext);
+        try
+        {
+          rc.disconnect();
+        }
+        finally
+        {
+          rc.clearThreadContext();
+        }
+      }
+
     }
 
     /** Flush unused connectors.

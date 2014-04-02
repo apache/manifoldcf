@@ -63,9 +63,6 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 {
   public static final String _rcsid = "@(#)$Id: MeridioConnector.java 996524 2010-09-13 13:38:01Z kwright $";
 
-  // Properties we need
-  public final static String wsddPathProperty = "org.apache.manifoldcf.meridio.wsddpath";
-
   // This is the base url to use.
   protected String urlBase = null;
   protected String urlVersionBase = null;
@@ -189,8 +186,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           params.getObfuscatedParameter("Password"),
           InetAddress.getLocalHost().getHostName(),
           mySSLFactory,
-          getClass(),
-          "meridio-client-config.wsdd");
+          org.apache.manifoldcf.core.common.CommonsHTTPSender.class,
+          "client-config.wsdd");
       }
       catch (NumberFormatException e)
       {
@@ -1326,11 +1323,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
               denyAcls = null;
           }
 
-          if (allowAcls != null)
-            repositoryDocument.setACL(allowAcls);
-
-          if (denyAcls != null)
-            repositoryDocument.setDenyACL(denyAcls);
+          repositoryDocument.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,allowAcls,denyAcls);
 
           /*=================================================================
           * Get the object's content, and ingest the document

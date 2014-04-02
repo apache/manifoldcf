@@ -46,6 +46,23 @@
     </td>
   </tr>
   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerClaimSpace'))</nobr></td>
+    <td class="value">
+      <select name="serverClaimSpace">
+  #if($SERVERCLAIMSPACE == 'false')
+        <option value="false" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Disabled'))</option>
+  #else
+        <option value="false">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Disabled'))</option>
+  #end
+  #if($SERVERCLAIMSPACE == 'true')
+        <option value="true" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Enabled'))</option>
+  #else
+        <option value="true">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Enabled'))</option>
+  #end
+      </select>
+    </td>
+  </tr>
+  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerProtocol'))</nobr></td>
     <td class="value">
       <select name="serverProtocol">
@@ -112,6 +129,8 @@
 
 #else
 
+<input type="hidden" name="serverVersion" value="$SERVERVERSION"/>
+<input type="hidden" name="serverClaimSpace" value="$SERVERCLAIMSPACE"/>
 <input type="hidden" name="serverProtocol" value="$SERVERPROTOCOL"/>
 <input type="hidden" name="serverName" value="$Encoder.attributeEscape($SERVERNAME)"/>
 <input type="hidden" name="serverPort" value="$SERVERPORT"/>

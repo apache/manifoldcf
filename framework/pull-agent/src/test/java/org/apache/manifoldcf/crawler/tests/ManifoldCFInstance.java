@@ -26,6 +26,7 @@ import org.apache.manifoldcf.agents.system.AgentsDaemon;
 
 import java.io.*;
 import java.util.*;
+import java.nio.charset.Charset;
 import org.junit.*;
 
 import org.eclipse.jetty.server.Handler;
@@ -34,7 +35,16 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.webapp.WebAppContext;
 
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpException;
 import org.apache.http.client.methods.HttpGet;
@@ -44,14 +54,11 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpEntity;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.ContentType;
+import org.apache.http.ParseException;
 
 
 /** Tests that run the "agents daemon" should be derived from this */
@@ -65,9 +72,11 @@ public class ManifoldCFInstance
   protected DaemonThread daemonThread = null;
   protected Server server = null;
 
+  protected static final Charset UTF_8 = Charset.forName("UTF-8");
+
   public ManifoldCFInstance()
   {
-    this(ManifoldCF.getProcessID(), 8346, false, true);
+    this("", 8346, false, true);
   }
   
   public ManifoldCFInstance(String processID)
@@ -77,7 +86,7 @@ public class ManifoldCFInstance
 
   public ManifoldCFInstance(boolean singleWar)
   {
-    this(ManifoldCF.getProcessID(), 8346, singleWar, true);
+    this("", 8346, singleWar, true);
   }
   
   public ManifoldCFInstance(String processID, boolean singleWar)
@@ -87,7 +96,7 @@ public class ManifoldCFInstance
 
   public ManifoldCFInstance(boolean singleWar, boolean webapps)
   {
-    this(ManifoldCF.getProcessID(), 8346, singleWar, webapps);
+    this("", 8346, singleWar, webapps);
   }
 
   public ManifoldCFInstance(String processID, boolean singleWar, boolean webapps)
@@ -330,9 +339,19 @@ public class ManifoldCFInstance
       InputStream is = entity.getContent();
       try
       {
-        String charSet = EntityUtils.getContentCharSet(entity);
-        if (charSet == null)
-          charSet = "utf-8";
+        Charset charSet;
+        try
+        {
+          ContentType ct = ContentType.get(entity);
+          if (ct == null)
+            charSet = UTF_8;
+          else
+            charSet = ct.getCharset();
+        }
+        catch (ParseException e)
+        {
+          charSet = UTF_8;
+        }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
         Writer w = new StringWriter();
@@ -368,7 +387,7 @@ public class ManifoldCFInstance
   public String performAPIGetOperation(String apiURL, int expectedResponse)
     throws Exception
   {
-    DefaultHttpClient client = new DefaultHttpClient();
+    HttpClient client = HttpClients.createDefault();
     HttpGet method = new HttpGet(apiURL);
     try
     {
@@ -393,7 +412,7 @@ public class ManifoldCFInstance
   public String performAPIDeleteOperation(String apiURL, int expectedResponse)
     throws Exception
   {
-    DefaultHttpClient client = new DefaultHttpClient();
+    HttpClient client = HttpClients.createDefault();
     HttpDelete method = new HttpDelete(apiURL);
     try
     {
@@ -420,7 +439,7 @@ public class ManifoldCFInstance
   public String performAPIPutOperation(String apiURL, int expectedResponse, String input)
     throws Exception
   {
-    DefaultHttpClient client = new DefaultHttpClient();
+    HttpClient client = HttpClients.createDefault();
     HttpPut method = new HttpPut(apiURL);
     try
     {
@@ -448,7 +467,7 @@ public class ManifoldCFInstance
   public String performAPIPostOperation(String apiURL, int expectedResponse, String input)
     throws Exception
   {
-    DefaultHttpClient client = new DefaultHttpClient();
+    HttpClient client = HttpClients.createDefault();
     HttpPost method = new HttpPost(apiURL);
     try
     {

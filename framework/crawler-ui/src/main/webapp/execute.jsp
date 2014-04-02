@@ -1005,6 +1005,14 @@
 						else
 							job.setInterval(new Long(new Long(x).longValue() * 60000L));
 					}
+					x = variableContext.getParameter("maxrecrawlinterval");
+					if (x != null)
+					{
+						if (x.length() == 0)
+							job.setMaxInterval(null);
+						else
+							job.setMaxInterval(new Long(new Long(x).longValue() * 60000L));
+					}
 					x = variableContext.getParameter("reseedinterval");
 					if (x != null)
 					{
@@ -1117,6 +1125,28 @@
 						<jsp:forward page="viewjob.jsp"/>
 <%
 					}
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listjobs.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("StartOver"))
+			{
+				try
+				{
+					String jobID = variableContext.getParameter("jobid");
+					if (jobID == null)
+						throw new ManifoldCFException("Missing job parameter");
+					manager.clearJobSeedingState(new Long(jobID));
+%>
+					<jsp:forward page="listjobs.jsp"/>
+<%
 				}
 				catch (ManifoldCFException e)
 				{

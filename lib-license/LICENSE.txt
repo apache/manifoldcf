@@ -320,6 +320,9 @@ License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 This product includes a google-http-client-jackson2-1.14.1-beta.jar.
 License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
+This product includes a guava.jar.
+License: Apache 2  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
 This product may include pdf files that embed IPA-licensed fonts.
 License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/index.html#LicenseEng)
 

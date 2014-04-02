@@ -27,15 +27,19 @@ public class JobSeedingRecord extends JobRecord
 
   /** The last synch time */
   protected final long synchTime;
-  /** Whether this job was started or not */
-  protected boolean wasStarted = false;
+  /** The fail time, or -1L if none */
+  protected final long failTime;
+  /** The fail count, or -1 if none */
+  protected final int failRetryCount;
 
   /** Constructor.
   */
-  public JobSeedingRecord(Long jobID, long synchTime)
+  public JobSeedingRecord(Long jobID, long synchTime, long failTime, int failRetryCount)
   {
     super(jobID);
     this.synchTime = synchTime;
+    this.failTime = failTime;
+    this.failRetryCount = failRetryCount;
   }
 
   /** Get the synch time.
@@ -44,6 +48,22 @@ public class JobSeedingRecord extends JobRecord
   public long getSynchTime()
   {
     return synchTime;
+  }
+
+  /** Get the hard fail time.
+  *@return the fail time in ms since epoch, or -1L if none.
+  */
+  public long getFailTime()
+  {
+    return failTime;
+  }
+
+  /** Get the hard fail retry count.
+  *@return the fail retry count, or -1 if none.
+  */
+  public int getFailRetryCount()
+  {
+    return failRetryCount;
   }
 
 }

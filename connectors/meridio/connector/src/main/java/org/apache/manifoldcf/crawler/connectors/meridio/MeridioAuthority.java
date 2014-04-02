@@ -42,9 +42,6 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 {
   public static final String _rcsid = "@(#)$Id: MeridioAuthority.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  // Properties we need
-  public final static String wsddPathProperty = "org.apache.manifoldcf.meridio.wsddpath";
-
   private MeridioWrapper meridio_       = null;  // A handle to the Meridio Java API Wrapper
 
   // URLs initialized by 'connect' code
@@ -231,8 +228,8 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
           UserName, Password,
           InetAddress.getLocalHost().getHostName(),
           mySSLFactory,
-          getClass(),
-          "meridio-client-config.wsdd");
+          org.apache.manifoldcf.core.common.CommonsHTTPSender.class,
+          "client-config.wsdd");
       }
       catch (NumberFormatException e)
       {

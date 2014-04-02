@@ -930,10 +930,10 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
             for (int j = 0; j < aclArray.length; j++) {
               aclArray[j] = (String)acls.get(j);
             }
-            rd.setACL(aclArray);
+            rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray);
             if (denyAclBuffer.length() > 0) {
               String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-              rd.setDenyACL(denyAclArray);
+              rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
             }
 
             // Length in bytes

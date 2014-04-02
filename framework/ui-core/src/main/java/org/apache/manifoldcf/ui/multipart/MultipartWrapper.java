@@ -21,6 +21,8 @@ package org.apache.manifoldcf.ui.multipart;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.ui.beans.AdminProfile;
 import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.disk.*;
+import org.apache.commons.fileupload.servlet.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.util.*;
@@ -50,7 +52,7 @@ public class MultipartWrapper implements IPostParameters
     this.adminProfile = adminProfile;
 
     // Check that we have a file upload request
-    boolean isMultipart = FileUpload.isMultipartContent(request);
+    boolean isMultipart = ServletFileUpload.isMultipartContent(request);
     if (!isMultipart)
     {
       this.request = request;
@@ -60,10 +62,10 @@ public class MultipartWrapper implements IPostParameters
     // It is multipart!
 
     // Create a factory for disk-based file items
-    DefaultFileItemFactory factory = new DefaultFileItemFactory();
+    DiskFileItemFactory factory = new DiskFileItemFactory();
 
     // Create a new file upload handler
-    DiskFileUpload upload = new DiskFileUpload(factory);
+    ServletFileUpload upload = new ServletFileUpload(factory);
 
     // Parse the request
     try

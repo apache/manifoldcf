@@ -17,7 +17,7 @@ rem limitations under the License.
 rem check that JAVA_HOME is set, and that the current directory is correct
 if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
 rem invoke java with the database class
-"%JAVA_HOME%\bin\java" -cp processes\lib\hsqldb.jar org.hsqldb.Server -database.0 file:extdb;hsqldb.tx=mvcc;hsqldb.cache_file_scale=512 -dbname.0 xdb
+"%JAVA_HOME%\bin\java" -cp ..\lib\hsqldb.jar org.hsqldb.Server -database.0 file:extdb;hsqldb.tx=mvcc;hsqldb.cache_file_scale=512 -dbname.0 xdb
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.

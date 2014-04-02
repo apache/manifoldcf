@@ -60,3 +60,6 @@ response.setContentType("text/html;charset=utf-8");
 		threadContext.save("__WRAPPER__",variableContext);
 	}
 %>
+
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>

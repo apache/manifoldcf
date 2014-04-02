@@ -132,6 +132,12 @@ public interface IJobManager
   public IJobDescription[] findJobsForConnection(String connectionName)
     throws ManifoldCFException;
 
+  /** Clear job seeding state.
+  *@param jobID is the job ID.
+  */
+  public void clearJobSeedingState(Long jobID)
+    throws ManifoldCFException;
+
   // These methods cover activities that require interaction with the job queue.
   // The job queue is maintained underneath this interface, and all threads that perform
   // job activities need to go through this layer.
@@ -512,6 +518,30 @@ public interface IJobManager
   public void resetCleaningDocumentMultiple(DocumentDescription[] documentDescriptions, long checkTime)
     throws ManifoldCFException;
 
+  /** Retry startup.
+  *@param jobStartRecord is the current job startup record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failRetryCount is the new fail retry count (-1 if none).
+  */
+  public void retryStartup(JobStartRecord jobStartRecord, long failTime, int failRetryCount)
+    throws ManifoldCFException;
+
+  /** Retry seeding.
+  *@param jobSeedingRecord is the current job seeding record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failRetryCount is the new fail retry count (-1 if none).
+  */
+  public void retrySeeding(JobSeedingRecord jobSeedingRecord, long failTime, int failRetryCount)
+    throws ManifoldCFException;
+
+  /** Retry notification.
+  *@param jobNotifyRecord is the current job notification record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failRetryCount is the new fail retry count (-1 if none).
+  */
+  public void retryNotification(JobNotifyRecord jobNotifyRecord, long failTime, int failRetryCount)
+    throws ManifoldCFException;
+  
   /** Add an initial set of documents to the queue.
   * This method is called during job startup, when the queue is being loaded.
   * A set of document references is passed to this method, which updates the status of the document

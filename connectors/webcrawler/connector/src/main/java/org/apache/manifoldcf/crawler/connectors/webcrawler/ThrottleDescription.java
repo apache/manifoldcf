@@ -33,13 +33,13 @@ import java.util.regex.*;
 * any given bin value as much as possible.  For that reason I've organized this structure
 * accordingly.
 */
-public class ThrottleDescription
+public class ThrottleDescription implements IThrottleSpec
 {
   public static final String _rcsid = "@(#)$Id: ThrottleDescription.java 988245 2010-08-23 18:39:35Z kwright $";
 
   /** This is the hash that contains everything.  It's keyed by the regexp string itself.
   * Values are ThrottleItem's. */
-  protected HashMap patternHash = new HashMap();
+  protected Map<String,ThrottleItem> patternHash = new HashMap<String,ThrottleItem>();
 
   /** Constructor.  Build the description from the ConfigParams. */
   public ThrottleDescription(ConfigParams configData)
@@ -91,7 +91,7 @@ public class ThrottleDescription
               {
                 double kbPerSecond = new Double(value).doubleValue();
                 if (kbPerSecond > 0)
-                  minMillisecondsPerByte = new Double(((double)1.0)/(double)kbPerSecond);
+                  minMillisecondsPerByte = new Double(1000.0/(double)kbPerSecond);
               }
               catch (NumberFormatException e)
               {
@@ -146,17 +146,15 @@ public class ThrottleDescription
   }
 
   /** Given a bin name, find the max open connections to use for that bin.
-  *@return -1 if no limit found.
+  *@return Integer.MAX_VALUE if no limit found.
   */
+  @Override
   public int getMaxOpenConnections(String binName)
   {
     // Go through the regexps and match; for each match, find the maximum possible.
     int maxCount = -1;
-    Iterator iter = patternHash.keySet().iterator();
-    while (iter.hasNext())
+    for (ThrottleItem ti : patternHash.values())
     {
-      String binDescription = (String)iter.next();
-      ThrottleItem ti = (ThrottleItem)patternHash.get(binDescription);
       Integer limit = ti.getMaxOpenConnections();
       if (limit != null)
       {
@@ -169,22 +167,24 @@ public class ThrottleDescription
         }
       }
     }
+    if (maxCount == -1)
+      maxCount = Integer.MAX_VALUE;
+    else if (maxCount == 0)
+      maxCount = 1;
     return maxCount;
   }
 
   /** Look up minimum milliseconds per byte for a bin.
   *@return 0.0 if no limit found.
   */
+  @Override
   public double getMinimumMillisecondsPerByte(String binName)
   {
     // Go through the regexps and match; for each match, find the maximum possible.
     double minMilliseconds = 0.0;
     boolean seenSomething = false;
-    Iterator iter = patternHash.keySet().iterator();
-    while (iter.hasNext())
+    for (ThrottleItem ti : patternHash.values())
     {
-      String binDescription = (String)iter.next();
-      ThrottleItem ti = (ThrottleItem)patternHash.get(binDescription);
       Double limit = ti.getMinimumMillisecondsPerByte();
       if (limit != null)
       {
@@ -206,16 +206,14 @@ public class ThrottleDescription
   /** Look up minimum milliseconds for a fetch for a bin.
   *@return 0 if no limit found.
   */
+  @Override
   public long getMinimumMillisecondsPerFetch(String binName)
   {
     // Go through the regexps and match; for each match, find the maximum possible.
     long minMilliseconds = 0L;
     boolean seenSomething = false;
-    Iterator iter = patternHash.keySet().iterator();
-    while (iter.hasNext())
+    for (ThrottleItem ti : patternHash.values())
     {
-      String binDescription = (String)iter.next();
-      ThrottleItem ti = (ThrottleItem)patternHash.get(binDescription);
       Long limit = ti.getMinimumMillisecondsPerFetch();
       if (limit != null)
       {
@@ -239,7 +237,7 @@ public class ThrottleDescription
   protected static class ThrottleItem
   {
     /** The bin-matching pattern. */
-    protected Pattern pattern;
+    protected final Pattern pattern;
     /** The minimum milliseconds between bytes, or null if no limit. */
     protected Double minimumMillisecondsPerByte = null;
     /** The minimum milliseconds per fetch, or null if no limit */

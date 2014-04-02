@@ -29,7 +29,7 @@
 
   <groupId>org.apache.manifoldcf</groupId>
   <artifactId>mcf-parent</artifactId>
-  <version>1.5-SNAPSHOT</version>
+  <version>1.6-SNAPSHOT</version>
 
   <name>ManifoldCF</name>
   <packaging>pom</packaging>
@@ -48,10 +48,11 @@
     <commons-logging.version>1.1.1</commons-logging.version>
     <commons-collections.version>3.2.1</commons-collections.version>
     <commons-fileupload.version>1.2.2</commons-fileupload.version>
-    <httpcomponent.httpclient.version>4.2.6</httpcomponent.httpclient.version>
-    <httpcomponent.httpcore.version>4.2.5</httpcomponent.httpcore.version>
-    <httpcomponent.httpmime.version>4.2.6</httpcomponent.httpmime.version>
-    <solr.version>4.3.1</solr.version>
+    <httpcomponent.httpclient.version>4.3.3</httpcomponent.httpclient.version>
+    <httpcomponent.httpcore.version>4.3.2</httpcomponent.httpcore.version>
+    <httpcomponent.httpmime.version>4.3.3</httpcomponent.httpmime.version>
+    <solr.version>4.7.0</solr.version>
+    <noggit.version>0.5</noggit.version>
     <commons-el.version>1.0</commons-el.version>
     <commons-lang.version>2.6</commons-lang.version>
     <xalan.version>2.7.1</xalan.version>
@@ -73,7 +74,7 @@
   <modules>
     <module>framework</module>
     <module>test-materials</module>
-    <module>tests</module>
+    <module>connectors</module>
     <module>framework/jetty-runner</module>
   </modules>
 

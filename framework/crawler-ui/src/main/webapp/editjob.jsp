@@ -85,6 +85,8 @@
 	int priority = 5;
 	// Minimum recrawl interval (Default: 1 day)
 	Long recrawlInterval = new Long(60L * 24L);
+	// Maximum recrawl interval (Default: none)
+	Long maxRecrawlInterval = null;
 	// Reseed interval (Default: 60 minutes)
 	Long reseedInterval = new Long(60L);
 	// Expiration interval (Default: never)
@@ -120,6 +122,8 @@
 		priority = job.getPriority();
 		Long value = job.getInterval();
 		recrawlInterval = (value==null)?null:new Long(value.longValue()/60000L);
+		value = job.getMaxInterval();
+		maxRecrawlInterval = (value==null)?null:new Long(value.longValue()/60000L);
 		value = job.getReseedInterval();
 		reseedInterval = (value==null)?null:new Long(value.longValue()/60000L);
 		value = job.getExpiration();
@@ -310,6 +314,10 @@
 	{
 		if (!checkRecrawl())
 			return false;
+		if (!checkMaxRecrawl())
+			return false;
+		if (!checkRecrawlConsistent())
+			return false;
 		if (!checkReseed())
 			return false;
 		if (!checkExpiration())
@@ -355,6 +363,28 @@
 		{
 			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalMustBeAValidIntegerOrNull")%>");
 			editjob.recrawlinterval.focus();
+			return false;
+		}
+		return true;
+	}
+
+	function checkMaxRecrawl()
+	{
+		if (editjob.maxrecrawlinterval.value != "" && !isInteger(editjob.maxrecrawlinterval.value))
+		{
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.MaxRecrawlIntervalMustBeAValidIntegerOrNull")%>");
+			editjob.maxrecrawlinterval.focus();
+			return false;
+		}
+		return true;
+	}
+	
+	function checkRecrawlConsistent()
+	{
+		if (editjob.maxrecrawlinterval.value != "" && editjob.recrawlinterval.value != "" && parseInt(editjob.maxrecrawlinterval.value) < parseInt(editjob.recrawlinterval.value))
+		{
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.MaxRecrawlIntervalMustBeLargerThanRecrawlInterval")%>");
+			editjob.maxrecrawlinterval.focus();
 			return false;
 		}
 		return true;
@@ -843,30 +873,42 @@
 				<td class="description">
 					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduleTypeColon")%></nobr>
 				</td>
-				<td class="value">
+				<td class="value" colspan="3">
 					<select name="scheduletype" size="1">
 						<option value='<%=IJobDescription.TYPE_CONTINUOUS%>' <%=(type==IJobDescription.TYPE_CONTINUOUS)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RescanDocumentsDynamically")%></option>
 						<option value='<%=IJobDescription.TYPE_SPECIFIED%>' <%=(type==IJobDescription.TYPE_SPECIFIED)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScanEveryDocumentOnce")%></option>
 					</select>
 				</td>
+			</tr>
+			<tr>
 				<td class="description">
 					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalIfContinuousColon")%></nobr>
 				</td>
-				<td class="value">
+				<td class="value" colspan="3">
 					<nobr><input type="text" size="5" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
+				</td>
+			</tr>
+			<tr>
+				<td class="description">
+					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaxRecrawlIntervalIfContinuousColon")%></nobr>
+				</td>
+				<td class="value" colspan="3">
+					<nobr><input type="text" size="5" name="maxrecrawlinterval" value='<%=((maxRecrawlInterval==null)?"":maxRecrawlInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
 			</tr>
 			<tr>
 				<td class="description">
 					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalIfContinuousColon")%></nobr>
 				</td>
-				<td class="value">
+				<td class="value" colspan="3">
 					<nobr><input type="text" size="5" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
+			</tr>
+			<tr>
 				<td class="description">
 					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalIfContinuousColon")%></nobr>
 				</td>
-				<td class="value">
+				<td class="value" colspan="3">
 					<nobr><input type="text" size="5" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
 			</tr>
@@ -877,6 +919,7 @@
 %>
 			<input type="hidden" name="scheduletype" value='<%=type%>'/>
 			<input type="hidden" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/>
+			<input type="hidden" name="maxrecrawlinterval" value='<%=((maxRecrawlInterval==null)?"":maxRecrawlInterval.toString())%>'/>
 			<input type="hidden" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/>
 			<input type="hidden" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/>
 <%
@@ -1155,6 +1198,7 @@
 %>
 		  <input type="hidden" name="scheduletype" value='<%=type%>'/>
 		  <input type="hidden" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/>
+		  <input type="hidden" name="maxrecrawlinterval" value='<%=((maxRecrawlInterval==null)?"":maxRecrawlInterval.toString())%>'/>
 		  <input type="hidden" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/>
 		  <input type="hidden" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/>
 <%

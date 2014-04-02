@@ -17,6 +17,8 @@
 
 <project name="manifoldcf" default="help">
 
+    <import file="site-options.xml" optional="true"/>
+
     <import file="common-build.xml"/>
     
     <target name="downloaded-condition">
@@ -41,126 +43,6 @@
         <echo message="Overlay -lib package, or run 'make-core-deps' target first"/>
     </target>
 
-    <target name="clean">
-        <delete>
-          <fileset dir="." includes="apache-manifoldcf-*.zip"/>
-          <fileset dir="." includes="apache-manifoldcf-*.tar.gz"/>
-        </delete>
-        <delete dir="build"/>
-        <delete dir="dist"/>
-        <delete dir="test-output/"/>
-        <delete dir="test-derby-output"/>
-        <delete dir="test-postgresql-output"/>
-        <delete dir="test-mysql-output"/>
-        <delete dir="test-HSQLDB-output"/>
-        <delete dir="test-HSQLDBext-output"/>
-        <ant dir="site" target="clean"/>
-        <ant dir="framework" target="clean"/>
-        <ant dir="connectors/alfresco" target="clean"/>
-        <ant dir="connectors/cmis" target="clean"/>
-        <ant dir="connectors/dropbox" target="clean"/>
-        <ant dir="connectors/generic" target="clean"/>
-        <ant dir="connectors/googledrive" target="clean"/>
-        <ant dir="connectors/jira" target="clean"/>
-        <ant dir="connectors/activedirectory" target="clean"/>
-        <ant dir="connectors/ldap" target="clean"/>
-        <ant dir="connectors/documentum" target="clean"/>
-        <ant dir="connectors/filenet" target="clean"/>
-        <ant dir="connectors/filesystem" target="clean"/>
-        <ant dir="connectors/gts" target="clean"/>
-        <ant dir="connectors/hdfs" target="clean"/>
-        <ant dir="connectors/jcifs" target="clean"/>
-        <ant dir="connectors/jdbc" target="clean"/>
-        <ant dir="connectors/livelink" target="clean"/>
-		<ant dir="connectors/rabbitmq" target="clean"/>
-        <ant dir="connectors/solr" target="clean"/>
-        <ant dir="connectors/memex" target="clean"/>
-        <ant dir="connectors/meridio" target="clean"/>
-        <ant dir="connectors/opensearchserver" target="clean"/>
-        <ant dir="connectors/elasticsearch" target="clean"/>
-        <ant dir="connectors/nullauthority" target="clean"/>
-        <ant dir="connectors/nulloutput" target="clean"/>
-        <ant dir="connectors/rss" target="clean"/>
-        <ant dir="connectors/regexpmapper" target="clean"/>
-        <ant dir="connectors/sharepoint" target="clean"/>
-        <ant dir="connectors/webcrawler" target="clean"/>
-        <ant dir="connectors/wiki" target="clean"/>
-        
-        <ant dir="tests/activedirectory" target="clean"/>
-        <ant dir="tests/alfresco" target="clean"/>
-        <ant dir="tests/cmis" target="clean"/>
-        <ant dir="tests/filesystem" target="clean"/>
-        <ant dir="tests/gts" target="clean"/>
-        <ant dir="tests/hdfs" target="clean"/>
-        <ant dir="tests/opensearchserver" target="clean"/>
-        <ant dir="tests/rss" target="clean"/>
-        <ant dir="tests/solr" target="clean"/>
-        <ant dir="tests/jcifs" target="clean"/>
-        <ant dir="tests/jdbc" target="clean"/>
-        <ant dir="tests/sharepoint" target="clean"/>
-        <ant dir="tests/webcrawler" target="clean"/>
-        <ant dir="tests/wiki" target="clean"/>
-        <ant dir="tests/elasticsearch" target="clean"/>
-
-    </target>
-
-    <target name="cleanup-afterbuild">
-        <delete dir="build"/>
-        <delete dir="test-output/"/>
-        <delete dir="test-derby-output"/>
-        <delete dir="test-postgresql-output"/>
-        <delete dir="test-mysql-output"/>
-        <delete dir="test-HSQLDB-output"/>
-        <delete dir="test-HSQLDBext-output"/>
-        <ant dir="site" target="clean"/>
-        <ant dir="framework" target="clean"/>
-        <ant dir="connectors/alfresco" target="clean"/>
-        <ant dir="connectors/cmis" target="clean"/>
-        <ant dir="connectors/dropbox" target="clean"/>
-        <ant dir="connectors/generic" target="clean"/>
-        <ant dir="connectors/googledrive" target="clean"/>
-        <ant dir="connectors/jira" target="clean"/>
-        <ant dir="connectors/activedirectory" target="clean"/>
-        <ant dir="connectors/ldap" target="clean"/>
-        <ant dir="connectors/documentum" target="clean"/>
-        <ant dir="connectors/filenet" target="clean"/>
-        <ant dir="connectors/filesystem" target="clean"/>
-        <ant dir="connectors/gts" target="clean"/>
-        <ant dir="connectors/hdfs" target="clean"/>
-        <ant dir="connectors/jcifs" target="clean"/>
-        <ant dir="connectors/jdbc" target="clean"/>
-        <ant dir="connectors/livelink" target="clean"/>
-        <ant dir="connectors/solr" target="clean"/>
-        <ant dir="connectors/memex" target="clean"/>
-        <ant dir="connectors/meridio" target="clean"/>
-        <ant dir="connectors/opensearchserver" target="clean"/>
-        <ant dir="connectors/elasticsearch" target="clean"/>
-        <ant dir="connectors/nullauthority" target="clean"/>
-        <ant dir="connectors/nulloutput" target="clean"/>
-        <ant dir="connectors/rss" target="clean"/>
-        <ant dir="connectors/regexpmapper" target="clean"/>
-        <ant dir="connectors/sharepoint" target="clean"/>
-        <ant dir="connectors/webcrawler" target="clean"/>
-        <ant dir="connectors/wiki" target="clean"/>
-
-        <ant dir="tests/activedirectory" target="clean"/>
-        <ant dir="tests/alfresco" target="clean"/>
-        <ant dir="tests/cmis" target="clean"/>
-        <ant dir="tests/filesystem" target="clean"/>
-        <ant dir="tests/gts" target="clean"/>
-        <ant dir="tests/hdfs" target="clean"/>
-        <ant dir="tests/opensearchserver" target="clean"/>
-        <ant dir="tests/rss" target="clean"/>
-        <ant dir="tests/solr" target="clean"/>
-        <ant dir="tests/jcifs" target="clean"/>
-        <ant dir="tests/jdbc" target="clean"/>
-        <ant dir="tests/sharepoint" target="clean"/>
-        <ant dir="tests/webcrawler" target="clean"/>
-        <ant dir="tests/wiki" target="clean"/>
-        <ant dir="tests/elasticsearch" target="clean"/>
-
-    </target>
-    
     <target name="build-site" depends="downloaded-check" if="downloaded">
       <ant dir="site" target="all"/>
     </target>
@@ -1128,6 +1010,41 @@
         <ant dir="connectors/wiki" target="run-tests-HSQLDB"/>
     </target>
 
+    <target name="setup-email-connector" depends="build-framework" if="downloaded"/>
+    
+    <target name="setup-email-connector-tests" depends="build-tests-framework" if="downloaded"/>
+
+    <target name="build-email-connector" depends="setup-email-connector" if="downloaded">
+        <ant dir="connectors/email" target="build"/>
+    </target>
+
+    <target name="doc-email-connector" depends="setup-email-connector" if="downloaded">
+        <ant dir="connectors/email" target="doc"/>
+    </target>
+
+    <target name="build-tests-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
+        <ant dir="connectors/email" target="build-tests"/>
+    </target>
+
+    <target name="run-tests-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
+        <ant dir="connectors/email" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
+        <ant dir="connectors/email" target="run-tests-derby"/>
+    </target>
+
+    <target name="run-tests-postgresql-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
+        <ant dir="connectors/email" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
+        <ant dir="connectors/email" target="run-tests-mysql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
+        <ant dir="connectors/email" target="run-tests-HSQLDB"/>
+    </target>
 
     <target name="deliver-site-doc" depends="presite-check" if="site-exists">
           <mkdir dir="dist/doc"/>
@@ -1143,6 +1060,12 @@
           </copy>
     </target>
 
+    <target name="preclean-registry">
+        <mkdir dir="dist"/>
+        <delete file="dist/connectors.xml"/>
+        <delete file="dist/connectors-proprietary.xml"/>
+    </target>
+
     <target name="preclean-for-delivery">
         <mkdir dir="dist"/>
         <mkdir dir="dist/example"/>
@@ -1151,8 +1074,6 @@
         <mkdir dir="dist/multiprocess-zk-example"/>
         <mkdir dir="dist/multiprocess-file-example-proprietary"/>
         <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
-        <delete file="dist/connectors.xml"/>
-        <delete file="dist/connectors-proprietary.xml"/>
         <delete file="dist/example/properties.xml"/>
         <delete file="dist/example-proprietary/properties.xml"/>
         <delete file="dist/multiprocess-file-example/properties.xml"/>
@@ -1164,6 +1085,12 @@
     </target>
     
     <target name="deliver-framework" depends="preclean-for-delivery,build-framework" if="downloaded">
+        <mkdir dir="dist"/>
+        <copy todir="dist">
+            <fileset dir="framework/dist">
+                <include name="connector-build.xml"/>
+            </fileset>
+        </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
             <fileset dir="framework/dist/web"/>
@@ -1171,6 +1098,18 @@
         <mkdir dir="dist/web-proprietary"/>
         <copy todir="dist/web-proprietary">
             <fileset dir="framework/dist/web-proprietary"/>
+        </copy>
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="framework/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/test-lib"/>
+        <copy todir="dist/test-lib">
+            <fileset dir="framework/dist/test-lib"/>
+        </copy>
+        <mkdir dir="dist/lib-proprietary"/>
+        <copy todir="dist/lib-proprietary">
+            <fileset dir="framework/dist/lib-proprietary"/>
         </copy>
         <mkdir dir="dist/multiprocess-file-example"/>
         <copy todir="dist/multiprocess-file-example">
@@ -1234,1818 +1173,152 @@
         </copy>
     </target>
 
-    <target name="general-connector-integration-check">
-        <available file="connectors/${connector-name}/dist/integration" type="dir" property="${connector-name}.has-integration"/>
+    <!-- Connector crawler.  This iterates over all connector makefiles, invoking the specified target of each. -->
+    <macrodef name="connectors-crawl">
+        <attribute name="target" default=""/>
+        <attribute name="failonerror" default="true"/>
+        <sequential>
+            <subant target="@{target}" failonerror="@{failonerror}" inheritall="false">
+                <!-- propertyset refid="uptodate.and.compiled.properties"/ -->
+                <fileset dir="connectors" includes="*/build.xml" excludes="build/**,build-stubs/**,connector/**,dist/**,test-output*/**"/>
+            </subant>
+        </sequential>
+    </macrodef>
+
+    <!-- Generic connector targets -->
+    
+    <target name="download-connectors-dependencies" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="download-dependencies"/>
     </target>
 
-    <target name="general-connector-processes-check">
-        <available file="connectors/${connector-name}/dist/server-process" type="dir" property="${connector-name}.has-server-process"/>
-        <available file="connectors/${connector-name}/dist/registry-process" type="dir" property="${connector-name}.has-registry-process"/>
-        <condition property="${connector-name}.has-processes">
-          <and>
-              <isset property="${connector-name}.has-server-process"/>
-              <isset property="${connector-name}.has-registry-process"/>
-          </and>
-        </condition>
+    <target name="cleanup-connectors-dependencies" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="download-cleanup"/>
     </target>
 
-    <target name="general-connector-delivery-integration" depends="general-connector-integration-check" if="${connector-name}.has-integration">
-        <mkdir dir="dist/${connector-name}-integration"/>
-        <copy todir="dist/${connector-name}-integration">
-            <fileset dir="connectors/${connector-name}/dist/integration"/>
-        </copy>
-    </target>
-
-    <target name="general-connector-delivery-processes" depends="general-connector-processes-check" if="${connector-name}.has-processes">
-        <mkdir dir="dist/${connector-name}-server-process"/>
-        <copy todir="dist/${connector-name}-server-process">
-            <fileset dir="connectors/${connector-name}/dist/server-process"/>
-        </copy>
-        <mkdir dir="dist/${connector-name}-registry-process"/>
-        <copy todir="dist/${connector-name}-registry-process">
-            <fileset dir="connectors/${connector-name}/dist/registry-process"/>
-        </copy>
-    </target>
-
-    <target name="general-connector-proprietary-only-check">
-        <available file="connectors/${connector-name}/dist/lib-proprietary-only" type="dir" property="${connector-name}.has-proprietary-only"/>
-    </target>
-
-    <target name="general-connector-proprietary-only-delivery" depends="general-connector-proprietary-only-check" if="${connector-name}.has-proprietary-only">
-        <mkdir dir="dist/connector-lib-proprietary"/>
-        <copy todir="dist/connector-lib-proprietary">
-            <fileset dir="connectors/${connector-name}/dist/lib-proprietary-only"/>
-        </copy>
-    </target>
-
-    <target name="general-connector-delivery" depends="general-connector-proprietary-only-delivery,general-connector-delivery-integration,general-connector-delivery-processes">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/${connector-name}/dist/lib"/>
-        </copy>
-    </target>
-
-    <target name="general-connector-doc-check">
-        <available file="connectors/${connector-name}/dist/doc" type="dir" property="${connector-name}.has-doc"/>
-    </target>
-
-    <target name="general-connector-doc-delivery" depends="general-connector-doc-check" if="${connector-name}.has-doc">
-        <mkdir dir="dist/doc/api/${connector-name}"/>
-        <copy todir="dist/doc/api/${connector-name}">
-            <fileset dir="connectors/${connector-name}/dist/doc"/>
-        </copy>
-    </target>
-
-    <target name="general-connector-proprietary-runnable-check">
-        <available file="connectors/${connector-name}/dist/lib-proprietary-only/${connector-name}-PLACEHOLDER.txt" property="${connector-name}.has-placeholder"/>
-        <condition property="${connector-name}.is-proprietary-runnable">
-            <not>
-                <isset property="${connector-name}.has-placeholder"/>
-            </not>
-        </condition>
-    </target>
-
-    <target name="general-connector-runnable-check" depends="general-connector-proprietary-runnable-check">
-        <available file="connectors/${connector-name}/lib-proprietary" type="dir" property="${connector-name}.has-lib-proprietary"/>
-        <condition property="${connector-name}.is-runnable">
-            <not>
-                <isset property="${connector-name}.has-lib-proprietary"/>
-            </not>
-        </condition>
+    <target name="deliver-connectors" depends="preclean-registry,deliver-framework" if="downloaded">
+        <connectors-crawl target="deliver-connector"/>
     </target>
     
-    <target name="general-add-mapping-connector-commented" depends="general-connector-runnable-check" unless="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;!--mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    <target name="deliver-connectors-doc" depends="deliver-connectors,deliver-framework-doc" if="downloaded">
+        <connectors-crawl target="deliver-connector-doc"/>
     </target>
 
-    <target name="general-add-mapping-connector-non-commented" depends="general-connector-runnable-check" if="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="run-connectors-tests" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests"/>
     </target>
 
-    <target name="general-add-mapping-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;!--mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    <target name="run-connectors-tests-derby" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests-derby"/>
     </target>
 
-    <target name="general-add-mapping-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="run-connectors-tests-HSQLDB" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="general-add-mapping-connector" depends="general-add-mapping-connector-commented,general-add-mapping-connector-non-commented,general-add-mapping-connector-proprietary-commented,general-add-mapping-connector-proprietary-non-commented">
+    <target name="run-connectors-tests-HSQLDBext" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests-HSQLDBext"/>
     </target>
 
-    <target name="general-add-authority-connector-commented" depends="general-connector-runnable-check" unless="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;!--authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    <target name="run-connectors-tests-postgresql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests-postgresql"/>
     </target>
 
-    <target name="general-add-authority-connector-non-commented" depends="general-connector-runnable-check" if="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="run-connectors-tests-mysql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests-mysql"/>
     </target>
 
-    <target name="general-add-authority-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;!--authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    <target name="run-connectors-IT-derby" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-IT-derby"/>
     </target>
 
-    <target name="general-add-authority-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="run-connectors-IT-HSQLDB" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-IT-HSQLDB"/>
     </target>
 
-    <target name="general-add-authority-connector" depends="general-add-authority-connector-commented,general-add-authority-connector-non-commented,general-add-authority-connector-proprietary-commented,general-add-authority-connector-proprietary-non-commented">
+    <target name="run-connectors-IT-HSQLDBext" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-IT-HSQLDBext"/>
     </target>
 
-    <target name="general-add-output-connector-commented" depends="general-connector-runnable-check" unless="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;!--outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    <target name="run-connectors-IT-postgresql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-IT-postgresql"/>
     </target>
 
-    <target name="general-add-output-connector-non-commented" depends="general-connector-runnable-check" if="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="run-connectors-IT-mysql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-IT-mysql"/>
     </target>
 
-    <target name="general-add-output-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;!--outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    <target name="run-connectors-UI-derby" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-UI-derby"/>
     </target>
 
-    <target name="general-add-output-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="run-connectors-UI-HSQLDB" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-UI-HSQLDB"/>
     </target>
 
-    <target name="general-add-output-connector" depends="general-add-output-connector-commented,general-add-output-connector-non-commented,general-add-output-connector-proprietary-commented,general-add-output-connector-proprietary-non-commented">
+    <target name="run-connectors-UI-HSQLDBext" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-UI-HSQLDBext"/>
     </target>
 
-    <target name="general-add-repository-connector-commented" depends="general-connector-runnable-check" unless="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;!--repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    <target name="run-connectors-UI-postgresql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-UI-postgresql"/>
     </target>
 
-    <target name="general-add-repository-connector-non-commented" depends="general-connector-runnable-check" if="${connector-name}.is-runnable">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="run-connectors-UI-mysql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-UI-mysql"/>
     </target>
 
-    <target name="general-add-repository-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;!--repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    <target name="run-connectors-LT-derby" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-LT-derby"/>
     </target>
 
-    <target name="general-add-repository-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="${connector-name}.is-proprietary-runnable">
-        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="run-connectors-LT-HSQLDB" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-LT-HSQLDB"/>
     </target>
 
-    <target name="general-add-repository-connector" depends="general-add-repository-connector-commented,general-add-repository-connector-non-commented,general-add-repository-connector-proprietary-commented,general-add-repository-connector-proprietary-non-commented">
+    <target name="run-connectors-LT-HSQLDBext" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-LT-HSQLDBext"/>
+    </target>
+
+    <target name="run-connectors-LT-postgresql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-LT-postgresql"/>
+    </target>
+
+    <target name="run-connectors-LT-mysql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-LT-mysql"/>
+    </target>
+
+    <!-- General connectors utility targets -->
+    
+    <target name="clean-connectors" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="clean"/>
     </target>
     
-    <target name="calculate-activedirectory-condition" depends="build-activedirectory-connector">
-        <available file="connectors/activedirectory/dist/lib" type="dir" property="activedirectory.exists"/>
-        <condition property="activedirectory.include">
-            <and>
-                <isset property="activedirectory.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-activedirectory-doc-condition" depends="doc-activedirectory-connector">
-        <available file="connectors/activedirectory/dist/doc" type="dir" property="activedirectory-doc.exists"/>
-        <condition property="activedirectory-doc.include">
-            <and>
-                <isset property="activedirectory-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-activedirectory-connector" depends="calculate-activedirectory-condition" if="activedirectory.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="activedirectory"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="activedirectory"/>
-            <param name="connector-label" value="Active Directory"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-activedirectory-connector-doc" depends="calculate-activedirectory-doc-condition" if="activedirectory-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="activedirectory"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-ldap-condition" depends="build-ldap-connector">
-        <available file="connectors/ldap/dist/lib" type="dir" property="ldap.exists"/>
-        <condition property="ldap.include">
-            <and>
-                <isset property="ldap.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-ldap-doc-condition" depends="doc-ldap-connector">
-        <available file="connectors/ldap/dist/doc" type="dir" property="ldap-doc.exists"/>
-        <condition property="ldap-doc.include">
-            <and>
-                <isset property="ldap-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-ldap-connector" depends="calculate-ldap-condition" if="ldap.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="ldap"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="ldap"/>
-            <param name="connector-label" value="LDAP"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.ldap.LDAPAuthority"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-ldap-connector-doc" depends="calculate-ldap-doc-condition" if="ldap-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="ldap"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-alfresco-condition" depends="build-alfresco-connector">
-        <available file="connectors/alfresco/dist/lib" type="dir" property="alfresco.exists"/>
-        <condition property="alfresco.include">
-            <and>
-                <isset property="alfresco.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-alfresco-testmaterials-condition" depends="calculate-alfresco-condition,build-alfresco-connector-testmaterials">
-        <available file="connectors/alfresco/build/alfresco-4-war" type="dir" property="alfresco-testmaterials.exists"/>
-        <condition property="alfresco-testmaterials.include">
-          <and>
-              <isset property="alfresco-testmaterials.exists"/>
-              <isset property="alfresco.include"/>
-              <isset property="downloaded"/>
-          </and>
-        </condition>
-    </target>
-
-    <target name="calculate-alfresco-doc-condition" depends="doc-alfresco-connector">
-        <available file="connectors/alfresco/dist/doc" type="dir" property="alfresco-doc.exists"/>
-        <condition property="alfresco-doc.include">
-            <and>
-                <isset property="alfresco-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-alfresco-connector" depends="calculate-alfresco-condition" if="alfresco.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="alfresco"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="alfresco"/>
-            <param name="connector-label" value="Alfresco"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.alfresco.AlfrescoRepositoryConnector"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-alfresco-connector-doc" depends="calculate-alfresco-doc-condition" if="alfresco-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="alfresco"/>
-        </antcall>
-    </target>
-    
-    <target name="calculate-cmis-condition" depends="build-cmis-connector">
-        <available file="connectors/cmis/dist/lib" type="dir" property="cmis.exists"/>
-        <condition property="cmis.include">
-            <and>
-                <isset property="cmis.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-    
-    
-    <target name="calculate-dropbox-condition" depends="build-dropbox-connector">
-        <available file="connectors/dropbox/dist/lib" type="dir" property="dropbox.exists"/>
-        <condition property="dropbox.include">
-            <and>
-                <isset property="dropbox.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-dropbox-doc-condition" depends="doc-dropbox-connector">
-        <available file="connectors/dropbox/dist/doc" type="dir" property="dropbox-doc.exists"/>
-        <condition property="dropbox-doc.include">
-            <and>
-                <isset property="dropbox-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-generic-condition" depends="build-generic-connector">
-        <available file="connectors/generic/dist/lib" type="dir" property="generic.exists"/>
-        <condition property="generic.include">
-            <and>
-                <isset property="generic.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-generic-doc-condition" depends="doc-generic-connector">
-        <available file="connectors/generic/dist/doc" type="dir" property="generic-doc.exists"/>
-        <condition property="generic-doc.include">
-            <and>
-                <isset property="generic-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-	
-    <target name="calculate-googledrive-condition" depends="build-googledrive-connector">
-        <available file="connectors/googledrive/dist/lib" type="dir" property="googledrive.exists"/>
-        <condition property="googledrive.include">
-            <and>
-                <isset property="googledrive.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-googledrive-doc-condition" depends="doc-googledrive-connector">
-        <available file="connectors/googledrive/dist/doc" type="dir" property="googledrive-doc.exists"/>
-        <condition property="googledrive-doc.include">
-            <and>
-                <isset property="googledrive-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-jira-condition" depends="build-jira-connector">
-        <available file="connectors/jira/dist/lib" type="dir" property="jira.exists"/>
-        <condition property="jira.include">
-            <and>
-                <isset property="jira.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-jira-doc-condition" depends="doc-jira-connector">
-        <available file="connectors/jira/dist/doc" type="dir" property="jira-doc.exists"/>
-        <condition property="jira-doc.include">
-            <and>
-                <isset property="jira-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-
-
-    <target name="calculate-cmis-doc-condition" depends="doc-cmis-connector">
-        <available file="connectors/cmis/dist/doc" type="dir" property="cmis-doc.exists"/>
-        <condition property="cmis-doc.include">
-            <and>
-                <isset property="cmis-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-cmis-connector" depends="calculate-cmis-condition" if="cmis.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="cmis"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="cmis"/>
-            <param name="connector-label" value="CMIS"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="cmis"/>
-            <param name="connector-label" value="CMIS"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-dropbox-connector" depends="calculate-dropbox-condition" if="dropbox.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="dropbox"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="dropbox"/>
-            <param name="connector-label" value="DropBox"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.dropbox.DropboxRepositoryConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-dropbox-connector-doc" depends="calculate-dropbox-doc-condition" if="dropbox-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="dropbox"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-generic-connector" depends="calculate-generic-condition" if="generic.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="generic"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="generic"/>
-            <param name="connector-label" value="Generic"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.generic.GenericConnector"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="generic"/>
-            <param name="connector-label" value="Generic"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.generic.GenericAuthority"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-generic-connector-doc" depends="calculate-generic-doc-condition" if="generic-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="generic"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-googledrive-connector" depends="calculate-googledrive-condition" if="googledrive.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="googledrive"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="googledrive"/>
-            <param name="connector-label" value="GoogleDrive"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.googledrive.GoogleDriveRepositoryConnector"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-googledrive-connector-doc" depends="calculate-googledrive-doc-condition" if="googledrive-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="googledrive"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-jira-connector" depends="calculate-jira-condition" if="jira.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="jira"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="jira"/>
-            <param name="connector-label" value="Jira"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.jira.JiraRepositoryConnector"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="jira"/>
-            <param name="connector-label" value="Jira"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.jira.JiraAuthorityConnector"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-jira-connector-doc" depends="calculate-jira-doc-condition" if="jira-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="jira"/>
-        </antcall>
-    </target>
-
-	
-    <target name="deliver-cmis-connector-doc" depends="calculate-cmis-doc-condition" if="cmis-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="cmis"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-documentum-condition" depends="build-documentum-connector">
-        <available file="connectors/documentum/dist/lib" type="dir" property="documentum.exists"/>
-        <condition property="documentum.include">
-            <and>
-                <isset property="documentum.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-documentum-doc-condition" depends="doc-documentum-connector">
-        <available file="connectors/documentum/dist/doc" type="dir" property="documentum-doc.exists"/>
-        <condition property="documentum-doc.include">
-            <and>
-                <isset property="documentum-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-documentum-connector" depends="calculate-documentum-condition" if="documentum.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="documentum"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="documentum"/>
-            <param name="connector-label" value="Documentum"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="documentum"/>
-            <param name="connector-label" value="Documentum"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.DCTM.DCTM"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-documentum-connector-doc" depends="calculate-documentum-doc-condition" if="documentum-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="documentum"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-filenet-condition" depends="build-filenet-connector">
-        <available file="connectors/filenet/dist/lib" type="dir" property="filenet.exists"/>
-        <condition property="filenet.include">
-            <and>
-                <isset property="filenet.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-filenet-doc-condition" depends="doc-filenet-connector">
-        <available file="connectors/filenet/dist/doc" type="dir" property="filenet-doc.exists"/>
-        <condition property="filenet-doc.include">
-            <and>
-                <isset property="filenet-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-filenet-connector" depends="calculate-filenet-condition" if="filenet.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="filenet"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="filenet"/>
-            <param name="connector-label" value="FileNet"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-filenet-connector-doc" depends="calculate-filenet-doc-condition" if="filenet-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="filenet"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-filesystem-condition" depends="build-filesystem-connector">
-        <available file="connectors/filesystem/dist/lib" type="dir" property="filesystem.exists"/>
-        <condition property="filesystem.include">
-            <and>
-                <isset property="filesystem.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-filesystem-doc-condition" depends="doc-filesystem-connector">
-        <available file="connectors/filesystem/dist/doc" type="dir" property="filesystem-doc.exists"/>
-        <condition property="filesystem-doc.include">
-            <and>
-                <isset property="filesystem-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-filesystem-connector" depends="calculate-filesystem-condition" if="filesystem.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="filesystem"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="filesystem"/>
-            <param name="connector-label" value="File system"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"/>
-        </antcall>
-        <antcall target="general-add-output-connector">
-            <param name="connector-name" value="filesystem"/>
-            <param name="connector-label" value="File system"/>
-            <param name="connector-class" value="org.apache.manifoldcf.agents.output.filesystem.FileOutputConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-filesystem-connector-doc" depends="calculate-filesystem-doc-condition" if="filesystem-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="filesystem"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-gts-condition" depends="build-gts-connector">
-        <available file="connectors/gts/dist/lib" type="dir" property="gts.exists"/>
-        <condition property="gts.include">
-            <and>
-                <isset property="gts.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-gts-doc-condition" depends="doc-gts-connector">
-        <available file="connectors/gts/dist/doc" type="dir" property="gts-doc.exists"/>
-        <condition property="gts-doc.include">
-            <and>
-                <isset property="gts-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-gts-connector" depends="calculate-gts-condition" if="gts.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="gts"/>
-        </antcall>
-        <antcall target="general-add-output-connector">
-            <param name="connector-name" value="gts"/>
-            <param name="connector-label" value="MetaCarta GTS"/>
-            <param name="connector-class" value="org.apache.manifoldcf.agents.output.gts.GTSConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-gts-connector-doc" depends="calculate-gts-doc-condition" if="gts-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="gts"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-jdbc-condition" depends="build-jdbc-connector">
-        <available file="connectors/jdbc/dist/lib" type="dir" property="jdbc.exists"/>
-        <condition property="jdbc.include">
-            <and>
-                <isset property="jdbc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-hdfs-condition" depends="build-hdfs-connector">
-        <available file="connectors/hdfs/dist/lib" type="dir" property="hdfs.exists"/>
-        <condition property="hdfs.include">
-            <and>
-                <isset property="hdfs.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-hdfs-doc-condition" depends="doc-hdfs-connector">
-        <available file="connectors/hdfs/dist/doc" type="dir" property="hdfs-doc.exists"/>
-        <condition property="hdfs-doc.include">
-            <and>
-                <isset property="hdfs-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-hdfs-connector" depends="calculate-hdfs-condition" if="hdfs.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="hdfs"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="hdfs"/>
-            <param name="connector-label" value="HDFS"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.hdfs.HDFSRepositoryConnector"/>
-        </antcall>
-        <antcall target="general-add-output-connector">
-            <param name="connector-name" value="hdfs"/>
-            <param name="connector-label" value="HDFS"/>
-            <param name="connector-class" value="org.apache.manifoldcf.agents.output.hdfs.HDFSOutputConnector"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-hdfs-connector-doc" depends="calculate-hdfs-doc-condition" if="hdfs-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="hdfs"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-jdbc-doc-condition" depends="doc-jdbc-connector">
-        <available file="connectors/jdbc/dist/doc" type="dir" property="jdbc-doc.exists"/>
-        <condition property="jdbc-doc.include">
-            <and>
-                <isset property="jdbc-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-jdbc-connector" depends="calculate-jdbc-condition" if="jdbc.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="jdbc"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="jdbc"/>
-            <param name="connector-label" value="JDBC"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConnector"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="jdbc"/>
-            <param name="connector-label" value="JDBC"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.jdbc.JDBCAuthority"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-jdbc-connector-doc" depends="calculate-jdbc-doc-condition" if="jdbc-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="jdbc"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-jcifs-condition" depends="build-jcifs-connector">
-        <available file="connectors/jcifs/dist/lib" type="dir" property="jcifs.exists"/>
-        <condition property="jcifs.include">
-            <and>
-                <isset property="jcifs.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-jcifs-doc-condition" depends="doc-jcifs-connector">
-        <available file="connectors/jcifs/dist/doc" type="dir" property="jcifs-doc.exists"/>
-        <condition property="jcifs-doc.include">
-            <and>
-                <isset property="jcifs-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-jcifs-connector" depends="calculate-jcifs-condition" if="jcifs.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="jcifs"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="jcifs"/>
-            <param name="connector-label" value="Windows shares"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-jcifs-connector-doc" depends="calculate-jcifs-doc-condition" if="jcifs-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="jcifs"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-livelink-condition" depends="build-livelink-connector">
-        <available file="connectors/livelink/dist/lib" type="dir" property="livelink.exists"/>
-        <condition property="livelink.include">
-            <and>
-                <isset property="livelink.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-livelink-doc-condition" depends="doc-livelink-connector">
-        <available file="connectors/livelink/dist/doc" type="dir" property="livelink-doc.exists"/>
-        <condition property="livelink-doc.include">
-            <and>
-                <isset property="livelink-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-livelink-connector" depends="calculate-livelink-condition" if="livelink.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="livelink"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="livelink"/>
-            <param name="connector-label" value="LiveLink"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.livelink.LivelinkAuthority"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="livelink"/>
-            <param name="connector-label" value="LiveLink"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.livelink.LivelinkConnector"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-livelink-connector-doc" depends="calculate-livelink-doc-condition" if="livelink-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="livelink"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-solr-condition" depends="build-solr-connector">
-        <available file="connectors/solr/dist/lib" type="dir" property="solr.exists"/>
-        <condition property="solr.include">
-            <and>
-                <isset property="solr.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-solr-doc-condition" depends="doc-solr-connector">
-        <available file="connectors/solr/dist/doc" type="dir" property="solr-doc.exists"/>
-        <condition property="solr-doc.include">
-            <and>
-                <isset property="solr-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-solr-connector" depends="calculate-solr-condition" if="solr.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="solr"/>
-        </antcall>
-        <antcall target="general-add-output-connector">
-            <param name="connector-name" value="solr"/>
-            <param name="connector-label" value="Solr"/>
-            <param name="connector-class" value="org.apache.manifoldcf.agents.output.solr.SolrConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-solr-connector-doc" depends="calculate-solr-doc-condition" if="solr-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="solr"/>
-        </antcall>
-    </target>
-
-    <target name="setup-rabbitmq-connector" depends="build-framework" if="downloaded"/>
-	
-	<target name="build-rabbitmq-connector" depends="setup-rabbitmq-connector" if="downloaded">
-        <ant dir="connectors/rabbitmq" target="build"/>
-    </target>
-
-    <target name="calculate-rabbitmq-condition" depends="build-rabbitmq-connector">
-        <available file="connectors/rabbitmq/dist/lib" type="dir" property="rabbitmq.exists"/>
-        <condition property="rabbitmq.include">
-            <and>
-                <isset property="rabbitmq.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-	
-    <target name="deliver-rabbitmq-connector" depends="calculate-rabbitmq-condition" if="rabbitmq.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="rabbitmq"/>
-        </antcall>
-        <antcall target="general-add-output-connector">
-            <param name="connector-name" value="rabbitmq"/>
-            <param name="connector-label" value="RabbitMQ"/>
-            <param name="connector-class" value="org.apache.manifoldcf.agents.output.rabbitmq.RabbitmqOutputConnector"/>
-        </antcall>
-    </target>
-	
-    <target name="calculate-memex-condition" depends="build-memex-connector">
-        <available file="connectors/memex/dist/lib" type="dir" property="memex.exists"/>
-        <condition property="memex.include">
-            <and>
-                <isset property="memex.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-memex-doc-condition" depends="doc-memex-connector">
-        <available file="connectors/memex/dist/doc" type="dir" property="memex-doc.exists"/>
-        <condition property="memex-doc.include">
-            <and>
-                <isset property="memex-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-memex-connector" depends="calculate-memex-condition" if="memex.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="memex"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="memex"/>
-            <param name="connector-label" value="Memex Patriarch"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.memex.MemexAuthority"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="memex"/>
-            <param name="connector-label" value="Memex Patriarch"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.memex.MemexConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-memex-connector-doc" depends="calculate-memex-doc-condition" if="memex-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="memex"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-meridio-condition" depends="build-meridio-connector">
-        <available file="connectors/meridio/dist/lib" type="dir" property="meridio.exists"/>
-        <condition property="meridio.include">
-            <and>
-                <isset property="meridio.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-meridio-doc-condition" depends="doc-meridio-connector">
-        <available file="connectors/meridio/dist/doc" type="dir" property="meridio-doc.exists"/>
-        <condition property="meridio-doc.include">
-            <and>
-                <isset property="meridio-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-meridio-connector" depends="calculate-meridio-condition" if="meridio.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="meridio"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="meridio"/>
-            <param name="connector-label" value="Meridio"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.meridio.MeridioAuthority"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="meridio"/>
-            <param name="connector-label" value="Meridio"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.meridio.MeridioConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-meridio-connector-doc" depends="calculate-meridio-doc-condition" if="meridio-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="meridio"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-opensearchserver-condition" depends="build-opensearchserver-connector">
-        <available file="connectors/opensearchserver/dist/lib" type="dir" property="opensearchserver.exists"/>
-        <condition property="opensearchserver.include">
-            <and>
-                <isset property="opensearchserver.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-opensearchserver-doc-condition" depends="doc-opensearchserver-connector">
-        <available file="connectors/opensearchserver/dist/doc" type="dir" property="opensearchserver-doc.exists"/>
-        <condition property="opensearchserver-doc.include">
-            <isset property="opensearchserver-doc.exists"/>
-        </condition>
-    </target>
-
-   <target name="deliver-opensearchserver-connector" depends="calculate-opensearchserver-condition" if="opensearchserver.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="opensearchserver"/>
-        </antcall>
-        <antcall target="general-add-output-connector">
-            <param name="connector-name" value="opensearchserver"/>
-            <param name="connector-label" value="OpenSearchServer"/>
-            <param name="connector-class" value="org.apache.manifoldcf.agents.output.opensearchserver.OpenSearchServerConnector"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-opensearchserver-connector-doc" depends="calculate-opensearchserver-doc-condition" if="opensearchserver-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="opensearchserver"/>
-        </antcall>
-    </target>
-  
-
-    <target name="calculate-elasticsearch-condition" depends="build-elasticsearch-connector">
-        <available file="connectors/elasticsearch/dist/lib" type="dir" property="elasticsearch.exists"/>
-        <condition property="elasticsearch.include">
-            <and>
-                <isset property="elasticsearch.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-elasticsearch-testmaterials-condition" depends="calculate-elasticsearch-condition">
-        <available file="connectors/elasticsearch/test-materials-proprietary/elasticsearch-0.19.0" type="dir" property="elasticsearch-testmaterials.exists"/>
-        <condition property="elasticsearch-testmaterials.include">
-          <and>
-              <isset property="elasticsearch-testmaterials.exists"/>
-              <isset property="elasticsearch.include"/>
-          </and>
-        </condition>
-    </target>
-
-    <target name="calculate-elasticsearch-tests-condition" depends="calculate-elasticsearch-testmaterials-condition,calculate-elasticsearch-condition,calculate-cmis-condition">
-      <condition property="elasticsearch-tests.include">
-        <and>
-            <isset property="elasticsearch.include"/>
-            <isset property="elasticsearch-testmaterials.include"/>
-            <isset property="cmis.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-elasticsearch-doc-condition" depends="doc-elasticsearch-connector">
-        <available file="connectors/elasticsearch/dist/doc" type="dir" property="elasticsearch-doc.exists"/>
-        <condition property="elasticsearch-doc.include">
-            <and>
-                <isset property="elasticsearch-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-   <target name="deliver-elasticsearch-connector" depends="calculate-elasticsearch-condition" if="elasticsearch.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="elasticsearch"/>
-        </antcall>
-        <antcall target="general-add-output-connector">
-            <param name="connector-name" value="elasticsearch"/>
-            <param name="connector-label" value="ElasticSearch"/>
-            <param name="connector-class" value="org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnector"/>
-        </antcall>
-    </target>
-
-    <target name="deliver-elasticsearch-connector-doc" depends="calculate-elasticsearch-doc-condition" if="elasticsearch-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="elasticsearch"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-nullauthority-condition" depends="build-nullauthority-connector">
-        <available file="connectors/nullauthority/dist/lib" type="dir" property="nullauthority.exists"/>
-        <condition property="nullauthority.include">
-            <and>
-                <isset property="nullauthority.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-nullauthority-doc-condition" depends="doc-nullauthority-connector">
-        <available file="connectors/nullauthority/dist/doc" type="dir" property="nullauthority-doc.exists"/>
-        <condition property="nullauthority-doc.include">
-            <and>
-                <isset property="nullauthority-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-nullauthority-connector" depends="calculate-nullauthority-condition" if="nullauthority.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="nullauthority"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="nullauthority"/>
-            <param name="connector-label" value="Null"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-nullauthority-connector-doc" depends="calculate-nullauthority-doc-condition" if="nullauthority-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="nullauthority"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-nulloutput-condition" depends="build-nulloutput-connector">
-        <available file="connectors/nulloutput/dist/lib" type="dir" property="nulloutput.exists"/>
-        <condition property="nulloutput.include">
-            <and>
-                <isset property="nulloutput.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-nulloutput-doc-condition" depends="doc-nulloutput-connector">
-        <available file="connectors/nulloutput/dist/doc" type="dir" property="nulloutput-doc.exists"/>
-        <condition property="nulloutput-doc.include">
-            <and>
-                <isset property="nulloutput-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-nulloutput-connector" depends="calculate-nulloutput-condition" if="nulloutput.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="nulloutput"/>
-        </antcall>
-        <antcall target="general-add-output-connector">
-            <param name="connector-name" value="nulloutput"/>
-            <param name="connector-label" value="Null"/>
-            <param name="connector-class" value="org.apache.manifoldcf.agents.output.nullconnector.NullConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-nulloutput-connector-doc" depends="calculate-nulloutput-doc-condition" if="nulloutput-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="nulloutput"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-rss-condition" depends="build-rss-connector">
-        <available file="connectors/rss/dist/lib" type="dir" property="rss.exists"/>
-        <condition property="rss.include">
-            <and>
-                <isset property="rss.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-rss-doc-condition" depends="doc-rss-connector">
-        <available file="connectors/rss/dist/doc" type="dir" property="rss-doc.exists"/>
-        <condition property="rss-doc.include">
-            <and>
-                <isset property="rss-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-rss-connector" depends="calculate-rss-condition" if="rss.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="rss"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="rss"/>
-            <param name="connector-label" value="RSS"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.rss.RSSConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-rss-connector-doc" depends="calculate-rss-doc-condition" if="rss-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="rss"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-regexpmapper-condition" depends="build-regexp-mapper">
-        <available file="connectors/regexpmapper/dist/lib" type="dir" property="regexpmapper.exists"/>
-        <condition property="regexpmapper.include">
-            <and>
-                <isset property="regexpmapper.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-regexpmapper-doc-condition" depends="doc-regexp-mapper">
-        <available file="connectors/regexpmapper/dist/doc" type="dir" property="regexpmapper-doc.exists"/>
-        <condition property="regexpmapper-doc.include">
-            <and>
-                <isset property="regexpmapper-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-regexp-mapper" depends="calculate-regexpmapper-condition" if="regexpmapper.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="regexpmapper"/>
-        </antcall>
-        <antcall target="general-add-mapping-connector">
-            <param name="connector-name" value="regexpmapper"/>
-            <param name="connector-label" value="Regular expression mapper"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.mappers.regexp.RegexpMapper"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-regexp-mapper-doc" depends="calculate-regexpmapper-doc-condition" if="regexpmapper-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="regexpmapper"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-sharepoint-condition" depends="build-sharepoint-connector">
-        <available file="connectors/sharepoint/dist/lib" type="dir" property="sharepoint.exists"/>
-        <condition property="sharepoint.include">
-            <and>
-                <isset property="sharepoint.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-sharepoint-doc-condition" depends="doc-sharepoint-connector">
-        <available file="connectors/sharepoint/dist/doc" type="dir" property="sharepoint-doc.exists"/>
-        <condition property="sharepoint-doc.include">
-            <and>
-                <isset property="sharepoint-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-sharepoint-connector" depends="calculate-sharepoint-condition" if="sharepoint.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="sharepoint"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="sharepoint"/>
-            <param name="connector-label" value="SharePoint"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.sharepoint.SharePointRepository"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="sharepoint"/>
-            <param name="connector-label" value="SharePoint/ActiveDirectory"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.sharepoint.SharePointADAuthority"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="sharepoint"/>
-            <param name="connector-label" value="SharePoint/Native"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.sharepoint.SharePointAuthority"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-sharepoint-connector-doc" depends="calculate-sharepoint-doc-condition" if="sharepoint-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="sharepoint"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-webcrawler-condition" depends="build-webcrawler-connector">
-        <available file="connectors/webcrawler/dist/lib" type="dir" property="webcrawler.exists"/>
-        <condition property="webcrawler.include">
-            <and>
-                <isset property="webcrawler.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-webcrawler-doc-condition" depends="doc-webcrawler-connector">
-        <available file="connectors/webcrawler/dist/doc" type="dir" property="webcrawler-doc.exists"/>
-        <condition property="webcrawler-doc.include">
-            <and>
-                <isset property="webcrawler-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-webcrawler-connector" depends="calculate-webcrawler-condition" if="webcrawler.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="webcrawler"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="webcrawler"/>
-            <param name="connector-label" value="Web"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-webcrawler-connector-doc" depends="calculate-webcrawler-doc-condition" if="webcrawler-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="webcrawler"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-wiki-condition" depends="build-wiki-connector">
-        <available file="connectors/wiki/dist/lib" type="dir" property="wiki.exists"/>
-        <condition property="wiki.include">
-            <and>
-                <isset property="wiki.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="calculate-wiki-doc-condition" depends="doc-wiki-connector">
-        <available file="connectors/wiki/dist/doc" type="dir" property="wiki-doc.exists"/>
-        <condition property="wiki-doc.include">
-            <and>
-                <isset property="wiki-doc.exists"/>
-                <isset property="downloaded"/>
-            </and>
-        </condition>
-    </target>
-
-    <target name="deliver-wiki-connector" depends="calculate-wiki-condition" if="wiki.include">
-        <antcall target="general-connector-delivery">
-            <param name="connector-name" value="wiki"/>
-        </antcall>
-        <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="wiki"/>
-            <param name="connector-label" value="Wiki"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.wiki.WikiConnector"/>
-        </antcall>
-    </target>
-    
-    <target name="deliver-wiki-connector-doc" depends="calculate-wiki-doc-condition" if="wiki-doc.include">
-        <antcall target="general-connector-doc-delivery">
-            <param name="connector-name" value="wiki"/>
-        </antcall>
-    </target>
-
-    <target name="calculate-filesystem-tests-condition" depends="calculate-filesystem-condition,calculate-nulloutput-condition">
-      <condition property="filesystem-tests.include">
-        <and>
-            <isset property="filesystem.include"/>
-            <isset property="nulloutput.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-hdfs-tests-condition" depends="calculate-hdfs-condition,calculate-nulloutput-condition">
-      <condition property="hdfs-tests.include">
-        <and>
-            <isset property="hdfs.include"/>
-            <isset property="nulloutput.include"/>
-        </and>
-      </condition>
-    </target>
-
-	<target name="calculate-jcifs-tests-condition" depends="calculate-jcifs-condition,calculate-nulloutput-condition">
-      <condition property="jcifs-tests.include">
-        <and>
-            <isset property="jcifs.include"/>
-            <isset property="nulloutput.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-jdbc-tests-condition" depends="calculate-jdbc-condition,calculate-nulloutput-condition">
-      <condition property="jdbc-tests.include">
-        <and>
-            <isset property="jdbc.include"/>
-            <isset property="nulloutput.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-activedirectory-tests-condition" depends="calculate-activedirectory-condition">
-      <condition property="activedirectory-tests.include">
-        <and>
-            <isset property="activedirectory.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-ldap-tests-condition" depends="calculate-ldap-condition">
-      <condition property="ldap-tests.include">
-        <and>
-            <isset property="ldap.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-solr-tests-condition" depends="calculate-filesystem-condition,calculate-solr-condition">
-      <condition property="solr-tests.include">
-        <and>
-            <isset property="filesystem.include"/>
-            <isset property="solr.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-gts-tests-condition" depends="calculate-filesystem-condition,calculate-gts-condition">
-      <condition property="gts-tests.include">
-        <and>
-            <isset property="filesystem.include"/>
-            <isset property="gts.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-opensearchserver-tests-condition" depends="calculate-filesystem-condition,calculate-opensearchserver-condition">
-      <condition property="opensearchserver-tests.include">
-        <and>
-            <isset property="filesystem.include"/>
-            <isset property="opensearchserver.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-rss-tests-condition" depends="calculate-rss-condition,calculate-nulloutput-condition">
-      <condition property="rss-tests.include">
-        <and>
-            <isset property="rss.include"/>
-            <isset property="nulloutput.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-sharepoint-tests-condition" depends="calculate-sharepoint-condition,calculate-nulloutput-condition">
-      <condition property="sharepoint-tests.include">
-        <and>
-            <isset property="sharepoint.include"/>
-            <isset property="nulloutput.include"/>
-        </and>
-      </condition>
-    </target>
-    
-    <target name="calculate-alfresco-tests-condition" depends="calculate-alfresco-testmaterials-condition,calculate-nulloutput-condition">
-      <condition property="alfresco-tests.include">
-        <and>
-            <isset property="alfresco-testmaterials.include"/>
-            <isset property="nulloutput.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-cmis-tests-condition" depends="calculate-cmis-condition,calculate-nulloutput-condition">
-      <condition property="cmis-tests.include">
-        <and>
-            <isset property="cmis.include"/>
-            <isset property="nulloutput.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-webcrawler-tests-condition" depends="calculate-webcrawler-condition,calculate-nulloutput-condition">
-      <condition property="webcrawler-tests.include">
-        <and>
-            <isset property="webcrawler.include"/>
-            <isset property="nulloutput.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="calculate-wiki-tests-condition" depends="calculate-wiki-condition,calculate-nulloutput-condition">
-      <condition property="wiki-tests.include">
-        <and>
-            <isset property="wiki.include"/>
-            <isset property="nulloutput.include"/>
-        </and>
-      </condition>
-    </target>
-
-    <target name="run-activedirectory-UI-tests-derby" depends="build-tests-framework,build-tests-activedirectory-connector,calculate-activedirectory-tests-condition" if="activedirectory-tests.include">
-        <ant dir="tests/activedirectory" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-ldap-UI-tests-derby" depends="build-tests-framework,build-tests-ldap-connector,calculate-ldap-tests-condition" if="ldap-tests.include">
-        <ant dir="tests/ldap" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-filesystem-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <ant dir="tests/filesystem" target="run-derby"/>
-    </target>
-
-    <target name="run-filesystem-UI-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <ant dir="tests/filesystem" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-filesystem-loadtests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <ant dir="tests/filesystem" target="run-load-derby"/>
-    </target>
-
-    <target name="run-hdfs-UI-tests-derby" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
-        <ant dir="tests/hdfs" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-jcifs-UI-tests-derby" depends="build-tests-framework,build-tests-jcifs-connector,build-tests-nulloutput-connector,calculate-jcifs-tests-condition" if="jcifs-tests.include">
-        <ant dir="tests/jcifs" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-jdbc-UI-tests-derby" depends="build-tests-framework,build-tests-jdbc-connector,build-tests-nulloutput-connector,calculate-jdbc-tests-condition" if="jdbc-tests.include">
-        <ant dir="tests/jdbc" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-solr-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-solr-connector,calculate-solr-tests-condition" if="solr-tests.include">
-        <ant dir="tests/solr" target="run-derby"/>
-    </target>
-
-    <target name="run-solr-UI-tests-derby" depends="build-tests-framework,build-tests-solr-connector,build-tests-filesystem-connector,calculate-solr-tests-condition" if="solr-tests.include">
-        <ant dir="tests/solr" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-gts-UI-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-gts-connector,calculate-gts-tests-condition" if="gts-tests.include">
-        <ant dir="tests/gts" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-opensearchserver-UI-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-opensearchserver-connector,calculate-opensearchserver-tests-condition" if="opensearchserver-tests.include">
-        <ant dir="tests/opensearchserver" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-rss-UI-tests-derby" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
-        <ant dir="tests/rss" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-rss-loadtests-derby" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
-        <ant dir="tests/rss" target="run-load-derby"/>
-    </target>
-
-    <target name="run-rss-loadtests-postgresql" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
-        <ant dir="tests/rss" target="run-load-postgresql"/>
-    </target>
-
-    <target name="run-rss-loadtests-mysql" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
-        <ant dir="tests/rss" target="run-load-mysql"/>
-    </target>
-
-    <target name="run-rss-loadtests-HSQLDB" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
-        <ant dir="tests/rss" target="run-load-HSQLDB"/>
-    </target>
-
-    <target name="run-rss-tests-derby" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
-        <ant dir="tests/rss" target="run-derby"/>
-    </target>
-
-    <target name="run-rss-tests-HSQLDB" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
-        <ant dir="tests/rss" target="run-HSQLDB"/>
-    </target>
-
-    <target name="run-webcrawler-tests-derby" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
-        <ant dir="tests/webcrawler" target="run-derby"/>
-    </target>
-
-    <target name="run-webcrawler-tests-postgresql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
-        <ant dir="tests/webcrawler" target="run-postgresql"/>
-    </target>
-
-    <target name="run-webcrawler-loadtests-derby" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
-        <ant dir="tests/webcrawler" target="run-load-derby"/>
-    </target>
-
-    <target name="run-webcrawler-loadtests-postgresql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
-        <ant dir="tests/webcrawler" target="run-load-postgresql"/>
-    </target>
-
-    <target name="run-webcrawler-tests-mysql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
-        <ant dir="tests/webcrawler" target="run-mysql"/>
-    </target>
-
-    <target name="run-webcrawler-loadtests-mysql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
-        <ant dir="tests/webcrawler" target="run-load-mysql"/>
-    </target>
-
-    <target name="run-webcrawler-UI-tests-derby" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
-        <ant dir="tests/webcrawler" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-wiki-tests-derby" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <ant dir="tests/wiki" target="run-derby"/>
-    </target>
-
-    <target name="run-wiki-UI-tests-derby" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <ant dir="tests/wiki" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-wiki-loadtests-derby" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <ant dir="tests/wiki" target="run-load-derby"/>
-    </target>
-    
-    <target name="run-alfresco-tests-derby" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <ant dir="tests/alfresco" target="run-derby"/>
-    </target>
-
-    <target name="run-cmis-tests-derby" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <ant dir="tests/cmis" target="run-derby"/>
-    </target>
-
-    <target name="run-cmis-UI-tests-derby" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <ant dir="tests/cmis" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-cmis-loadtests-derby" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <ant dir="tests/cmis" target="run-load-derby"/>
-    </target>
-	
-    <target name="run-elasticsearch-tests-derby" depends="build-tests-framework,build-tests-cmis-connector,build-tests-elasticsearch-connector,calculate-cmis-tests-condition,calculate-elasticsearch-tests-condition" if="elasticsearch-tests.include">
-        <ant dir="tests/elasticsearch" target="run-derby"/>
-    </target>
-
-    <target name="run-elasticsearch-UI-tests-derby" depends="build-tests-framework,build-tests-cmis-connector,build-tests-elasticsearch-connector,calculate-cmis-tests-condition,calculate-elasticsearch-tests-condition" if="elasticsearch-tests.include">
-        <ant dir="tests/elasticsearch" target="run-UI-derby"/>
-    </target>
-    	
-    <target name="run-alfresco-loadtests-derby" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <ant dir="tests/alfresco" target="run-load-derby"/>
-    </target>
-
-    <target name="run-sharepoint-tests-derby" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <ant dir="tests/sharepoint" target="run-derby"/>
-    </target>
-
-    <target name="run-sharepoint-loadtests-derby" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <ant dir="tests/sharepoint" target="run-load-derby"/>
-    </target>
-
-    <target name="run-filesystem-tests-postgresql" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <ant dir="tests/filesystem" target="run-postgresql"/>
-    </target>
-
-    <target name="run-filesystem-tests-mysql" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <ant dir="tests/filesystem" target="run-mysql"/>
-    </target>
-
-    <target name="run-filesystem-loadtests-postgresql" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <ant dir="tests/filesystem" target="run-load-postgresql"/>
-    </target>
-
-    <target name="run-filesystem-loadtests-mysql" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <ant dir="tests/filesystem" target="run-load-mysql"/>
-    </target>
-
-    <target name="run-hdfs-tests-postgresql" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
-        <ant dir="tests/hdfs" target="run-postgresql"/>
-    </target>
-
-    <target name="run-hdfs-tests-mysql" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
-        <ant dir="tests/hdfs" target="run-mysql"/>
-    </target>
-
-    <target name="run-hdfs-loadtests-postgresql" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
-        <ant dir="tests/hdfs" target="run-load-postgresql"/>
-    </target>
-
-    <target name="run-hdfs-loadtests-mysql" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
-        <ant dir="tests/hdfs" target="run-load-mysql"/>
-    </target>
-
-    <target name="run-wiki-tests-postgresql" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <ant dir="tests/wiki" target="run-postgresql"/>
-    </target>
-
-    <target name="run-wiki-tests-mysql" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <ant dir="tests/wiki" target="run-mysql"/>
-    </target>
-
-    <target name="run-wiki-loadtests-postgresql" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <ant dir="tests/wiki" target="run-load-postgresql"/>
-    </target>
-
-    <target name="run-wiki-loadtests-mysql" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <ant dir="tests/wiki" target="run-load-mysql"/>
-    </target>
-
-    <target name="run-alfresco-tests-postgresql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <ant dir="tests/alfresco" target="run-postgresql"/>
-    </target>
-
-    <target name="run-alfresco-tests-mysql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <ant dir="tests/alfresco" target="run-mysql"/>
-    </target>
-  
-    <target name="run-alfresco-UI-tests-derby" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <ant dir="tests/alfresco" target="run-UI-derby"/>
-    </target>
-
-    <target name="run-cmis-tests-postgresql" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <ant dir="tests/cmis" target="run-postgresql"/>
-    </target>
-
-    <target name="run-cmis-tests-mysql" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <ant dir="tests/cmis" target="run-mysql"/>
-    </target>
-
-    <target name="run-alfresco-loadtests-postgresql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <ant dir="tests/alfresco" target="run-load-postgresql"/>
-    </target>
-
-    <target name="run-alfresco-loadtests-mysql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <ant dir="tests/alfresco" target="run-load-mysql"/>
-    </target>
-
-    <target name="run-cmis-loadtests-postgresql" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <ant dir="tests/cmis" target="run-load-postgresql"/>
-    </target>
-
-    <target name="run-cmis-loadtests-mysql" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <ant dir="tests/cmis" target="run-load-mysql"/>
-    </target>
-
-    <target name="run-filesystem-tests-HSQLDB" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <ant dir="tests/filesystem" target="run-HSQLDB"/>
-    </target>
-
-    <target name="run-filesystem-UI-tests-HSQLDB" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <ant dir="tests/filesystem" target="run-UI-HSQLDB"/>
-    </target>
-
-    <target name="run-filesystem-loadtests-HSQLDB" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <ant dir="tests/filesystem" target="run-load-HSQLDB"/>
-    </target>
-
-    <target name="run-hdfs-tests-HSQLDB" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
-        <ant dir="tests/hdfs" target="run-HSQLDB"/>
-    </target>
-
-    <target name="run-hdfs-UI-tests-HSQLDB" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
-        <ant dir="tests/hdfs" target="run-UI-HSQLDB"/>
-    </target>
-
-    <target name="run-hdfs-loadtests-HSQLDB" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
-        <ant dir="tests/hdfs" target="run-load-HSQLDB"/>
-    </target>
-
-    <target name="run-wiki-tests-HSQLDB" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <ant dir="tests/wiki" target="run-HSQLDB"/>
-    </target>
-
-    <target name="run-wiki-loadtests-HSQLDB" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <ant dir="tests/wiki" target="run-load-HSQLDB"/>
-    </target>
-
-    <target name="run-sharepoint-tests-postgresql" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <ant dir="tests/sharepoint" target="run-postgresql"/>
-    </target>
-
-    <target name="run-sharepoint-tests-mysql" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <ant dir="tests/sharepoint" target="run-mysql"/>
-    </target>
-
-    <target name="run-sharepoint-loadtests-postgresql" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <ant dir="tests/sharepoint" target="run-load-postgreql"/>
-    </target>
-
-    <target name="run-sharepoint-loadtests-mysql" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <ant dir="tests/sharepoint" target="run-load-mysql"/>
-    </target>
-
-    <target name="run-alfresco-tests-HSQLDB" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <ant dir="tests/alfresco" target="run-HSQLDB"/>
-    </target>
-
-    <target name="run-cmis-tests-HSQLDB" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <ant dir="tests/cmis" target="run-HSQLDB"/>
-    </target>
-    
-    <target name="run-alfresco-loadtests-HSQLDB" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <ant dir="tests/alfresco" target="run-load-HSQLDB"/>
-    </target>
-
-    <target name="run-cmis-loadtests-HSQLDB" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <ant dir="tests/cmis" target="run-load-HSQLDB"/>
-    </target>
-
-    <target name="run-sharepoint-tests-HSQLDB" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <ant dir="tests/sharepoint" target="run-HSQLDB"/>
-    </target>
-
-    <target name="run-sharepoint-loadtests-HSQLDB" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <ant dir="tests/sharepoint" target="run-load-HSQLDB"/>
-    </target>
-
-    <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-ldap-connector,run-tests-alfresco-connector,run-tests-cmis-connector,run-tests-filesystem-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-webcrawler-connector,run-tests-wiki-connector,run-tests-jdbc-connector,run-tests-hdfs-connector"/>
-    <target name="run-tests-lgpl-connectors" depends="run-tests-jcifs-connector"/>
-    <target name="run-tests-proprietary-connectors" depends="run-tests-documentum-connector,run-tests-filenet-connector,run-tests-livelink-connector,run-tests-memex-connector,run-tests-meridio-connector,run-tests-sharepoint-connector"/>
-
-    <target name="run-tests-derby-open-connectors" depends="run-tests-derby-activedirectory-connector,run-tests-derby-ldap-connector,run-tests-derby-alfresco-connector,run-tests-derby-cmis-connector,run-tests-derby-filesystem-connector,run-tests-derby-hdfs-connector,run-tests-derby-nullauthority-connector,run-tests-derby-nulloutput-connector,run-tests-derby-rss-connector,run-tests-derby-solr-connector,run-tests-derby-webcrawler-connector,run-tests-derby-wiki-connector,run-tests-derby-jdbc-connector"/>
-    <target name="run-tests-derby-lgpl-connectors" depends="run-tests-derby-jcifs-connector"/>
-    <target name="run-tests-derby-proprietary-connectors" depends="run-tests-derby-documentum-connector,run-tests-derby-filenet-connector,run-tests-derby-livelink-connector,run-tests-derby-memex-connector,run-tests-derby-meridio-connector,run-tests-derby-sharepoint-connector"/>
-    
-    <target name="end-to-end-tests-derby" depends="run-filesystem-tests-derby,run-webcrawler-tests-derby,run-rss-tests-derby,run-solr-tests-derby,run-wiki-tests-derby,run-alfresco-tests-derby,run-cmis-tests-derby,run-sharepoint-tests-derby"/>
-
-    <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-ldap-connector,run-tests-postgresql-alfresco-connector,run-tests-postgresql-cmis-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-hdfs-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-wiki-connector,run-tests-postgresql-jdbc-connector,run-tests-postgresql-opensearchserver-connector,run-tests-postgresql-elasticsearch-connector"/>
-    <target name="run-tests-postgresql-lgpl-connectors" depends="run-tests-postgresql-jcifs-connector"/>
-    <target name="run-tests-postgresql-proprietary-connectors" depends="run-tests-postgresql-documentum-connector,run-tests-postgresql-filenet-connector,run-tests-postgresql-livelink-connector,run-tests-postgresql-memex-connector,run-tests-postgresql-meridio-connector,run-tests-postgresql-sharepoint-connector"/>
-    
-    <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-hdfs-tests-postgresql,run-webcrawler-tests-postgresql,run-wiki-tests-postgresql,run-alfresco-tests-postgresql,run-cmis-tests-postgresql,run-sharepoint-tests-postgresql"/>
-
-    <target name="run-tests-mysql-open-connectors" depends="run-tests-mysql-activedirectory-connector,run-tests-mysql-ldap-connector,run-tests-mysql-alfresco-connector,run-tests-mysql-cmis-connector,run-tests-mysql-filesystem-connector,run-tests-mysql-hdfs-connector,run-tests-mysql-nullauthority-connector,run-tests-mysql-nulloutput-connector,run-tests-mysql-rss-connector,run-tests-mysql-solr-connector,run-tests-mysql-webcrawler-connector,run-tests-mysql-wiki-connector,run-tests-mysql-jdbc-connector,run-tests-mysql-opensearchserver-connector,run-tests-mysql-elasticsearch-connector"/>
-    <target name="run-tests-mysql-lgpl-connectors" depends="run-tests-mysql-jcifs-connector"/>
-    <target name="run-tests-mysql-proprietary-connectors" depends="run-tests-mysql-documentum-connector,run-tests-mysql-filenet-connector,run-tests-mysql-livelink-connector,run-tests-mysql-memex-connector,run-tests-mysql-meridio-connector,run-tests-mysql-sharepoint-connector"/>
-    
-    <target name="end-to-end-tests-mysql" depends="run-filesystem-tests-mysql,run-hdfs-tests-mysql,run-webcrawler-tests-mysql,run-wiki-tests-mysql,run-alfresco-tests-mysql,run-cmis-tests-mysql,run-sharepoint-tests-mysql"/>
-
-    <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-ldap-connector,run-tests-HSQLDB-alfresco-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-hdfs-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-wiki-connector,run-tests-HSQLDB-jdbc-connector,run-tests-HSQLDB-opensearchserver-connector,run-tests-HSQLDB-elasticsearch-connector"/>
-    <target name="run-tests-HSQLDB-lgpl-connectors" depends="run-tests-HSQLDB-jcifs-connector"/>
-    <target name="run-tests-HSQLDB-proprietary-connectors" depends="run-tests-HSQLDB-documentum-connector,run-tests-HSQLDB-filenet-connector,run-tests-HSQLDB-livelink-connector,run-tests-HSQLDB-memex-connector,run-tests-HSQLDB-meridio-connector,run-tests-HSQLDB-sharepoint-connector"/>
-    
-    <target name="end-to-end-tests-HSQLDB" depends="run-filesystem-tests-HSQLDB,run-hdfs-tests-HSQLDB,run-rss-tests-HSQLDB,run-wiki-tests-HSQLDB,run-alfresco-tests-HSQLDB,run-cmis-tests-HSQLDB,run-sharepoint-tests-HSQLDB"/>
-
-    <target name="end-to-end-loadtests-derby" depends="run-filesystem-loadtests-derby,run-rss-loadtests-derby,run-wiki-loadtests-derby,run-alfresco-loadtests-derby,run-cmis-loadtests-derby,run-sharepoint-loadtests-derby"/>
-
-    <target name="end-to-end-loadtests-postgresql" depends="run-filesystem-loadtests-postgresql,run-hdfs-loadtests-postgresql,run-rss-loadtests-postgresql,run-wiki-loadtests-postgresql,run-alfresco-loadtests-postgresql,run-cmis-loadtests-postgresql,run-sharepoint-loadtests-postgresql"/>
-
-    <target name="end-to-end-loadtests-mysql" depends="run-filesystem-loadtests-mysql,run-hdfs-loadtests-mysql,run-rss-loadtests-mysql,run-wiki-loadtests-mysql,run-alfresco-loadtests-mysql,run-cmis-loadtests-mysql,run-sharepoint-loadtests-mysql"/>
-
-    <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-hdfs-loadtests-HSQLDB,run-rss-loadtests-HSQLDB,run-wiki-loadtests-HSQLDB,run-alfresco-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
-
-    <target name="deliver-open-connectors" depends="deliver-generic-connector,deliver-jira-connector,deliver-googledrive-connector,deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-hdfs-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
-    <target name="deliver-open-connectors-doc" depends="deliver-generic-connector-doc,deliver-jira-connector-doc,deliver-googledrive-connector-doc,deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-hdfs-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
-
-    <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector,deliver-rabbitmq-connector"/>
-    <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc,deliver-elasticsearch-connector-doc"/>
-    
-    <target name="deliver-mapping-connectors" depends="deliver-regexp-mapper"/>
-    <target name="deliver-mapping-connectors-doc" depends="deliver-regexp-mapper-doc"/>
-    
-    <target name="deliver-lgpl-connectors" depends="deliver-jcifs-connector"/>
-    <target name="deliver-lgpl-connectors-doc" depends="deliver-jcifs-connector-doc"/>
-    
-    <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
-    <target name="deliver-proprietary-connectors-doc" depends="deliver-documentum-connector-doc,deliver-filenet-connector-doc,deliver-livelink-connector-doc,deliver-memex-connector-doc,deliver-meridio-connector-doc,deliver-sharepoint-connector-doc"/>
-
-    <target name="build" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-mapping-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors"/>
+    <!-- General targets -->
+    <target name="clean" depends="clean-connectors">
+        <delete>
+          <fileset dir="." includes="apache-manifoldcf-*.zip"/>
+          <fileset dir="." includes="apache-manifoldcf-*.tar.gz"/>
+        </delete>
+        <delete dir="build"/>
+        <delete dir="dist"/>
+        <ant dir="site" target="clean"/>
+        <ant dir="framework" target="clean"/>
+    </target>
+
+    <target name="cleanup-afterbuild" depends="clean-connectors">
+        <delete dir="build"/>
+        <ant dir="site" target="clean"/>
+        <ant dir="framework" target="clean"/>
+    </target>
+
+    <target name="build" depends="deliver-connectors"/>
     <target name="tmpclean" depends="cleanup-afterbuild"/>
     <target name="buildcln" depends="build,tmpclean"/>
-    <target name="javadoc" depends="deliver-framework-doc,deliver-open-connectors-doc,deliver-output-connectors-doc,deliver-mapping-connectors-doc,deliver-lgpl-connectors-doc,deliver-proprietary-connectors-doc"/>
+    <target name="javadoc" depends="deliver-connectors-doc"/>
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="1.5-dev"/>
+      <property name="release-version" value="1.6-dev"/>
     </target>
     
     <target name="create-source-zip" depends="set-version">
@@ -3075,7 +1348,7 @@
           <exclude name="**/test-materials-proprietary/*.wsdl"/>
           <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
-          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-0.19.0/"/>
+          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
           <exclude name="/legacy-*/"/>
           <exclude name="apache-manifoldcf-*"/>
         </zipfileset>
@@ -3115,7 +1388,7 @@
           <exclude name="**/test-materials-proprietary/*.wsdl"/>
           <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
-          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-0.19.0/"/>
+          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
           <exclude name="/legacy-*/"/>
           <exclude name="apache-manifoldcf-*"/>
         </tarfileset>
@@ -3133,6 +1406,7 @@
         <zipfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
           <exclude name="connector-lib-proprietary/*.jar"/>
           <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="lib-proprietary/*.jar"/>
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
@@ -3148,6 +1422,7 @@
         <tarfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
           <exclude name="connector-lib-proprietary/*.jar"/>
           <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="lib-proprietary/*.jar"/>
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
@@ -3160,27 +1435,27 @@
 
     <target name="image" depends="create-source-zip,create-source-tar,create-lib-zip,create-lib-tar,create-bin-zip,create-bin-tar"/>
     
-    <target name="test-dr" depends="run-tests-derby-framework,run-tests-derby-open-connectors,run-tests-derby-lgpl-connectors,run-tests-derby-proprietary-connectors,end-to-end-tests-derby"/>
+    <target name="test-dr" depends="run-tests-derby-framework,run-connectors-tests-derby,run-connectors-IT-derby"/>
 
-    <target name="test-pg" depends="run-tests-postgresql-framework,run-tests-postgresql-open-connectors,run-tests-postgresql-lgpl-connectors,run-tests-postgresql-proprietary-connectors,end-to-end-tests-postgresql"/>
+    <target name="test-pg" depends="run-tests-postgresql-framework,run-connectors-tests-postgresql,run-connectors-IT-postgresql"/>
 
-    <target name="test-my" depends="run-tests-mysql-framework,run-tests-mysql-open-connectors,run-tests-mysql-lgpl-connectors,run-tests-mysql-proprietary-connectors,end-to-end-tests-mysql"/>
+    <target name="test-my" depends="run-tests-mysql-framework,run-connectors-tests-mysql,run-connectors-IT-mysql"/>
 
-    <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDBext-framework,run-tests-HSQLDB-open-connectors,run-tests-HSQLDB-lgpl-connectors,run-tests-HSQLDB-proprietary-connectors,end-to-end-tests-HSQLDB"/>
+    <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDBext-framework,run-connectors-tests-HSQLDB,run-connectors-tests-HSQLDBext,run-connectors-IT-HSQLDB,run-connectors-IT-HSQLDBext"/>
 
-    <target name="load-dr" depends="end-to-end-loadtests-derby"/>
+    <target name="load-dr" depends="run-connectors-LT-derby"/>
 
-    <target name="load-pg" depends="end-to-end-loadtests-postgresql"/>
+    <target name="load-pg" depends="run-connectors-LT-postgresql"/>
 
-    <target name="load-my" depends="end-to-end-loadtests-mysql"/>
+    <target name="load-my" depends="run-connectors-LT-mysql"/>
 
-    <target name="load-hs" depends="end-to-end-loadtests-HSQLDB"/>
+    <target name="load-hs" depends="run-connectors-LT-HSQLDB,run-connectors-LT-HSQLDBext"/>
 
-    <target name="test" depends="run-tests-framework,run-tests-open-connectors,run-tests-lgpl-connectors,run-tests-proprietary-connectors,test-dr,test-hs"/>
+    <target name="test" depends="run-tests-framework,run-connectors-tests,test-dr,test-hs"/>
 
-    <target name="ldtest" depends="load-dr,load-hs"/>
+    <target name="ldtest" depends="run-connectors-LT-derby,run-connectors-LT-HSQLDB"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-hdfs-UI-tests-derby,run-filesystem-UI-tests-HSQLDB,run-hdfs-UI-tests-HSQLDB,run-jcifs-UI-tests-derby,run-jdbc-UI-tests-derby,run-activedirectory-UI-tests-derby,run-ldap-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby,run-opensearchserver-UI-tests-derby"/>
+    <target name="uitest" depends="run-connectors-UI-derby,run-connectors-UI-HSQLDB"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
@@ -3244,7 +1519,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </fileset>
         <fileset dir="connectors/">
           <exclude name="**/*"/>
-          <exclude name="elasticsearch/test-materials-proprietary/elasticsearch-0.19.0/"/>
+          <exclude name="elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
@@ -3277,7 +1552,14 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/surefire-reports/"/>
           <exclude name="**/target/"/>
           <exclude name="lib-proprietary/*.jar"/>
-          <exclude name="scripts/options.env"/>
+          <exclude name="scripts/*.env.win"/>
+          <exclude name="scripts/*.env.unix"/>
+          <exclude name="scripts-jetty/*.env.win"/>
+          <exclude name="scripts-jetty/*.env.unix"/>
+          <exclude name="scripts-combined/*.env.win"/>
+          <exclude name="scripts-combined/*.env.unix"/>
+          <exclude name="engine-scripts/*.env.win"/>
+          <exclude name="engine-scripts/*.env.unix"/>
         </fileset>
         <fileset dir="site/">
           <exclude name="fonts/"/>
@@ -3285,18 +1567,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/tmp/"/>
           <exclude name="src/documentation/skins/common/xslt/html/split.xsl"/>
           <exclude name="src/documentation/skins/lucene/note.txt"/>
-        </fileset>
-        <fileset dir="tests/">
-          <exclude name="**/build/"/>
-          <exclude name="**/dist/"/>
-          <exclude name="**/test-output/"/>
-          <exclude name="**/test-derby-output/"/>
-          <exclude name="**/test-postgresql-output/"/>
-          <exclude name="**/test-HSQLDB-output/"/>
-          <exclude name="**/test-HSQLDBext-output/"/>
-          <exclude name="**/test-mysql-output/"/>
-          <exclude name="**/surefire-reports/"/>
-          <exclude name="**/target/"/>
         </fileset>
         <fileset dir="test-materials/">
           <exclude name="**/build/"/>
@@ -3322,14 +1592,14 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
         <antcall target="download-via-maven">
             <param name="project-path" value="org/apache/httpcomponents"/>
-            <param name="artifact-version" value="4.2.5"/>
+            <param name="artifact-version" value="4.3.2"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="httpcore"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="project-path" value="org/apache/httpcomponents"/>
-            <param name="artifact-version" value="4.2.6"/>
+            <param name="artifact-version" value="4.3.3"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="httpclient"/>
             <param name="artifact-type" value="jar"/>
@@ -3337,7 +1607,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/httpcomponents"/>
-            <param name="artifact-version" value="4.2.6"/>
+            <param name="artifact-version" value="4.3.3"/>
             <param name="artifact-name" value="httpmime"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -3581,6 +1851,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="commons-configuration"/>
             <param name="artifact-version" value="1.6"/>
             <param name="artifact-name" value="commons-configuration"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-cli"/>
+            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-name" value="commons-cli"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -3895,7 +2171,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-opensaml">
         <!-- http://maven.alfresco.com/nexus/content/groups/public/opensaml/opensaml/1.1b/opensaml-1.1b.jar -->
         <!-- This dependency is for alfresco, so we use the jar alfresco has -->
-        <get src="http://mirrors.ibiblio.org/maven2/xfire/opensaml/1.0.1/opensaml-1.0.1.jar" dest="lib/opensaml.jar"/>
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/opensaml"/>
+            <param name="artifact-version" value="1.1"/>
+            <param name="artifact-name" value="opensaml"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
     <target name="download-osgi">
@@ -3991,12 +2273,19 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-xmlsec">
         <!-- Alfresco dependency, so resolve it from alfresco svn -->
-        <get src="http://repo1.maven.org/maven2/org/apache/santuario/xmlsec/1.4.1/xmlsec-1.4.1.jar" dest="lib/xmlsec.jar"/>
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/santuario"/>
+            <param name="artifact-version" value="1.4.0"/>
+            <param name="artifact-name" value="xmlsec"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
     <target name="download-xml-apis">
         <mkdir dir="lib"/>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
             <param name="project-path" value="xml-apis"/>
             <param name="artifact-version" value="1.4.01"/>
             <param name="artifact-name" value="xml-apis"/>
@@ -4008,7 +2297,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <property name="jstl-package" value="jstl"/>
         <property name="jstl-version" value="1.2"/>
-        <antcall target="download-via-maven"><param name="target" value="lib"/><param name="project-path" value="${jstl-package}"/><param name="artifact-version" value="${jstl-version}"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="${jstl-package}"/>
+            <param name="artifact-version" value="${jstl-version}"/>
             <param name="artifact-name" value="jstl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -4018,10 +2310,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib/elasticsearch"/>
         <!-- Download and unpack binary artifact -->
         <mkdir dir="build/download"/>
-        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-1.1-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin"/>
         <copy todir="lib/elasticsearch">
-            <fileset dir="build/download/apache-manifoldcf-elasticsearch-plugin-bin/elasticsearch-plugin-mcf-1.1"/>
+            <fileset dir="build/download/apache-manifoldcf-elasticsearch-plugin-bin/elasticsearch-plugin-mcf-2.0"/>
         </copy>
     </target>
 
@@ -4141,41 +2433,90 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-solr-plugins">
         <mkdir dir="lib/solr-3.x"/>
         <mkdir dir="build/download"/>
-        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-1.1-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin"/>
         <copy todir="lib/solr-3.x">
-            <fileset dir="build/download/apache-manifoldcf-solr-3.x-plugin-bin/apache-manifoldcf-solr-3.x-plugin-1.1"/>
+            <fileset dir="build/download/apache-manifoldcf-solr-3.x-plugin-bin/apache-manifoldcf-solr-3.x-plugin-2.0"/>
         </copy>
         <mkdir dir="lib/solr-4.x"/>
-        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-1.1.1-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin"/>
         <copy todir="lib/solr-4.x">
-            <fileset dir="build/download/apache-manifoldcf-solr-4.x-plugin-bin/apache-manifoldcf-solr-4.x-plugin-1.1.1"/>
+            <fileset dir="build/download/apache-manifoldcf-solr-4.x-plugin-bin/apache-manifoldcf-solr-4.x-plugin-2.0"/>
         </copy>
     </target>
 
-    <target name="download-hadoop">
+    <target name="download-hadoop" depends="download-guava">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/hadoop"/>
-            <param name="artifact-version" value="1.1.2"/>
-            <param name="artifact-name" value="hadoop-core"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-common"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-annotations"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-auth"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-hdfs"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
     
-	  <target name="download-solrj">
+    <target name="download-protobuf">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/protobuf"/>
+            <param name="artifact-version" value="2.5.0"/>
+            <param name="artifact-name" value="protobuf-java"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-guava">
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/guava"/>
+            <param name="artifact-version" value="11.0.2"/>
+            <param name="artifact-name" value="guava"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-solrj">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/solr"/>
-            <param name="artifact-version" value="4.3.1"/>
+            <param name="artifact-version" value="4.7.0"/>
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/noggit"/>
+            <param name="artifact-version" value="0.5"/>
+            <param name="artifact-name" value="noggit"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
-    
+
     <target name="download-zookeeper">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
@@ -4187,14 +2528,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-rabbitmq-client">
+    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-rabbitmq-client">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
     </target>
     
     <target name="download-mysql">
-        <antcall target="download-via-maven"><param name="target" value="lib-proprietary"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib-proprietary"/>
             <param name="project-path" value="mysql"/>
             <param name="artifact-version" value="5.1.18"/>
             <param name="artifact-name" value="mysql-connector-java"/>
@@ -4203,7 +2545,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
 
     <target name="download-jtds">
-        <antcall target="download-via-maven"><param name="target" value="lib-proprietary"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib-proprietary"/>
             <param name="project-path" value="net/sourceforge/jtds"/>
             <param name="artifact-version" value="1.2.4"/>
             <param name="artifact-name" value="jtds"/>
@@ -4213,35 +2556,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
     <target name="download-proprietary-dependencies" depends="download-mysql,download-jtds"/>
     
-    <target name="make-deps" depends="download-proprietary-dependencies">
-        <ant dir="connectors/alfresco" target="download-dependencies"/>
-        <ant dir="connectors/cmis" target="download-dependencies"/>
-        <ant dir="connectors/generic" target="download-dependencies"/>
-        <ant dir="connectors/dropbox" target="download-dependencies"/>
-        <ant dir="connectors/googledrive" target="download-dependencies"/>
-        <ant dir="connectors/jira" target="download-dependencies"/>
-        <ant dir="connectors/activedirectory" target="download-dependencies"/>
-        <ant dir="connectors/ldap" target="download-dependencies"/>
-        <ant dir="connectors/documentum" target="download-dependencies"/>
-        <ant dir="connectors/filenet" target="download-dependencies"/>
-        <ant dir="connectors/filesystem" target="download-dependencies"/>
-        <ant dir="connectors/gts" target="download-dependencies"/>
-        <ant dir="connectors/hdfs" target="download-dependencies"/>
-        <ant dir="connectors/jcifs" target="download-dependencies"/>
-        <ant dir="connectors/jdbc" target="download-dependencies"/>
-        <ant dir="connectors/livelink" target="download-dependencies"/>
-		<ant dir="connectors/rabbitmq" target="download-dependencies"/>
-        <ant dir="connectors/solr" target="download-dependencies"/>
-        <ant dir="connectors/memex" target="download-dependencies"/>
-        <ant dir="connectors/meridio" target="download-dependencies"/>
-        <ant dir="connectors/opensearchserver" target="download-dependencies"/>
-        <ant dir="connectors/elasticsearch" target="download-dependencies"/>
-        <ant dir="connectors/nullauthority" target="download-dependencies"/>
-        <ant dir="connectors/nulloutput" target="download-dependencies"/>
-        <ant dir="connectors/rss" target="download-dependencies"/>
-        <ant dir="connectors/sharepoint" target="download-dependencies"/>
-        <ant dir="connectors/webcrawler" target="download-dependencies"/>
-        <ant dir="connectors/wiki" target="download-dependencies"/>
+    <target name="make-deps" depends="download-proprietary-dependencies,download-connectors-dependencies">
         <ant dir="site" target="download-dependencies"/>
     </target>
 
@@ -4255,35 +2570,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <delete dir="lib"/>
     </target>
 
-    <target name="clean-deps" depends="download-proprietary-cleanup">
-        <ant dir="connectors/alfresco" target="download-cleanup"/>
-        <ant dir="connectors/cmis" target="download-cleanup"/>
-        <ant dir="connectors/generic" target="download-cleanup"/>        
-        <ant dir="connectors/dropbox" target="download-cleanup"/>        
-        <ant dir="connectors/googledrive" target="download-cleanup"/>
-        <ant dir="connectors/jira" target="download-cleanup"/>
-        <ant dir="connectors/activedirectory" target="download-cleanup"/>
-        <ant dir="connectors/ldap" target="download-cleanup"/>
-        <ant dir="connectors/documentum" target="download-cleanup"/>
-        <ant dir="connectors/filenet" target="download-cleanup"/>
-        <ant dir="connectors/filesystem" target="download-cleanup"/>
-        <ant dir="connectors/gts" target="download-cleanup"/>
-        <ant dir="connectors/hdfs" target="download-cleanup"/>
-        <ant dir="connectors/jcifs" target="download-cleanup"/>
-        <ant dir="connectors/jdbc" target="download-cleanup"/>
-        <ant dir="connectors/livelink" target="download-cleanup"/>
-        <ant dir="connectors/rabbitmq" target="download-cleanup"/>
-        <ant dir="connectors/solr" target="download-cleanup"/>
-        <ant dir="connectors/memex" target="download-cleanup"/>
-        <ant dir="connectors/meridio" target="download-cleanup"/>
-        <ant dir="connectors/opensearchserver" target="download-cleanup"/>
-        <ant dir="connectors/elasticsearch" target="download-cleanup"/>
-        <ant dir="connectors/nullauthority" target="download-cleanup"/>
-        <ant dir="connectors/nulloutput" target="download-cleanup"/>
-        <ant dir="connectors/rss" target="download-cleanup"/>
-        <ant dir="connectors/sharepoint" target="download-cleanup"/>
-        <ant dir="connectors/webcrawler" target="download-cleanup"/>
-        <ant dir="connectors/wiki" target="download-cleanup"/>
+    <target name="clean-deps" depends="download-proprietary-cleanup,cleanup-connectors-dependencies">
         <ant dir="site" target="download-cleanup"/>
     </target>
     

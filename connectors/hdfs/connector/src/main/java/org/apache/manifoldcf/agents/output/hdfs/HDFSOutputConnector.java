@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -85,6 +84,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   /** Forward to the template to view the specification parameters for the job */
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 
+  protected String nameNodeProtocol = null;
   protected String nameNodeHost = null;
   protected String nameNodePort = null;
   protected String user = null;
@@ -113,6 +113,9 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   @Override
   public void connect(ConfigParams configParams) {
     super.connect(configParams);
+    nameNodeProtocol = configParams.getParameter(ParameterEnum.namenodeprotocol.name());
+    if (nameNodeProtocol == null)
+      nameNodeProtocol = "hdfs";
     nameNodeHost = configParams.getParameter(ParameterEnum.namenodehost.name());
     nameNodePort = configParams.getParameter(ParameterEnum.namenodeport.name());
     user = configParams.getParameter(ParameterEnum.user.name());
@@ -133,6 +136,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   @Override
   public void disconnect() throws ManifoldCFException {
     closeSession();
+    nameNodeProtocol = null;
     nameNodeHost = null;
     nameNodePort = null;
     user = null;
@@ -177,38 +181,25 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   /** Set up a session */
   protected HDFSSession getSession() throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
-      String nameNodeHost = params.getParameter(ParameterEnum.namenodehost.name());
+      if (nameNodeProtocol == null)
+        nameNodeProtocol = "hdfs";
+
       if (nameNodeHost == null)
         throw new ManifoldCFException("Namenodehost must be specified");
 
-      String nameNodePort = params.getParameter(ParameterEnum.namenodeport.name());
       if (nameNodePort == null)
         throw new ManifoldCFException("Namenodeport must be specified");
       
-      String user = params.getParameter(ParameterEnum.user.name());
       if (user == null)
         throw new ManifoldCFException("User must be specified");
       
-      String nameNode = "hdfs://"+nameNodeHost+":"+nameNodePort;
+      String nameNode = nameNodeProtocol + "://"+nameNodeHost+":"+nameNodePort;
       //System.out.println("Namenode = '"+nameNode+"'");
 
       /*
-       * make Configuration
-       */
-      Configuration config = null;
-      ClassLoader ocl = Thread.currentThread().getContextClassLoader();
-      try {
-        Thread.currentThread().setContextClassLoader(org.apache.hadoop.conf.Configuration.class.getClassLoader());
-        config = new Configuration();
-        config.set("fs.default.name", nameNode);
-      } finally {
-        Thread.currentThread().setContextClassLoader(ocl);
-      }
-      
-      /*
        * get connection to HDFS
        */
-      GetSessionThread t = new GetSessionThread(nameNode,config,user);
+      GetSessionThread t = new GetSessionThread(nameNode,user);
       try {
         t.start();
         t.finishUp();
@@ -770,15 +761,13 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   protected static class GetSessionThread extends Thread {
     protected final String nameNode;
-    protected final Configuration config;
     protected final String user;
     protected Throwable exception = null;
     protected HDFSSession session = null;
 
-    public GetSessionThread(String nameNode, Configuration config, String user) {
+    public GetSessionThread(String nameNode, String user) {
       super();
       this.nameNode = nameNode;
-      this.config = config;
       this.user = user;
       setDaemon(true);
     }
@@ -786,7 +775,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     public void run() {
       try {
         // Create a session
-        session = new HDFSSession(nameNode, config, user);
+        session = new HDFSSession(nameNode, user);
       } catch (Throwable e) {
         this.exception = e;
       }
