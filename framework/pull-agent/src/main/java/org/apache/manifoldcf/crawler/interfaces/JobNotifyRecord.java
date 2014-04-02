@@ -25,11 +25,34 @@ public class JobNotifyRecord extends JobRecord
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /** Fail time; -1L if none currently set */
+  protected final long failTime;
+  /** Fail retry count; -1 if none currently set */
+  protected final int failRetryCount;
+  
   /** Constructor.
   */
-  public JobNotifyRecord(Long jobID)
+  public JobNotifyRecord(Long jobID, long failTime, int failRetryCount)
   {
     super(jobID);
+    this.failTime = failTime;
+    this.failRetryCount = failRetryCount;
+  }
+
+  /** Get the hard fail time.
+  *@return the fail time in ms since epoch, or -1L if none.
+  */
+  public long getFailTime()
+  {
+    return failTime;
+  }
+
+  /** Get the hard fail retry count.
+  *@return the fail retry count, or -1 if none.
+  */
+  public int getFailRetryCount()
+  {
+    return failRetryCount;
   }
 
 }

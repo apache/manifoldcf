@@ -48,12 +48,14 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.entity.ContentType;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
+import org.apache.http.ParseException;
 
 import org.apache.commons.logging.Log;
 
@@ -80,6 +82,7 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import java.nio.charset.Charset;
 
 /* Class to use httpcomponents to communicate with a SOAP server.
 * I've replaced the original rather complicated class with a much simpler one that
@@ -92,6 +95,8 @@ public class CommonsHTTPSender extends BasicHandler {
   /** Field log           */
   protected static Log log =
     LogFactory.getLog(CommonsHTTPSender.class.getName());
+
+  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /** Properties */
   protected CommonsHTTPClientProperties clientProperties;
@@ -358,9 +363,9 @@ public class CommonsHTTPSender extends BasicHandler {
     {
       try
       {
-        String charSet = methodThread.getCharSet();
+        Charset charSet = methodThread.getCharSet();
         if (charSet == null)
-          charSet = "utf-8";
+          charSet = UTF_8;
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
         Writer w = new StringWriter();
@@ -615,7 +620,7 @@ public class CommonsHTTPSender extends BasicHandler {
     protected Throwable responseException = null;
     protected XThreadInputStream threadStream = null;
     protected InputStream bodyStream = null;
-    protected String charSet = null;
+    protected Charset charSet = null;
     protected boolean streamCreated = false;
     protected Throwable streamException = null;
     protected boolean abortThread = false;
@@ -681,7 +686,18 @@ public class CommonsHTTPSender extends BasicHandler {
                   if (bodyStream != null)
                   {
                     threadStream = new XThreadInputStream(bodyStream);
-                    charSet = EntityUtils.getContentCharSet(entity);
+                    try
+                    {
+                      ContentType ct = ContentType.get(entity);
+                      if (ct == null)
+                        charSet = null;
+                      else
+                        charSet = ct.getCharset();
+                    }
+                    catch (ParseException e)
+                    {
+                      charSet = null;
+                    }
                   }
                   streamCreated = true;
                 }
@@ -856,7 +872,7 @@ public class CommonsHTTPSender extends BasicHandler {
       }
     }
     
-    public String getCharSet()
+    public Charset getCharSet()
       throws InterruptedException, IOException, HttpException
     {
       while (true)

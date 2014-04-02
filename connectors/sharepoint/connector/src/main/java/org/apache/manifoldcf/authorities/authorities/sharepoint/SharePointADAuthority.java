@@ -32,27 +32,6 @@ import javax.naming.*;
 import javax.naming.ldap.*;
 import javax.naming.directory.*;
 
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.NTCredentials;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.protocol.HttpContext;
-
 
 /** This is the Active Directory implementation of the IAuthorityConnector interface, as used
 * by SharePoint in Claim Space.  It is meant to be used in conjunction with other SharePoint authorities,
@@ -477,24 +456,24 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
 
   protected static String everyoneGroup()
   {
-    return "c:0!.s|windows";
+    return "Uc:0!.s|windows";
   }
   
   protected static String groupTokenFromSID(String SID)
   {
-    return "c:0+.w|"+SID.toLowerCase(Locale.ROOT);
+    return "Uc:0+.w|"+SID.toLowerCase(Locale.ROOT);
   }
 
   protected static String userTokenFromSID(String SID)
   {
-    return "i:0+.w|"+SID.toLowerCase(Locale.ROOT);
+    return "Ui:0+.w|"+SID.toLowerCase(Locale.ROOT);
   }
   
   protected static String userTokenFromLoginName(String loginName)
   {
     try
     {
-      return "i:0#.w|"+URLEncoder.encode(loginName,"utf-8");
+      return "Ui:0#.w|"+URLEncoder.encode(loginName,"utf-8").toLowerCase(Locale.ROOT);
     }
     catch (UnsupportedEncodingException e)
     {

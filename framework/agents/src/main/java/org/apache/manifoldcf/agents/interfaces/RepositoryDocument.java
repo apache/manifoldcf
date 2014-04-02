@@ -36,16 +36,21 @@ public class RepositoryDocument
 {
   public static final String _rcsid = "@(#)$Id: RepositoryDocument.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  // Security types
+  public final static String SECURITY_TYPE_DOCUMENT = "document";
+  public final static String SECURITY_TYPE_SHARE = "share";
+  public final static String SECURITY_TYPE_PARENT = "parent";
+  // Enumerated security type; add an integer to the end (deprecated)
+  public final static String SECURITY_TYPE_DIRECTORY_LEVEL = "directory_";
+  
   // Member variables.
   protected InputStream binaryFieldData = null;
   protected long binaryLength = 0;
-  protected Map<String,Object> fields = new HashMap<String,Object>();
-  protected Map<String,String[]> stringFields = new HashMap<String,String[]>();
-  protected Map<String,Reader[]> readerFields = new HashMap<String,Reader[]>();
-  protected Map<String,Date[]> dateFields = new HashMap<String,Date[]>();
-  protected Security fileSecurity = new Security();
-  protected Security shareSecurity = new Security();
-  protected List<Security> directorySecurity = new ArrayList<Security>();
+  protected final Map<String,Object> fields = new HashMap<String,Object>();
+  protected final Map<String,String[]> stringFields = new HashMap<String,String[]>();
+  protected final Map<String,Reader[]> readerFields = new HashMap<String,Reader[]>();
+  protected final Map<String,Date[]> dateFields = new HashMap<String,Date[]>();
+  protected final Map<String,Security> securityLevels = new HashMap<String,Security>();
   protected String fileName = "docname";
   protected String contentMimeType = "application/octet-stream";
   protected Date createdDate = null;
@@ -122,95 +127,202 @@ public class RepositoryDocument
     return contentMimeType;
   }
   
+  /** Locate or create a specified security level.
+  *@param securityType is the security type.
+  */
+  protected Security getSecurityLevel(String securityType)
+  {
+    Security s = securityLevels.get(securityType);
+    if (s == null)
+    {
+      s = new Security();
+      securityLevels.put(securityType, s);
+    }
+    return s;
+  }
+  
+  /** Enumerate the active security types for this document.
+  *@return an iterator over the security types.
+  */
+  public Iterator<String> securityTypesIterator()
+  {
+    return securityLevels.keySet().iterator();
+  }
+  
+  /** Set security values for a given security type.
+  *@param securityType is the security type.
+  *@param acl is the acl.
+  *@param denyAcl is the deny acl.
+  */
+  public void setSecurity(String securityType, String[] acl, String[] denyAcl)
+  {
+    if (acl != null && denyAcl != null)
+    {
+      Security s = getSecurityLevel(securityType);
+      s.setACL(acl);
+      s.setDenyACL(denyAcl);
+    }
+  }
+  
+  /** Set security acl for a given security type.
+  *@param securityType is the security type.
+  *@param acl is the acl;
+  */
+  public void setSecurityACL(String securityType, String[] acl)
+  {
+    if (acl != null)
+    {
+      Security s = getSecurityLevel(securityType);
+      s.setACL(acl);
+    }
+  }
+  
+  /** Set security deny acl for a given security type.
+  *@param securityType is the security type.
+  *@param denyAcl is the deny acl.
+  */
+  public void setSecurityDenyACL(String securityType, String[] denyAcl)
+  {
+    if (denyAcl != null)
+    {
+      Security s = getSecurityLevel(securityType);
+      s.setDenyACL(denyAcl);
+    }
+  }
+
+  /** Get security acl for a given security type.
+  *@param securityType is the security type.
+  *@return the acl, which may be null.
+  */
+  public String[] getSecurityACL(String securityType)
+  {
+    Security s = securityLevels.get(securityType);
+    if (s != null)
+      return s.getACL();
+    return null;
+  }
+
+  /** Get security deny acl for a given security type.
+  *@param securityType is the security type.
+  *@return the acl, which may be null.
+  */
+  public String[] getSecurityDenyACL(String securityType)
+  {
+    Security s = securityLevels.get(securityType);
+    if (s != null)
+      return s.getDenyACL();
+    return null;
+  }
+  
   /** Set the document's "file" allow acls.
   *@param acl is the allowed "file" access control token list for the document.
   */
+  @Deprecated
   public void setACL(String[] acl)
   {
-    fileSecurity.setACL(acl);
+    setSecurityACL(SECURITY_TYPE_DOCUMENT,acl);
   }
 
   /** Get the document's "file" allow acl, if any.
   *@return the allow access control token list for the document.
   */
+  @Deprecated
   public String[] getACL()
   {
-    return fileSecurity.getACL();
+    return getSecurityACL(SECURITY_TYPE_DOCUMENT);
   }
 
   /** Set the document's "file" deny acl.
   *@param acl is the "file" denied access control token list for the document.
   */
+  @Deprecated
   public void setDenyACL(String[] acl)
   {
-    fileSecurity.setDenyACL(acl);
+    setSecurityDenyACL(SECURITY_TYPE_DOCUMENT,acl);
   }
 
   /** Get the document's deny acl, if any.
   *@return the deny access control token list for the document.
   */
+  @Deprecated
   public String[] getDenyACL()
   {
-    return fileSecurity.getDenyACL();
+    return getSecurityDenyACL(SECURITY_TYPE_DOCUMENT);
   }
 
   /** Set document's "share" acl. */
+  @Deprecated
   public void setShareACL(String[] acl)
   {
-    shareSecurity.setACL(acl);
+    setSecurityACL(SECURITY_TYPE_SHARE,acl);
   }
 
   /** Get document's "share" acl. */
+  @Deprecated
   public String[] getShareACL()
   {
-    return shareSecurity.getACL();
+    return getSecurityACL(SECURITY_TYPE_SHARE);
   }
 
   /** Set document's "share" deny acl. */
+  @Deprecated
   public void setShareDenyACL(String[] acl)
   {
-    shareSecurity.setDenyACL(acl);
+    setSecurityDenyACL(SECURITY_TYPE_SHARE,acl);
   }
 
   /** Get document's "share" deny acl. */
+  @Deprecated
   public String[] getShareDenyACL()
   {
-    return shareSecurity.getDenyACL();
+    return getSecurityDenyACL(SECURITY_TYPE_SHARE);
   }
 
+  int directoryLevel = 0;
+
   /** Clear all directory acls. */
+  @Deprecated
   public void clearDirectoryACLs()
   {
-    directorySecurity.clear();
+    Iterator<String> securityIterator = securityLevels.keySet().iterator();
+    while (securityIterator.hasNext())
+    {
+      if (securityIterator.next().startsWith(SECURITY_TYPE_DIRECTORY_LEVEL))
+        securityIterator.remove();
+    }
+    directoryLevel = 0;
   }
 
   /** Get a count of directory security entries. */
+  @Deprecated
   public int countDirectoryACLs()
   {
-    return directorySecurity.size();
+    return directoryLevel;
   }
 
   /** Add directory security entry */
+  @Deprecated
   public void addDirectoryACLs(String[] allowACL, String[] denyACL)
   {
-    Security s = new Security();
-    s.setACL(allowACL);
-    s.setDenyACL(denyACL);
-    directorySecurity.add(s);
+    if (allowACL != null && denyACL != null)
+    {
+      setSecurity(SECURITY_TYPE_DIRECTORY_LEVEL + directoryLevel,allowACL,denyACL);
+    }
+    directoryLevel++;
   }
 
   /** Get directory security access acl */
+  @Deprecated
   public String[] getDirectoryACL(int index)
   {
-    Security s = directorySecurity.get(index);
-    return s.getACL();
+    return getSecurityACL(SECURITY_TYPE_DIRECTORY_LEVEL + index);
   }
 
   /** Get directory security deny acl */
+  @Deprecated
   public String[] getDirectoryDenyACL(int index)
   {
-    Security s = directorySecurity.get(index);
-    return s.getDenyACL();
+    return getSecurityDenyACL(SECURITY_TYPE_DIRECTORY_LEVEL + index);
   }
 
   /** Set the binary field.

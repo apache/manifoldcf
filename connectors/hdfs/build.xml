@@ -17,13 +17,30 @@
 
 <project name="hdfs" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <property name="abs-dist" location="../../dist"/>
+    <condition property="mcf-dist" value="${abs-dist}">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
+            <include name="commons-cli*.jar"/>
             <include name="commons-configuration*.jar"/>
-            <include name="hadoop-core*.jar"/>
+            <include name="hadoop-common*.jar"/>
+            <include name="hadoop-annotations*.jar"/>
+            <include name="hadoop-auth*.jar"/>
+            <include name="hadoop-hdfs*.jar"/>
+            <include name="guava*.jar"/>
+            <include name="protobuf-java*.jar"/>
         </fileset>
     </path>
 
@@ -31,9 +48,27 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="../../lib">
+                <include name="commons-cli*.jar"/>
                 <include name="commons-configuration*.jar"/>
-                <include name="hadoop-core*.jar"/>
+                <include name="hadoop-common*.jar"/>
+                <include name="hadoop-annotations*.jar"/>
+                <include name="hadoop-auth*.jar"/>
+                <include name="hadoop-hdfs*.jar"/>
+                <include name="guava*.jar"/>
+                <include name="protobuf-java*.jar"/>
             </fileset>
         </copy>
     </target>
+    
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="HDFS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.hdfs.HDFSRepositoryConnector"/>
+        </antcall>
+        <antcall target="general-add-output-connector">
+            <param name="connector-label" value="HDFS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.hdfs.HDFSOutputConnector"/>
+        </antcall>
+    </target>
+
 </project>

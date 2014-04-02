@@ -19,8 +19,6 @@
 package org.apache.manifoldcf.agents.output.solr;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.common.Base64;
-import org.apache.manifoldcf.core.common.XMLDoc;
 import org.apache.manifoldcf.core.common.DateParser;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.*;
@@ -28,31 +26,21 @@ import org.apache.manifoldcf.agents.system.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import javax.net.*;
-import javax.net.ssl.*;
 import java.util.regex.*;
-
-import org.apache.log4j.*;
-
-import java.util.concurrent.TimeUnit;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
 
@@ -70,6 +58,7 @@ import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
 
 
 /**
@@ -158,7 +147,7 @@ public class HttpPoster
     
     try
     {
-      CloudSolrServer cloudSolrServer = new CloudSolrServer(zookeeperHosts);
+      CloudSolrServer cloudSolrServer = new CloudSolrServer(zookeeperHosts, new ModifiedLBHttpSolrServer(HttpClientUtil.createClient(null)));
       cloudSolrServer.setZkClientTimeout(zkClientTimeout);
       cloudSolrServer.setZkConnectTimeout(zkConnectTimeout);
       cloudSolrServer.setDefaultCollection(collection);
@@ -301,20 +290,7 @@ public class HttpPoster
       try
       {
         t.start();
-        t.join();
-
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof SolrServerException)
-            throw (SolrServerException)thr;
-          if (thr instanceof IOException)
-            throw (IOException)thr;
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         return;
       }
       catch (InterruptedException e)
@@ -333,11 +309,37 @@ public class HttpPoster
       handleSolrException(e, "commit");
       return;
     }
+    catch (RuntimeException e)
+    {
+      handleRuntimeException(e, "commit");
+      return;
+    }
     catch (IOException ioe)
     {
       handleIOException(ioe, "commit");
       return;
     }
+  }
+  
+  /** Handle a RuntimeException.
+  * Unfortunately, SolrCloud 4.6.x throws RuntimeExceptions whenever ZooKeeper is not happy.
+  * We have to catch these too.  I've logged a ticket: SOLR-5678.
+  */
+  protected static void handleRuntimeException(RuntimeException e, String context)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    Throwable childException = e.getCause();
+    if (childException != null && childException instanceof java.util.concurrent.TimeoutException)
+    {
+      Logging.ingest.warn("SolrJ runtime exception during "+context+": "+childException.getMessage(),childException);
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption(childException.getMessage(),childException,
+        currentTime + interruptionRetryTime,
+        currentTime + 2L * 60L * 60000L,
+        -1,
+        true);
+    }
+    throw e;
   }
   
   /** Handle a SolrServerException.
@@ -429,6 +431,19 @@ public class HttpPoster
 
     long currentTime = System.currentTimeMillis();
     
+    if (e instanceof java.net.ConnectException)
+    {
+      // Server isn't up at all.  Try for a brief time then give up.
+      String message = "Server could not be contacted during "+context+": "+e.getMessage();
+      Logging.ingest.warn(message,e);
+      throw new ServiceInterruption(message,
+        e,
+        currentTime + interruptionRetryTime,
+        -1L,
+        3,
+        true);
+    }
+    
     if (e.getClass().getName().equals("java.net.SocketException"))
     {
       // In the past we would have treated this as a straight document rejection, and
@@ -482,60 +497,58 @@ public class HttpPoster
   
   /**
   * Post the input stream to ingest
-  * @param documentURI is the document's uri.
-  * @param document is the document structure to ingest.
-  * @param arguments are the configuration arguments to pass in the post.  Key is argument name, value is a list of the argument values.
-  * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
-  * @param activities is the activities object, so we can report what's happening.
-  * @return true if the ingestion was successful, or false if the ingestion is illegal.
+  *
+   * @param documentURI is the document's uri.
+   * @param document is the document structure to ingest.
+   * @param arguments are the configuration arguments to pass in the post.  Key is argument name, value is a list of the argument values.
+   * @param keepAllMetadata
+   *@param authorityNameString is the name of the governing authority for this document's acls, or null if none.
+   * @param activities is the activities object, so we can report what's happening.   @return true if the ingestion was successful, or false if the ingestion is illegal.
   * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
     RepositoryDocument document, Map arguments, Map<String, List<String>> sourceTargets,
-    String authorityNameString, IOutputAddActivity activities)
+    boolean keepAllMetadata, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("indexPost(): '" + documentURI + "'");
 
-    // The SOLR connector cannot deal with folder-level security at this time.  If they are seen, reject the document.
-    if (document.countDirectoryACLs() != 0)
-      return false;
-    
     // If the document is too long, reject it.
     if (maxDocumentLength != null && document.getBinaryLength() > maxDocumentLength.longValue())
       return false;
     
-    // Convert the incoming acls to qualified forms
-    String[] shareAcls = convertACL(document.getShareACL(),authorityNameString,activities);
-    String[] shareDenyAcls = convertACL(document.getShareDenyACL(),authorityNameString,activities);
-    String[] acls = convertACL(document.getACL(),authorityNameString,activities);
-    String[] denyAcls = convertACL(document.getDenyACL(),authorityNameString,activities);
-    
+    // Convert the incoming acls that we know about to qualified forms, and reject the document if
+    // we don't know how to deal with its acls
+    Map<String,String[]> aclsMap = new HashMap<String,String[]>();
+    Map<String,String[]> denyAclsMap = new HashMap<String,String[]>();
+
+    Iterator<String> aclTypes = document.securityTypesIterator();
+    while (aclTypes.hasNext())
+    {
+      String aclType = aclTypes.next();
+      aclsMap.put(aclType,convertACL(document.getSecurityACL(aclType),authorityNameString,activities));
+      denyAclsMap.put(aclType,convertACL(document.getSecurityDenyACL(aclType),authorityNameString,activities));
+      
+      // Reject documents that have security we don't know how to deal with in the Solr plugin!!  Only safe thing to do.
+      if (!aclType.equals(RepositoryDocument.SECURITY_TYPE_DOCUMENT) &&
+        !aclType.equals(RepositoryDocument.SECURITY_TYPE_SHARE) &&
+        !aclType.startsWith(RepositoryDocument.SECURITY_TYPE_PARENT))
+        return false;
+    }
+
     try
     {
-      IngestThread t = new IngestThread(documentURI,document,arguments,sourceTargets,shareAcls,shareDenyAcls,acls,denyAcls,commitWithin);
+      IngestThread t = new IngestThread(documentURI,document,arguments,keepAllMetadata,sourceTargets,
+                                        aclsMap,denyAclsMap,commitWithin);
       try
       {
         t.start();
-        t.join();
+        t.finishUp();
 
-        // Log the activity, if any, regardless of any exception
         if (t.getActivityCode() != null)
           activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
 
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof SolrServerException)
-            throw (SolrServerException)thr;
-          if (thr instanceof IOException)
-            throw (IOException)thr;
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
         return t.getRval();
       }
       catch (InterruptedException e)
@@ -543,20 +556,49 @@ public class HttpPoster
         t.interrupt();
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
       }
+      catch (SolrServerException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (SolrException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (RuntimeException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (IOException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
     }
     catch (SolrServerException e)
     {
-      handleSolrServerException(e, "indexing");
+      handleSolrServerException(e, "indexing "+documentURI);
       return false;
     }
     catch (SolrException e)
     {
-      handleSolrException(e, "indexing");
+      handleSolrException(e, "indexing "+documentURI);
+      return false;
+    }
+    catch (RuntimeException e)
+    {
+      handleRuntimeException(e, "indexing "+documentURI);
       return false;
     }
     catch (IOException ioe)
     {
-      handleIOException(ioe, "indexing");
+      handleIOException(ioe, "indexing "+documentURI);
       return false;
     }
 
@@ -577,20 +619,7 @@ public class HttpPoster
       try
       {
         t.start();
-        t.join();
-
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof SolrServerException)
-            throw (SolrServerException)thr;
-          if (thr instanceof IOException)
-            throw (IOException)thr;
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         return;
       }
       catch (InterruptedException e)
@@ -607,6 +636,11 @@ public class HttpPoster
     catch (SolrException e)
     {
       handleSolrException(e, "check");
+      return;
+    }
+    catch (RuntimeException e)
+    {
+      handleRuntimeException(e, "check");
       return;
     }
     catch (IOException ioe)
@@ -632,30 +666,41 @@ public class HttpPoster
       try
       {
         t.start();
-        t.join();
-
-        // Log the activity, if any, regardless of any exception
+        t.finishUp();
+        
         if (t.getActivityCode() != null)
           activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
 
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof SolrServerException)
-            throw (SolrServerException)thr;
-          if (thr instanceof IOException)
-            throw (IOException)thr;
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
         return;
       }
       catch (InterruptedException e)
       {
         t.interrupt();
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
+      }
+      catch (SolrServerException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (SolrException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (RuntimeException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
+      }
+      catch (IOException e)
+      {
+        if (t.getActivityCode() != null)
+          activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+        throw e;
       }
     }
     catch (SolrServerException e)
@@ -666,6 +711,11 @@ public class HttpPoster
     catch (SolrException e)
     {
       handleSolrException(e, "delete");
+      return;
+    }
+    catch (RuntimeException e)
+    {
+      handleRuntimeException(e, "delete");
       return;
     }
     catch (IOException ioe)
@@ -764,15 +814,14 @@ public class HttpPoster
   */
   protected class IngestThread extends java.lang.Thread
   {
-    protected String documentURI;
-    protected RepositoryDocument document;
-    protected Map<String,List<String>> arguments;
-    protected Map<String,List<String>> sourceTargets;
-    protected String[] shareAcls;
-    protected String[] shareDenyAcls;
-    protected String[] acls;
-    protected String[] denyAcls;
-    protected String commitWithin;
+    protected final String documentURI;
+    protected final RepositoryDocument document;
+    protected final Map<String,List<String>> arguments;
+    protected final Map<String,List<String>> sourceTargets;
+    protected final Map<String,String[]> aclsMap;
+    protected final Map<String,String[]> denyAclsMap;
+    protected final String commitWithin;
+    protected final boolean keepAllMetadata;
     
     protected Long activityStart = null;
     protected Long activityBytes = null;
@@ -783,20 +832,20 @@ public class HttpPoster
     protected boolean rval = false;
 
     public IngestThread(String documentURI, RepositoryDocument document,
-      Map<String,List<String>> arguments, Map<String, List<String>> sourceTargets,
-      String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls, String commitWithin)
+      Map<String, List<String>> arguments, boolean keepAllMetadata, Map<String, List<String>> sourceTargets,
+      Map<String,String[]> aclsMap, Map<String,String[]> denyAclsMap,
+      String commitWithin)
     {
       super();
       setDaemon(true);
       this.documentURI = documentURI;
       this.document = document;
       this.arguments = arguments;
-      this.shareAcls = shareAcls;
-      this.shareDenyAcls = shareDenyAcls;
-      this.acls = acls;
-      this.denyAcls = denyAcls;
+      this.aclsMap = aclsMap;
+      this.denyAclsMap = denyAclsMap;
       this.sourceTargets = sourceTargets;
       this.commitWithin = commitWithin;
+      this.keepAllMetadata=keepAllMetadata;
     }
 
     public void run()
@@ -856,8 +905,13 @@ public class HttpPoster
           }
           
           // Write the access token information
-          writeACLs(out,"share",shareAcls,shareDenyAcls);
-          writeACLs(out,"document",acls,denyAcls);
+          // Both maps have the same keys.
+          Iterator<String> typeIterator = aclsMap.keySet().iterator();
+          while (typeIterator.hasNext())
+          {
+            String aclType = typeIterator.next();
+            writeACLs(out,aclType,aclsMap.get(aclType),denyAclsMap.get(aclType));
+          }
 
           // Write the arguments
           for (String name : arguments.keySet())
@@ -867,32 +921,7 @@ public class HttpPoster
           }
 
           // Write the metadata, each in a field by itself
-          Iterator<String> iter = document.getFields();
-          while (iter.hasNext())
-          {
-            String fieldName = iter.next();
-            List<String> mapping = sourceTargets.get(fieldName);
-            if(mapping != null) {
-              for(String newFieldName : mapping) {
-                if(newFieldName != null && !newFieldName.isEmpty()) {
-                  if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
-                    newFieldName = ID_METADATA;
-                  }
-                  String[] values = document.getFieldAsStrings(fieldName);
-                  writeField(out,LITERAL+newFieldName,values);
-                }
-              }
-            } else {
-              String newFieldName = fieldName;
-              if (!newFieldName.isEmpty()) {
-                if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
-                  newFieldName = ID_METADATA;
-                }
-                String[] values = document.getFieldAsStrings(fieldName);
-                writeField(out,LITERAL+newFieldName,values);
-              }
-            }
-          }
+           buildSolrParamsFromMetadata(out);
              
           // These are unnecessary now in the case of non-solrcloud setups, because we overrode the SolrJ posting method to use multipart.
           //writeField(out,LITERAL+"stream_size",String.valueOf(length));
@@ -982,9 +1011,71 @@ public class HttpPoster
       }
     }
 
-    public Throwable getException()
+    /**
+      * builds the solr parameter maps for the update request.
+      * For each mapping expressed is applied the renaming for the metadata field name.
+      * If we set to keep all the metadata, the metadata non present in the mapping will be kept with their original names.
+      * In the other case ignored
+      * @param out
+      * @throws IOException
+      */
+    private void buildSolrParamsFromMetadata(ModifiableSolrParams out) throws IOException
     {
-      return exception;
+      if (this.keepAllMetadata)
+      {
+        Iterator<String> iter = document.getFields();
+        while (iter.hasNext())
+        {
+          String fieldName = iter.next();
+          List<String> mappings = sourceTargets.get(fieldName);
+          if (mappings != null)
+            for (String newFieldName : mappings)
+              applySingleMapping(fieldName, out, newFieldName);
+          else // the fields not mentioned in the mapping are added only if we have set the keep all metadata=true.
+            applySingleMapping(fieldName, out, fieldName);
+        }
+      }
+      else
+      {
+        //don't keep all the metadata but only the ones in sourceTargets
+        for (String originalFieldName : sourceTargets.keySet())
+        {
+          List<String> mapping = sourceTargets.get(originalFieldName);
+          for (String newFieldName : mapping)
+            applySingleMapping(originalFieldName, out, newFieldName);
+        }
+      }
+    }
+
+    private void applySingleMapping(String originalFieldName, ModifiableSolrParams out, String newFieldName) throws IOException {
+      if(newFieldName != null && !newFieldName.isEmpty()) {
+        if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
+          newFieldName = ID_METADATA;
+        }
+        String[] values = document.getFieldAsStrings(originalFieldName);
+        writeField(out,LITERAL+newFieldName,values);
+      }
+    }
+
+    public void finishUp()
+      throws InterruptedException, SolrServerException, IOException
+    {
+      join();
+
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof SolrServerException)
+          throw (SolrServerException)thr;
+        if (thr instanceof IOException)
+          throw (IOException)thr;
+        if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
 
     public Long getActivityStart()
@@ -1097,11 +1188,26 @@ public class HttpPoster
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws InterruptedException, SolrServerException, IOException
     {
-      return exception;
-    }
+      join();
 
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof SolrServerException)
+          throw (SolrServerException)thr;
+        if (thr instanceof IOException)
+          throw (IOException)thr;
+        if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
+    }
     public Long getActivityStart()
     {
       return activityStart;
@@ -1162,10 +1268,27 @@ public class HttpPoster
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws InterruptedException, SolrServerException, IOException
     {
-      return exception;
+      join();
+
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof SolrServerException)
+          throw (SolrServerException)thr;
+        if (thr instanceof IOException)
+          throw (IOException)thr;
+        if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
+
   }
 
 
@@ -1212,10 +1335,27 @@ public class HttpPoster
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws InterruptedException, SolrServerException, IOException
     {
-      return exception;
+      join();
+
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof SolrServerException)
+          throw (SolrServerException)thr;
+        if (thr instanceof IOException)
+          throw (IOException)thr;
+        if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
+
   }
 
   /** Class for importing documents into Solr via SolrJ

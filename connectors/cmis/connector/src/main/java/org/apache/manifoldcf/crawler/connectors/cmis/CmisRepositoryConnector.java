@@ -665,7 +665,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         activities.addSeedDocument(cmisObject.getId());
       }
     } else {
-      ItemIterable<QueryResult> results = session.query(cmisQuery, false);
+      ItemIterable<QueryResult> results = session.query(cmisQuery, false).getPage(1000000000);
       for (QueryResult result : results) {
         String id = result.getPropertyValueById(PropertyIds.OBJECT_ID);
         activities.addSeedDocument(id);

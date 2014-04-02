@@ -392,13 +392,11 @@ public class GenericConnector extends BaseRepositoryConnector {
           for (int j = 0; j < item.auth.size(); j++) {
             acl[j] = item.auth.get(j);
           }
-          doc.setACL(acl);
-          doc.setDenyACL(new String[]{defaultAuthorityDenyToken});
+          doc.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acl,new String[]{defaultAuthorityDenyToken});
         }
       } else {
         if (acls.length > 0) {
-          doc.setACL(acls);
-          doc.setDenyACL(new String[]{defaultAuthorityDenyToken});
+          doc.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls,new String[]{defaultAuthorityDenyToken});
         }
       }
       if (item.content != null) {

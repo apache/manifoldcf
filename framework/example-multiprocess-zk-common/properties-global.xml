@@ -27,6 +27,6 @@
   <property name="org.apache.manifoldcf.dbsuperusername" value="sa"/>
   <property name="org.apache.manifoldcf.dbsuperuserpassword" value=""/>
   <property name="org.apache.manifoldcf.database.maxhandles" value="100"/>
-  <property name="org.apache.manifoldcf.crawler.threads" value="50"/>
+  <property name="org.apache.manifoldcf.crawler.threads" value="20"/>
   <!-- Any additional global properties go here -->
 </configuration>

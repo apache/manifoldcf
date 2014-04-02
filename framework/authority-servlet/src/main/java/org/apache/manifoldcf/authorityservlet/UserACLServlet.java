@@ -363,6 +363,8 @@ public class UserACLServlet extends HttpServlet
             return;
           }
 
+          String authGroup = ar.getAuthorityConnection().getAuthGroup();
+          
           // A null reply means the same as USERNOTFOUND; it occurs because a user mapping failed somewhere.
           if (reply == null)
           {
@@ -400,7 +402,7 @@ public class UserACLServlet extends HttpServlet
               {
                 if (Logging.authorityService.isDebugEnabled())
                   Logging.authorityService.debug("  User '"+ar.getUserID()+"' has Acl = '"+acl[j]+"' from authority '"+ar.getIdentifyingString()+"'");
-                sb.append(TOKEN_PREFIX).append(java.net.URLEncoder.encode(connectionName,"UTF-8")).append(":").append(java.net.URLEncoder.encode(acl[j++],"UTF-8")).append("\n");
+                sb.append(TOKEN_PREFIX).append(java.net.URLEncoder.encode(authGroup,"UTF-8")).append(":").append(java.net.URLEncoder.encode(acl[j++],"UTF-8")).append("\n");
               }
             }
           }

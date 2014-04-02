@@ -16,23 +16,15 @@ rem limitations under the License.
 
 rem check that JAVA_HOME and MCF_HOME are set
 if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
-if not exist "%MCF_HOME%\properties.xml" goto nolcfhome
-rem save existing path here
-set OLDDIR=%CD%
-cd "%MCF_HOME%\processes"
-set CLASSPATH=.
-for %%f in (lib/*) do call setclasspath.bat %%f
-for /f "delims=" %%a in ('type %MCF_HOME%\processes\options.env') do set JAVAOPTIONS=%%a
-set JAVADEFINES=
-for %%g in (define/*) do call setdefine.bat %%g
-rem restore old path here
-cd "%OLDDIR%"
-"%JAVA_HOME%\bin\java" "-Dorg.apache.manifoldcf.configfile=%MCF_HOME%\properties.xml" %JAVAOPTIONS% %JAVADEFINES% -classpath "%CLASSPATH%" %*
+if not exist ".\properties.xml" goto nolcfhome
+set JAVAOPTIONS=
+for /f "delims=" %%a in ('type options.env.win') do call setjavaoption.bat "%%a"
+"%JAVA_HOME%\bin\java" %JAVAOPTIONS% %*
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.
 goto done
 :nolcfhome
-echo Environment variable MCF_HOME is not set properly.
+echo Working directory is not set properly.
 goto done
 :done

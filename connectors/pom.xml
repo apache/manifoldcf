@@ -20,13 +20,13 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-parent</artifactId>
-    <version>1.5-SNAPSHOT</version>
+    <version>1.6-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.apache.manifoldcf</groupId>
   <artifactId>mcf-connectors</artifactId>
-  <version>1.5-SNAPSHOT</version>
+  <version>1.6-SNAPSHOT</version>
 
   <name>ManifoldCF - Connectors</name>
   <packaging>pom</packaging>
@@ -43,6 +43,7 @@
     <module>nullauthority</module>
     <module>nulloutput</module>
     <module>rss</module>
+    <module>sharepoint</module>
     <module>solr</module>
     <module>webcrawler</module>
     <module>cmis</module>
@@ -55,7 +56,7 @@
     <module>jira</module>
     <module>generic</module>
     <module>regexpmapper</module>
-    <module>rabbitmq</module>
+    <module>email</module>
   </modules>
 
 </project>

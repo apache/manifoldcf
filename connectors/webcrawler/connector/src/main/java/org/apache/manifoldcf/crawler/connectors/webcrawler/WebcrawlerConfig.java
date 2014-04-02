@@ -137,6 +137,43 @@ public class WebcrawlerConfig
   public static final String NODE_EXCLUDESINDEX = "excludesindex";
   /** Limit to seeds.  When value attribute is true, only seed domains will be permitted. */
   public static final String NODE_LIMITTOSEEDS = "limittoseeds";
+  /** Canonicalization rule.  Attributes are regexp, description, reorder, 
+  *javasessionremoval, aspsessionremoval, phpsessionremoval, bvsessionremoval */
+  public static final String NODE_URLSPEC = "urlspec";
+  /** Forced metadata.  Attributes are name and value. */
+  public static final String NODE_METADATA = "metadata";
+  /** Forced acl access token node.  Attribute is "token". */
+  public static final String NODE_ACCESS = "access";
+  /** Exclude header node.  The value of this node lists a single header (in lower case) that 
+  * should be excluded from the document metadata */
+  public static final String NODE_EXCLUDEHEADER = "excludeheader";
+  
+  /** regexp attribute */
+  public static final String ATTR_REGEXP = "regexp";
+  /** description attribute */
+  public static final String ATTR_DESCRIPTION = "description";
+  /** reorder attribute */
+  public static final String ATTR_REORDER = "reorder";
+  /** javasessionremoval attribute */
+  public static final String ATTR_JAVASESSIONREMOVAL = "javasessionremoval";
+  /** aspsessionremoval attribute */
+  public static final String ATTR_ASPSESSIONREMOVAL = "aspsessionremoval";
+  /** phpsessionremoval attribute */
+  public static final String ATTR_PHPSESSIONREMOVAL = "phpsessionremoval";
+  /** bvsessionremoval attribute */
+  public static final String ATTR_BVSESSIONREMOVAL = "bvsessionremoval";
+  /** name attribute */
+  public static final String ATTR_NAME = "name";
+  /** token attribute */
+  public static final String ATTR_TOKEN = "token";
+  /** Value yes */
+  public static final String ATTRVALUE_YES = "yes";
+  /** Value no */
+  public static final String ATTRVALUE_NO = "no";
+  /** Value false */
+  public static final String ATTRVALUE_FALSE = "false";
+  /** Value true */
+  public static final String ATTRVALUE_TRUE = "true";
   
 }
 

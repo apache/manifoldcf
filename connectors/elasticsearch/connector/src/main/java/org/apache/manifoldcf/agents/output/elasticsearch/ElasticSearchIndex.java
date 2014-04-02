@@ -36,6 +36,7 @@ import org.apache.http.Header;
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnection.Result;
 import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.crawler.system.Logging;
@@ -57,14 +58,27 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   private class IndexRequestEntity implements HttpEntity
   {
 
-    private RepositoryDocument document;
-    private InputStream inputStream;
+    private final RepositoryDocument document;
+    private final InputStream inputStream;
+    private final String[] acls;
+    private final String[] denyAcls;
+    private final String[] shareAcls;
+    private final String[] shareDenyAcls;
+    private final String[] parentAcls;
+    private final String[] parentDenyAcls;
 
-    public IndexRequestEntity(RepositoryDocument document, InputStream inputStream)
+    public IndexRequestEntity(RepositoryDocument document, InputStream inputStream,
+      String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls)
       throws ManifoldCFException
     {
       this.document = document;
       this.inputStream = inputStream;
+      this.acls = acls;
+      this.denyAcls = denyAcls;
+      this.shareAcls = shareAcls;
+      this.shareDenyAcls = shareDenyAcls;
+      this.parentAcls = parentAcls;
+      this.parentDenyAcls = parentDenyAcls;
     }
 
     @Override
@@ -73,6 +87,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     }
     
     @Override
+    @Deprecated
     public void consumeContent()
       throws IOException {
       EntityUtils.consume(this);
@@ -109,8 +124,9 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           needComma = writeField(pw, needComma, fieldName, fieldValues);
         }
 
-        needComma = writeACLs(pw, needComma, "document", document.getACL(), document.getDenyACL());
-        needComma = writeACLs(pw, needComma, "share", document.getShareACL(), document.getShareDenyACL());
+        needComma = writeACLs(pw, needComma, "document", acls, denyAcls);
+        needComma = writeACLs(pw, needComma, "share", shareAcls, shareDenyAcls);
+        needComma = writeACLs(pw, needComma, "parent", parentAcls, parentDenyAcls);
 
         if(inputStream!=null){
           if(needComma){
@@ -166,11 +182,26 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   {
     if (fieldValues == null)
       return needComma;
-    for(int j=0; j<fieldValues.length; j++){
+
+    if (fieldValues.length == 1){
       if (needComma)
         pw.print(",");
-      String fieldValue = fieldValues[j];
-      pw.print(jsonStringEscape(fieldName)+" : "+jsonStringEscape(fieldValue));
+      pw.print(jsonStringEscape(fieldName)+" : "+jsonStringEscape(fieldValues[0]));
+      needComma = true;
+      return needComma;
+    }
+
+    if (fieldValues.length > 1){
+      if (needComma)
+        pw.print(",");
+      StringBuilder sb = new StringBuilder();
+      sb.append("[");
+      for(int j=0; j<fieldValues.length; j++){
+        sb.append(jsonStringEscape(fieldValues[j])).append(",");
+      }
+      sb.setLength(sb.length() - 1); // discard last ","
+      sb.append("]");
+      pw.print(jsonStringEscape(fieldName)+" : "+sb.toString());
       needComma = true;
     }
     return needComma;
@@ -231,7 +262,9 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   *@return false to indicate that the document was rejected.
   */
   public boolean execute(String documentURI, RepositoryDocument document, 
-      InputStream inputStream) throws ManifoldCFException, ServiceInterruption
+    InputStream inputStream,
+    String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls)
+    throws ManifoldCFException, ServiceInterruption
   {
     String idField;
     try
@@ -245,12 +278,12 @@ public class ElasticSearchIndex extends ElasticSearchConnection
 
     StringBuffer url = getApiUrl(config.getIndexType() + "/" + idField, false);
     HttpPut put = new HttpPut(url.toString());
-    put.setEntity(new IndexRequestEntity(document, inputStream));
+    put.setEntity(new IndexRequestEntity(document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls));
     if (call(put) == false)
       return false;
-    if ("true".equals(checkJson(jsonStatus)))
-      return true;
     String error = checkJson(jsonException);
+    if (getResult() == Result.OK && error == null)
+      return true;
     setResult(Result.ERROR, error);
     Logging.connectors.warn("ES: Index failed: "+getResponse());
     return true;

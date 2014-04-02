@@ -25,21 +25,21 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.HttpClientParams;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
@@ -101,7 +101,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
   /** Connection expiration interval */
   private static final long EXPIRATION_INTERVAL = 60000L;
 
-  private ClientConnectionManager connectionManager = null;
+  private HttpClientConnectionManager connectionManager = null;
   private HttpClient client = null;
   private long expirationTime = -1L;
   
@@ -120,38 +120,38 @@ public class ElasticSearchConnector extends BaseOutputConnector
   {
     if (client == null)
     {
-      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
-      localConnectionManager.setMaxTotal(1);
-      connectionManager = localConnectionManager;
+      connectionManager = new PoolingHttpClientConnectionManager();
       
       int socketTimeout = 900000;
       int connectionTimeout = 60000;
       
-      BasicHttpParams params = new BasicHttpParams();
-      // This one is essential to prevent us from reading from the content stream before necessary during auth, but
-      // is incompatible with some proxies.
-      params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
-      // Enabled for Solr, but probably not necessary for better-behaved ES
-      //params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
-      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
-      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
-      params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,true);
-      DefaultHttpClient localClient = new DefaultHttpClient(connectionManager,params);
-      // No retries
-      localClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-        {
-          public boolean retryRequest(
-            IOException exception,
-            int executionCount,
-            HttpContext context)
-          {
-            return false;
-          }
-       
-        });
-      client = localClient;
+      // Set up connection manager
+      connectionManager = new PoolingHttpClientConnectionManager();
+
+      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
+      RequestConfig.Builder requestBuilder = RequestConfig.custom()
+          .setCircularRedirectsAllowed(true)
+          .setSocketTimeout(socketTimeout)
+          .setStaleConnectionCheckEnabled(true)
+          .setExpectContinueEnabled(true)
+          .setConnectTimeout(connectionTimeout)
+          .setConnectionRequestTimeout(socketTimeout);
+          
+      client = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setMaxConnTotal(1)
+        .disableAutomaticRetries()
+        .setDefaultRequestConfig(requestBuilder.build())
+        .setDefaultSocketConfig(SocketConfig.custom()
+          //.setTcpNoDelay(true)
+          .setSoTimeout(socketTimeout)
+          .build())
+        .setDefaultCredentialsProvider(credentialsProvider)
+        .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+        .build();
+
+
     }
     expirationTime = System.currentTimeMillis() + EXPIRATION_INTERVAL;
     return client;
@@ -404,6 +404,29 @@ public class ElasticSearchConnector extends BaseOutputConnector
     return null;
   }
 
+  /** Convert an unqualified ACL to qualified form.
+  * @param acl is the initial, unqualified ACL.
+  * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
+  * @param activities is the activities object, so we can report what's happening.
+  * @return the modified ACL.
+  */
+  protected static String[] convertACL(String[] acl, String authorityNameString, IOutputAddActivity activities)
+    throws ManifoldCFException
+  {
+    if (acl != null)
+    {
+      String[] rval = new String[acl.length];
+      int i = 0;
+      while (i < rval.length)
+      {
+        rval[i] = activities.qualifyAccessToken(authorityNameString,acl[i]);
+        i++;
+      }
+      return rval;
+    }
+    return new String[0];
+  }
+
   @Override
   public int addOrReplaceDocument(String documentURI, String outputDescription,
       RepositoryDocument document, String authorityNameString,
@@ -413,11 +436,47 @@ public class ElasticSearchConnector extends BaseOutputConnector
     HttpClient client = getSession();
     ElasticSearchConfig config = getConfigParameters(null);
     InputStream inputStream = document.getBinaryStream();
+    // For ES, we have to have fixed fields only; nothing else is possible b/c we don't have
+    // default field values.
+    String[] acls = null;
+    String[] denyAcls = null;
+    String[] shareAcls = null;
+    String[] shareDenyAcls = null;
+    String[] parentAcls = null;
+    String[] parentDenyAcls = null;
+    Iterator<String> a = document.securityTypesIterator();
+    while (a.hasNext())
+    {
+      String securityType = a.next();
+      String[] convertedAcls = convertACL(document.getSecurityACL(securityType),authorityNameString,activities);
+      String[] convertedDenyAcls = convertACL(document.getSecurityDenyACL(securityType),authorityNameString,activities);
+      if (securityType.equals(RepositoryDocument.SECURITY_TYPE_DOCUMENT))
+      {
+        acls = convertedAcls;
+        denyAcls = convertedDenyAcls;
+      }
+      else if (securityType.equals(RepositoryDocument.SECURITY_TYPE_SHARE))
+      {
+        shareAcls = convertedAcls;
+        shareDenyAcls = convertedDenyAcls;
+      }
+      else if (securityType.equals(RepositoryDocument.SECURITY_TYPE_PARENT))
+      {
+        parentAcls = convertedAcls;
+        parentDenyAcls = convertedDenyAcls;
+      }
+      else
+      {
+        // Don't know how to deal with it
+        return DOCUMENTSTATUS_REJECTED;
+      }
+    }
+    
     long startTime = System.currentTimeMillis();
     ElasticSearchIndex oi = new ElasticSearchIndex(client, config);
     try
     {
-      oi.execute(documentURI, document, inputStream);
+      oi.execute(documentURI, document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls);
       if (oi.getResult() != Result.OK)
         return DOCUMENTSTATUS_REJECTED;
       return DOCUMENTSTATUS_ACCEPTED;

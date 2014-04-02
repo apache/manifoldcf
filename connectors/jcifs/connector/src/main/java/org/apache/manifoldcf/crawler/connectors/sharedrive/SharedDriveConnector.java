@@ -85,6 +85,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   public static final String NODE_URIMAP = "urimap";
   public static final String NODE_SHAREACCESS = "shareaccess";
   public static final String NODE_SHARESECURITY = "sharesecurity";
+  public static final String NODE_PARENTFOLDERACCESS = "parentfolderaccess";
+  public static final String NODE_PARENTFOLDERSECURITY = "parentfoldersecurity";
   public static final String NODE_MAXLENGTH = "maxlength";
   public static final String NODE_ACCESS = "access";
   public static final String NODE_SECURITY = "security";
@@ -489,7 +491,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     // the version string completely.
     String[] acls = getForcedAcls(spec);
     String[] shareAcls = getForcedShareAcls(spec);
-
+    String[] parentFolderAcls = getForcedParentFolderAcls(spec);
+    
     String pathAttributeName = null;
     MatchMap matchMap = new MatchMap();
     MatchMap fileMap = new MatchMap();
@@ -562,8 +565,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
             StringBuilder sb = new StringBuilder();
 
+            // The SmbFile for parentFolder acls.
+            SmbFile parentFolder = new SmbFile(file.getParent(),pa);
+
             // Parseable stuff goes first.  There's no metadata for jcifs, so this will just be the acls
-            describeDocumentSecurity(sb,file,acls,shareAcls);
+            describeDocumentSecurity(sb,file,parentFolder,acls,shareAcls,parentFolderAcls);
 
             // Include the path attribute name and value in the parseable area.
             if (pathAttributeName != null)
@@ -1041,12 +1047,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   /** This method calculates an ACL string based on whether there are forced acls and also based on
   * the acls in place for a file.
   */
-  protected void describeDocumentSecurity(StringBuilder description, SmbFile file, String[] forcedacls,
-    String[] forcedShareAcls)
+  protected void describeDocumentSecurity(StringBuilder description, 
+    SmbFile file, SmbFile parentFolder,
+    String[] forcedacls, String[] forcedShareAcls, String[] forcedParentFolderAcls)
     throws ManifoldCFException, IOException
   {
     String[] shareAllowAcls;
     String[] shareDenyAcls;
+    String[] parentAllowAcls;
+    String[] parentDenyAcls;
     String[] allowAcls;
     String[] denyAcls;
 
@@ -1135,6 +1144,79 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       // Stuff the acls into the description string.
       packList(description,shareAllowAcls,'+');
       packList(description,shareDenyAcls,'+');
+    }
+    else
+      description.append('-');
+
+    if (forcedParentFolderAcls!=null)
+    {
+      description.append("+");
+
+      if (forcedParentFolderAcls.length==0)
+      {
+        aces = getFileSecurity(parentFolder, useSIDs);
+        if (aces == null)
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("JCIFS: Parent folder has no ACL for '"+getFileCanonicalPath(parentFolder)+"'");
+
+          // Parent folder is "public", meaning we want S-1-1-0 and the deny token
+          parentAllowAcls = new String[]{"S-1-1-0"};
+          parentDenyAcls = new String[]{defaultAuthorityDenyToken};
+        }
+        else
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("JCIFS: Found "+Integer.toString(aces.length)+" parent folder access tokens for '"+getFileCanonicalPath(parentFolder)+"'");
+
+          // We are interested in the read permission, and take
+          // a keen interest in allow/deny
+          allowCount = 0;
+          denyCount = 0;
+          j = 0;
+          while (j < aces.length)
+          {
+            ACE ace = aces[j++];
+            if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
+            {
+              if (ace.isAllow())
+                allowCount++;
+              else
+                denyCount++;
+            }
+          }
+
+          parentAllowAcls = new String[allowCount];
+          parentDenyAcls = new String[denyCount+1];
+          j = 0;
+          allowCount = 0;
+          denyCount = 0;
+          parentDenyAcls[denyCount++] = defaultAuthorityDenyToken;
+          while (j < aces.length)
+          {
+            ACE ace = aces[j++];
+            if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
+            {
+              if (ace.isAllow())
+                parentAllowAcls[allowCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
+              else
+                parentDenyAcls[denyCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
+            }
+          }
+        }
+      }
+      else
+      {
+        parentAllowAcls = forcedParentFolderAcls;
+        if (forcedParentFolderAcls.length == 0)
+          parentDenyAcls = new String[0];
+        else
+          parentDenyAcls = new String[]{defaultAuthorityDenyToken};
+      }
+      java.util.Arrays.sort(parentAllowAcls);
+      java.util.Arrays.sort(parentDenyAcls);
+      packList(description,parentAllowAcls,'+');
+      packList(description,parentDenyAcls,'+');
     }
     else
       description.append('-');
@@ -1315,8 +1397,32 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
 
       // set share acls
-      rd.setShareACL(shareAllow);
-      rd.setShareDenyACL(shareDeny);
+      rd.setSecurity(RepositoryDocument.SECURITY_TYPE_SHARE,shareAllow,shareDeny);
+    }
+    if (startPosition < version.length() && version.charAt(startPosition++) == '+')
+    {
+      // Unpack parent allow and deny acls
+      ArrayList parentAllowAcls = new ArrayList();
+      startPosition = unpackList(parentAllowAcls,version,startPosition,'+');
+      ArrayList parentDenyAcls = new ArrayList();
+      startPosition = unpackList(parentDenyAcls,version,startPosition,'+');
+      String[] parentAllow = new String[parentAllowAcls.size()];
+      String[] parentDeny = new String[parentDenyAcls.size()];
+      int i = 0;
+      while (i < parentAllow.length)
+      {
+        parentAllow[i] = (String)parentAllowAcls.get(i);
+        i++;
+      }
+      i = 0;
+      while (i < parentDeny.length)
+      {
+        parentDeny[i] = (String)parentDenyAcls.get(i);
+        i++;
+      }
+
+      // set parent folder acls
+      rd.setSecurity(RepositoryDocument.SECURITY_TYPE_PARENT,parentAllow,parentDeny);
     }
     if (startPosition < version.length() && version.charAt(startPosition++) == '+')
     {
@@ -1341,8 +1447,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
 
       // set native file acls
-      rd.setACL(allow);
-      rd.setDenyACL(deny);
+      rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,allow,deny);
     }
     return startPosition;
   }
@@ -2091,6 +2196,44 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         map.put(token,token);
       }
       else if (sn.getType().equals(NODE_SHARESECURITY))
+      {
+        String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
+        if (value.equals("on"))
+          securityOn = true;
+        else if (value.equals("off"))
+          securityOn = false;
+      }
+    }
+    if (!securityOn)
+      return null;
+    String[] rval = new String[map.size()];
+    Iterator iter = map.keySet().iterator();
+    i = 0;
+    while (iter.hasNext())
+    {
+      rval[i++] = (String)iter.next();
+    }
+    return rval;
+  }
+
+  /** Grab forced parent folder acls out of document specification.
+  *@param spec is the document specification.
+  *@return the acls.
+  */
+  protected static String[] getForcedParentFolderAcls(DocumentSpecification spec)
+  {
+    HashMap map = new HashMap();
+    int i = 0;
+    boolean securityOn = false;
+    while (i < spec.getChildCount())
+    {
+      SpecificationNode sn = spec.getChild(i++);
+      if (sn.getType().equals(NODE_PARENTFOLDERACCESS))
+      {
+        String token = sn.getAttributeValue(ATTRIBUTE_TOKEN);
+        map.put(token,token);
+      }
+      else if (sn.getType().equals(NODE_PARENTFOLDERSECURITY))
       {
         String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
         if (value.equals("on"))
@@ -3281,6 +3424,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     i = 0;
     boolean securityOn = true;
     boolean shareSecurityOn = true;
+    boolean parentFolderSecurityOn = false;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
@@ -3299,6 +3443,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           shareSecurityOn = false;
         else if (securityValue.equals("on"))
           shareSecurityOn = true;
+      }
+      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PARENTFOLDERSECURITY))
+      {
+        String securityValue = sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+        if (securityValue.equals("off"))
+          parentFolderSecurityOn = false;
+        else if (securityValue.equals("on"))
+          parentFolderSecurityOn = true;
       }
     }
 
@@ -3378,8 +3530,20 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.ShareSecurity") + "</nobr></td>\n"+
 "    <td colspan=\"3\" class=\"value\">\n"+
 "      <nobr>\n"+
-"        <input type=\"radio\" name=\"specsharesecurity\" value=\"on\" "+(shareSecurityOn?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
-"        <input type=\"radio\" name=\"specsharesecurity\" value=\"off\" "+((shareSecurityOn==false)?"checked=\"true\"":"")+" />Disabled\n"+
+"        <input type=\"radio\" name=\"specsharesecurity\" value=\"on\" "+(shareSecurityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Enabled") + "&nbsp;\n"+
+"        <input type=\"radio\" name=\"specsharesecurity\" value=\"off\" "+((shareSecurityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Disabled") + "\n"+
+"      </nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.ParentFolderSecurity") + "</nobr></td>\n"+
+"    <td colspan=\"3\" class=\"value\">\n"+
+"      <nobr>\n"+
+"        <input type=\"radio\" name=\"specparentfoldersecurity\" value=\"on\" "+(parentFolderSecurityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Enabled") + "&nbsp;\n"+
+"        <input type=\"radio\" name=\"specparentfoldersecurity\" value=\"off\" "+((parentFolderSecurityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Disabled") + "\n"+
 "      </nobr>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -3410,8 +3574,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
       out.print(
 "<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"<input type=\"hidden\" name=\"specsharesecurity\" value=\""+(shareSecurityOn?"on":"off")+"\"/>\n"
-      );
+"<input type=\"hidden\" name=\"specsharesecurity\" value=\""+(shareSecurityOn?"on":"off")+"\"/>\n"+
+"<input type=\"hidden\" name=\"specparentfoldersecurity\" value=\""+(parentFolderSecurityOn?"on":"off")+"\"/>\n"
+    		  );
     }
 
 
@@ -4000,6 +4165,26 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
     }
 
+    x = variableContext.getParameter("specparentfoldersecurity");
+    if (x != null)
+    {
+      // Delete all security entries first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PARENTFOLDERSECURITY))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PARENTFOLDERSECURITY);
+      node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,x);
+      ds.addChild(ds.getChildCount(),node);
+
+    }
+
     String xc = variableContext.getParameter("specpathnameattribute");
     if (xc != null)
     {
@@ -4264,6 +4449,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     i = 0;
     boolean securityOn = true;
     boolean shareSecurityOn = true;
+    boolean parentFolderSecurityOn = false;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
@@ -4282,6 +4468,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           shareSecurityOn = false;
         else if (securityValue.equals("on"))
           shareSecurityOn = true;
+      }
+      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PARENTFOLDERSECURITY))
+      {
+        String securityValue = sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+        if (securityValue.equals("off"))
+          parentFolderSecurityOn = false;
+        else if (securityValue.equals("on"))
+          parentFolderSecurityOn = true;
       }
     }
     out.print(
@@ -4335,6 +4529,13 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.ShareSecurity") + "</nobr></td>\n"+
 "    <td class=\"value\"><nobr>"+(shareSecurityOn?Messages.getBodyString(locale,"SharedDriveConnector.Enabled"):Messages.getBodyString(locale,"SharedDriveConnector.Disabled"))+"</nobr></td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"    \n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.ParentFolderSecurity") + "</nobr></td>\n"+
+"    <td class=\"value\"><nobr>"+(parentFolderSecurityOn?Messages.getBodyString(locale,"SharedDriveConnector.Enabled"):Messages.getBodyString(locale,"SharedDriveConnector.Disabled"))+"</nobr></td>\n"+
 "  </tr>\n"+
 "\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
