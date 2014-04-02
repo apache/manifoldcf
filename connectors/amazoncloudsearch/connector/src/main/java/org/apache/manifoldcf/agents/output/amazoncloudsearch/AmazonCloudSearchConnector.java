@@ -1,8 +1,31 @@
+/* $Id$ */
+
+/**
+* Licensed to the Apache Software Foundation (ASF) under one or more
+* contributor license agreements. See the NOTICE file distributed with
+* this work for additional information regarding copyright ownership.
+* The ASF licenses this file to You under the Apache License, Version 2.0
+* (the "License"); you may not use this file except in compliance with
+* the License. You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package org.apache.manifoldcf.agents.output.amazoncloudsearch;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.http.HttpClientConnection;
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -15,19 +38,26 @@ import org.apache.http.impl.DefaultHttpClientConnection;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.pool.BasicConnFactory;
 import org.apache.http.util.EntityUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
-import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
 import org.apache.manifoldcf.agents.interfaces.OutputSpecification;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
+import org.apache.manifoldcf.agents.output.amazoncloudsearch.SDFModel.Document;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
+import org.apache.tika.parser.ParsingReader;
+import org.apache.tika.parser.html.HtmlParser;
+import org.apache.tika.sax.BodyContentHandler;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -98,7 +128,7 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     throws ManifoldCFException
   {
     //curl -X POST --upload-file data1.json doc.movies-123456789012.us-east-1.cloudsearch.amazonaws.com/2013-01-01/documents/batch --header "Content-Type:application/json"
-    String documentEndpointUrl = "doc-hoge2-qgylbfd7tjp5sn3giayslhfkye.us-east-1.cloudsearch.amazonaws.com";
+    String documentEndpointUrl = "doc-test1-hjzolhfixtfctmuaezbzinjduu.us-east-1.cloudsearch.amazonaws.com";
     String urlStr = "https://" + documentEndpointUrl + "/2013-01-01/documents/batch";
     poster = new HttpPost(urlStr);
     
@@ -126,11 +156,7 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     try
     {
       getSession();
-
-      HttpClient httpclient = new DefaultHttpClient();
-      HttpResponse res = httpclient.execute(poster);
-      HttpEntity resEntity = res.getEntity();
-      String responsbody = EntityUtils.toString(resEntity);
+      String responsbody = postData("[]");
       
       String status = "";
       String message = "";
@@ -192,19 +218,16 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
   *@param mimeType is the mime type of the document.
   *@return true if the mime type is indexable by this connector.
   */
-//  public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
-//    throws ManifoldCFException, ServiceInterruption
-//  {
-//    getSession();
-//    
-//    
-//    
-//    if (includedMimeTypes != null && includedMimeTypes.get(mimeType) == null)
-//      return false;
-//    if (excludedMimeTypes != null && excludedMimeTypes.get(mimeType) != null)
-//      return false;
-//    return super.checkMimeTypeIndexable(outputDescription,mimeType);
-//  }
+  public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    getSession();
+    
+    if(("text/html").equalsIgnoreCase(mimeType)){
+      return super.checkMimeTypeIndexable(outputDescription,mimeType);
+    }
+    return false;
+  }
 
   /** Add (or replace) a document in the output data store using the connector.
   * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
@@ -226,13 +249,71 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
   {
     // Establish a session
     getSession();
-    
-    document.getBinaryStream();
-    
-    Parser parser = new AutoDetectParser();
-    
-    activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,"OK",null);
-    return DOCUMENTSTATUS_ACCEPTED;
+    try {
+      
+      System.out.println(" ************************* DEBUG!!! : " + documentURI);
+
+      InputStream is = document.getBinaryStream();
+      Parser parser = new HtmlParser();
+      ContentHandler handler = new BodyContentHandler();
+      Metadata metadata = new Metadata();
+      parser.parse(is, handler, metadata, new ParseContext());
+      
+      //build json..
+      SDFModel model = new SDFModel();
+      Document doc = model.new Document();
+      doc.setType("add");
+      doc.setId(documentURI);
+      
+      //set body text.
+      Map<String,Object> fields = new HashMap<String,Object>();
+      String bodyStr = handler.toString();
+      if(bodyStr != null){
+        bodyStr = handler.toString().replaceAll("\\n", "").replaceAll("\\t", "");
+        fields.put("body", bodyStr);
+      }
+      
+      //mapping metadata to SDF fields.
+      String contenttype = metadata.get("Content-Style-Type");
+      String title = metadata.get("dc:title");
+      String size = metadata.get("Content-Length");
+      String description = metadata.get("description");
+      String keywords = metadata.get("keywords");
+      if(contenttype != null && !"".equals(contenttype)) fields.put("content_type", contenttype);
+      if(title != null && !"".equals(title)) fields.put("title", title);
+      if(size != null && !"".equals(size)) fields.put("size", size);
+      if(description != null && !"".equals(description)) fields.put("description", description);
+      if(keywords != null && !"".equals(keywords))
+      {
+        List<String> keywordList = new ArrayList<String>();
+        for(String tmp : keywords.split(",")){
+          keywordList.add(tmp);
+        }
+        fields.put("keywords", keywordList);
+      }
+      doc.setFields(fields);
+      model.addDocument(doc);
+      
+      //generate json data.
+      String jsondata = model.toJSON();
+      
+      //post data..
+      String responsbody = postData(jsondata);
+      
+      System.out.println(" ************************* SUCCESS!!! : ");
+      System.out.println(responsbody);
+      
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,"OK",null);
+      return DOCUMENTSTATUS_ACCEPTED;
+      
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (SAXException e) {
+      e.printStackTrace();
+    } catch (TikaException e) {
+      e.printStackTrace();
+    }
+    return DOCUMENTSTATUS_REJECTED;
   }
 
   /** Remove a document using the connector.
@@ -260,16 +341,22 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     } catch (JsonProcessingException e) {
       throw new ManifoldCFException(e);
     }
+    String responsbody = postData(jsonData);
     
+    System.out.println(jsonData);
+    System.out.println(responsbody);
+    
+    activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,"OK",null);
+  }
+
+  private String postData(String jsonData) throws ManifoldCFException {
     CloseableHttpClient httpclient = HttpClients.createDefault();
     try {
-      poster.setEntity(new StringEntity(jsonData));
+      poster.setEntity(new StringEntity(jsonData, Consts.UTF_8));
       HttpResponse res = httpclient.execute(poster);
       
       HttpEntity resEntity = res.getEntity();
-      String responsbody = EntityUtils.toString(resEntity);
-      
-      System.out.println(responsbody);
+      return EntityUtils.toString(resEntity);
       
     } catch (ClientProtocolException e) {
       throw new ManifoldCFException(e);
@@ -282,8 +369,6 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
         //do nothing
       }
     }
-    
-    //activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,"OK",null);
   }
   
 }

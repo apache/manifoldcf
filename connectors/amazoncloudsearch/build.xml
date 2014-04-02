@@ -38,6 +38,8 @@
             <include name="jackson-databind*.jar"/>
         	<include name="jackson-annotations*.jar"/>
             <include name="tika-core*.jar"/>
+            <include name="tika-parsers*.jar"/>
+            <include name="tagsoup*.jar"/>
         </fileset>
     </path>
 
@@ -50,6 +52,8 @@
             	<include name="jackson-databind*.jar"/>
             	<include name="jackson-annotations*.jar"/>
                 <include name="tika-core*.jar"/>
+                <include name="tika-parsers*.jar"/>
+                <include name="tagsoup*.jar"/>
             </fileset>
         </copy>
     </target>
