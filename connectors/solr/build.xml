@@ -17,7 +17,18 @@
 
 <project name="solr" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <property name="abs-dist" location="../../dist"/>
+    <condition property="mcf-dist" value="${abs-dist}">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
@@ -53,5 +64,12 @@
           <fileset dir="../../lib/solr-4.x"/>
         </copy>
     </target>
-    
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-output-connector">
+            <param name="connector-label" value="Solr"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.solr.SolrConnector"/>
+        </antcall>
+    </target>
+
 </project>

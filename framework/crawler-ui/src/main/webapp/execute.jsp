@@ -1136,6 +1136,28 @@
 <%
 				}
 			}
+			else if (op.equals("StartOver"))
+			{
+				try
+				{
+					String jobID = variableContext.getParameter("jobid");
+					if (jobID == null)
+						throw new ManifoldCFException("Missing job parameter");
+					manager.clearJobSeedingState(new Long(jobID));
+%>
+					<jsp:forward page="listjobs.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listjobs.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
 			else if (op.equals("Delete"))
 			{
 				try

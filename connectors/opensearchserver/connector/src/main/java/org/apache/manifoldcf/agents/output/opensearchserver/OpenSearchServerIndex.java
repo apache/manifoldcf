@@ -56,6 +56,7 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
     }
     
     @Override
+    @Deprecated
     public void consumeContent()
       throws IOException {
       EntityUtils.consume(this);

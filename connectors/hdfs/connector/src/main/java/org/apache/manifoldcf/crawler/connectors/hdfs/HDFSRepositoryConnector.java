@@ -313,7 +313,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         path = sn.getAttributeValue("path");
         
         FileStatus fileStatus = getObject(new Path(path));
-        if (fileStatus.isDir()) {
+        if (fileStatus.isDirectory()) {
           activities.addSeedDocument(fileStatus.getPath().toUri().toString());
         }
       }
@@ -349,7 +349,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       
       FileStatus fileStatus = getObject(new Path(documentIdentifier));
       if (fileStatus != null) {
-        if (fileStatus.isDir()) {
+        if (fileStatus.isDirectory()) {
           long lastModified = fileStatus.getModificationTime();
           rval[i] = new Long(lastModified).toString();
         } else {
@@ -413,7 +413,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         continue;
       }
         
-      if (fileStatus.isDir()) {
+      if (fileStatus.isDirectory()) {
         /*
           * Queue up stuff for directory
           */
@@ -1431,7 +1431,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 
     String pathPart;
     String filePart;
-    if (fileStatus.isDir())
+    if (fileStatus.isDirectory())
     {
       pathPart = fileName;
       filePart = null;

@@ -514,23 +514,33 @@ public class HttpPoster
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("indexPost(): '" + documentURI + "'");
 
-    // The SOLR connector cannot deal with folder-level security at this time.  If they are seen, reject the document.
-    if (document.countDirectoryACLs() != 0)
-      return false;
-    
     // If the document is too long, reject it.
     if (maxDocumentLength != null && document.getBinaryLength() > maxDocumentLength.longValue())
       return false;
     
-    // Convert the incoming acls to qualified forms
-    String[] shareAcls = convertACL(document.getShareACL(),authorityNameString,activities);
-    String[] shareDenyAcls = convertACL(document.getShareDenyACL(),authorityNameString,activities);
-    String[] acls = convertACL(document.getACL(),authorityNameString,activities);
-    String[] denyAcls = convertACL(document.getDenyACL(),authorityNameString,activities);
-    
+    // Convert the incoming acls that we know about to qualified forms, and reject the document if
+    // we don't know how to deal with its acls
+    Map<String,String[]> aclsMap = new HashMap<String,String[]>();
+    Map<String,String[]> denyAclsMap = new HashMap<String,String[]>();
+
+    Iterator<String> aclTypes = document.securityTypesIterator();
+    while (aclTypes.hasNext())
+    {
+      String aclType = aclTypes.next();
+      aclsMap.put(aclType,convertACL(document.getSecurityACL(aclType),authorityNameString,activities));
+      denyAclsMap.put(aclType,convertACL(document.getSecurityDenyACL(aclType),authorityNameString,activities));
+      
+      // Reject documents that have security we don't know how to deal with in the Solr plugin!!  Only safe thing to do.
+      if (!aclType.equals(RepositoryDocument.SECURITY_TYPE_DOCUMENT) &&
+        !aclType.equals(RepositoryDocument.SECURITY_TYPE_SHARE) &&
+        !aclType.startsWith(RepositoryDocument.SECURITY_TYPE_PARENT))
+        return false;
+    }
+
     try
     {
-      IngestThread t = new IngestThread(documentURI,document,arguments,keepAllMetadata,sourceTargets,shareAcls,shareDenyAcls,acls,denyAcls,commitWithin);
+      IngestThread t = new IngestThread(documentURI,document,arguments,keepAllMetadata,sourceTargets,
+                                        aclsMap,denyAclsMap,commitWithin);
       try
       {
         t.start();
@@ -808,10 +818,8 @@ public class HttpPoster
     protected final RepositoryDocument document;
     protected final Map<String,List<String>> arguments;
     protected final Map<String,List<String>> sourceTargets;
-    protected final String[] shareAcls;
-    protected final String[] shareDenyAcls;
-    protected final String[] acls;
-    protected final String[] denyAcls;
+    protected final Map<String,String[]> aclsMap;
+    protected final Map<String,String[]> denyAclsMap;
     protected final String commitWithin;
     protected final boolean keepAllMetadata;
     
@@ -825,17 +833,16 @@ public class HttpPoster
 
     public IngestThread(String documentURI, RepositoryDocument document,
       Map<String, List<String>> arguments, boolean keepAllMetadata, Map<String, List<String>> sourceTargets,
-      String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls, String commitWithin)
+      Map<String,String[]> aclsMap, Map<String,String[]> denyAclsMap,
+      String commitWithin)
     {
       super();
       setDaemon(true);
       this.documentURI = documentURI;
       this.document = document;
       this.arguments = arguments;
-      this.shareAcls = shareAcls;
-      this.shareDenyAcls = shareDenyAcls;
-      this.acls = acls;
-      this.denyAcls = denyAcls;
+      this.aclsMap = aclsMap;
+      this.denyAclsMap = denyAclsMap;
       this.sourceTargets = sourceTargets;
       this.commitWithin = commitWithin;
       this.keepAllMetadata=keepAllMetadata;
@@ -898,8 +905,13 @@ public class HttpPoster
           }
           
           // Write the access token information
-          writeACLs(out,"share",shareAcls,shareDenyAcls);
-          writeACLs(out,"document",acls,denyAcls);
+          // Both maps have the same keys.
+          Iterator<String> typeIterator = aclsMap.keySet().iterator();
+          while (typeIterator.hasNext())
+          {
+            String aclType = typeIterator.next();
+            writeACLs(out,aclType,aclsMap.get(aclType),denyAclsMap.get(aclType));
+          }
 
           // Write the arguments
           for (String name : arguments.keySet())

@@ -2983,6 +2983,24 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     return WRITERESULT_FOUND;
   }
+
+  /** Reset incremental seeding for a job.
+  */
+  protected static int apiWriteReseedJob(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.clearJobSeedingState(jobID);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
   
   /** Write job.
   */
@@ -3197,14 +3215,49 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return WRITERESULT_FOUND;
   }
 
-  /** Reset output connection.
+  /** Clear repository connection history.
   */
-  protected static int apiWriteResetOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiWriteClearHistoryRepositoryConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      connectionManager.cleanUpHistoryData(connectionName);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+
+  /** Reset output connection (reset version of all recorded documents).
+  */
+  protected static int apiWriteClearVersionsOutputConnection(IThreadContext tc, Configuration output, String connectionName)
     throws ManifoldCFException
   {
     try
     {
       signalOutputConnectionRedo(tc,connectionName);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+
+  /** Clear output connection (remove all recorded documents).
+  */
+  protected static int apiWriteClearOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      signalOutputConnectionRemoved(tc,connectionName);
       return WRITERESULT_CREATED;
     }
     catch (ManifoldCFException e)
@@ -3259,6 +3312,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       Long jobID = new Long(path.substring("resume/".length()));
       return apiWriteResumeJob(tc,output,jobID);
     }
+    else if (path.startsWith("reseed/"))
+    {
+      Long jobID = new Long(path.substring("reseed/".length()));
+      return apiWriteReseedJob(tc,output,jobID);
+    }
     else if (path.startsWith("jobs/"))
     {
       Long jobID = new Long(path.substring("jobs/".length()));
@@ -3289,8 +3347,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
       return apiWriteRepositoryConnection(tc,output,input,connectionName);
     }
+    else if (path.startsWith("clearhistory/"))
+    {
+      int firstSeparator = "clearhistory/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiWriteClearHistoryRepositoryConnection(tc,output,connectionName);
+    }
     else if (path.startsWith("reset/"))
     {
+      // This form is deprecated
       int firstSeparator = "reset/".length();
       int secondSeparator = path.indexOf("/",firstSeparator);
       if (secondSeparator == -1)
@@ -3304,13 +3369,25 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
       if (connectionType.equals("outputconnections"))
       {
-        return apiWriteResetOutputConnection(tc,output,connectionName);
+        return apiWriteClearVersionsOutputConnection(tc,output,connectionName);
       }
       else
       {
         createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
         return WRITERESULT_NOTFOUND;
       }
+    }
+    else if (path.startsWith("clearversions/"))
+    {
+      int firstSeparator = "clearversions/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiWriteClearVersionsOutputConnection(tc,output,connectionName);
+    }
+    else if (path.startsWith("clearrecords/"))
+    {
+      int firstSeparator = "clearrecords/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiWriteClearOutputConnection(tc,output,connectionName);
     }
     else
     {

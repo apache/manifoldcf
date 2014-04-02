@@ -951,6 +951,20 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
+  /** Clear seeding state for a job.
+  *@param jobID is the job whose state should be cleared.
+  */
+  public void clearSeedingState(Long jobID)
+    throws ManifoldCFException
+  {
+    Map values = new HashMap();
+    values.put(lastCheckTimeField,null);
+    ArrayList params = new ArrayList();
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    performUpdate(values,"WHERE "+query,params,null);
+  }
+
   /** This method is called on a restart.
   *@param processID is the process to be restarting.
   */

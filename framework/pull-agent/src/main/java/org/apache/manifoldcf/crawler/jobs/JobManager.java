@@ -639,6 +639,16 @@ public class JobManager implements IJobManager
     return jobs.findJobsForConnection(connectionName);
   }
 
+  /** Clear job seeding state.
+  *@param jobID is the job ID.
+  */
+  @Override
+  public void clearJobSeedingState(Long jobID)
+    throws ManifoldCFException
+  {
+    jobs.clearSeedingState(jobID);
+  }
+
   // These methods cover activities that require interaction with the job queue.
   // The job queue is maintained underneath this interface, and all threads that perform
   // job activities need to go through this layer.
