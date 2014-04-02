@@ -17,6 +17,7 @@
 package org.apache.manifoldcf.agents.output.solr;
 
 import org.junit.Ignore;
+import org.junit.Test;
 
 import junit.framework.TestCase;
 import org.apache.log4j.Logger;
@@ -77,7 +78,6 @@ public class HttpPosterTest
    * Verify  the IndexPost Method create the correct IngestThread class
    * @throws Exception
    */
-  @Ignore
   public void testIndexPost()
     throws Exception
   {
