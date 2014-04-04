@@ -486,7 +486,7 @@ public class ThrottledFetcher
       }
 
       httpClient = HttpClients.custom()
-        .setConnectionManager(connectionManager)
+        .setConnectionManager(connManager)
         .setMaxConnTotal(1)
         .setMaxConnPerRoute(1)
         .disableAutomaticRetries()
@@ -548,7 +548,7 @@ public class ThrottledFetcher
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: For "+myUrl+", setting virtual host to "+host);
-        httpClient.getParams().setParameter(ClientPNames.VIRTUAL_HOST,hostHost);
+        // ??? httpClient.getParams().setParameter(ClientPNames.VIRTUAL_HOST,hostHost);
       }
 
 
@@ -1331,7 +1331,7 @@ public class ThrottledFetcher
     /** The fetch throttler */
     protected final IFetchThrottler fetchThrottler;
     /** Client and method, all preconfigured */
-    protected final AbstractHttpClient httpClient;
+    protected final HttpClient httpClient;
     protected final HttpRequestBase executeMethod;
     protected final CookieStore cookieStore;
     
@@ -1350,7 +1350,7 @@ public class ThrottledFetcher
     protected Throwable generalException = null;
     
     public ExecuteMethodThread(ThrottledConnection theConnection, IFetchThrottler fetchThrottler,
-      AbstractHttpClient httpClient, HttpRequestBase executeMethod, CookieStore cookieStore)
+      HttpClient httpClient, HttpRequestBase executeMethod, CookieStore cookieStore)
     {
       super();
       setDaemon(true);
