@@ -61,8 +61,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.client.params.CookiePolicy;
-import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
@@ -72,7 +70,6 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.cookie.BasicPathHandler;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
-import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.client.CookieStore;
 import org.apache.http.protocol.HttpContext;
@@ -80,6 +77,15 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.cookie.CookieIdentityComparator;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.cookie.CookieSpecProvider;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.Registry;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.impl.cookie.BestMatchSpecFactory;
+import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
+import org.apache.http.impl.cookie.RFC2965SpecFactory;
+import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
+import org.apache.http.impl.cookie.IgnoreSpecFactory;
 
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -485,11 +491,21 @@ public class ThrottledFetcher
         requestBuilder.setProxy(proxy);
       }
 
+      Registry<CookieSpecProvider> cookieSpecRegistry =
+        RegistryBuilder.<CookieSpecProvider>create()
+          .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
+          .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
+          .register(CookieSpecs.BROWSER_COMPATIBILITY, new LaxBrowserCompatSpecFactory())
+          .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
+          .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
+          .build();
+
       httpClient = HttpClients.custom()
         .setConnectionManager(connManager)
         .setMaxConnTotal(1)
         .setMaxConnPerRoute(1)
         .disableAutomaticRetries()
+        .setDefaultCookieSpecRegistry(cookieSpecRegistry)
         .setDefaultRequestConfig(requestBuilder.build())
         .setDefaultSocketConfig(SocketConfig.custom()
           .setTcpNoDelay(true)
@@ -1286,6 +1302,16 @@ public class ThrottledFetcher
     }
   }
 
+  /** Class to create a cookie spec.
+  */
+  protected static class LaxBrowserCompatSpecFactory extends BrowserCompatSpecFactory
+  {
+    public CookieSpec create(HttpContext context)
+    {
+      return new LaxBrowserCompatSpec();
+    }
+  }
+  
   /** Class to override browser compatibility to make it not check cookie paths.  See CONNECTORS-97.
   */
   protected static class LaxBrowserCompatSpec extends BrowserCompatSpec
@@ -1375,6 +1401,7 @@ public class ThrottledFetcher
               try
               {
                 HttpContext context = new BasicHttpContext();
+                // ???
                 context.setAttribute(ClientContext.COOKIE_STORE,cookieStore);
                 response = httpClient.execute(executeMethod,context);
               }
