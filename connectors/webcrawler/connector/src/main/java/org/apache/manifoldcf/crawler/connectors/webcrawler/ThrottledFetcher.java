@@ -74,7 +74,7 @@ import org.apache.http.cookie.CookieSpec;
 import org.apache.http.client.CookieStore;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.cookie.CookieIdentityComparator;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.cookie.CookieSpecProvider;
@@ -1402,9 +1402,7 @@ public class ThrottledFetcher
               try
               {
                 HttpContext context = new BasicHttpContext();
-                // ???
-                context.setAttribute(ClientContext.COOKIE_STORE,cookieStore);
-                // ??? check to be sure virtual host usage is correct below
+                context.setAttribute(HttpClientContext.COOKIE_STORE,cookieStore);
                 response = httpClient.execute(target,executeMethod,context);
               }
               catch (java.net.SocketTimeoutException e)
