@@ -145,6 +145,15 @@ public class ThrottledFetcher
 
   protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
+  private static final Registry<CookieSpecProvider> cookieSpecRegistry =
+    RegistryBuilder.<CookieSpecProvider>create()
+      .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
+      .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
+      .register(CookieSpecs.BROWSER_COMPATIBILITY, new LaxBrowserCompatSpecFactory())
+      .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
+      .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
+      .build();
+
   /** Constructor.  Private since we never instantiate.
   */
   private ThrottledFetcher()
@@ -491,14 +500,6 @@ public class ThrottledFetcher
         requestBuilder.setProxy(proxy);
       }
 
-      Registry<CookieSpecProvider> cookieSpecRegistry =
-        RegistryBuilder.<CookieSpecProvider>create()
-          .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
-          .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
-          .register(CookieSpecs.BROWSER_COMPATIBILITY, new LaxBrowserCompatSpecFactory())
-          .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
-          .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
-          .build();
 
       httpClient = HttpClients.custom()
         .setConnectionManager(connManager)
@@ -515,6 +516,7 @@ public class ThrottledFetcher
         .setSSLSocketFactory(myFactory)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeoutMilliseconds))
         .setRedirectStrategy(new DefaultRedirectStrategy())
+        // ??? need to add equivalent of setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY)
         .build();
 
         /*
@@ -564,7 +566,6 @@ public class ThrottledFetcher
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: For "+myUrl+", setting virtual host to "+host);
-        // ??? httpClient.getParams().setParameter(ClientPNames.VIRTUAL_HOST,hostHost);
       }
 
 
@@ -679,10 +680,8 @@ public class ThrottledFetcher
       // Copy out the current cookies, in case the fetch fails
       lastFetchCookies = loginCookies;
 
-      //httpClient.setCookieStore(cookieStore);
-      
       // Create the thread
-      methodThread = new ExecuteMethodThread(this, fetchThrottler, httpClient, fetchMethod, cookieStore);
+      methodThread = new ExecuteMethodThread(this, fetchThrottler, httpClient, hostHost, fetchMethod, cookieStore);
       try
       {
         methodThread.start();
@@ -1358,6 +1357,7 @@ public class ThrottledFetcher
     protected final IFetchThrottler fetchThrottler;
     /** Client and method, all preconfigured */
     protected final HttpClient httpClient;
+    protected final HttpHost target;
     protected final HttpRequestBase executeMethod;
     protected final CookieStore cookieStore;
     
@@ -1376,13 +1376,14 @@ public class ThrottledFetcher
     protected Throwable generalException = null;
     
     public ExecuteMethodThread(ThrottledConnection theConnection, IFetchThrottler fetchThrottler,
-      HttpClient httpClient, HttpRequestBase executeMethod, CookieStore cookieStore)
+      HttpClient httpClient, HttpHost target, HttpRequestBase executeMethod, CookieStore cookieStore)
     {
       super();
       setDaemon(true);
       this.theConnection = theConnection;
       this.fetchThrottler = fetchThrottler;
       this.httpClient = httpClient;
+      this.target = target;
       this.executeMethod = executeMethod;
       this.cookieStore = cookieStore;
     }
@@ -1403,7 +1404,8 @@ public class ThrottledFetcher
                 HttpContext context = new BasicHttpContext();
                 // ???
                 context.setAttribute(ClientContext.COOKIE_STORE,cookieStore);
-                response = httpClient.execute(executeMethod,context);
+                // ??? check to be sure virtual host usage is correct below
+                response = httpClient.execute(target,executeMethod,context);
               }
               catch (java.net.SocketTimeoutException e)
               {
