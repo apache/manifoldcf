@@ -482,6 +482,7 @@ public class ThrottledFetcher
         .setExpectContinueEnabled(true)
         .setConnectTimeout(connectionTimeoutMilliseconds)
         .setConnectionRequestTimeout(socketTimeoutMilliseconds)
+        .setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY)
         .setRedirectsEnabled(redirectOK);
 
       // If there's a proxy, set that too.
