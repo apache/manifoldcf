@@ -33,15 +33,20 @@ import java.util.zip.GZIPInputStream;
 import java.util.concurrent.TimeUnit;
 import java.nio.charset.Charset;
 
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.NameValuePair;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -49,23 +54,13 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpHost;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.client.params.CookiePolicy;
-import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
@@ -75,14 +70,22 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.cookie.BasicPathHandler;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
-import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.client.CookieStore;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.cookie.CookieIdentityComparator;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.cookie.CookieSpecProvider;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.Registry;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.impl.cookie.BestMatchSpecFactory;
+import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
+import org.apache.http.impl.cookie.RFC2965SpecFactory;
+import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
+import org.apache.http.impl.cookie.IgnoreSpecFactory;
 
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -141,6 +144,15 @@ public class ThrottledFetcher
   }
 
   protected static final Charset UTF_8 = Charset.forName("UTF-8");
+
+  private static final Registry<CookieSpecProvider> cookieSpecRegistry =
+    RegistryBuilder.<CookieSpecProvider>create()
+      .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
+      .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
+      .register(CookieSpecs.BROWSER_COMPATIBILITY, new LaxBrowserCompatSpecFactory())
+      .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
+      .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
+      .build();
 
   /** Constructor.  Private since we never instantiate.
   */
@@ -257,9 +269,9 @@ public class ThrottledFetcher
     protected long expireTime = -1L;
 
     /** The http connection manager.  The pool is of size 1.  */
-    protected PoolingClientConnectionManager connManager = null;
+    protected HttpClientConnectionManager connManager = null;
     /** The http client object. */
-    protected AbstractHttpClient httpClient = null;
+    protected HttpClient httpClient = null;
     /** The method object */
     protected HttpRequestBase fetchMethod = null;
     /** The error trace, if any */
@@ -395,9 +407,8 @@ public class ThrottledFetcher
       throws ManifoldCFException, ServiceInterruption
     {
       // Set up scheme
-      SSLSocketFactory myFactory = new SSLSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeoutMilliseconds),
-        new AllowAllHostnameVerifier());
-      Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
+      SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeoutMilliseconds),
+        SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
       int hostPort;
       String displayedPort;
@@ -443,14 +454,8 @@ public class ThrottledFetcher
       
       if (connManager == null)
       {
-        PoolingClientConnectionManager localConnManager = new PoolingClientConnectionManager();
-        localConnManager.setMaxTotal(1);
-        localConnManager.setDefaultMaxPerRoute(1);
-        connManager = localConnManager;
+        connManager = new PoolingHttpClientConnectionManager();
       }
-      
-      // Set up protocol registry
-      connManager.getSchemeRegistry().register(myHttpsProtocol);
       
       long startTime = 0L;
       if (Logging.connectors.isDebugEnabled())
@@ -459,10 +464,63 @@ public class ThrottledFetcher
         Logging.connectors.debug("WEB: Waiting for an HttpClient object");
       }
 
-      // If we already have an httpclient object, great.  Otherwise we have to get one, and initialize it with
-      // those parameters that aren't expected to change.
-      if (httpClient == null)
+      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
+      // Set up authentication to use
+      if (authentication != null)
       {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: For "+myUrl+", discovered matching authentication credentials");
+        credentialsProvider.setCredentials(AuthScope.ANY,
+          authentication.makeCredentialsObject(host));
+      }
+
+      RequestConfig.Builder requestBuilder = RequestConfig.custom()
+        .setCircularRedirectsAllowed(true)
+        .setSocketTimeout(socketTimeoutMilliseconds)
+        .setStaleConnectionCheckEnabled(true)
+        .setExpectContinueEnabled(true)
+        .setConnectTimeout(connectionTimeoutMilliseconds)
+        .setConnectionRequestTimeout(socketTimeoutMilliseconds)
+        .setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY)
+        .setRedirectsEnabled(redirectOK);
+
+      // If there's a proxy, set that too.
+      if (proxyHost != null && proxyHost.length() > 0)
+      {
+        // Configure proxy authentication
+        if (proxyAuthUsername != null && proxyAuthUsername.length() > 0)
+        {
+          credentialsProvider.setCredentials(
+            new AuthScope(proxyHost, proxyPort),
+            new NTCredentials(proxyAuthUsername, (proxyAuthPassword==null)?"":proxyAuthPassword, currentHost, (proxyAuthDomain==null)?"":proxyAuthDomain));
+        }
+
+        HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+
+        requestBuilder.setProxy(proxy);
+      }
+
+
+      httpClient = HttpClients.custom()
+        .setConnectionManager(connManager)
+        .setMaxConnTotal(1)
+        .setMaxConnPerRoute(1)
+        .disableAutomaticRetries()
+        .setDefaultCookieSpecRegistry(cookieSpecRegistry)
+        .setDefaultRequestConfig(requestBuilder.build())
+        .setDefaultSocketConfig(SocketConfig.custom()
+          .setTcpNoDelay(true)
+          .setSoTimeout(socketTimeoutMilliseconds)
+          .build())
+        .setDefaultCredentialsProvider(credentialsProvider)
+        .setSSLSocketFactory(myFactory)
+        .setRequestExecutor(new HttpRequestExecutor(socketTimeoutMilliseconds))
+        .setRedirectStrategy(new DefaultRedirectStrategy())
+        // ??? need to add equivalent of setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY)
+        .build();
+
+        /*
         BasicHttpParams params = new BasicHttpParams();
         params.setParameter(ClientPNames.DEFAULT_HOST,fetchHost);
         params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
@@ -497,45 +555,18 @@ public class ThrottledFetcher
           }
         );
 
-        // If there's a proxy, set that too.
-        if (proxyHost != null && proxyHost.length() > 0)
-        {
-          // Configure proxy authentication
-          if (proxyAuthUsername != null && proxyAuthUsername.length() > 0)
-          {
-            localHttpClient.getCredentialsProvider().setCredentials(
-              new AuthScope(proxyHost, proxyPort),
-              new NTCredentials(proxyAuthUsername, (proxyAuthPassword==null)?"":proxyAuthPassword, currentHost, (proxyAuthDomain==null)?"":proxyAuthDomain));
-          }
 
-          HttpHost proxy = new HttpHost(proxyHost, proxyPort);
-
-          localHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-        }
-
-        // Set up authentication to use
-        if (authentication != null)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("WEB: For "+myUrl+", discovered matching authentication credentials");
-          localHttpClient.getCredentialsProvider().setCredentials(AuthScope.ANY,
-            authentication.makeCredentialsObject(host));
-        }
           
         httpClient = localHttpClient;
-      }
+        */
 
 
       // Set the parameters we haven't keyed on (so these can change from request to request)
-      httpClient.getParams().setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeoutMilliseconds);
-      httpClient.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeoutMilliseconds);
-      httpClient.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,redirectOK);
 
       if (host != null)
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: For "+myUrl+", setting virtual host to "+host);
-        httpClient.getParams().setParameter(ClientPNames.VIRTUAL_HOST,hostHost);
       }
 
 
@@ -650,10 +681,8 @@ public class ThrottledFetcher
       // Copy out the current cookies, in case the fetch fails
       lastFetchCookies = loginCookies;
 
-      //httpClient.setCookieStore(cookieStore);
-      
       // Create the thread
-      methodThread = new ExecuteMethodThread(this, fetchThrottler, httpClient, fetchMethod, cookieStore);
+      methodThread = new ExecuteMethodThread(this, fetchThrottler, httpClient, hostHost, fetchMethod, cookieStore);
       try
       {
         methodThread.start();
@@ -1273,6 +1302,16 @@ public class ThrottledFetcher
     }
   }
 
+  /** Class to create a cookie spec.
+  */
+  protected static class LaxBrowserCompatSpecFactory extends BrowserCompatSpecFactory
+  {
+    public CookieSpec create(HttpContext context)
+    {
+      return new LaxBrowserCompatSpec();
+    }
+  }
+  
   /** Class to override browser compatibility to make it not check cookie paths.  See CONNECTORS-97.
   */
   protected static class LaxBrowserCompatSpec extends BrowserCompatSpec
@@ -1318,7 +1357,8 @@ public class ThrottledFetcher
     /** The fetch throttler */
     protected final IFetchThrottler fetchThrottler;
     /** Client and method, all preconfigured */
-    protected final AbstractHttpClient httpClient;
+    protected final HttpClient httpClient;
+    protected final HttpHost target;
     protected final HttpRequestBase executeMethod;
     protected final CookieStore cookieStore;
     
@@ -1337,13 +1377,14 @@ public class ThrottledFetcher
     protected Throwable generalException = null;
     
     public ExecuteMethodThread(ThrottledConnection theConnection, IFetchThrottler fetchThrottler,
-      AbstractHttpClient httpClient, HttpRequestBase executeMethod, CookieStore cookieStore)
+      HttpClient httpClient, HttpHost target, HttpRequestBase executeMethod, CookieStore cookieStore)
     {
       super();
       setDaemon(true);
       this.theConnection = theConnection;
       this.fetchThrottler = fetchThrottler;
       this.httpClient = httpClient;
+      this.target = target;
       this.executeMethod = executeMethod;
       this.cookieStore = cookieStore;
     }
@@ -1362,8 +1403,8 @@ public class ThrottledFetcher
               try
               {
                 HttpContext context = new BasicHttpContext();
-                context.setAttribute(ClientContext.COOKIE_STORE,cookieStore);
-                response = httpClient.execute(executeMethod,context);
+                context.setAttribute(HttpClientContext.COOKIE_STORE,cookieStore);
+                response = httpClient.execute(target,executeMethod,context);
               }
               catch (java.net.SocketTimeoutException e)
               {
