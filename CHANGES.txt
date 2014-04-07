@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-919: Fix example-proprietary.
+(Karl Wright)
+
 CONNECTORS-913: Only remove connector registration when connectors
 are being delivered.
 (Karl Wright)
