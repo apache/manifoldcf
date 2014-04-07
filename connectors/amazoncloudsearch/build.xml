@@ -36,10 +36,11 @@
             <include name="httpclient*.jar"/>
             <include name="jackson-core*.jar"/>
             <include name="jackson-databind*.jar"/>
-        	<include name="jackson-annotations*.jar"/>
+            <include name="jackson-annotations*.jar"/>
             <include name="tika-core*.jar"/>
             <include name="tika-parsers*.jar"/>
             <include name="tagsoup*.jar"/>
+            <include name="poi*.jar"/>
         </fileset>
     </path>
 
@@ -47,13 +48,14 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="../../lib">
-            	<include name="httpclient*.jar"/>
-            	<include name="jackson-core*.jar"/>
-            	<include name="jackson-databind*.jar"/>
-            	<include name="jackson-annotations*.jar"/>
+                <include name="httpclient*.jar"/>
+                <include name="jackson-core*.jar"/>
+                <include name="jackson-databind*.jar"/>
+                <include name="jackson-annotations*.jar"/>
                 <include name="tika-core*.jar"/>
                 <include name="tika-parsers*.jar"/>
                 <include name="tagsoup*.jar"/>
+                <include name="poi*.jar"/>
             </fileset>
         </copy>
     </target>
