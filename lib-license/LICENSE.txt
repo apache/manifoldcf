@@ -178,6 +178,7 @@
 
 Includes software from other Apache Software Foundation projects,
 including, but not limited to:
+  - Apache Tika
   - Apache Tomcat
   - Apache Commons
   - Apache Geronimo
@@ -322,6 +323,9 @@ License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 This product includes a guava.jar.
 License: Apache 2  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a tagsoup.jar.
+License: Apache 2 (http://home.ccil.org/~cowan/XML/tagsoup/)
 
 This product may include pdf files that embed IPA-licensed fonts.
 License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/index.html#LicenseEng)
