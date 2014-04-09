@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
@@ -34,9 +35,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.DefaultHttpClientConnection;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
@@ -48,6 +47,10 @@ import org.apache.manifoldcf.agents.output.BaseOutputConnector;
 import org.apache.manifoldcf.agents.output.amazoncloudsearch.SDFModel.Document;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPostParameters;
+import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
@@ -70,6 +73,24 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
   public final static String INGEST_ACTIVITY = "document ingest";
   /** Document removal activity */
   public final static String REMOVE_ACTIVITY = "document deletion";
+
+  /** Forward to the javascript to check the configuration parameters */
+  private static final String EDIT_CONFIGURATION_JS = "editConfiguration.js";
+
+  /** Forward to the HTML template to edit the configuration parameters */
+  private static final String EDIT_CONFIGURATION_HTML = "editConfiguration.html";
+
+  /** Forward to the HTML template to view the configuration parameters */
+  private static final String VIEW_CONFIGURATION_HTML = "viewConfiguration.html";
+
+  /** Forward to the javascript to check the specification parameters for the job */
+  private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
+
+  /** Forward to the template to edit the configuration parameters for the job */
+  private static final String EDIT_SPECIFICATION_HTML = "editSpecification.html";
+
+  /** Forward to the template to view the specification parameters for the job */
+  private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 
   /** Local connection */
   protected HttpPost poster = null;
@@ -385,6 +406,152 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     else {
       throw new ManifoldCFException("recieved error status from service after feeding document.");
     }
+  }
+
+  /**
+   * Fill in a Server tab configuration parameter map for calling a Velocity
+   * template.
+   *
+   * @param newMap is the map to fill in
+   * @param parameters is the current set of configuration parameters
+   */
+  private static void fillInServerConfigurationMap(Map<String, Object> newMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
+    String serverhost = parameters.getParameter(AmazonCloudSearchConfig.SERVER_HOST);
+    String serverpath = parameters.getParameter(AmazonCloudSearchConfig.SERVER_PATH);
+    String proxyprotocol = parameters.getParameter(AmazonCloudSearchConfig.PROXY_PROTOCOL);
+    String proxyhost = parameters.getParameter(AmazonCloudSearchConfig.PROXY_HOST);
+    String proxyport = parameters.getParameter(AmazonCloudSearchConfig.PROXY_PORT);
+
+    if (serverhost == null)
+      serverhost = AmazonCloudSearchConfig.SERVER_HOST_DEFAULT;
+    if (serverpath == null)
+      serverpath = AmazonCloudSearchConfig.SERVER_PATH_DEFAULT;
+    if (proxyprotocol == null)
+      proxyprotocol = AmazonCloudSearchConfig.PROXY_PROTOCOL_DEFAULT;
+    if (proxyhost == null)
+      proxyhost = AmazonCloudSearchConfig.PROXY_HOST_DEFAULT;
+    if (proxyport == null)
+      proxyport = AmazonCloudSearchConfig.PROXY_PORT_DEFAULT;
+
+    newMap.put("SERVERHOST", serverhost);
+    newMap.put("SERVERPATH", serverpath);
+    newMap.put("PROXYPROTOCOL", proxyprotocol);
+    newMap.put("PROXYHOST", proxyhost);
+    newMap.put("PROXYPORT", proxyport);
+  }
+
+  /**
+   * View configuration. This method is called in the body section of the
+   * connector's view configuration page. Its purpose is to present the
+   * connection information to the user. The coder can presume that the HTML
+   * that is output from this configuration will be within appropriate <html>
+   * and <body> tags.
+   *
+   * @param threadContext is the local thread context.
+   * @param out is the output to which any HTML should be sent.
+   * @param parameters are the configuration parameters, as they currently
+   * exist, for this connection being configured.
+   */
+  @Override
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+      Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+
+    // Fill in map from each tab
+    fillInServerConfigurationMap(paramMap, out, parameters);
+
+    Messages.outputResourceWithVelocity(out,locale,VIEW_CONFIGURATION_HTML,paramMap);
+  }
+
+  /**
+   *
+   * Output the configuration header section. This method is called in the
+   * head section of the connector's configuration page. Its purpose is to add
+   * the required tabs to the list, and to output any javascript methods that
+   * might be needed by the configuration editing HTML.
+   *
+   * @param threadContext is the local thread context.
+   * @param out is the output to which any HTML should be sent.
+   * @param parameters are the configuration parameters, as they currently
+   * exist, for this connection being configured.
+   * @param tabsArray is an array of tab names. Add to this array any tab
+   * names that are specific to the connector.
+   */
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext,
+      IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
+      throws ManifoldCFException, IOException {
+    // Add the Server tab
+    tabsArray.add(Messages.getString(locale, "AmazonCloudSearchOutputConnector.ServerTabName"));
+    // Map the parameters
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+
+    // Fill in the parameters from each tab
+    fillInServerConfigurationMap(paramMap, out, parameters);
+        
+    // Output the Javascript - only one Velocity template for all tabs
+    Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIGURATION_JS,paramMap);
+  }
+
+  @Override
+  public void outputConfigurationBody(IThreadContext threadContext,
+      IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
+      throws ManifoldCFException, IOException {
+
+
+    // Call the Velocity templates for each tab
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+    // Set the tab name
+    paramMap.put("TabName", tabName);
+
+    // Fill in the parameters
+    fillInServerConfigurationMap(paramMap, out, parameters);
+        
+    // Server tab
+    Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIGURATION_HTML,paramMap);
+
+  }
+
+  /**
+   * Process a configuration post. This method is called at the start of the
+   * connector's configuration page, whenever there is a possibility that form
+   * data for a connection has been posted. Its purpose is to gather form
+   * information and modify the configuration parameters accordingly. The name
+   * of the posted form is "editconnection".
+   *
+   * @param threadContext is the local thread context.
+   * @param variableContext is the set of variables available from the post,
+   * including binary file post information.
+   * @param parameters are the configuration parameters, as they currently
+   * exist, for this connection being configured.
+   * @return null if all is well, or a string error message if there is an
+   * error that should prevent saving of the connection (and cause a
+   * redirection to an error page).
+   *
+   */
+  @Override
+  public String processConfigurationPost(IThreadContext threadContext,
+    IPostParameters variableContext, ConfigParams parameters)
+    throws ManifoldCFException {
+
+    // Server tab parameters
+    String serverhost = variableContext.getParameter("serverhost");
+    if (serverhost != null)
+      parameters.setParameter(AmazonCloudSearchConfig.SERVER_HOST, serverhost);
+    String serverpath = variableContext.getParameter("serverpath");
+    if (serverpath != null)
+      parameters.setParameter(AmazonCloudSearchConfig.SERVER_PATH, serverpath);
+    String proxyprotocol = variableContext.getParameter("proxyprotocol");
+    if (proxyprotocol != null)
+      parameters.setParameter(AmazonCloudSearchConfig.PROXY_PROTOCOL, proxyprotocol);
+    String proxyhost = variableContext.getParameter("proxyhost");
+    if (proxyhost != null)
+      parameters.setParameter(AmazonCloudSearchConfig.PROXY_HOST, proxyhost);
+    String proxyport = variableContext.getParameter("proxyprotocol");
+    if (proxyport != null)
+      parameters.setParameter(AmazonCloudSearchConfig.PROXY_PORT, proxyport);
+
+    return null;
   }
 
   private String postData(String jsonData) throws ServiceInterruption, ManifoldCFException {
