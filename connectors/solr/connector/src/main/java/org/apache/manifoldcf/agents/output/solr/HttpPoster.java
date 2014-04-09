@@ -435,6 +435,18 @@ public class HttpPoster
         true);
     }
     
+    if (e instanceof java.net.SocketTimeoutException)
+    {
+      String message2 = "Socket timeout exception during "+context+": "+e.getMessage();
+      Logging.ingest.warn(message2,e);
+      throw new ServiceInterruption(message2,
+        e,
+        currentTime + interruptionRetryTime,
+        currentTime + 20L * 60000L,
+        -1,
+        false);
+    }
+      
     if (e.getClass().getName().equals("java.net.SocketException"))
     {
       // In the past we would have treated this as a straight document rejection, and
@@ -465,7 +477,7 @@ public class HttpPoster
       // Other socket exceptions are service interruptions - but if we keep getting them, it means 
       // that a socket timeout is probably set too low to accept this particular document.  So
       // we retry for a while, then skip the document.
-      String message2 = "Socket timeout exception during "+context+": "+e.getMessage();
+      String message2 = "Socket exception during "+context+": "+e.getMessage();
       Logging.ingest.warn(message2,e);
       throw new ServiceInterruption(message2,
         e,
@@ -474,7 +486,7 @@ public class HttpPoster
         -1,
         false);
     }
-    
+
     // Otherwise, no idea what the trouble is, so presume that retries might fix it.
     String message3 = "IO exception during "+context+": "+e.getMessage();
     Logging.ingest.warn(message3,e);
