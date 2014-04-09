@@ -20,6 +20,7 @@ package org.apache.manifoldcf.agents.output.amazoncloudsearch;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +31,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -48,12 +48,11 @@ import org.apache.manifoldcf.agents.output.BaseOutputConnector;
 import org.apache.manifoldcf.agents.output.amazoncloudsearch.SDFModel.Document;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
-import org.apache.tika.parser.ParsingReader;
 import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
@@ -157,21 +156,24 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     {
       getSession();
       String responsbody = postData("[]");
+      String status = getStatusFromJsonResponse(responsbody);
       
-      String status = "";
+      //check status message
       String message = "";
-      JsonFactory factory = new JsonFactory();
-      JsonParser parser = factory.createJsonParser(responsbody);
-      while (parser.nextToken() != JsonToken.END_OBJECT) {
-        String name = parser.getCurrentName();
-        if("status".equalsIgnoreCase(name)){
-          status = parser.getValueAsString();
-        }else if("errors".equalsIgnoreCase(name)){
-          message = parseMessage(parser);
+      if("error".equals(status))
+      {
+        JsonParser parser = new JsonFactory().createJsonParser(responsbody);
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+          String name = parser.getCurrentName();
+          if("errors".equalsIgnoreCase(name)){
+            message = parseMessage(parser);
+            break;
+          }
         }
       }
+      
       if("error".equalsIgnoreCase(status) &&
-          "Encountered unexpected end of file".equals(message)){
+          "batch must contain at least one operation".equals(message)){
         return "Connection working.";
       }
       return "Connection NOT working.";
@@ -180,14 +182,36 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
       throw new ManifoldCFException(e);
     } catch (IOException e) {
       throw new ManifoldCFException(e);
+    } catch (ServiceInterruption e) {
+      throw new ManifoldCFException(e);
     }
+  }
+  
+  private String getStatusFromJsonResponse(String responsbody) throws ManifoldCFException {
+    try {
+      JsonParser parser = new JsonFactory().createJsonParser(responsbody);
+      while (parser.nextToken() != JsonToken.END_OBJECT)
+      {
+        String name = parser.getCurrentName();
+        if("status".equalsIgnoreCase(name)){
+          parser.nextToken();
+          return parser.getText();
+        }
+      }
+    } catch (JsonParseException e) {
+      throw new ManifoldCFException(e);
+    } catch (IOException e) {
+      throw new ManifoldCFException(e);
+    }
+    return null;
   }
   
   private String parseMessage(JsonParser parser) throws JsonParseException, IOException {
     while(parser.nextToken() != JsonToken.END_ARRAY){
       String name = parser.getCurrentName();
       if("message".equalsIgnoreCase(name)){
-        return parser.getValueAsString();
+        parser.nextToken();
+        return parser.getText();
       }
     }
     return null;
@@ -249,6 +273,7 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
   {
     // Establish a session
     getSession();
+    String jsondata = "";
     try {
       InputStream is = document.getBinaryStream();
       Parser parser = new HtmlParser();
@@ -273,7 +298,7 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
       //mapping metadata to SDF fields.
       String contenttype = metadata.get("Content-Style-Type");
       String title = metadata.get("dc:title");
-      String size = metadata.get("Content-Length");
+      String size = String.valueOf(bodyStr.length());
       String description = metadata.get("description");
       String keywords = metadata.get("keywords");
       if(contenttype != null && !"".equals(contenttype)) fields.put("content_type", contenttype);
@@ -292,13 +317,7 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
       model.addDocument(doc);
       
       //generate json data.
-      String jsondata = model.toJSON();
-      
-      //post data..
-      String responsbody = postData(jsondata);
-            
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,"OK",null);
-      return DOCUMENTSTATUS_ACCEPTED;
+      jsondata = model.toJSON();
       
     } 
     catch (SAXException e) {
@@ -313,6 +332,20 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     } catch (IOException e) {
       // if document data could not be read when the document parsing by tika.
       throw new ManifoldCFException(e);
+    }
+    
+    //post data..
+    String responsbody = postData(jsondata);
+    
+    // check status
+    String status = getStatusFromJsonResponse(responsbody);
+    if("success".equals(status))
+    {
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,"OK",null);
+      return DOCUMENTSTATUS_ACCEPTED;
+    }
+    else {
+      throw new ManifoldCFException("recieved error status from service after feeding document.");
     }
   }
 
@@ -343,11 +376,18 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     }
     String responsbody = postData(jsonData);
     
-    
-    activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,"OK",null);
+    // check status
+    String status = getStatusFromJsonResponse(responsbody);
+    if("success".equals(status))
+    {
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,"OK",null);
+    }
+    else {
+      throw new ManifoldCFException("recieved error status from service after feeding document.");
+    }
   }
 
-  private String postData(String jsonData) throws ManifoldCFException {
+  private String postData(String jsonData) throws ServiceInterruption, ManifoldCFException {
     CloseableHttpClient httpclient = HttpClients.createDefault();
     try {
       poster.setEntity(new StringEntity(jsonData, Consts.UTF_8));
@@ -355,11 +395,10 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
       
       HttpEntity resEntity = res.getEntity();
       return EntityUtils.toString(resEntity);
-      
     } catch (ClientProtocolException e) {
       throw new ManifoldCFException(e);
     } catch (IOException e) {
-      throw new ManifoldCFException(e);
+      handleIOException(e);
     } finally {
       try {
         httpclient.close();
@@ -367,6 +406,21 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
         //do nothing
       }
     }
+    return null;
+  }
+  
+  private static void handleIOException(IOException e)
+      throws ManifoldCFException, ServiceInterruption {
+    if (!(e instanceof java.net.SocketTimeoutException)
+        && (e instanceof InterruptedIOException)) {
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+          ManifoldCFException.INTERRUPTED);
+    }
+    Logging.connectors.warn(
+        "Amazon CloudSearch: IO exception: " + e.getMessage(), e);
+    long currentTime = System.currentTimeMillis();
+    throw new ServiceInterruption("IO exception: " + e.getMessage(), e,
+        currentTime + 300000L, currentTime + 3 * 60 * 60000L, -1, false);
   }
   
 }
