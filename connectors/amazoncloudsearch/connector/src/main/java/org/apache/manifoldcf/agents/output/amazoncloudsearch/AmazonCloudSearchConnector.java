@@ -300,14 +300,20 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
       activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,"OK",null);
       return DOCUMENTSTATUS_ACCEPTED;
       
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (SAXException e) {
-      e.printStackTrace();
+    } 
+    catch (SAXException e) {
+      // if document data could not be converted to JSON by jackson.
+      throw new ManifoldCFException(e);
+    } catch (JsonProcessingException e) {
+      // if document data could not be converted to JSON by jackson.
+      throw new ManifoldCFException(e);
     } catch (TikaException e) {
-      e.printStackTrace();
+      // if document could not be parsed by tika.
+      return DOCUMENTSTATUS_REJECTED;
+    } catch (IOException e) {
+      // if document data could not be read when the document parsing by tika.
+      throw new ManifoldCFException(e);
     }
-    return DOCUMENTSTATUS_REJECTED;
   }
 
   /** Remove a document using the connector.
