@@ -502,7 +502,7 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     // Call the Velocity templates for each tab
     Map<String, Object> paramMap = new HashMap<String, Object>();
     // Set the tab name
-    paramMap.put("TabName", tabName);
+    paramMap.put("TABNAME", tabName);
 
     // Fill in the parameters
     fillInServerConfigurationMap(paramMap, out, parameters);
@@ -547,7 +547,7 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     String proxyhost = variableContext.getParameter("proxyhost");
     if (proxyhost != null)
       parameters.setParameter(AmazonCloudSearchConfig.PROXY_HOST, proxyhost);
-    String proxyport = variableContext.getParameter("proxyprotocol");
+    String proxyport = variableContext.getParameter("proxyport");
     if (proxyport != null)
       parameters.setParameter(AmazonCloudSearchConfig.PROXY_PORT, proxyport);
 
