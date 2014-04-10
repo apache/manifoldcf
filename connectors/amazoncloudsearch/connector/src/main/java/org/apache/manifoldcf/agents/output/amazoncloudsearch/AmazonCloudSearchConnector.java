@@ -148,19 +148,40 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
     throws ManifoldCFException
   {
     //curl -X POST --upload-file data1.json doc.movies-123456789012.us-east-1.cloudsearch.amazonaws.com/2013-01-01/documents/batch --header "Content-Type:application/json"
-    String documentEndpointUrl = "doc-test1-hjzolhfixtfctmuaezbzinjduu.us-east-1.cloudsearch.amazonaws.com";
-    String urlStr = "https://" + documentEndpointUrl + "/2013-01-01/documents/batch";
+    //String documentEndpointUrl = "doc-test1-hjzolhfixtfctmuaezbzinjduu.us-east-1.cloudsearch.amazonaws.com";
+    //String urlStr = "https://" + documentEndpointUrl + "/2013-01-01/documents/batch";
+    //String proxyHost = System.getenv().get("HTTP_PROXY");
+    //String host = proxyHost.substring(proxyHost.indexOf("://")+3,proxyHost.lastIndexOf(":"));
+    //String port = proxyHost.substring(proxyHost.lastIndexOf(":")+1,proxyHost.length()-1);
+
+    String serverHost = params.getParameter(AmazonCloudSearchConfig.SERVER_HOST);
+    if (serverHost == null)
+      throw new ManifoldCFException("Server host parameter required");
+    String serverPath = params.getParameter(AmazonCloudSearchConfig.SERVER_PATH);
+    if (serverPath == null)
+      throw new ManifoldCFException("Server path parameter required");
+    String proxyProtocol = params.getParameter(AmazonCloudSearchConfig.PROXY_PROTOCOL);
+    String proxyHost = params.getParameter(AmazonCloudSearchConfig.PROXY_HOST);
+    String proxyPort = params.getParameter(AmazonCloudSearchConfig.PROXY_PORT);
+    
+    // Https is OK here without a custom trust store because we know we are talking to an Amazon instance, which has certs that
+    // are presumably non-custom.
+    String urlStr = "https://" + serverHost + serverPath;
     poster = new HttpPost(urlStr);
     
     //set proxy
-    String proxyHost = System.getenv().get("HTTP_PROXY");
-    if(proxyHost != null)
+    if(proxyHost != null && proxyHost.length() > 0)
     {
-      String host = proxyHost.substring(proxyHost.indexOf("://")+3,proxyHost.lastIndexOf(":"));
-      String port = proxyHost.substring(proxyHost.lastIndexOf(":")+1,proxyHost.length()-1);
-      HttpHost proxy = new HttpHost(host, Integer.parseInt(port), "http");
-      RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
-      poster.setConfig(config);
+      try
+      {
+        HttpHost proxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort), proxyProtocol);
+        RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
+        poster.setConfig(config);
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException("Number format exception: "+e.getMessage(),e);
+      }
     }
     
     poster.addHeader("Content-Type", "application/json");
