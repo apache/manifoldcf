@@ -20,13 +20,13 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-parent</artifactId>
-    <version>1.6</version>
+    <version>1.7-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.apache.manifoldcf</groupId>
   <artifactId>mcf-framework</artifactId>
-  <version>1.6</version>
+  <version>1.7-SNAPSHOT</version>
 
   <name>ManifoldCF - Framework</name>
   <packaging>pom</packaging>
