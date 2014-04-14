@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.6-dev =====================
 
+CONNECTORS-923: Fix bandwidth throttling.
+(Karl Wright)
+
 CONNECTORS-920: Be more explicit in Solr connector about handling
 SocketTimeoutException.
 (Hitoshi Tatsumi, Karl Wright)
