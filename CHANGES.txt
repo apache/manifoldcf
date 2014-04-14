@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.6-dev =====================
+======================= Release 1.6 =====================
 
 CONNECTORS-923: Fix bandwidth throttling.
 (Karl Wright)
