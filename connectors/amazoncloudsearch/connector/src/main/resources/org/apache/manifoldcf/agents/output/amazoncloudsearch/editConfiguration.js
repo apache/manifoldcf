@@ -26,10 +26,10 @@ function checkConfigForSave()
     editconnection.serverhost.focus();
     return false;
   }
-  if (!editconnection.serverpath.value.startsWith("/"))
+  if (!editconnection.serverpath.value.indexOf("/") == 0)
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.ServerPathMustStartWithSlash'))");
-    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.ServerTabName'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.ServerTabName'))");
     editconnection.serverpath.focus();
     return false;
   }

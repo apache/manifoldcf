@@ -191,41 +191,39 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
   *@return the connection's status as a displayable string.
   */
   @Override
-  public String check()
-    throws ManifoldCFException
-  {
-    try
-    {
+  public String check() throws ManifoldCFException {
+    try {
       getSession();
       String responsbody = postData("[]");
       String status = getStatusFromJsonResponse(responsbody);
       
-      //check status message
+      // check status message
       String message = "";
-      if("error".equals(status))
-      {
+      if ("error".equals(status)) {
         JsonParser parser = new JsonFactory().createJsonParser(responsbody);
         while (parser.nextToken() != JsonToken.END_OBJECT) {
           String name = parser.getCurrentName();
-          if("errors".equalsIgnoreCase(name)){
+          if ("errors".equalsIgnoreCase(name)) {
             message = parseMessage(parser);
             break;
           }
         }
       }
-      
-      if("error".equalsIgnoreCase(status) &&
-          "batch must contain at least one operation".equals(message)){
+      if ("error".equalsIgnoreCase(status)
+          && "batch must contain at least one operation".equals(message)) {
         return "Connection working.";
       }
       return "Connection NOT working.";
-    }
-    catch (ClientProtocolException e) {
-      throw new ManifoldCFException(e);
+      
+    } catch (ClientProtocolException e) {
+      Logging.connectors.debug(e);
+      return "Protocol exception: "+e.getMessage();
     } catch (IOException e) {
-      throw new ManifoldCFException(e);
+      Logging.connectors.debug(e);
+      return "IO exception: "+e.getMessage();
     } catch (ServiceInterruption e) {
-      throw new ManifoldCFException(e);
+      Logging.connectors.debug(e);
+      return "Transient exception: "+e.getMessage();
     }
   }
   
