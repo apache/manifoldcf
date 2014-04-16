@@ -21,6 +21,10 @@
 
     <import file="common-build.xml"/>
     
+    <defaultexcludes add="**/*.patch"/>   
+    <defaultexcludes add="**/*.iml"/> 
+    <defaultexcludes add="**/.idea/**"/> 
+    
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
         <available file="lib/derby.jar" property="derby-found"/>
@@ -378,15 +382,15 @@
     <target name="create-source-zip" depends="set-version">
       <zip destfile="apache-manifoldcf-${release-version}-src.zip" update="false">
         <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
-          <exclude name="/lib/"/>
-          <exclude name="/connectors/*/lib/"/>
-          <exclude name="/framework/lib/"/>
+          <exclude name="lib/"/>
+          <exclude name="connectors/*/lib/"/>
+          <exclude name="framework/lib/"/>
           <exclude name="**/build/"/>
           <exclude name="**/tmp/"/>
-          <exclude name="/site/fonts/"/>
-          <exclude name="/dist/"/>
-          <exclude name="/connectors/*/dist/"/>
-          <exclude name="/framework/dist/"/>
+          <exclude name="site/fonts/"/>
+          <exclude name="dist/"/>
+          <exclude name="connectors/*/dist/"/>
+          <exclude name="framework/dist/"/>
           <exclude name="**/target/"/>
           <exclude name="**/test-output/"/>
           <exclude name="**/test-derby-output/"/>
@@ -403,8 +407,8 @@
           <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
           <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
-          <exclude name="/legacy-*/"/>
-          <exclude name="apache-manifoldcf-*"/>
+          <exclude name="legacy-*/"/>
+          <exclude name="apache-manifoldcf-*/"/>        
         </zipfileset>
       </zip>
     </target>
@@ -414,19 +418,19 @@
         <zipfileset dir="lib" prefix="apache-manifoldcf-${release-version}"/>
       </zip>
     </target>
-
-    <target name="create-source-tar" depends="set-version">
-      <tar destfile="apache-manifoldcf-${release-version}-src.tar.gz" compression="gzip" longfile="gnu">
+      
+    <target name="create-source-tar" depends="set-version">  
+      <tar destfile="apache-manifoldcf-${release-version}-src.tar.gz" compression="gzip" longfile="gnu">        
         <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
-          <exclude name="/lib/"/>
-          <exclude name="/connectors/*/lib/"/>
-          <exclude name="/framework/lib/"/>
+          <exclude name="lib/"/>
+          <exclude name="connectors/*/lib/"/>
+          <exclude name="framework/lib/"/>
           <exclude name="**/build/"/>
           <exclude name="**/tmp/"/>
-          <exclude name="/site/fonts/"/>
-          <exclude name="/dist/"/>
-          <exclude name="/connectors/*/dist/"/>
-          <exclude name="/framework/dist/"/>
+          <exclude name="site/fonts/"/>
+          <exclude name="dist/"/>
+          <exclude name="connectors/*/dist/"/>
+          <exclude name="framework/dist/"/>
           <exclude name="**/target/"/>
           <exclude name="**/test-output/"/>
           <exclude name="**/test-derby-output/"/>
@@ -443,8 +447,8 @@
           <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
           <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
-          <exclude name="/legacy-*/"/>
-          <exclude name="apache-manifoldcf-*"/>
+          <exclude name="legacy-*/"/>
+          <exclude name="apache-manifoldcf-*/"/>
         </tarfileset>
       </tar>
     </target>
@@ -463,10 +467,10 @@
           <exclude name="lib-proprietary/*.jar"/>
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
-          <exclude name="/example-proprietary/"/>
-          <exclude name="/multiprocess-file-example-proprietary/"/>
-          <exclude name="/multiprocess-zk-example-proprietary/"/>
-          <exclude name="/web-proprietary/"/>
+          <exclude name="example-proprietary/"/>
+          <exclude name="multiprocess-file-example-proprietary/"/>
+          <exclude name="multiprocess-zk-example-proprietary/"/>
+          <exclude name="web-proprietary/"/>
         </zipfileset>
       </zip>
     </target>
@@ -479,10 +483,10 @@
           <exclude name="lib-proprietary/*.jar"/>
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
-          <exclude name="/example-proprietary/"/>
-          <exclude name="/multiprocess-file-example-proprietary/"/>
-          <exclude name="/multiprocess-zk-example-proprietary/"/>
-          <exclude name="/web-proprietary/"/>
+          <exclude name="example-proprietary/"/>
+          <exclude name="multiprocess-file-example-proprietary/"/>
+          <exclude name="multiprocess-zk-example-proprietary/"/>
+          <exclude name="web-proprietary/"/>
         </tarfileset>
       </tar>
     </target>
