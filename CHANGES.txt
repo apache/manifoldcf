@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.6 =====================
 
+CONNECTORS-925: Fix ant exclusions for zip/tar distributions on Linux variants.
+(Ahmet Arslan)
+
 CONNECTORS-923: Fix bandwidth throttling.
 (Karl Wright)
 
