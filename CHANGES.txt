@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.6 =====================
 
+CONNECTORS-928: Remove unused directory.
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-925: Fix ant exclusions for zip/tar distributions on Linux variants.
 (Ahmet Arslan)
 
