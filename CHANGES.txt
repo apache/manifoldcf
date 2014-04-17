@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-927: Override JDK's entity expansion limit for Solr
+connector.
+(David Morana, Karl Wright)
 
 ======================= Release 1.6 =====================
 
