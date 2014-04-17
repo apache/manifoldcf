@@ -21,6 +21,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -401,7 +402,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
       if (item.content != null) {
         try {
-          byte[] content = item.content.getBytes("UTF-8");
+          byte[] content = item.content.getBytes(StandardCharsets.UTF_8);
           ByteArrayInputStream is = new ByteArrayInputStream(content);
           try {
             doc.setBinary(is, content.length);

@@ -70,6 +70,7 @@ import org.apache.http.HttpException;
 import org.apache.http.ParseException;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -148,8 +149,6 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
     }
   }
-
-  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /** Constructor.
   */
@@ -2010,7 +2009,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       pairs.add(new BasicNameValuePair(key, params.get(key)));
     }
     
-    method.setEntity(new UrlEncodedFormEntity(pairs, UTF_8));
+    method.setEntity(new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8));
     
     return method;
   }
@@ -4671,13 +4670,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           ContentType ct = ContentType.get(entity);
           if (ct == null)
-            charSet = UTF_8;
+            charSet = StandardCharsets.UTF_8;
           else
             charSet = ct.getCharset();
         }
         catch (ParseException e)
         {
-          charSet = UTF_8;
+          charSet = StandardCharsets.UTF_8;
         }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);

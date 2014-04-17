@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -84,9 +85,7 @@ public class OpenSearchServerConnection {
   }
 
   private Result result;
-
-  private final static Charset UTF_8 = Charset.forName("UTF-8");
-
+    
   protected OpenSearchServerConnection(HttpClient client, OpenSearchServerConfig config) {
     this.httpClient = client;
     result = Result.UNKNOWN;
@@ -245,13 +244,13 @@ public class OpenSearchServerConnection {
         {
           ContentType ct = ContentType.get(entity);
           if (ct == null)
-            charSet = UTF_8;
+            charSet = StandardCharsets.UTF_8;
           else
             charSet = ct.getCharset();
         }
         catch (ParseException e)
         {
-          charSet = UTF_8;
+          charSet = StandardCharsets.UTF_8;
         }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);

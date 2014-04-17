@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import org.apache.http.client.HttpClient;
@@ -112,7 +113,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     @Override
     public void writeTo(OutputStream out)
       throws IOException {
-      PrintWriter pw = new PrintWriter(new OutputStreamWriter(out, "utf-8"));
+      PrintWriter pw = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
       try
       {
         pw.print("{");
@@ -267,14 +268,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     throws ManifoldCFException, ServiceInterruption
   {
     String idField;
-    try
-    {
-      idField = java.net.URLEncoder.encode(documentURI,"utf-8");
-    }
-    catch (java.io.UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+
+    idField = urlEncode(documentURI);
 
     StringBuffer url = getApiUrl(config.getIndexType() + "/" + idField, false);
     HttpPut put = new HttpPut(url.toString());

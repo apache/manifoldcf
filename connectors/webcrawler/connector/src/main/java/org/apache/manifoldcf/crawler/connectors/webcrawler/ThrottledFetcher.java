@@ -26,6 +26,8 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -142,8 +144,6 @@ public class ThrottledFetcher
     {
     }
   }
-
-  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   private static final Registry<CookieSpecProvider> cookieSpecRegistry =
     RegistryBuilder.<CookieSpecProvider>create()
@@ -648,7 +648,7 @@ public class ThrottledFetcher
             nvps.add(new BasicNameValuePair(param,value));
           }
         }
-        postMethod.setEntity(new UrlEncodedFormEntity(nvps,UTF_8));
+        postMethod.setEntity(new UrlEncodedFormEntity(nvps, StandardCharsets.UTF_8));
         fetchMethod = postMethod;
         break;
       default:

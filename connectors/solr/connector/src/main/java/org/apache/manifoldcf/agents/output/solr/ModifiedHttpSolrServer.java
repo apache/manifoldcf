@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -81,23 +82,11 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
 {
   // Here we duplicate all the private fields we need
   
-  private static final String UTF_8 = "UTF-8";
+
   private static final String DEFAULT_PATH = "/select";
 
   private static Charset UTF8_CHARSET;
-  static
-  {
-    try
-    {
-      UTF8_CHARSET = Charset.forName(UTF_8);
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-      System.exit(-100);
-      UTF8_CHARSET = null;
-    }
-  }
+
   
   private final HttpClient httpClient;
   private boolean followRedirects = false;
@@ -183,7 +172,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
                 if (vals != null) {
                   for (String v : vals) {
                     if (isMultipart) {
-                      parts.add(new FormBodyPart(p, new StringBody(v, Charset.forName("UTF-8"))));
+                      parts.add(new FormBodyPart(p, new StringBody(v, StandardCharsets.UTF_8)));
                     } else {
                       postParams.add(new BasicNameValuePair(p, v));
                     }
@@ -207,14 +196,14 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
               }
               
               if (parts.size() > 0) {
-                ModifiedMultipartEntity entity = new ModifiedMultipartEntity(HttpMultipartMode.STRICT, null, UTF8_CHARSET);
+                ModifiedMultipartEntity entity = new ModifiedMultipartEntity(HttpMultipartMode.STRICT, null, StandardCharsets.UTF_8);
                 for(FormBodyPart p: parts) {
                   entity.addPart(p);
                 }
                 post.setEntity(entity);
               } else {
                 //not using multipart
-                post.setEntity(new UrlEncodedFormEntity(postParams, "UTF-8"));
+                post.setEntity(new UrlEncodedFormEntity(postParams, StandardCharsets.UTF_8));
               }
 
               method = post;
@@ -338,7 +327,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
           msg.append(response.getStatusLine().getReasonPhrase());
           msg.append("\n\n");
           msg.append("request: " + method.getURI());
-          reason = java.net.URLDecoder.decode(msg.toString(), UTF_8);
+          reason = java.net.URLDecoder.decode(msg.toString(), StandardCharsets.UTF_8.name());
         }
         throw new SolrException(
             SolrException.ErrorCode.getErrorCode(httpStatus), reason);

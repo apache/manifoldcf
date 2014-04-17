@@ -83,6 +83,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /* Class to use httpcomponents to communicate with a SOAP server.
 * I've replaced the original rather complicated class with a much simpler one that
@@ -95,8 +96,6 @@ public class CommonsHTTPSender extends BasicHandler {
   /** Field log           */
   protected static Log log =
     LogFactory.getLog(CommonsHTTPSender.class.getName());
-
-  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /** Properties */
   protected CommonsHTTPClientProperties clientProperties;
@@ -365,7 +364,7 @@ public class CommonsHTTPSender extends BasicHandler {
       {
         Charset charSet = methodThread.getCharSet();
         if (charSet == null)
-          charSet = UTF_8;
+          charSet = StandardCharsets.UTF_8;
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
         Writer w = new StringWriter();

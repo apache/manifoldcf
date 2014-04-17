@@ -25,6 +25,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.net.*;
 
@@ -259,7 +260,7 @@ public class APIServlet extends HttpServlet
     if (readResult == ManifoldCF.READRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
 
-    byte[] responseValue = outputText.getBytes("utf-8");
+    byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
     // Set response mime type
     response.setContentType("text/plain; charset=utf-8");
@@ -303,7 +304,7 @@ public class APIServlet extends HttpServlet
     // We presume the data is utf-8
     StringBuilder sb = new StringBuilder();
     char[] buffer = new char[65536];
-    Reader r = new InputStreamReader(data,"utf-8");
+    Reader r = new InputStreamReader(data,StandardCharsets.UTF_8);
     while (true)
     {
       int amt = r.read(buffer);
@@ -373,7 +374,7 @@ public class APIServlet extends HttpServlet
     else if (writeResult == ManifoldCF.WRITERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
     
-    byte[] responseValue = outputText.getBytes("utf-8");
+    byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
     // Set response mime type
     response.setContentType("text/plain; charset=utf-8");
@@ -417,7 +418,7 @@ public class APIServlet extends HttpServlet
     // We presume the data is utf-8
     StringBuilder sb = new StringBuilder();
     char[] buffer = new char[65536];
-    Reader r = new InputStreamReader(data,"utf-8");
+    Reader r = new InputStreamReader(data,StandardCharsets.UTF_8);
     while (true)
     {
       int amt = r.read(buffer);
@@ -484,7 +485,7 @@ public class APIServlet extends HttpServlet
     else if (writeResult == ManifoldCF.POSTRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
     
-    byte[] responseValue = outputText.getBytes("utf-8");
+    byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
     // Set response mime type
     response.setContentType("text/plain; charset=utf-8");
@@ -560,7 +561,7 @@ public class APIServlet extends HttpServlet
     if (result == ManifoldCF.DELETERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
     
-    byte[] responseValue = outputText.getBytes("utf-8");
+    byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
     // Set response mime type
     response.setContentType("text/plain; charset=utf-8");

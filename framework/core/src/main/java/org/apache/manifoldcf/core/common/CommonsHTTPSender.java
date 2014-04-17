@@ -74,6 +74,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -95,8 +96,6 @@ public class CommonsHTTPSender extends BasicHandler {
   /** Field log           */
   protected static Log log =
     LogFactory.getLog(CommonsHTTPSender.class.getName());
-
-  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /** Properties */
   protected CommonsHTTPClientProperties clientProperties;
@@ -366,7 +365,7 @@ public class CommonsHTTPSender extends BasicHandler {
       {
         Charset charSet = methodThread.getCharSet();
         if (charSet == null)
-          charSet = UTF_8;
+          charSet = StandardCharsets.UTF_8;
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
         Writer w = new StringWriter();
