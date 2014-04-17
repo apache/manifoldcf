@@ -21,6 +21,8 @@ package org.apache.manifoldcf.core.lockmanager;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.system.ManifoldCF;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
 
@@ -574,27 +576,15 @@ public class BaseLockManager implements ILockManager
     byte[] bytes = readData(resourceName);
     if (bytes == null)
       return null;
-    try
-    {
-      return new String(bytes, "utf-8");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new RuntimeException("Unsupported encoding: "+e.getMessage(),e);
-    }
+
+    return new String(bytes, StandardCharsets.UTF_8);
+
   }
   
   protected void writeServiceName(String resourceName, String serviceName)
     throws ManifoldCFException
   {
-    try
-    {
-      writeData(resourceName, (serviceName==null)?null:serviceName.getBytes("utf-8"));
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new RuntimeException("Unsupported encoding: "+e.getMessage(),e);
-    }
+    writeData(resourceName, (serviceName==null)?null:serviceName.getBytes(StandardCharsets.UTF_8));
   }
   
   protected static String buildServiceListEntry(String serviceType, int i)

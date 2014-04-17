@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
@@ -80,8 +81,6 @@ public class ElasticSearchConnection
   }
 
   private Result result;
-
-  private final static Charset UTF_8 = Charset.forName("UTF-8");
   
   protected ElasticSearchConnection(ElasticSearchConfig config, HttpClient client)
   {
@@ -291,13 +290,13 @@ public class ElasticSearchConnection
         {
           ContentType ct = ContentType.get(entity);
           if (ct == null)
-            charSet = UTF_8;
+            charSet = StandardCharsets.UTF_8;
           else
             charSet = ct.getCharset();
         }
         catch (ParseException e)
         {
-          charSet = UTF_8;
+          charSet = StandardCharsets.UTF_8;
         }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);

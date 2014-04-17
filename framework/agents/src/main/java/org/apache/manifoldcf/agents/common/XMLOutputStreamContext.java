@@ -30,6 +30,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.manifoldcf.core.interfaces.*;
 
@@ -45,7 +46,7 @@ public class XMLOutputStreamContext extends XMLWriterContext
     throws ManifoldCFException, UnsupportedEncodingException
   {
     // Construct an appropriate writer
-    super(theStream,namespaceURI,localname,qname,theseAttributes,new OutputStreamWriter(os,"utf-8"));
+    super(theStream,namespaceURI,localname,qname,theseAttributes,new OutputStreamWriter(os, StandardCharsets.UTF_8));
     // Save the stream
     outputStream = os;
   }

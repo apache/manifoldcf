@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -301,9 +302,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     {
       // URI translation.
       // First step is to perform utf-8 translation and %-encoding.
-      try
-      {
-        byte[] byteArray = serverPath.getBytes("utf-8");
+
+        byte[] byteArray = serverPath.getBytes(StandardCharsets.UTF_8);
         StringBuilder output = new StringBuilder();
         int i = 0;
         while (i < byteArray.length)
@@ -325,12 +325,6 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
         // Second step is to perform the mapping.  This strips off the server name and glues on the protocol and web server name, most likely.
         return uriMap.translate(output.toString());
-      }
-      catch (java.io.UnsupportedEncodingException e)
-      {
-        // Should not happen...
-        throw new ManifoldCFException(e.getMessage(),e);
-      }
     }
     else
     {

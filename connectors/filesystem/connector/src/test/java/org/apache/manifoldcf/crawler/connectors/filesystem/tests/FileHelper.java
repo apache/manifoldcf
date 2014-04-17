@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.filesystem.tests;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /** Helper class for local file manipulation */
@@ -57,7 +58,7 @@ public class FileHelper
     OutputStream os = new FileOutputStream(f);
     try
     {
-      Writer w = new OutputStreamWriter(os,"utf-8");
+      Writer w = new OutputStreamWriter(os, StandardCharsets.UTF_8);
       try
       {
         w.write(contents);

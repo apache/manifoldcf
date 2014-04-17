@@ -20,6 +20,7 @@ package org.apache.manifoldcf.core.fuzzyml;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /** An instance of this class represents a parsing context within a node.  Data is written to the supplied output stream in utf-8 format.
@@ -34,7 +35,7 @@ public class XMLOutputStreamParsingContext extends XMLWriterParsingContext
     throws ManifoldCFException, UnsupportedEncodingException
   {
     // Construct an appropriate writer
-    super(theStream,namespace,localname,qname,theseAttributes,new OutputStreamWriter(os,"utf-8"));
+    super(theStream,namespace,localname,qname,theseAttributes,new OutputStreamWriter(os, StandardCharsets.UTF_8));
     // Save the stream
     outputStream = os;
   }

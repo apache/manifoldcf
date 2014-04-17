@@ -25,6 +25,7 @@ import org.apache.manifoldcf.agents.system.*;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.net.*;
 import javax.net.ssl.*;
@@ -102,14 +103,7 @@ public class HttpPoster
   {
     if (userID != null && userID.length() > 0 && password != null)
     {
-      try
-      {
-        this.encodedCredentials = new org.apache.manifoldcf.core.common.Base64().encodeByteArray((userID+":"+password).getBytes("UTF-8"));
-      }
-      catch (java.io.UnsupportedEncodingException e)
-      {
-        throw new ManifoldCFException("Couldn't convert to utf-8 bytes",e);
-      }
+      this.encodedCredentials = new org.apache.manifoldcf.core.common.Base64().encodeByteArray((userID+":"+password).getBytes(StandardCharsets.UTF_8));
       this.realm = realm;
     }
     this.postURI = postURI;
@@ -553,10 +547,10 @@ public class HttpPoster
     if (encodedCredentials != null)
     {
       Logging.ingest.debug("Applying credentials");
-      byte[] tmp = ("Authorization: Basic " + encodedCredentials + "\r\n").getBytes("UTF-8");
+      byte[] tmp = ("Authorization: Basic " + encodedCredentials + "\r\n").getBytes(StandardCharsets.UTF_8);
       out.write(tmp, 0, tmp.length);
 
-      tmp = ("WWW-Authenticate: Basic realm=\"" + ((realm != null) ? realm : "") + "\"\r\n").getBytes("UTF-8");
+      tmp = ("WWW-Authenticate: Basic realm=\"" + ((realm != null) ? realm : "") + "\"\r\n").getBytes(StandardCharsets.UTF_8);
       out.write(tmp, 0, tmp.length);
     }
   }
@@ -733,11 +727,11 @@ public class HttpPoster
                   String uri = url.getFile();
                   if (uri.length() == 0)
                     uri = "/";
-                  byte[] tmp = ("POST " + uri + " HTTP/1.0\r\n").getBytes("UTF-8");
+                  byte[] tmp = ("POST " + uri + " HTTP/1.0\r\n").getBytes(StandardCharsets.UTF_8);
                   out.write(tmp, 0, tmp.length);
 
                   // Set all the headers
-                  tmp = ("Document-URI: " + documentURI + "\r\n").getBytes("UTF-8");
+                  tmp = ("Document-URI: " + documentURI + "\r\n").getBytes(StandardCharsets.UTF_8);
                   out.write(tmp, 0, tmp.length);
 
                   writeCredentials(out);
@@ -746,7 +740,7 @@ public class HttpPoster
                   if (aclXmlString.length() > 0)
                   {
 
-                    String encodedACL = new Base64().encodeByteArray(aclXmlString.getBytes("UTF-8"));
+                    String encodedACL = new Base64().encodeByteArray(aclXmlString.getBytes(StandardCharsets.UTF_8));
 
                     // Break into chunks - 4K each - 'cause otherwise we blow up the ingester.
                     int index = 0;
@@ -754,11 +748,11 @@ public class HttpPoster
                     {
                       if (index + HEADER_CHUNK >= encodedACL.length())
                       {
-                        tmp = ("Document-ACL: " + encodedACL.substring(index) + "\r\n").getBytes("UTF-8");
+                        tmp = ("Document-ACL: " + encodedACL.substring(index) + "\r\n").getBytes(StandardCharsets.UTF_8);
                         out.write(tmp, 0, tmp.length);
                         break;
                       }
-                      tmp = ("Document-ACL: " + encodedACL.substring(index,index + HEADER_CHUNK) + "\r\n").getBytes("UTF-8");
+                      tmp = ("Document-ACL: " + encodedACL.substring(index,index + HEADER_CHUNK) + "\r\n").getBytes(StandardCharsets.UTF_8);
                       out.write(tmp, 0, tmp.length);
                       index += HEADER_CHUNK;
                     }
@@ -773,7 +767,7 @@ public class HttpPoster
                       String collectionName = collections[index++];
                       String encodedValue = metadataEncode(collectionName);
                       //System.out.println("collection metadata: collection_name = '"+encodedValue+"'");
-                      tmp = ("Document-Metadata: collection_name="+encodedValue+"\r\n").getBytes("UTF-8");
+                      tmp = ("Document-Metadata: collection_name="+encodedValue+"\r\n").getBytes(StandardCharsets.UTF_8);
                       out.write(tmp, 0, tmp.length);
                     }
                   }
@@ -781,18 +775,18 @@ public class HttpPoster
                   // Do the document template
                   if (documentTemplate != null && documentTemplate.length() > 0)
                   {
-                    String encodedTemplate = new Base64().encodeByteArray(documentTemplate.getBytes("UTF-8"));
+                    String encodedTemplate = new Base64().encodeByteArray(documentTemplate.getBytes(StandardCharsets.UTF_8));
                     // Break into chunks - 4K each - 'cause otherwise we blow up the ingester.
                     int index = 0;
                     while (true)
                     {
                       if (index + HEADER_CHUNK >= encodedTemplate.length())
                       {
-                        tmp = ("Document-Template: " + encodedTemplate.substring(index) + "\r\n").getBytes("UTF-8");
+                        tmp = ("Document-Template: " + encodedTemplate.substring(index) + "\r\n").getBytes(StandardCharsets.UTF_8);
                         out.write(tmp, 0, tmp.length);
                         break;
                       }
-                      tmp = ("Document-Template: " + encodedTemplate.substring(index,index + HEADER_CHUNK) + "\r\n").getBytes("UTF-8");
+                      tmp = ("Document-Template: " + encodedTemplate.substring(index,index + HEADER_CHUNK) + "\r\n").getBytes(StandardCharsets.UTF_8);
                       out.write(tmp, 0, tmp.length);
                       index += HEADER_CHUNK;
                     }
@@ -812,12 +806,12 @@ public class HttpPoster
 
                       String encodedValue = metadataEncode(value);
                       //System.out.println("Metadata: Name = '"+fieldName+"', value = '"+encodedValue+"'");
-                      tmp = ("Document-Metadata: "+ fieldName+"="+encodedValue+"\r\n").getBytes("UTF-8");
+                      tmp = ("Document-Metadata: "+ fieldName+"="+encodedValue+"\r\n").getBytes(StandardCharsets.UTF_8);
                       out.write(tmp, 0, tmp.length);
                     }
                   }
 
-                  tmp = ("Content-length: " + new Long(length).toString() + "\r\n\n").getBytes("UTF-8");
+                  tmp = ("Content-length: " + new Long(length).toString() + "\r\n\n").getBytes(StandardCharsets.UTF_8);
                   out.write(tmp, 0, tmp.length);
 
                   long total = 0;
@@ -1156,16 +1150,16 @@ public class HttpPoster
                 {
                   long startTime = System.currentTimeMillis();
                   // Create the output stream to GTS
-                  byte[] tmp = ("POST " + deleteURL.getFile() + " HTTP/1.0\r\n").getBytes("UTF-8");
+                  byte[] tmp = ("POST " + deleteURL.getFile() + " HTTP/1.0\r\n").getBytes(StandardCharsets.UTF_8);
                   out.write(tmp, 0, tmp.length);
 
                   // Set all the headers
-                  tmp = ("Document-URI: " + documentURI + "\r\n").getBytes("UTF-8");
+                  tmp = ("Document-URI: " + documentURI + "\r\n").getBytes(StandardCharsets.UTF_8);
                   out.write(tmp, 0, tmp.length);
 
                   writeCredentials(out);
 
-                  tmp = ("Content-length: 0\r\n\n").getBytes("UTF-8");
+                  tmp = ("Content-length: 0\r\n\n").getBytes(StandardCharsets.UTF_8);
                   out.write(tmp, 0, tmp.length);
 
                   if (Logging.ingest.isDebugEnabled())
@@ -1331,12 +1325,12 @@ public class HttpPoster
                 try
                 {
                   // Create the output stream to GTS
-                  byte[] tmp = ("GET " + infoURL.getFile() + " HTTP/1.0\r\n").getBytes("UTF-8");
+                  byte[] tmp = ("GET " + infoURL.getFile() + " HTTP/1.0\r\n").getBytes(StandardCharsets.UTF_8);
                   out.write(tmp, 0, tmp.length);
 
                   writeCredentials(out);
 
-                  tmp = ("Content-length: 0\r\n\n").getBytes("UTF-8");
+                  tmp = ("Content-length: 0\r\n\n").getBytes(StandardCharsets.UTF_8);
                   out.write(tmp, 0, tmp.length);
 
                   if (Logging.ingest.isDebugEnabled())

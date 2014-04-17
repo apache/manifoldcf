@@ -34,6 +34,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -99,8 +100,6 @@ public class JiraSession {
     {
     }
   }
-
-  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /**
    * Constructor. Create a session.
@@ -251,13 +250,13 @@ public class JiraSession {
     {
       ContentType ct = ContentType.get(entity);
       if (ct == null)
-        charSet = UTF_8;
+        charSet = StandardCharsets.UTF_8;
       else
         charSet = ct.getCharset();
     }
     catch (ParseException e)
     {
-      charSet = UTF_8;
+      charSet = StandardCharsets.UTF_8;
     }
     return charSet;
   }

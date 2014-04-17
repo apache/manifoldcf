@@ -21,6 +21,7 @@ package org.apache.manifoldcf.core.interfaces;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.system.Logging;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /** The purpose of this class is to create global unique identifiers.  For performance, every JVM has a local pool of identifiers as well
@@ -68,7 +69,7 @@ public class IDFactory
           if (idData == null)
             _id = 0L;
           else
-            _id = new Long(new String(idData,"utf-8")).longValue();
+            _id = new Long(new String(idData, StandardCharsets.UTF_8)).longValue();
           
           int i = 0;
           while (i < poolSize)
@@ -83,11 +84,7 @@ public class IDFactory
             i++;
           }
 
-          lockManager.writeData(globalIDDataName,Long.toString(_id).getBytes("utf-8"));
-        }
-        catch (UnsupportedEncodingException e)
-        {
-          throw new ManifoldCFException(e.getMessage(),e);
+          lockManager.writeData(globalIDDataName,Long.toString(_id).getBytes(StandardCharsets.UTF_8));
         }
         finally
         {

@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.core.tests;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import org.junit.*;
 
@@ -75,8 +76,8 @@ public class HTMLTester
       InputStream is = getClass().getResourceAsStream(resName);
       try
       {
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os,"UTF-8"));
-        BufferedReader br = new BufferedReader(new InputStreamReader(is,"UTF-8"));
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
+        BufferedReader br = new BufferedReader(new InputStreamReader(is,StandardCharsets.UTF_8));
         while (true)
         {
           String line = br.readLine();

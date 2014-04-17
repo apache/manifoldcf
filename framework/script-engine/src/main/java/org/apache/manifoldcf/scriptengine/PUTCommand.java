@@ -29,6 +29,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /** PUT command.  This performs a REST-style PUT operation, designed to work
 * against the ManifoldCF API.  The syntax is: PUT resultvariable = sendvariable to urlvariable*/
@@ -71,7 +72,7 @@ public class PUTCommand implements Command
       HttpPut method = new HttpPut(urlString);
       try
       {
-        method.setEntity(new StringEntity(json,ContentType.create("text/plain","UTF-8")));
+        method.setEntity(new StringEntity(json,ContentType.create("text/plain", StandardCharsets.UTF_8)));
         HttpResponse httpResponse = client.execute(method);
         int resultCode = httpResponse.getStatusLine().getStatusCode();
         String resultJSON = sp.convertToString(httpResponse);

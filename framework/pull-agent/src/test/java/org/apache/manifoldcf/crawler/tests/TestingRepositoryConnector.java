@@ -24,14 +24,11 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.io.*;
-import java.util.*;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /** Connector class to be used by general integration tests that need documents */
 public class TestingRepositoryConnector extends org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector
 {
-  private final static Charset UTF_8 = Charset.forName("UTF-8");
-  
   public TestingRepositoryConnector()
   {
   }
@@ -82,7 +79,7 @@ public class TestingRepositoryConnector extends org.apache.manifoldcf.crawler.co
       if (!scanOnly[i])
       {
         RepositoryDocument rd = new RepositoryDocument();
-        byte[] bytes = documentIdentifier.getBytes(UTF_8);
+        byte[] bytes = documentIdentifier.getBytes(StandardCharsets.UTF_8);
         rd.setBinary(new ByteArrayInputStream(bytes),bytes.length);
         activities.ingestDocument(documentIdentifier,version,"http://"+documentIdentifier,rd);
       }
