@@ -40,6 +40,7 @@ import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnection.Result;
 import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 public class ElasticSearchIndex extends ElasticSearchConnection
@@ -269,7 +270,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   {
     String idField;
 
-    idField = urlEncode(documentURI);
+    idField = URLEncoder.encode(documentURI);
 
     StringBuffer url = getApiUrl(config.getIndexType() + "/" + idField, false);
     HttpPut put = new HttpPut(url.toString());

@@ -4190,24 +4190,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected String createLivelinkLoginURI()
     throws ManifoldCFException
   {
-    try
-    {
       StringBuilder llURI = new StringBuilder();
 
       llURI.append(ingestCgiPath);
       llURI.append("?func=ll.login&CurrentClientTime=D%2F2005%2F3%2F9%3A13%3A16%3A30&NextURL=");
-      llURI.append(URLEncoder.encode(ingestCgiPath,"UTF-8"));
+      llURI.append(org.apache.manifoldcf.core.util.URLEncoder.encode(ingestCgiPath));
       llURI.append("%3FRedirect%3D1&Username=");
-      llURI.append(URLEncoder.encode(llServer.getLLUser(),"UTF-8"));
+      llURI.append(org.apache.manifoldcf.core.util.URLEncoder.encode(llServer.getLLUser()));
       llURI.append("&Password=");
-      llURI.append(URLEncoder.encode(llServer.getLLPwd(),"UTF-8"));
+      llURI.append(org.apache.manifoldcf.core.util.URLEncoder.encode(llServer.getLLPwd()));
 
       return llURI.toString();
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException("Login URI setup error: "+e.getMessage(),e);
-    }
   }
 
   /**

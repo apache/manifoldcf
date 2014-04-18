@@ -32,7 +32,7 @@ public class XMLOutputStreamParsingContext extends XMLWriterParsingContext
 
   /** Full constructor.  Used for individual tags. */
   public XMLOutputStreamParsingContext(XMLFuzzyHierarchicalParseState theStream, String namespace, String localname, String qname, Map<String,String> theseAttributes, OutputStream os)
-    throws ManifoldCFException, UnsupportedEncodingException
+    throws ManifoldCFException
   {
     // Construct an appropriate writer
     super(theStream,namespace,localname,qname,theseAttributes,new OutputStreamWriter(os, StandardCharsets.UTF_8));

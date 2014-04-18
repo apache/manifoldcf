@@ -49,6 +49,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.entity.ContentType;
+import org.apache.manifoldcf.core.util.URLDecoder;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.ResponseParser;
 import org.apache.solr.client.solrj.SolrRequest;
@@ -327,7 +328,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
           msg.append(response.getStatusLine().getReasonPhrase());
           msg.append("\n\n");
           msg.append("request: " + method.getURI());
-          reason = java.net.URLDecoder.decode(msg.toString(), StandardCharsets.UTF_8.name());
+          reason = URLDecoder.decode(msg.toString());
         }
         throw new SolrException(
             SolrException.ErrorCode.getErrorCode(httpStatus), reason);

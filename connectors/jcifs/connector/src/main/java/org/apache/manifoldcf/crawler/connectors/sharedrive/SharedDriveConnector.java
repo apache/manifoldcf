@@ -16,6 +16,7 @@
 */
 package org.apache.manifoldcf.crawler.connectors.sharedrive;
 
+import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
@@ -334,8 +335,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       // Second, the ingestion API does not (and will never) accept anything other than a well-formed URI.  Thus, file
       // specifications are ingested in a canonical form (which happens to be pretty much what this connector used prior to
       // 3.9.0), and the various clients are responsible for converting that form into something the browser will accept.
-      try
-      {
+
         StringBuilder output = new StringBuilder();
 
         int i = 0;
@@ -346,7 +346,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             pos = serverPath.length();
           String piece = serverPath.substring(i,pos);
           // Note well.  This does *not* %-encode some characters such as '#', which are legal in URI's but have special meanings!
-          String replacePiece = java.net.URLEncoder.encode(piece,"utf-8");
+          String replacePiece = URLEncoder.encode(piece);
           // Convert the +'s back to %20's
           int j = 0;
           while (j < replacePiece.length())
@@ -371,12 +371,6 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           i = pos;
         }
         return "file://///"+output.toString();
-      }
-      catch (java.io.UnsupportedEncodingException e)
-      {
-        // Should not happen...
-        throw new ManifoldCFException(e.getMessage(),e);
-      }
     }
   }
 

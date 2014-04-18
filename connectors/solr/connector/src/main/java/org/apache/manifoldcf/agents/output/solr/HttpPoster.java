@@ -32,7 +32,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.*;
 
 import java.io.*;
-import java.net.*;
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.regex.*;
 
@@ -40,6 +40,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 
+import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
@@ -761,14 +762,7 @@ public class HttpPoster
   */
   protected static String preEncode(String fieldName)
   {
-    try
-    {
-      return java.net.URLEncoder.encode(fieldName, "utf-8");
-    }
-    catch (IOException e)
-    {
-      throw new RuntimeException("Could not find utf-8 encoding!");
-    }
+      return URLEncoder.encode(fieldName);
   }
   
   /** Write a field */

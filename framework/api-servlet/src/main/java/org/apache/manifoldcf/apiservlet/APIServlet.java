@@ -23,11 +23,11 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
-
+import org.apache.manifoldcf.core.util.URLDecoder;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.net.*;
+
 
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -581,7 +581,6 @@ public class APIServlet extends HttpServlet
   }
   
   protected static Map<String,List<String>> parseQueryString(String queryString)
-    throws UnsupportedEncodingException
   {
     if (queryString == null)
       return null;
@@ -591,9 +590,9 @@ public class APIServlet extends HttpServlet
     {
       int index = term.indexOf("=");
       if (index == -1)
-        addValue(rval,URLDecoder.decode(term,"utf-8"),"");
+        addValue(rval,URLDecoder.decode(term),"");
       else
-        addValue(rval,URLDecoder.decode(term.substring(0,index),"utf-8"),URLDecoder.decode(term.substring(index+1),"utf-8"));
+        addValue(rval,URLDecoder.decode(term.substring(0,index)),URLDecoder.decode(term.substring(index+1)));
     }
     return rval;
   }

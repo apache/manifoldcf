@@ -41,7 +41,6 @@ public class XMLWriterContext extends XMLContext
 
   /** Full constructor.  Used for individual tags. */
   public XMLWriterContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, Writer writer)
-    throws ManifoldCFException
   {
     super(theStream,namespaceURI,localname,qname,theseAttributes);
     theWriter = writer;

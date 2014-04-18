@@ -99,8 +99,8 @@
 		<tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
 			<td class="columncell">
 				<nobr>
-					<a href='<%="viewauthority.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="View "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.View")%></a>
-					<a href='<%="editauthority.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Edit")%></a>
+					<a href='<%="viewauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%="View "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.View")%></a>
+					<a href='<%="editauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Edit")%></a>
 					<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Delete")%></a>
 				</nobr>
 			</td>

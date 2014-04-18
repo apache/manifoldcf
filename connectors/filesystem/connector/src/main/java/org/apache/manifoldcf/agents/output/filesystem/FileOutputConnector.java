@@ -25,10 +25,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
+
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;

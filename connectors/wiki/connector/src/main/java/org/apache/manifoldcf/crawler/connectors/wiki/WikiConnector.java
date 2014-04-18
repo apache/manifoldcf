@@ -24,6 +24,8 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 import org.apache.manifoldcf.core.common.*;
+import org.apache.manifoldcf.core.util.URLEncoder;
+
 
 import org.xml.sax.Attributes;
 
@@ -73,12 +75,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
-import java.net.*;
+
 
 import java.util.concurrent.TimeUnit;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /** This is the repository connector for a wiki.
 */
@@ -2464,18 +2464,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected String getListPagesURL(String startingTitle, String namespace, String prefix)
     throws ManifoldCFException
   {
-    try
-    {
       return baseURL + "action=query&list=allpages" +
-        ((prefix != null)?"&apprefix="+URLEncoder.encode(prefix,"utf-8"):"") +
-        ((namespace != null)?"&apnamespace="+URLEncoder.encode(namespace,"utf-8"):"") +
-        ((startingTitle!=null)?"&apfrom="+URLEncoder.encode(startingTitle,"utf-8"):"") +
+        ((prefix != null)?"&apprefix="+URLEncoder.encode(prefix):"") +
+        ((namespace != null)?"&apnamespace="+URLEncoder.encode(namespace):"") +
+        ((startingTitle!=null)?"&apfrom="+URLEncoder.encode(startingTitle):"") +
         "&aplimit=500";
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
   }
 
   protected static class ReturnString
@@ -2864,14 +2857,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         sb.append("|");
       sb.append(documentIdentifiers[i]);
     }
-    try
-    {
-      return baseURL + "action=query&prop=info&pageids="+URLEncoder.encode(sb.toString(),"utf-8")+"&inprop=url";
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+      return baseURL + "action=query&prop=info&pageids="+URLEncoder.encode(sb.toString())+"&inprop=url";
   }
 
   /** Thread to execute a "get timestamp" operation.  This thread both executes the operation and parses the result. */
@@ -3188,14 +3174,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         sb.append("|");
       sb.append(documentIdentifiers[i]);
     }
-    try
-    {
-      return baseURL + "action=query&prop=revisions&pageids="+URLEncoder.encode(sb.toString(),"utf-8")+"&rvprop=timestamp";
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+      return baseURL + "action=query&prop=revisions&pageids="+URLEncoder.encode(sb.toString())+"&rvprop=timestamp";
   }
 
   /** Thread to execute a "get timestamp" operation.  This thread both executes the operation and parses the result. */

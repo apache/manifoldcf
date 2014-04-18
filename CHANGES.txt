@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-932 : Avoid UnsupportedEncodingException handling
+(Ahmet Arslan)
+
 CONNECTORS-927: Override JDK's entity expansion limit for Solr
 connector.
 (David Morana, Karl Wright)

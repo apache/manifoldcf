@@ -196,8 +196,8 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 		<tr><td class="message" colspan="4">
-			<nobr><a href='<%="viewauthority.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.Refresh")%></a></nobr>
-			<nobr><a href='<%="editauthority.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.EditThisAuthorityConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.Edit")%></a></nobr>
+			<nobr><a href='<%="viewauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.Refresh")%></a></nobr>
+			<nobr><a href='<%="editauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.EditThisAuthorityConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.Edit")%></a></nobr>
 			<nobr><a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.DeleteThisAuthorityConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.Delete")%></a></nobr>
 		</td></tr>
 		</table>

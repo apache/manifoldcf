@@ -877,10 +877,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 is.close();
               }
             }
-            catch (UnsupportedEncodingException e)
-            {
-              throw new ManifoldCFException("Unsupported encoding: "+e.getMessage(),e);
-            }
             catch (java.net.SocketTimeoutException e)
             {
               throw new ManifoldCFException("IO exception reading data from string: "+e.getMessage(),e);

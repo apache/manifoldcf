@@ -1011,10 +1011,6 @@ public class HttpPoster
             }
           }
         }
-        catch (UnsupportedEncodingException ioe)
-        {
-          throw new ManifoldCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
-        }
         catch (java.net.SocketTimeoutException ioe)
         {
           // These are just like IO errors, but since they are derived from InterruptedIOException, they have to be caught first.
@@ -1240,10 +1236,6 @@ public class HttpPoster
             }
           }
         }
-        catch (UnsupportedEncodingException ioe)
-        {
-          throw new ManifoldCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
-        }
         catch (InterruptedIOException ioe)
         {
           return;
@@ -1391,10 +1383,6 @@ public class HttpPoster
               // Do NOT rethrow
             }
           }
-        }
-        catch (UnsupportedEncodingException ioe)
-        {
-          throw new ManifoldCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
         }
         catch (InterruptedIOException ioe)
         {
