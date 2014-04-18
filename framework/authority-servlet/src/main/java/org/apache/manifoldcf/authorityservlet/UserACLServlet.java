@@ -25,10 +25,12 @@ import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.RequestQueue;
 import org.apache.manifoldcf.authorities.system.AuthRequest;
 import org.apache.manifoldcf.authorities.system.MappingRequest;
+import org.apache.manifoldcf.core.util.URLEncoder;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.net.*;
+
 
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -370,27 +372,27 @@ public class UserACLServlet extends HttpServlet
           {
             if (Logging.authorityService.isDebugEnabled())
               Logging.authorityService.debug("User '"+ar.getUserID()+"' mapping failed for authority '"+ar.getIdentifyingString()+"'");
-            sb.append(USERNOTFOUND_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+            sb.append(USERNOTFOUND_VALUE).append(URLEncoder.encode(ar.getIdentifyingString())).append("\n");
           }
           else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_UNREACHABLE)
           {
             Logging.authorityService.warn("Authority '"+ar.getIdentifyingString()+"' is unreachable for user '"+ar.getUserID()+"'");
-            sb.append(UNREACHABLE_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+            sb.append(UNREACHABLE_VALUE).append(URLEncoder.encode(ar.getIdentifyingString())).append("\n");
           }
           else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERUNAUTHORIZED)
           {
             if (Logging.authorityService.isDebugEnabled())
               Logging.authorityService.debug("Authority '"+ar.getIdentifyingString()+"' does not authorize user '"+ar.getUserID()+"'");
-            sb.append(UNAUTHORIZED_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+            sb.append(UNAUTHORIZED_VALUE).append(URLEncoder.encode(ar.getIdentifyingString())).append("\n");
           }
           else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERNOTFOUND)
           {
             if (Logging.authorityService.isDebugEnabled())
               Logging.authorityService.debug("User '"+ar.getUserID()+"' unknown to authority '"+ar.getIdentifyingString()+"'");
-            sb.append(USERNOTFOUND_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+            sb.append(USERNOTFOUND_VALUE).append(URLEncoder.encode(ar.getIdentifyingString())).append("\n");
           }
           else
-            sb.append(AUTHORIZED_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+            sb.append(AUTHORIZED_VALUE).append(URLEncoder.encode(ar.getIdentifyingString())).append("\n");
 
           String[] acl = reply.getAccessTokens();
           if (acl != null)
@@ -402,7 +404,7 @@ public class UserACLServlet extends HttpServlet
               {
                 if (Logging.authorityService.isDebugEnabled())
                   Logging.authorityService.debug("  User '"+ar.getUserID()+"' has Acl = '"+acl[j]+"' from authority '"+ar.getIdentifyingString()+"'");
-                sb.append(TOKEN_PREFIX).append(java.net.URLEncoder.encode(authGroup,"UTF-8")).append(":").append(java.net.URLEncoder.encode(acl[j++],"UTF-8")).append("\n");
+                sb.append(TOKEN_PREFIX).append(URLEncoder.encode(authGroup)).append(":").append(URLEncoder.encode(acl[j++])).append("\n");
               }
             }
           }
@@ -410,9 +412,10 @@ public class UserACLServlet extends HttpServlet
 
         // Maintained for backwards compatibility only; no practical use that I can determine here
         if (idneeded && userID != null)
-          sb.append(ID_PREFIX).append(java.net.URLEncoder.encode(userID,"UTF-8")).append("\n");
+          sb.append(ID_PREFIX).append(URLEncoder.encode(userID)).append("\n");
 
-        byte[] responseValue = sb.toString().getBytes("ISO8859-1");
+        byte[] responseValue = sb.toString().getBytes(StandardCharsets.ISO_8859_1);
+
 
         response.setIntHeader("Content-Length", (int)responseValue.length);
         out.write(responseValue,0,responseValue.length);
@@ -442,11 +445,6 @@ public class UserACLServlet extends HttpServlet
     catch (InterruptedException e)
     {
       // Shut down and don't bother to respond
-    }
-    catch (java.io.UnsupportedEncodingException e)
-    {
-      Logging.authorityService.error("Unsupported encoding: "+e.getMessage(),e);
-      throw new ServletException("Fatal error occurred: "+e.getMessage(),e);
     }
     catch (ManifoldCFException e)
     {

@@ -24,7 +24,7 @@ import org.apache.http.client.methods.HttpDelete;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
-import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnection.Result;
+import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 public class ElasticSearchDelete extends ElasticSearchConnection
@@ -38,7 +38,7 @@ public class ElasticSearchDelete extends ElasticSearchConnection
   public void execute(String documentURI)
       throws ManifoldCFException, ServiceInterruption
   {
-      String idField = urlEncode(documentURI);
+      String idField = URLEncoder.encode(documentURI);
       HttpDelete method = new HttpDelete(config.getServerLocation() +
           "/" + config.getIndexName() + "/" + config.getIndexType()
           + "/" + idField);

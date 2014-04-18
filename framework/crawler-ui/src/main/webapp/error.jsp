@@ -49,7 +49,7 @@
 	<table class="displaytable">
 		<tr><td class="message"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(errorText)%></td></tr>
 		<tr><td class="separator"><hr/></td></tr>
-		<tr><td class="message"><a href='<%=java.net.URLEncoder.encode(target,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"error.Return")%>">OK</a></td></tr>
+		<tr><td class="message"><a href='<%=org.apache.manifoldcf.core.util.URLEncoder.encode(target)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"error.Return")%>">OK</a></td></tr>
 	</table>
 
        </td>

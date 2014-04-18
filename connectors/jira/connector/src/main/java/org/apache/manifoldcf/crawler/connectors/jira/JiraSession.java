@@ -28,10 +28,8 @@ import java.io.StringWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.InterruptedIOException;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLEncoder;
+
+import org.apache.manifoldcf.core.util.URLEncoder;
 import java.nio.charset.Charset;
 
 import java.nio.charset.StandardCharsets;
@@ -295,13 +293,13 @@ public class JiraSession {
    * Get the list of matching root documents, e.g. seeds.
    */
   public void getSeeds(XThreadStringBuffer idBuffer, String jiraDriveQuery)
-      throws IOException, ResponseException, InterruptedException {
+      throws IOException, ResponseException, InterruptedException, ManifoldCFException {
     long startAt = 0L;
     long setSize = 800L;
     long totalAmt = 0L;
     do {
       JiraQueryResults qr = new JiraQueryResults();
-      getRest("search?maxResults=" + setSize + "&startAt=" + startAt + "&jql=" + URLEncoder.encode(jiraDriveQuery, "UTF-8"), qr);
+      getRest("search?maxResults=" + setSize + "&startAt=" + startAt + "&jql=" + URLEncoder.encode(jiraDriveQuery), qr);
       Long total = qr.getTotal();
       if (total == null)
         return;
@@ -315,13 +313,13 @@ public class JiraSession {
   * Get the list of users that can see the specified issue.
   */
   public List<String> getUsers(String issueKey)
-    throws IOException, ResponseException {
+    throws IOException, ResponseException, ManifoldCFException {
     List<String> rval = new ArrayList<String>();
     long startAt = 0L;
     long setSize = 800L;
     while (true) {
       JiraUserQueryResults qr = new JiraUserQueryResults();
-      getRest("user/viewissue/search?username=&issueKey="+URLEncoder.encode(issueKey,"utf-8")+"&maxResults=" + setSize + "&startAt=" + startAt, qr);
+      getRest("user/viewissue/search?username=&issueKey="+URLEncoder.encode(issueKey)+"&maxResults=" + setSize + "&startAt=" + startAt, qr);
       qr.getNames(rval);
       startAt += setSize;
       if (rval.size() < startAt)
@@ -334,9 +332,9 @@ public class JiraSession {
    * Get an individual issue.
    */
   public JiraIssue getIssue(String issueKey)
-    throws IOException, ResponseException {
+    throws IOException, ResponseException, ManifoldCFException {
     JiraIssue ji = new JiraIssue();
-    getRest("issue/" + URLEncoder.encode(issueKey,"utf-8"), ji);
+    getRest("issue/" + URLEncoder.encode(issueKey), ji);
     return ji;
   }
 
