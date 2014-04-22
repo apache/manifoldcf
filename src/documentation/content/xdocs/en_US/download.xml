@@ -30,6 +30,11 @@
   <body> 
 
     <section>
+      <title>How to verify releases</title>
+      <p>Verifying ManifoldCF release binaries is easy.  Please read the page <a href="verify.html">here</a>.</p>
+    </section>
+
+    <section>
       <title>ManifoldCF</title>
       
       <section>
