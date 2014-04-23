@@ -139,8 +139,6 @@ public interface ILockManager
   public boolean checkServiceActive(String serviceType, String serviceName)
     throws ManifoldCFException;
 
-  /** Read specified service-associated data.  The data returned will be blank (empty) if the service
-  * is not active.
   // Configuration
   
   /** Get the current shared configuration.  This configuration is available in common among all nodes,
