@@ -65,7 +65,7 @@
           <code>gpg --print-md MD5 apache-manifoldcf-X.X.X-src.tar.gz > capture.md5</code>
           <code>fc capture.md5 apache-manifoldcf-X.X.X-src.tar.gz.md5</code>
         </p>
-        <p>No differences will be printed if the signatures agree.  If there are differences, then the release cannot be verified.</p>
+        <p>No differences will be printed if the signatures agree. If there are differences, then validity of the release cannot be verified.</p>
       </section>
       
       <section>
@@ -76,9 +76,9 @@
         <p>On Windows:</p>
         <p>
           <code>gpg --print-md SHA512 apache-manifoldcf-X.X.X-src.tar.gz > capture.sha</code>
-          <code>fc capture.md5 apache-manifoldcf-X.X.X-src.tar.gz.sha</code>
+          <code>fc capture.sha apache-manifoldcf-X.X.X-src.tar.gz.sha</code>
         </p>
-        <p>No differences will be printed if the signatures agree.  If there are differences, then the release cannot be verified.</p>
+        <p>No differences will be printed if the signatures agree. If there are differences, then validity of the release cannot be verified.</p>
       </section>
 
     </section>
