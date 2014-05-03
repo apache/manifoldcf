@@ -17,6 +17,10 @@
 
 <project name="manifoldcf" default="help">
 
+    <presetdef name="javac">
+      <javac includeantruntime="false" />
+    </presetdef>
+
     <import file="site-options.xml" optional="true"/>
 
     <import file="common-build.xml"/>
