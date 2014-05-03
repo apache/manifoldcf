@@ -34,8 +34,8 @@
 
   <build>
     <defaultGoal>integration-test</defaultGoal>
-    <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
-    <testSourceDirectory>${basedir}/src/test/java</testSourceDirectory>
+    <sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
+    <testSourceDirectory>${basedir}/connector/src/test/java</testSourceDirectory>
     <resources>
       <resource>
         <directory>${basedir}/connector/src/main/native2ascii</directory>
