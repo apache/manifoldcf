@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-935 : Use Java 7 in ant build
+(Ahmet Arslan)
+
 CONNECTORS-932 : Avoid UnsupportedEncodingException handling
 (Ahmet Arslan)
 
