@@ -23,13 +23,14 @@
     </header>
     <body>
   <section id="books"><title>ManifoldCF Books</title>
-    <p>All the books about ManifoldCF project.</p>
+    <p>All the books about the ManifoldCF project.</p>
     <ul>
-      <li><a href="http://www.manning.com/wright/" target="_blank">ManifoldCF in Action written by Karl Wright - Published by Manning</a></li>
+      <li><a href="http://www.manning.com/wright/" target="_blank">ManifoldCF in Action, edition 1, written by Karl Wright, available from Manning</a></li>
+      <li><a href="https://manifoldcfinaction.googlecode.com/svn/trunk/pdfs/" target="_blank">Updated ManifoldCF in Action chapters, revised PDFs</a></li>
     </ul>
   </section>
   <section id="presentations"><title>ManifoldCF Presentations</title>
-    <p>Some presentations about ManifoldCF project.</p>
+    <p>Some presentations about the ManifoldCF project.</p>
     <ul>
       <li><a href="http://www.slideshare.net/lucenerevolution/wright-nokia-manifoldcfeurocon-2011" target="_blank">Securing Documents in Solr with ManifoldCF by Karl Wright</a></li>
       <li><a href="http://www.slideshare.net/PiergiorgioLucidi/apache-manifoldcf-9508286" target="_blank">Apache ManifoldCF by Piergiorgio Lucidi</a></li>
@@ -39,7 +40,7 @@
     </ul>
   </section>
   <section id="podcasts"><title>ManifoldCF Videos/Podcasts</title>
-    <p>All the videos/podcasts about ManifoldCF project.</p>
+    <p>All the videos/podcasts about the ManifoldCF project.</p>
     <ul>
       <li><a title="Teach Me To Code - Karl Wright - ManifoldCF" href="http://teachmetocode.com/podcast/077-tmtc-karl-wright-manifoldcf/" target="_blank">077 TMTC Karl Wright - ManifoldCF</a> (ApacheCON North America, 2011)</li>
       <li><a title="Securing Documents in Solr with ManifoldCF by Karl Wright" href="http://vimeo.com/33082485" target="_blank">Lucene Revolutions Eurocon 2011 - Karl Wright - ManifoldCF</a> (Lucene Revolutions Eurocon, 2011)</li>
