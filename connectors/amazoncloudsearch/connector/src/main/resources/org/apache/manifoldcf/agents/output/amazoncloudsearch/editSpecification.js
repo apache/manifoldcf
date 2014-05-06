@@ -15,3 +15,37 @@
  limitations under the License.
 -->
 
+<script type="text/javascript">
+<!--
+function checkOutputSpecification()
+{
+  return true;
+}
+
+function addFieldMapping()
+{
+  if (editjob.cloudsearch_fieldmapping_source.value == "")
+  {
+    alert("$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.NoFieldMappingSpecified'))");
+    editjob.solr_fieldmapping_source.focus();
+    return;
+  }
+  editjob.cloudsearch_fieldmapping_op.value="Add";
+  postFormSetAnchor("cloudsearch_fieldmapping");
+}
+
+function deleteFieldMapping(i)
+{
+  // Set the operation
+  eval("editjob.cloudsearch_fieldmapping_"+i+"_op.value=\"Delete\"");
+  // Submit
+  if (editjob.cloudsearch_fieldmapping_count.value==i)
+    postFormSetAnchor("cloudsearch_fieldmapping");
+  else
+    postFormSetAnchor("cloudsearch_fieldmapping_"+i)
+  // Undo, so we won't get two deletes next time
+  eval("editjob.cloudsearch_fieldmapping_"+i+"_op.value=\"Continue\"");
+}
+
+//-->
+</script>
