@@ -862,7 +862,22 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   
   protected static void fillInContentsSpecificationMap(Map<String,Object> paramMap, OutputSpecification os)
   {
-    // MHL
+    String maxFileSize = AmazonCloudSearchConfig.MAXLENGTH_DEFAULT;
+    String allowedMimeTypes = AmazonCloudSearchConfig.MIMETYPES_DEFAULT;
+    String allowedFileExtensions = AmazonCloudSearchConfig.EXTENSIONS_DEFAULT;
+    for (int i = 0; i < os.getChildCount(); i++)
+    {
+      SpecificationNode sn = os.getChild(i);
+      if (sn.getType.equals(AmazonCloudSearchConfig.NODE_MAXLENGTH))
+        maxFileSize = sn.getAttribute(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
+      else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_MIMETYPES))
+        allowedMimeTypes = sn.getValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
+      else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_EXTENSIONS))
+        allowedFileExtensions = sn.getValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
+    }
+    paramMap.put("MAXFILESIZE",maxFileSize);
+    paramMap.put("MIMETYPES",allowedMimeTypes);
+    paramMap.put("EXTENSIONS",allowedFileExtensions);
   }
   
   /**
@@ -924,20 +939,61 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   */
   @Override
   public String processSpecificationPost(IPostParameters variableContext,
-      Locale locale, OutputSpecification os) throws ManifoldCFException {
-    ConfigurationNode specNode = getSpecNode(os);
-    boolean bAdd = (specNode == null);
-    if (bAdd) 
+    Locale locale, OutputSpecification os) throws ManifoldCFException {
+    String x;
+        
+    x = variableContext.getParameter("maxfilesize");
+    if (x != null)
     {
-      specNode = new SpecificationNode(AmazonCloudSearchSpecs.AMAZONCLOUDSEARCH_SPECS_NODE);
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(AmazonCloudSearchConfig.NODE_MAXLENGTH))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode sn = new SpecificationNode(AmazonCloudSearchConfig.NODE_MAXLENGTH);
+      sn.setAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE,x);
+      os.addChild(os.getChildCount(),sn);
     }
-    AmazonCloudSearchSpecs.contextToSpecNode(variableContext, specNode);
-    if (bAdd)
+
+    x = variableContext.getParameter("mimetypes");
+    if (x != null)
     {
-      os.addChild(os.getChildCount(), specNode);
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(AmazonCloudSearchConfig.NODE_MIMETYPES))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode sn = new SpecificationNode(AmazonCloudSearchConfig.NODE_MIMETYPES);
+      sn.setValue(x);
+      os.addChild(os.getChildCount(),sn);
+    }
+
+    x = variableContext.getParameter("extensions");
+    if (x != null)
+    {
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(AmazonCloudSearchConfig.NODE_EXTENSIONS))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode sn = new SpecificationNode(AmazonCloudSearchConfig.NODE_EXTENSIONS);
+      sn.setValue(x);
+      os.addChild(os.getChildCount(),sn);
     }
     
-    String x = variableContext.getParameter("cloudsearch_fieldmapping_count");
+    x = variableContext.getParameter("cloudsearch_fieldmapping_count");
     if (x != null && x.length() > 0)
     {
       // About to gather the fieldmapping nodes, so get rid of the old ones.
