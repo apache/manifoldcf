@@ -23,6 +23,7 @@ package org.apache.manifoldcf.agents.output.amazoncloudsearch;
  */
 public class AmazonCloudSearchConfig {
 
+  // Configuration parameters
   public static final String SERVER_HOST="serverhost";
   public static final String SERVER_PATH="serverpath";
   public static final String PROXY_PROTOCOL="proxyprotocol";
@@ -34,11 +35,12 @@ public class AmazonCloudSearchConfig {
   public static final String PROXY_PROTOCOL_DEFAULT = "http";
   public static final String PROXY_HOST_DEFAULT = "";
   public static final String PROXY_PORT_DEFAULT = "";
+  
+  // Specification nodes and values
   public static final String NODE_FIELDMAP = "fieldmap";
   public static final String NODE_KEEPMETADATA = "keepAllMetadata";
   public static final String ATTRIBUTE_SOURCE = "source";
   public static final String ATTRIBUTE_TARGET = "target";
   public static final String ATTRIBUTE_VALUE = "value";
-  
   
 }

@@ -74,7 +74,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class AmazonCloudSearchConnector  extends BaseOutputConnector {
+public class AmazonCloudSearchConnector extends BaseOutputConnector {
 
   /** Ingestion activity */
   public final static String INGEST_ACTIVITY = "document ingest";
@@ -93,9 +93,10 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
   /** Forward to the javascript to check the specification parameters for the job */
   private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
   
-  private static final String EDIT_SPECIFICATION_CONTENT_HTML = "editSpecification.html";
+  private static final String EDIT_SPECIFICATION_CONTENTS_HTML = "editSpecification_Contents.html";
+  private static final String EDIT_SPECIFICATION_FIELDMAPPING_HTML = "editSpecification_FieldMapping.html";
   
-  private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
+  private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
   
   /** Local connection */
   protected HttpPost poster = null;
@@ -825,6 +826,45 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
         currentTime + 300000L, currentTime + 3 * 60 * 60000L, -1, false);
   }
   
+  protected static void fillInFieldMappingSpecificationMap(Map<String,Object> paramMap, OutputSpecification os)
+  {
+    // Prep for field mappings
+    List<Map<String,String>> fieldMappings = new ArrayList<Map<String,String>>();
+    int i = 0;
+    String keepAllMetadataValue = "true";
+    for (int i = 0; i < os.getChildCount(); i++)
+    {
+      SpecificationNode sn = os.getChild(i);
+      if (sn.getType().equals(AmazonCloudSearchConfig.NODE_FIELDMAP)) {
+        String source = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_SOURCE);
+        String target = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_TARGET);
+        if (target == null)
+        {
+          target = "";
+          targetDisplay = "(remove)";
+        }
+        else
+          targetDisplay = target;
+        Map<String,String> fieldMapping = new HashMap<String,String>();
+        fieldMapping.put("SOURCE",source);
+        fieldMapping.put("TARGET",target);
+        fieldMapping.put("TARGETDISPLAY",targetDisplay);
+        fieldMappings.add(fieldMapping);
+      }
+      else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_KEEPMETADATA))
+      {
+        keepAllMetadataValue = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
+      }
+    }
+    paramMap.put("FIELDMAPPINGS",fieldMappings);
+    paramMap.put("KEEPALLMETADATA",keepAllMetadataValue);
+  }
+  
+  protected static void fillInContentsSpecificationMap(Map<String,Object> paramMap, OutputSpecification os)
+  {
+    // MHL
+  }
+  
   /**
    * Output the specification header section. This method is called in the head
    * section of a job page which has selected an output connection of the
@@ -841,33 +881,18 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
       OutputSpecification os, List<String> tabsArray)
       throws ManifoldCFException, IOException
   {
-    super.outputSpecificationHeader(out, locale, os, tabsArray);
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+
     tabsArray.add(Messages.getString(locale, "AmazonCloudSearchOutputConnector.FieldMappingTabName"));
     tabsArray.add(Messages.getString(locale, "AmazonCloudSearchOutputConnector.ContentsTabName"));
-    outputResource(EDIT_SPECIFICATION_JS, out, locale, null, null);
+
+    // Fill in the specification header map, using data from all tabs.
+    fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInContentsSpecificationMap(paramMap, os);
+
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_JS,paramMap);
   }
   
-  /**
-   * Read the content of a resource, replace the variable ${PARAMNAME} with the
-   * value and copy it to the out.
-   * 
-   * @param resName
-   * @param out
-   * @throws ManifoldCFException
-   */
-  private static void outputResource(String resName, IHTTPOutput out,
-    Locale locale, AmazonCloudSearchParam params, String tabName) throws ManifoldCFException {
-    Map<String,String> paramMap = null;
-    if (params != null) {
-      paramMap = params.buildMap();
-      if (tabName != null) {
-        paramMap.put("TabName", tabName);
-      }
-    }
-    
-    Messages.outputResourceWithVelocity(out,locale,resName,paramMap,false);
-  }
-
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
@@ -880,151 +905,13 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
     throws ManifoldCFException, IOException
   {
-    int i = 0;
-    
-    // Field Mapping tab
-    if (tabName.equals(Messages.getString(locale,"AmazonCloudSearchOutputConnector.FieldMappingTabName")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"AmazonCloudSearchOutputConnector.FieldMappings") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"AmazonCloudSearchOutputConnector.MetadataFieldName") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"AmazonCloudSearchOutputConnector.CloudSearchFieldName") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
+    Map<String, Object> paramMap = new HashMap<String, Object>();
 
-      int fieldCounter = 0;
-      i = 0;
-      boolean keepMetadata = true;
-      while (i < os.getChildCount()) {
-        SpecificationNode sn = os.getChild(i++);
-        if (sn.getType().equals(AmazonCloudSearchConfig.NODE_FIELDMAP)) {
-          String source = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_SOURCE);
-          String target = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_TARGET);
-          if (target != null && target.length() == 0) {
-            target = null;
-          }
-          String targetDisplay = target;
-          if (target == null)
-          {
-            target = "";
-            targetDisplay = "(remove)";
-          }
-          // It's prefix will be...
-          String prefix = "cloudsearch_fieldmapping_" + Integer.toString(fieldCounter);
-          out.print(
-"        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"AmazonCloudSearchOutputConnector.DeleteFieldMapping")+Integer.toString(fieldCounter+1)+"\" onclick='javascript:deleteFieldMapping("+Integer.toString(fieldCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_op\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(source)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(targetDisplay)+"</nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-          );
-          fieldCounter++;
-        }
-        else if(sn.getType().equals(AmazonCloudSearchConfig.NODE_KEEPMETADATA)) {
-          keepMetadata = Boolean.parseBoolean(sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE));
-        }
-      }
-      
-      if (fieldCounter == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"AmazonCloudSearchOutputConnector.NoFieldMappingSpecified") + "</td></tr>\n"
-        );
-      }
-      
-      String keepMetadataValue;
-      if (keepMetadata)
-        keepMetadataValue = " checked=\"true\"";
-      else
-        keepMetadataValue = "";
-
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\"cloudsearch_fieldmapping\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"AmazonCloudSearchOutputConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"AmazonCloudSearchOutputConnector.AddFieldMapping") + "\" onclick=\"javascript:addFieldMapping();\"/>\n"+
-"            </a>\n"+
-"            <input type=\"hidden\" name=\"cloudsearch_fieldmapping_count\" value=\""+fieldCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"cloudsearch_fieldmapping_op\" value=\"Continue\"/>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"15\" name=\"cloudsearch_fieldmapping_source\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"15\" name=\"cloudsearch_fieldmapping_target\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"AmazonCloudSearchOutputConnector.KeepAllMetadata")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"       <input type=\"checkbox\""+keepMetadataValue+" name=\"cloudsearch_keepallmetadata\" value=\"true\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for field mapping
-      i = 0;
-      int fieldCounter = 0;
-      String keepMetadataValue = "true";
-      while (i < os.getChildCount()) {
-        SpecificationNode sn = os.getChild(i++);
-        if (sn.getType().equals(AmazonCloudSearchConfig.NODE_FIELDMAP)) {
-          String source = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_SOURCE);
-          String target = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_TARGET);
-          if (target == null)
-            target = "";
-        // It's prefix will be...
-          String prefix = "cloudsearch_fieldmapping_" + Integer.toString(fieldCounter);
-          out.print(
-"<input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"
-          );
-          fieldCounter++;
-        }
-        else if(sn.getType().equals(AmazonCloudSearchConfig.NODE_KEEPMETADATA))
-        {
-          keepMetadataValue = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"cloudsearch_keepallmetadata\" value=\""+keepMetadataValue+"\"/>\n"
-      );
-      out.print(
-"<input type=\"hidden\" name=\"cloudsearch_fieldmapping_count\" value=\""+Integer.toString(fieldCounter)+"\"/>\n"
-      );
-    }
-    
-
-    // Content tab
-    AmazonCloudSearchSpecs param = new AmazonCloudSearchSpecs(getSpecNode(os));
-    outputResource(EDIT_SPECIFICATION_CONTENT_HTML, out, locale, param, tabName);
-    
+    // Fill in the field mapping tab data
+    fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInContentsSpecificationMap(paramMap, os);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_CONTENTS_HTML,paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_FIELDMAPPING_HTML,paramMap);
   }
 
   /** Process a specification post.
@@ -1038,7 +925,6 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
   @Override
   public String processSpecificationPost(IPostParameters variableContext,
       Locale locale, OutputSpecification os) throws ManifoldCFException {
-    
     ConfigurationNode specNode = getSpecNode(os);
     boolean bAdd = (specNode == null);
     if (bAdd) 
@@ -1068,13 +954,14 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
       i = 0;
       while (i < count)
       {
-        String prefix = "cloudsearch_fieldmapping_"+Integer.toString(i);
-        String op = variableContext.getParameter(prefix+"_op");
+        String prefix = "cloudsearch_fieldmapping_";
+        String suffix = "_"+Integer.toString(i);
+        String op = variableContext.getParameter(prefix+"op"+suffix);
         if (op == null || !op.equals("Delete"))
         {
           // Gather the fieldmap etc.
-          String source = variableContext.getParameter(prefix+"_source");
-          String target = variableContext.getParameter(prefix+"_target");
+          String source = variableContext.getParameter(prefix+"source"+suffix);
+          String target = variableContext.getParameter(prefix+"target"+suffix);
           if (target == null)
             target = "";
           SpecificationNode node = new SpecificationNode(AmazonCloudSearchConfig.NODE_FIELDMAP);
@@ -1140,75 +1027,13 @@ public class AmazonCloudSearchConnector  extends BaseOutputConnector {
   public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
     throws ManifoldCFException, IOException
   {
-    // Prep for field mappings
-    int i = 0;
-    
-    // Display field mappings
-    out.print(
-"\n"+
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"AmazonCloudSearchOutputConnector.FieldMappings") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"AmazonCloudSearchOutputConnector.MetadataFieldName") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"AmazonCloudSearchOutputConnector.CloudSearchFieldName") + "</nobr></td>\n"+
-"        </tr>\n"
-    );
+    Map<String, Object> paramMap = new HashMap<String, Object>();
 
-    int fieldCounter = 0;
-    i = 0;
-    String keepAllMetadataValue = "true";
-    while (i < os.getChildCount()) {
-      SpecificationNode sn = os.getChild(i++);
-      if (sn.getType().equals(AmazonCloudSearchConfig.NODE_FIELDMAP)) {
-        String source = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_SOURCE);
-        String target = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_TARGET);
-        String targetDisplay = target;
-        if (target == null)
-        {
-          target = "";
-          targetDisplay = "(remove)";
-        }
-        out.print(
-"        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(source)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(targetDisplay)+"</nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-        );
-        fieldCounter++;
-      }
-      else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_KEEPMETADATA))
-      {
-        keepAllMetadataValue = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
-      }
-    }
-    
-    if (fieldCounter == 0)
-    {
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"AmazonCloudSearchOutputConnector.NoFieldMappingSpecified") + "</td></tr>\n"
-      );
-    }
-    out.print(
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"AmazonCloudSearchOutputConnector.KeepAllMetadata") + "</nobr></td>\n"+
-"    <td class=\"value\"><nobr>" + keepAllMetadataValue + "</nobr></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-    );
-    
-    AmazonCloudSearchSpecs spec = new AmazonCloudSearchSpecs(getSpecNode(os));
-    outputResource(VIEW_SPEC_FORWARD, out, locale, spec, null);
+    // Fill in the map with data from all tabs
+    fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInContentsSpecificationMap(paramMap, os);
+
+    Messages.outputResourceWithVelocity(out,locale,VIEW_SPECIFICATION_HTML,paramMap);
     
   }
   

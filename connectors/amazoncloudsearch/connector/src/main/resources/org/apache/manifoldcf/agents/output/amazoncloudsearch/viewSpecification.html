@@ -28,4 +28,43 @@
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.AllowedFileExtensionsColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($EXTENSIONS)</td>
   </tr>
+  
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.FieldMappings'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.MetadataFieldName'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.CloudSearchFieldName'))</nobr></td>
+        </tr>
+#set($fieldcounter = 0)
+#foreach($fieldmapping in $FIELDMAPPINGS)
+  #if(($fieldcounter % 2) == 0)
+        <tr class="evenformrow">
+  #else
+        <tr class="oddformrow">
+  #end
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($fieldmapping.get('SOURCE'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($fieldmapping.get('TARGETDISPLAY'))</nobr>
+          </td>
+        </tr>
+  #set($fieldcounter = $fieldcounter + 1)
+#end
+#if($fieldcounter == 0)
+        <tr class="formrow"><td class="formmessage" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.NoFieldMappingSpecified'))</td></tr>
+#end
+      </table>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.KeepAllMetadata'))</nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($KEEPALLMETADATA)</nobr></td>
+  </tr>
+
 </table>
