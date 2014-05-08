@@ -37,14 +37,14 @@ function addFieldMapping()
 function deleteFieldMapping(i)
 {
   // Set the operation
-  eval("editjob.cloudsearch_fieldmapping_"+i+"_op.value=\"Delete\"");
+  eval("editjob.cloudsearch_fieldmapping_op_"+i+".value=\"Delete\"");
   // Submit
   if (editjob.cloudsearch_fieldmapping_count.value==i)
     postFormSetAnchor("cloudsearch_fieldmapping");
   else
     postFormSetAnchor("cloudsearch_fieldmapping_"+i)
   // Undo, so we won't get two deletes next time
-  eval("editjob.cloudsearch_fieldmapping_"+i+"_op.value=\"Continue\"");
+  eval("editjob.cloudsearch_fieldmapping_op_"+i+".value=\"Continue\"");
 }
 
 //-->
