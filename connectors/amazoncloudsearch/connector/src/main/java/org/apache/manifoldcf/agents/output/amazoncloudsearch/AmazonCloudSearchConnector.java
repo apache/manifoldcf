@@ -767,6 +767,9 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   {
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
+    // Set the tab name
+    paramMap.put("TABNAME", tabName);
+
     // Fill in the field mapping tab data
     fillInFieldMappingSpecificationMap(paramMap, os);
     fillInContentsSpecificationMap(paramMap, os);
