@@ -345,9 +345,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     // Establish a session
     getSession();
     
-    Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-    boolean keepAllMetadata = true;
-    keepAllMetadata = readConfigurationDescription(outputDescription, sourceTargets);
+    SpecPacker sp = new SpecPacker(outputDescription);
     
     String jsondata = "";
     try {
@@ -365,17 +363,14 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       {
         String fName = itr.next();
         Object[] value = document.getField(fName);
-        if(sourceTargets.get(fName)!=null)
+        String target = sp.getMapping(fName);
+        if(target!=null)
         {
-          List<String> fnameList = sourceTargets.get(fName);
-          for(String newName : fnameList)
-          {
-            fields.put(newName, value);
-          }
+          fields.put(target, value);
         }
         else
         {
-          if(keepAllMetadata)
+          if(sp.keepAllMetadata())
           {
             fields.put(fName, value);
           }
@@ -386,17 +381,14 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       String[] metaNames = metadata.names();
       for(String mName : metaNames){
         String value = metadata.get(mName);
-        if(sourceTargets.get(mName)!=null)
+        String target = sp.getMapping(mName);
+        if(target!=null)
         {
-          List<String> nameList = sourceTargets.get(mName);
-          for(String newName : nameList)
-          {
-            fields.put(newName, value);
-          }
+          fields.put(target, value);
         }
         else
         {
-          if(keepAllMetadata)
+          if(sp.keepAllMetadata())
           {
             fields.put(mName, value);
           }
@@ -438,49 +430,6 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     }
     else {
       throw new ManifoldCFException("recieved error status from service after feeding document. response body : " + responsbody);
-    }
-  }
-
-  private boolean readConfigurationDescription(String outputDescription,
-      Map<String, List<String>> sourceTargets)
-      throws ManifoldCFException {
-    ObjectMapper mapper = new ObjectMapper();
-    
-    boolean keepAllMetadata = true;
-    try
-    {
-      JsonNode node = mapper.readTree(outputDescription);
-      Iterator<String> ir = node.fieldNames();
-      while(ir.hasNext()){
-        String fieldName = ir.next();
-        if("fieldMappings".equals(fieldName))
-        {
-          JsonNode fm = node.path(fieldName);
-          Iterator<String> itr = fm.fieldNames();
-          while(itr.hasNext())
-          {
-            String from = itr.next();
-            String to = fm.path(from).asText();
-            
-            List<String> list = sourceTargets.get(from);
-            if (list == null) {
-              list = new ArrayList<String>();
-              sourceTargets.put(from, list);
-            }
-            list.add(to);
-          }
-        }
-        else if("keepAllMetadata".equals(fieldName)){
-          String meta = node.path(fieldName).toString();
-          keepAllMetadata = Boolean.getBoolean(meta);
-        }
-      }
-      return keepAllMetadata;
-      
-    } catch (JsonProcessingException e) {
-      throw new ManifoldCFException(e);
-    } catch (IOException e) {
-      throw new ManifoldCFException(e);
     }
   }
 
@@ -1052,6 +1001,13 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       return extensions.contains(extension);
     }
     
+    public String getMapping(String source) {
+      return sourceTargets.get(source);
+    }
+    
+    public boolean keepAllMetadata() {
+      return keepAllMetadata;
+    }
   }
   
 }
