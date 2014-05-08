@@ -21,6 +21,8 @@ package org.apache.manifoldcf.agents.output.amazoncloudsearch;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.io.StringReader;
+import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -923,6 +925,26 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     
   }
   
+  protected static void fillSet(Set<String> set, String input) {
+    try
+    {
+      StringReader sr = new StringReader(input);
+      BufferedReader br = new BufferedReader(sr);
+      String line = null;
+      while ((line = br.readLine()) != null)
+      {
+        line = line.trim();
+        if (line.length() > 0)
+          set.add(line);
+      }
+    }
+    catch (IOException e)
+    {
+      // Should never happen
+      throw new RuntimeException("IO exception reading strings: "+e.getMessage(),e);
+    }
+  }
+  
   protected static class SpecPacker {
     
     private final Map<String,String> sourceTargets = new HashMap<String,String>();
@@ -933,6 +955,9 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     
     public SpecPacker(OutputSpecification os) {
       boolean keepAllMetadata = true;
+      Long lengthCutoff = null;
+      String extensions = null;
+      String mimeTypes = null;
       for (int i = 0; i < os.getChildCount(); i++) {
         SpecificationNode sn = os.getChild(i);
         
@@ -947,11 +972,19 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
             target = "";
           }
           sourceTargets.put(source, target);
+        } else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_MIMETYPES)) {
+          mimeTypes = sn.getValue();
+        } else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_EXTENSIONS)) {
+          extensions = sn.getValue();
+        } else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_MAXLENGTH)) {
+          String value = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
+          lengthCutoff = new Long(value);
         }
       }
       this.keepAllMetadata = keepAllMetadata;
-      // MHL for mimetypes and extensions and length
-      this.lengthCutoff = null;
+      this.lengthCutoff = lengthCutoff;
+      fillSet(this.extensions, extensions);
+      fillSet(this.mimeTypes, mimeTypes);
     }
     
     public SpecPacker(String packedString) {
@@ -993,11 +1026,15 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     }
     
     public boolean checkMimeType(String mimeType) {
+      if (mimeType == null)
+        mimeType = "application/unknown";
       return mimeTypes.contains(mimeType);
     }
     
     public boolean checkURLIndexable(String url) {
       String extension = FilenameUtils.getExtension(url);
+      if (extension == null || extension.length() == 0)
+        extension = ".";
       return extensions.contains(extension);
     }
     
