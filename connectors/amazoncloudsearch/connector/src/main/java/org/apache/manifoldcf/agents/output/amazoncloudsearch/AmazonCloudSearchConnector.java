@@ -988,16 +988,57 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     }
     
     public SpecPacker(String packedString) {
-      // MHL
-      this.keepAllMetadata = true;
-      this.lengthCutoff = null;
+      
+      int index = 0;
+      
+      // Mappings
+      final List<String> packedMappings = new ArrayList<String>();
+      index = unpackList(packedMappings,packedString,index,'+');
+      String[] fixedList = new String[2];
+      for (String packedMapping : packedMappings) {
+        unpackFixedList(fixedList,packedMapping,0,':');
+        sourceTargets.put(fixedList[0], fixedList[1]);
+      }
+      
+      // Keep all metadata
+      if (packedString.length() > index)
+        keepAllMetadata = (packedString.charAt(index++) == '+');
+      else
+        keepAllMetadata = true;
+      
+      // Max length
+      final StringBuilder sb = new StringBuilder();
+      if (packedString.length() > index) {
+        if (packedString.charAt(index++) == '+') {
+          index = unpack(sb,packedString,index,'+');
+          this.lengthCutoff = new Long(sb.toString());
+        } else
+          this.lengthCutoff = null;
+      } else
+        this.lengthCutoff = null;
+      
+      // Mime types
+      final List<String> mimeBuffer = new ArrayList<String>();
+      index = unpackList(mimeBuffer,packedString,index,'+');
+      for (String mimeType : mimeBuffer) {
+        this.mimeTypes.add(mimeType);
+      }
+      
+      // Extensions
+      final List<String> extensionsBuffer = new ArrayList<String>();
+      index = unpackList(extensionsBuffer,packedString,index,'+');
+      for (String extension : extensionsBuffer) {
+        this.extensions.add(extension);
+      }
     }
     
     public String toPackedString() {
       StringBuilder sb = new StringBuilder();
+      int i;
       
-      String[] sortArray = new String[sourceTargets.size()];
-      int i = 0;
+      // Mappings
+      final String[] sortArray = new String[sourceTargets.size()];
+      i = 0;
       for (String source : sourceTargets.keySet()) {
         sortArray[i++] = source;
       }
@@ -1015,7 +1056,38 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       }
       packList(sb,packedMappings,'+');
 
-      // MHL for mimetypes and all metadata and extensions and length
+      // Keep all metadata
+      if (keepAllMetadata)
+        sb.append('+');
+      else
+        sb.append('-');
+      
+      // Max length
+      if (lengthCutoff == null)
+        sb.append('-');
+      else {
+        sb.append('+');
+        pack(sb,lengthCutoff.toString(),'+');
+      }
+      
+      // Mime types
+      String[] mimeTypes = new String[this.mimeTypes.size()];
+      i = 0;
+      for (String mimeType : this.mimeTypes) {
+        mimeTypes[i++] = mimeType;
+      }
+      java.util.Arrays.sort(mimeTypes);
+      packList(sb,mimeTypes,'+');
+      
+      // Extensions
+      String[] extensions = new String[this.extensions.size()];
+      i = 0;
+      for (String extension : this.extensions) {
+        extensions[i++] = extension;
+      }
+      java.util.Arrays.sort(extensions);
+      packList(sb,extensions,'+');
+      
       return sb.toString();
     }
     
