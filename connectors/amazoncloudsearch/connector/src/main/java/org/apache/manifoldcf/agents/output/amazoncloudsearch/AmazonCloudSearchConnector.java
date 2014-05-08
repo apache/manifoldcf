@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.http.Consts;
@@ -282,89 +284,8 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   public String getOutputDescription(OutputSpecification os)
     throws ManifoldCFException, ServiceInterruption
   {
-    // Do the source/target pairs
-    int i = 0;
-    Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-    boolean keepAllMetadata = true;
-    while (i < os.getChildCount()) {
-      SpecificationNode sn = os.getChild(i++);
-      
-      if(sn.getType().equals(AmazonCloudSearchConfig.NODE_KEEPMETADATA)) {
-        String value = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
-        keepAllMetadata = Boolean.parseBoolean(value);
-      } else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_FIELDMAP)) {
-        String source = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_SOURCE);
-        String target = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_TARGET);
-        
-        if (target == null) {
-          target = "";
-        }
-        List<String> list = (List<String>)sourceTargets.get(source);
-        if (list == null) {
-          list = new ArrayList<String>();
-          sourceTargets.put(source, list);
-        }
-        list.add(target);
-      }
-    }
-    
-    String[] sortArray = new String[sourceTargets.size()];
-    Iterator iter = sourceTargets.keySet().iterator();
-    i = 0;
-    while (iter.hasNext()) {
-      sortArray[i++] = (String)iter.next();
-    }
-    java.util.Arrays.sort(sortArray);
-    
-    ArrayList<String[]> sourceTargetsList = new ArrayList<String[]>();
-    i = 0;
-    while (i < sortArray.length) {
-      String source = sortArray[i++];
-      List<String> values = (List<String>)sourceTargets.get(source);
-      java.util.Collections.sort(values);
-      int j = 0;
-      while (j < values.size()) {
-        String target = (String)values.get(j++);
-        String[] fixedList = new String[2];
-        fixedList[0] = source;
-        fixedList[1] = target;
-        sourceTargetsList.add(fixedList);
-      }
-    }
-    
-    //for Content tab
-    AmazonCloudSearchSpecs spec = new AmazonCloudSearchSpecs(getSpecNode(os));
-    
-    //build json 
-    // {"fieldMappings":{"Content-Style-Type":"content_type","dc:title":"title","description":"description"},"keepAllMetadata":true}
-    String resultBody = "";
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      
-      ObjectNode rootNode = mapper.createObjectNode();
-      ObjectNode fm = rootNode.putObject("fieldMappings");
-      for(String[] f : sourceTargetsList){
-        fm.put(f[0], f[1]);
-      }
-      
-      // Keep all metadata flag
-      if (keepAllMetadata)
-      {
-        rootNode.put("keepAllMetadata", true);
-      }
-      else
-      {
-        rootNode.put("keepAllMetadata", false);
-      }
-      
-      // Content tab..
-      rootNode.put("content", mapper.valueToTree(spec));
-      
-      resultBody = mapper.writeValueAsString(rootNode);
-    } catch (JsonProcessingException e) {
-      throw new ManifoldCFException(e);
-    }
-    return resultBody;
+    SpecPacker sp = new SpecPacker(os);
+    return sp.toPackedString();
   }
 
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
@@ -376,58 +297,31 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption
   {
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      AmazonCloudSearchSpecs spec = new AmazonCloudSearchSpecs(mapper.readTree(outputDescription).get("content"));
-      if(spec.checkMimeType(mimeType))
-      {
-        return super.checkMimeTypeIndexable(mimeType);
-      }else
-      {
-        return false;
-      }
-    } catch (JsonProcessingException e) {
-      throw new ManifoldCFException(e);
-    } catch (IOException e) {
-      throw new ManifoldCFException(e);
-    }
+    SpecPacker sp = new SpecPacker(outputDescription);
+    if (sp.checkMimeType(mimeType))
+      return super.checkMimeTypeIndexable(outputDescription, mimeType);
+    else
+      return false;
   }
 
   @Override
   public boolean checkLengthIndexable(String outputDescription, long length)
-      throws ManifoldCFException, ServiceInterruption {
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      AmazonCloudSearchSpecs spec = new AmazonCloudSearchSpecs(mapper.readTree(outputDescription).get("content"));
-      long maxFileSize = spec.getMaxFileSize();
-      if (length > maxFileSize)
-      {
-        return false;
-      }
+    throws ManifoldCFException, ServiceInterruption {
+    SpecPacker sp = new SpecPacker(outputDescription);
+    if (sp.checkLengthIndexable(length))
       return super.checkLengthIndexable(outputDescription, length);
-    } catch (JsonProcessingException e) {
-      throw new ManifoldCFException(e);
-    } catch (IOException e){
-      throw new ManifoldCFException(e);
-    }
+    else
+      return false;
   }
 
   @Override
   public boolean checkURLIndexable(String outputDescription, String url)
     throws ManifoldCFException, ServiceInterruption {
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      AmazonCloudSearchSpecs spec = new AmazonCloudSearchSpecs(mapper.readTree(outputDescription).get("content"));
-      if (spec.checkExtension(FilenameUtils.getExtension(url)))
-      {
-        return super.checkURLIndexable(outputDescription, url);
-      }
+    SpecPacker sp = new SpecPacker(outputDescription);
+    if (sp.checkURLIndexable(url))
+      return super.checkURLIndexable(outputDescription, url);
+    else
       return false;
-    } catch (JsonProcessingException e) {
-      throw new ManifoldCFException(e);
-    } catch (IOException e){
-      throw new ManifoldCFException(e);
-    }
   }
   
   /** Add (or replace) a document in the output data store using the connector.
@@ -830,7 +724,6 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   {
     // Prep for field mappings
     List<Map<String,String>> fieldMappings = new ArrayList<Map<String,String>>();
-    int i = 0;
     String keepAllMetadataValue = "true";
     for (int i = 0; i < os.getChildCount(); i++)
     {
@@ -838,6 +731,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       if (sn.getType().equals(AmazonCloudSearchConfig.NODE_FIELDMAP)) {
         String source = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_SOURCE);
         String target = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_TARGET);
+        String targetDisplay;
         if (target == null)
         {
           target = "";
@@ -868,12 +762,12 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     for (int i = 0; i < os.getChildCount(); i++)
     {
       SpecificationNode sn = os.getChild(i);
-      if (sn.getType.equals(AmazonCloudSearchConfig.NODE_MAXLENGTH))
-        maxFileSize = sn.getAttribute(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
+      if (sn.getType().equals(AmazonCloudSearchConfig.NODE_MAXLENGTH))
+        maxFileSize = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
       else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_MIMETYPES))
-        allowedMimeTypes = sn.getValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
+        allowedMimeTypes = sn.getValue();
       else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_EXTENSIONS))
-        allowedFileExtensions = sn.getValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
+        allowedFileExtensions = sn.getValue();
     }
     paramMap.put("MAXFILESIZE",maxFileSize);
     paramMap.put("MIMETYPES",allowedMimeTypes);
@@ -955,7 +849,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
           i++;
       }
       SpecificationNode sn = new SpecificationNode(AmazonCloudSearchConfig.NODE_MAXLENGTH);
-      sn.setAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE,x);
+      sn.setAttribute(AmazonCloudSearchConfig.ATTRIBUTE_VALUE,x);
       os.addChild(os.getChildCount(),sn);
     }
 
@@ -1060,19 +954,6 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   }
   
 
-  final private SpecificationNode getSpecNode(OutputSpecification os) {
-    int l = os.getChildCount();
-    for (int i = 0; i < l; i++)
-    {
-      SpecificationNode node = os.getChild(i);
-      if (AmazonCloudSearchSpecs.AMAZONCLOUDSEARCH_SPECS_NODE.equals(node.getType()))
-      {
-        return node;
-      }
-    }
-    return null;
-  }
-  
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
@@ -1090,6 +971,86 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     fillInContentsSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out,locale,VIEW_SPECIFICATION_HTML,paramMap);
+    
+  }
+  
+  protected static class SpecPacker {
+    
+    private final Map<String,String> sourceTargets = new HashMap<String,String>();
+    private final boolean keepAllMetadata;
+    private final Set<String> extensions = new HashSet<String>();
+    private final Set<String> mimeTypes = new HashSet<String>();
+    private final Long lengthCutoff;
+    
+    public SpecPacker(OutputSpecification os) {
+      boolean keepAllMetadata = true;
+      for (int i = 0; i < os.getChildCount(); i++) {
+        SpecificationNode sn = os.getChild(i);
+        
+        if(sn.getType().equals(AmazonCloudSearchConfig.NODE_KEEPMETADATA)) {
+          String value = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_VALUE);
+          keepAllMetadata = Boolean.parseBoolean(value);
+        } else if (sn.getType().equals(AmazonCloudSearchConfig.NODE_FIELDMAP)) {
+          String source = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_SOURCE);
+          String target = sn.getAttributeValue(AmazonCloudSearchConfig.ATTRIBUTE_TARGET);
+          
+          if (target == null) {
+            target = "";
+          }
+          sourceTargets.put(source, target);
+        }
+      }
+      this.keepAllMetadata = keepAllMetadata;
+      // MHL for mimetypes and extensions and length
+      this.lengthCutoff = null;
+    }
+    
+    public SpecPacker(String packedString) {
+      // MHL
+      this.keepAllMetadata = true;
+      this.lengthCutoff = null;
+    }
+    
+    public String toPackedString() {
+      StringBuilder sb = new StringBuilder();
+      
+      String[] sortArray = new String[sourceTargets.size()];
+      int i = 0;
+      for (String source : sourceTargets.keySet()) {
+        sortArray[i++] = source;
+      }
+      java.util.Arrays.sort(sortArray);
+      
+      List<String> packedMappings = new ArrayList<String>();
+      String[] fixedList = new String[2];
+      for (String source : sortArray) {
+        String target = sourceTargets.get(source);
+        StringBuilder localBuffer = new StringBuilder();
+        fixedList[0] = source;
+        fixedList[1] = target;
+        packFixedList(localBuffer,fixedList,':');
+        packedMappings.add(localBuffer.toString());
+      }
+      packList(sb,packedMappings,'+');
+
+      // MHL for mimetypes and all metadata and extensions and length
+      return sb.toString();
+    }
+    
+    public boolean checkLengthIndexable(long length) {
+      if (lengthCutoff == null)
+        return true;
+      return (length <= lengthCutoff.longValue());
+    }
+    
+    public boolean checkMimeType(String mimeType) {
+      return mimeTypes.contains(mimeType);
+    }
+    
+    public boolean checkURLIndexable(String url) {
+      String extension = FilenameUtils.getExtension(url);
+      return extensions.contains(extension);
+    }
     
   }
   
