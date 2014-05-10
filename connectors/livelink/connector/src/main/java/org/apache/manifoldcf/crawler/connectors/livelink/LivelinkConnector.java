@@ -209,6 +209,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
   }
 
+  /** Tell the world what model this connector uses for getDocumentIdentifiers().
+  * This must return a model value as specified above.
+  *@return the model type value.
+  */
+  @Override
+  public int getConnectorModel()
+  {
+    // Livelink is a chained hierarchy model
+    return MODEL_CHAINED_ADD_CHANGE;
+  }
+
   /** Connect.  The configuration parameters are included.
   *@param configParams are the configuration parameters for this connection.
   */
