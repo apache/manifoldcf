@@ -6125,12 +6125,15 @@ public class JobManager implements IJobManager
         jobQueue.preparePartialScan(jobID);
       return;
     }
-    
-    // Similarly, minimal crawl attempts no delete phase unless the connector explicitly forbids it, or unless
-    // the job criteria have changed.
+
+    // Look for a minimum crawl.
+    // Minimum crawls do only what is seeded, in general.  These are partial scans, always.  MODEL_ALL disables this
+    // functionality, as does a scan from the beginning of time (after the job spec has been changed).
     if (requestMinimum && connectorModel != IRepositoryConnector.MODEL_ALL && !fromBeginningOfTime)
     {
-      // If it is a chained model, do the partial prep.
+      // Minimum crawl requested.
+      // If it is a chained model, do the partial prep.  If it's a non-chained model, do nothing for prep; the seeding
+      // will flag the documents we want to look at.
       if (connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD ||
         connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD_CHANGE)
         jobQueue.preparePartialScan(jobID);
@@ -6139,9 +6142,23 @@ public class JobManager implements IJobManager
     
     if (!continuousJob && connectorModel != IRepositoryConnector.MODEL_PARTIAL &&
       (connectorModel == IRepositoryConnector.MODEL_ALL || fromBeginningOfTime))
+    {
+      // Prepare for a full scan if:
+      // (a) not a continuous job, and
+      // (b) not a partial model (which always disables full scans), and
+      // (c) either MODEL_ALL or from the beginning of time (which are essentially equivalent)
       prepareFullScan(jobID,legalLinkTypes,hopcountMethod);
+    }
     else
+    {
+      // Map COMPLETE and UNCHANGED to PENDINGPURGATORY, if:
+      // (a) job is continuous, OR
+      // (b) MODEL_PARTIAL, OR
+      // (c) not MODEL_ALL AND not from beginning of time
+      // This causes all existing documents to be rechecked!  This is needed because the model is not
+      // complete at this point; we have ADD but we don't have either CHANGE or DELETE.
       jobQueue.prepareIncrementalScan(jobID);
+    }
   }
 
   /** Queue all existing.
