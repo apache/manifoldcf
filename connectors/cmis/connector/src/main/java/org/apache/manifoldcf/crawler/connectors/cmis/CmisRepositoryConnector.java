@@ -66,6 +66,8 @@ import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
 
+import org.apache.commons.io.input.NullInputStream;
+
 /**
  * This is the "repository connector" for a CMIS-compliant repository.
  * 
@@ -1098,6 +1100,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           if(fileLength>0 && document.getContentStream()!=null){
             is = document.getContentStream().getStream();
             rd.setBinary(is, fileLength);
+          } else {
+            rd.setBinary(new NullInputStream(0),0);
           }
 
           //properties

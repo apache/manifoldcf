@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-936: Handle null content streams in CMIS connector.
+(Cetra Free)
+
 CONNECTORS-935 : Use Java 7 in ant build
 (Ahmet Arslan)
 
