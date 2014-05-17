@@ -30,7 +30,7 @@ import org.apache.manifoldcf.crawler.interfaces.RepositoryConnectionManagerFacto
 /** Implementation of the authority connection manager functionality.
  * 
  * <br><br>
- * <b>authconnectors</b>
+ * <b>authconnections</b>
  * <table border="1" cellpadding="3" cellspacing="0">
  * <tr class="TableHeadingColor">
  * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
@@ -40,7 +40,8 @@ import org.apache.manifoldcf.crawler.interfaces.RepositoryConnectionManagerFacto
  * <tr><td>maxcount</td><td>BIGINT</td><td></td></tr>
  * <tr><td>configxml</td><td>LONGTEXT</td><td></td></tr>
  * <tr><td>mappingname</td><td>VARCHAR(32)</td><td></td></tr>
- * <tr><td>authdomainname</td><td>VARCHAR(32)</td><td></td></tr>
+ * <tr><td>authdomainname</td><td>VARCHAR(255)</td><td></td></tr>
+ * <tr><td>groupname</td><td>VARCHAR(32)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
