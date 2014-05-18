@@ -61,7 +61,7 @@
             <include name="junit*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
-            <include name="servlet-api*.jar"/>
+            <include name="javax.servlet-api*.jar"/>
             <include name="juli*.jar"/>
             <include name="xalan*.jar"/>
             <include name="xercesImpl*.jar"/>
@@ -864,7 +864,7 @@
                 <include name="commons-logging*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
+                <include name="javax.servlet-api*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
@@ -874,7 +874,7 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="jetty*.jar"/>
-                <include name="servlet-api*.jar"/>
+                <include name="javax.servlet-api*.jar"/>
                 <include name="ecj*.jar"/>
                 <include name="jasper*.jar"/>
                 <include name="juli*.jar"/>
@@ -1032,13 +1032,13 @@
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="log4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="slf4j-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="slf4j-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="servlet-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="javax.servlet-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="ecj.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-continuation.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-http.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-io.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-jndi.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-jsp-2.1.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-jsp.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-plus.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-security.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="jetty-server.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -1074,13 +1074,13 @@
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="log4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="slf4j-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="slf4j-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="servlet-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="javax.servlet-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="ecj.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-continuation.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-http.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-io.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-jndi.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-jsp-2.1.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-jsp.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-plus.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-security.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="jetty-server.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -1123,7 +1123,7 @@
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="commons-logging.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="log4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="serializer.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="servlet-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="javax.servlet-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="xalan.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="xercesImpl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="xml-apis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -1369,7 +1369,7 @@
         <property name="manifest-cp-39" value="${manifest-cp-38} ../lib/log4j.jar"/>
         <property name="manifest-cp-40" value="${manifest-cp-39} ../lib/postgresql.jar"/>
         <property name="manifest-cp-42" value="${manifest-cp-40} ../lib/serializer.jar"/>
-        <property name="manifest-cp-43" value="${manifest-cp-42} ../lib/servlet-api.jar"/>
+        <property name="manifest-cp-43" value="${manifest-cp-42} ../lib/javax.servlet-api.jar"/>
         <property name="manifest-cp-44" value="${manifest-cp-43} ../lib/juli.jar"/>
         <property name="manifest-cp-45" value="${manifest-cp-44} ../lib/xalan.jar"/>
         <property name="manifest-cp-46" value="${manifest-cp-45} ../lib/xercesImpl.jar"/>
@@ -1471,7 +1471,7 @@
         <property name="manifest-cp-proprietary-40" value="${manifest-cp-proprietary-39} ../lib/postgresql.jar"/>
         <property name="manifest-cp-proprietary-41" value="${manifest-cp-proprietary-40} ../lib-proprietary/mysql-connector-java.jar"/>
         <property name="manifest-cp-proprietary-42" value="${manifest-cp-proprietary-41} ../lib/serializer.jar"/>
-        <property name="manifest-cp-proprietary-43" value="${manifest-cp-proprietary-42} ../lib/servlet-api.jar"/>
+        <property name="manifest-cp-proprietary-43" value="${manifest-cp-proprietary-42} ../lib/javax.servlet-api.jar"/>
         <property name="manifest-cp-proprietary-44" value="${manifest-cp-proprietary-43} ../lib/juli.jar"/>
         <property name="manifest-cp-proprietary-45" value="${manifest-cp-proprietary-44} ../lib/xalan.jar"/>
         <property name="manifest-cp-proprietary-46" value="${manifest-cp-proprietary-45} ../lib/xercesImpl.jar"/>

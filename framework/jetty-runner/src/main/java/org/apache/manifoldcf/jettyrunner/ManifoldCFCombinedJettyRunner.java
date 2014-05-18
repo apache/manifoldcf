@@ -47,10 +47,12 @@ public class ManifoldCFCombinedJettyRunner
   public static final String combinedWarPathProperty = "org.apache.manifoldcf.combinedwarpath";
   public static final String jettyPortProperty = "org.apache.manifoldcf.jettyport";
   
+  protected final int port;
   protected Server server;
   
   public ManifoldCFCombinedJettyRunner( int port, String combinedWarPath )
   {
+    this.port = port;
     server = new Server( port );    
     server.setStopAtShutdown( true );
     
@@ -109,11 +111,14 @@ public class ManifoldCFCombinedJettyRunner
   public int getLocalPort()
     throws ManifoldCFException
   {
+    return this.port;
+    /*
     Connector[] conns = server.getConnectors();
     if (0 == conns.length) {
       throw new ManifoldCFException("Jetty Server has no Connectors");
     }
     return conns[0].getLocalPort();
+    */
   }
 
   /**

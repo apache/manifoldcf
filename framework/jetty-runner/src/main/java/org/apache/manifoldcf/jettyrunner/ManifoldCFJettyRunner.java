@@ -51,10 +51,12 @@ public class ManifoldCFJettyRunner
   public static final String useJettyParentClassLoaderProperty = "org.apache.manifoldcf.usejettyparentclassloader";
   public static final String jettyPortProperty = "org.apache.manifoldcf.jettyport";
   
+  protected final int port;
   protected Server server;
   
   public ManifoldCFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath, boolean useParentLoader )
   {
+    this.port = port;
     server = new Server( port );    
     server.setStopAtShutdown( true );
     
@@ -125,11 +127,14 @@ public class ManifoldCFJettyRunner
   public int getLocalPort()
     throws ManifoldCFException
   {
+    return this.port;
+    /*
     Connector[] conns = server.getConnectors();
     if (0 == conns.length) {
       throw new ManifoldCFException("Jetty Server has no Connectors");
     }
     return conns[0].getLocalPort();
+    */
   }
 
   /** Run the agents process.  This method will not return unless the agents process is shut down.
