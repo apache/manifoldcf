@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-938: Allow JSPs to all work properly with Java 8.
+(Arcadius Ahouansou, Ahmet Arslan)
+
 CONNECTORS-936: Handle null content streams in CMIS connector.
 (Cetra Free)
 
