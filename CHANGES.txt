@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-933: Simplified chinese localizations.
+(Mingchun Zhao)
+
 CONNECTORS-938: Allow JSPs to all work properly with Java 8.
 (Arcadius Ahouansou, Ahmet Arslan)
 
