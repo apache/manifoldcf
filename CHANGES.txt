@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-940: Upgrade slf4j and commons-logging to latest versions.
+(Karl Wright)
+
 CONNECTORS-933: Simplified chinese localizations.
 (Mingchun Zhao)
 
