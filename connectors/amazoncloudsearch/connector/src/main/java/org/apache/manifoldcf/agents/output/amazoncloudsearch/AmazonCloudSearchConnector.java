@@ -59,12 +59,13 @@ import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
-import org.apache.tika.parser.html.HtmlParser;
+import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -355,7 +356,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       SDFModel model = new SDFModel();
       Document doc = model.new Document();
       doc.setType("add");
-      doc.setId(documentURI);
+      doc.setId(ManifoldCF.hash(documentURI));
       
       HashMap fields = new HashMap();
       Metadata metadata = extractBinaryFile(document, fields);
@@ -440,7 +441,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     
     //extract body text and metadata fields from binary file.
     InputStream is = document.getBinaryStream();
-    Parser parser = new HtmlParser(); //TODO
+    Parser parser = new AutoDetectParser();
     ContentHandler handler = new BodyContentHandler();
     Metadata metadata = new Metadata();
     parser.parse(is, handler, metadata, new ParseContext());
