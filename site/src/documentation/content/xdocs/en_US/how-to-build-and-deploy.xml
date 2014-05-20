@@ -481,6 +481,7 @@ cd example
             <p></p>
             <ol>
               <li>Modify the Tomcat startup script, or use the Tomcat service administration client, to set a Java "-Dorg.apache.manifoldcf.configfile" switch to point to the example's <em>properties.xml</em> file.</li>
+              <li>Start Tomcat.</li>
               <li>Deploy and start the mcf-combined-service web application, preferably using the Tomcat administration client.</li>
             </ol>
           </section>
@@ -530,6 +531,7 @@ cd example
               <li>Initialize the database (using <em>initialize[.sh|.bat]</em>)</li>
               <li>Start the agents process (using <em>start-agents[.sh|.bat]</em>, and optionally <em>start-agents-2[.sh|.bat]</em>)</li>
               <li>Modify the Tomcat startup script, or use the Tomcat service administration client, to set a Java "-Dorg.apache.manifoldcf.configfile" switch to point to the example's <em>properties.xml</em> file.</li>
+              <li>Start Tomcat.</li>
               <li>Deploy and start the mcf-crawler-ui, mcf-authority-service, and mcf-api-service web applications, preferably using the Tomcat administration client.</li>
             </ol>
           </section>
@@ -590,6 +592,7 @@ cd example
               <li>Initialize the database (using <em>initialize[.sh|.bat]</em>)</li>
               <li>Start the agents process (using <em>start-agents[.sh|.bat]</em>, and optionally <em>start-agents-2[.sh|.bat]</em>)</li>
               <li>Modify the Tomcat startup script, or use the Tomcat service administration client, to set a Java "-Dorg.apache.manifoldcf.configfile" switch to point to the example's <em>properties.xml</em> file.</li>
+              <li>Start Tomcat.</li>
               <li>Deploy and start the mcf-crawler-ui, mcf-authority-service, and mcf-api-service web applications, preferably using the Tomcat administration client.</li>
             </ol>
           </section>
