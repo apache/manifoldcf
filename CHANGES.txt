@@ -6,6 +6,9 @@ $Id$
 CONNECTORS-941: Solr connector not working properly with basic auth.
 (Erlend Garåsen, Karl Wright)
 
+CONNECTORS-940: Upgrade slf4j and commons-logging to latest versions.
+(Karl Wright)
+
 CONNECTORS-938: Allow JSPs to all work properly with Java 8.
 (Arcadius Ahouansou, Ahmet Arslan)
 
