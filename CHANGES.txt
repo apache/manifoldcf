@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-941: Solr connector not working properly with basic auth.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-942: Add output connector method to handle notification
 of removal of all connection-related records.
 (Karl Wright)
