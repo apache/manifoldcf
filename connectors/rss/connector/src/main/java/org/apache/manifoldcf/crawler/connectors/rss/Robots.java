@@ -22,6 +22,8 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -456,7 +458,7 @@ public class Robots
             InputStream is = connection.getResponseBodyStream();
             try
             {
-              Reader r = new InputStreamReader(is,"utf-8");
+              Reader r = new InputStreamReader(is, StandardCharsets.UTF_8);
               try
               {
                 BufferedReader br = new BufferedReader(r);

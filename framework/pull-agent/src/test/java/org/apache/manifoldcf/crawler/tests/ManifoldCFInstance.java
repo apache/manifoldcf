@@ -25,6 +25,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.agents.system.AgentsDaemon;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.nio.charset.Charset;
 import org.junit.*;
@@ -71,8 +72,6 @@ public class ManifoldCFInstance
   
   protected DaemonThread daemonThread = null;
   protected Server server = null;
-
-  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   public ManifoldCFInstance()
   {
@@ -344,13 +343,13 @@ public class ManifoldCFInstance
         {
           ContentType ct = ContentType.get(entity);
           if (ct == null)
-            charSet = UTF_8;
+            charSet = StandardCharsets.UTF_8;
           else
             charSet = ct.getCharset();
         }
         catch (ParseException e)
         {
-          charSet = UTF_8;
+          charSet = StandardCharsets.UTF_8;
         }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);

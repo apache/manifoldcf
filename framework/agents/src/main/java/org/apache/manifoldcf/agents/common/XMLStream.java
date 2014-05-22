@@ -29,6 +29,7 @@ import org.xml.sax.SAXParseException;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -186,7 +187,7 @@ public class XMLStream
       throws SAXException, java.io.IOException
     {
       // ALL references resolve to blank documents
-      return new org.xml.sax.InputSource(new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes()));
+      return new org.xml.sax.InputSource(new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes(StandardCharsets.UTF_8)));
     }
   }
 

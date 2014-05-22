@@ -27,9 +27,9 @@ import org.xml.sax.SAXException;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.manifoldcf.core.interfaces.*;
 
@@ -42,10 +42,9 @@ public class XMLOutputStreamContext extends XMLWriterContext
 
   /** Full constructor.  Used for individual tags. */
   public XMLOutputStreamContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, OutputStream os)
-    throws ManifoldCFException, UnsupportedEncodingException
   {
     // Construct an appropriate writer
-    super(theStream,namespaceURI,localname,qname,theseAttributes,new OutputStreamWriter(os,"utf-8"));
+    super(theStream,namespaceURI,localname,qname,theseAttributes,new OutputStreamWriter(os, StandardCharsets.UTF_8));
     // Save the stream
     outputStream = os;
   }

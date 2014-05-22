@@ -28,6 +28,7 @@ import org.apache.manifoldcf.jdbc.JDBCConstants;
 import org.apache.manifoldcf.jdbc.IDynamicResultSet;
 import org.apache.manifoldcf.jdbc.IDynamicResultRow;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import javax.naming.*;
 import javax.sql.*;
@@ -659,7 +660,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                       String value = contents.toString();
                       try
                       {
-                        byte[] bytes = value.getBytes("utf-8");
+                        byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
                         RepositoryDocument rd = new RepositoryDocument();
 
                         // Default content type is text/plain for character data

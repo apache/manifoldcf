@@ -1396,11 +1396,27 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public void removeOutputConnection(String outputConnectionName)
     throws ManifoldCFException
   {
+    IOutputConnection connection = connectionManager.load(outputConnectionName);
+    
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(outputConnNameField,outputConnectionName)});
       
     performDelete("WHERE "+query,list,null);
+      
+    // Notify the output connection of the removal of all the records for the connection
+    IOutputConnector connector = outputConnectorPool.grab(connection);
+    if (connector == null)
+      return;
+    try
+    {
+      connector.noteAllRecordsRemoved();
+    }
+    finally
+    {
+      outputConnectorPool.release(connection,connector);
+    }
+
   }
   
   /** Note the ingestion of a document, or the "update" of a document.

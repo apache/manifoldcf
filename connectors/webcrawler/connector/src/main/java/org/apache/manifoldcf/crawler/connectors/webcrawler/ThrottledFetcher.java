@@ -23,15 +23,16 @@ import org.apache.manifoldcf.core.common.DeflateInputStream;
 import org.apache.manifoldcf.core.common.XThreadInputStream;
 import org.apache.manifoldcf.core.common.InterruptibleSocketFactory;
 import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
-import java.net.*;
 import java.util.zip.GZIPInputStream;
 import java.util.concurrent.TimeUnit;
-import java.nio.charset.Charset;
 
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
@@ -142,8 +143,6 @@ public class ThrottledFetcher
     {
     }
   }
-
-  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   private static final Registry<CookieSpecProvider> cookieSpecRegistry =
     RegistryBuilder.<CookieSpecProvider>create()
@@ -593,8 +592,7 @@ public class ThrottledFetcher
             appendChar = '?';
           else
             appendChar = '&';
-          try
-          {
+
             while (iter.hasNext())
             {
               FormDataElement el = (FormDataElement)iter.next();
@@ -602,17 +600,13 @@ public class ThrottledFetcher
               appendChar = '&';
               String param = el.getElementName();
               String value = el.getElementValue();
-              psb.append(java.net.URLEncoder.encode(param,"utf-8"));
+              psb.append(URLEncoder.encode(param));
               if (value != null)
               {
-                psb.append('=').append(java.net.URLEncoder.encode(value,"utf-8"));
+                psb.append('=').append(URLEncoder.encode(value));
               }
             }
-          }
-          catch (java.io.UnsupportedEncodingException e)
-          {
-            throw new ManifoldCFException("Unsupported encoding: "+e.getMessage(),e);
-          }
+
 
           fullUrlPath = psb.toString();
         }
@@ -648,7 +642,7 @@ public class ThrottledFetcher
             nvps.add(new BasicNameValuePair(param,value));
           }
         }
-        postMethod.setEntity(new UrlEncodedFormEntity(nvps,UTF_8));
+        postMethod.setEntity(new UrlEncodedFormEntity(nvps, StandardCharsets.UTF_8));
         fetchMethod = postMethod;
         break;
       default:

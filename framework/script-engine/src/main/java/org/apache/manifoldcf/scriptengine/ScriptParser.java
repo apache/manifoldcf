@@ -39,6 +39,8 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.ParseException;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -64,8 +66,6 @@ public class ScriptParser
   
   /** A table of "new" operations that we know how to deal with. */
   protected Map<String,NewOperation> newOperations = new HashMap<String,NewOperation>();
-
-  protected final static Charset UTF_8 = Charset.forName("UTF-8");
 
   public ScriptParser()
   {
@@ -1177,13 +1177,13 @@ public class ScriptParser
         {
           ContentType ct = ContentType.get(entity);
           if (ct == null)
-            charSet = UTF_8;
+            charSet = StandardCharsets.UTF_8;
           else
             charSet = ct.getCharset();
         }
         catch (ParseException e)
         {
-          charSet = UTF_8;
+          charSet = StandardCharsets.UTF_8;
         }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
@@ -1290,7 +1290,7 @@ public class ScriptParser
       if (argv.length >= 1)
       {
         File inputFile = new File(argv[0]);
-        reader = new InputStreamReader(new FileInputStream(inputFile),"utf-8");
+        reader = new InputStreamReader(new FileInputStream(inputFile),StandardCharsets.UTF_8);
         VariableArray va = new VariableArray();
         int i = 0;
         while (i < argv.length - 1)

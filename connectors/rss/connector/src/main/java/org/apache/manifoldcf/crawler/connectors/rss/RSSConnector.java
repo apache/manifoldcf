@@ -193,7 +193,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         {
           int maxKBytesPerSecondPerServer = Integer.parseInt(x);
           if (maxKBytesPerSecondPerServer > 0)
-            minimumMillisecondsPerBytePerServer = 1000.0/(double)maxKBytesPerSecondPerServer;
+            minimumMillisecondsPerBytePerServer = 1.0/(double)maxKBytesPerSecondPerServer;
         }
         catch (NumberFormatException e)
         {
@@ -876,10 +876,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               {
                 is.close();
               }
-            }
-            catch (UnsupportedEncodingException e)
-            {
-              throw new ManifoldCFException("Unsupported encoding: "+e.getMessage(),e);
             }
             catch (java.net.SocketTimeoutException e)
             {

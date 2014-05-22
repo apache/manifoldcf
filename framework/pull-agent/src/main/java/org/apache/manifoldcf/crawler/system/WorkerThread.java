@@ -21,7 +21,7 @@ package org.apache.manifoldcf.crawler.system;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.Logging;
+import org.apache.manifoldcf.core.util.URLEncoder;
 import java.util.*;
 import java.io.*;
 import java.lang.reflect.*;
@@ -2479,18 +2479,11 @@ public class WorkerThread extends Thread
     public String qualifyAccessToken(String authorityNameString, String accessToken)
       throws ManifoldCFException
     {
-      try
-      {
         if (authorityNameString == null)
-          return java.net.URLEncoder.encode(accessToken,"UTF-8");
-        return java.net.URLEncoder.encode(authorityNameString,"UTF-8") + ":" + java.net.URLEncoder.encode(accessToken,"UTF-8");
-      }
-      catch (java.io.UnsupportedEncodingException e)
-      {
-        throw new ManifoldCFException(e.getMessage(),e);
-      }
+          return URLEncoder.encode(accessToken);
+        else
+          return URLEncoder.encode(authorityNameString) + ":" + URLEncoder.encode(accessToken);
     }
-
 
   }
 
