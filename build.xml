@@ -901,7 +901,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-logging"/>
-            <param name="artifact-version" value="1.1.1"/>
+            <param name="artifact-version" value="1.1.3"/>
             <param name="artifact-name" value="commons-logging"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -921,7 +921,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
   
     <target name="download-slf4j">
         <mkdir dir="lib"/>
-        <property name="slf4j-version" value="1.6.6"/>
+        <property name="slf4j-version" value="1.7.7"/>
         <property name="slf4j-package" value="org/slf4j"/>
         <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="slf4j-api"/>
