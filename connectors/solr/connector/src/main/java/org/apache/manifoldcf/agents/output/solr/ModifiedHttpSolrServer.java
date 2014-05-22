@@ -280,8 +280,8 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
     }
     
     // XXX client already has this set, is this needed?
-    method.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS,
-        followRedirects);
+    //method.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS,
+    //    followRedirects);
     method.addHeader("User-Agent", AGENT);
     
     InputStream respBody = null;
