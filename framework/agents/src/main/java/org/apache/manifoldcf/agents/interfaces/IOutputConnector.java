@@ -160,6 +160,13 @@ public interface IOutputConnector extends IConnector
   public void noteJobComplete(IOutputNotifyActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
+  /** Notify the connector that all records associated with this connection have been removed.
+  * This method allows the connector to remove any internal data storage that is associated with records sent to the index on
+  * behalf of a connection. It should not attempt to communicate with the output index.
+  */
+  public void noteAllRecordsRemoved()
+    throws ManifoldCFException;
+
   // UI support methods.
   //
   // These support methods come in two varieties.  The first bunch (inherited from IConnector) is involved in setting up connection configuration information.
