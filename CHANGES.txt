@@ -1,7 +1,48 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.6-dev =====================
+======================= 1.7-dev =====================
+
+CONNECTORS-942: Add output connector method to handle notification
+of removal of all connection-related records.
+(Karl Wright)
+
+CONNECTORS-940: Upgrade slf4j and commons-logging to latest versions.
+(Karl Wright)
+
+CONNECTORS-933: Simplified chinese localizations.
+(Mingchun Zhao)
+
+CONNECTORS-938: Allow JSPs to all work properly with Java 8.
+(Arcadius Ahouansou, Ahmet Arslan)
+
+CONNECTORS-936: Handle null content streams in CMIS connector.
+(Cetra Free)
+
+CONNECTORS-935 : Use Java 7 in ant build
+(Ahmet Arslan)
+
+CONNECTORS-932 : Avoid UnsupportedEncodingException handling
+(Ahmet Arslan)
+
+CONNECTORS-927: Override JDK's entity expansion limit for Solr
+connector.
+(David Morana, Karl Wright)
+
+======================= Release 1.6 =====================
+
+CONNECTORS-928: Remove unused directory.
+(Ahmet Arslan, Karl Wright)
+
+CONNECTORS-925: Fix ant exclusions for zip/tar distributions on Linux variants.
+(Ahmet Arslan)
+
+CONNECTORS-923: Fix bandwidth throttling.
+(Karl Wright)
+
+CONNECTORS-920: Be more explicit in Solr connector about handling
+SocketTimeoutException.
+(Hitoshi Tatsumi, Karl Wright)
 
 CONNECTORS-919: Fix example-proprietary.
 (Karl Wright)

@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 
@@ -1120,18 +1121,14 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   /** Create a document's URI given a template, a folder name, and a message ID */
   protected static String makeDocumentURI(String urlTemplate, String folderName, String id)
   {
-    try {
       // First, URL encode folder name and id
-      String encodedFolderName = java.net.URLEncoder.encode(folderName, "utf-8");
-      String encodedId = java.net.URLEncoder.encode(id, "utf-8");
+      String encodedFolderName = URLEncoder.encode(folderName);
+      String encodedId = URLEncoder.encode(id);
       // The template is already URL encoded, except for the substitution points
       Map<String,String> subsMap = new HashMap<String,String>();
       subsMap.put("FOLDERNAME", encodedFolderName);
       subsMap.put("MESSAGEID", encodedId);
       return substitute(urlTemplate, subsMap);
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException("No utf-8 encoder found: "+e.getMessage(), e);
-    }
   }
 
   protected static String substitute(String template, Map<String,String> map)

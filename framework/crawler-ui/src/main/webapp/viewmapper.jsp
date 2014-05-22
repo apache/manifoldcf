@@ -177,8 +177,8 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 		<tr><td class="message" colspan="4">
-			<nobr><a href='<%="viewmapper.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%></a></nobr>
-			<nobr><a href='<%="editmapper.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.EditThisMappingConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Edit")%></a></nobr>
+			<nobr><a href='<%="viewmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%></a></nobr>
+			<nobr><a href='<%="editmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.EditThisMappingConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Edit")%></a></nobr>
 			<nobr><a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.DeleteThisMappingConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Delete")%></a></nobr>
 		</td></tr>
 		</table>

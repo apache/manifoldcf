@@ -19,8 +19,7 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-import java.net.*;
-import java.io.*;
+import org.apache.manifoldcf.core.util.URLEncoder;
 
 /** Variable class representing an integer.
 */
@@ -92,14 +91,7 @@ public class VariableString extends VariableBase
   public String getURLPathValue()
     throws ScriptException
   {
-    try
-    {
-      return URLEncoder.encode(value,"utf-8").replace("+","%20");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ScriptException(composeMessage(e.getMessage()),e);
-    }
+      return URLEncoder.encode(value).replace("+","%20");
   }
 
   /** Get the variable's script value */

@@ -550,6 +550,28 @@ body
     text-align: left;
 }
 
+.description input[type="button"], .formcolumncell input[type="button"]
+{
+    min-height: 30px;
+    font-size: 14px;
+    color: #fff;
+    cursor: pointer;
+    padding: 10px;
+    border: #6FB3E0 2px solid;
+    background-color: #6FB3E0 !important;
+    color: #fff;
+}
+
+.description a input[type="button"]{
+    border: none;
+    background: none transparent;
+    margin: -4px;
+    font-size: 14px;
+    color: #fff;
+    cursor: pointer;
+    padding: 0 10px;
+}
+
 .message
 {
     padding: 10px 0;

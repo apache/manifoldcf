@@ -211,6 +211,16 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
     // Does nothing in the base class
   }
   
+  /** Notify the connector that all records associated with this connection have been removed.
+  * This method allows the connector to remove any internal data storage that is associated with records sent to the index on
+  * behalf of a connection. It should not attempt to communicate with the output index.
+  */
+  public void noteAllRecordsRemoved()
+    throws ManifoldCFException
+  {
+    // Does nothing in the base class
+  }
+
   // UI support methods.
   //
   // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch

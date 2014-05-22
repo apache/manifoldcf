@@ -26,6 +26,7 @@ import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 import com.opentext.api.LLSession;
 import com.opentext.api.LLValue;
@@ -133,7 +134,7 @@ public class LLSERVER
               OutputStream fos = new FileOutputStream(fileName);
               try
               {
-                Writer osw = new OutputStreamWriter(fos,"utf-8");
+                Writer osw = new OutputStreamWriter(fos,StandardCharsets.UTF_8);
                 try
                 {
                   String certBase64 = new Base64().encodeByteArray(certData);

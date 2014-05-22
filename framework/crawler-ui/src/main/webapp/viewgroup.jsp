@@ -92,7 +92,7 @@
 			</tr>
 			<tr>
 				<td class="message" colspan="4">
-					<a href='<%="editgroup.jsp?groupname="+java.net.URLEncoder.encode(groupName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.EditThisAuthorityGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(groupName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.DeleteThisAuthorityGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Delete")%></a>
+					<a href='<%="editgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(groupName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.EditThisAuthorityGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(groupName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.DeleteThisAuthorityGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Delete")%></a>
 				</td>
 			</tr>
 		</table>

@@ -76,8 +76,9 @@ public interface IRepositoryConnector extends IConnector
   // MODEL_CHAINED_ADD_CHANGE_DELETE would be appropriate.  But, if a changed node can only discover child
   // additions and changes, then MODEL_CHAINED_ADD_CHANGE would be the right choice.
 
-  /** Supply all seeds every time.  The connector does not pay any attention to the start time or end time
-  * of the request, and simply returns a complete list of seeds. */
+  /** This is the legacy ManifoldCF catch-all crawling model.  All existing documents will be rechecked when a crawl
+  * is done, every time.  This model was typically used for models where seeds were essentially fixed and all
+  * real documents were discovered during crawling. */
   public static final int MODEL_ALL = 0;
   /** This indicates that the seeds are never complete; the previous seeds are lost and cannot be retrieved. */
   public static final int MODEL_PARTIAL = 4;
