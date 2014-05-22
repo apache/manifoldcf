@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= Release 1.6.1 =====================
+
+
 ======================= Release 1.6 =====================
 
 CONNECTORS-928: Remove unused directory.
