@@ -3,6 +3,8 @@ $Id$
 
 ======================= Release 1.6.1 =====================
 
+CONNECTORS-938: Allow JSPs to all work properly with Java 8.
+(Arcadius Ahouansou, Ahmet Arslan)
 
 ======================= Release 1.6 =====================
 
