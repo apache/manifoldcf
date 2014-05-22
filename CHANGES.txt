@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-942: Add output connector method to handle notification
+of removal of all connection-related records.
+(Karl Wright)
+
 CONNECTORS-940: Upgrade slf4j and commons-logging to latest versions.
 (Karl Wright)
 
