@@ -2,6 +2,7 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 1.7-dev =====================
+CONNECTORS-943: .aspx files not indexed by Sharepoint connector due to missing mime type in core
 
 CONNECTORS-941: Solr connector not working properly with basic auth.
 (Erlend Garåsen, Karl Wright)
