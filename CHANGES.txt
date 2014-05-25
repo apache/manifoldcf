@@ -2,6 +2,11 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 1.7-dev =====================
+
+CONNECTORS-944: Maven build has different stuff in war file than
+ant build.
+(Arcadius Ahouansou, Karl Wright)
+
 CONNECTORS-943: .aspx files not indexed by Sharepoint connector due to missing mime type in core
 
 CONNECTORS-941: Solr connector not working properly with basic auth.
