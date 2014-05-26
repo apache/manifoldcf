@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.6.1 =====================
 
+CONNECTORS-944: Maven build has different stuff in war file than
+ant build.
+(Arcadius Ahouansou, Karl Wright)
+
 CONNECTORS-943: .aspx files not indexed by Sharepoint connector due to
 missing mime type in core.
 
