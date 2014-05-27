@@ -42,21 +42,9 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
-import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
-import org.apache.manifoldcf.agents.interfaces.OutputSpecification;
-import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
-import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.http.impl.client.HttpClients;import org.apache.http.util.EntityUtils;import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;import org.apache.manifoldcf.agents.interfaces.OutputSpecification;import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
-import org.apache.manifoldcf.agents.output.amazoncloudsearch.SDFModel.Document;
-import org.apache.manifoldcf.core.interfaces.ConfigParams;
-import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
-import org.apache.manifoldcf.core.interfaces.IPostParameters;
+import org.apache.manifoldcf.agents.output.amazoncloudsearch.SDFModel.Document;import org.apache.manifoldcf.core.interfaces.ConfigParams;import org.apache.manifoldcf.core.interfaces.ConfigurationNode;import org.apache.manifoldcf.core.interfaces.DBInterfaceFactory;import org.apache.manifoldcf.core.interfaces.IDBInterface;import org.apache.manifoldcf.core.interfaces.ManifoldCFException;import org.apache.manifoldcf.core.interfaces.IThreadContext;import org.apache.manifoldcf.core.interfaces.IHTTPOutput;import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.system.ManifoldCF;
@@ -103,21 +91,9 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
   
-  /** Local connection */
-  protected HttpPost poster = null;
-  
-  /** cloudsearch field name for file body text. */
-  private static final String FILE_BODY_TEXT_FIELDNAME = "f_bodytext";
-  
-  /** Constructor.
+  /** Local connection */  protected HttpPost poster = null;    /** Document Chunk Manager */  private DocumentChunkManager documentChunkManager;    /** cloudsearch field name for file body text. */  private static final String FILE_BODY_TEXT_FIELDNAME = "f_bodytext";    /** Constructor.
    */
-  public AmazonCloudSearchConnector(){
-  }
-  
-  /** Return the list of activities that this connector supports (i.e. writes into the log).
-  *@return the list.
-  */
-  @Override
+  public AmazonCloudSearchConnector(){  }    @Override  public void install(IThreadContext threadContext)       throws ManifoldCFException  {    IDBInterface mainDatabase = DBInterfaceFactory.make(threadContext,      ManifoldCF.getMasterDatabaseName(),      ManifoldCF.getMasterDatabaseUsername(),      ManifoldCF.getMasterDatabasePassword());        DocumentChunkManager dcmanager = new DocumentChunkManager(threadContext,mainDatabase);    dcmanager.install();  }  @Override  public void deinstall(IThreadContext threadContext)      throws ManifoldCFException  {    IDBInterface mainDatabase = DBInterfaceFactory.make(threadContext,        ManifoldCF.getMasterDatabaseName(),        ManifoldCF.getMasterDatabaseUsername(),        ManifoldCF.getMasterDatabasePassword());          DocumentChunkManager dcmanager = new DocumentChunkManager(threadContext,mainDatabase);    dcmanager.deinstall();  }  /** Return the list of activities that this connector supports (i.e. writes into the log).  *@return the list.  */  @Override
   public String[] getActivitiesList()
   {
     return new String[]{INGEST_ACTIVITY,REMOVE_ACTIVITY};
@@ -158,13 +134,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   }
 
   /** Set up a session */
-  protected void getSession()
-    throws ManifoldCFException
-  {
-    String serverHost = params.getParameter(AmazonCloudSearchConfig.SERVER_HOST);
-    if (serverHost == null)
-      throw new ManifoldCFException("Server host parameter required");
-    String serverPath = params.getParameter(AmazonCloudSearchConfig.SERVER_PATH);
+  protected void getSession()    throws ManifoldCFException  {    if (documentChunkManager == null)    {      IDBInterface databaseHandle = DBInterfaceFactory.make(currentContext,        ManifoldCF.getMasterDatabaseName(),        ManifoldCF.getMasterDatabaseUsername(),        ManifoldCF.getMasterDatabasePassword());      documentChunkManager = new DocumentChunkManager(currentContext,databaseHandle);    }        String serverHost = params.getParameter(AmazonCloudSearchConfig.SERVER_HOST);    if (serverHost == null)      throw new ManifoldCFException("Server host parameter required");    String serverPath = params.getParameter(AmazonCloudSearchConfig.SERVER_PATH);
     if (serverPath == null)
       throw new ManifoldCFException("Server path parameter required");
     String proxyProtocol = params.getParameter(AmazonCloudSearchConfig.PROXY_PROTOCOL);
@@ -190,14 +160,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
         throw new ManifoldCFException("Number format exception: "+e.getMessage(),e);
       }
     }
-    
-    poster.addHeader("Content-Type", "application/json");
-  }
-
-  /** Test the connection.  Returns a string describing the connection integrity.
-  *@return the connection's status as a displayable string.
-  */
-  @Override
+        poster.addHeader("Content-Type", "application/json");  }    /** Test the connection.  Returns a string describing the connection integrity.  *@return the connection's status as a displayable string.  */  @Override
   public String check() throws ManifoldCFException {
     try {
       getSession();
@@ -398,14 +361,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
         }
       }
       doc.setFields(fields);
-      model.addDocument(doc);
-      
-      //generate json data.
-      jsondata = model.toJSON();
-    } 
-    catch (SAXException e) {
-      // if document data could not be converted to JSON by jackson.
-      Logging.connectors.debug(e);
+      model.addDocument(doc);            //generate json data.      jsondata = model.toJSON();            documentChunkManager.addDocument(doc.getId(), false, jsondata);      return DOCUMENTSTATUS_ACCEPTED;    }     catch (SAXException e) {      // if document data could not be converted to JSON by jackson.      Logging.connectors.debug(e);
       throw new ManifoldCFException(e);
     } catch (JsonProcessingException e) {
       // if document data could not be converted to JSON by jackson.
@@ -417,29 +373,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       return DOCUMENTSTATUS_REJECTED;
     } catch (IOException e) {
       // if document data could not be read when the document parsing by tika.
-      Logging.connectors.debug(e);
-      throw new ManifoldCFException(e);
-    }
-    
-    //post data..
-    String responsbody = postData(jsondata);
-    
-    // check status
-    String status = getStatusFromJsonResponse(responsbody);
-    if("success".equals(status))
-    {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,"OK",null);
-      return DOCUMENTSTATUS_ACCEPTED;
-    }
-    else {
-      throw new ManifoldCFException("recieved error status from service after feeding document. response body : " + responsbody);
-    }
-  }
-
-  private Metadata extractBinaryFile(RepositoryDocument document, HashMap fields)
-      throws IOException, SAXException, TikaException {
-    
-    //extract body text and metadata fields from binary file.
+      Logging.connectors.debug(e);      throw new ManifoldCFException(e);    }  }    private Metadata extractBinaryFile(RepositoryDocument document, HashMap fields)      throws IOException, SAXException, TikaException {        //extract body text and metadata fields from binary file.
     InputStream is = document.getBinaryStream();
     Parser parser = new AutoDetectParser();
     ContentHandler handler = new BodyContentHandler();
@@ -469,31 +403,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     
     String jsonData = "";
     try {
-      SDFModel model = new SDFModel();
-      SDFModel.Document doc = model.new Document();
-      doc.setType("delete");
-      doc.setId(documentURI);
-      model.addDocument(doc);
-      jsonData = model.toJSON();
-    } catch (JsonProcessingException e) {
-      throw new ManifoldCFException(e);
-    }
-    String responsbody = postData(jsonData);
-    
-    // check status
-    String status = getStatusFromJsonResponse(responsbody);
-    if("success".equals(status))
-    {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,"OK",null);
-    }
-    else {
-      throw new ManifoldCFException("recieved error status from service after feeding document.");
-    }
-  }
-
-  /**
-   * Fill in a Server tab configuration parameter map for calling a Velocity
-   * template.
+      SDFModel model = new SDFModel();      SDFModel.Document doc = model.new Document();      doc.setType("delete");      doc.setId(ManifoldCF.hash(documentURI));      model.addDocument(doc);      jsonData = model.toJSON();            documentChunkManager.addDocument(doc.getId(), false, jsonData);          } catch (JsonProcessingException e) {      throw new ManifoldCFException(e);    }  }    @Override  public void noteJobComplete(IOutputNotifyActivity activities)      throws ManifoldCFException, ServiceInterruption {    getSession();        final int chunkNum = documentChunkManager.getDocumentChunkNum();        for(int i = 0;i<chunkNum;i++)    {      String chunk = documentChunkManager.buildDocumentChunk(String.valueOf(i), i);            //post data..      String responsbody = postData(chunk);      // check status      String status = getStatusFromJsonResponse(responsbody);      if("success".equals(status))      {        int n = i + 1;        Logging.connectors.info("successfully send document chunk " + n + " of " + chunkNum);                //remove documents from table..        documentChunkManager.removeDocumentsInChunk(String.valueOf(i));      }      else      {        throw new ManifoldCFException("recieved error status from service after feeding document. response body : " + responsbody);      }          }  }  /**   * Fill in a Server tab configuration parameter map for calling a Velocity   * template.
    *
    * @param newMap is the map to fill in
    * @param parameters is the current set of configuration parameters
