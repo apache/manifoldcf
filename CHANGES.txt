@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-945: GridFS connector.
+(Mohammed Olgun)
+
 CONNECTORS-944: Maven build has different stuff in war file than
 ant build.
 (Arcadius Ahouansou, Karl Wright)
