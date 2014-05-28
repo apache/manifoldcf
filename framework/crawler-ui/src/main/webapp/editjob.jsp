@@ -39,11 +39,23 @@
 	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
 	IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
 
-	// Figure out tab name
+	// Figure out tab name and sequence number
 	String tabName = variableContext.getParameter("tabname");
+	String tabSequenceNumber = variableContext.getParameter("sequencenumber");
+	int tabSequenceInt;
 	if (tabName == null || tabName.length() == 0)
+	{
 		tabName = Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name");
-
+		tabSequenceInt = -1;
+	}
+	else
+	{
+		if (tabSequenceNumber == null || tabSequenceNumber.length() == 0)
+			tabSequenceInt = -1;
+		else
+			tabSequenceInt = Integer.parseInt(tabSequenceNumber);
+	}
+	
 	// Get a loaded job object, somehow.
 	String jobID = null;
 	IJobDescription job = (IJobDescription)threadContext.get("JobObject");
@@ -144,6 +156,7 @@
 	int model = IRepositoryConnector.MODEL_ADD_CHANGE_DELETE;
 	String[] relationshipTypes = null;
 	ArrayList tabsArray = new ArrayList();
+	List<Integer> sequenceArray = new ArrayList<Integer>();
 	
 	IRepositoryConnection connection = null;
 	IOutputConnection outputConnection = null;
@@ -160,13 +173,20 @@
 
 	// Set up the predefined tabs
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name"));
+	sequenceArray.add(null);
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection"));
+	sequenceArray.add(null);
 	if (connectionName.length() > 0)
 	{
 		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Scheduling"));
+		sequenceArray.add(null);
 		if (relationshipTypes != null && relationshipTypes.length > 0)
+		{
 			tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopFilters"));
+			sequenceArray.add(null);
+		}
 		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.ForcedMetadata"));
+		sequenceArray.add(null);
 	}
 
 
@@ -191,6 +211,18 @@
 		if (checkForm())
 		{
 			document.editjob.tabname.value = newtab;
+			document.editjob.sequencenumber.value = "";
+			document.editjob.submit();
+		}
+	}
+
+	// Use this method to repost the form and pick a new tab
+	function SelectTab(newtab, sequencenumber)
+	{
+		if (checkForm())
+		{
+			document.editjob.tabname.value = newtab;
+			document.editjob.sequencenumber.value = sequencenumber;
 			document.editjob.submit();
 		}
 	}
@@ -449,6 +481,11 @@
 				outputConnectorPool.release(outputConnection,outputConnector);
 			}
 		}
+		Integer outputConnectionSequenceNumber = new Integer(1);
+		while (sequenceArray.size() < tabsArray.size())
+		{
+			sequenceArray.add(outputConnectionSequenceNumber);
+		}
 	}
 %>
 
@@ -460,12 +497,17 @@
 		{
 			try
 			{
-				repositoryConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),documentSpecification,tabsArray);
+				repositoryConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),documentSpecification,0,tabsArray);
 			}
 			finally
 			{
 				repositoryConnectorPool.release(connection,repositoryConnector);
 			}
+		}
+		Integer repositoryConnectionSequenceNumber = new Integer(0);
+		while (sequenceArray.size() < tabsArray.size())
+		{
+			sequenceArray.add(repositoryConnectionSequenceNumber);
 		}
 	}
 %>
@@ -501,6 +543,7 @@
 	  <input type="hidden" name="type" value="job"/>
 	  <input type="hidden" name="index" value=""/>
 	  <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
+	  <input type="hidden" name="sequencenumber" value='<%=((tabSequenceInt==-1)?"":Integer.toString(tabSequenceInt))%>'/>
 <%
 	if (jobID != null)
 	{
@@ -512,11 +555,12 @@
 	    <table class="tabtable">
 	      <tr class="tabrow">
 <%
-	int tabNum = 0;
-	while (tabNum < tabsArray.size())
+	for (int tabNum = 0; tabNum < tabsArray.size(); tabNum++)
 	{
-		String tab = (String)tabsArray.get(tabNum++);
-		if (tab.equals(tabName))
+		String tab = (String)tabsArray.get(tabNum);
+		Integer sequenceNumber = sequenceArray.get(tabNum);
+		int sequenceNumberInt = (sequenceNumber == null)?-1:sequenceNumber.intValue();
+		if (tab.equals(tabName) && (tabSequenceInt == -1 || sequenceNumberInt == tabSequenceInt))
 		{
 %>
 		      <td class="activetab"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
@@ -525,7 +569,7 @@
 		else
 		{
 %>
-		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
+		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\","+((sequenceNumber==null)?"":sequenceNumber.toString())+");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
 <%
 		}
 	}
@@ -553,7 +597,7 @@
 		  <input type="hidden" name="schedulerecords" value='<%=Integer.toString(scheduleRecords.size())%>'/>
 <%
 	// The NAME tab
-	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name")))
+	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name")) && tabSequenceInt == -1)
 	{
 %>
 		  <table class="displaytable">
@@ -576,7 +620,7 @@
 	}
 
 	// Forced Metadata tab
-	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.ForcedMetadata")))
+	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.ForcedMetadata")) && tabSequenceInt == -1)
 	{
 %>
 		  <table class="displaytable">
@@ -685,7 +729,7 @@
 	}
 	
 	// Hop Filters tab
-	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopFilters")))
+	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopFilters")) && tabSequenceInt == -1)
 	{
 	    if (relationshipTypes != null)
 	    {
@@ -750,7 +794,7 @@
 	}
 
 	// Connection tab
-	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")))
+	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")) && tabSequenceInt == -1)
 	{
 %>
 		  <table class="displaytable">
@@ -858,7 +902,7 @@
 	}
 
 	// Scheduling tab
-	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Scheduling")))
+	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Scheduling")) && tabSequenceInt == -1)
 	{
 %>
 		  <table class="displaytable">
@@ -1341,7 +1385,7 @@
 		{
 			try
 			{
-				repositoryConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),documentSpecification,tabName);
+				repositoryConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),documentSpecification,0,tabSequenceInt,tabName);
 			}
 			finally
 			{
