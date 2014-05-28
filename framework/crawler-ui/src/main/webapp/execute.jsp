@@ -1090,7 +1090,7 @@
 						{
 							try
 							{
-								String error = repositoryConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getSpecification());
+								String error = repositoryConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getSpecification(),0);
 								if (error != null)
 								{
 									variableContext.setParameter("text",error);
