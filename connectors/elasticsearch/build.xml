@@ -69,7 +69,7 @@
     </target>
 
     <target name="calculate-testcode-condition">
-        <available file="test-materials-proprietary" property="tests-present"/>
+        <available file="test-materials-proprietary/elasticsearch-1.0.1" property="tests-present"/>
     </target>
 
     <path id="connector-test-classpath">

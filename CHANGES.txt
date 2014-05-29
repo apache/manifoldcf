@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-947: ant test fails when make-deps is not run.
+(Karl Wright)
+
 CONNECTORS-945: GridFS connector.
 (Muhammed Olgun)
 
