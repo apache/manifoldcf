@@ -39,6 +39,7 @@
     <module>hdfs</module>
     <module>jcifs</module>
     <module>jdbc</module>
+    <module>gridfs</module>
     <module>ldap</module>
     <module>nullauthority</module>
     <module>nulloutput</module>
