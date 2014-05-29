@@ -1066,7 +1066,7 @@
 						{
 							try
 							{
-								String error = outputConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getOutputSpecification());
+								String error = outputConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getOutputSpecification(),1);
 								if (error != null)
 								{
 									variableContext.setParameter("text",error);

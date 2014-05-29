@@ -155,7 +155,7 @@
 
 	int model = IRepositoryConnector.MODEL_ADD_CHANGE_DELETE;
 	String[] relationshipTypes = null;
-	ArrayList tabsArray = new ArrayList();
+	List<String> tabsArray = new ArrayList<String>();
 	List<Integer> sequenceArray = new ArrayList<Integer>();
 	
 	IRepositoryConnection connection = null;
@@ -474,7 +474,7 @@
 		{
 			try
 			{
-				outputConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,tabsArray);
+				outputConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,1,tabsArray);
 			}
 			finally
 			{
@@ -1366,7 +1366,7 @@
 		{
 			try
 			{
-				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,tabName);
+				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,1,tabSequenceInt,tabName);
 			}
 			finally
 			{
