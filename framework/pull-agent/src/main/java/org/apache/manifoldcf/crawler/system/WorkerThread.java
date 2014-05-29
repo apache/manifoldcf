@@ -2485,6 +2485,17 @@ public class WorkerThread extends Thread
           return URLEncoder.encode(authorityNameString) + ":" + URLEncoder.encode(accessToken);
     }
 
+    /** Send adocument via the pipeline to the next connection.
+    *@param document is the document data to be processed (handed to the output data store).
+    *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+    */
+    public int sendDocument(RepositoryDocument document)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      // No downstream connection at output connection level.
+      return IPipelineConnector.DOCUMENTSTATUS_REJECTED;
+    }
+
   }
 
 }

@@ -37,4 +37,11 @@ public interface IOutputAddActivity extends IOutputHistoryActivity
   public String qualifyAccessToken(String authorityNameString, String accessToken)
     throws ManifoldCFException;
 
+  /** Send a document via the pipeline to the next output connection.
+  *@param document is the document data to be processed (handed to the output data store).
+  *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+  */
+  public int sendDocument(RepositoryDocument document)
+    throws ManifoldCFException, ServiceInterruption;
+
 }

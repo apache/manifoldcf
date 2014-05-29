@@ -81,13 +81,26 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
     // The base implementation does nothing here.
   }
 
+  /** Detect if a mime type is acceptable or not.  This method is used to determine whether it makes sense to fetch a document
+  * in the first place.
+  *@param pipelineDescription is the document's pipeline version string, for this connection.
+  *@param mimeType is the mime type of the document.
+  *@param checkActivity is an object including the activities that can be performed by this method.
+  *@return true if the mime type can be accepted by this connector.
+  */
+  @Override
+  public boolean checkMimeTypeIndexable(String pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return checkMimeTypeIndexable(pipelineDescription, mimeType);
+  }
+
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.
   *@param outputDescription is the document's output version.
   *@param mimeType is the mime type of the document.
   *@return true if the mime type is indexable by this connector.
   */
-  @Override
   public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -105,6 +118,21 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
     return true;
   }
 
+  /** Pre-determine whether a document (passed here as a File object) is acceptable or not.  This method is
+  * used to determine whether a document needs to be actually transferred.  This hook is provided mainly to support
+  * search engines that only handle a small set of accepted file types.
+  *@param pipelineDescription is the document's pipeline version string, for this connection.
+  *@param localFile is the local file to check.
+  *@param checkActivity is an object including the activities that can be done by this method.
+  *@return true if the file is acceptable, false if not.
+  */
+  @Override
+  public boolean checkDocumentIndexable(String pipelineDescription, File localFile, IOutputCheckActivity checkActivity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return checkDocumentIndexable(pipelineDescription, localFile);
+  }
+
   /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
   * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
   * actual transfer.  This hook is provided mainly to support search engines that only handle a small set of accepted file types.
@@ -112,7 +140,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param localFile is the local file to check.
   *@return true if the file is indexable.
   */
-  @Override
   public boolean checkDocumentIndexable(String outputDescription, File localFile)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -131,17 +158,44 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
     return true;
   }
 
+  /** Pre-determine whether a document's length is acceptable.  This method is used
+  * to determine whether to fetch a document in the first place.
+  *@param pipelineDescription is the document's pipeline version string, for this connection.
+  *@param length is the length of the document.
+  *@param checkActivity is an object including the activities that can be done by this method.
+  *@return true if the file is acceptable, false if not.
+  */
+  @Override
+  public boolean checkLengthIndexable(String pipelineDescription, long length, IOutputCheckActivity checkActivity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return checkLengthIndexable(pipelineDescription, length);
+  }
+
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
   * to help filter out documents that are too long to be indexable.
   *@param outputDescription is the document's output version.
   *@param length is the length of the document.
   *@return true if the file is indexable.
   */
-  @Override
   public boolean checkLengthIndexable(String outputDescription, long length)
     throws ManifoldCFException, ServiceInterruption
   {
     return true;
+  }
+
+  /** Pre-determine whether a document's URL is acceptable.  This method is used
+  * to help filter out documents that cannot be indexed in advance.
+  *@param pipelineDescription is the document's pipeline version string, for this connection.
+  *@param url is the URL of the document.
+  *@param checkActivity is an object including the activities that can be done by this method.
+  *@return true if the file is acceptable, false if not.
+  */
+  @Override
+  public boolean checkURLIndexable(String pipelineDescription, String url, IOutputCheckActivity checkActivity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return checkURLIndexable(pipelineDescription, url);
   }
 
   /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
@@ -150,11 +204,28 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param url is the URL of the document.
   *@return true if the file is indexable.
   */
-  @Override
   public boolean checkURLIndexable(String outputDescription, String url)
     throws ManifoldCFException, ServiceInterruption
   {
     return true;
+  }
+
+  /** Get a pipeline version string, given a pipeline specification object.  The version string is used to
+  * uniquely describe the pertinent details of the specification and the configuration, to allow the Connector 
+  * Framework to determine whether a document will need to be processed again.
+  * Note that the contents of any document cannot be considered by this method; only configuration and specification information
+  * can be considered.
+  *
+  * This method presumes that the underlying connector object has been configured.
+  *@param spec is the current pipeline specification object for this connection for the job that is doing the crawling.
+  *@return a string, of unlimited length, which uniquely describes configuration and specification in such a way that
+  * if two such strings are equal, nothing that affects how or whether the document is indexed will be different.
+  */
+  @Override
+  public String getPipelineDescription(OutputSpecification spec)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return getOutputDescription(spec);
   }
 
   /** Get an output version string, given an output specification.  The output version string is used to uniquely describe the pertinent details of
@@ -168,7 +239,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@return a string, of unlimited length, which uniquely describes output configuration and specification in such a way that if two such strings are equal,
   * the document will not need to be sent again to the output data store.
   */
-  @Override
   public String getOutputDescription(OutputSpecification spec)
     throws ManifoldCFException, ServiceInterruption
   {
