@@ -228,8 +228,25 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
   // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
   // method, above).
-    
-   /** Output the specification header section.
+
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected an output connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the preferred local of the output.
+  *@param os is the current output specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os,
+    int connectionSequenceNumber, List<String> tabsArray)
+    throws ManifoldCFException, IOException
+  {
+    outputSpecificationHeader(out,locale,os,tabsArray);
+  }
+
+  /** Output the specification header section.
   * This method is called in the head section of a job page which has selected an output connection of the current type.  Its purpose is to add the required tabs
   * to the list, and to output any javascript methods that might be needed by the job editing HTML.
   *@param out is the output to which any HTML should be sent.
@@ -237,7 +254,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param os is the current output specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  @Override
   public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
@@ -275,9 +291,27 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param out is the output to which any HTML should be sent.
   *@param locale is the preferred local of the output.
   *@param os is the current output specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
   *@param tabName is the current tab name.
   */
   @Override
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
+    throws ManifoldCFException, IOException
+  {
+    outputSpecificationBody(out,locale,os,tabName);
+  }
+
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the preferred local of the output.
+  *@param os is the current output specification for this job.
+  *@param tabName is the current tab name.
+  */
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -304,9 +338,26 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param variableContext contains the post data, including binary file-upload information.
   *@param locale is the preferred local of the output.
   *@param os is the current output specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os,
+    int connectionSequenceNumber)
+    throws ManifoldCFException
+  {
+    return processSpecificationPost(variableContext,locale,os);
+  }
+
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the output specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param locale is the preferred local of the output.
+  *@param os is the current output specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os)
     throws ManifoldCFException
   {
@@ -332,9 +383,24 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the preferred local of the output.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param os is the current output specification for this job.
   */
   @Override
+  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os,
+    int connectionSequenceNumber)
+    throws ManifoldCFException, IOException
+  {
+    viewSpecification(out,locale,os);
+  }
+
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the preferred local of the output.
+  *@param os is the current output specification for this job.
+  */
   public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
     throws ManifoldCFException, IOException
   {
