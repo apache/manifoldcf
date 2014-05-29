@@ -214,7 +214,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.checkMimeTypeIndexable(outputDescription,mimeType);
+      return connector.checkMimeTypeIndexable(outputDescription,mimeType,null);
     }
     finally
     {
@@ -239,7 +239,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.checkDocumentIndexable(outputDescription,localFile);
+      return connector.checkDocumentIndexable(outputDescription,localFile,null);
     }
     finally
     {
@@ -265,7 +265,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.checkLengthIndexable(outputDescription,length);
+      return connector.checkLengthIndexable(outputDescription,length,null);
     }
     finally
     {
@@ -291,7 +291,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.checkURLIndexable(outputDescription,url);
+      return connector.checkURLIndexable(outputDescription,url,null);
     }
     finally
     {
@@ -315,7 +315,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.getOutputDescription(spec);
+      return connector.getPipelineDescription(spec);
     }
     finally
     {
