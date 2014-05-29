@@ -290,7 +290,7 @@
         </javac>
     </target>
 
-    <target name="has-tests-check" depends="precompile-check" if="canBuild">
+    <target name="has-tests-check" depends="pretest-check" if="canTest">
         <available file="connector/src/test/java" property="hasTests"/>
     </target>
 
