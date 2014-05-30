@@ -24,7 +24,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 /** This interface abstracts from the activities that an output connector can do
 when adding or replacing documents.
 */
-public interface IOutputAddActivity extends IOutputHistoryActivity
+public interface IOutputAddActivity extends IOutputHistoryActivity,IOutputCheckActivity
 {
   public static final String _rcsid = "@(#)$Id: IOutputAddActivity.java 988245 2010-08-23 18:39:35Z kwright $";
 
