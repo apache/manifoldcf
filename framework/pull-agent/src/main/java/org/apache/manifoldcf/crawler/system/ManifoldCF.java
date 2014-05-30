@@ -196,6 +196,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   // Connectors configuration file
   protected static final String NODE_AUTHORIZATIONDOMAIN = "authorizationdomain";
   protected static final String NODE_OUTPUTCONNECTOR = "outputconnector";
+  protected static final String NODE_TRANSFORMATIONCONNECTOR = "transformationconnector";
   protected static final String NODE_MAPPINGCONNECTOR = "mappingconnector";
   protected static final String NODE_AUTHORITYCONNECTOR = "authorityconnector";
   protected static final String NODE_REPOSITORYCONNECTOR = "repositoryconnector";
@@ -211,6 +212,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Create a map of class name and description, so we can compare what we can find
     // against what we want.
     Map<String,String> desiredOutputConnectors = new HashMap<String,String>();
+    Map<String,String> desiredTransformationConnectors = new HashMap<String,String>();
     Map<String,String> desiredMappingConnectors = new HashMap<String,String>();
     Map<String,String> desiredAuthorityConnectors = new HashMap<String,String>();
     Map<String,String> desiredRepositoryConnectors = new HashMap<String,String>();
@@ -233,6 +235,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
           String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
           desiredOutputConnectors.put(className,name);
+        }
+        else if (cn.getType().equals(NODE_TRANSFORMATIONCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          desiredTransformationConnectors.put(className,name);
         }
         else if (cn.getType().equals(NODE_MAPPINGCONNECTOR))
         {
@@ -319,6 +327,49 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         }
       }
       System.err.println("Successfully unregistered all output connectors");
+    }
+
+    // Output connectors...
+    {
+      ITransformationConnectorManager mgr = TransformationConnectorManagerFactory.make(tc);
+      ITransformationConnectionManager connManager = TransformationConnectionManagerFactory.make(tc);
+      IResultSet classNames = mgr.getConnectors();
+      int i = 0;
+      while (i < classNames.getRowCount())
+      {
+        IResultRow row = classNames.getRow(i++);
+        String className = (String)row.getValue("classname");
+        String description = (String)row.getValue("description");
+        if (desiredTransformationConnectors.get(className) == null || !desiredTransformationConnectors.get(className).equals(description))
+        {
+          // Deregistration should be done in a transaction
+          database.beginTransaction();
+          try
+          {
+            // Find the connection names that come with this class
+            String[] connectionNames = connManager.findConnectionsForConnector(className);
+            // For all connection names, notify all agents of the deregistration
+            AgentManagerFactory.noteTransformationConnectorDeregistration(tc,connectionNames);
+            // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
+            mgr.unregisterConnector(className);
+          }
+          catch (ManifoldCFException e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          catch (Error e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          finally
+          {
+            database.endTransaction();
+          }
+        }
+      }
+      System.err.println("Successfully unregistered all transformation connectors");
     }
 
     // Mapping connectors...
@@ -461,6 +512,40 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
             database.endTransaction();
           }
           System.err.println("Successfully registered output connector '"+className+"'");
+        }
+        else if (cn.getType().equals(NODE_TRANSFORMATIONCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          ITransformationConnectorManager mgr = TransformationConnectorManagerFactory.make(tc);
+          ITransformationConnectionManager connManager = TransformationConnectionManagerFactory.make(tc);
+          // Registration should be done in a transaction
+          database.beginTransaction();
+          try
+          {
+            // First, register connector
+            mgr.registerConnector(name,className);
+            // Then, signal to all jobs that might depend on this connector that they can switch state
+            // Find the connection names that come with this class
+            String[] connectionNames = connManager.findConnectionsForConnector(className);
+            // For all connection names, notify all agents of the registration
+            AgentManagerFactory.noteTransformationConnectorRegistration(tc,connectionNames);
+          }
+          catch (ManifoldCFException e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          catch (Error e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          finally
+          {
+            database.endTransaction();
+          }
+          System.err.println("Successfully registered transformation connector '"+className+"'");
         }
         else if (cn.getType().equals(NODE_AUTHORITYCONNECTOR))
         {

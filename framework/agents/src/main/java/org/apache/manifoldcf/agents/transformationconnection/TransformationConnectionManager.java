@@ -1,4 +1,4 @@
-/* $Id: OutputConnectionManager.java 996524 2010-09-13 13:38:01Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.agents.outputconnection;
+package org.apache.manifoldcf.agents.transformationconnection;
 
 import java.util.*;
 import org.apache.manifoldcf.core.interfaces.*;
@@ -25,13 +25,13 @@ import org.apache.manifoldcf.agents.interfaces.CacheKeyFactory;
 import org.apache.manifoldcf.agents.system.ManifoldCF;
 
 
-/** This class is the manager of the outputconnection description.  Inside, a database table is managed,
+/** This class is the manager of the transformation connection description.  Inside, a database table is managed,
 * with appropriate caching.
 * Note well: The database handle is instantiated here using the DBInterfaceFactory.  This is acceptable because the
 * actual database that this table is located in is fixed.
 * 
 * <br><br>
-* <b>outputconnections</b>
+* <b>transformationconnections</b>
 * <table border="1" cellpadding="3" cellspacing="0">
 * <tr class="TableHeadingColor">
 * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
@@ -44,9 +44,9 @@ import org.apache.manifoldcf.agents.system.ManifoldCF;
 * <br><br>
 * 
 */
-public class OutputConnectionManager extends org.apache.manifoldcf.core.database.BaseTable implements IOutputConnectionManager
+public class TransformationConnectionManager extends org.apache.manifoldcf.core.database.BaseTable implements ITransformationConnectionManager
 {
-  public static final String _rcsid = "@(#)$Id: OutputConnectionManager.java 996524 2010-09-13 13:38:01Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Special field suffix
   private final static String passwordSuffix = "password";
@@ -66,10 +66,10 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   /** Constructor.
   *@param threadContext is the thread context.
   */
-  public OutputConnectionManager(IThreadContext threadContext, IDBInterface database)
+  public TransformationConnectionManager(IThreadContext threadContext, IDBInterface database)
     throws ManifoldCFException
   {
-    super(database,"outputconnections");
+    super(database,"transformationconnections");
 
     cacheManager = CacheManagerFactory.make(threadContext);
     this.threadContext = threadContext;
@@ -86,7 +86,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       Map existing = getTableSchema(null,null);
       if (existing == null)
       {
-        // Install the "objects" table.
+        // Install the table.
         HashMap map = new HashMap();
         map.put(nameField,new ColumnDescription("VARCHAR(32)",true,false,null,null,false));
         map.put(descriptionField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
@@ -141,14 +141,14 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     // Write a version indicator
     ManifoldCF.writeDword(os,1);
     // Get the authority list
-    IOutputConnection[] list = getAllConnections();
+    ITransformationConnection[] list = getAllConnections();
     // Write the number of authorities
     ManifoldCF.writeDword(os,list.length);
     // Loop through the list and write the individual repository connection info
     int i = 0;
     while (i < list.length)
     {
-      IOutputConnection conn = list[i++];
+      ITransformationConnection conn = list[i++];
       ManifoldCF.writeString(os,conn.getName());
       ManifoldCF.writeString(os,conn.getDescription());
       ManifoldCF.writeString(os,conn.getClassName());
@@ -163,12 +163,12 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   {
     int version = ManifoldCF.readDword(is);
     if (version != 1)
-      throw new java.io.IOException("Unknown output connection configuration version: "+Integer.toString(version));
+      throw new java.io.IOException("Unknown transformation connection configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
     int i = 0;
     while (i < count)
     {
-      IOutputConnection conn = create();
+      ITransformationConnection conn = create();
       conn.setName(ManifoldCF.readString(is));
       conn.setDescription(ManifoldCF.readString(is));
       conn.setClassName(ManifoldCF.readString(is));
@@ -180,10 +180,10 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     }
   }
 
-  /** Obtain a list of the output connections, ordered by name.
+  /** Obtain a list of the transformation connections, ordered by name.
   *@return an array of connection objects.
   */
-  public IOutputConnection[] getAllConnections()
+  public ITransformationConnection[] getAllConnections()
     throws ManifoldCFException
   {
     beginTransaction();
@@ -191,7 +191,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     {
       // Read all the tools
       StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getOutputConnectionsKey());
+      ssb.add(getTransformationConnectionsKey());
       StringSet localCacheKeys = new StringSet(ssb);
       IResultSet set = performQuery("SELECT "+nameField+",lower("+nameField+") AS sortfield FROM "+getTableName()+" ORDER BY sortfield ASC",null,
         localCacheKeys,null);
@@ -221,60 +221,60 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     }
   }
 
-  /** Load an output connection by name.
-  *@param name is the name of the output connection.
+  /** Load a transformation connection by name.
+  *@param name is the name of the transformation connection.
   *@return the loaded connection object, or null if not found.
   */
-  public IOutputConnection load(String name)
+  public ITransformationConnection load(String name)
     throws ManifoldCFException
   {
     return loadMultiple(new String[]{name})[0];
   }
 
-  /** Load multiple output connections by name.
+  /** Load multiple transformation connections by name.
   *@param names are the names to load.
   *@return the loaded connection objects.
   */
-  public IOutputConnection[] loadMultiple(String[] names)
+  public ITransformationConnection[] loadMultiple(String[] names)
     throws ManifoldCFException
   {
     // Build description objects
-    OutputConnectionDescription[] objectDescriptions = new OutputConnectionDescription[names.length];
+    TransformationConnectionDescription[] objectDescriptions = new TransformationConnectionDescription[names.length];
     int i = 0;
     StringSetBuffer ssb = new StringSetBuffer();
     while (i < names.length)
     {
       ssb.clear();
-      ssb.add(getOutputConnectionKey(names[i]));
-      objectDescriptions[i] = new OutputConnectionDescription(names[i],new StringSet(ssb));
+      ssb.add(getTransformationConnectionKey(names[i]));
+      objectDescriptions[i] = new TransformationConnectionDescription(names[i],new StringSet(ssb));
       i++;
     }
 
-    OutputConnectionExecutor exec = new OutputConnectionExecutor(this,objectDescriptions);
+    TransformationConnectionExecutor exec = new TransformationConnectionExecutor(this,objectDescriptions);
     cacheManager.findObjectsAndExecute(objectDescriptions,null,exec,getTransactionID());
     return exec.getResults();
   }
 
-  /** Create a new output connection object.
+  /** Create a new transformation connection object.
   *@return the new object.
   */
-  public IOutputConnection create()
+  public ITransformationConnection create()
     throws ManifoldCFException
   {
-    OutputConnection rval = new OutputConnection();
+    TransformationConnection rval = new TransformationConnection();
     return rval;
   }
 
-  /** Save an output connection object.
+  /** Save a transformation connection object.
   *@param object is the object to save.
   *@return true if the object is being created, false otherwise.
   */
-  public boolean save(IOutputConnection object)
+  public boolean save(ITransformationConnection object)
     throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getOutputConnectionsKey());
-    ssb.add(getOutputConnectionKey(object.getName()));
+    ssb.add(getTransformationConnectionsKey());
+    ssb.add(getTransformationConnectionKey(object.getName()));
     StringSet cacheKeys = new StringSet(ssb);
     while (true)
     {
@@ -311,7 +311,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
             {
               // If the object is supposedly new, it is bad that we found one that already exists.
               if (isNew)
-                throw new ManifoldCFException("Output connection '"+object.getName()+"' already exists");
+                throw new ManifoldCFException("Transformation connection '"+object.getName()+"' already exists");
               isCreated = false;
               IResultRow row = set.getRow(0);
               String oldXML = (String)row.getValue(configField);
@@ -328,7 +328,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
             {
               // If the object is not supposed to be new, it is bad that we did not find one.
               if (!isNew)
-                throw new ManifoldCFException("Output connection '"+object.getName()+"' no longer exists");
+                throw new ManifoldCFException("Transformation connection '"+object.getName()+"' no longer exists");
               isCreated = true;
               // Insert
               values.put(nameField,object.getName());
@@ -338,7 +338,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
             
             // If notification required, do it.
             if (notificationNeeded)
-              AgentManagerFactory.noteOutputConnectionChange(threadContext,object.getName());
+              AgentManagerFactory.noteTransformationConnectionChange(threadContext,object.getName());
 
             cacheManager.invalidateKeys(ch);
             return isCreated;
@@ -385,8 +385,8 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getOutputConnectionsKey());
-    ssb.add(getOutputConnectionKey(name));
+    ssb.add(getTransformationConnectionsKey());
+    ssb.add(getTransformationConnectionKey(name));
     StringSet cacheKeys = new StringSet(ssb);
     ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
     try
@@ -395,8 +395,8 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       try
       {
         // Check if anything refers to this connection name
-        if (AgentManagerFactory.isOutputConnectionInUse(threadContext,name))
-          throw new ManifoldCFException("Can't delete output connection '"+name+"': existing entities refer to it");
+        if (AgentManagerFactory.isTransformationConnectionInUse(threadContext,name))
+          throw new ManifoldCFException("Can't delete transformation connection '"+name+"': existing entities refer to it");
         ManifoldCF.noteConfigurationChange();
         ArrayList params = new ArrayList();
         String query = buildConjunctionClause(params,new ClauseDescription[]{
@@ -434,7 +434,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getOutputConnectionsKey());
+    ssb.add(getTransformationConnectionsKey());
     StringSet localCacheKeys = new StringSet(ssb);
     ArrayList params = new ArrayList();
     String query = buildConjunctionClause(params,new ClauseDescription[]{
@@ -464,7 +464,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     try
     {
       StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getOutputConnectionKey(name));
+      ssb.add(getTransformationConnectionKey(name));
       StringSet localCacheKeys = new StringSet(ssb);
       ArrayList params = new ArrayList();
       String query = buildConjunctionClause(params,new ClauseDescription[]{
@@ -475,7 +475,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
         throw new ManifoldCFException("No such connection: '"+name+"'");
       IResultRow row = set.getRow(0);
       String className = (String)row.getValue(classNameField);
-      IOutputConnectorManager cm = OutputConnectorManagerFactory.make(threadContext);
+      ITransformationConnectorManager cm = TransformationConnectorManagerFactory.make(threadContext);
       return cm.isInstalled(className);
     }
     catch (ManifoldCFException e)
@@ -506,21 +506,21 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   // Caching strategy: Individual connection descriptions are cached, and there is a global cache key for the list of
   // output connections.
 
-  /** Construct a key which represents the general list of output connectors.
+  /** Construct a key which represents the general list of transformation connectors.
   *@return the cache key.
   */
-  protected static String getOutputConnectionsKey()
+  protected static String getTransformationConnectionsKey()
   {
-    return CacheKeyFactory.makeOutputConnectionsKey();
+    return CacheKeyFactory.makeTransformationConnectionsKey();
   }
 
-  /** Construct a key which represents an individual output connection.
+  /** Construct a key which represents an individual transformation connection.
   *@param connectionName is the name of the connector.
   *@return the cache key.
   */
-  protected static String getOutputConnectionKey(String connectionName)
+  protected static String getTransformationConnectionKey(String connectionName)
   {
-    return CacheKeyFactory.makeOutputConnectionKey(connectionName);
+    return CacheKeyFactory.makeTransformationConnectionKey(connectionName);
   }
 
   // Other utility methods.
@@ -529,11 +529,11 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@param connectionNames are a list of connection names.
   *@return the corresponding output connection objects.
   */
-  protected OutputConnection[] getOutputConnectionsMultiple(String[] connectionNames)
+  protected TransformationConnection[] getTransformationConnectionsMultiple(String[] connectionNames)
     throws ManifoldCFException
   {
-    OutputConnection[] rval = new OutputConnection[connectionNames.length];
-    HashMap returnIndex = new HashMap();
+    TransformationConnection[] rval = new TransformationConnection[connectionNames.length];
+    Map<String,Integer> returnIndex = new HashMap<String,Integer>();
     int i = 0;
     while (i < connectionNames.length)
     {
@@ -547,12 +547,12 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       i = 0;
       ArrayList params = new ArrayList();
       int j = 0;
-      int maxIn = maxClauseGetOutputConnectionsChunk();
+      int maxIn = maxClauseGetTransformationConnectionsChunk();
       while (i < connectionNames.length)
       {
         if (j == maxIn)
         {
-          getOutputConnectionsChunk(rval,returnIndex,params);
+          getTransformationConnectionsChunk(rval,returnIndex,params);
           params.clear();
           j = 0;
         }
@@ -561,7 +561,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
         j++;
       }
       if (j > 0)
-        getOutputConnectionsChunk(rval,returnIndex,params);
+        getTransformationConnectionsChunk(rval,returnIndex,params);
       return rval;
     }
     catch (Error e)
@@ -580,19 +580,19 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     }
   }
 
-  /** Calculate max number of clauses to send to getOutputConnectionsChunk.
+  /** Calculate max number of clauses to send to getTransformationConnectionsChunk.
   */
-  protected int maxClauseGetOutputConnectionsChunk()
+  protected int maxClauseGetTransformationConnectionsChunk()
   {
     return findConjunctionClauseMax(new ClauseDescription[]{});
   }
     
-  /** Read a chunk of output connections.
+  /** Read a chunk of transformation connections.
   *@param rval is the place to put the read policies.
   *@param returnIndex is a map from the object id (resource id) and the rval index.
   *@param params is the set of parameters.
   */
-  protected void getOutputConnectionsChunk(OutputConnection[] rval, Map returnIndex, ArrayList params)
+  protected void getTransformationConnectionsChunk(TransformationConnection[] rval, Map<String,Integer> returnIndex, ArrayList params)
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
@@ -605,8 +605,8 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     {
       IResultRow row = set.getRow(i++);
       String name = row.getValue(nameField).toString();
-      int index = ((Integer)returnIndex.get(name)).intValue();
-      OutputConnection rc = new OutputConnection();
+      int index = returnIndex.get(name).intValue();
+      TransformationConnection rc = new TransformationConnection();
       rc.setIsNew(false);
       rc.setName(name);
       rc.setDescription((String)row.getValue(descriptionField));
@@ -620,22 +620,22 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
 
   }
 
-  // The cached instance will be an OutputConnection.  The cached version will be duplicated when it is returned
+  // The cached instance will be a TransformationConnection.  The cached version will be duplicated when it is returned
   // from the cache.
   //
   // The description object is based completely on the name.
 
-  /** This is the object description for an output connection object.
+  /** This is the object description for a transformation connection object.
   */
-  protected static class OutputConnectionDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
+  protected static class TransformationConnectionDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
   {
     protected String connectionName;
     protected String criticalSectionName;
     protected StringSet cacheKeys;
 
-    public OutputConnectionDescription(String connectionName, StringSet invKeys)
+    public TransformationConnectionDescription(String connectionName, StringSet invKeys)
     {
-      super("outputconnectioncache");
+      super("transformationconnectioncache");
       this.connectionName = connectionName;
       criticalSectionName = getClass().getName()+"-"+connectionName;
       cacheKeys = invKeys;
@@ -653,9 +653,9 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
 
     public boolean equals(Object o)
     {
-      if (!(o instanceof OutputConnectionDescription))
+      if (!(o instanceof TransformationConnectionDescription))
         return false;
-      OutputConnectionDescription d = (OutputConnectionDescription)o;
+      TransformationConnectionDescription d = (TransformationConnectionDescription)o;
       return d.connectionName.equals(connectionName);
     }
 
@@ -676,24 +676,24 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
 
   }
 
-  /** This is the executor object for locating output connection objects.
+  /** This is the executor object for locating transformation connection objects.
   */
-  protected static class OutputConnectionExecutor extends org.apache.manifoldcf.core.cachemanager.ExecutorBase
+  protected static class TransformationConnectionExecutor extends org.apache.manifoldcf.core.cachemanager.ExecutorBase
   {
     // Member variables
-    protected OutputConnectionManager thisManager;
-    protected OutputConnection[] returnValues;
+    protected TransformationConnectionManager thisManager;
+    protected TransformationConnection[] returnValues;
     protected HashMap returnMap = new HashMap();
 
     /** Constructor.
-    *@param manager is the OutputConnectionManager.
+    *@param manager is the TransformationConnectionManager.
     *@param objectDescriptions are the object descriptions.
     */
-    public OutputConnectionExecutor(OutputConnectionManager manager, OutputConnectionDescription[] objectDescriptions)
+    public TransformationConnectionExecutor(TransformationConnectionManager manager, TransformationConnectionDescription[] objectDescriptions)
     {
       super();
       thisManager = manager;
-      returnValues = new OutputConnection[objectDescriptions.length];
+      returnValues = new TransformationConnection[objectDescriptions.length];
       int i = 0;
       while (i < objectDescriptions.length)
       {
@@ -705,7 +705,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     /** Get the result.
     *@return the looked-up or read cached instances.
     */
-    public OutputConnection[] getResults()
+    public TransformationConnection[] getResults()
     {
       return returnValues;
     }
@@ -725,12 +725,12 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       int i = 0;
       while (i < connectionNames.length)
       {
-        OutputConnectionDescription desc = (OutputConnectionDescription)objectDescriptions[i];
+        TransformationConnectionDescription desc = (TransformationConnectionDescription)objectDescriptions[i];
         connectionNames[i] = desc.getConnectionName();
         i++;
       }
 
-      return thisManager.getOutputConnectionsMultiple(connectionNames);
+      return thisManager.getTransformationConnectionsMultiple(connectionNames);
     }
 
 
@@ -744,8 +744,8 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     public void exists(ICacheDescription objectDescription, Object cachedObject) throws ManifoldCFException
     {
       // Cast what came in as what it really is
-      OutputConnectionDescription objectDesc = (OutputConnectionDescription)objectDescription;
-      OutputConnection ci = (OutputConnection)cachedObject;
+      TransformationConnectionDescription objectDesc = (TransformationConnectionDescription)objectDescription;
+      TransformationConnection ci = (TransformationConnection)cachedObject;
 
       // Duplicate it!
       if (ci != null)

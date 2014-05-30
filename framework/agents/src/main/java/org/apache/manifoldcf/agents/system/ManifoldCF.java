@@ -107,9 +107,13 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
     IOutputConnectorManager outputConnMgr = OutputConnectorManagerFactory.make(threadcontext);
     IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadcontext);
+    ITransformationConnectorManager transConnMgr = TransformationConnectorManagerFactory.make(threadcontext);
+    ITransformationConnectionManager transConnectionManager = TransformationConnectionManagerFactory.make(threadcontext);
     mgr.install();
     outputConnMgr.install();
     outputConnectionManager.install();
+    transConnMgr.install();
+    transConnectionManager.install();
     igstmgr.install();
   }
 
@@ -123,7 +127,11 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
     IOutputConnectorManager outputConnMgr = OutputConnectorManagerFactory.make(threadcontext);
     IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadcontext);
+    ITransformationConnectorManager transConnMgr = TransformationConnectorManagerFactory.make(threadcontext);
+    ITransformationConnectionManager transConnectionManager = TransformationConnectionManagerFactory.make(threadcontext);
     igstmgr.deinstall();
+    transConnectionManager.deinstall();
+    transConnMgr.deinstall();
     outputConnectionManager.deinstall();
     outputConnMgr.deinstall();
     mgr.deinstall();

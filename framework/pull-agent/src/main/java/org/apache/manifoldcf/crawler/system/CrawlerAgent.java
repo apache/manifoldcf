@@ -282,6 +282,48 @@ public class CrawlerAgent implements IAgent
     jobManager.noteOutputConnectionChange(connectionName);
   }
 
+  /** Request permission from agent to delete a transformation connection.
+  *@param connName is the name of the transformation connection.
+  *@return true if the connection is in use, false otherwise.
+  */
+  @Override
+  public boolean isTransformationConnectionInUse(IThreadContext threadContext, String connName)
+    throws ManifoldCFException
+  {
+    // MHL
+    return false;
+  }
+
+  /** Note the deregistration of a set of transformation connections.
+  *@param connectionNames are the names of the connections being deregistered.
+  */
+  @Override
+  public void noteTransformationConnectorDeregistration(IThreadContext threadContext, String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
+  /** Note the registration of a set of transformation connections.
+  *@param connectionNames are the names of the connections being registered.
+  */
+  @Override
+  public void noteTransformationConnectorRegistration(IThreadContext threadContext, String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
+  /** Note a change in configuration for a transformation connection.
+  *@param connectionName is the name of the connection being changed.
+  */
+  @Override
+  public void noteTransformationConnectionChange(IThreadContext threadContext, String connectionName)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
   /** Start everything.
   */
   public void startSystem(IThreadContext threadContext)
