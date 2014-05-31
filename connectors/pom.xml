@@ -42,6 +42,7 @@
     <module>ldap</module>
     <module>nullauthority</module>
     <module>nulloutput</module>
+    <module>nulltransformation</module>
     <module>rss</module>
     <module>sharepoint</module>
     <module>solr</module>
