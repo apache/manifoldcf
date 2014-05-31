@@ -81,7 +81,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   public boolean checkMimeTypeIndexable(String pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
-    return true;
+    return checkActivity.checkMimeTypeIndexable(mimeType);
   }
 
   /** Pre-determine whether a document (passed here as a File object) is acceptable or not.  This method is
@@ -96,7 +96,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   public boolean checkDocumentIndexable(String pipelineDescription, File localFile, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
-    return true;
+    return checkActivity.checkDocumentIndexable(localFile);
   }
 
   /** Pre-determine whether a document's length is acceptable.  This method is used
@@ -110,7 +110,21 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   public boolean checkLengthIndexable(String pipelineDescription, long length, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
-    return true;
+    return checkActivity.checkLengthIndexable(length);
+  }
+
+  /** Pre-determine whether a document's URL is acceptable.  This method is used
+  * to help filter out documents that cannot be indexed in advance.
+  *@param pipelineDescription is the document's pipeline version string, for this connection.
+  *@param url is the URL of the document.
+  *@param checkActivity is an object including the activities that can be done by this method.
+  *@return true if the file is acceptable, false if not.
+  */
+  @Override
+  public boolean checkURLIndexable(String pipelineDescription, String url, IOutputCheckActivity checkActivity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return checkActivity.checkURLIndexable(url);
   }
 
   /** Get a pipeline version string, given a pipeline specification object.  The version string is used to
