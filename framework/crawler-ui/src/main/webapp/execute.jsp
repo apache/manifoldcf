@@ -50,8 +50,10 @@
 		IAuthorityConnectionManager authConnManager = AuthorityConnectionManagerFactory.make(threadContext);
 		IMappingConnectionManager mappingConnManager = MappingConnectionManagerFactory.make(threadContext);
 		IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+		ITransformationConnectionManager transformationManager = TransformationConnectionManagerFactory.make(threadContext);
 		
 		IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+		ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
 		IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
 		
 		String type = variableContext.getParameter("type");
@@ -743,6 +745,121 @@
 				// Error
 				variableContext.setParameter("text","Illegal parameter to output connection execution page");
 				variableContext.setParameter("target","listoutputs.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
+		}
+		else if (type != null && op != null && type.equals("output"))
+		{
+			// -- Output connection editing operations --
+			if (op.equals("Save") || op.equals("Continue"))
+			{
+				try
+				{
+					// Set up a connection object that is a merge of an existing connection object plus what was posted.
+					ITransformationConnection connection = null;
+					boolean isNew = true;
+					String x = variableContext.getParameter("isnewconnection");
+					if (x != null)
+						isNew = x.equals("true");
+
+					String connectionName = variableContext.getParameter("connname");
+					// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
+					if (connectionName != null && connectionName.length() > 0 && !isNew)
+					{
+						connection = transformationManager.load(connectionName);
+					}
+					
+					if (connection == null)
+					{
+						connection = transformationManager.create();
+						if (connectionName != null && connectionName.length() > 0)
+							connection.setName(connectionName);
+					}
+
+					// Gather all the data from the form.
+					connection.setIsNew(isNew);
+					x = variableContext.getParameter("description");
+					if (x != null)
+						connection.setDescription(x);
+					x = variableContext.getParameter("classname");
+					if (x != null)
+						connection.setClassName(x);
+					x = variableContext.getParameter("maxconnections");
+					if (x != null && x.length() > 0)
+						connection.setMaxConnections(Integer.parseInt(x));
+
+					String error = TransformationConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
+					
+					if (error != null)
+					{
+						variableContext.setParameter("text",error);
+						variableContext.setParameter("target","listtransformations.jsp");
+%>
+						<jsp:forward page="error.jsp"/>
+<%
+					}
+					
+					if (op.equals("Continue"))
+					{
+						threadContext.save("ConnectionObject",connection);
+%>
+						<jsp:forward page="edittransformation.jsp"/>
+<%
+					}
+					else if (op.equals("Save"))
+					{
+						transformationManager.save(connection);
+						variableContext.setParameter("connname",connectionName);
+%>
+						<jsp:forward page="viewtransformation.jsp"/>
+<%
+					}
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listtransformations.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Delete"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new ManifoldCFException("Missing connection parameter");
+					transformationManager.delete(connectionName);
+%>
+					<jsp:forward page="listtransformations.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listtransformations.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Cancel"))
+			{
+%>
+				<jsp:forward page="listtransformations.jsp"/>
+<%
+			}
+			else
+			{
+				// Error
+				variableContext.setParameter("text","Illegal parameter to transformation connection execution page");
+				variableContext.setParameter("target","listtransformations.jsp");
 %>
 				<jsp:forward page="error.jsp"/>
 <%

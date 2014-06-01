@@ -44,6 +44,7 @@ public class JobDescription implements IJobDescription
   protected String description = null;
   protected String outputConnectionName = null;
   protected String connectionName = null;
+  protected final List<String> pipelineConnectionNames = new ArrayList<String>();
   protected int type = TYPE_CONTINUOUS;
   protected int startMethod = START_WINDOWBEGIN;
   protected int priority = 5;
@@ -72,6 +73,9 @@ public class JobDescription implements IJobDescription
   // Document specification
   protected DocumentSpecification documentSpecification = new DocumentSpecification();
 
+  // Transformation specifications
+  protected final List<OutputSpecification> pipelineSpecifications = new ArrayList<OutputSpecification>();
+  
   // Hop count filters.
   protected HashMap hopCountFilters = new HashMap();
 
@@ -97,6 +101,10 @@ public class JobDescription implements IJobDescription
     rval.isNew = isNew;
     rval.outputConnectionName = outputConnectionName;
     rval.connectionName = connectionName;
+    for (String pipelineConnectionName : pipelineConnectionNames)
+    {
+      rval.pipelineConnectionNames.add(pipelineConnectionName);
+    }
     rval.description = description;
     rval.type = type;
     // No direct modification of this object is possible
@@ -128,6 +136,11 @@ public class JobDescription implements IJobDescription
     rval.outputSpecification = outputSpecification.duplicate(readOnly);
     // Direct modification of this object is possible - so it also has to know if it is read-only!!
     rval.documentSpecification = documentSpecification.duplicate(readOnly);
+    // Duplicate the pipeline specifications
+    for (OutputSpecification pipelineSpecification : pipelineSpecifications)
+    {
+      rval.pipelineSpecifications.add(pipelineSpecification.duplicate(readOnly));
+    }
     rval.readOnly = readOnly;
     return rval;
   }
@@ -242,6 +255,47 @@ public class JobDescription implements IJobDescription
     return connectionName;
   }
 
+  /** Clear pipeline connections */
+  @Override
+  public void clearPipeline()
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    pipelineConnectionNames.clear();
+    pipelineSpecifications.clear();
+  }
+  
+  /** Add a pipeline connection */
+  @Override
+  public void addPipelineConnection(String pipelineConnectionName)
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    pipelineConnectionNames.add(pipelineConnectionName);
+    pipelineSpecifications.add(new OutputSpecification());
+  }
+  
+  /** Get a count of pipeline connections */
+  @Override
+  public int countPipelineConnections()
+  {
+    return pipelineConnectionNames.size();
+  }
+  
+  /** Get a specific pipeline connection name */
+  @Override
+  public String getPipelineConnectionName(int index)
+  {
+    return pipelineConnectionNames.get(index);
+  }
+  
+  /** Get a specific pipeline connection specification */
+  @Override
+  public OutputSpecification getPipelineSpecification(int index)
+  {
+    return pipelineSpecifications.get(index);
+  }
+  
   /** Set the job type.
   *@param type is the type (as an integer).
   */

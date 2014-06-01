@@ -45,6 +45,7 @@ public class JobManager implements IJobManager
   protected final IDBInterface database;
   protected final IOutputConnectionManager outputMgr;
   protected final IRepositoryConnectionManager connectionMgr;
+  protected final ITransformationConnectionManager transformationMgr;
   protected final IRepositoryConnectorPool repositoryConnectorPool;
   protected final ILockManager lockManager;
   protected final IThreadContext threadContext;
@@ -73,6 +74,7 @@ public class JobManager implements IJobManager
     eventManager = new EventManager(database);
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
     connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+    transformationMgr = TransformationConnectionManagerFactory.make(threadContext);
     repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
     lockManager = LockManagerFactory.make(threadContext);
   }
@@ -83,7 +85,9 @@ public class JobManager implements IJobManager
   public void install()
     throws ManifoldCFException
   {
-    jobs.install(outputMgr.getTableName(),outputMgr.getConnectionNameColumn(),connectionMgr.getTableName(),connectionMgr.getConnectionNameColumn());
+    jobs.install(transformationMgr.getTableName(),transformationMgr.getConnectionNameColumn(),
+      outputMgr.getTableName(),outputMgr.getConnectionNameColumn(),
+      connectionMgr.getTableName(),connectionMgr.getConnectionNameColumn());
     jobQueue.install(jobs.getTableName(),jobs.idField);
     hopCount.install(jobs.getTableName(),jobs.idField);
     carryDown.install(jobs.getTableName(),jobs.idField);

@@ -321,15 +321,17 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   */
   
   // Local variables
-  protected ICacheManager cacheManager;
-  protected ScheduleManager scheduleManager;
-  protected HopFilterManager hopFilterManager;
-  protected ForcedParamManager forcedParamManager;
-
-  protected IOutputConnectionManager outputMgr;
-  protected IRepositoryConnectionManager connectionMgr;
-
-  protected IThreadContext threadContext;
+  protected final ICacheManager cacheManager;
+  protected final ScheduleManager scheduleManager;
+  protected final HopFilterManager hopFilterManager;
+  protected final ForcedParamManager forcedParamManager;
+  protected final PipelineManager pipelineManager;
+  
+  protected final IOutputConnectionManager outputMgr;
+  protected final IRepositoryConnectionManager connectionMgr;
+  protected final ITransformationConnectionManager transMgr;
+  
+  protected final IThreadContext threadContext;
   
   /** Constructor.
   *@param database is the database handle.
@@ -342,16 +344,20 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     scheduleManager = new ScheduleManager(threadContext,database);
     hopFilterManager = new HopFilterManager(threadContext,database);
     forcedParamManager = new ForcedParamManager(threadContext,database);
+    pipelineManager = new PipelineManager(threadContext,database);
     
     cacheManager = CacheManagerFactory.make(threadContext);
 
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
     connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+    transMgr = TransformationConnectionManagerFactory.make(threadContext);
   }
 
   /** Install or upgrade this table.
   */
-  public void install(String outputTableName, String outputNameField, String connectionTableName, String connectionNameField)
+  public void install(String transTableName, String transNameField,
+    String outputTableName, String outputNameField,
+    String connectionTableName, String connectionNameField)
     throws ManifoldCFException
   {
     // Standard practice: Have a loop around everything, in case upgrade needs it.
@@ -418,6 +424,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       }
 
       // Handle related tables
+      pipelineManager.install(getTableName(),idField,transTableName,transNameField);
       scheduleManager.install(getTableName(),idField);
       hopFilterManager.install(getTableName(),idField);
       forcedParamManager.install(getTableName(),idField);
@@ -480,6 +487,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       forcedParamManager.deinstall();
       hopFilterManager.deinstall();
       scheduleManager.deinstall();
+      pipelineManager.deinstall();
       performDrop(null);
     }
     catch (ManifoldCFException e)
@@ -891,6 +899,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
               query = buildConjunctionClause(params,new ClauseDescription[]{
                 new UnitaryClause(idField,id)});
               performUpdate(values," WHERE "+query,params,null);
+              pipelineManager.deleteRows(id);
               scheduleManager.deleteRows(id);
               hopFilterManager.deleteRows(id);
               forcedParamManager.deleteRows(id);
@@ -907,6 +916,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
               performInsert(values,null);
             }
 
+            // Write pipeline rows
+            pipelineManager.writeRows(id,jobDescription);
             // Write schedule records
             scheduleManager.writeRows(id,jobDescription);
             // Write hop filter rows
@@ -3214,14 +3225,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     // Fetch all the jobs, but only once for each ID.  Then, assign each one by id into the final array.
-    HashMap uniqueIDs = new HashMap();
-    int i = 0;
-    while (i < ids.length)
+    Set<Long> uniqueIDs = new HashSet<Long>();
+    for (Long id : ids)
     {
-      uniqueIDs.put(ids[i],ids[i]);
-      i++;
+      uniqueIDs.add(id);
     }
-    HashMap returnValues = new HashMap();
+    Map<Long,JobDescription> returnValues = new HashMap<Long,JobDescription>();
     beginTransaction();
     try
     {
@@ -3229,8 +3238,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       ArrayList params = new ArrayList();
       int j = 0;
       int maxIn = getMaxInClause();
-      Iterator iter = uniqueIDs.keySet().iterator();
-      while (iter.hasNext())
+      for (Long uniqueID : uniqueIDs)
       {
         if (j == maxIn)
         {
@@ -3242,7 +3250,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         if (j > 0)
           sb.append(',');
         sb.append('?');
-        params.add((Long)iter.next());
+        params.add(uniqueID);
         j++;
       }
       if (j > 0)
@@ -3265,15 +3273,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
     // Build the return array
     JobDescription[] rval = new JobDescription[ids.length];
-    i = 0;
-    while (i < rval.length)
+    for (int i = 0; i < rval.length; i++)
     {
       Long id = ids[i];
-      JobDescription jd = (JobDescription)returnValues.get(id);
+      JobDescription jd = returnValues.get(id);
       if (jd != null)
         jd.makeReadOnly();
       rval[i] = jd;
-      i++;
     }
     return rval;
   }
@@ -3283,7 +3289,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   *@param idList is the list of id's.
   *@param params is the set of parameters.
   */
-  protected void getJobsChunk(Map returnValues, String idList, ArrayList params)
+  protected void getJobsChunk(Map<Long,JobDescription> returnValues, String idList, ArrayList params)
     throws ManifoldCFException
   {
     try
@@ -3321,6 +3327,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       }
 
       // Fill in schedules for jobs
+      pipelineManager.getRows(returnValues,idList,params);
       scheduleManager.getRows(returnValues,idList,params);
       hopFilterManager.getRows(returnValues,idList,params);
       forcedParamManager.getRows(returnValues,idList,params);
