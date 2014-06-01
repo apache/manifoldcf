@@ -650,6 +650,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of writing configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+    ITransformationConnectionManager transManager = TransformationConnectionManagerFactory.make(threadContext);
     IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
@@ -709,6 +710,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
             // The zipentries must be written in an order that permits their proper restoration.  The "lowest level" is thus
             // written first, which yields the order: authority connections, repository connections, jobs
+            java.util.zip.ZipEntry transEntry = new java.util.zip.ZipEntry("transformations");
+            zos.putNextEntry(transEntry);
+            transManager.exportConfiguration(zos);
+            zos.closeEntry();
+
             java.util.zip.ZipEntry outputEntry = new java.util.zip.ZipEntry("outputs");
             zos.putNextEntry(outputEntry);
             outputManager.exportConfiguration(zos);
@@ -790,6 +796,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of reading configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+    ITransformationConnectionManager transManager = TransformationConnectionManagerFactory.make(threadContext);
     IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
@@ -846,7 +853,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
               entries++;
               // Get the name of the entry
               String name = z.getName();
-              if (name.equals("outputs"))
+              if (name.equals("transformations"))
+                transManager.importConfiguration(zis);
+              else if (name.equals("outputs"))
                 outputManager.importConfiguration(zis);
               else if (name.equals("groups"))
                 groupManager.importConfiguration(zis);
