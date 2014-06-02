@@ -209,6 +209,41 @@
 	}
 
 
+	// Get the names of the various Javascript methods we'll need to call
+	String outputCheckMethod = "checkOutputSpecification";
+	String outputSaveCheckMethod = "checkOutputSpecificationForSave";
+	String checkMethod = "checkSpecification";
+	String saveCheckMethod = "checkSpecificationForSave";
+	String[] transformationCheckMethods = new String[transformationConnections.length];
+	String[] transformationCheckForSaveMethods = new String[transformationConnections.length];
+	for (int j = 0; j < transformationConnections.length; j++)
+	{
+		transformationCheckMethods[j] = "unknown";
+		transformationCheckForSaveMethods[j] = "unknown";
+	}
+	
+	if (outputConnection != null)
+	{
+		IOutputConnector outputConnector = OutputConnectorFactory.getConnectorNoCheck(outputConnection.getName());
+		if (outputConnector != null)
+		{
+			outputCheckMethod = outputConnector.getFormCheckJavascriptMethodName(1+transformationNames.length);
+			outputSaveCheckMethod = outputConnector.getFormPresaveCheckJavascriptMethodName(1+transformationNames.length);
+		}
+	}
+
+	// MHL for repository connection, if ever added
+
+	for (int j = 0; j < transformationConnections.length; j++)
+	{
+		ITransformationConnector transformationConnector = TransformationConnectorFactory.getConnectorNoCheck(transformationConnections[j].getName());
+		if (transformationConnector != null)
+		{
+			transformationCheckMethods[j] = transformationConnector.getFormCheckJavascriptMethodName(1+j);
+			transformationCheckForSaveMethods[j] = transformationConnector.getFormPresaveCheckJavascriptMethodName(1+j);
+		}
+	}
+
 %>
 
 <?xml version="1.0" encoding="utf-8"?>
@@ -292,19 +327,28 @@
 				document.editjob.description.focus();
 				return;
 			}
-			if (window.checkOutputSpecificationForSave)
+			if (window.<%=outputSaveCheckMethod%>)
 			{
-				if (checkOutputSpecificationForSave() == false)
+				if (<%=outputSaveCheckMethod%>() == false)
 					return;
 			}
-			if (window.checkSpecificationForSave)
+<%
+	for (int j = 0; j < transformationCheckForSaveMethods.length; j++)
+	{
+%>
+			if (window.<%=transformationCheckForSaveMethods[j]%>)
 			{
-				if (checkSpecificationForSave() == false)
+				if (<%=transformationCheckForSaveMethods[j]%>() == false)
 					return;
 			}
-			// Check the transformation parts.  But since each transformation connector needs
-			// to supply a unique javascript method to call, it's not clear how we do this.
-			// MHL
+<%
+	}
+%>
+			if (window.<%=saveCheckMethod%>)
+			{
+				if (<%=saveCheckMethod%>() == false)
+					return;
+			}
 			document.editjob.op.value="Save";
 			document.editjob.submit();
 		}
@@ -412,15 +456,27 @@
 		if (!checkSchedule())
 			return false;
 		// Check the output connector part
-		if (window.checkOutputSpecification)
+		if (window.<%=outputCheckMethod%>)
 		{
-			if (checkOutputSpecification() == false)
+			if (<%=outputCheckMethod%>() == false)
 				return false;
 		}
-		// Check the connector part
-		if (window.checkSpecification)
+<%
+	for (int j = 0; j < transformationCheckMethods.length; j++)
+	{
+%>
+		if (window.<%=transformationCheckMethods[j]%>)
 		{
-			if (checkSpecification() == false)
+			if (<%=transformationCheckMethods[j]%>() == false)
+				return;
+		}
+<%
+	}
+%>
+		// Check the connector part
+		if (window.<%=checkMethod%>)
+		{
+			if (<%=checkMethod%>() == false)
 				return false;
 		}
 		// Check the transformation parts.  But since each transformation connector needs
