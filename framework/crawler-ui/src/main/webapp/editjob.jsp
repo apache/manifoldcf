@@ -35,9 +35,12 @@
 	IRepositoryConnection[] connList = connMgr.getAllConnections();
 	IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(threadContext);
 	IOutputConnection[] outputList = outputMgr.getAllConnections();
+	ITransformationConnectionManager transformationMgr = TransformationConnectionManagerFactory.make(threadContext);
+	ITransformationConnection[] transformationList = transformationMgr.getAllConnections();
 
 	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
 	IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+	ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
 
 	// Figure out tab name and sequence number
 	String tabName = variableContext.getParameter("tabname");
@@ -76,10 +79,13 @@
 	// Setup default fields
 	String connectionName = "";
 	String outputName = "";
+	String[] transformationNames = new String[0];
+	String[] transformationDescriptions = new String[0];
 	String description = "";
 	int type = IJobDescription.TYPE_SPECIFIED;
 	OutputSpecification outputSpecification = new OutputSpecification();
 	DocumentSpecification documentSpecification = new DocumentSpecification();
+	OutputSpecification[] transformationSpecifications = new OutputSpecification[0];
 	ArrayList scheduleRecords = new ArrayList();
 
 	EnumeratedValues dayOfWeek = null;
@@ -119,16 +125,24 @@
 		description = job.getDescription();
 		outputName = job.getOutputConnectionName();
 		connectionName = job.getConnectionName();
+		transformationNames = new String[job.countPipelineStages()];
+		transformationDescriptions = new String[job.countPipelineStages()];
+		transformationSpecifications = new OutputSpecification[job.countPipelineStages()];
+		for (int j = 0; j < job.countPipelineStages(); j++)
+		{
+			transformationNames[j] = job.getPipelineStageConnectionName(j);
+			transformationDescriptions[j] = job.getPipelineStageDescription(j);
+			transformationSpecifications[j] = job.getPipelineStageSpecification(j);
+		}
 		type = job.getType();
 		startMethod = job.getStartMethod();
 		hopcountMode = job.getHopcountMode();
 		outputSpecification = job.getOutputSpecification();
 		documentSpecification = job.getSpecification();
 		// Fill in schedule records from job
-		int j = 0;
-		while (j < job.getScheduleRecordCount())
+		for (int j = 0; j < job.getScheduleRecordCount(); j++)
 		{
-			scheduleRecords.add(job.getScheduleRecord(j++));
+			scheduleRecords.add(job.getScheduleRecord(j));
 		}
 
 		priority = job.getPriority();
@@ -169,6 +183,11 @@
 	if (outputName.length() > 0)
 	{
 		outputConnection = outputMgr.load(outputName);
+	}
+	ITransformationConnection[] transformationConnections = new ITransformationConnection[transformationNames.length];
+	for (int j = 0; j < transformationConnections.length; j++)
+	{
+		transformationConnections[j] = transformationMgr.load(transformationNames[j]);
 	}
 
 	// Set up the predefined tabs
@@ -481,7 +500,7 @@
 				outputConnectorPool.release(outputConnection,outputConnector);
 			}
 		}
-		Integer outputConnectionSequenceNumber = new Integer(1);
+		Integer outputConnectionSequenceNumber = new Integer(1+transformationConnections.length);
 		while (sequenceArray.size() < tabsArray.size())
 		{
 			sequenceArray.add(outputConnectionSequenceNumber);
@@ -508,6 +527,29 @@
 		while (sequenceArray.size() < tabsArray.size())
 		{
 			sequenceArray.add(repositoryConnectionSequenceNumber);
+		}
+	}
+%>
+
+<%
+	for (int j = 0; j < transformationConnections.length; j++)
+	{
+		ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnections[j]);
+		if (transformationConnector != null)
+		{
+			try
+			{
+				transformationConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),transformationSpecifications[j],1+j,tabsArray);
+			}
+			finally
+			{
+				transformationConnectorPool.release(transformationConnections[j],transformationConnector);
+			}
+		}
+		Integer transformationConnectionSequenceNumber = new Integer(1+j);
+		while (sequenceArray.size() < tabsArray.size())
+		{
+			sequenceArray.add(transformationConnectionSequenceNumber);
 		}
 	}
 %>
