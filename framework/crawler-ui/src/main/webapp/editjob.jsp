@@ -302,6 +302,9 @@
 				if (checkSpecificationForSave() == false)
 					return;
 			}
+			// Check the transformation parts.  But since each transformation connector needs
+			// to supply a unique javascript method to call, it's not clear how we do this.
+			// MHL
 			document.editjob.op.value="Save";
 			document.editjob.submit();
 		}
@@ -319,6 +322,39 @@
 		postFormNew();
 	}
 
+	function InsertPipelineStage(n)
+	{
+		if (editjob.pipeline_connectionname.value == "")
+		{
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.PipelineStageConnectionNameMustNotBeNull")%>");
+			editjob..pipeline_connectionname.focus();
+			return;
+		}
+		eval("document.editjob.pipeline_"+n+"_op.value = 'Insert'");
+		postFormSetAnchor("pipeline_"+(n+1)+"_tag");
+	}
+
+	function AppendPipelineStage()
+	{
+		if (editjob.pipeline_connectionname.value == "")
+		{
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.PipelineStageConnectionNameMustNotBeNull")%>");
+			editjob..pipeline_connectionname.focus();
+			return;
+		}
+		document.editjob.pipeline_op.value="Add";
+		postFormSetAnchor("pipeline_tag");
+	}
+	
+	function DeletePipelineStage(n)
+	{
+		eval("document.editjob.pipeline_"+n+"_op.value = 'Delete'");
+		if (n == 0)
+			postFormSetAnchor("pipeline_tag");
+		else
+			postFormSetAnchor("pipeline_"+(n-1)+"_tag");
+	}
+	
 	function AddScheduledTime()
 	{
 		if (editjob.duration.value != "" && !isInteger(editjob.duration.value))
@@ -387,6 +423,9 @@
 			if (checkSpecification() == false)
 				return false;
 		}
+		// Check the transformation parts.  But since each transformation connector needs
+		// to supply a unique javascript method to call, it's not clear how we do this.
+		// MHL
 		return true;
 	}
 
