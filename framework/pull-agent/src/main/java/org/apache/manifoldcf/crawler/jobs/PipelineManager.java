@@ -34,6 +34,7 @@ import java.util.*;
 * <tr><td>ownerid</td><td>BIGINT</td><td>Reference:jobs.id</td></tr>
 * <tr><td>ordinal</td><td>BIGINT</td><td></td></tr>
 * <tr><td>transformationname</td><td>VARCHAR(32)</td><td></td></tr>
+* <tr><td>transformationdesc</td><td>VARCHAR(255)</td><td></td></tr>
 * <tr><td>transformationspec</td><td>LONGTEXT</td><td></td></tr>
 * </table>
 * <br><br>
@@ -47,6 +48,7 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
   public final static String ownerIDField = "ownerid";
   public final static String ordinalField = "ordinal";
   public final static String transformationNameField = "transformationname";
+  public final static String transformationDescriptionField = "transformationdesc";
   public final static String transformationSpecField = "transformationspec";
 
   /** Constructor.
@@ -76,6 +78,7 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
         map.put(ownerIDField,new ColumnDescription("BIGINT",false,false,ownerTable,owningTablePrimaryKey,false));
         map.put(ordinalField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(transformationNameField,new ColumnDescription("VARCHAR(32)",false,false,transformationTableName,transformationNameField,false));
+        map.put(transformationDescriptionField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
         map.put(transformationSpecField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         performCreate(map,null);
       }
@@ -132,12 +135,11 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     {
       IResultRow row = set.getRow(i);
       Long ownerID = (Long)row.getValue(ownerIDField);
-      Long ordinal = (Long)row.getValue(ordinalField);
       String transformationName = (String)row.getValue(transformationNameField);
+      String transformationDesc = (String)row.getValue(transformationDescriptionField);
       String transformationSpec = (String)row.getValue(transformationSpecField);
       JobDescription jd = returnValues.get(ownerID);
-      jd.addPipelineConnection(transformationName);
-      jd.getPipelineSpecification((int)ordinal.longValue()).fromXML(transformationSpec);
+      jd.addPipelineStage(transformationName,transformationDesc).fromXML(transformationSpec);
     }
   }
 
@@ -152,14 +154,17 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     try
     {
       HashMap map = new HashMap();
-      for (int i = 0; i < job.countPipelineConnections(); i++)
+      for (int i = 0; i < job.countPipelineStages(); i++)
       {
-        String pipelineConnectionName = job.getPipelineConnectionName(i);
-        OutputSpecification os = job.getPipelineSpecification(i);
+        String pipelineConnectionName = job.getPipelineStageConnectionName(i);
+        String pipelineStageDescription = job.getPipelineStageDescription(i);
+        OutputSpecification os = job.getPipelineStageSpecification(i);
         map.clear();
         map.put(ownerIDField,ownerID);
         map.put(ordinalField,new Long((long)i));
         map.put(transformationNameField,pipelineConnectionName);
+        if (pipelineStageDescription != null && pipelineStageDescription.length() > 0)
+          map.put(transformationDescriptionField,pipelineStageDescription);
         map.put(transformationSpecField,os.toXML());
         performInsert(map,null);
         i++;
