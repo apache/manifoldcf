@@ -96,26 +96,40 @@ public interface IJobDescription
   public void clearPipeline();
   
   /** Add a pipeline connection.
-  *@param pipelineConnectionName is the name of the pipeline connection to add.
+  *@param pipelineStageConnectionName is the name of the pipeline connection to add.
+  *@param pipelineStageDescription is a description of the pipeline stage being added.
+  *@return the empty output specification for this pipeline stage.
   */
-  public void addPipelineConnection(String pipelineConnectionName);
+  public OutputSpecification addPipelineStage(String pipelineStageConnectionName, String pipelineStageDescription);
   
   /** Get a count of pipeline connections.
   *@return the current number of pipeline connections.
   */
-  public int countPipelineConnections();
+  public int countPipelineStages();
   
   /** Get a specific pipeline connection name.
-  *@param index is the index of the pipeline whose connection name to get.
+  *@param index is the index of the pipeline stage whose connection name to get.
   *@return the name of the connection.
   */
-  public String getPipelineConnectionName(int index);
-  
-  /** Get a specific pipeline connection specification.
-  *@param index is the index of the pipeline whose specification is needed.
+  public String getPipelineStageConnectionName(int index);
+
+  /** Get a specific pipeline stage description.
+  *@param index is the index of the pipeline stage whose description to get.
+  *@return the name of the connection.
+  */
+  public String getPipelineStageDescription(int index);
+
+  /** Get a specific pipeline stage specification.
+  *@param index is the index of the pipeline stage whose specification is needed.
   *@return the specification for the connection.
   */
-  public OutputSpecification getPipelineSpecification(int index);
+  public OutputSpecification getPipelineStageSpecification(int index);
+
+  /** Delete a pipeline stage.
+  *@param index is the index of the pipeline stage to delete.
+  */
+  public void deletePipelineStage(int index);
+  
 
   /** Set the job type.
   *@param type is the type (as an integer).
