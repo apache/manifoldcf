@@ -247,6 +247,8 @@
 %>
 
 <?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -383,7 +385,7 @@
 		if (editjob.pipeline_connectionname.value == "")
 		{
 			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.PipelineStageConnectionNameMustNotBeNull")%>");
-			editjob..pipeline_connectionname.focus();
+			editjob.pipeline_connectionname.focus();
 			return;
 		}
 		document.editjob.pipeline_op.value="Add";
@@ -468,7 +470,7 @@
 		if (window.<%=transformationCheckMethods[j]%>)
 		{
 			if (<%=transformationCheckMethods[j]%>() == false)
-				return;
+				return false;
 		}
 <%
 	}
@@ -1565,7 +1567,7 @@
 	}
 	else
 	{
-		if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")))
+		if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")) && tabSequenceInt == -1)
 		{
 %>
 			<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.ContinueToNextScreen")%>"/>
