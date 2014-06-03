@@ -2821,6 +2821,21 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     return set.getRowCount() > 0;
   }
 
+  /** See if there's a reference to a transformation connection name.
+  *@param connectionName is the name of the connection.
+  *@return true if there is a reference, false otherwise.
+  */
+  public boolean checkIfTransformationReference(String connectionName)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(pipelineManager.transformationNameField,connectionName)});
+    IResultSet set = performQuery("SELECT "+pipelineManager.ownerIDField+" FROM "+pipelineManager.getTableName()+
+      " WHERE "+query,list,new StringSet(getJobsKey()),null);
+    return set.getRowCount() > 0;
+  }
+
   /** Get the job IDs associated with a given connection name.
   *@param connectionName is the name of the connection.
   *@return the set of job id's associated with that connection.

@@ -290,8 +290,9 @@ public class CrawlerAgent implements IAgent
   public boolean isTransformationConnectionInUse(IThreadContext threadContext, String connName)
     throws ManifoldCFException
   {
-    // MHL
-    return false;
+    // Check with job manager.
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    return jobManager.checkIfTransformationReference(connName);
   }
 
   /** Note the deregistration of a set of transformation connections.
@@ -301,7 +302,9 @@ public class CrawlerAgent implements IAgent
   public void noteTransformationConnectorDeregistration(IThreadContext threadContext, String[] connectionNames)
     throws ManifoldCFException
   {
-    // MHL
+    // Notify job manager
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    jobManager.noteTransformationConnectorDeregistration(connectionNames);
   }
 
   /** Note the registration of a set of transformation connections.
@@ -311,7 +314,9 @@ public class CrawlerAgent implements IAgent
   public void noteTransformationConnectorRegistration(IThreadContext threadContext, String[] connectionNames)
     throws ManifoldCFException
   {
-    // MHL
+    // Notify job manager
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    jobManager.noteTransformationConnectorRegistration(connectionNames);
   }
 
   /** Note a change in configuration for a transformation connection.

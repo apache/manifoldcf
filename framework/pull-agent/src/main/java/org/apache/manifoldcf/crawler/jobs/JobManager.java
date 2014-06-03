@@ -488,6 +488,32 @@ public class JobManager implements IJobManager
     }
   }
 
+  /**  Note the deregistration of a transformation connector used by the specified connections.
+  * This method will be called when the connector is deregistered.  Jobs that use these connections
+  *  must therefore enter appropriate states.
+  *@param connectionNames is the set of connection names.
+  */
+  @Override
+  public void noteTransformationConnectorDeregistration(String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // This is problematic; we need a different bit in the job state for every transformation in the job pipeline
+    // MHL
+  }
+
+  /** Note the registration of a transformation connector used by the specified connections.
+  * This method will be called when a connector is registered, on which the specified
+  * connections depend.
+  *@param connectionNames is the set of connection names.
+  */
+  @Override
+  public void noteTransformationConnectorRegistration(String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // This is problematic; we need a different bit in the job state for every transformation in the job pipeline
+    // MHL
+  }
+
   /** Note a change in output connection configuration.
   * This method will be called whenever a connection's configuration is modified, or when an external target config change
   * is signalled.
@@ -630,6 +656,17 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     return jobs.checkIfOutputReference(connectionName);
+  }
+
+  /** See if there's a reference to a transformation connection name.
+  *@param connectionName is the name of the connection.
+  *@return true if there is a reference, false otherwise.
+  */
+  @Override
+  public boolean checkIfTransformationReference(String connectionName)
+    throws ManifoldCFException
+  {
+    return jobs.checkIfTransformationReference(connectionName);
   }
 
   /** Get the job IDs associated with a given connection name.
