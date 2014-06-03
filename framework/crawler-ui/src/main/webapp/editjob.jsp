@@ -372,8 +372,8 @@
 	{
 		if (editjob.pipeline_connectionname.value == "")
 		{
-			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.PipelineStageConnectionNameMustNotBeNull")%>");
-			editjob..pipeline_connectionname.focus();
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.SelectAPipelineStageConnectionName")%>");
+			editjob.pipeline_connectionname.focus();
 			return;
 		}
 		eval("document.editjob.pipeline_"+n+"_op.value = 'Insert'");
@@ -384,7 +384,7 @@
 	{
 		if (editjob.pipeline_connectionname.value == "")
 		{
-			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.PipelineStageConnectionNameMustNotBeNull")%>");
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.SelectAPipelineStageConnectionName")%>");
 			editjob.pipeline_connectionname.focus();
 			return;
 		}
@@ -947,8 +947,7 @@
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageDescription")%></nobr></td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageConnectionName")%></nobr></td>
 						</tr>
-						<tr class=<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>
-						</tr>
+						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
 							<td class="formcolumncell"></td>
 							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
 							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RepositoryStage")%></td>
@@ -982,7 +981,7 @@
 						
 						<!-- pipeline goes here (MHL) -->
 						
-						<tr class=<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>
+						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
 							<td class="formcolumncell">
 								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewstagehere")%>' onclick='<%="javascript:AppendPipelineStage();"%>'/>
 							</td>
