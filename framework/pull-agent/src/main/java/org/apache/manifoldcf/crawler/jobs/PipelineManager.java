@@ -143,6 +143,35 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     }
   }
 
+  /** Compare rows in job description with what's currently in the database.
+  *@param ownerID is the owning identifier.
+  *@param job is a job description.
+  */
+  public boolean compareRows(Long ownerID, IJobDescription job)
+    throws ManifoldCFException
+  {
+    ArrayList params = new ArrayList();
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(ownerIDField,ownerID)});
+    IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+      query+" ORDER BY "+ordinalField+" ASC",params,null,null);
+    if (set.getRowCount() != job.countPipelineStages())
+      return false;
+    for (int i = 0; i < set.getRowCount(); i++)
+    {
+      IResultRow row = set.getRow(i);
+      String connectionName = (String)row.getValue(transformationNameField);
+      String spec = (String)row.getValue(transformationSpecField);
+      if (spec == null)
+        spec = "";
+      if (!job.getPipelineStageConnectionName(i).equals(connectionName))
+        return false;
+      if (!job.getPipelineStageSpecification(i).toXML().equals(spec))
+        return false;
+    }
+    return true;
+  }
+  
   /** Write a pipeline list into the database.
   *@param ownerID is the owning identifier.
   *@param job is the job description that is the source of the pipeline.

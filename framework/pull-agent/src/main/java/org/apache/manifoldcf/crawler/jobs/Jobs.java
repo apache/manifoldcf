@@ -866,32 +866,14 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
               }
 
               if (isSame)
-              {
-                // Compare hopcount filter criteria.
-                Map filterRows = hopFilterManager.readRows(id);
-                Map newFilterRows = jobDescription.getHopCountFilters();
-                if (filterRows.size() != newFilterRows.size())
-                  isSame = false;
-                else
-                {
-                  for (String linkType : (Collection<String>)filterRows.keySet())
-                  {
-                    Long oldCount = (Long)filterRows.get(linkType);
-                    Long newCount = (Long)newFilterRows.get(linkType);
-                    if (oldCount == null || newCount == null)
-                    {
-                      isSame = false;
-                      break;
-                    }
-                    else if (oldCount.longValue() != newCount.longValue())
-                    {
-                      isSame = false;
-                      break;
-                    }
-                  }
-                }
-              }
-              
+                isSame = pipelineManager.compareRows(id,jobDescription);
+
+              if (isSame)
+                isSame = hopFilterManager.compareRows(id,jobDescription);
+
+              if (isSame)
+                isSame = forcedParamManager.compareRows(id,jobDescription);
+
               if (!isSame)
                 values.put(lastCheckTimeField,null);
 
