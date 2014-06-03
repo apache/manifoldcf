@@ -996,6 +996,8 @@
 							<td class="formcolumncell">
 								<input name="pipeline_<%=j%>_op" type="hidden" value="Continue"/>
 								<a name="pipeline_<%=j%>_tag"/>
+								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Delete")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Deletestage")%>' onclick="javascript:DeletePipelineStage(<%=j%>);"/>
+								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewstagehere")%>' onclick="javascript:InsertPipelineStage(<%=j%>);"/>
 							</td>
 							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
 							<td class="formcolumncell">
