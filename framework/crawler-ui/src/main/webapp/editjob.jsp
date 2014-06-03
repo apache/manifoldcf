@@ -479,9 +479,6 @@
 			if (<%=checkMethod%>() == false)
 				return false;
 		}
-		// Check the transformation parts.  But since each transformation connector needs
-		// to supply a unique javascript method to call, it's not clear how we do this.
-		// MHL
 		return true;
 	}
 
@@ -933,74 +930,95 @@
 	// Connection tab
 	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")) && tabSequenceInt == -1)
 	{
+		int displaySequence = 0;
+
 %>
 		  <table class="displaytable">
+			<tr><td class="separator" colspan="4"><hr/></td></tr>
 			<tr>
-				<td class="separator" colspan="4"><hr/></td>
-			</tr>
-			<tr>
+				<td colspan="1" class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.PipelineColon")%></nobr></td>
+				<td class="boxcell" colspan="3">
+					<table class="formtable">
+						<tr class="formheaderrow">
+							<td class="formcolumnheader"></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageNumber")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageDescription")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageConnectionName")%></nobr></td>
+						</tr>
+						<tr class=<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>
+						</tr>
+							<td class="formcolumncell"></td>
+							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
+							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RepositoryStage")%></td>
+							<td class="formcolumncell">
 <%
-	    if (outputName.length() == 0)
-	    {
-%>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.OutputConnectionColon")%></nobr></td>
-				<td class="value">
-					<select name="outputname" size="1">
-						<option <%="".equals(outputName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
-<%
-		int j = 0;
-		while (j < outputList.length)
+		if (connectionName.length() == 0)
 		{
-			IOutputConnection conn = outputList[j++];
 %>
-						<option <%=conn.getName().equals(outputName)?"selected=\"selected\"":""%> value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+								<select name="connectionname" size="1">
+									<option <%="".equals(connectionName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+<%
+			for (IRepositoryConnection conn : connList)
+			{
+%>
+									<option <%=conn.getName().equals(connectionName)?"selected=\"selected\"":""%> value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+<%
+			}
+%>
+								</select>
+<%
+		}
+		else
+		{
+%>
+								<input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></td>
 <%
 		}
 %>
-					</select>
-				</td>
+							</td>
+						</tr>
+						
+						<!-- pipeline goes here (MHL) -->
+						
+						<tr class=<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>
+							<td class="formcolumncell">
+								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.Insertnewstage")%>' onclick='<%="javascript:AppendPipelineStage();"%>'/>
+							</td>
+							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
+							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.OutputStage")%></td>
+							<td class="formcolumncell">
 <%
-	    }
-	    else
-	    {
-%>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.OutputConnectionColon")%></nobr></td>
-				<td class="value"><input type="hidden" name="outputname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(outputName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(outputName)%></td>
-<%
-	    }
-%>
-
-<%
-	    if (connectionName.length() == 0)
-	    {
-%>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RepositoryConnectionColon")%></nobr></td>
-				<td class="value">
-					<select name="connectionname" size="1">
-						<option <%="".equals(connectionName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
-<%
-		int j = 0;
-		while (j < connList.length)
+		if (outputName.length() == 0)
 		{
-			IRepositoryConnection conn = connList[j++];
 %>
-						<option <%=conn.getName().equals(connectionName)?"selected=\"selected\"":""%> value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+								<select name="outputname" size="1">
+									<option <%="".equals(outputName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+<%
+			for (IOutputConnection conn : outputList)
+			{
+%>
+									<option <%=conn.getName().equals(outputName)?"selected=\"selected\"":""%> value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+<%
+			}
+%>
+								</select>
+<%
+		}
+		else
+		{
+%>
+								<input type="hidden" name="outputname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(outputName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(outputName)%></td>
 <%
 		}
 %>
-					</select>
+							</td>
+						</tr>
+					</table>
 				</td>
-<%
-	    }
-	    else
-	    {
-%>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RepositoryConnectionColon")%></nobr></td>
-				<td class="value"><input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></td>
-<%
-	    }
-%>
 			</tr>
+			
+			<tr><td class="separator" colspan="4"><hr/></td></tr>
+			
 			<tr>
 				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.PriorityColon")%></nobr></td>
 				<td class="value">
@@ -1034,6 +1052,7 @@
 %>
 		  <input type="hidden" name="outputname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(outputName)%>'/>
 		  <input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+		  <input type="hidden" name="priority" value='<%=priority%>'/>
 		  <input type="hidden" name="startmethod" value='<%=startMethod%>'/>
 <%
 	}
