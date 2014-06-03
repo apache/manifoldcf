@@ -30,7 +30,7 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
-    <target name="deliver-transformation" depends="mcf-connector-build.deliver-connector">
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-transformation-connector">
             <param name="connector-label" value="Null"/>
             <param name="connector-class" value="org.apache.manifoldcf.agents.transformation.nullconnector.NullConnector"/>
