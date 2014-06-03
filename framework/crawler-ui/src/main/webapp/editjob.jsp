@@ -986,12 +986,39 @@
 %>
 							</td>
 						</tr>
-						
-						<!-- pipeline goes here (MHL) -->
-						
+<%
+		for (int j = 0; j < transformationNames.length; j++)
+		{
+			String transformationName = transformationNames[j];
+			String transformationDescription = transformationDescriptions[j];
+%>
 						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
 							<td class="formcolumncell">
-								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewstagehere")%>' onclick='<%="javascript:AppendPipelineStage();"%>'/>
+								<input name="pipeline_<%=j%>_op" type="hidden" value="Continue"/>
+								<a name="pipeline_<%=j%>_tag"/>
+							</td>
+							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
+							<td class="formcolumncell">
+								<input name="pipeline_<%=j%>_description" type="text" size="30" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(transformationDescription)%>"/>
+							</td>
+							<td class="formcolumncell">
+								<nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(transformationName)%></nobr>
+								<input name="pipeline_<%=j%>_connectionname" type="hidden" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(transformationName)%>"/>
+							</td>
+						</tr>
+<%
+		}
+%>
+						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
+							<td class="formcolumncell">
+<%
+		if (transformationList.length > 0)
+		{
+%>
+								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewstagehere")%>' onclick="javascript:AppendPipelineStage();"/>
+<%
+		}
+%>
 							</td>
 							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
 							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.OutputStage")%></td>
@@ -1022,6 +1049,38 @@
 %>
 							</td>
 						</tr>
+<%
+		if (transformationList.length > 0)
+		{
+%>
+						<tr class="formrow"><td class="formseparator" colspan="4"><hr/></td></tr>
+						<tr class="formrow">
+							<td class="formcolumncell">
+								<input name="pipeline_op" type="hidden" value="Continue"/>
+								<a name="pipeline_tag"/>
+							</td>
+							<td class="formcolumncell">
+							</td>
+							<td class="formcolumncell">
+								<input name="pipeline_description" type="text" size="30" value=""/>
+							</td>
+							<td class="formcolumncell">
+								<select name="pipeline_connectionname" size="1">
+									<option selected="selected" value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+<%
+			for (ITransformationConnection conn : transformationList)
+			{
+%>
+									<option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+<%
+			}
+%>
+								</select>
+							</td>
+						</tr>
+<%
+		}
+%>
 					</table>
 				</td>
 			</tr>
