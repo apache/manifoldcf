@@ -130,7 +130,14 @@ public interface IJobDescription
   */
   public void deletePipelineStage(int index);
   
-
+  /** Insert a new pipeline stage.
+  *@param index is the index to insert pipeline stage before
+  *@param pipelineStageConnectionName is the connection name.
+  *@param pipelineStageDescription is the description.
+  *@return the newly-created output specification.
+  */
+  public OutputSpecification insertPipelineStage(int index, String pipelineStageConnectionName, String pipelineStageDescription);
+  
   /** Set the job type.
   *@param type is the type (as an integer).
   */

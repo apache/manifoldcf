@@ -750,7 +750,7 @@
 <%
 			}
 		}
-		else if (type != null && op != null && type.equals("output"))
+		else if (type != null && op != null && type.equals("transformation"))
 		{
 			// -- Output connection editing operations --
 			if (op.equals("Save") || op.equals("Continue"))
@@ -906,6 +906,21 @@
 					x = variableContext.getParameter("hopcountmode");
 					if (x != null)
 						job.setHopcountMode(Integer.parseInt(x));
+					x = variableContext.getParameter("pipeline_count");
+					if (x != null)
+					{
+						// Do we need to keep the old specifications around, or can we destroy them?
+						// Not clear that retention is required., so I'm not wasting time trying to implement that.
+						int count = Integer.parseInt(x);
+						job.clearPipeline();
+						for (int j = 0; j < count; j++)
+						{
+							// Gather everything first; we'll look at edits later
+							String connectionName = variableContext.getParameter("pipeline_"+j+"_connectionname");
+							String description = variableContext.getParameter("pipeline_"+j+"_description");
+							job.addPipelineStage(connectionName, description);
+						}
+					}
 
 					x = variableContext.getParameter("schedulerecords");
 					String[] y;
@@ -1183,7 +1198,7 @@
 						{
 							try
 							{
-								String error = outputConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getOutputSpecification(),1);
+								String error = outputConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getOutputSpecification(),1+job.countPipelineStages());
 								if (error != null)
 								{
 									variableContext.setParameter("text",error);
@@ -1222,6 +1237,65 @@
 								repositoryConnectorPool.release(connection,repositoryConnector);
 							}
 						}
+					}
+					
+					// Process all pipeline stages
+					for (int j = 0; j < job.countPipelineStages(); j++)
+					{
+						ITransformationConnection transformationConnection = transformationManager.load(job.getPipelineStageConnectionName(j));
+						if (transformationConnection != null)
+						{
+							ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnection);
+							if (transformationConnector != null)
+							{
+								try
+								{
+									String error = transformationConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getPipelineStageSpecification(j),1+j);
+									if (error != null)
+									{
+										variableContext.setParameter("text",error);
+										variableContext.setParameter("target","listjobs.jsp");
+%>
+									<jsp:forward page="error.jsp"/>
+<%
+									}
+								}
+								finally
+								{
+									transformationConnectorPool.release(transformationConnection,transformationConnector);
+								}
+							}
+						}
+					}
+					
+					// Now, after gathering is complete, consider doing changes to the pipeline.
+					int currentStage = 0;
+					for (int j = 0; j < job.countPipelineStages(); j++)
+					{
+						// Look at the operation
+						x = variableContext.getParameter("pipeline_"+j+"_op");
+						if (x != null && x.equals("Delete"))
+						{
+							// Delete this pipeline stage
+							job.deletePipelineStage(currentStage);
+						}
+						else if (x != null && x.equals("Insert"))
+						{
+							// Insert a new stage before this one
+							String connectionName = variableContext.getParameter("pipeline_connectionname");
+							String description = variableContext.getParameter("pipeline_description");
+							job.insertPipelineStage(currentStage++,connectionName,description);
+						}
+						else
+							currentStage++;
+					}
+					x = variableContext.getParameter("pipeline_op");
+					if (x != null && x.equals("Add"))
+					{
+						// Append a new stage at the end
+						String connectionName = variableContext.getParameter("pipeline_connectionname");
+						String description = variableContext.getParameter("pipeline_description");
+						job.addPipelineStage(connectionName,description);
 					}
 					
 					if (op.equals("Continue"))
