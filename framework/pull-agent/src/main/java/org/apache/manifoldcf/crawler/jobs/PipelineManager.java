@@ -27,7 +27,7 @@ import java.util.*;
 * connections and their specification data.
 * 
 * <br><br>
-* <b>pipelines</b>
+* <b>jobpipelines</b>
 * <table border="1" cellpadding="3" cellspacing="0">
 * <tr class="TableHeadingColor">
 * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
@@ -58,14 +58,14 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
   public PipelineManager(IThreadContext threadContext, IDBInterface database)
     throws ManifoldCFException
   {
-    super(database,"pipelines");
+    super(database,"jobpipelines");
   }
 
   /** Install or upgrade.
   *@param ownerTable is the name of the table that owns this one.
   *@param owningTablePrimaryKey is the primary key of the owning table.
   */
-  public void install(String ownerTable, String owningTablePrimaryKey, String transformationTableName, String transformationNameField)
+  public void install(String ownerTable, String owningTablePrimaryKey, String transformationTableName, String transformationTableNameField)
     throws ManifoldCFException
   {
     // Standard practice: Outer loop to support upgrades
@@ -77,7 +77,7 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
         HashMap map = new HashMap();
         map.put(ownerIDField,new ColumnDescription("BIGINT",false,false,ownerTable,owningTablePrimaryKey,false));
         map.put(ordinalField,new ColumnDescription("BIGINT",false,false,null,null,false));
-        map.put(transformationNameField,new ColumnDescription("VARCHAR(32)",false,false,transformationTableName,transformationNameField,false));
+        map.put(transformationNameField,new ColumnDescription("VARCHAR(32)",false,false,transformationTableName,transformationTableNameField,false));
         map.put(transformationDescriptionField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
         map.put(transformationSpecField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         performCreate(map,null);
