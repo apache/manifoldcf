@@ -164,6 +164,30 @@ public class HopFilterManager extends org.apache.manifoldcf.core.database.BaseTa
     }
   }
 
+  /** Compare a filter list against what's in a job description.
+  *@param ownerID is the owning identifier.
+  *@param list is the job description to write hopcount filters for.
+  */
+  public boolean compareRows(Long ownerID, IJobDescription list)
+    throws ManifoldCFException
+  {
+    // Compare hopcount filter criteria.
+    Map filterRows = readRows(ownerID);
+    Map newFilterRows = list.getHopCountFilters();
+    if (filterRows.size() != newFilterRows.size())
+      return false;
+    for (String linkType : (Collection<String>)filterRows.keySet())
+    {
+      Long oldCount = (Long)filterRows.get(linkType);
+      Long newCount = (Long)newFilterRows.get(linkType);
+      if (oldCount == null || newCount == null)
+        return false;
+      if (oldCount.longValue() != newCount.longValue())
+        return false;
+    }
+    return true;
+  }
+  
   /** Write a filter list into the database.
   *@param ownerID is the owning identifier.
   *@param list is the job description to write hopcount filters for.
