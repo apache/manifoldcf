@@ -224,7 +224,7 @@
 	
 	if (outputConnection != null)
 	{
-		IOutputConnector outputConnector = OutputConnectorFactory.getConnectorNoCheck(outputConnection.getName());
+		IOutputConnector outputConnector = OutputConnectorFactory.getConnectorNoCheck(outputConnection.getClassName());
 		if (outputConnector != null)
 		{
 			outputCheckMethod = outputConnector.getFormCheckJavascriptMethodName(1+transformationNames.length);
@@ -236,7 +236,7 @@
 
 	for (int j = 0; j < transformationConnections.length; j++)
 	{
-		ITransformationConnector transformationConnector = TransformationConnectorFactory.getConnectorNoCheck(transformationConnections[j].getName());
+		ITransformationConnector transformationConnector = TransformationConnectorFactory.getConnectorNoCheck(transformationConnections[j].getClassName());
 		if (transformationConnector != null)
 		{
 			transformationCheckMethods[j] = transformationConnector.getFormCheckJavascriptMethodName(1+j);
