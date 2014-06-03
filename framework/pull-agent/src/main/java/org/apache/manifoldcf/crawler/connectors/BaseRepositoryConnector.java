@@ -461,6 +461,24 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
   // method, above).
 
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "checkSpecificationForSave";
+  }
+
   /** Output the specification header section.
   * This method is called in the head section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
