@@ -278,6 +278,21 @@ public class JobDescription implements IJobDescription
     return pipelineStages.size();
   }
   
+  /** Insert a new pipeline stage.
+  *@param index is the index to insert pipeline stage before
+  *@param pipelineStageConnectionName is the connection name.
+  *@param pipelineStageDescription is the description.
+  *@return the newly-created output specification.
+  */
+  public OutputSpecification insertPipelineStage(int index, String pipelineStageConnectionName, String pipelineStageDescription)
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    PipelineStage ps = new PipelineStage(pipelineStageConnectionName,pipelineStageDescription);
+    pipelineStages.add(index,ps);
+    return ps.getSpecification();
+  }
+  
   /** Get a specific pipeline connection name.
   *@param index is the index of the pipeline stage whose connection name to get.
   *@return the name of the connection.

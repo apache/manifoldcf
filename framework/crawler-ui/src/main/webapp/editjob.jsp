@@ -950,7 +950,9 @@
 				<td class="boxcell" colspan="3">
 					<table class="formtable">
 						<tr class="formheaderrow">
-							<td class="formcolumnheader"></td>
+							<td class="formcolumnheader">
+								<input name="pipeline_count" type="hidden" value="<%=transformationNames.length%>"/>
+							</td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageNumber")%></nobr></td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageDescription")%></nobr></td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageConnectionName")%></nobr></td>
@@ -1122,6 +1124,18 @@
 %>
 		  <input type="hidden" name="outputname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(outputName)%>'/>
 		  <input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+		  <input type="hidden" name="pipeline_count" value="<%=transformationNames.length%>"/>
+<%
+		for (int j = 0; j < transformationNames.length; j++)
+		{
+			String transformationName = transformationNames[j];
+			String transformationDescription = transformationDescriptions[j];
+%>
+		  <input type="hidden" name="pipeline_<%=j%>_connectionname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(transformationName)%>"/>
+		  <input type="hidden" name="pipeline_<%=j%>_description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(transformationDescription)%>"/>
+<%
+		}
+%>
 		  <input type="hidden" name="priority" value='<%=priority%>'/>
 		  <input type="hidden" name="startmethod" value='<%=startMethod%>'/>
 <%
