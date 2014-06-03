@@ -61,5 +61,3 @@ response.setContentType("text/html;charset=utf-8");
 	}
 %>
 
-<!DOCTYPE html>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
