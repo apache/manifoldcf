@@ -232,7 +232,15 @@
 		}
 	}
 
-	// MHL for repository connection, if ever added
+	if (connection != null)
+	{
+		IRepositoryConnector connector = RepositoryConnectorFactory.getConnectorNoCheck(connection.getClassName());
+		if (connector != null)
+		{
+			checkMethod = connector.getFormCheckJavascriptMethodName(0);
+			saveCheckMethod = connector.getFormPresaveCheckJavascriptMethodName(0);
+		}
+	}
 
 	for (int j = 0; j < transformationConnections.length; j++)
 	{
