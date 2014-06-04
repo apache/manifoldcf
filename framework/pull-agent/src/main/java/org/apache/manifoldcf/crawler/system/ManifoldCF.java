@@ -3880,6 +3880,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBNODE_FORCEDPARAM = "forcedparam";
   protected static final String JOBNODE_PARAMNAME = "paramname";
   protected static final String JOBNODE_PARAMVALUE = "paramvalue";
+  protected static final String JOBNODE_PIPELINESTAGE = "pipelinestage";
+  protected static final String JOBNODE_STAGECONNECTIONNAME = "stage_connectionname";
+  protected static final String JOBNODE_STAGEDESCRIPTION = "stage_description";
+  protected static final String JOBNODE_STAGESPECIFICATION = "stage_specification";
 
   /** Convert a node into a job description.
   *@param jobDescription is the job to be filled in.
@@ -3912,15 +3916,43 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       {
         jobDescription.setOutputConnectionName(child.getValue());
       }
+      else if (childType.equals(JOBNODE_PIPELINESTAGE))
+      {
+        String stageConnectionName = null;
+        String stageDescription = null;
+        ConfigurationNode stageSpecification = null;
+        for (int q = 0; q < child.getChildCount(); q++)
+        {
+          ConfigurationNode cn = child.findChild(q);
+          if (cn.getType().equals(JOBNODE_STAGECONNECTIONNAME))
+            stageConnectionName = cn.getValue();
+          else if (cn.getType().equals(JOBNODE_STAGEDESCRIPTION))
+            stageDescription = cn.getValue();
+          else if (cn.getType().equals(JOBNODE_STAGESPECIFICATION))
+          {
+            stageSpecification = cn;
+          }
+          else
+            throw new ManifoldCFException("Found an unexpected node type: '"+cn.getType()+"'");
+        }
+        if (stageConnectionName == null)
+          throw new ManifoldCFException("Missing required field: '"+JOBNODE_STAGECONNECTIONNAME+"'");
+        OutputSpecification os = jobDescription.addPipelineStage(stageConnectionName,stageDescription);
+        os.clearChildren();
+        for (int j = 0; j < stageSpecification.getChildCount(); j++)
+        {
+          ConfigurationNode cn = stageSpecification.findChild(j);
+          os.addChild(os.getChildCount(),new SpecificationNode(cn));
+        }
+      }
       else if (childType.equals(JOBNODE_DOCUMENTSPECIFICATION))
       {
         // Get the job's document specification, clear out the children, and copy new ones from the child.
         DocumentSpecification ds = jobDescription.getSpecification();
         ds.clearChildren();
-        int j = 0;
-        while (j < child.getChildCount())
+        for (int j = 0; j < child.getChildCount(); j++)
         {
-          ConfigurationNode cn = child.findChild(j++);
+          ConfigurationNode cn = child.findChild(j);
           ds.addChild(ds.getChildCount(),new SpecificationNode(cn));
         }
       }
@@ -3929,10 +3961,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         // Get the job's output specification, clear out the children, and copy new ones from the child.
         OutputSpecification os = jobDescription.getOutputSpecification();
         os.clearChildren();
-        int j = 0;
-        while (j < child.getChildCount())
+        for (int j = 0; j < child.getChildCount(); j++)
         {
-          ConfigurationNode cn = child.findChild(j++);
+          ConfigurationNode cn = child.findChild(j);
           os.addChild(os.getChildCount(),new SpecificationNode(cn));
         }
       }
@@ -4090,7 +4121,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     // For each field of the job, add an appropriate child node, with value.
     ConfigurationNode child;
-    int j;
     
     // id
     if (job.getID() != null)
@@ -4127,10 +4157,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Document specification
     DocumentSpecification ds = job.getSpecification();
     child = new ConfigurationNode(JOBNODE_DOCUMENTSPECIFICATION);
-    j = 0;
-    while (j < ds.getChildCount())
+    for (int j = 0; j < ds.getChildCount(); j++)
     {
-      ConfigurationNode cn = ds.getChild(j++);
+      ConfigurationNode cn = ds.getChild(j);
       child.addChild(child.getChildCount(),cn);
     }
     jobNode.addChild(jobNode.getChildCount(),child);
@@ -4138,13 +4167,38 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Output specification
     OutputSpecification os = job.getOutputSpecification();
     child = new ConfigurationNode(JOBNODE_OUTPUTSPECIFICATION);
-    j = 0;
-    while (j < os.getChildCount())
+    for (int j = 0; j < os.getChildCount(); j++)
     {
-      ConfigurationNode cn = os.getChild(j++);
+      ConfigurationNode cn = os.getChild(j);
       child.addChild(child.getChildCount(),cn);
     }
     jobNode.addChild(jobNode.getChildCount(),child);
+
+    // Pipeline stages
+    for (int j = 0; j < job.countPipelineStages(); j++)
+    {
+      child = new ConfigurationNode(JOBNODE_PIPELINESTAGE);
+      ConfigurationNode stage;
+      stage = new ConfigurationNode(JOBNODE_STAGECONNECTIONNAME);
+      stage.setValue(job.getPipelineStageConnectionName(j));
+      child.addChild(child.getChildCount(),stage);
+      String description = job.getPipelineStageDescription(j);
+      if (description != null)
+      {
+        stage = new ConfigurationNode(JOBNODE_STAGEDESCRIPTION);
+        stage.setValue(description);
+        child.addChild(child.getChildCount(),stage);
+      }
+      OutputSpecification spec = job.getPipelineStageSpecification(j);
+      stage = new ConfigurationNode(JOBNODE_STAGESPECIFICATION);
+      for (int k = 0; k < spec.getChildCount(); k++)
+      {
+        ConfigurationNode cn = spec.getChild(k);
+        stage.addChild(stage.getChildCount(),cn);
+      }
+      child.addChild(child.getChildCount(),stage);
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
 
     // Start mode
     child = new ConfigurationNode(JOBNODE_STARTMODE);
@@ -4217,10 +4271,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     
     // Schedule records
-    j = 0;
-    while (j < job.getScheduleRecordCount())
+    for (int j = 0; j < job.getScheduleRecordCount(); j++)
     {
-      ScheduleRecord sr = job.getScheduleRecord(j++);
+      ScheduleRecord sr = job.getScheduleRecord(j);
       child = new ConfigurationNode(JOBNODE_SCHEDULE);
       ConfigurationNode recordChild;
       
