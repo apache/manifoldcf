@@ -113,16 +113,14 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,3);
+    ManifoldCF.writeDword(os,4);
     // Get the job list
     IJobDescription[] list = getAllJobs();
     // Write the number of authorities
     ManifoldCF.writeDword(os,list.length);
     // Loop through the list and write the individual repository connection info
-    int i = 0;
-    while (i < list.length)
+    for (IJobDescription job : list)
     {
-      IJobDescription job = list[i++];
       ManifoldCF.writeString(os,job.getConnectionName());
       ManifoldCF.writeString(os,job.getOutputConnectionName());
       ManifoldCF.writeString(os,job.getDescription());
@@ -139,10 +137,9 @@ public class JobManager implements IJobManager
       // Write schedule
       int recCount = job.getScheduleRecordCount();
       ManifoldCF.writeDword(os,recCount);
-      int j = 0;
-      while (j < recCount)
+      for (int j = 0; j < recCount; j++)
       {
-        ScheduleRecord sr = job.getScheduleRecord(j++);
+        ScheduleRecord sr = job.getScheduleRecord(j);
         writeEnumeratedValues(os,sr.getDayOfWeek());
         writeEnumeratedValues(os,sr.getMonthOfYear());
         writeEnumeratedValues(os,sr.getDayOfMonth());
@@ -164,6 +161,29 @@ public class JobManager implements IJobManager
         Long hopcount = (Long)filters.get(linkType);
         ManifoldCF.writeString(os,linkType);
         ManifoldCF.writeLong(os,hopcount);
+      }
+      
+      // Write forced metadata information
+      Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
+      ManifoldCF.writeDword(os,forcedMetadata.size());
+      for (String key : forcedMetadata.keySet())
+      {
+        ManifoldCF.writeString(os,key);
+        Set<String> values = forcedMetadata.get(key);
+        ManifoldCF.writeDword(os,values.size());
+        for (String value : values)
+        {
+          ManifoldCF.writeString(os,value);
+        }
+      }
+      
+      // Write pipeline information
+      ManifoldCF.writeDword(os,job.countPipelineStages());
+      for (int j = 0; j < job.countPipelineStages(); j++)
+      {
+        ManifoldCF.writeString(os,job.getPipelineStageConnectionName(j));
+        ManifoldCF.writeString(os,job.getPipelineStageDescription(j));
+        ManifoldCF.writeString(os,job.getPipelineStageSpecification(j).toXML());
       }
     }
   }
@@ -191,11 +211,10 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     int version = ManifoldCF.readDword(is);
-    if (version != 2 && version != 3)
+    if (version != 2 && version != 3 && version != 4)
       throw new java.io.IOException("Unknown job configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
-    int i = 0;
-    while (i < count)
+    for (int i = 0; i < count; i++)
     {
       IJobDescription job = createJob();
 
@@ -214,8 +233,7 @@ public class JobManager implements IJobManager
 
       // Read schedule
       int recCount = ManifoldCF.readDword(is);
-      int j = 0;
-      while (j < recCount)
+      for (int j = 0; j < recCount; j++)
       {
         EnumeratedValues dayOfWeek = readEnumeratedValues(is);
         EnumeratedValues monthOfYear = readEnumeratedValues(is);
@@ -234,23 +252,45 @@ public class JobManager implements IJobManager
         ScheduleRecord sr = new ScheduleRecord(dayOfWeek, monthOfYear, dayOfMonth, year,
           hourOfDay, minutesOfHour, timezone, duration, requestMinimum);
         job.addScheduleRecord(sr);
-        j++;
       }
 
       // Read hop count filters
       int hopFilterCount = ManifoldCF.readDword(is);
-      j = 0;
-      while (j < hopFilterCount)
+      for (int j = 0; j < hopFilterCount; j++)
       {
         String linkType = ManifoldCF.readString(is);
         Long hopcount = ManifoldCF.readLong(is);
         job.addHopCountFilter(linkType,hopcount);
-        j++;
       }
 
+      if (version >= 4)
+      {
+        // Read forced metadata information
+        int paramCount = ManifoldCF.readDword(is);
+        for (int j = 0; j < paramCount; j++)
+        {
+          String key = ManifoldCF.readString(is);
+          int valueCount = ManifoldCF.readDword(is);
+          for (int k = 0; k < valueCount; k++)
+          {
+            String value = ManifoldCF.readString(is);
+            job.addForcedMetadataValue(key,value);
+          }
+        }
+        
+        // Read pipeline information
+        int pipelineCount = ManifoldCF.readDword(is);
+        for (int j = 0; j < pipelineCount; j++)
+        {
+          String connectionName = ManifoldCF.readString(is);
+          String description = ManifoldCF.readString(is);
+          String specification = ManifoldCF.readString(is);
+          job.addPipelineStage(connectionName,description).fromXML(specification);
+        }
+      }
+      
       // Attempt to save this job
       save(job);
-      i++;
     }
   }
 
