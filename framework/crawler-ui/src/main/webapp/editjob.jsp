@@ -697,6 +697,25 @@
 	}
 %>
 	    <table class="tabtable">
+	      <tr class="tabspacerrow">
+		<td class="spacertab" colspan="<%=tabsArray.size()%>"></td>
+		<td class="remaindertab" rowspan="3">
+<%
+	if (description.length() > 0)
+	{
+%>
+			  <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditJob")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+<%
+	}
+	else
+	{
+%>
+		          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></nobr>
+<%
+	}
+%>
+		</td>
+	      </tr>
 	      <tr class="tabsequencerow">
 <%
 	Integer currentSequenceNumber = null;
@@ -747,23 +766,8 @@
 <%
 		}
 	}
+	// Final (remainder) cell left out on purpose; filled in above.
 %>
-		      <td class="remaindersequencetab" rowspan="2">
-<%
-	if (description.length() > 0)
-	{
-%>
-			  <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditJob")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
-<%
-	}
-	else
-	{
-%>
-		          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></nobr>
-<%
-	}
-%>
-		      </td>
 	      </tr>
 	      <tr class="tabrow">
 <%
