@@ -47,9 +47,9 @@ body
 
 .blanksequencetab
 {
-    background: #f8f8f8;
+    background: #f0f0f0;
     border-style: solid;
-    border-width: 1px 0 0 2px;
+    border-width: 1px 0 0 1px;
     border-color: #ccc #ccc #229ddb #ccc;
     margin: 0;
     padding: 2px 10px 3px 10px;
@@ -61,7 +61,7 @@ body
 {
     background: #f8f8f8;
     border-style: solid;
-    border-width: 1px 1px 0 2px;
+    border-width: 1px 1px 0 1px;
     border-color: #ccc #ccc #229ddb #ccc;
     margin: 0;
     padding: 2px 10px 3px 10px;
@@ -73,14 +73,15 @@ body
 .remaindersequencetab
 {
     width: 100%;
-    background: #f8f8f8;
+    background: #f0f0f0;
     border-style: solid;
-    border-width: 1px 1px 0 0;
-    border-color: #ccc #ccc;
-    padding: 2px 10px 3px 10px;
-    height: 8px;
+    border-width: 1px 1px 1px 0;
+    border-color: #ccc #ccc #229ddb;
+    padding: 18px 10px 2px 10px;
+    height: 28px;
     vertical-align: top;
     text-align: right;
+	font-size: 12px;
     color: #555;
 }
 
@@ -124,7 +125,7 @@ body
 .remaindertab
 {
     width: 100%;
-    background: #f8f8f8;
+    background: #f0f0f0;
     border-style: solid;
     border-width: 1px 1px 1px 0;
     border-color: #ccc #ccc #229ddb;
