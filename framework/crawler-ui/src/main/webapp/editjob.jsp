@@ -697,11 +697,55 @@
 	}
 %>
 	    <table class="tabtable">
+	      <tr class="tabsequencerow">
+<%
+	Integer currentSequenceNumber = null;
+	int startColumn = 0;
+	for (int tabNum = 0; tabNum < tabsArray.size(); tabNum++)
+	{
+		boolean doswitch = false;
+		Integer sequenceNumber = sequenceArray.get(tabNum);
+		if (sequenceNumber == null || currentSequenceNumber == null)
+			doswitch = (sequenceNumber != null || currentSequenceNumber != null);
+		else
+			doswitch = !sequenceNumber.equals(currentSequenceNumber);
+		if (doswitch)
+		{
+			int colspan = tabNum - startColumn;
+			if (colspan > 0)
+			{
+				if (currentSequenceNumber == null)
+				{
+%>
+		      <td class="blanksequencetab" colspan="<%=colspan%>"></td>
+<%
+				}
+				else
+				{
+%>
+		      <td class="sequencetab" colspan="<%=colspan%>"><%=(currentSequenceNumber.intValue()+1)%>.</td>
+<%
+				}
+			}
+			startColumn = tabNum;
+			currentSequenceNumber = sequenceNumber;
+		}
+	}
+	if (startColumn != tabsArray.size())
+	{
+		int colspan = tabsArray.size() - startColumn;
+%>
+		      <td class="sequencetab" colspan="<%=colspan%>"><%=(currentSequenceNumber.intValue()+1)%>.</td>
+<%
+	}
+%>
+		      <td class="remaindersequencetab"></td>
+	      </tr>
 	      <tr class="tabrow">
 <%
 	for (int tabNum = 0; tabNum < tabsArray.size(); tabNum++)
 	{
-		String tab = (String)tabsArray.get(tabNum);
+		String tab = tabsArray.get(tabNum);
 		Integer sequenceNumber = sequenceArray.get(tabNum);
 		int sequenceNumberInt = (sequenceNumber == null)?-1:sequenceNumber.intValue();
 		if (tab.equals(tabName) && (tabSequenceInt == -1 || sequenceNumberInt == tabSequenceInt))

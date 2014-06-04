@@ -38,6 +38,52 @@ body
     border-collapse: collapse;
 }
 
+.tabsequencerow
+{
+    height: 8px;
+    font-size: 8px;
+    line-height: 8px;
+}
+
+.blanksequencetab
+{
+    background: #f8f8f8;
+    border-style: solid;
+    border-width: 1px 0 0 2px;
+    border-color: #ccc #ccc #229ddb #ccc;
+    margin: 0;
+    padding: 2px 10px 3px 10px;
+    vertical-align: top;
+    height: 8px;
+}
+
+.sequencetab
+{
+    background: #f8f8f8;
+    border-style: solid;
+    border-width: 1px 1px 0 2px;
+    border-color: #ccc #ccc #229ddb #ccc;
+    margin: 0;
+    padding: 2px 10px 3px 10px;
+    height: 8px;
+    vertical-align: top;
+	text-align: center;
+}
+
+.remaindersequencetab
+{
+    width: 100%;
+    background: #f8f8f8;
+    border-style: solid;
+    border-width: 1px 1px 0 0;
+    border-color: #ccc #ccc;
+    padding: 2px 10px 3px 10px;
+    height: 8px;
+    vertical-align: top;
+    text-align: right;
+    color: #555;
+}
+
 .tabrow
 {
     height: 20px;
