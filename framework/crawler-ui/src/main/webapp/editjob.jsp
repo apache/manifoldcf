@@ -208,7 +208,6 @@
 		sequenceArray.add(null);
 	}
 
-
 	// Get the names of the various Javascript methods we'll need to call
 	String outputCheckMethod = "checkOutputSpecification";
 	String outputSaveCheckMethod = "checkOutputSpecificationForSave";
@@ -654,6 +653,7 @@
 			sequenceArray.add(transformationConnectionSequenceNumber);
 		}
 	}
+	
 %>
 
 </head>
@@ -734,9 +734,18 @@
 	if (startColumn != tabsArray.size())
 	{
 		int colspan = tabsArray.size() - startColumn;
+		if (currentSequenceNumber == null)
+		{
+%>
+		      <td class="blanksequencetab" colspan="<%=colspan%>"></td>
+<%
+		}
+		else
+		{
 %>
 		      <td class="sequencetab" colspan="<%=colspan%>"><%=(currentSequenceNumber.intValue()+1)%>.</td>
 <%
+		}
 	}
 %>
 		      <td class="remaindersequencetab" rowspan="2">
