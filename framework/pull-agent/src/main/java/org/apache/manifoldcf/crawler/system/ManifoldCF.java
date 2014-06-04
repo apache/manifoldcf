@@ -3389,6 +3389,41 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     return WRITERESULT_FOUND;
   }
+
+  /** Write transformation connection.
+  */
+  protected static int apiWriteTransformationConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+    throws ManifoldCFException
+  {
+    ConfigurationNode connectionNode = findConfigurationNode(input,API_TRANSFORMATIONCONNECTIONNODE);
+    if (connectionNode == null)
+      throw new ManifoldCFException("Input argument must have '"+API_TRANSFORMATIONCONNECTIONNODE+"' field");
+      
+    // Turn the configuration node into a TransformationConnection
+    org.apache.manifoldcf.agents.transformationconnection.TransformationConnection transformationConnection = new org.apache.manifoldcf.agents.transformationconnection.TransformationConnection();
+    processTransformationConnection(transformationConnection,connectionNode);
+      
+    if (transformationConnection.getName() == null)
+      transformationConnection.setName(connectionName);
+    else
+    {
+      if (!transformationConnection.getName().equals(connectionName))
+        throw new ManifoldCFException("Connection name in path and in object must agree");
+    }
+      
+    try
+    {
+      // Save the connection.
+      ITransformationConnectionManager connectionManager = TransformationConnectionManagerFactory.make(tc);
+      if (connectionManager.save(transformationConnection))
+        return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
   
   /** Write authority connection.
   */
@@ -3611,6 +3646,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
       return apiWriteOutputConnection(tc,output,input,connectionName);
+    }
+    else if (path.startsWith("transformationconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("transformationconnections/".length()));
+      return apiWriteTransformationConnection(tc,output,input,connectionName);
     }
     else if (path.startsWith("mappingconnections/"))
     {
