@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-916: Supply an Amazon Cloud Search connector.
+(Takumi Yoshida, Karl Wright)
+
 CONNECTORS-948: CMIS Connector returns couldn't encrypt null when the query doesn't include cmis:objectId
 (Piergiorgio Lucidi)
 

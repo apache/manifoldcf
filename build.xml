@@ -1035,7 +1035,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
-            <param name="artifact-version" value="3.7"/>
+            <param name="artifact-version" value="3.10-beta2"/>
             <param name="artifact-name" value="poi"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1591,7 +1591,213 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    <target name="make-core-deps" depends="download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf">
+    <target name="download-tika">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-name" value="tika-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-name" value="tika-parsers"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ccil/cowan/tagsoup"/>
+            <param name="artifact-version" value="1.2.1"/>
+            <param name="artifact-name" value="tagsoup"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/james"/>
+            <param name="artifact-name" value="apache-mime4j-core"/>
+            <param name="artifact-version" value="0.7.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/james"/>
+            <param name="artifact-name" value="apache-mime4j-dom"/>
+            <param name="artifact-version" value="0.7.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/gagravarr"/>
+            <param name="artifact-name" value="vorbis-java-tika"/>
+            <param name="artifact-version" value="0.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/poi"/>
+            <param name="artifact-name" value="poi-scratchpad"/>
+            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/drewnoakes"/>
+            <param name="artifact-name" value="metadata-extractor"/>
+            <param name="artifact-version" value="2.6.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/aspectj"/>
+            <param name="artifact-name" value="aspectjrt"/>
+            <param name="artifact-version" value="1.6.11"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/uwyn"/>
+            <param name="artifact-name" value="jhighlight"/>
+            <param name="artifact-version" value="1.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/xmlbeans"/>
+            <param name="artifact-name" value="xmlbeans"/>
+            <param name="artifact-version" value="2.3.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/bouncycastle"/>
+            <param name="artifact-name" value="bcprov-jdk15"/>
+            <param name="artifact-version" value="1.45"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/tukaani"/>
+            <param name="artifact-name" value="xz"/>
+            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/pdfbox"/>
+            <param name="artifact-name" value="jempbox"/>
+            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/pdfbox"/>
+            <param name="artifact-name" value="pdfbox"/>
+            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/pdfbox"/>
+            <param name="artifact-name" value="fontbox"/>
+            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/commons"/>
+            <param name="artifact-name" value="commons-compress"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/googlecode/juniversalchardet"/>
+            <param name="artifact-name" value="juniversalchardet"/>
+            <param name="artifact-version" value="1.0.3"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="edu/ucar"/>
+            <param name="artifact-name" value="netcdf"/>
+            <param name="artifact-version" value="4.2-min"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="de/l3s/boilerpipe"/>
+            <param name="artifact-name" value="boilerpipe"/>
+            <param name="artifact-version" value="1.1.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="dom4j"/>
+            <param name="artifact-name" value="dom4j"/>
+            <param name="artifact-version" value="1.6.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ow2/asm"/>
+            <param name="artifact-name" value="asm-debug-all"/>
+            <param name="artifact-version" value="4.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/adobe/xmp"/>
+            <param name="artifact-name" value="xmpcore"/>
+            <param name="artifact-version" value="5.1.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/gagravarr"/>
+            <param name="artifact-name" value="vorbis-java-core"/>
+            <param name="artifact-version" value="0.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/poi"/>
+            <param name="artifact-name" value="poi-ooxml"/>
+            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/poi"/>
+            <param name="artifact-name" value="poi-ooxml-schemas"/>
+            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/bouncycastle"/>
+            <param name="artifact-name" value="bcmail-jdk15"/>
+            <param name="artifact-version" value="1.45"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="jdom"/>
+            <param name="artifact-name" value="jdom"/>
+            <param name="artifact-version" value="1.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/geronimo/specs"/>
+            <param name="artifact-name" value="geronimo-stax-api_1.0_spec"/>
+            <param name="artifact-version" value="1.0.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="rome"/>
+            <param name="artifact-name" value="rome"/>
+            <param name="artifact-version" value="0.9"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/googlecode/mp4parser"/>
+            <param name="artifact-name" value="isoparser"/>
+            <param name="artifact-version" value="1.0-RC-1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+	
+    <target name="download-jackson">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/jackson/core"/>
+            <param name="artifact-version" value="2.1.3"/>
+            <param name="artifact-name" value="jackson-databind"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/jackson/core"/>
+            <param name="artifact-version" value="2.1.2"/>
+            <param name="artifact-name" value="jackson-annotations"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+	
+    <target name="make-core-deps" depends="download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>

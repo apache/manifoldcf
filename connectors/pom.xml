@@ -58,6 +58,7 @@
     <module>generic</module>
     <module>regexpmapper</module>
     <module>email</module>
+    <module>amazoncloudsearch</module>
   </modules>
 
 </project>
