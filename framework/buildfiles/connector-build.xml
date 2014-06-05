@@ -178,6 +178,15 @@
         <path refid="mcf-connector-build.connector-test-classpath"/>
     </path>
 
+    <path id="mcf-connector-build.isolation-classpath">
+        <pathelement location="build/interface/classes"/>
+        <pathelement location="build/stubclasses"/>
+    </path>
+
+    <path id="isolation-classpath">
+        <path refid="mcf-connector-build.isolation-classpath"/>
+    </path>
+
     <path id="mcf-connector-build.implementation-classpath">
         <pathelement location="build/interface/classes"/>
         <pathelement location="build/stubclasses"/>
@@ -308,15 +317,27 @@
         <available file="connector/src/main/resources" property="hasResources"/>
     </target>
 
-    <target name="has-RMI-check" depends="precompile-check" if="canBuild">
-        <available file="implementation" property="hasImplementation"/>
+    <target name="has-interface-check" depends="precompile-check" if="canBuild">
         <available file="interface" property="hasInterface"/>
+    </target>
+    
+    <target name="has-isolation-check" depends="has-interface-check" if="hasInterface">
+        <available file="isolation" property="hasIsolation"/>
+    </target>
+
+    <target name="has-implementation-check" depends="has-interface-check" if="hasInterface">
+        <available file="implementation" property="hasImplementation"/>
+    </target>
+    
+    <target name="has-classloader-check" depends="has-isolation-check" if="hasIsolation">
+        <property name="hasClassloader" value="true"/>
+    </target>
+
+    <target name="has-RMI-check" depends="has-implementation-check" if="hasImplementation">
         <available file="server" property="hasServer"/>
         <available file="registry" property="hasRegistry"/>
         <condition property="hasRMI">
             <and>
-                <isset property="hasImplementation"/>
-                <isset property="hasInterface"/>
                 <isset property="hasServer"/>
                 <isset property="hasRegistry"/>
             </and>
@@ -505,7 +526,16 @@
         </javac>
     </target>
 
-    <target name="compile-implementation" depends="compile-stubs,compile-interface,has-RMI-check" if="hasRMI">
+    <target name="compile-isolation" depends="compile-stubs,compile-interface,has-isolation-check" if="hasIsolation">
+        <mkdir dir="build/isolation/classes"/>
+        <javac srcdir="isolation/src/main/java" destdir="build/isolation/classes" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+            <classpath>
+                <path refid="isolation-classpath"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-implementation" depends="compile-stubs,compile-interface,has-implementation-check" if="hasImplementation">
         <mkdir dir="build/implementation/classes"/>
         <javac srcdir="implementation/src/main/java" destdir="build/implementation/classes" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
@@ -514,7 +544,7 @@
         </javac>
     </target>
 
-    <target name="compile-interface" depends="has-RMI-check" if="hasRMI">
+    <target name="compile-interface" depends="has-interface-check" if="hasInterface">
         <mkdir dir="build/interface/classes"/>
         <javac srcdir="interface/src/main/java" destdir="build/interface/classes" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
@@ -550,12 +580,17 @@
         </jar>
     </target>
 
-    <target name="jar-interface" depends="compile-interface,has-RMI-check" if="hasRMI">
+    <target name="jar-interface" depends="compile-interface,has-interface-check" if="hasInterface">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/mcf-${ant.project.name}-connector-interface.jar" basedir="build/interface/classes"/>
     </target>
 
-    <target name="jar-implementation" depends="compile-implementation,has-RMI-check" if="hasRMI">
+    <target name="jar-isolation" depends="compile-isolation,has-isolation-check" if="hasIsolation">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/mcf-${ant.project.name}-connector-isolation.jar" basedir="build/implementation/classes"/>
+    </target>
+
+    <target name="jar-implementation" depends="compile-implementation,has-implementation-check" if="hasImplementation">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/mcf-${ant.project.name}-connector-implementation.jar" basedir="build/implementation/classes"/>
     </target>
