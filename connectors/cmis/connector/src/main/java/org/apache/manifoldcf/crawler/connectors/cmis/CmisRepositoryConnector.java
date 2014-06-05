@@ -50,6 +50,7 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.Constants;
+import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -65,8 +66,6 @@ import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
-
-import org.apache.commons.io.input.NullInputStream;
 
 /**
  * This is the "repository connector" for a CMIS-compliant repository.
@@ -667,6 +666,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         activities.addSeedDocument(cmisObject.getId());
       }
     } else {
+      cmisQuery = CmisRepositoryConnectorUtils.getCmisQueryWithObjectId(cmisQuery);
       ItemIterable<QueryResult> results = session.query(cmisQuery, false).getPage(1000000000);
       for (QueryResult result : results) {
         String id = result.getPropertyValueById(PropertyIds.OBJECT_ID);
@@ -675,6 +675,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     }
 
   }
+  
+  
 
   /** 
    * Get the maximum number of documents to amalgamate together into one batch, for this connector.

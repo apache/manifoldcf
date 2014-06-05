@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-948: CMIS Connector returns couldn't encrypt null when the query doesn't include cmis:objectId
+(Piergiorgio Lucidi)
+
 CONNECTORS-947: ant test fails when make-deps is not run.
 (Karl Wright)
 

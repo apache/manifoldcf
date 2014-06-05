@@ -19,11 +19,13 @@
 package org.apache.manifoldcf.crawler.connectors.cmis;
 
 import java.lang.reflect.Method;
+import java.util.StringTokenizer;
 
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.bindings.spi.atompub.AbstractAtomPubService;
 import org.apache.chemistry.opencmis.client.bindings.spi.atompub.AtomPubParser;
+import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 /**
@@ -34,6 +36,10 @@ import org.apache.manifoldcf.crawler.system.Logging;
 public class CmisRepositoryConnectorUtils {
 
   private static final String LOAD_LINK_METHOD_NAME = "loadLink";
+  private static final String FROM_TOKEN = "from";
+  private static final String SEP = " ";
+  private static final String SELECT_STAR_CLAUSE = "select *";
+  private static final String OBJECT_ID_TERM = "cmis:objectId,";
   
   public static final String getDocumentURL(final Document document, final Session session) {
     String link = null;
@@ -51,6 +57,54 @@ public class CmisRepositoryConnectorUtils {
               + e.getMessage(), e);
     }
     return link;
+  }
+  
+  /**
+   * Utility method to consider the objectId whenever it is not present in the select clause
+   * @param cmisQuery
+   * @return the cmisQuery with the cmis:objectId property added in the select clause
+   */
+  public static String getCmisQueryWithObjectId(String cmisQuery){
+    String cmisQueryResult = StringUtils.EMPTY;
+    StringTokenizer cmisQueryTokenized = new StringTokenizer(cmisQuery.trim());
+    String selectClause = StringUtils.EMPTY;
+    boolean firstTerm = true;
+    while(cmisQueryTokenized.hasMoreElements()){
+        String term = cmisQueryTokenized.nextToken();
+        if(!term.equalsIgnoreCase(FROM_TOKEN)){
+          if(firstTerm){
+            selectClause+=term;
+            firstTerm = false;
+          } else {
+            selectClause+=SEP+term;
+          }
+          
+        } else {
+          break;
+        }
+    }
+    
+    if(selectClause.equalsIgnoreCase(SELECT_STAR_CLAUSE)){
+      cmisQueryResult = cmisQuery;
+    } else {
+      //get the second term and add the cmis:objectId term
+      StringTokenizer selectClauseTokenized = new StringTokenizer(selectClause.trim());
+      boolean firstTermSelectClause = true;
+      String secondTerm = StringUtils.EMPTY;
+      while(selectClauseTokenized.hasMoreElements()){
+          String term = selectClauseTokenized.nextToken();
+          if(firstTermSelectClause){
+            firstTermSelectClause = false;
+          } else if(!firstTermSelectClause){
+            //this is the second term
+            secondTerm = term;
+            break;
+          }
+      }
+      cmisQueryResult = StringUtils.replaceOnce(cmisQuery, secondTerm, OBJECT_ID_TERM + secondTerm);
+    }
+    
+    return cmisQueryResult;
   }
   
 }
