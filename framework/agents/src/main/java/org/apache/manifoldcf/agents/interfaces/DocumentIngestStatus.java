@@ -36,17 +36,20 @@ public class DocumentIngestStatus
   protected final String outputVersionString;
   protected final String documentAuthorityNameString;
   protected final String parameterVersionString;
+  protected final String[] transformationNameStrings;
 
   /** Constructor */
   public DocumentIngestStatus(String documentVersionString,
     String[] transformationVersionStrings, String outputVersionString,
-    String documentAuthorityNameString, String parameterVersionString)
+    String documentAuthorityNameString, String parameterVersionString,
+    String[] transformationNameStrings)
   {
     this.documentVersionString = documentVersionString;
     this.transformationVersionStrings = transformationVersionStrings;
     this.outputVersionString = outputVersionString;
     this.documentAuthorityNameString = documentAuthorityNameString;
     this.parameterVersionString = parameterVersionString;
+    this.transformationNameStrings = transformationNameStrings;
   }
 
   /** Get the document version */
@@ -55,6 +58,12 @@ public class DocumentIngestStatus
     return documentVersionString;
   }
 
+  /** Get the transformation name strings */
+  public String[] getTransformationNameStrings()
+  {
+    return transformationNameStrings;
+  }
+  
   /** Get the transformation version strings */
   public String[] getTransformationVersions()
   {
