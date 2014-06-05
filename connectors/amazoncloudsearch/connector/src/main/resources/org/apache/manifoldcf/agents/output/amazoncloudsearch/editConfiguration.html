@@ -1,0 +1,70 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TABNAME == $ResourceBundle.getString('AmazonCloudSearchOutputConnector.ServerTabName'))
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.ServerHostColon'))</nobr></td>
+    <td class="value"><input name="serverhost" type="text" value="$Encoder.attributeEscape($SERVERHOST)" size="32" /></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.ServerPathColon'))</nobr></td>
+    <td class="value"><input name="serverpath" type="text" value="$Encoder.attributeEscape($SERVERPATH)" size="32" /></td>
+  </tr>
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.ProxyProtocolColon'))</nobr></td>
+    <td class="value">
+      <select name="proxyprotocol" size="2">
+  #if($PROXYPROTOCOL == 'http')
+        <option value="http" selected="true">http</option>
+  #else
+        <option value="http">http</option>
+  #end
+  #if($PROXYPROTOCOL == 'https')
+        <option value="https" selected="true">https</option>
+  #else
+        <option value="https">https</option>
+  #end
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.ProxyHostColon'))</nobr></td>
+    <td class="value"><input name="proxyhost" type="text" value="$Encoder.attributeEscape($PROXYHOST)" size="32" /></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.ProxyPortColon'))</nobr></td>
+    <td class="value"><input name="proxyport" type="text" value="$Encoder.attributeEscape($PROXYPORT)" size="5" /></td>
+  </tr>
+
+</table>
+
+#else
+
+<input type="hidden" name="serverhost" value="$Encoder.attributeEscape($SERVERHOST)" />
+<input type="hidden" name="serverpath" value="$Encoder.attributeEscape($SERVERPATH)" />
+<input type="hidden" name="proxyprotocol" value="$Encoder.attributeEscape($PROXYPROTOCOL)" />
+<input type="hidden" name="proxyhost" value="$Encoder.attributeEscape($PROXYHOST)" />
+<input type="hidden" name="proxyport" value="$Encoder.attributeEscape($PROXYPORT)" />
+
+#end
