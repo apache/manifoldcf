@@ -68,6 +68,28 @@ public interface IIncrementalIngester
   public String getOutputDescription(String outputConnectionName, OutputSpecification spec)
     throws ManifoldCFException, ServiceInterruption;
 
+  /** Get a transformation version string for a document.
+  *@param transformationConnectionName is the name of the transformation connection associated with this action.
+  *@param spec is the transformation specification.
+  *@return the description string.
+  */
+  public String getTransformationDescription(String transformationConnectionName, OutputSpecification spec)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Check if a mime type is indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param mimeType is the mime type to check.
+  *@return true if the mimeType is indexable.
+  */
+  public boolean checkMimeTypeIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    String mimeType)
+    throws ManifoldCFException, ServiceInterruption;
+
   /** Check if a mime type is indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
@@ -75,6 +97,20 @@ public interface IIncrementalIngester
   *@return true if the mimeType is indexable.
   */
   public boolean checkMimeTypeIndexable(String outputConnectionName, String outputDescription, String mimeType)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Check if a file is indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param localFile is the local file to check.
+  *@return true if the local file is indexable.
+  */
+  public boolean checkDocumentIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    File localFile)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Check if a file is indexable.
@@ -88,12 +124,42 @@ public interface IIncrementalIngester
 
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
   * to help filter out documents that are too long to be indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param length is the length of the document.
+  *@return true if the file is indexable.
+  */
+  public boolean checkLengthIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    long length)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are too long to be indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
   *@param length is the length of the document.
   *@return true if the file is indexable.
   */
   public boolean checkLengthIndexable(String outputConnectionName, String outputDescription, long length)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that not indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param url is the url of the document.
+  *@return true if the file is indexable.
+  */
+  public boolean checkURLIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    String url)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
