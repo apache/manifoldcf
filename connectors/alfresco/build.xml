@@ -58,7 +58,6 @@
         <fileset dir="../../lib">
             <include name="jaxrpc*.jar"/>
             <include name="opensaml*.jar"/>
-            <include name="wss4j*.jar"/>
             <include name="xmlsec*.jar"/>
         </fileset>
     </path>
@@ -75,7 +74,6 @@
             <fileset dir="../../lib">
                 <include name="jaxrpc*.jar"/>
                 <include name="opensaml*.jar"/>
-                <include name="wss4j*.jar"/>
                 <include name="xmlsec*.jar"/>
             </fileset>
         </copy>

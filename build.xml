@@ -1321,8 +1321,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="download-wss4j">
-        <!-- This dependency is for alfresco, so download their patched jar from their svn -->
-        <get src="https://maven.alfresco.com/nexus/content/groups/public/org/apache/ws/security/wss4j/1.5.4-patched/wss4j-1.5.4-patched.jar" dest="lib/wss4j.jar"/>
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/ws/security"/>
+            <param name="artifact-version" value="1.5.12"/>
+            <param name="artifact-name" value="wss4j"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
     <target name="download-xmlgraphics-commons">
