@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-950:CMIS Connector should ingest only the properties specified in the select clause
+(Piergiorgio Lucidi)
+
 CONNECTORS-916: Supply an Amazon Cloud Search connector.
 (Takumi Yoshida, Karl Wright)
 
