@@ -1851,7 +1851,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
         String authorityName = (String)row.getValue(authorityNameField);
         String paramVersion = (String)row.getValue(forcedParamsField);
-        rval[position.intValue()] = new DocumentIngestStatus(lastVersion,new String[0],lastOutputVersion,authorityName,paramVersion);
+        rval[position.intValue()] = new DocumentIngestStatus(lastVersion,new String[0],lastOutputVersion,authorityName,paramVersion,new String[0]);
       }
     }
   }
