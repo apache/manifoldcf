@@ -68,12 +68,12 @@ public interface IIncrementalIngester
   public String getOutputDescription(String outputConnectionName, OutputSpecification spec)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Get a transformation version string for a document.
-  *@param transformationConnectionName is the name of the transformation connection associated with this action.
-  *@param spec is the transformation specification.
-  *@return the description string.
+  /** Get transformation version strings for a document.
+  *@param transformationConnectionNames are the names of the transformation connections associated with this action.
+  *@param specs are the transformation specifications.
+  *@return the description strings.
   */
-  public String getTransformationDescription(String transformationConnectionName, OutputSpecification spec)
+  public String[] getTransformationDescriptions(String[] transformationConnectionNames, OutputSpecification[] specs)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Check if a mime type is indexable.
@@ -82,12 +82,14 @@ public interface IIncrementalIngester
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
   *@param mimeType is the mime type to check.
+  *@param activity are the activities available to this method.
   *@return true if the mimeType is indexable.
   */
   public boolean checkMimeTypeIndexable(
     String[] transformationConnectionNames, String[] transformationDescriptions,
     String outputConnectionName, String outputDescription,
-    String mimeType)
+    String mimeType,
+    IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Check if a mime type is indexable.
@@ -105,12 +107,14 @@ public interface IIncrementalIngester
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
   *@param localFile is the local file to check.
+  *@param activity are the activities available to this method.
   *@return true if the local file is indexable.
   */
   public boolean checkDocumentIndexable(
     String[] transformationConnectionNames, String[] transformationDescriptions,
     String outputConnectionName, String outputDescription,
-    File localFile)
+    File localFile,
+    IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Check if a file is indexable.
@@ -129,12 +133,14 @@ public interface IIncrementalIngester
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
   *@param length is the length of the document.
+  *@param activity are the activities available to this method.
   *@return true if the file is indexable.
   */
   public boolean checkLengthIndexable(
     String[] transformationConnectionNames, String[] transformationDescriptions,
     String outputConnectionName, String outputDescription,
-    long length)
+    long length,
+    IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
@@ -154,12 +160,14 @@ public interface IIncrementalIngester
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
   *@param url is the url of the document.
+  *@param activity are the activities available to this method.
   *@return true if the file is indexable.
   */
   public boolean checkURLIndexable(
     String[] transformationConnectionNames, String[] transformationDescriptions,
     String outputConnectionName, String outputDescription,
-    String url)
+    String url,
+    IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors

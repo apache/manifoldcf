@@ -215,7 +215,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   {
     return checkMimeTypeIndexable(new String[0], new String[0],
       outputConnectionName, outputDescription,
-      mimeType);
+      mimeType,null);
   }
 
   /** Check if a mime type is indexable.
@@ -224,13 +224,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
   *@param mimeType is the mime type to check.
+  *@param activity are the activities available to this method.
   *@return true if the mimeType is indexable.
   */
   @Override
   public boolean checkMimeTypeIndexable(
     String[] transformationConnectionNames, String[] transformationDescriptions,
     String outputConnectionName, String outputDescription,
-    String mimeType)
+    String mimeType,
+    IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
     // MHL to handle the pipeline
@@ -241,7 +243,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.checkMimeTypeIndexable(outputDescription,mimeType,null);
+      return connector.checkMimeTypeIndexable(outputDescription,mimeType,activity);
     }
     finally
     {
@@ -261,7 +263,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   {
     return checkDocumentIndexable(new String[0], new String[0],
       outputConnectionName, outputDescription,
-      localFile);
+      localFile,null);
   }
   
   /** Check if a file is indexable.
@@ -270,13 +272,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
   *@param localFile is the local file to check.
+  *@param activity are the activities available to this method.
   *@return true if the local file is indexable.
   */
   @Override
   public boolean checkDocumentIndexable(
     String[] transformationConnectionNames, String[] transformationDescriptions,
     String outputConnectionName, String outputDescription,
-    File localFile)
+    File localFile,
+    IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
     // MHL
@@ -287,7 +291,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.checkDocumentIndexable(outputDescription,localFile,null);
+      return connector.checkDocumentIndexable(outputDescription,localFile,activity);
     }
     finally
     {
@@ -308,7 +312,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   {
     return checkLengthIndexable(new String[0], new String[0],
       outputConnectionName, outputDescription,
-      length);
+      length,null);
   }
   
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
@@ -318,13 +322,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
   *@param length is the length of the document.
+  *@param activity are the activities available to this method.
   *@return true if the file is indexable.
   */
   @Override
   public boolean checkLengthIndexable(
     String[] transformationConnectionNames, String[] transformationDescriptions,
     String outputConnectionName, String outputDescription,
-    long length)
+    long length,
+    IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
     // MHL
@@ -335,7 +341,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.checkLengthIndexable(outputDescription,length,null);
+      return connector.checkLengthIndexable(outputDescription,length,activity);
     }
     finally
     {
@@ -356,7 +362,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   {
     return checkURLIndexable(new String[0], new String[0],
       outputConnectionName, outputDescription,
-      url);
+      url,null);
   }
   
   /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
@@ -366,13 +372,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
   *@param url is the url of the document.
+  *@param activity are the activities available to this method.
   *@return true if the file is indexable.
   */
   @Override
   public boolean checkURLIndexable(
     String[] transformationConnectionNames, String[] transformationDescriptions,
     String outputConnectionName, String outputDescription,
-    String url)
+    String url,
+    IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
     // MHL
@@ -383,7 +391,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.checkURLIndexable(outputDescription,url,null);
+      return connector.checkURLIndexable(outputDescription,url,activity);
     }
     finally
     {
@@ -416,28 +424,35 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   }
 
-  /** Get a transformation version string for a document.
-  *@param transformationConnectionName is the name of the transformation connection associated with this action.
-  *@param spec is the transformation specification.
-  *@return the description string.
+  /** Get transformation version strings for a document.
+  *@param transformationConnectionNames are the names of the transformation connections associated with this action.
+  *@param specs are the transformation specifications.
+  *@return the description strings.
   */
   @Override
-  public String getTransformationDescription(String transformationConnectionName, OutputSpecification spec)
+  public String[] getTransformationDescriptions(String[] transformationConnectionNames, OutputSpecification[] specs)
     throws ManifoldCFException, ServiceInterruption
   {
-    ITransformationConnection connection = transformationConnectionManager.load(transformationConnectionName);
-    ITransformationConnector connector = transformationConnectorPool.grab(connection);
-    if (connector == null)
-      // The connector is not installed; treat this as a service interruption.
-      throw new ServiceInterruption("Transformation connector not installed",0L);
-    try
+    String[] rval = new String[transformationConnectionNames.length];
+    for (int i = 0; i < rval.length; i++)
     {
-      return connector.getPipelineDescription(spec);
+      String transformationConnectionName = transformationConnectionNames[i];
+      OutputSpecification spec = specs[i];
+      ITransformationConnection connection = transformationConnectionManager.load(transformationConnectionName);
+      ITransformationConnector connector = transformationConnectorPool.grab(connection);
+      if (connector == null)
+        // The connector is not installed; treat this as a service interruption.
+        throw new ServiceInterruption("Transformation connector not installed",0L);
+      try
+      {
+        rval[i] = connector.getPipelineDescription(spec);
+      }
+      finally
+      {
+        transformationConnectorPool.release(connection,connector);
+      }
     }
-    finally
-    {
-      transformationConnectorPool.release(connection,connector);
-    }
+    return rval;
   }
 
   /** Record a document version, but don't ingest it.
