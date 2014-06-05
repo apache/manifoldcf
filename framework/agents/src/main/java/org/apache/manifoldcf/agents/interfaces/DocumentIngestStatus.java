@@ -32,15 +32,18 @@ public class DocumentIngestStatus
   public static final String _rcsid = "@(#)$Id: DocumentIngestStatus.java 988245 2010-08-23 18:39:35Z kwright $";
 
   protected final String documentVersionString;
+  protected final String[] transformationVersionStrings;
   protected final String outputVersionString;
   protected final String documentAuthorityNameString;
   protected final String parameterVersionString;
 
   /** Constructor */
-  public DocumentIngestStatus(String documentVersionString, String outputVersionString,
+  public DocumentIngestStatus(String documentVersionString,
+    String[] transformationVersionStrings, String outputVersionString,
     String documentAuthorityNameString, String parameterVersionString)
   {
     this.documentVersionString = documentVersionString;
+    this.transformationVersionStrings = transformationVersionStrings;
     this.outputVersionString = outputVersionString;
     this.documentAuthorityNameString = documentAuthorityNameString;
     this.parameterVersionString = parameterVersionString;
@@ -52,6 +55,12 @@ public class DocumentIngestStatus
     return documentVersionString;
   }
 
+  /** Get the transformation version strings */
+  public String[] getTransformationVersions()
+  {
+    return transformationVersionStrings;
+  }
+  
   /** Get the output version */
   public String getOutputVersion()
   {
