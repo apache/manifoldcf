@@ -659,6 +659,16 @@
         <mkdir dir="dist/lib-proprietary-only"/>
         <copy tofile="dist/lib-proprietary-only/${ant.project.name}-PLACEHOLDER.txt" file="proprietary-library-instructions.txt"/>
     </target>
+
+    <target name="isolation-directory" depends="jar-interface,jar-isolation,has-classloader-check" if="hasClassloader">
+        <mkdir dir="dist/isolation"/>
+        <copy todir="dist/isolation">
+            <fileset dir="build/jar">
+                <include name="mcf-${ant.project.name}-connector-isolation.jar"/>
+                <include name="mcf-${ant.project.name}-connector-interface.jar"/>
+            </fileset>
+        </copy>
+    </target>
     
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,has-RMI-check" if="hasRMI">
         <mkdir dir="dist/server-process/lib"/>
@@ -713,6 +723,10 @@
         <available file="dist/registry-process" type="dir" property="has-registry-process"/>
     </target>
 
+    <target name="general-isolation-directory-check" depends="isolation-directory" if="canBuild">
+        <available file="dist/isolation" type="dir" property="has-isolation-directory"/>
+    </target>
+
     <target name="general-connector-delivery-integration" depends="general-connector-integration-check" if="has-integration">
         <mkdir dir="${mcf-dist}/${ant.project.name}-integration"/>
         <copy todir="${mcf-dist}/${ant.project.name}-integration">
@@ -734,6 +748,13 @@
         </copy>
     </target>
     
+    <target name="general-delivery-isolation-directory" depends="general-isolation-directory-check" if="has-isolation-directory">
+        <mkdir dir="${mcf-dist}/${ant.project.name}-isolation"/>
+        <copy todir="${mcf-dist}/${ant.project.name}-isolation">
+            <fileset dir="dist/isolation"/>
+        </copy>
+    </target>
+    
     <target name="general-connector-delivery-processes" depends="general-delivery-server-process,general-delivery-registry-process"/>
 
     <target name="general-connector-proprietary-only-check" depends="lib-proprietary-instructions,lib-proprietary-README">
@@ -751,7 +772,7 @@
         <available file="dist/lib" type="dir" property="has-lib"/>
     </target>
     
-    <target name="general-connector-delivery" depends="general-connector-delivery-check,general-connector-proprietary-only-delivery,general-connector-delivery-integration,general-connector-delivery-processes" if="has-lib">
+    <target name="general-connector-delivery" depends="general-connector-delivery-check,general-connector-proprietary-only-delivery,general-connector-delivery-integration,general-connector-delivery-processes,general-delivery-isolation-directory" if="has-lib">
         <mkdir dir="${mcf-dist}/connector-lib"/>
         <copy todir="${mcf-dist}/connector-lib">
             <fileset dir="dist/lib"/>
