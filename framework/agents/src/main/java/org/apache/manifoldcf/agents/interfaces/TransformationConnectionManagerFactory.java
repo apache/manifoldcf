@@ -73,7 +73,7 @@ public class TransformationConnectionManagerFactory
       String[] activities = TransformationConnectorFactory.getActivitiesList(tc,connection.getClassName());
       for (String baseActivity : activities)
       {
-        String activity = baseActivity + " ("+connectionName+")";
+        String activity = ManifoldCF.qualifyTransformationActivityName(baseActivity, connectionName);
         map.add(activity);
       }
     }

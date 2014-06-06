@@ -472,6 +472,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     long recordTime, IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    activities = new OutputActivitiesWrapper(activities,outputConnectionName);
+
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
     String docKey = makeKey(identifierClass,identifierHash);
@@ -602,6 +604,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    activities = new OutputActivitiesWrapper(activities,outputConnectionName);
+
     // MHL
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
@@ -897,6 +901,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+
     // Segregate request by connection names
     HashMap keyMap = new HashMap();
     int i = 0;
@@ -945,6 +950,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    activities = new OutputRemoveActivitiesWrapper(activities,outputConnectionName);
+
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
     if (Logging.ingest.isDebugEnabled())
@@ -1848,9 +1855,17 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       {
         Long id = (Long)row.getValue(idField);
         String lastVersion = (String)row.getValue(lastVersionField);
+        if (lastVersion == null)
+          lastVersion = "";
         String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
+        if (lastOutputVersion == null)
+          lastOutputVersion = "";
         String authorityName = (String)row.getValue(authorityNameField);
+        if (authorityName == null)
+          authorityName = "";
         String paramVersion = (String)row.getValue(forcedParamsField);
+        if (paramVersion == null)
+          paramVersion = "";
         rval[position.intValue()] = new DocumentIngestStatus(lastVersion,new String[0],lastOutputVersion,authorityName,paramVersion,new String[0]);
       }
     }
@@ -1928,4 +1943,140 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       return outputVersion;
     }
   }
+  
+  /** Wrapper class for add activity.  This handles conversion of output connector activity logging to 
+  * qualified activity names */
+  protected static class OutputRecordingActivity implements IOutputHistoryActivity
+  {
+    protected final IOutputHistoryActivity activityProvider;
+    protected final String outputConnectionName;
+    
+    public OutputRecordingActivity(IOutputHistoryActivity activityProvider, String outputConnectionName)
+    {
+      this.activityProvider = activityProvider;
+      this.outputConnectionName = outputConnectionName;
+    }
+    
+    /** Record time-stamped information about the activity of the output connector.
+    *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
+    *       activity has an associated time; the startTime field records when the activity began.  A null value
+    *       indicates that the start time and the finishing time are the same.
+    *@param activityType is a string which is fully interpretable only in the context of the connector involved, which is
+    *       used to categorize what kind of activity is being recorded.  For example, a web connector might record a
+    *       "fetch document" activity.  Cannot be null.
+    *@param dataSize is the number of bytes of data involved in the activity, or null if not applicable.
+    *@param entityURI is a (possibly long) string which identifies the object involved in the history record.
+    *       The interpretation of this field will differ from connector to connector.  May be null.
+    *@param resultCode contains a terse description of the result of the activity.  The description is limited in
+    *       size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
+    *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
+    *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
+    */
+    @Override
+    public void recordActivity(Long startTime, String activityType, Long dataSize,
+      String entityURI, String resultCode, String resultDescription)
+      throws ManifoldCFException
+    {
+      activityProvider.recordActivity(startTime,ManifoldCF.qualifyOutputActivityName(activityType,outputConnectionName),
+        dataSize,entityURI,resultCode,resultDescription);
+    }
+
+  }
+  
+  protected static class OutputRemoveActivitiesWrapper extends OutputRecordingActivity implements IOutputRemoveActivity
+  {
+    protected final IOutputRemoveActivity activities;
+    
+    public OutputRemoveActivitiesWrapper(IOutputRemoveActivity activities, String outputConnectionName)
+    {
+      super(activities,outputConnectionName);
+      this.activities = activities;
+    }
+
+  }
+  
+  protected static class OutputActivitiesWrapper extends OutputRecordingActivity implements IOutputActivity
+  {
+    protected final IOutputActivity activities;
+    
+    public OutputActivitiesWrapper(IOutputActivity activities, String outputConnectionName)
+    {
+      super(activities,outputConnectionName);
+      this.activities = activities;
+    }
+    
+    /** Qualify an access token appropriately, to match access tokens as returned by mod_aa.  This method
+    * includes the authority name with the access token, if any, so that each authority may establish its own token space.
+    *@param authorityNameString is the name of the authority to use to qualify the access token.
+    *@param accessToken is the raw, repository access token.
+    *@return the properly qualified access token.
+    */
+    @Override
+    public String qualifyAccessToken(String authorityNameString, String accessToken)
+      throws ManifoldCFException
+    {
+      return activities.qualifyAccessToken(authorityNameString,accessToken);
+    }
+
+    /** Send a document via the pipeline to the next output connection.
+    *@param document is the document data to be processed (handed to the output data store).
+    *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+    */
+    public int sendDocument(RepositoryDocument document)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.sendDocument(document);
+    }
+
+    /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param mimeType is the mime type of the document.
+    *@return true if the mime type can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkMimeTypeIndexable(String mimeType)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkMimeTypeIndexable(mimeType);
+    }
+
+    /** Pre-determine whether a document (passed here as a File object) is acceptable downstream.  This method is
+    * used to determine whether a document needs to be actually transferred.  This hook is provided mainly to support
+    * search engines that only handle a small set of accepted file types.
+    *@param localFile is the local file to check.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkDocumentIndexable(File localFile)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkDocumentIndexable(localFile);
+    }
+
+    /** Pre-determine whether a document's length is acceptable downstream.  This method is used
+    * to determine whether to fetch a document in the first place.
+    *@param length is the length of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkLengthIndexable(long length)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkLengthIndexable(length);
+    }
+
+    /** Pre-determine whether a document's URL is acceptable downstream.  This method is used
+    * to help filter out documents that cannot be indexed in advance.
+    *@param url is the URL of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkURLIndexable(String url)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkURLIndexable(url);
+    }
+
+  }
+  
 }

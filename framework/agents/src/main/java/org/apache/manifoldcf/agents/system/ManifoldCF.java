@@ -171,6 +171,26 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     AgentManagerFactory.noteOutputConnectionChange(threadContext,connectionName);
   }
   
+  /** Qualify output activity name.
+  *@param outputActivityName is the name of the output activity.
+  *@param outputConnectionName is the corresponding name of the output connection.
+  *@return the qualified (global) activity name.
+  */
+  public static String qualifyOutputActivityName(String outputActivityName, String outputConnectionName)
+  {
+    return outputActivityName+" ("+outputConnectionName+")";
+  }
+
+  /** Qualify transformation activity name.
+  *@param transformationActivityName is the name of the output activity.
+  *@param transformationConnectionName is the corresponding name of the transformation connection.
+  *@return the qualified (global) activity name.
+  */
+  public static String qualifyTransformationActivityName(String transformationActivityName, String transformationConnectionName)
+  {
+    return transformationActivityName+" ["+transformationConnectionName+"]";
+  }
+
   // Helper methods for API support.  These are made public so connectors can use them to implement the executeCommand method.
   
   // These are the universal node types.

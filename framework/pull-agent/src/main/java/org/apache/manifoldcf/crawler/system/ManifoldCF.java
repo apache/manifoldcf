@@ -1123,16 +1123,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   }
 
-  /** Qualify output activity name.
-  *@param outputActivityName is the name of the output activity.
-  *@param outputConnectionName is the corresponding name of the output connection.
-  *@return the qualified (global) activity name.
-  */
-  public static String qualifyOutputActivityName(String outputActivityName, String outputConnectionName)
-  {
-    return outputActivityName+" ("+outputConnectionName+")";
-  }
-
   /** Get the activities list for a given repository connection.
   */
   public static String[] getActivitiesList(IThreadContext threadContext, String connectionName)
@@ -1143,31 +1133,35 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     if (thisConnection == null)
       return null;
     String[] outputActivityList = OutputConnectionManagerFactory.getAllOutputActivities(threadContext);
+    String[] transformationActivityList = TransformationConnectionManagerFactory.getAllTransformationActivities(threadContext);
     String[] connectorActivityList = RepositoryConnectorFactory.getActivitiesList(threadContext,thisConnection.getClassName());
     String[] globalActivityList = IRepositoryConnectionManager.activitySet;
-    String[] activityList = new String[outputActivityList.length + ((connectorActivityList==null)?0:connectorActivityList.length) + globalActivityList.length];
+    String[] activityList = new String[transformationActivityList.length + outputActivityList.length + ((connectorActivityList==null)?0:connectorActivityList.length) + globalActivityList.length];
     int k2 = 0;
-    int j;
+    if (transformationActivityList != null)
+    {
+      for (String transformationActivity: transformationActivityList)
+      {
+        activityList[k2++] = transformationActivity;
+      }
+    }
     if (outputActivityList != null)
     {
-      j = 0;
-      while (j < outputActivityList.length)
+      for (String outputActivity : outputActivityList)
       {
-        activityList[k2++] = outputActivityList[j++];
+        activityList[k2++] = outputActivity;
       }
     }
     if (connectorActivityList != null)
     {
-      j = 0;
-      while (j < connectorActivityList.length)
+      for (String connectorActivity : connectorActivityList)
       {
-        activityList[k2++] = connectorActivityList[j++];
+        activityList[k2++] = connectorActivity;
       }
     }
-    j = 0;
-    while (j < globalActivityList.length)
+    for (String globalActivity : globalActivityList)
     {
-      activityList[k2++] = globalActivityList[j++];
+      activityList[k2++] = globalActivity;
     }
     java.util.Arrays.sort(activityList);
     return activityList;

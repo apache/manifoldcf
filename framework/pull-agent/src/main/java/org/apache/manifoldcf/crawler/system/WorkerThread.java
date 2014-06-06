@@ -160,7 +160,7 @@ public class WorkerThread extends Thread
 
             IRepositoryConnection connection = qds.getConnection();
             
-            OutputActivity ingestLogger = new OutputActivity(connectionName,connMgr,outputName);
+            OutputActivity ingestLogger = new OutputActivity(connectionName,connMgr);
 
             // The flow through this section of the code is as follows.
             // (1) We start with a list of documents
@@ -315,16 +315,18 @@ public class WorkerThread extends Thread
                       }
                     }
 
-                    // Get the output version string.
+                    // Get the output version string. Cannot be null.
                     String outputVersion = ingester.getOutputDescription(outputName,outputSpec);
-                    // Get the transformation version strings.
+                    // Get the transformation version strings.  Cannot be null.
                     String[] transformationVersions = ingester.getTransformationDescriptions(transformationNames,transformationSpecifications);
                     
                     Set<String> abortSet = new HashSet<String>();
-                    VersionActivity versionActivity = new VersionActivity(job.getID(),processID,connectionName,outputName,transformationNames,connMgr,jobManager,ingester,abortSet,outputVersion,transformationVersions);
+                    VersionActivity versionActivity = new VersionActivity(job.getID(),processID,connectionName,outputName,transformationNames,connMgr,jobManager,ingester,abortSet,outputVersion,transformationVersions,ingestLogger);
 
                     String aclAuthority = connection.getACLAuthority();
-                    boolean isDefaultAuthority = (aclAuthority == null || aclAuthority.length() == 0);
+                    if (aclAuthority == null)
+                      aclAuthority = "";
+                    boolean isDefaultAuthority = (aclAuthority.length() == 0);
 
                     if (Logging.threads.isDebugEnabled())
                       Logging.threads.debug("Worker thread getting versions for "+Integer.toString(currentDocIDArray.length)+" documents");
@@ -400,10 +402,6 @@ public class WorkerThread extends Thread
                       // This try{ } is for releasing document versions at the connector level.
                       try
                       {
-                        // Organize what we need for document status comparison, and get it into a canonical form.
-                        String newOutputVersion = outputVersion;
-                        if (newOutputVersion == null)
-                          newOutputVersion = "";
 
                         // Loop through documents now, and amass what we need to fetch.
                         // We also need to tally: (1) what needs to be marked as deleted via
@@ -429,9 +427,6 @@ public class WorkerThread extends Thread
                             DocumentIngestStatus oldDocStatus = qd.getLastIngestedStatus();
                             String documentIDHash = dd.getDocumentIdentifierHash();
                             String newDocVersion = newVersionStringArray[i];
-                            String newAuthorityName = aclAuthority;
-                            if (newAuthorityName == null)
-                              newAuthorityName = "";
 
                             versionMap.put(dd.getDocumentIdentifierHash(),newDocVersion);
 
@@ -458,17 +453,11 @@ public class WorkerThread extends Thread
                                 // that was there before is there now (which may mean a rescan),
                                 // or (2) there are different versions (which ALWAYS means a rescan).
                                 String oldDocVersion = oldDocStatus.getDocumentVersion();
-                                if (oldDocVersion == null)
-                                  oldDocVersion = "";
                                 String oldAuthorityName = oldDocStatus.getDocumentAuthorityNameString();
-                                if (oldAuthorityName == null)
-                                  oldAuthorityName = "";
                                 String oldOutputVersion = oldDocStatus.getOutputVersion();
-                                if (oldOutputVersion == null)
-                                  oldOutputVersion = "";
                                 String oldParameterVersion = oldDocStatus.getParameterVersion();
-                                if (oldParameterVersion == null)
-                                  oldParameterVersion = "";
+                                String[] oldTransformationNames = oldDocStatus.getTransformationNameStrings();
+                                String[] oldTransformationVersions = oldDocStatus.getTransformationVersions();
 
                                 // Start the comparison processing
                                 if (newDocVersion.length() == 0)
@@ -477,9 +466,10 @@ public class WorkerThread extends Thread
                                   allowIngest = true;
                                 }
                                 else if (oldDocVersion.equals(newDocVersion) &&
-                                  oldAuthorityName.equals(newAuthorityName) &&
-                                  oldOutputVersion.equals(newOutputVersion) &&
-                                  oldParameterVersion.equals(newParameterVersion))
+                                  oldAuthorityName.equals(aclAuthority) &&
+                                  oldOutputVersion.equals(outputVersion) &&
+                                  oldParameterVersion.equals(newParameterVersion) &&
+                                  compareTransformations(oldTransformationNames,oldTransformationVersions,transformationNames,transformationVersions))
                                 {
                                   // The old logic was as follows:
                                   //
@@ -1247,6 +1237,20 @@ public class WorkerThread extends Thread
     sb.append(delim);
   }
 
+  protected static boolean compareTransformations(String[] oldTransformationNames, String[] oldTransformationVersions,
+    String[] transformationNames, String[] transformationVersions)
+  {
+    if (oldTransformationNames.length != transformationNames.length)
+      return false;
+    for (int i = 0; i < oldTransformationNames.length; i++)
+    {
+      if (!oldTransformationNames[i].equals(transformationNames[i]) ||
+        !oldTransformationVersions[i].equals(transformationVersions[i]))
+        return false;
+    }
+    return true;
+  }
+
   /** The maximum number of adds that happen in a single transaction */
   protected static final int MAX_ADDS_IN_TRANSACTION = 20;
 
@@ -1267,7 +1271,7 @@ public class WorkerThread extends Thread
     protected final Set<String> abortSet;
     protected final String outputVersion;
     protected final String[] transformationVersions;
-
+    protected final CheckActivity checkActivity;
     /** Constructor.
     */
     public VersionActivity(Long jobID, String processID,
@@ -1275,7 +1279,8 @@ public class WorkerThread extends Thread
       String[] transformationConnectionNames,
       IRepositoryConnectionManager connMgr,
       IJobManager jobManager, IIncrementalIngester ingester, Set<String> abortSet,
-      String outputVersion, String[] transformationVersions)
+      String outputVersion, String[] transformationVersions,
+      CheckActivity checkActivity)
     {
       this.jobID = jobID;
       this.processID = processID;
@@ -1288,6 +1293,7 @@ public class WorkerThread extends Thread
       this.abortSet = abortSet;
       this.outputVersion = outputVersion;
       this.transformationVersions = transformationVersions;
+      this.checkActivity = checkActivity;
     }
 
     /** Check whether a mime type is indexable by the currently specified output connector.
@@ -1298,8 +1304,10 @@ public class WorkerThread extends Thread
     public boolean checkMimeTypeIndexable(String mimeType)
       throws ManifoldCFException, ServiceInterruption
     {
-      // MHL
-      return ingester.checkMimeTypeIndexable(outputConnectionName,outputVersion,mimeType);
+      return ingester.checkMimeTypeIndexable(
+        transformationConnectionNames,transformationVersions,
+        outputConnectionName,outputVersion,mimeType,
+        checkActivity);
     }
 
     /** Check whether a document is indexable by the currently specified output connector.
@@ -1310,8 +1318,10 @@ public class WorkerThread extends Thread
     public boolean checkDocumentIndexable(File localFile)
       throws ManifoldCFException, ServiceInterruption
     {
-      // MHL
-      return ingester.checkDocumentIndexable(outputConnectionName,outputVersion,localFile);
+      return ingester.checkDocumentIndexable(
+        transformationConnectionNames,transformationVersions,
+        outputConnectionName,outputVersion,localFile,
+        checkActivity);
     }
 
     /** Check whether a document of a specified length is indexable by the currently specified output connector.
@@ -1322,8 +1332,10 @@ public class WorkerThread extends Thread
     public boolean checkLengthIndexable(long length)
       throws ManifoldCFException, ServiceInterruption
     {
-      // MHL
-      return ingester.checkLengthIndexable(outputConnectionName,outputVersion,length);
+      return ingester.checkLengthIndexable(
+        transformationConnectionNames,transformationVersions,
+        outputConnectionName,outputVersion,length,
+        checkActivity);
     }
 
     /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
@@ -1335,8 +1347,10 @@ public class WorkerThread extends Thread
     public boolean checkURLIndexable(String url)
       throws ManifoldCFException, ServiceInterruption
     {
-      // MHL
-      return ingester.checkURLIndexable(outputConnectionName,outputVersion,url);
+      return ingester.checkURLIndexable(
+        transformationConnectionNames,transformationVersions,
+        outputConnectionName,outputVersion,url,
+        checkActivity);
     }
 
     /** Record time-stamped information about the activity of the connector.
@@ -1487,7 +1501,7 @@ public class WorkerThread extends Thread
     protected final IIncrementalIngester ingester;
     protected final String connectionName;
     protected final String outputName;
-    protected final String[] transformationNames;
+    protected final String[] transformationConnectionNames;
     protected final long currentTime;
     protected final Long expireInterval;
     protected final Map<String,Set<String>> forcedMetadata;
@@ -1525,7 +1539,7 @@ public class WorkerThread extends Thread
       IThreadContext threadContext,
       IReprioritizationTracker rt, IJobManager jobManager,
       IIncrementalIngester ingester,
-      String connectionName, String outputName, String[] transformationNames,
+      String connectionName, String outputName, String[] transformationConnectionNames,
       long currentTime,
       Long expireInterval,
       Map<String,Set<String>> forcedMetadata,
@@ -1545,7 +1559,7 @@ public class WorkerThread extends Thread
       this.ingester = ingester;
       this.connectionName = connectionName;
       this.outputName = outputName;
-      this.transformationNames = transformationNames;
+      this.transformationConnectionNames = transformationConnectionNames;
       this.currentTime = currentTime;
       this.expireInterval = expireInterval;
       this.forcedMetadata = forcedMetadata;
@@ -1818,7 +1832,7 @@ public class WorkerThread extends Thread
       }
         
       // First, we need to add into the metadata the stuff from the job description.
-      ingester.documentIngest(transformationNames,
+      ingester.documentIngest(transformationConnectionNames,
         outputName,
         connectionName,documentIdentifierHash,
         version,transformationVersions,outputVersion,parameterVersion,
@@ -2171,8 +2185,10 @@ public class WorkerThread extends Thread
     public boolean checkMimeTypeIndexable(String mimeType)
       throws ManifoldCFException, ServiceInterruption
     {
-      // MHL
-      return ingester.checkMimeTypeIndexable(outputName,outputVersion,mimeType);
+      return ingester.checkMimeTypeIndexable(
+        transformationConnectionNames,transformationVersions,
+        outputName,outputVersion,mimeType,
+        ingestLogger);
     }
 
     /** Check whether a document is indexable by the currently specified output connector.
@@ -2183,8 +2199,10 @@ public class WorkerThread extends Thread
     public boolean checkDocumentIndexable(File localFile)
       throws ManifoldCFException, ServiceInterruption
     {
-      // MHL
-      return ingester.checkDocumentIndexable(outputName,outputVersion,localFile);
+      return ingester.checkDocumentIndexable(
+        transformationConnectionNames,transformationVersions,
+        outputName,outputVersion,localFile,
+        ingestLogger);
     }
 
     /** Check whether a document of a specified length is indexable by the currently specified output connector.
@@ -2195,8 +2213,10 @@ public class WorkerThread extends Thread
     public boolean checkLengthIndexable(long length)
       throws ManifoldCFException, ServiceInterruption
     {
-      // MHL
-      return ingester.checkLengthIndexable(outputName,outputVersion,length);
+      return ingester.checkLengthIndexable(
+        transformationConnectionNames,transformationVersions,
+        outputName,outputVersion,length,
+        ingestLogger);
     }
 
     /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
@@ -2208,7 +2228,10 @@ public class WorkerThread extends Thread
     public boolean checkURLIndexable(String url)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkURLIndexable(outputName,outputVersion,url);
+      return ingester.checkURLIndexable(
+        transformationConnectionNames,transformationVersions,
+        outputName,outputVersion,url,
+        ingestLogger);
     }
 
     /** Create a global string from a simple string.
@@ -2506,23 +2529,78 @@ public class WorkerThread extends Thread
     }
   }
 
+  /** The check activity class */
+  protected static class CheckActivity implements IOutputCheckActivity
+  {
+    public CheckActivity()
+    {
+    }
+
+    /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param mimeType is the mime type of the document.
+    *@return true if the mime type can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkMimeTypeIndexable(String mimeType)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return false;
+    }
+
+    /** Pre-determine whether a document (passed here as a File object) is acceptable downstream.  This method is
+    * used to determine whether a document needs to be actually transferred.  This hook is provided mainly to support
+    * search engines that only handle a small set of accepted file types.
+    *@param localFile is the local file to check.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkDocumentIndexable(File localFile)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return false;
+    }
+
+    /** Pre-determine whether a document's length is acceptable downstream.  This method is used
+    * to determine whether to fetch a document in the first place.
+    *@param length is the length of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkLengthIndexable(long length)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return false;
+    }
+
+    /** Pre-determine whether a document's URL is acceptable downstream.  This method is used
+    * to help filter out documents that cannot be indexed in advance.
+    *@param url is the URL of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkURLIndexable(String url)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return false;
+    }
+    
+  }
+  
   /** The ingest logger class */
-  protected static class OutputActivity implements IOutputActivity
+  protected static class OutputActivity extends CheckActivity implements IOutputActivity
   {
 
     // Connection name
-    protected String connectionName;
+    protected final String connectionName;
     // Connection manager
-    protected IRepositoryConnectionManager connMgr;
-    // Output connection name
-    protected String outputConnectionName;
+    protected final IRepositoryConnectionManager connMgr;
 
     /** Constructor */
-    public OutputActivity(String connectionName, IRepositoryConnectionManager connMgr, String outputConnectionName)
+    public OutputActivity(String connectionName, IRepositoryConnectionManager connMgr)
     {
       this.connectionName = connectionName;
       this.connMgr = connMgr;
-      this.outputConnectionName = outputConnectionName;
     }
 
     /** Record time-stamped information about the activity of the output connector.
@@ -2540,11 +2618,12 @@ public class WorkerThread extends Thread
     *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
     *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
     */
+    @Override
     public void recordActivity(Long startTime, String activityType, Long dataSize,
       String entityURI, String resultCode, String resultDescription)
       throws ManifoldCFException
     {
-      connMgr.recordHistory(connectionName,startTime,ManifoldCF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
+      connMgr.recordHistory(connectionName,startTime,activityType,dataSize,entityURI,resultCode,
         resultDescription,null);
     }
 
@@ -2554,6 +2633,7 @@ public class WorkerThread extends Thread
     *@param accessToken is the raw, repository access token.
     *@return the properly qualified access token.
     */
+    @Override
     public String qualifyAccessToken(String authorityNameString, String accessToken)
       throws ManifoldCFException
     {
@@ -2567,56 +2647,12 @@ public class WorkerThread extends Thread
     *@param document is the document data to be processed (handed to the output data store).
     *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
     */
+    @Override
     public int sendDocument(RepositoryDocument document)
       throws ManifoldCFException, ServiceInterruption
     {
       // No downstream connection at output connection level.
       return IPipelineConnector.DOCUMENTSTATUS_REJECTED;
-    }
-
-    /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
-    * in the first place.
-    *@param mimeType is the mime type of the document.
-    *@return true if the mime type can be accepted by the downstream connection.
-    */
-    public boolean checkMimeTypeIndexable(String mimeType)
-      throws ManifoldCFException, ServiceInterruption
-    {
-      return false;
-    }
-
-    /** Pre-determine whether a document (passed here as a File object) is acceptable downstream.  This method is
-    * used to determine whether a document needs to be actually transferred.  This hook is provided mainly to support
-    * search engines that only handle a small set of accepted file types.
-    *@param localFile is the local file to check.
-    *@return true if the file is acceptable by the downstream connection.
-    */
-    public boolean checkDocumentIndexable(File localFile)
-      throws ManifoldCFException, ServiceInterruption
-    {
-      return false;
-    }
-
-    /** Pre-determine whether a document's length is acceptable downstream.  This method is used
-    * to determine whether to fetch a document in the first place.
-    *@param length is the length of the document.
-    *@return true if the file is acceptable by the downstream connection.
-    */
-    public boolean checkLengthIndexable(long length)
-      throws ManifoldCFException, ServiceInterruption
-    {
-      return false;
-    }
-
-    /** Pre-determine whether a document's URL is acceptable downstream.  This method is used
-    * to help filter out documents that cannot be indexed in advance.
-    *@param url is the URL of the document.
-    *@return true if the file is acceptable by the downstream connection.
-    */
-    public boolean checkURLIndexable(String url)
-      throws ManifoldCFException, ServiceInterruption
-    {
-      return false;
     }
 
   }
