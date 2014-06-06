@@ -661,8 +661,8 @@
     </target>
 
     <target name="isolation-directory" depends="jar-interface,jar-isolation,has-classloader-check" if="hasClassloader">
-        <mkdir dir="dist/isolation"/>
-        <copy todir="dist/isolation">
+        <mkdir dir="dist/isolation/lib"/>
+        <copy todir="dist/isolation/lib">
             <fileset dir="build/jar">
                 <include name="mcf-${ant.project.name}-connector-isolation.jar"/>
                 <include name="mcf-${ant.project.name}-connector-interface.jar"/>
