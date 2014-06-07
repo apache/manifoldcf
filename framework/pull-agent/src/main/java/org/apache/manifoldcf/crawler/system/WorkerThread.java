@@ -2643,12 +2643,13 @@ public class WorkerThread extends Thread
           return URLEncoder.encode(authorityNameString) + ":" + URLEncoder.encode(accessToken);
     }
 
-    /** Send adocument via the pipeline to the next connection.
+    /** Send a document via the pipeline to the next output connection.
+    *@param documentURI is the document's URI.
     *@param document is the document data to be processed (handed to the output data store).
+    *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
     *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
     */
-    @Override
-    public int sendDocument(RepositoryDocument document)
+    public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
       throws ManifoldCFException, ServiceInterruption
     {
       // No downstream connection at output connection level.
