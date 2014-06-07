@@ -71,7 +71,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.transformation.B
     try
     {
       long binaryLength = document.getBinaryLength();
-      int rval = activities.sendDocument(document);
+      int rval = activities.sendDocument(documentURI,document,authorityNameString);
       length =  new Long(binaryLength);
       resultCode = (rval == DOCUMENTSTATUS_ACCEPTED)?"ACCEPTED":"REJECTED";
       return rval;

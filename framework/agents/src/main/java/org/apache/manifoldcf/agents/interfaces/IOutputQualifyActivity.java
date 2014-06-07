@@ -1,4 +1,4 @@
-/* $Id: IOutputAddActivity.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,19 +22,18 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 
 /** This interface abstracts from the activities that an output connector can do
-when adding or replacing documents.
+when qualifying authority names.
 */
-public interface IOutputAddActivity extends IOutputQualifyActivity,IOutputHistoryActivity,IOutputCheckActivity
+public interface IOutputQualifyActivity
 {
-  public static final String _rcsid = "@(#)$Id: IOutputAddActivity.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
-  /** Send a document via the pipeline to the next output connection.
-  *@param documentURI is the document's URI.
-  *@param document is the document data to be processed (handed to the output data store).
-  *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
-  *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+  /** Qualify an access token appropriately, to match access tokens as returned by mod_aa.  This method
+  * includes the authority name with the access token, if any, so that each authority may establish its own token space.
+  *@param authorityNameString is the name of the authority to use to qualify the access token.
+  *@param accessToken is the raw, repository access token.
+  *@return the properly qualified access token.
   */
-  public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
-    throws ManifoldCFException, ServiceInterruption;
-
+  public String qualifyAccessToken(String authorityNameString, String accessToken)
+    throws ManifoldCFException;
 }
