@@ -258,13 +258,15 @@ public interface IIncrementalIngester
   * described by the RepositoryDocument object passed to this method.
   * ServiceInterruption is thrown if the document ingestion must be rescheduled.
   *@param transformationConnectionNames are the names of the transformation connections associated with this action.
+  *@param transformationDescriptionStrings are the description strings corresponding to the transformation connection names.
   *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param otuputDescriptionString is the description string corresponding to the output connection.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
   *@param documentVersion is the document version.
-  *@param parameterVersion is the forced parameter version.
-  *@param transformationVersions are the version strings for the transformations to be performed on the document.
-  *@param outputVersion is the output version string constructed from the output specification by the output connector.
+  *@param transformationVersion is the version string for the transformations to be performed on the document.
+  *@param outputVersion is the output version string for the output connection.
+  *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
   *@param data is the document data.  The data is closed after ingestion is complete.
   *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
@@ -274,10 +276,12 @@ public interface IIncrementalIngester
   */
   public boolean documentIngest(
     String[] transformationConnectionNames,
+    String[] transformationDescriptionStrings,
     String outputConnectionName,
+    String outputDescriptionString,
     String identifierClass, String identifierHash,
     String documentVersion,
-    String[] transformationVersions,
+    String transformationVersion,
     String outputVersion,
     String parameterVersion,
     String authorityName,

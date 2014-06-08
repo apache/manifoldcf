@@ -32,24 +32,21 @@ public class DocumentIngestStatus
   public static final String _rcsid = "@(#)$Id: DocumentIngestStatus.java 988245 2010-08-23 18:39:35Z kwright $";
 
   protected final String documentVersionString;
-  protected final String[] transformationVersionStrings;
+  protected final String transformationVersionString;
   protected final String outputVersionString;
-  protected final String documentAuthorityNameString;
   protected final String parameterVersionString;
-  protected final String[] transformationNameStrings;
+  protected final String documentAuthorityNameString;
 
   /** Constructor */
   public DocumentIngestStatus(String documentVersionString,
-    String[] transformationVersionStrings, String outputVersionString,
-    String documentAuthorityNameString, String parameterVersionString,
-    String[] transformationNameStrings)
+    String transformationVersionString, String outputVersionString, String parameterVersionString,
+    String documentAuthorityNameString)
   {
     this.documentVersionString = documentVersionString;
-    this.transformationVersionStrings = transformationVersionStrings;
+    this.transformationVersionString = transformationVersionString;
     this.outputVersionString = outputVersionString;
-    this.documentAuthorityNameString = documentAuthorityNameString;
     this.parameterVersionString = parameterVersionString;
-    this.transformationNameStrings = transformationNameStrings;
+    this.documentAuthorityNameString = documentAuthorityNameString;
   }
 
   /** Get the document version */
@@ -58,16 +55,10 @@ public class DocumentIngestStatus
     return documentVersionString;
   }
 
-  /** Get the transformation name strings */
-  public String[] getTransformationNameStrings()
-  {
-    return transformationNameStrings;
-  }
-  
   /** Get the transformation version strings */
-  public String[] getTransformationVersions()
+  public String getTransformationVersion()
   {
-    return transformationVersionStrings;
+    return transformationVersionString;
   }
   
   /** Get the output version */
@@ -76,16 +67,16 @@ public class DocumentIngestStatus
     return outputVersionString;
   }
 
-  /** Get the document authority name string */
-  public String getDocumentAuthorityNameString()
-  {
-    return documentAuthorityNameString;
-  }
-  
   /** Get the parameter version string */
   public String getParameterVersion()
   {
     return parameterVersionString;
+  }
+  
+  /** Get the document authority name string */
+  public String getDocumentAuthorityNameString()
+  {
+    return documentAuthorityNameString;
   }
   
 }
