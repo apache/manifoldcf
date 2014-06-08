@@ -46,6 +46,7 @@ import java.io.*;
 * <tr><td>urihash</td><td>VARCHAR(40)</td><td></td></tr>
 * <tr><td>lastversion</td><td>LONGTEXT</td><td></td></tr>
 * <tr><td>lastoutputversion</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>lasttransformationversion</td><td>LONGTEXT</td><td></td></tr>
 * <tr><td>forcedparams</td><td>LONGTEXT</td><td></td></tr>
 * <tr><td>changecount</td><td>BIGINT</td><td></td></tr>
 * <tr><td>firstingest</td><td>BIGINT</td><td></td></tr>
@@ -67,6 +68,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected final static String uriHashField = "urihash";
   protected final static String lastVersionField = "lastversion";
   protected final static String lastOutputVersionField = "lastoutputversion";
+  protected final static String lastTransformationVersionField = "lasttransformationversion";
   protected final static String forcedParamsField = "forcedparams";
   protected final static String changeCountField = "changecount";
   protected final static String firstIngestField = "firstingest";
@@ -126,6 +128,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         map.put(uriHashField,new ColumnDescription("VARCHAR(40)",false,true,null,null,false));
         map.put(lastVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(lastOutputVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
+        map.put(lastTransformationVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(forcedParamsField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(changeCountField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(firstIngestField,new ColumnDescription("BIGINT",false,false,null,null,false));
@@ -143,6 +146,16 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           addMap.put(forcedParamsField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
           performAlter(addMap,null,null,null);
         }
+        
+        // Schema upgrade from 1.6 to 1.7
+        cd = (ColumnDescription)existing.get(lastTransformationVersionField);
+        if (cd == null)
+        {
+          Map<String,ColumnDescription> addMap = new HashMap<String,ColumnDescription>();
+          addMap.put(lastTransformationVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
+          performAlter(addMap,null,null,null);
+        }
+
       }
 
       // Now, do indexes
@@ -235,7 +248,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
-    PipelineObject pipeline = pipelineGrab(transformationConnectionNames,outputConnectionName,transformationDescriptions,outputDescription);
+    PipelineObject pipeline = pipelineGrab(
+      transformationConnectionManager.loadMultiple(transformationConnectionNames),
+      connectionManager.load(outputConnectionName),
+      transformationDescriptions,outputDescription);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("One or more connectors are not installed",0L);
@@ -283,7 +299,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
-    PipelineObject pipeline = pipelineGrab(transformationConnectionNames,outputConnectionName,transformationDescriptions,outputDescription);
+    PipelineObject pipeline = pipelineGrab(
+      transformationConnectionManager.loadMultiple(transformationConnectionNames),
+      connectionManager.load(outputConnectionName),
+      transformationDescriptions,outputDescription);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("One or more connectors are not installed",0L);
@@ -331,7 +350,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
-    PipelineObject pipeline = pipelineGrab(transformationConnectionNames,outputConnectionName,transformationDescriptions,outputDescription);
+    PipelineObject pipeline = pipelineGrab(
+      transformationConnectionManager.loadMultiple(transformationConnectionNames),
+      connectionManager.load(outputConnectionName),
+      transformationDescriptions,outputDescription);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("One or more connectors are not installed",0L);
@@ -379,7 +401,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
-    PipelineObject pipeline = pipelineGrab(transformationConnectionNames,outputConnectionName,transformationDescriptions,outputDescription);
+    PipelineObject pipeline = pipelineGrab(
+      transformationConnectionManager.loadMultiple(transformationConnectionNames),
+      connectionManager.load(outputConnectionName),
+      transformationDescriptions,outputDescription);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("One or more connectors are not installed",0L);
@@ -395,22 +420,21 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   
   /** Grab the entire pipeline.
-  *@param transformationConnectionNames - the names of the transformation connections, in order
-  *@param outputConnectionName - the name of the output connection
+  *@param transformationConnections - the transformation connections, in order
+  *@param outputConnection - the output connection
   *@param transformationDescriptionStrings - the array of description strings for transformations
   *@param outputDescriptionString - the output description string
   *@return the pipeline description, or null if any part of the pipeline cannot be grabbed.
   */
-  protected PipelineObject pipelineGrab(String[] transformationConnectionNames, String outputConnectionName,
+  protected PipelineObject pipelineGrab(ITransformationConnection[] transformationConnections, IOutputConnection outputConnection,
     String[] transformationDescriptionStrings, String outputDescriptionString)
     throws ManifoldCFException
   {
     // Pick up all needed transformation connectors
-    ITransformationConnection[] transformationConnections = new ITransformationConnection[transformationConnectionNames.length];
-    
+    String[] transformationConnectionNames = new String[transformationConnections.length];
     for (int i = 0; i < transformationConnections.length; i++)
     {
-      transformationConnections[i] = transformationConnectionManager.load(transformationConnectionNames[i]);
+      transformationConnectionNames[i] = transformationConnections[i].getName();
     }
     
     ITransformationConnector[] transformationConnectors = transformationConnectorPool.grabMultiple(transformationConnectionNames,transformationConnections);
@@ -426,14 +450,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     // Last, pick up output connector.  If it fails we have to release the transformation connectors.
     try
     {
-      IOutputConnection connection = connectionManager.load(outputConnectionName);
-      IOutputConnector connector = outputConnectorPool.grab(connection);
-      if (connector == null)
+      IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
+      if (outputConnector == null)
       {
         transformationConnectorPool.releaseMultiple(transformationConnections,transformationConnectors);
         return null;
       }
-      return new PipelineObject(transformationConnections,transformationConnectors,connection,connector,
+      return new PipelineObject(transformationConnections,transformationConnectors,outputConnection,outputConnector,
         transformationDescriptionStrings,outputDescriptionString);
     }
     catch (Throwable e)
@@ -530,9 +553,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       Logging.ingest.debug("Recording document '"+docKey+"' for output connection '"+outputConnectionName+"'");
     }
 
-    performIngestion(new String[0],new String[0],
-      outputConnectionName,null,
-      docKey,documentVersion,null,
+    performIngestion(new ITransformationConnection[0],new String[0],
+      connectionManager.load(outputConnectionName),null,
+      docKey,documentVersion,null,null,null,
       null,
       null,
       recordTime,
@@ -612,10 +635,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException, ServiceInterruption
   {
     return documentIngest(new String[0],
+      new String[0],
       outputConnectionName,
+      outputVersion,
       identifierClass, identifierHash,
       documentVersion,
-      new String[0],
+      "",
       outputVersion,
       parameterVersion,
       authorityName,
@@ -630,13 +655,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   * described by the RepositoryDocument object passed to this method.
   * ServiceInterruption is thrown if the document ingestion must be rescheduled.
   *@param transformationConnectionNames are the names of the transformation connections associated with this action.
+  *@param transformationDescriptionStrings are the description strings corresponding to the transformation connection names.
   *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param otuputDescriptionString is the description string corresponding to the output connection.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
   *@param documentVersion is the document version.
-  *@param parameterVersion is the forced parameter version.
-  *@param transformationVersions are the version strings for the transformations to be performed on the document.
-  *@param outputVersion is the output version string constructed from the output specification by the output connector.
+  *@param transformationVersion is the version string for the transformations to be performed on the document.
+  *@param outputVersion is the output version string for the output connection.
+  *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
   *@param data is the document data.  The data is closed after ingestion is complete.
   *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
@@ -646,10 +673,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   public boolean documentIngest(
     String[] transformationConnectionNames,
+    String[] transformationDescriptionStrings,
     String outputConnectionName,
+    String outputDescriptionString,
     String identifierClass, String identifierHash,
     String documentVersion,
-    String[] transformationVersions,
+    String transformationVersion,
     String outputVersion,
     String parameterVersion,
     String authorityName,
@@ -658,15 +687,18 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    IOutputConnection outputConnection = connectionManager.load(outputConnectionName);
+    ITransformationConnection[] transformationConnections = transformationConnectionManager.loadMultiple(transformationConnectionNames);
+    
     String docKey = makeKey(identifierClass,identifierHash);
 
     if (Logging.ingest.isDebugEnabled())
     {
       Logging.ingest.debug("Ingesting document '"+docKey+"' into output connection '"+outputConnectionName+"'");
     }
-    return performIngestion(transformationConnectionNames,transformationVersions,
-      outputConnectionName,outputVersion,
-      docKey,documentVersion,parameterVersion,
+    return performIngestion(transformationConnections,transformationDescriptionStrings,
+      outputConnection,outputDescriptionString,
+      docKey,documentVersion,outputVersion,transformationVersion,parameterVersion,
       authorityName,
       data,
       ingestTime,documentURI,
@@ -675,15 +707,17 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   /** Do the actual ingestion, or just record it if there's nothing to ingest. */
   protected boolean performIngestion(
-    String[] transformationConnectionNames, String[] transformationVersions,
-    String outputConnectionName, String outputVersion,
-    String docKey, String documentVersion, String parameterVersion,
+    ITransformationConnection[] transformationConnections, String[] transformationDescriptionStrings,
+    IOutputConnection outputConnection, String outputDescriptionString,
+    String docKey, String documentVersion, String outputVersion, String transformationVersion, String parameterVersion,
     String authorityNameString,
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    String outputConnectionName = outputConnection.getName();
+    
     // No transactions; not safe because post may take too much time
 
     // First, calculate a document uri hash value
@@ -770,8 +804,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           new UnitaryClause(outputConnNameField,"=",outputConnectionName)});
         list.add(docKey);
         performDelete("WHERE "+query+" AND "+docKeyField+"!=?",list,null);
-        IOutputConnection connection = connectionManager.load(outputConnectionName);
-        removeDocument(connection,oldURI,oldOutputVersion,new OutputRemoveActivitiesWrapper(activities,outputConnectionName));
+        removeDocument(outputConnection,oldURI,oldOutputVersion,new OutputRemoveActivitiesWrapper(activities,outputConnectionName));
       }
 
       if (documentURI != null)
@@ -805,21 +838,18 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         // This is a marker that says "something is there"; it has an empty version, which indicates
         // that we don't know anything about it.  That means it will be reingested when the
         // next version comes along, and will be deleted if called for also.
-        // MHL -- needs to record info about transformations!!
-        noteDocumentIngest(outputConnectionName,docKey,null,null,null,null,ingestTime,documentURI,documentURIHash);
-        int result = addOrReplaceDocument(transformationConnectionNames,transformationVersions,
-          outputConnectionName,outputVersion,
+        noteDocumentIngest(outputConnectionName,docKey,null,null,null,null,null,ingestTime,documentURI,documentURIHash);
+        int result = addOrReplaceDocument(transformationConnections,transformationDescriptionStrings,
+          outputConnection,outputDescriptionString,
           documentURI,data,authorityNameString,
           activities);
-        // MHL -- needs to record info about transformations!!
-        noteDocumentIngest(outputConnectionName,docKey,documentVersion,outputVersion,parameterVersion,authorityNameString,ingestTime,documentURI,documentURIHash);
+        noteDocumentIngest(outputConnectionName,docKey,documentVersion,transformationVersion, outputVersion,parameterVersion,authorityNameString,ingestTime,documentURI,documentURIHash);
         return result == IOutputConnector.DOCUMENTSTATUS_ACCEPTED;
       }
 
       // If we get here, it means we are noting that the document was examined, but that no change was required.  This is signaled
       // to noteDocumentIngest by having the null documentURI.
-      // MHL -- needs to record info about transformations!!
-      noteDocumentIngest(outputConnectionName,docKey,documentVersion,outputVersion,parameterVersion,authorityNameString,ingestTime,null,null);
+      noteDocumentIngest(outputConnectionName,docKey,documentVersion,transformationVersion,outputVersion,parameterVersion,authorityNameString,ingestTime,null,null);
       return true;
     }
     finally
@@ -1670,6 +1700,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param outputConnectionName is the name of the output connection.
   *@param docKey is the key string describing the document.
   *@param documentVersion is a string describing the new version of the document.
+  *@param transformationVersion is a string describing all current transformations for the document.
   *@param outputVersion is the version string calculated for the output connection.
   *@param authorityNameString is the name of the relevant authority connection.
   *@param packedForcedParameters is the string we use to determine differences in packed parameters.
@@ -1679,7 +1710,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param documentURIHash is the hash of the document uri.
   */
   protected void noteDocumentIngest(String outputConnectionName,
-    String docKey, String documentVersion,
+    String docKey, String documentVersion, String transformationVersion,
     String outputVersion, String packedForcedParameters,
     String authorityNameString,
     long ingestTime, String documentURI, String documentURIHash)
@@ -1709,6 +1740,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // Try the update first.  Typically this succeeds except in the case where a doc is indexed for the first time.
       map.clear();
       map.put(lastVersionField,documentVersion);
+      map.put(lastTransformationVersionField,transformationVersion);
       map.put(lastOutputVersionField,outputVersion);
       map.put(forcedParamsField,packedForcedParameters);
       map.put(lastIngestField,new Long(ingestTime));
@@ -1787,6 +1819,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // Set up for insert
       map.clear();
       map.put(lastVersionField,documentVersion);
+      map.put(lastTransformationVersionField,transformationVersion);
       map.put(lastOutputVersionField,outputVersion);
       map.put(forcedParamsField,packedForcedParameters);
       map.put(lastIngestField,new Long(ingestTime));
@@ -1918,16 +1951,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         String lastVersion = (String)row.getValue(lastVersionField);
         if (lastVersion == null)
           lastVersion = "";
+        String lastTransformationVersion = (String)row.getValue(lastTransformationVersionField);
+        if (lastTransformationVersion == null)
+          lastTransformationVersion = "";
         String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
         if (lastOutputVersion == null)
           lastOutputVersion = "";
-        String authorityName = (String)row.getValue(authorityNameField);
-        if (authorityName == null)
-          authorityName = "";
         String paramVersion = (String)row.getValue(forcedParamsField);
         if (paramVersion == null)
           paramVersion = "";
-        rval[position.intValue()] = new DocumentIngestStatus(lastVersion,new String[0],lastOutputVersion,authorityName,paramVersion,new String[0]);
+        String authorityName = (String)row.getValue(authorityNameField);
+        if (authorityName == null)
+          authorityName = "";
+        rval[position.intValue()] = new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName);
       }
     }
   }
@@ -1937,8 +1973,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Add or replace document, using the specified output connection, via the standard pool.
   */
   protected int addOrReplaceDocument(
-    String[] transformationConnectionNames, String[] transformationDescriptionStrings,
-    String outputConnectionName, String outputDescriptionString,
+    ITransformationConnection[] transformationConnections, String[] transformationDescriptionStrings,
+    IOutputConnection outputConnection, String outputDescriptionString,
     String documentURI, RepositoryDocument document, String authorityNameString,
     IOutputAddActivity finalActivities)
     throws ManifoldCFException, ServiceInterruption
@@ -1947,7 +1983,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     document.setIndexingDate(new Date());
     
     // Set up a pipeline
-    PipelineObject pipeline = pipelineGrab(transformationConnectionNames,outputConnectionName,
+    PipelineObject pipeline = pipelineGrab(transformationConnections,outputConnection,
       transformationDescriptionStrings,outputDescriptionString);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.

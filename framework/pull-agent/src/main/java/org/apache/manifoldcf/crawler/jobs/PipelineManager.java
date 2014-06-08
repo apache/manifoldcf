@@ -121,6 +121,18 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     performDrop(null);
   }
 
+  /** Build a query clause matching a set of connection names.
+  */
+  public void buildQueryClause(StringBuilder query, ArrayList params,
+    String parentIDField, List<String> connectionNames)
+  {
+    query.append("SELECT 'x' FROM ").append(getTableName()).append(" WHERE ");
+    ArrayList newList = new ArrayList();
+    query.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new JoinClause(parentIDField,ownerIDField),
+      new MultiClause(transformationNameField,connectionNames)}));
+  }
+  
   /** Fill in a set of pipelines corresponding to a set of owner id's.
   *@param returnValues is a map keyed by ownerID, with value of JobDescription.
   *@param ownerIDList is the list of owner id's.

@@ -153,7 +153,7 @@ public class WorkerThread extends Thread
               transformationNames[k] = job.getPipelineStageConnectionName(k);
               transformationSpecifications[k] = job.getPipelineStageSpecification(k);
             }
-            String newParameterVersion = packParameters(job.getForcedMetadata());
+            
             DocumentSpecification spec = job.getSpecification();
             OutputSpecification outputSpec = job.getOutputSpecification();
             int jobType = job.getType();
@@ -316,12 +316,17 @@ public class WorkerThread extends Thread
                     }
 
                     // Get the output version string. Cannot be null.
-                    String outputVersion = ingester.getOutputDescription(outputName,outputSpec);
+                    String outputDescriptionString = ingester.getOutputDescription(outputName,outputSpec);
                     // Get the transformation version strings.  Cannot be null.
-                    String[] transformationVersions = ingester.getTransformationDescriptions(transformationNames,transformationSpecifications);
+                    String[] transformationDescriptionStrings = ingester.getTransformationDescriptions(transformationNames,transformationSpecifications);
                     
+                    // New version strings
+                    String newOutputVersion = outputDescriptionString;
+                    String newParameterVersion = packParameters(job.getForcedMetadata());
+                    String newTransformationVersion = packTransformations(transformationNames,transformationDescriptionStrings);
+
                     Set<String> abortSet = new HashSet<String>();
-                    VersionActivity versionActivity = new VersionActivity(job.getID(),processID,connectionName,outputName,transformationNames,connMgr,jobManager,ingester,abortSet,outputVersion,transformationVersions,ingestLogger);
+                    VersionActivity versionActivity = new VersionActivity(job.getID(),processID,connectionName,outputName,transformationNames,connMgr,jobManager,ingester,abortSet,outputDescriptionString,transformationDescriptionStrings,ingestLogger);
 
                     String aclAuthority = connection.getACLAuthority();
                     if (aclAuthority == null)
@@ -455,9 +460,8 @@ public class WorkerThread extends Thread
                                 String oldDocVersion = oldDocStatus.getDocumentVersion();
                                 String oldAuthorityName = oldDocStatus.getDocumentAuthorityNameString();
                                 String oldOutputVersion = oldDocStatus.getOutputVersion();
+                                String oldTransformationVersion = oldDocStatus.getTransformationVersion();
                                 String oldParameterVersion = oldDocStatus.getParameterVersion();
-                                String[] oldTransformationNames = oldDocStatus.getTransformationNameStrings();
-                                String[] oldTransformationVersions = oldDocStatus.getTransformationVersions();
 
                                 // Start the comparison processing
                                 if (newDocVersion.length() == 0)
@@ -467,9 +471,9 @@ public class WorkerThread extends Thread
                                 }
                                 else if (oldDocVersion.equals(newDocVersion) &&
                                   oldAuthorityName.equals(aclAuthority) &&
-                                  oldOutputVersion.equals(outputVersion) &&
-                                  oldParameterVersion.equals(newParameterVersion) &&
-                                  compareTransformations(oldTransformationNames,oldTransformationVersions,transformationNames,transformationVersions))
+                                  oldOutputVersion.equals(newOutputVersion) &&
+                                  oldTransformationVersion.equals(newTransformationVersion) &&
+                                  oldParameterVersion.equals(newParameterVersion))
                                 {
                                   // The old logic was as follows:
                                   //
@@ -530,6 +534,7 @@ public class WorkerThread extends Thread
                         ProcessActivity activity = new ProcessActivity(job.getID(),processID,
                           threadContext,rt,jobManager,ingester,
                           connectionName,outputName,transformationNames,
+                          outputDescriptionString,transformationDescriptionStrings,
                           currentTime,
                           job.getExpiration(),
                           job.getForcedMetadata(),
@@ -537,7 +542,7 @@ public class WorkerThread extends Thread
                           job.getMaxInterval(),
                           job.getHopcountMode(),
                           connection,connector,connMgr,legalLinkTypes,ingestLogger,abortSet,
-                          outputVersion,newParameterVersion,transformationVersions);
+                          newOutputVersion,newTransformationVersion,newParameterVersion);
                         try
                         {
 
@@ -1194,6 +1199,25 @@ public class WorkerThread extends Thread
     }
   }
 
+  protected static String packTransformations(String[] transformationNames, String[] transformationDescriptionStrings)
+  {
+    StringBuilder sb = new StringBuilder();
+    packList(sb,transformationNames,'+');
+    packList(sb,transformationDescriptionStrings,'!');
+    return sb.toString();
+  }
+  
+  /** Another stuffer for packing lists of variable length */
+  protected static void packList(StringBuilder output, String[] values, char delimiter)
+  {
+    pack(output,Integer.toString(values.length),delimiter);
+    int i = 0;
+    while (i < values.length)
+    {
+      pack(output,values[i++],delimiter);
+    }
+  }
+
   protected static String packParameters(Map<String,Set<String>> forcedParameters)
   {
     StringBuilder sb = new StringBuilder();
@@ -1237,20 +1261,6 @@ public class WorkerThread extends Thread
     sb.append(delim);
   }
 
-  protected static boolean compareTransformations(String[] oldTransformationNames, String[] oldTransformationVersions,
-    String[] transformationNames, String[] transformationVersions)
-  {
-    if (oldTransformationNames.length != transformationNames.length)
-      return false;
-    for (int i = 0; i < oldTransformationNames.length; i++)
-    {
-      if (!oldTransformationNames[i].equals(transformationNames[i]) ||
-        !oldTransformationVersions[i].equals(transformationVersions[i]))
-        return false;
-    }
-    return true;
-  }
-
   /** The maximum number of adds that happen in a single transaction */
   protected static final int MAX_ADDS_IN_TRANSACTION = 20;
 
@@ -1269,8 +1279,8 @@ public class WorkerThread extends Thread
     protected final IJobManager jobManager;
     protected final IIncrementalIngester ingester;
     protected final Set<String> abortSet;
-    protected final String outputVersion;
-    protected final String[] transformationVersions;
+    protected final String outputDescriptionString;
+    protected final String[] transformationDescriptionStrings;
     protected final CheckActivity checkActivity;
     /** Constructor.
     */
@@ -1279,7 +1289,7 @@ public class WorkerThread extends Thread
       String[] transformationConnectionNames,
       IRepositoryConnectionManager connMgr,
       IJobManager jobManager, IIncrementalIngester ingester, Set<String> abortSet,
-      String outputVersion, String[] transformationVersions,
+      String outputDescriptionString, String[] transformationDescriptionStrings,
       CheckActivity checkActivity)
     {
       this.jobID = jobID;
@@ -1291,8 +1301,8 @@ public class WorkerThread extends Thread
       this.jobManager = jobManager;
       this.ingester = ingester;
       this.abortSet = abortSet;
-      this.outputVersion = outputVersion;
-      this.transformationVersions = transformationVersions;
+      this.outputDescriptionString = outputDescriptionString;
+      this.transformationDescriptionStrings = transformationDescriptionStrings;
       this.checkActivity = checkActivity;
     }
 
@@ -1305,8 +1315,8 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkMimeTypeIndexable(
-        transformationConnectionNames,transformationVersions,
-        outputConnectionName,outputVersion,mimeType,
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputConnectionName,outputDescriptionString,mimeType,
         checkActivity);
     }
 
@@ -1319,8 +1329,8 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkDocumentIndexable(
-        transformationConnectionNames,transformationVersions,
-        outputConnectionName,outputVersion,localFile,
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputConnectionName,outputDescriptionString,localFile,
         checkActivity);
     }
 
@@ -1333,8 +1343,8 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkLengthIndexable(
-        transformationConnectionNames,transformationVersions,
-        outputConnectionName,outputVersion,length,
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputConnectionName,outputDescriptionString,length,
         checkActivity);
     }
 
@@ -1348,8 +1358,8 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkURLIndexable(
-        transformationConnectionNames,transformationVersions,
-        outputConnectionName,outputVersion,url,
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputConnectionName,outputDescriptionString,url,
         checkActivity);
     }
 
@@ -1502,6 +1512,8 @@ public class WorkerThread extends Thread
     protected final String connectionName;
     protected final String outputName;
     protected final String[] transformationConnectionNames;
+    protected final String outputDescriptionString;
+    protected final String[] transformationDescriptionStrings;
     protected final long currentTime;
     protected final Long expireInterval;
     protected final Map<String,Set<String>> forcedMetadata;
@@ -1516,8 +1528,8 @@ public class WorkerThread extends Thread
     protected final IReprioritizationTracker rt;
     protected final Set<String> abortSet;
     protected final String outputVersion;
+    protected final String transformationVersion;
     protected final String parameterVersion;
-    protected final String[] transformationVersions;
     
     // We submit references in bulk, because that's way more efficient.
     protected final Map<DocumentReference,DocumentReference> referenceList = new HashMap<DocumentReference,DocumentReference>();
@@ -1540,6 +1552,7 @@ public class WorkerThread extends Thread
       IReprioritizationTracker rt, IJobManager jobManager,
       IIncrementalIngester ingester,
       String connectionName, String outputName, String[] transformationConnectionNames,
+      String outputDescriptionString, String[] transformationDescriptionStrings,
       long currentTime,
       Long expireInterval,
       Map<String,Set<String>> forcedMetadata,
@@ -1549,7 +1562,7 @@ public class WorkerThread extends Thread
       IRepositoryConnection connection, IRepositoryConnector connector,
       IRepositoryConnectionManager connMgr, String[] legalLinkTypes, OutputActivity ingestLogger,
       Set<String> abortSet,
-      String outputVersion, String parameterVersion, String[] transformationVersions)
+      String outputVersion, String transformationVersion, String parameterVersion)
     {
       this.jobID = jobID;
       this.processID = processID;
@@ -1559,15 +1572,15 @@ public class WorkerThread extends Thread
       this.ingester = ingester;
       this.connectionName = connectionName;
       this.outputName = outputName;
+      this.outputDescriptionString = outputDescriptionString;
       this.transformationConnectionNames = transformationConnectionNames;
+      this.transformationDescriptionStrings = transformationDescriptionStrings;
       this.currentTime = currentTime;
       this.expireInterval = expireInterval;
       this.forcedMetadata = forcedMetadata;
       this.recrawlInterval = recrawlInterval;
       this.maxInterval = maxInterval;
       this.hopcountMode = hopcountMode;
-      
-      //this.job = job;
       this.connection = connection;
       this.connector = connector;
       this.connMgr = connMgr;
@@ -1576,7 +1589,7 @@ public class WorkerThread extends Thread
       this.abortSet = abortSet;
       this.outputVersion = outputVersion;
       this.parameterVersion = parameterVersion;
-      this.transformationVersions = transformationVersions;
+      this.transformationVersion = transformationVersion;
     }
 
     /** Clean up any dangling information, before abandoning this process activity object */
@@ -1833,9 +1846,11 @@ public class WorkerThread extends Thread
         
       // First, we need to add into the metadata the stuff from the job description.
       ingester.documentIngest(transformationConnectionNames,
+        transformationDescriptionStrings,
         outputName,
+        outputDescriptionString,
         connectionName,documentIdentifierHash,
-        version,transformationVersions,outputVersion,parameterVersion,
+        version,transformationVersion,outputVersion,parameterVersion,
         connection.getACLAuthority(),
         data,currentTime,
         documentURI,
@@ -2186,8 +2201,8 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkMimeTypeIndexable(
-        transformationConnectionNames,transformationVersions,
-        outputName,outputVersion,mimeType,
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputName,outputDescriptionString,mimeType,
         ingestLogger);
     }
 
@@ -2200,8 +2215,8 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkDocumentIndexable(
-        transformationConnectionNames,transformationVersions,
-        outputName,outputVersion,localFile,
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputName,outputDescriptionString,localFile,
         ingestLogger);
     }
 
@@ -2214,8 +2229,8 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkLengthIndexable(
-        transformationConnectionNames,transformationVersions,
-        outputName,outputVersion,length,
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputName,outputDescriptionString,length,
         ingestLogger);
     }
 
@@ -2229,8 +2244,8 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkURLIndexable(
-        transformationConnectionNames,transformationVersions,
-        outputName,outputVersion,url,
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputName,outputDescriptionString,url,
         ingestLogger);
     }
 

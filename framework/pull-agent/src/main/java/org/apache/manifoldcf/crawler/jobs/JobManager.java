@@ -319,7 +319,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
     int currentCount = 0;
     int i = 0;
@@ -341,7 +341,7 @@ public class JobManager implements IJobManager
 
   /** Note deregistration for a batch of connection names.
   */
-  protected void noteConnectionDeregistration(ArrayList list)
+  protected void noteConnectionDeregistration(List<String> list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -371,7 +371,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
     int currentCount = 0;
     int i = 0;
@@ -393,7 +393,7 @@ public class JobManager implements IJobManager
 
   /** Note registration for a batch of connection names.
   */
-  protected void noteConnectionRegistration(ArrayList list)
+  protected void noteConnectionRegistration(List<String> list)
     throws ManifoldCFException
   {
     // Query for the matching jobs, and then for each job potentially adjust the state
@@ -413,17 +413,6 @@ public class JobManager implements IJobManager
     }
   }
 
-  /** Note a change in connection configuration.
-  * This method will be called whenever a connection's configuration is modified, or when an external repository change
-  * is signalled.
-  */
-  @Override
-  public void noteConnectionChange(String connectionName)
-    throws ManifoldCFException
-  {
-    jobs.noteConnectionChange(connectionName);
-  }
-
   /**  Note the deregistration of an output connector used by the specified connections.
   * This method will be called when the connector is deregistered.  Jobs that use these connections
   *  must therefore enter appropriate states.
@@ -434,7 +423,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
     int currentCount = 0;
     int i = 0;
@@ -456,7 +445,7 @@ public class JobManager implements IJobManager
 
   /** Note deregistration for a batch of output connection names.
   */
-  protected void noteOutputConnectionDeregistration(ArrayList list)
+  protected void noteOutputConnectionDeregistration(List<String> list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -486,7 +475,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
     int currentCount = 0;
     int i = 0;
@@ -508,7 +497,7 @@ public class JobManager implements IJobManager
 
   /** Note registration for a batch of output connection names.
   */
-  protected void noteOutputConnectionRegistration(ArrayList list)
+  protected void noteOutputConnectionRegistration(List<String> list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -537,8 +526,46 @@ public class JobManager implements IJobManager
   public void noteTransformationConnectorDeregistration(String[] connectionNames)
     throws ManifoldCFException
   {
-    // This is problematic; we need a different bit in the job state for every transformation in the job pipeline
-    // MHL
+    // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
+    List<String> list = new ArrayList<String>();
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    int i = 0;
+    while (i < connectionNames.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteConnectionDeregistration(list);
+        list.clear();
+        currentCount = 0;
+      }
+
+      list.add(connectionNames[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteTransformationConnectionDeregistration(list);
+  }
+
+  /** Note deregistration for a batch of transformation connection names.
+  */
+  protected void noteTransformationConnectionDeregistration(List<String> list)
+    throws ManifoldCFException
+  {
+    StringBuilder query = new StringBuilder();
+    ArrayList newList = new ArrayList();
+    // Query for the matching jobs, and then for each job potentially adjust the state
+    jobs.buildTransformationMatchingQuery(query,newList,list);
+    query.append(" FOR UPDATE");
+    IResultSet set = database.performQuery(query.toString(),newList,null,null);
+    int i = 0;
+    while (i < set.getRowCount())
+    {
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
+      int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+      jobs.noteTransformationConnectorDeregistration(jobID,statusValue);
+    }
   }
 
   /** Note the registration of a transformation connector used by the specified connections.
@@ -550,8 +577,57 @@ public class JobManager implements IJobManager
   public void noteTransformationConnectorRegistration(String[] connectionNames)
     throws ManifoldCFException
   {
-    // This is problematic; we need a different bit in the job state for every transformation in the job pipeline
-    // MHL
+    // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
+    List<String> list = new ArrayList<String>();
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    int i = 0;
+    while (i < connectionNames.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteConnectionDeregistration(list);
+        list.clear();
+        currentCount = 0;
+      }
+
+      list.add(connectionNames[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteTransformationConnectionRegistration(list);
+  }
+
+  /** Note registration for a batch of transformation connection names.
+  */
+  protected void noteTransformationConnectionRegistration(List<String> list)
+    throws ManifoldCFException
+  {
+    StringBuilder query = new StringBuilder();
+    ArrayList newList = new ArrayList();
+    // Query for the matching jobs, and then for each job potentially adjust the state
+    jobs.buildTransformationMatchingQuery(query,newList,list);
+    query.append(" FOR UPDATE");
+    IResultSet set = database.performQuery(query.toString(),newList,null,null);
+    int i = 0;
+    while (i < set.getRowCount())
+    {
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
+      int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+      jobs.noteTransformationConnectorRegistration(jobID,statusValue);
+    }
+  }
+
+  /** Note a change in connection configuration.
+  * This method will be called whenever a connection's configuration is modified, or when an external repository change
+  * is signalled.
+  */
+  @Override
+  public void noteConnectionChange(String connectionName)
+    throws ManifoldCFException
+  {
+    jobs.noteConnectionChange(connectionName);
   }
 
   /** Note a change in output connection configuration.
