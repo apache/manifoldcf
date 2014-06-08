@@ -18,6 +18,8 @@
 */
 package org.apache.manifoldcf.agents.output.amazoncloudsearch.tests;
 
+import org.junit.Test;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +42,11 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
 public class AmazonCloudSearchConnectorTest {
+  
+  @Test
+  public void testStub()
+  {
+  }
   
   public static void main(String[] args){
     InputStream is;
