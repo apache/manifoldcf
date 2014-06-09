@@ -560,11 +560,16 @@ public class JobManager implements IJobManager
   protected void noteTransformationConnectionDeregistration(List<String> list)
     throws ManifoldCFException
   {
+    // Query for the matching jobs, and then for each job potentially adjust the state
+    Long[] jobIDs = jobs.findJobsMatchingTransformations(list);
     StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();
-    // Query for the matching jobs, and then for each job potentially adjust the state
-    jobs.buildTransformationMatchingQuery(query,newList,list);
-    query.append(" FOR UPDATE");
+    
+    query.append("SELECT ").append(jobs.idField).append(",").append(jobs.statusField)
+      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(newList,new ClauseDescription[]{
+        new MultiClause(jobs.idField,jobIDs)}))
+      .append(" FOR UPDATE");
     IResultSet set = database.performQuery(query.toString(),newList,null,null);
     int i = 0;
     while (i < set.getRowCount())
@@ -611,11 +616,16 @@ public class JobManager implements IJobManager
   protected void noteTransformationConnectionRegistration(List<String> list)
     throws ManifoldCFException
   {
+    // Query for the matching jobs, and then for each job potentially adjust the state
+    Long[] jobIDs = jobs.findJobsMatchingTransformations(list);
     StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();
-    // Query for the matching jobs, and then for each job potentially adjust the state
-    jobs.buildTransformationMatchingQuery(query,newList,list);
-    query.append(" FOR UPDATE");
+    
+    query.append("SELECT ").append(jobs.idField).append(",").append(jobs.statusField)
+      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(newList,new ClauseDescription[]{
+        new MultiClause(jobs.idField,jobIDs)}))
+      .append(" FOR UPDATE");
     IResultSet set = database.performQuery(query.toString(),newList,null,null);
     int i = 0;
     while (i < set.getRowCount())

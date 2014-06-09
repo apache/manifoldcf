@@ -563,15 +563,25 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     analyzeTable();
   }
 
-  /** Build a query returning jobID and status for all jobs matching a set of transformation connection names.
+  /** Find a list of jobs matching specified transformation names.
   */
-  public void buildTransformationMatchingQuery(StringBuilder query, ArrayList params,
-    List<String> transformationConnectionNames)
+  public Long[] findJobsMatchingTransformations(List<String> transformationConnectionNames)
+    throws ManifoldCFException
   {
-    query.append("SELECT ").append(idField).append(",").append(statusField)
+    StringBuilder query = new StringBuilder();
+    ArrayList params = new ArrayList();
+    query.append("SELECT ").append(idField)
       .append(" FROM ").append(getTableName()).append(" t1 WHERE EXISTS(");
     pipelineManager.buildQueryClause(query,params,"t1."+idField,transformationConnectionNames);
     query.append(")");
+    IResultSet set = performQuery(query.toString(),params,null,null);
+    Long[] rval = new Long[set.getRowCount()];
+    for (int i = 0; i < rval.length; i++)
+    {
+      IResultRow row = set.getRow(i);
+      rval[i] = (Long)row.getValue(idField);
+    }
+    return rval;
   }
   
   /** Read schedule records for a specified set of jobs.  Cannot use caching!
