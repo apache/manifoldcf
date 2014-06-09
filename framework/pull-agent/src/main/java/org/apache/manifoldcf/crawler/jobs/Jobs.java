@@ -569,7 +569,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     List<String> transformationConnectionNames)
   {
     query.append("SELECT ").append(idField).append(",").append(statusField)
-      .append(" FROM ").append(getTableName()).append(" t1 WHERE(");
+      .append(" FROM ").append(getTableName()).append(" t1 WHERE EXISTS(");
     pipelineManager.buildQueryClause(query,params,"t1."+idField,transformationConnectionNames);
     query.append(")");
   }
