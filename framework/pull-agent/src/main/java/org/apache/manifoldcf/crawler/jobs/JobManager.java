@@ -2940,7 +2940,7 @@ public class JobManager implements IJobManager
 
           // Now we can tack the limit onto the query.  Before this point, remainingDocuments would be crap
           int limitValue = vList.getRemainingDocuments();
-          query += database.constructOffsetLimitClause(0,limitValue,true);
+          String finalQuery = query + database.constructOffsetLimitClause(0,limitValue,true);
 
           if (Logging.perf.isDebugEnabled())
           {
@@ -2951,7 +2951,7 @@ public class JobManager implements IJobManager
           database.beginTransaction();
           try
           {
-            IResultSet set = database.performQuery(query,list,null,null,-1,vList);
+            IResultSet set = database.performQuery(finalQuery,list,null,null,-1,vList);
 
             if (Logging.perf.isDebugEnabled())
               Logging.perf.debug(" Queuing "+Integer.toString(set.getRowCount())+" documents");
