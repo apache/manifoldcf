@@ -1159,19 +1159,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NOOUTPUT)),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NEITHER)),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
 
   }
 
@@ -1301,18 +1288,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_UNINSTALLED))});
     map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NOOUTPUT))});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NEITHER))});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
 
@@ -1465,45 +1440,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     invalidateCurrentUnregisteredState(jobID,oldStatusValue);
   }
   
-  /*
-    int newStatusValue;
-    // The following states are special, in that when the underlying connector returns, the jobs
-    // in such states are switched back to their connector-installed value.
-    switch (oldStatusValue)
-    {
-    case STATUS_ACTIVE_NOOUTPUT:
-      newStatusValue = STATUS_ACTIVE;
-      break;
-    case STATUS_ACTIVESEEDING_NOOUTPUT:
-      newStatusValue = STATUS_ACTIVESEEDING;
-      break;
-    case STATUS_ACTIVE_NEITHER:
-      newStatusValue = STATUS_ACTIVE_UNINSTALLED;
-      break;
-    case STATUS_ACTIVESEEDING_NEITHER:
-      newStatusValue = STATUS_ACTIVESEEDING_UNINSTALLED;
-      break;
-    case STATUS_DELETING_NOOUTPUT:
-      newStatusValue = STATUS_DELETING;
-      break;
-    default:
-      newStatusValue = oldStatusValue;
-      break;
-    }
-    if (newStatusValue == oldStatusValue)
-      return;
-
-    StringSet invKey = new StringSet(getJobStatusKey());
-
-    HashMap newValues = new HashMap();
-    newValues.put(statusField,statusToString(newStatusValue));
-    ArrayList list = new ArrayList();
-    String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(idField,jobID)});
-    performUpdate(newValues,"WHERE "+query,list,invKey);
-  }
-  */
-  
   /** Signal to a job that its underlying connector has gone away.
   *@param jobID is the identifier of the job.
   *@param oldStatusValue is the current status value for the job.
@@ -1553,42 +1489,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   {
     invalidateCurrentUnregisteredState(jobID,oldStatusValue);
   }
-  
-  /*
-    int newStatusValue;
-    // The following states are special, in that when the underlying connector returns, the jobs
-    // in such states are switched back to their connector-installed value.
-    switch (oldStatusValue)
-    {
-    case STATUS_ACTIVE_UNINSTALLED:
-      newStatusValue = STATUS_ACTIVE;
-      break;
-    case STATUS_ACTIVESEEDING_UNINSTALLED:
-      newStatusValue = STATUS_ACTIVESEEDING;
-      break;
-    case STATUS_ACTIVE_NEITHER:
-      newStatusValue = STATUS_ACTIVE_NOOUTPUT;
-      break;
-    case STATUS_ACTIVESEEDING_NEITHER:
-      newStatusValue = STATUS_ACTIVESEEDING_NOOUTPUT;
-      break;
-    default:
-      newStatusValue = oldStatusValue;
-      break;
-    }
-    if (newStatusValue == oldStatusValue)
-      return;
-
-    StringSet invKey = new StringSet(getJobStatusKey());
-
-    HashMap newValues = new HashMap();
-    newValues.put(statusField,statusToString(newStatusValue));
-    ArrayList list = new ArrayList();
-    String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(idField,jobID)});
-    performUpdate(newValues,"WHERE "+query,list,invKey);
-  }
-  */
   
   /** Note a change in connection configuration.
   * This method will be called whenever a connection's configuration is modified, or when an external repository change
@@ -1829,20 +1729,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NOOUTPUT)),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NEITHER)),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
 
   }
 
@@ -1914,12 +1800,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         break;
       case STATUS_ACTIVESEEDING_UNINSTALLED:
         newStatus = STATUS_ACTIVE_UNINSTALLED;
-        break;
-      case STATUS_ACTIVESEEDING_NOOUTPUT:
-        newStatus = STATUS_ACTIVE_NOOUTPUT;
-        break;
-      case STATUS_ACTIVESEEDING_NEITHER:
-        newStatus = STATUS_ACTIVE_NEITHER;
         break;
       case STATUS_ACTIVEWAITSEEDING:
         newStatus = STATUS_ACTIVEWAIT;
@@ -2270,8 +2150,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
       HashMap map = new HashMap();
       map.put(statusField,statusToString(newStatus));
-      if (newStatus == STATUS_ACTIVE || newStatus == STATUS_ACTIVE_UNINSTALLED ||
-        newStatus == STATUS_ACTIVE_NOOUTPUT || newStatus == STATUS_ACTIVE_NEITHER)
+      if (newStatus == STATUS_ACTIVE || newStatus == STATUS_ACTIVE_UNINSTALLED)
       {
         map.put(startTimeField,new Long(startTime));
       }
@@ -2341,12 +2220,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         break;
       case STATUS_ACTIVESEEDING_UNINSTALLED:
         newStatus = STATUS_ACTIVE_UNINSTALLED;
-        break;
-      case STATUS_ACTIVESEEDING_NOOUTPUT:
-        newStatus = STATUS_ACTIVE_NOOUTPUT;
-        break;
-      case STATUS_ACTIVESEEDING_NEITHER:
-        newStatus = STATUS_ACTIVE_NEITHER;
         break;
       case STATUS_ACTIVEWAITSEEDING:
         newStatus = STATUS_ACTIVEWAIT;
@@ -2473,8 +2346,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_READYFORSTARTUPMINIMAL:
     case STATUS_ACTIVE:
     case STATUS_ACTIVE_UNINSTALLED:
-    case STATUS_ACTIVE_NOOUTPUT:
-    case STATUS_ACTIVE_NEITHER:
     case STATUS_ACTIVEWAIT:
     case STATUS_PAUSING:
     case STATUS_ACTIVEWAITING:
@@ -2487,8 +2358,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       break;
     case STATUS_ACTIVESEEDING:
     case STATUS_ACTIVESEEDING_UNINSTALLED:
-    case STATUS_ACTIVESEEDING_NOOUTPUT:
-    case STATUS_ACTIVESEEDING_NEITHER:
     case STATUS_ACTIVEWAITSEEDING:
     case STATUS_PAUSINGSEEDING:
     case STATUS_ACTIVEWAITINGSEEDING:
@@ -2546,8 +2415,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_READYFORSTARTUPMINIMAL:
     case STATUS_ACTIVE:
     case STATUS_ACTIVE_UNINSTALLED:
-    case STATUS_ACTIVE_NOOUTPUT:
-    case STATUS_ACTIVE_NEITHER:
     case STATUS_ACTIVEWAIT:
     case STATUS_PAUSING:
     case STATUS_ACTIVEWAITING:
@@ -2558,8 +2425,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       break;
     case STATUS_ACTIVESEEDING:
     case STATUS_ACTIVESEEDING_UNINSTALLED:
-    case STATUS_ACTIVESEEDING_NOOUTPUT:
-    case STATUS_ACTIVESEEDING_NEITHER:
     case STATUS_ACTIVEWAITSEEDING:
     case STATUS_PAUSINGSEEDING:
     case STATUS_ACTIVEWAITINGSEEDING:
@@ -2598,8 +2463,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     {
     case STATUS_ACTIVE:
     case STATUS_ACTIVE_UNINSTALLED:
-    case STATUS_ACTIVE_NOOUTPUT:
-    case STATUS_ACTIVE_NEITHER:
       newStatus = STATUS_PAUSING;
       break;
     case STATUS_ACTIVEWAITING:
@@ -2610,8 +2473,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       break;
     case STATUS_ACTIVESEEDING:
     case STATUS_ACTIVESEEDING_UNINSTALLED:
-    case STATUS_ACTIVESEEDING_NOOUTPUT:
-    case STATUS_ACTIVESEEDING_NEITHER:
       newStatus = STATUS_PAUSINGSEEDING;
       break;
     case STATUS_ACTIVEWAITINGSEEDING:
