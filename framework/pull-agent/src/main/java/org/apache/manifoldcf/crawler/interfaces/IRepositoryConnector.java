@@ -252,7 +252,19 @@ public interface IRepositoryConnector extends IConnector
   // the current connector object is connected, while the second group can.  That is why the first group
   // receives a thread context argument for all UI methods, while the second group does not need one
   // (since it has already been applied via the connect() method).
-    
+
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber);
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber);
+
   /** Output the specification header section.
   * This method is called in the head section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
@@ -261,9 +273,11 @@ public interface IRepositoryConnector extends IConnector
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds,
+    int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException;
   
   /** Output the specification body section.
@@ -275,9 +289,13 @@ public interface IRepositoryConnector extends IConnector
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
-  *@param tabName is the current tab name.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
+  *@param tabName is the current tab name.  (actualSequenceNumber, tabName) form a unique tuple within
+  *  the job.
   */
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException;
   
   /** Process a specification post.
@@ -288,10 +306,12 @@ public interface IRepositoryConnector extends IConnector
   *@param variableContext contains the post data, including binary file-upload information.
   *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of
   * the job (and cause a redirection to an error page).
   */
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds,
+    int connectionSequenceNumber)
     throws ManifoldCFException;
   
   /** View specification.
@@ -302,8 +322,11 @@ public interface IRepositoryConnector extends IConnector
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   */
-  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds,
+    int connectionSequenceNumber)
     throws ManifoldCFException, IOException;
+
 
 }

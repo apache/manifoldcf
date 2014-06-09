@@ -173,6 +173,7 @@ public class AgentsDaemon
     }
     // Done.
     OutputConnectorPoolFactory.make(threadContext).flushUnusedConnectors();
+    TransformationConnectorPoolFactory.make(threadContext).flushUnusedConnectors();
   }
 
   protected static String getAgentsClassServiceType(String agentClassName)

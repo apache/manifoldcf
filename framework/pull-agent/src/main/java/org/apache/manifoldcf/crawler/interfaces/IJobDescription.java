@@ -91,6 +91,53 @@ public interface IJobDescription
   */
   public String getOutputConnectionName();
 
+  /** Clear pipeline connections.
+  */
+  public void clearPipeline();
+  
+  /** Add a pipeline connection.
+  *@param pipelineStageConnectionName is the name of the pipeline connection to add.
+  *@param pipelineStageDescription is a description of the pipeline stage being added.
+  *@return the empty output specification for this pipeline stage.
+  */
+  public OutputSpecification addPipelineStage(String pipelineStageConnectionName, String pipelineStageDescription);
+  
+  /** Get a count of pipeline connections.
+  *@return the current number of pipeline connections.
+  */
+  public int countPipelineStages();
+  
+  /** Get a specific pipeline connection name.
+  *@param index is the index of the pipeline stage whose connection name to get.
+  *@return the name of the connection.
+  */
+  public String getPipelineStageConnectionName(int index);
+
+  /** Get a specific pipeline stage description.
+  *@param index is the index of the pipeline stage whose description to get.
+  *@return the name of the connection.
+  */
+  public String getPipelineStageDescription(int index);
+
+  /** Get a specific pipeline stage specification.
+  *@param index is the index of the pipeline stage whose specification is needed.
+  *@return the specification for the connection.
+  */
+  public OutputSpecification getPipelineStageSpecification(int index);
+
+  /** Delete a pipeline stage.
+  *@param index is the index of the pipeline stage to delete.
+  */
+  public void deletePipelineStage(int index);
+  
+  /** Insert a new pipeline stage.
+  *@param index is the index to insert pipeline stage before
+  *@param pipelineStageConnectionName is the connection name.
+  *@param pipelineStageDescription is the description.
+  *@return the newly-created output specification.
+  */
+  public OutputSpecification insertPipelineStage(int index, String pipelineStageConnectionName, String pipelineStageDescription);
+  
   /** Set the job type.
   *@param type is the type (as an integer).
   */

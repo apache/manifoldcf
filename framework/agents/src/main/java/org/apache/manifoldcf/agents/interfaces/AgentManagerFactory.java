@@ -125,6 +125,77 @@ public class AgentManagerFactory
     }
   }
 
+    /** Request permission from all registered agents to delete a transformation connection.
+  *@param threadContext is the thread context.
+  *@param connName is the name of the output connection.
+  *@return true if the connection is in use, false otherwise.
+  */
+  public static boolean isTransformationConnectionInUse(IThreadContext threadContext, String connName)
+    throws ManifoldCFException
+  {
+    // Instantiate the list of IAgent objects
+    IAgent[] theAgents = instantiateAllAgents(threadContext);
+    int i = 0;
+    while (i < theAgents.length)
+    {
+      if (theAgents[i++].isTransformationConnectionInUse(threadContext, connName))
+        return true;
+    }
+    return false;
+  }
+
+  /**  Note to all registered agents the deregistration of a transformation connector used by the specified connections.
+  * This method will be called when the connector is deregistered.
+  *@param threadContext is the thread context.
+  *@param connectionNames is the set of connection names.
+  */
+  public static void noteTransformationConnectorDeregistration(IThreadContext threadContext, String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // Instantiate the list of IAgent objects
+    IAgent[] theAgents = instantiateAllAgents(threadContext);
+    int i = 0;
+    while (i < theAgents.length)
+    {
+      theAgents[i++].noteTransformationConnectorDeregistration(threadContext, connectionNames);
+    }
+  }
+
+  /** Note to all registered agents the registration of a transformation connector used by the specified connections.
+  * This method will be called when a connector is registered, on which the specified
+  * connections depend.
+  *@param threadContext is the thread context.
+  *@param connectionNames is the set of connection names.
+  */
+  public static void noteTransformationConnectorRegistration(IThreadContext threadContext, String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // Instantiate the list of IAgent objects
+    IAgent[] theAgents = instantiateAllAgents(threadContext);
+    int i = 0;
+    while (i < theAgents.length)
+    {
+      theAgents[i++].noteTransformationConnectorRegistration(threadContext, connectionNames);
+    }
+  }
+
+  /** Note to all registered agents the change of configuration of a transformation connection.
+  * This method will be called when the connection's xml is modified.
+  *@param threadContext is the thread context.
+  *@param connectionName is the connection name.
+  */
+  public static void noteTransformationConnectionChange(IThreadContext threadContext, String connectionName)
+    throws ManifoldCFException
+  {
+    // Instantiate the list of IAgent objects
+    IAgent[] theAgents = instantiateAllAgents(threadContext);
+    int i = 0;
+    while (i < theAgents.length)
+    {
+      theAgents[i++].noteTransformationConnectionChange(threadContext, connectionName);
+    }
+  }
+
   /** Instantiate the complete set of IAgent objects.
   *@param threadContext is the thread context.
   *@return the array of such objects.
