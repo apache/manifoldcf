@@ -133,6 +133,28 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
       new MultiClause(transformationNameField,connectionNames)}));
   }
   
+  /** Get all the transformation connection names for a job.
+  *@param ownerID is the job ID.
+  *@return the set of connection names.
+  */
+  public String[] getConnectionNames(Long ownerID)
+    throws ManifoldCFException
+  {
+    ArrayList newList = new ArrayList();
+    StringBuilder query = new StringBuilder("SELECT ");
+    query.append(transformationNameField).append(" FROM ").append(getTableName()).append(" WHERE ");
+    query.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(ownerIDField,ownerID)}));
+    IResultSet set = performQuery(query.toString(),newList,null,null);
+    String[] rval = new String[set.getRowCount()];
+    for (int i = 0; i < set.getRowCount(); i++)
+    {
+      IResultRow row = set.getRow(i);
+      rval[i] = (String)row.getValue(transformationNameField);
+    }
+    return rval;
+  }
+  
   /** Fill in a set of pipelines corresponding to a set of owner id's.
   *@param returnValues is a map keyed by ownerID, with value of JobDescription.
   *@param ownerIDList is the list of owner id's.
