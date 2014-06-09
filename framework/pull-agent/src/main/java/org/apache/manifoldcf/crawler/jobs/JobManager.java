@@ -2788,7 +2788,39 @@ public class JobManager implements IJobManager
       true)).append(" ")
       .append(database.constructOffsetLimitClause(0,1,true));
 
-    IResultSet set = database.performQuery(sb.toString(),list,null,null,1,null);
+    IResultSet set;
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        set = database.performQuery(sb.toString(),list,null,null,1,null);
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction adding document bins: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+      }
+    }
+
     if (set.getRowCount() > 0)
     {
       IResultRow row = set.getRow(0);
