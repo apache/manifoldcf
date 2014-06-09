@@ -127,8 +127,7 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     String parentIDField, List<String> connectionNames)
   {
     query.append("SELECT 'x' FROM ").append(getTableName()).append(" WHERE ");
-    ArrayList newList = new ArrayList();
-    query.append(buildConjunctionClause(newList,new ClauseDescription[]{
+    query.append(buildConjunctionClause(params,new ClauseDescription[]{
       new JoinClause(parentIDField,ownerIDField),
       new MultiClause(transformationNameField,connectionNames)}));
   }
