@@ -46,6 +46,11 @@ public class JobManager implements IJobManager
   protected final IOutputConnectionManager outputMgr;
   protected final IRepositoryConnectionManager connectionMgr;
   protected final ITransformationConnectionManager transformationMgr;
+  
+  protected final IOutputConnectorManager outputConnectorMgr;
+  protected final IConnectorManager connectorMgr;
+  protected final ITransformationConnectorManager transformationConnectorMgr;
+  
   protected final IRepositoryConnectorPool repositoryConnectorPool;
   protected final ILockManager lockManager;
   protected final IThreadContext threadContext;
@@ -75,6 +80,9 @@ public class JobManager implements IJobManager
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
     connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
     transformationMgr = TransformationConnectionManagerFactory.make(threadContext);
+    outputConnectorMgr = OutputConnectorManagerFactory.make(threadContext);
+    connectorMgr = ConnectorManagerFactory.make(threadContext);
+    transformationConnectorMgr = TransformationConnectorManagerFactory.make(threadContext);
     repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
     lockManager = LockManagerFactory.make(threadContext);
   }
@@ -656,7 +664,31 @@ public class JobManager implements IJobManager
   public void assessMarkedJobs()
     throws ManifoldCFException
   {
-    // MHL
+    database.beginTransaction();
+    try
+    {
+      // Query for all jobs marked "ASSESSMENT_UNKNOWN".
+      jobs.assessMarkedJobs();
+    }
+    catch (ManifoldCFException e)
+    {
+      database.signalRollback();
+      throw e;
+    }
+    catch (RuntimeException e)
+    {
+      database.signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      database.signalRollback();
+      throw e;
+    }
+    finally
+    {
+      database.endTransaction();
+    }
   }
 
   /** Load a sorted list of job descriptions.
@@ -709,9 +741,7 @@ public class JobManager implements IJobManager
       IResultRow row = set.getRow(0);
       int status = jobs.stringToStatus(row.getValue(jobs.statusField).toString());
       if (status == jobs.STATUS_ACTIVE || status == jobs.STATUS_ACTIVESEEDING ||
-        status == jobs.STATUS_ACTIVE_UNINSTALLED || status == jobs.STATUS_ACTIVESEEDING_UNINSTALLED ||
-        status == jobs.STATUS_ACTIVE_NOOUTPUT || status == jobs.STATUS_ACTIVESEEDING_NOOUTPUT ||
-        status == jobs.STATUS_ACTIVE_NEITHER || status == jobs.STATUS_ACTIVESEEDING_NEITHER)
+        status == jobs.STATUS_ACTIVE_UNINSTALLED || status == jobs.STATUS_ACTIVESEEDING_UNINSTALLED)
       throw new ManifoldCFException("Job "+id+" is active; you must shut it down before deleting it");
       if (status != jobs.STATUS_INACTIVE)
         throw new ManifoldCFException("Job "+id+" is busy; you must wait and/or shut it down before deleting it");
@@ -720,6 +750,11 @@ public class JobManager implements IJobManager
         Logging.jobs.debug("Job "+id+" marked for deletion");
     }
     catch (ManifoldCFException e)
+    {
+      database.signalRollback();
+      throw e;
+    }
+    catch (RuntimeException e)
     {
       database.signalRollback();
       throw e;
@@ -2107,11 +2142,7 @@ public class JobManager implements IJobManager
           Jobs.statusToString(Jobs.STATUS_ACTIVE),
           Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING),
           Jobs.statusToString(Jobs.STATUS_ACTIVE_UNINSTALLED),
-          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED),
-          Jobs.statusToString(Jobs.STATUS_ACTIVE_NOOUTPUT),
-          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NOOUTPUT),
-          Jobs.statusToString(Jobs.STATUS_ACTIVE_NEITHER),
-          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NEITHER)
+          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED)
           }),
         new JoinClause("t1."+jobs.idField,"t0."+jobQueue.jobIDField)}))
       .append(") ");
@@ -5809,10 +5840,6 @@ public class JobManager implements IJobManager
             jobs.statusToString(jobs.STATUS_ACTIVESEEDING),
             jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED),
             jobs.statusToString(jobs.STATUS_ACTIVESEEDING_UNINSTALLED),
-            jobs.statusToString(jobs.STATUS_ACTIVE_NOOUTPUT),
-            jobs.statusToString(jobs.STATUS_ACTIVESEEDING_NOOUTPUT),
-            jobs.statusToString(jobs.STATUS_ACTIVE_NEITHER),
-            jobs.statusToString(jobs.STATUS_ACTIVESEEDING_NEITHER),
             jobs.statusToString(jobs.STATUS_PAUSED),
             jobs.statusToString(jobs.STATUS_PAUSEDSEEDING)})})).append(" AND ")
         .append(jobs.windowEndField).append("<? FOR UPDATE");
@@ -5836,8 +5863,6 @@ public class JobManager implements IJobManager
         {
         case Jobs.STATUS_ACTIVE:
         case Jobs.STATUS_ACTIVE_UNINSTALLED:
-        case Jobs.STATUS_ACTIVE_NOOUTPUT:
-        case Jobs.STATUS_ACTIVE_NEITHER:
           jobs.waitJob(jobID,Jobs.STATUS_ACTIVEWAITING);
           if (Logging.jobs.isDebugEnabled())
           {
@@ -5846,8 +5871,6 @@ public class JobManager implements IJobManager
           break;
         case Jobs.STATUS_ACTIVESEEDING:
         case Jobs.STATUS_ACTIVESEEDING_UNINSTALLED:
-        case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
-        case Jobs.STATUS_ACTIVESEEDING_NEITHER:
           jobs.waitJob(jobID,Jobs.STATUS_ACTIVEWAITINGSEEDING);
           if (Logging.jobs.isDebugEnabled())
           {
@@ -7332,20 +7355,6 @@ public class JobManager implements IJobManager
           // Set the state of the job back to "Active"
           jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_UNINSTALLED);
           break;
-        case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
-          if (Logging.jobs.isDebugEnabled())
-            Logging.jobs.debug("Setting job "+jobID+" back to 'Active_NoOutput' state");
-
-          // Set the state of the job back to "Active"
-          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_NOOUTPUT);
-          break;
-        case Jobs.STATUS_ACTIVESEEDING_NEITHER:
-          if (Logging.jobs.isDebugEnabled())
-            Logging.jobs.debug("Setting job "+jobID+" back to 'Active_Neither' state");
-
-          // Set the state of the job back to "Active"
-          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_NEITHER);
-          break;
         case Jobs.STATUS_ACTIVESEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active' state");
@@ -7396,8 +7405,6 @@ public class JobManager implements IJobManager
         case Jobs.STATUS_ABORTINGFORRESTARTMINIMAL:
         case Jobs.STATUS_ACTIVE:
         case Jobs.STATUS_ACTIVE_UNINSTALLED:
-        case Jobs.STATUS_ACTIVE_NOOUTPUT:
-        case Jobs.STATUS_ACTIVE_NEITHER:
         case Jobs.STATUS_PAUSED:
         case Jobs.STATUS_ACTIVEWAIT:
         case Jobs.STATUS_PAUSEDWAIT:
@@ -7574,9 +7581,7 @@ public class JobManager implements IJobManager
             new MultiClause(jobs.statusField,new Object[]{
               jobs.statusToString(jobs.STATUS_ACTIVE),
               jobs.statusToString(jobs.STATUS_ACTIVEWAIT),
-              jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED),
-              jobs.statusToString(jobs.STATUS_ACTIVE_NOOUTPUT),
-              jobs.statusToString(jobs.STATUS_ACTIVE_NEITHER)})}))
+              jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED)})}))
           .append(" FOR UPDATE");
         
         IResultSet set = database.performQuery(sb.toString(),list,null,null);
@@ -8105,10 +8110,6 @@ public class JobManager implements IJobManager
         Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING),
         Jobs.statusToString(Jobs.STATUS_ACTIVE_UNINSTALLED),
         Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED),
-        Jobs.statusToString(Jobs.STATUS_ACTIVE_NOOUTPUT),
-        Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NOOUTPUT),
-        Jobs.statusToString(Jobs.STATUS_ACTIVE_NEITHER),
-        Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NEITHER),
         Jobs.statusToString(Jobs.STATUS_PAUSED),
         Jobs.statusToString(Jobs.STATUS_PAUSEDSEEDING),
         Jobs.statusToString(Jobs.STATUS_ACTIVEWAIT),
@@ -8241,10 +8242,6 @@ public class JobManager implements IJobManager
         break;
       case Jobs.STATUS_ACTIVE_UNINSTALLED:
       case Jobs.STATUS_ACTIVESEEDING_UNINSTALLED:
-      case Jobs.STATUS_ACTIVE_NOOUTPUT:
-      case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
-      case Jobs.STATUS_ACTIVE_NEITHER:
-      case Jobs.STATUS_ACTIVESEEDING_NEITHER:
         rstatus = JobStatus.JOBSTATUS_RUNNING_UNINSTALLED;
         break;
       case Jobs.STATUS_ACTIVE:
