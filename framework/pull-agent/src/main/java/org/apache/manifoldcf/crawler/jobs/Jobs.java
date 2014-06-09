@@ -442,6 +442,23 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           Map insertMap = new HashMap();
           insertMap.put(assessmentStateField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
           performAlter(insertMap,null,null,null);
+          String query;
+          ArrayList list = new ArrayList();
+          HashMap map = new HashMap();
+          query = buildConjunctionClause(list,new ClauseDescription[]{
+            new MultiClause(statusField,new Object[]{
+              statusToString(STATUS_ACTIVE_NOOUTPUT),
+              statusToString(STATUS_ACTIVE_NEITHER)})});
+          map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
+          performUpdate(map,"WHERE "+query,list,null);
+          list.clear();
+          map.clear();
+          query = buildConjunctionClause(list,new ClauseDescription[]{
+            new MultiClause(statusField,new Object[]{
+              statusToString(STATUS_ACTIVESEEDING_NOOUTPUT),
+              statusToString(STATUS_ACTIVESEEDING_NEITHER)})});
+          map.put(statusField,statusToString(STATUS_ACTIVESEEDING_UNINSTALLED));
+          performUpdate(map,"WHERE "+query,list,null);
         }
       }
 
