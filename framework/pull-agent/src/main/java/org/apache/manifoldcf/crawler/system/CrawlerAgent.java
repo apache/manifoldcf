@@ -50,7 +50,8 @@ public class CrawlerAgent implements IAgent
   protected IdleCleanupThread idleCleanupThread = null;
   protected SetPriorityThread setPriorityThread = null;
   protected HistoryCleanupThread historyCleanupThread = null;
-
+  protected AssessmentThread assessmentThread = null;
+  
   // Reset managers
   /** Worker thread pool reset manager */
   protected WorkerResetManager workerResetManager = null;
@@ -326,7 +327,9 @@ public class CrawlerAgent implements IAgent
   public void noteTransformationConnectionChange(IThreadContext threadContext, String connectionName)
     throws ManifoldCFException
   {
-    // MHL
+    // Notify job manager
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    jobManager.noteTransformationConnectionChange(connectionName);
   }
 
   /** Start everything.
@@ -420,6 +423,7 @@ public class CrawlerAgent implements IAgent
     jobResetThread = new JobResetThread(processID);
     seedingThread = new SeedingThread(new SeedingResetManager(processID),processID);
     idleCleanupThread = new IdleCleanupThread(processID);
+    assessmentThread = new AssessmentThread(processID);
 
     // Start all the threads
     jobStartThread.start();
@@ -466,6 +470,7 @@ public class CrawlerAgent implements IAgent
     jobResetThread.start();
     seedingThread.start();
     idleCleanupThread.start();
+    assessmentThread.start();
 
     Logging.root.info("Pull-agent started");
   }
@@ -481,7 +486,7 @@ public class CrawlerAgent implements IAgent
       finisherThread != null || notificationThread != null || workerThreads != null || expireStufferThread != null || expireThreads != null ||
       deleteStufferThread != null || deleteThreads != null ||
       cleanupStufferThread != null || cleanupThreads != null ||
-      jobResetThread != null || seedingThread != null || idleCleanupThread != null || setPriorityThread != null || historyCleanupThread != null)
+      jobResetThread != null || seedingThread != null || idleCleanupThread != null || assessmentThread != null || setPriorityThread != null || historyCleanupThread != null)
     {
       // Send an interrupt to all threads that are still there.
       // In theory, this only needs to be done once.  In practice, I have seen cases where the thread loses track of the fact that it has been
@@ -585,6 +590,10 @@ public class CrawlerAgent implements IAgent
       if (idleCleanupThread != null)
       {
         idleCleanupThread.interrupt();
+      }
+      if (assessmentThread != null)
+      {
+        assessmentThread.interrupt();
       }
 
       // Now, wait for all threads to die.
@@ -750,6 +759,11 @@ public class CrawlerAgent implements IAgent
       {
         if (!idleCleanupThread.isAlive())
           idleCleanupThread = null;
+      }
+      if (assessmentThread != null)
+      {
+        if (!assessmentThread.isAlive())
+          assessmentThread = null;
       }
     }
 

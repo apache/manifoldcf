@@ -978,6 +978,17 @@ public interface IJobManager
   public void noteTransformationConnectorRegistration(String[] connectionNames)
     throws ManifoldCFException;
 
+  /** Note a change in transformation connection configuration.
+  * This method will be called whenever a connection's configuration is modified.
+  */
+  public void noteTransformationConnectionChange(String connectionName)
+    throws ManifoldCFException;
+
+  /** Assess jobs marked to be in need of assessment for connector status changes.
+  */
+  public void assessMarkedJobs()
+    throws ManifoldCFException;
+
   /** Delete jobs in need of being deleted (which are marked "ready for delete").
   * This method is meant to be called periodically to perform delete processing on jobs.
   */

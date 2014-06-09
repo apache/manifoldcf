@@ -641,6 +641,24 @@ public class JobManager implements IJobManager
     jobs.noteOutputConnectionChange(connectionName);
   }
 
+  /** Note a change in transformation connection configuration.
+  * This method will be called whenever a connection's configuration is modified.
+  */
+  @Override
+  public void noteTransformationConnectionChange(String connectionName)
+    throws ManifoldCFException
+  {
+    jobs.noteTransformationConnectionChange(connectionName);
+  }
+
+  /** Assess jobs marked to be in need of assessment for connector status changes.
+  */
+  public void assessMarkedJobs()
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
   /** Load a sorted list of job descriptions.
   *@return the list, sorted by description.
   */
