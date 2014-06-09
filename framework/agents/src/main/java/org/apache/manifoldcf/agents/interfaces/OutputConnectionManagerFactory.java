@@ -66,26 +66,23 @@ public class OutputConnectionManagerFactory
   {
     IOutputConnectionManager manager = make(tc);
     IOutputConnection[] connections = manager.getAllConnections();
-    HashMap map = new HashMap();
-    int i = 0;
-    while (i < connections.length)
+    Set<String> map = new HashSet();
+    for (IOutputConnection connection : connections)
     {
-      IOutputConnection connection = connections[i++];
       String connectionName = connection.getName();
       String[] activities = OutputConnectorFactory.getActivitiesList(tc,connection.getClassName());
-      int j = 0;
-      while (j < activities.length)
+      for (String activityName : activities)
       {
-        String activity = activities[j++] + " ("+connectionName+")";
-        map.put(activity,activity);
+        String activity = ManifoldCF.qualifyOutputActivityName(activityName,connectionName);
+        map.add(activity);
       }
     }
     String[] rval = new String[map.size()];
-    i = 0;
-    Iterator iter = map.keySet().iterator();
+    int i = 0;
+    Iterator<String> iter = map.iterator();
     while (iter.hasNext())
     {
-      rval[i++] = (String)iter.next();
+      rval[i++] = iter.next();
     }
     java.util.Arrays.sort(rval);
     return rval;

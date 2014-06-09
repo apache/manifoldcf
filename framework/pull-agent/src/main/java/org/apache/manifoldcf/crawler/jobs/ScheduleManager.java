@@ -164,7 +164,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
   *@param ownerIDList is the list of owner id's.
   *@param ownerIDParams is the corresponding set of owner id parameters.
   */
-  public void getRows(Map returnValues, String ownerIDList, ArrayList ownerIDParams)
+  public void getRows(Map<Long,JobDescription> returnValues, String ownerIDList, ArrayList ownerIDParams)
     throws ManifoldCFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerIDField+" IN ("+ownerIDList+") ORDER BY "+ordinalField+" ASC",ownerIDParams,
@@ -183,7 +183,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
         (String)row.getValue(timezoneField),
         (Long)row.getValue(windowDurationField),
         stringToRequestMinimumValue((String)row.getValue(requestMinimumField)));
-      ((JobDescription)returnValues.get(ownerID)).addScheduleRecord(sr);
+      returnValues.get(ownerID).addScheduleRecord(sr);
       i++;
     }
   }

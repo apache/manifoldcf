@@ -3,6 +3,19 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-953: Forced metadata changes do not reset seeding start time
+(Karl Wright)
+
+CONNECTORS-952: Crawler UI generates bad XML.
+(Karl Wright)
+
+CONNECTORS-951: Import/export does not handle forced metadata.
+(Karl Wright)
+
+CONNECTORS-946: Add pipeline support.  This is a major change that adds a new class of connector, UI changes,
+and includes structural as well as schema changes.  WARNING: Schema change!!
+(Karl Wright)
+
 CONNECTORS-950:CMIS Connector should ingest only the properties specified in the select clause
 (Piergiorgio Lucidi)
 

@@ -809,6 +809,25 @@
     <target name="general-add-output-connector" depends="general-add-output-connector-commented,general-add-output-connector-non-commented,general-add-output-connector-proprietary-commented,general-add-output-connector-proprietary-non-commented">
     </target>
 
+    <target name="general-add-transformation-connector-commented" depends="general-connector-runnable-check" unless="is-runnable">
+        <replace file="${mcf-dist}/connectors.xml" token="&lt;!-- Add your transformation connectors here --&gt;" value="&lt;!-- Add your transformation connectors here --&gt;&#0010;  &lt;!--transformationconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    </target>
+
+    <target name="general-add-transformation-connector-non-commented" depends="general-connector-runnable-check" if="is-runnable">
+        <replace file="${mcf-dist}/connectors.xml" token="&lt;!-- Add your transformation connectors here --&gt;" value="&lt;!-- Add your transformation connectors here --&gt;&#0010;  &lt;transformationconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-transformation-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="is-proprietary-runnable">
+        <replace file="${mcf-dist}/connectors-proprietary.xml" token="&lt;!-- Add your transformation connectors here --&gt;" value="&lt;!-- Add your transformation connectors here --&gt;&#0010;  &lt;!--transformationconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    </target>
+
+    <target name="general-add-transformation-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="is-proprietary-runnable">
+        <replace file="${mcf-dist}/connectors-proprietary.xml" token="&lt;!-- Add your transformation connectors here --&gt;" value="&lt;!-- Add your transformation connectors here --&gt;&#0010;  &lt;transformationconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-transformation-connector" depends="general-add-transformation-connector-commented,general-add-transformation-connector-non-commented,general-add-transformation-connector-proprietary-commented,general-add-transformation-connector-proprietary-non-commented">
+    </target>
+
     <target name="general-add-repository-connector-commented" depends="general-connector-runnable-check" unless="is-runnable">
         <replace file="${mcf-dist}/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;!--repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
     </target>
