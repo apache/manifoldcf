@@ -2897,6 +2897,8 @@ public class JobManager implements IJobManager
       "t0."+jobQueue.docPriorityField, "t0."+jobQueue.statusField, "t0."+jobQueue.checkActionField, "t0."+jobQueue.checkTimeField},
       true)).append(" ");
 
+    String query = sb.toString();
+
     // Before entering the transaction, we must provide the throttlelimit object with all the connector
     // instances it could possibly need.  The purpose for doing this is to prevent a deadlock where
     // connector starvation causes database lockup.
@@ -2938,7 +2940,7 @@ public class JobManager implements IJobManager
 
           // Now we can tack the limit onto the query.  Before this point, remainingDocuments would be crap
           int limitValue = vList.getRemainingDocuments();
-          sb.append(database.constructOffsetLimitClause(0,limitValue,true));
+          query += database.constructOffsetLimitClause(0,limitValue,true);
 
           if (Logging.perf.isDebugEnabled())
           {
@@ -2949,7 +2951,7 @@ public class JobManager implements IJobManager
           database.beginTransaction();
           try
           {
-            IResultSet set = database.performQuery(sb.toString(),list,null,null,-1,vList);
+            IResultSet set = database.performQuery(query,list,null,null,-1,vList);
 
             if (Logging.perf.isDebugEnabled())
               Logging.perf.debug(" Queuing "+Integer.toString(set.getRowCount())+" documents");
