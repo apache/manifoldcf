@@ -106,6 +106,62 @@
                       often.  Click it when you have removed the entire index that the output connection describes from the target repository.</p>
             </section>
 
+            <section id="transformations">
+                <title>Defining Transformation Connections</title>
+                <p>The Framework UI's left-side menu contains a link for listing transformation connections.  A transformation connection is a connection to an engine where documents fetched from various
+                       repositories can be manipulated.  This typically involves metadata extraction or mapping.</p>
+                <p>A job does not need to specify any transformation connections.  In many cases, the final destination search engine has an included data conversion pipeline.  But in the case
+                       where such data extraction and conversion is not available, ManifoldCF provides a way of taking care of it internally.</p>
+                <p>You can create a transformation connection by clicking the "List Transformation Connections" link in the left-side navigation menu.  When you do this, the
+                       following screen will appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/list-transformation-connections.PNG" alt="List Transformation Connections" width="80%"/>
+                <br/><br/>
+                <p>On a freshly created system, there may well be no existing transformation connections listed.  If there are already transformation connections, they will be listed on this screen, along with links that allow
+                      you to view, edit, or delete them.  To create a new transformation connection, click the "Add new transformation connection" link at the bottom.  The following screen will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-transformation-connection-name.PNG" alt="Add New Transformation Connection, specify Name" width="80%"/>
+                <br/><br/>
+                <p>The tabs across the top each present a different view of your transformation connection.  Each tab allows you to edit a different characteristic of that connection.  The exact set of tabs you see
+                       depends on the connection type you choose for the connection.</p>
+                <p>Start by giving your connection a name and a description.  Remember that all transformation connection names must be unique, and cannot be changed after the connection is defined.  The name must be
+                       no more than 32 characters long.  The description can be up to 255 characters long.  When you are done, click on the "Type" tab.  The Type tab for the connection will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-transformation-connection-type.PNG" alt="Add New Transformation Connection, select Type" width="80%"/>
+                <br/><br/>
+                <p>The list of transformation connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs for each different kind of transformation connection
+                       type are described in separate sections below.</p>
+                <p>After you choose a transformation connection type, click the "Continue" button at the bottom of the pane.  You will then see all the tabs appropriate for that kind of connection appear, and a
+                       "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create your connection.  If you click "Cancel" instead, the new connection
+                       will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
+                <p>Every transformation connection has a "Throttling" tab.  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/transformation-throttling.PNG" alt="Transformation Connection Throttling" width="80%"/>
+                <br/><br/>
+                <p>On this tab, you can specify only one thing: how many open connections are allowed at any given time to the system the transformation connection talks with.  This restriction helps prevent
+                       that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for greater overall throughput.  The default
+                       value is 10, which may not be optimal for all types of output connections.  Please refer to the section of the manual describing your transformation connection type for more precise
+                       recommendations.
+                </p>
+                <p>Please refer to the section of the manual describing your chosen transformation connection type for a description of the tabs appropriate for that connection type.</p>
+                
+                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This looks something like this (although the details will differ
+                      somewhat based on what connection type you chose):</p>
+                <br/><br/>
+                <figure src="images/en_US/view-transformation-connection.PNG" alt="View Transformation Connection" width="80%"/>
+                <br/><br/>
+                <p>The summary screen contains a line where the connection's status is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.
+                      If there was a problem, you will see a connection-type-specific diagnostic message instead.  If this happens, you will need to correct the problem, by either fixing your infrastructure,
+                      or by editing the connection configuration appropriately, before the transformation connection will work correctly.</p>
+                <p>Also note that there are five buttons along the bottom of the display: "Refresh", "Edit", and "Delete".  We'll
+                      go into the purpose for each of these buttons in turn.</p>
+                <p>The "Refresh" button simply reloads the view page for the output connection, and updates the connection status.  Use this button when you have made changes to the external system
+                      your transformation connection is connected to that might affect whether the connection will succeed or not.</p>
+                <p>The "Edit" button allows you to go back and edit the connection parameters.  Use this button if you want to change the connection's characteristics or specifications in any way.</p>
+                <p>The "Delete" button allows you to delete the connection.  Use this button if you no longer want the connection to remain in the available list of transformation connections.  Note that ManifoldCF
+                      will not allow you to delete a connection that is being referenced by a job.</p>
+            </section>
+
             <section id="groups">
                 <title>Defining Authority Groups</title>
                 <p>The Framework UI's left-side menu contains a link for listing authority groups.  An authority group is a collection of authorities that all cooperate to furnish
