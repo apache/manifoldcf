@@ -178,7 +178,7 @@ public interface IRepositoryConnector extends IConnector
   *@param endTime is the end of the time range to consider, exclusive.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
-  public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
+  public void addSeedDocuments(ISeedingActivity activities, Specification spec,
     long startTime, long endTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption;
 
@@ -201,7 +201,7 @@ public interface IRepositoryConnector extends IConnector
   * will always be processed.
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
+    Specification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Process a set of documents.
@@ -220,7 +220,7 @@ public interface IRepositoryConnector extends IConnector
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    DocumentSpecification spec, boolean[] scanOnly, int jobMode)
+    Specification spec, boolean[] scanOnly, int jobMode)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
@@ -276,7 +276,7 @@ public interface IRepositoryConnector extends IConnector
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds,
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
     int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException;
   
@@ -294,7 +294,7 @@ public interface IRepositoryConnector extends IConnector
   *@param tabName is the current tab name.  (actualSequenceNumber, tabName) form a unique tuple within
   *  the job.
   */
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds,
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException;
   
@@ -310,7 +310,7 @@ public interface IRepositoryConnector extends IConnector
   *@return null if all is well, or a string error message if there is an error that should prevent saving of
   * the job (and cause a redirection to an error page).
   */
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds,
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
     int connectionSequenceNumber)
     throws ManifoldCFException;
   
@@ -324,7 +324,7 @@ public interface IRepositoryConnector extends IConnector
   *@param ds is the current document specification for this job.
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   */
-  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds,
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException;
 
