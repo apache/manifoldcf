@@ -21,7 +21,7 @@ package org.apache.manifoldcf.crawler.system;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.Logging;
+import org.apache.manifoldcf.core.util.URLEncoder;
 import java.util.*;
 import java.io.*;
 import java.lang.reflect.*;
@@ -145,14 +145,22 @@ public class WorkerThread extends Thread
             // Universal data, from the job
             String connectionName = job.getConnectionName();
             String outputName = job.getOutputConnectionName();
-            String newParameterVersion = packParameters(job.getForcedMetadata());
+            int pipelineCount = job.countPipelineStages();
+            String[] transformationNames = new String[pipelineCount];
+            OutputSpecification[] transformationSpecifications = new OutputSpecification[pipelineCount];
+            for (int k = 0; k < pipelineCount; k++)
+            {
+              transformationNames[k] = job.getPipelineStageConnectionName(k);
+              transformationSpecifications[k] = job.getPipelineStageSpecification(k);
+            }
+            
             DocumentSpecification spec = job.getSpecification();
             OutputSpecification outputSpec = job.getOutputSpecification();
             int jobType = job.getType();
 
             IRepositoryConnection connection = qds.getConnection();
             
-            OutputActivity ingestLogger = new OutputActivity(connectionName,connMgr,outputName);
+            OutputActivity ingestLogger = new OutputActivity(connectionName,connMgr);
 
             // The flow through this section of the code is as follows.
             // (1) We start with a list of documents
@@ -307,14 +315,23 @@ public class WorkerThread extends Thread
                       }
                     }
 
-                    // Get the output version string.
-                    String outputVersion = ingester.getOutputDescription(outputName,outputSpec);
-                      
-                    HashMap abortSet = new HashMap();
-                    VersionActivity versionActivity = new VersionActivity(processID,connectionName,connMgr,jobManager,job,ingester,abortSet,outputVersion);
+                    // Get the output version string. Cannot be null.
+                    String outputDescriptionString = ingester.getOutputDescription(outputName,outputSpec);
+                    // Get the transformation version strings.  Cannot be null.
+                    String[] transformationDescriptionStrings = ingester.getTransformationDescriptions(transformationNames,transformationSpecifications);
+                    
+                    // New version strings
+                    String newOutputVersion = outputDescriptionString;
+                    String newParameterVersion = packParameters(job.getForcedMetadata());
+                    String newTransformationVersion = packTransformations(transformationNames,transformationDescriptionStrings);
+
+                    Set<String> abortSet = new HashSet<String>();
+                    VersionActivity versionActivity = new VersionActivity(job.getID(),processID,connectionName,outputName,transformationNames,connMgr,jobManager,ingester,abortSet,outputDescriptionString,transformationDescriptionStrings,ingestLogger);
 
                     String aclAuthority = connection.getACLAuthority();
-                    boolean isDefaultAuthority = (aclAuthority == null || aclAuthority.length() == 0);
+                    if (aclAuthority == null)
+                      aclAuthority = "";
+                    boolean isDefaultAuthority = (aclAuthority.length() == 0);
 
                     if (Logging.threads.isDebugEnabled())
                       Logging.threads.debug("Worker thread getting versions for "+Integer.toString(currentDocIDArray.length)+" documents");
@@ -390,10 +407,6 @@ public class WorkerThread extends Thread
                       // This try{ } is for releasing document versions at the connector level.
                       try
                       {
-                        // Organize what we need for document status comparison, and get it into a canonical form.
-                        String newOutputVersion = outputVersion;
-                        if (newOutputVersion == null)
-                          newOutputVersion = "";
 
                         // Loop through documents now, and amass what we need to fetch.
                         // We also need to tally: (1) what needs to be marked as deleted via
@@ -405,7 +418,7 @@ public class WorkerThread extends Thread
                           QueuedDocument qd = activeDocuments.get(i);
                           DocumentDescription dd = qd.getDocumentDescription();
                           // If this document was aborted, then treat it specially; we never go on to fetch it, for one thing.
-                          if (abortSet.get(dd.getDocumentIdentifier()) != null)
+                          if (abortSet.contains(dd.getDocumentIdentifier()))
                           {
                             // Special treatment for aborted documents.
                             // We ignore the returned version string completely, since it's presumed that processing was not completed for this doc.
@@ -419,9 +432,6 @@ public class WorkerThread extends Thread
                             DocumentIngestStatus oldDocStatus = qd.getLastIngestedStatus();
                             String documentIDHash = dd.getDocumentIdentifierHash();
                             String newDocVersion = newVersionStringArray[i];
-                            String newAuthorityName = aclAuthority;
-                            if (newAuthorityName == null)
-                              newAuthorityName = "";
 
                             versionMap.put(dd.getDocumentIdentifierHash(),newDocVersion);
 
@@ -448,17 +458,10 @@ public class WorkerThread extends Thread
                                 // that was there before is there now (which may mean a rescan),
                                 // or (2) there are different versions (which ALWAYS means a rescan).
                                 String oldDocVersion = oldDocStatus.getDocumentVersion();
-                                if (oldDocVersion == null)
-                                  oldDocVersion = "";
                                 String oldAuthorityName = oldDocStatus.getDocumentAuthorityNameString();
-                                if (oldAuthorityName == null)
-                                  oldAuthorityName = "";
                                 String oldOutputVersion = oldDocStatus.getOutputVersion();
-                                if (oldOutputVersion == null)
-                                  oldOutputVersion = "";
+                                String oldTransformationVersion = oldDocStatus.getTransformationVersion();
                                 String oldParameterVersion = oldDocStatus.getParameterVersion();
-                                if (oldParameterVersion == null)
-                                  oldParameterVersion = "";
 
                                 // Start the comparison processing
                                 if (newDocVersion.length() == 0)
@@ -467,8 +470,9 @@ public class WorkerThread extends Thread
                                   allowIngest = true;
                                 }
                                 else if (oldDocVersion.equals(newDocVersion) &&
-                                  oldAuthorityName.equals(newAuthorityName) &&
+                                  oldAuthorityName.equals(aclAuthority) &&
                                   oldOutputVersion.equals(newOutputVersion) &&
+                                  oldTransformationVersion.equals(newTransformationVersion) &&
                                   oldParameterVersion.equals(newParameterVersion))
                                 {
                                   // The old logic was as follows:
@@ -527,9 +531,18 @@ public class WorkerThread extends Thread
                         }
 
                         // First, make the things we will need for all subsequent steps.
-                        ProcessActivity activity = new ProcessActivity(processID,
+                        ProcessActivity activity = new ProcessActivity(job.getID(),processID,
                           threadContext,rt,jobManager,ingester,
-                          currentTime,job,connection,connector,connMgr,legalLinkTypes,ingestLogger,abortSet,outputVersion,newParameterVersion);
+                          connectionName,outputName,transformationNames,
+                          outputDescriptionString,transformationDescriptionStrings,
+                          currentTime,
+                          job.getExpiration(),
+                          job.getForcedMetadata(),
+                          job.getInterval(),
+                          job.getMaxInterval(),
+                          job.getHopcountMode(),
+                          connection,connector,connMgr,legalLinkTypes,ingestLogger,abortSet,
+                          newOutputVersion,newTransformationVersion,newParameterVersion);
                         try
                         {
 
@@ -677,7 +690,7 @@ public class WorkerThread extends Thread
                                   String documentID = recrawlDocs[i].getDocumentIdentifier();
 
                                   // If aborted due to sequencing issue, then requeue for reprocessing immediately, ignoring everything else.
-                                  boolean wasAborted = abortSet.get(documentID) != null;
+                                  boolean wasAborted = abortSet.contains(documentID);
                                   if (wasAborted)
                                   {
                                     // Requeue for immediate reprocessing
@@ -742,7 +755,7 @@ public class WorkerThread extends Thread
                                 {
                                   QueuedDocument qd = finishList.get(i);
                                   DocumentDescription dd = qd.getDocumentDescription();
-                                  if (abortSet.get(dd.getDocumentIdentifier()) != null)
+                                  if (abortSet.contains(dd.getDocumentIdentifier()))
                                   {
                                     // The document was aborted, so put it into the abortedList
                                     abortedList.add(dd);
@@ -1186,6 +1199,25 @@ public class WorkerThread extends Thread
     }
   }
 
+  protected static String packTransformations(String[] transformationNames, String[] transformationDescriptionStrings)
+  {
+    StringBuilder sb = new StringBuilder();
+    packList(sb,transformationNames,'+');
+    packList(sb,transformationDescriptionStrings,'!');
+    return sb.toString();
+  }
+  
+  /** Another stuffer for packing lists of variable length */
+  protected static void packList(StringBuilder output, String[] values, char delimiter)
+  {
+    pack(output,Integer.toString(values.length),delimiter);
+    int i = 0;
+    while (i < values.length)
+    {
+      pack(output,values[i++],delimiter);
+    }
+  }
+
   protected static String packParameters(Map<String,Set<String>> forcedParameters)
   {
     StringBuilder sb = new StringBuilder();
@@ -1238,59 +1270,82 @@ public class WorkerThread extends Thread
   */
   protected static class VersionActivity implements IVersionActivity
   {
+    protected final Long jobID;
     protected final String processID;
     protected final String connectionName;
+    protected final String outputConnectionName;
+    protected final String[] transformationConnectionNames;
     protected final IRepositoryConnectionManager connMgr;
     protected final IJobManager jobManager;
-    protected final IJobDescription job;
     protected final IIncrementalIngester ingester;
-    protected final HashMap abortSet;
-    protected final String outputVersion;
-
+    protected final Set<String> abortSet;
+    protected final String outputDescriptionString;
+    protected final String[] transformationDescriptionStrings;
+    protected final CheckActivity checkActivity;
     /** Constructor.
     */
-    public VersionActivity(String processID, String connectionName, IRepositoryConnectionManager connMgr,
-      IJobManager jobManager, IJobDescription job, IIncrementalIngester ingester, HashMap abortSet,
-      String outputVersion)
+    public VersionActivity(Long jobID, String processID,
+      String connectionName, String outputConnectionName,
+      String[] transformationConnectionNames,
+      IRepositoryConnectionManager connMgr,
+      IJobManager jobManager, IIncrementalIngester ingester, Set<String> abortSet,
+      String outputDescriptionString, String[] transformationDescriptionStrings,
+      CheckActivity checkActivity)
     {
+      this.jobID = jobID;
       this.processID = processID;
       this.connectionName = connectionName;
+      this.outputConnectionName = outputConnectionName;
+      this.transformationConnectionNames = transformationConnectionNames;
       this.connMgr = connMgr;
       this.jobManager = jobManager;
-      this.job = job;
       this.ingester = ingester;
       this.abortSet = abortSet;
-      this.outputVersion = outputVersion;
+      this.outputDescriptionString = outputDescriptionString;
+      this.transformationDescriptionStrings = transformationDescriptionStrings;
+      this.checkActivity = checkActivity;
     }
 
     /** Check whether a mime type is indexable by the currently specified output connector.
     *@param mimeType is the mime type to check, not including any character set specification.
     *@return true if the mime type is indexable.
     */
+    @Override
     public boolean checkMimeTypeIndexable(String mimeType)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),outputVersion,mimeType);
+      return ingester.checkMimeTypeIndexable(
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputConnectionName,outputDescriptionString,mimeType,
+        checkActivity);
     }
 
     /** Check whether a document is indexable by the currently specified output connector.
     *@param localFile is the local copy of the file to check.
     *@return true if the document is indexable.
     */
+    @Override
     public boolean checkDocumentIndexable(File localFile)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkDocumentIndexable(job.getOutputConnectionName(),outputVersion,localFile);
+      return ingester.checkDocumentIndexable(
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputConnectionName,outputDescriptionString,localFile,
+        checkActivity);
     }
 
     /** Check whether a document of a specified length is indexable by the currently specified output connector.
     *@param length is the length to check.
     *@return true if the document is indexable.
     */
+    @Override
     public boolean checkLengthIndexable(long length)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkLengthIndexable(job.getOutputConnectionName(),outputVersion,length);
+      return ingester.checkLengthIndexable(
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputConnectionName,outputDescriptionString,length,
+        checkActivity);
     }
 
     /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
@@ -1298,10 +1353,14 @@ public class WorkerThread extends Thread
     *@param url is the URL of the document.
     *@return true if the file is indexable.
     */
+    @Override
     public boolean checkURLIndexable(String url)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkURLIndexable(job.getOutputConnectionName(),outputVersion,url);
+      return ingester.checkURLIndexable(
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputConnectionName,outputDescriptionString,url,
+        checkActivity);
     }
 
     /** Record time-stamped information about the activity of the connector.
@@ -1320,6 +1379,7 @@ public class WorkerThread extends Thread
     *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
     *@param childIdentifiers is a set of child entity identifiers associated with this activity.  May be null.
     */
+    @Override
     public void recordActivity(Long startTime, String activityType, Long dataSize,
       String entityIdentifier, String resultCode, String resultDescription, String[] childIdentifiers)
       throws ManifoldCFException
@@ -1333,10 +1393,11 @@ public class WorkerThread extends Thread
     *@param dataName is the name of the data items to retrieve.
     *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
     */
+    @Override
     public String[] retrieveParentData(String localIdentifier, String dataName)
       throws ManifoldCFException
     {
-      return jobManager.retrieveParentData(job.getID(),ManifoldCF.hash(localIdentifier),dataName);
+      return jobManager.retrieveParentData(jobID,ManifoldCF.hash(localIdentifier),dataName);
     }
 
     /** Retrieve data passed from parents to a specified child document.
@@ -1344,10 +1405,11 @@ public class WorkerThread extends Thread
     *@param dataName is the name of the data items to retrieve.
     *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
     */
+    @Override
     public CharacterInput[] retrieveParentDataAsFiles(String localIdentifier, String dataName)
       throws ManifoldCFException
     {
-      return jobManager.retrieveParentDataAsFiles(job.getID(),ManifoldCF.hash(localIdentifier),dataName);
+      return jobManager.retrieveParentDataAsFiles(jobID,ManifoldCF.hash(localIdentifier),dataName);
     }
 
     /** Check whether current job is still active.
@@ -1355,10 +1417,11 @@ public class WorkerThread extends Thread
     * itself being aborted.  If the connector should abort, this method will raise a properly-formed ServiceInterruption, which if thrown to the
     * caller, will signal that the current versioning activity remains incomplete and must be retried when the job is resumed.
     */
+    @Override
     public void checkJobStillActive()
       throws ManifoldCFException, ServiceInterruption
     {
-      if (jobManager.checkJobActive(job.getID()) == false)
+      if (jobManager.checkJobActive(jobID) == false)
         throw new ServiceInterruption("Job no longer active",System.currentTimeMillis(),true);
     }
 
@@ -1369,6 +1432,7 @@ public class WorkerThread extends Thread
     *@param eventName is the event name.
     *@return false if the event is already in the "pending" state.
     */
+    @Override
     public boolean beginEventSequence(String eventName)
       throws ManifoldCFException
     {
@@ -1382,6 +1446,7 @@ public class WorkerThread extends Thread
     * the sole right to complete it.  Otherwise, race conditions can develop which would be difficult to diagnose.
     *@param eventName is the event name.
     */
+    @Override
     public void completeEventSequence(String eventName)
       throws ManifoldCFException
     {
@@ -1394,17 +1459,19 @@ public class WorkerThread extends Thread
     * presumed that the reason for the requeue is because of sequencing issues synchronized around an underlying event.
     *@param localIdentifier is the document identifier to requeue
     */
+    @Override
     public void retryDocumentProcessing(String localIdentifier)
       throws ManifoldCFException
     {
       // Accumulate aborts
-      abortSet.put(localIdentifier,localIdentifier);
+      abortSet.add(localIdentifier);
     }
 
     /** Create a global string from a simple string.
     *@param simpleString is the simple string.
     *@return a global string.
     */
+    @Override
     public String createGlobalString(String simpleString)
     {
       return ManifoldCF.createGlobalString(simpleString);
@@ -1414,6 +1481,7 @@ public class WorkerThread extends Thread
     *@param simpleString is the simple string.
     *@return a connection-specific string.
     */
+    @Override
     public String createConnectionSpecificString(String simpleString)
     {
       return ManifoldCF.createConnectionSpecificString(connectionName,simpleString);
@@ -1423,9 +1491,10 @@ public class WorkerThread extends Thread
     *@param simpleString is the simple string.
     *@return a job-specific string.
     */
+    @Override
     public String createJobSpecificString(String simpleString)
     {
-      return ManifoldCF.createJobSpecificString(job.getID(),simpleString);
+      return ManifoldCF.createJobSpecificString(jobID,simpleString);
     }
 
   }
@@ -1435,20 +1504,31 @@ public class WorkerThread extends Thread
   protected static class ProcessActivity implements IProcessActivity
   {
     // Member variables
+    protected final Long jobID;
     protected final String processID;
     protected final IThreadContext threadContext;
     protected final IJobManager jobManager;
     protected final IIncrementalIngester ingester;
+    protected final String connectionName;
+    protected final String outputName;
+    protected final String[] transformationConnectionNames;
+    protected final String outputDescriptionString;
+    protected final String[] transformationDescriptionStrings;
     protected final long currentTime;
-    protected final IJobDescription job;
+    protected final Long expireInterval;
+    protected final Map<String,Set<String>> forcedMetadata;
+    protected final Long recrawlInterval;
+    protected final Long maxInterval;
+    protected final int hopcountMode;
     protected final IRepositoryConnection connection;
     protected final IRepositoryConnector connector;
     protected final IRepositoryConnectionManager connMgr;
     protected final String[] legalLinkTypes;
     protected final OutputActivity ingestLogger;
     protected final IReprioritizationTracker rt;
-    protected final HashMap abortSet;
+    protected final Set<String> abortSet;
     protected final String outputVersion;
+    protected final String transformationVersion;
     protected final String parameterVersion;
     
     // We submit references in bulk, because that's way more efficient.
@@ -1467,20 +1547,40 @@ public class WorkerThread extends Thread
     *@param jobManager is the job manager
     *@param ingester is the ingester
     */
-    public ProcessActivity(String processID, IThreadContext threadContext,
+    public ProcessActivity(Long jobID, String processID,
+      IThreadContext threadContext,
       IReprioritizationTracker rt, IJobManager jobManager,
-      IIncrementalIngester ingester, long currentTime,
-      IJobDescription job, IRepositoryConnection connection, IRepositoryConnector connector,
+      IIncrementalIngester ingester,
+      String connectionName, String outputName, String[] transformationConnectionNames,
+      String outputDescriptionString, String[] transformationDescriptionStrings,
+      long currentTime,
+      Long expireInterval,
+      Map<String,Set<String>> forcedMetadata,
+      Long recrawlInterval,
+      Long maxInterval,
+      int hopcountMode,
+      IRepositoryConnection connection, IRepositoryConnector connector,
       IRepositoryConnectionManager connMgr, String[] legalLinkTypes, OutputActivity ingestLogger,
-      HashMap abortSet, String outputVersion, String parameterVersion)
+      Set<String> abortSet,
+      String outputVersion, String transformationVersion, String parameterVersion)
     {
+      this.jobID = jobID;
       this.processID = processID;
       this.threadContext = threadContext;
       this.rt = rt;
       this.jobManager = jobManager;
       this.ingester = ingester;
+      this.connectionName = connectionName;
+      this.outputName = outputName;
+      this.outputDescriptionString = outputDescriptionString;
+      this.transformationConnectionNames = transformationConnectionNames;
+      this.transformationDescriptionStrings = transformationDescriptionStrings;
       this.currentTime = currentTime;
-      this.job = job;
+      this.expireInterval = expireInterval;
+      this.forcedMetadata = forcedMetadata;
+      this.recrawlInterval = recrawlInterval;
+      this.maxInterval = maxInterval;
+      this.hopcountMode = hopcountMode;
       this.connection = connection;
       this.connector = connector;
       this.connMgr = connMgr;
@@ -1489,6 +1589,7 @@ public class WorkerThread extends Thread
       this.abortSet = abortSet;
       this.outputVersion = outputVersion;
       this.parameterVersion = parameterVersion;
+      this.transformationVersion = transformationVersion;
     }
 
     /** Clean up any dangling information, before abandoning this process activity object */
@@ -1531,7 +1632,7 @@ public class WorkerThread extends Thread
       +" to '"+localIdentifier+"', relationship type "+((relationshipType==null)?"null":"'"+relationshipType+"'")
       +", with "+((dataNames==null)?"no":Integer.toString(dataNames.length))+" data types, origination time="+((originationTime==null)?"unknown":originationTime.toString()));
 
-      Long expireInterval = job.getExpiration();
+      //Long expireInterval = job.getExpiration();
       if (expireInterval != null)
       {
         // We should not queue documents that have already expired; it wastes time
@@ -1679,7 +1780,7 @@ public class WorkerThread extends Thread
     public String[] retrieveParentData(String localIdentifier, String dataName)
       throws ManifoldCFException
     {
-      return jobManager.retrieveParentData(job.getID(),ManifoldCF.hash(localIdentifier),dataName);
+      return jobManager.retrieveParentData(jobID,ManifoldCF.hash(localIdentifier),dataName);
     }
 
     /** Retrieve data passed from parents to a specified child document.
@@ -1691,7 +1792,7 @@ public class WorkerThread extends Thread
     public CharacterInput[] retrieveParentDataAsFiles(String localIdentifier, String dataName)
       throws ManifoldCFException
     {
-      return jobManager.retrieveParentDataAsFiles(job.getID(),ManifoldCF.hash(localIdentifier),dataName);
+      return jobManager.retrieveParentDataAsFiles(jobID,ManifoldCF.hash(localIdentifier),dataName);
     }
 
     /** Record a document version, but don't ingest it.
@@ -1704,7 +1805,7 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      ingester.documentRecord(job.getOutputConnectionName(),job.getConnectionName(),documentIdentifierHash,version,currentTime,ingestLogger);
+      ingester.documentRecord(outputName,connectionName,documentIdentifierHash,version,currentTime,ingestLogger);
     }
 
     /** Ingest the current document.
@@ -1727,7 +1828,7 @@ public class WorkerThread extends Thread
 
       if (data != null)
       {
-        Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
+        //Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
         
         // Modify the repository document with forced parameters.
         for (String paramName : forcedMetadata.keySet())
@@ -1744,9 +1845,12 @@ public class WorkerThread extends Thread
       }
         
       // First, we need to add into the metadata the stuff from the job description.
-      ingester.documentIngest(job.getOutputConnectionName(),
-        job.getConnectionName(),documentIdentifierHash,
-        version,outputVersion,parameterVersion,
+      ingester.documentIngest(transformationConnectionNames,
+        transformationDescriptionStrings,
+        outputName,
+        outputDescriptionString,
+        connectionName,documentIdentifierHash,
+        version,transformationVersion,outputVersion,parameterVersion,
         connection.getACLAuthority(),
         data,currentTime,
         documentURI,
@@ -1780,8 +1884,8 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      ingester.documentDelete(job.getOutputConnectionName(),
-        job.getConnectionName(),documentIdentifierHash,
+      ingester.documentDelete(outputName,
+        connectionName,documentIdentifierHash,
         ingestLogger);
     }
 
@@ -1868,10 +1972,10 @@ public class WorkerThread extends Thread
     public Long calculateDocumentRescheduleTime(long currentTime, long timeAmt, String localIdentifier)
     {
       Long recrawlTime = null;
-      Long recrawlInterval = job.getInterval();
+      //Long recrawlInterval = job.getInterval();
       if (recrawlInterval != null)
       {
-        Long maxInterval = job.getMaxInterval();
+        //Long maxInterval = job.getMaxInterval();
         long actualInterval = recrawlInterval.longValue() + timeAmt;
         if (maxInterval != null && actualInterval > maxInterval.longValue())
           actualInterval = maxInterval.longValue();
@@ -1908,7 +2012,7 @@ public class WorkerThread extends Thread
       Long originationTime = getDocumentOriginationTime(localIdentifier);
       if (originationTime == null)
         originationTime = new Long(currentTime);
-      Long expireInterval = job.getExpiration();
+      //Long expireInterval = job.getExpiration();
       Long expireTime = null;
       if (expireInterval != null)
         expireTime = new Long(originationTime.longValue() + expireInterval.longValue());
@@ -2024,7 +2128,7 @@ public class WorkerThread extends Thread
         rt.preloadBinValues();
 
         jobManager.addDocuments(processID,
-          job.getID(),legalLinkTypes,docidHashes,docids,db.getParentIdentifierHash(),db.getLinkType(),job.getHopcountMode(),
+          jobID,legalLinkTypes,docidHashes,docids,db.getParentIdentifierHash(),db.getLinkType(),hopcountMode,
           dataNames,dataValues,currentTime,priorities,eventNames);
         
         rt.clearPreloadedValues();
@@ -2042,7 +2146,7 @@ public class WorkerThread extends Thread
     public void checkJobStillActive()
       throws ManifoldCFException, ServiceInterruption
     {
-      if (jobManager.checkJobActive(job.getID()) == false)
+      if (jobManager.checkJobActive(jobID) == false)
         throw new ServiceInterruption("Job no longer active",System.currentTimeMillis());
     }
 
@@ -2085,7 +2189,7 @@ public class WorkerThread extends Thread
       throws ManifoldCFException
     {
       // Accumulate aborts
-      abortSet.put(localIdentifier,localIdentifier);
+      abortSet.add(localIdentifier);
     }
 
     /** Check whether a mime type is indexable by the currently specified output connector.
@@ -2096,7 +2200,10 @@ public class WorkerThread extends Thread
     public boolean checkMimeTypeIndexable(String mimeType)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),outputVersion,mimeType);
+      return ingester.checkMimeTypeIndexable(
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputName,outputDescriptionString,mimeType,
+        ingestLogger);
     }
 
     /** Check whether a document is indexable by the currently specified output connector.
@@ -2107,7 +2214,10 @@ public class WorkerThread extends Thread
     public boolean checkDocumentIndexable(File localFile)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkDocumentIndexable(job.getOutputConnectionName(),outputVersion,localFile);
+      return ingester.checkDocumentIndexable(
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputName,outputDescriptionString,localFile,
+        ingestLogger);
     }
 
     /** Check whether a document of a specified length is indexable by the currently specified output connector.
@@ -2118,7 +2228,10 @@ public class WorkerThread extends Thread
     public boolean checkLengthIndexable(long length)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkLengthIndexable(job.getOutputConnectionName(),outputVersion,length);
+      return ingester.checkLengthIndexable(
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputName,outputDescriptionString,length,
+        ingestLogger);
     }
 
     /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
@@ -2130,7 +2243,10 @@ public class WorkerThread extends Thread
     public boolean checkURLIndexable(String url)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkURLIndexable(job.getOutputConnectionName(),outputVersion,url);
+      return ingester.checkURLIndexable(
+        transformationConnectionNames,transformationDescriptionStrings,
+        outputName,outputDescriptionString,url,
+        ingestLogger);
     }
 
     /** Create a global string from a simple string.
@@ -2160,7 +2276,7 @@ public class WorkerThread extends Thread
     @Override
     public String createJobSpecificString(String simpleString)
     {
-      return ManifoldCF.createJobSpecificString(job.getID(),simpleString);
+      return ManifoldCF.createJobSpecificString(jobID,simpleString);
     }
 
   }
@@ -2428,23 +2544,78 @@ public class WorkerThread extends Thread
     }
   }
 
+  /** The check activity class */
+  protected static class CheckActivity implements IOutputCheckActivity
+  {
+    public CheckActivity()
+    {
+    }
+
+    /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param mimeType is the mime type of the document.
+    *@return true if the mime type can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkMimeTypeIndexable(String mimeType)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return false;
+    }
+
+    /** Pre-determine whether a document (passed here as a File object) is acceptable downstream.  This method is
+    * used to determine whether a document needs to be actually transferred.  This hook is provided mainly to support
+    * search engines that only handle a small set of accepted file types.
+    *@param localFile is the local file to check.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkDocumentIndexable(File localFile)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return false;
+    }
+
+    /** Pre-determine whether a document's length is acceptable downstream.  This method is used
+    * to determine whether to fetch a document in the first place.
+    *@param length is the length of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkLengthIndexable(long length)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return false;
+    }
+
+    /** Pre-determine whether a document's URL is acceptable downstream.  This method is used
+    * to help filter out documents that cannot be indexed in advance.
+    *@param url is the URL of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkURLIndexable(String url)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return false;
+    }
+    
+  }
+  
   /** The ingest logger class */
-  protected static class OutputActivity implements IOutputActivity
+  protected static class OutputActivity extends CheckActivity implements IOutputActivity
   {
 
     // Connection name
-    protected String connectionName;
+    protected final String connectionName;
     // Connection manager
-    protected IRepositoryConnectionManager connMgr;
-    // Output connection name
-    protected String outputConnectionName;
+    protected final IRepositoryConnectionManager connMgr;
 
     /** Constructor */
-    public OutputActivity(String connectionName, IRepositoryConnectionManager connMgr, String outputConnectionName)
+    public OutputActivity(String connectionName, IRepositoryConnectionManager connMgr)
     {
       this.connectionName = connectionName;
       this.connMgr = connMgr;
-      this.outputConnectionName = outputConnectionName;
     }
 
     /** Record time-stamped information about the activity of the output connector.
@@ -2462,11 +2633,12 @@ public class WorkerThread extends Thread
     *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
     *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
     */
+    @Override
     public void recordActivity(Long startTime, String activityType, Long dataSize,
       String entityURI, String resultCode, String resultDescription)
       throws ManifoldCFException
     {
-      connMgr.recordHistory(connectionName,startTime,ManifoldCF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
+      connMgr.recordHistory(connectionName,startTime,activityType,dataSize,entityURI,resultCode,
         resultDescription,null);
     }
 
@@ -2476,21 +2648,28 @@ public class WorkerThread extends Thread
     *@param accessToken is the raw, repository access token.
     *@return the properly qualified access token.
     */
+    @Override
     public String qualifyAccessToken(String authorityNameString, String accessToken)
       throws ManifoldCFException
     {
-      try
-      {
         if (authorityNameString == null)
-          return java.net.URLEncoder.encode(accessToken,"UTF-8");
-        return java.net.URLEncoder.encode(authorityNameString,"UTF-8") + ":" + java.net.URLEncoder.encode(accessToken,"UTF-8");
-      }
-      catch (java.io.UnsupportedEncodingException e)
-      {
-        throw new ManifoldCFException(e.getMessage(),e);
-      }
+          return URLEncoder.encode(accessToken);
+        else
+          return URLEncoder.encode(authorityNameString) + ":" + URLEncoder.encode(accessToken);
     }
 
+    /** Send a document via the pipeline to the next output connection.
+    *@param documentURI is the document's URI.
+    *@param document is the document data to be processed (handed to the output data store).
+    *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
+    *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+    */
+    public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      // No downstream connection at output connection level.
+      return IPipelineConnector.DOCUMENTSTATUS_REJECTED;
+    }
 
   }
 

@@ -104,6 +104,8 @@
 %>
 
 <?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -280,11 +282,33 @@
 %>
 
 	<form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
-	  <input type="hidden" name="op" value="Continue"/>
-	  <input type="hidden" name="type" value="connection"/>
-	  <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
-	  <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
+	    <input type="hidden" name="op" value="Continue"/>
+	    <input type="hidden" name="type" value="connection"/>
+	    <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
+	    <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
 	    <table class="tabtable">
+	      <tr class="tabspacerrow">
+		<td class="spacertab" colspan="<%=tabsArray.size()%>"></td>
+		<td class="remaindertab" rowspan="3">
+<%
+	  if (description.length() > 0)
+	  {
+%>
+			<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.EditConnection")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+<%
+	  }
+	  else
+	  {
+%>
+		          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.EditAConnection")%></nobr>
+<%
+	  }
+%>
+		</td>
+	      </tr>
+	      <tr class="tabsequencerow">
+		<td class="blanksequencetab" colspan="<%=tabsArray.size()%>"></td>
+	      </tr>
 	      <tr class="tabrow">
 <%
 	  int tabNum = 0;
@@ -305,22 +329,6 @@
 		}
 	  }
 %>
-		      <td class="remaindertab">
-<%
-	  if (description.length() > 0)
-	  {
-%>
-			  <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.EditConnection")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
-<%
-	  }
-	  else
-	  {
-%>
-		          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.EditAConnection")%></nobr>
-<%
-	  }
-%>
-		      </td>
 	      </tr>
 	      <tr class="tabbodyrow">
 		<td class="tabbody" colspan='<%=Integer.toString(tabsArray.size()+1)%>'>

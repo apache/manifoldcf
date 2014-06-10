@@ -196,6 +196,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   // Connectors configuration file
   protected static final String NODE_AUTHORIZATIONDOMAIN = "authorizationdomain";
   protected static final String NODE_OUTPUTCONNECTOR = "outputconnector";
+  protected static final String NODE_TRANSFORMATIONCONNECTOR = "transformationconnector";
   protected static final String NODE_MAPPINGCONNECTOR = "mappingconnector";
   protected static final String NODE_AUTHORITYCONNECTOR = "authorityconnector";
   protected static final String NODE_REPOSITORYCONNECTOR = "repositoryconnector";
@@ -211,6 +212,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Create a map of class name and description, so we can compare what we can find
     // against what we want.
     Map<String,String> desiredOutputConnectors = new HashMap<String,String>();
+    Map<String,String> desiredTransformationConnectors = new HashMap<String,String>();
     Map<String,String> desiredMappingConnectors = new HashMap<String,String>();
     Map<String,String> desiredAuthorityConnectors = new HashMap<String,String>();
     Map<String,String> desiredRepositoryConnectors = new HashMap<String,String>();
@@ -233,6 +235,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
           String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
           desiredOutputConnectors.put(className,name);
+        }
+        else if (cn.getType().equals(NODE_TRANSFORMATIONCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          desiredTransformationConnectors.put(className,name);
         }
         else if (cn.getType().equals(NODE_MAPPINGCONNECTOR))
         {
@@ -319,6 +327,49 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         }
       }
       System.err.println("Successfully unregistered all output connectors");
+    }
+
+    // Output connectors...
+    {
+      ITransformationConnectorManager mgr = TransformationConnectorManagerFactory.make(tc);
+      ITransformationConnectionManager connManager = TransformationConnectionManagerFactory.make(tc);
+      IResultSet classNames = mgr.getConnectors();
+      int i = 0;
+      while (i < classNames.getRowCount())
+      {
+        IResultRow row = classNames.getRow(i++);
+        String className = (String)row.getValue("classname");
+        String description = (String)row.getValue("description");
+        if (desiredTransformationConnectors.get(className) == null || !desiredTransformationConnectors.get(className).equals(description))
+        {
+          // Deregistration should be done in a transaction
+          database.beginTransaction();
+          try
+          {
+            // Find the connection names that come with this class
+            String[] connectionNames = connManager.findConnectionsForConnector(className);
+            // For all connection names, notify all agents of the deregistration
+            AgentManagerFactory.noteTransformationConnectorDeregistration(tc,connectionNames);
+            // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
+            mgr.unregisterConnector(className);
+          }
+          catch (ManifoldCFException e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          catch (Error e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          finally
+          {
+            database.endTransaction();
+          }
+        }
+      }
+      System.err.println("Successfully unregistered all transformation connectors");
     }
 
     // Mapping connectors...
@@ -462,6 +513,40 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           }
           System.err.println("Successfully registered output connector '"+className+"'");
         }
+        else if (cn.getType().equals(NODE_TRANSFORMATIONCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          ITransformationConnectorManager mgr = TransformationConnectorManagerFactory.make(tc);
+          ITransformationConnectionManager connManager = TransformationConnectionManagerFactory.make(tc);
+          // Registration should be done in a transaction
+          database.beginTransaction();
+          try
+          {
+            // First, register connector
+            mgr.registerConnector(name,className);
+            // Then, signal to all jobs that might depend on this connector that they can switch state
+            // Find the connection names that come with this class
+            String[] connectionNames = connManager.findConnectionsForConnector(className);
+            // For all connection names, notify all agents of the registration
+            AgentManagerFactory.noteTransformationConnectorRegistration(tc,connectionNames);
+          }
+          catch (ManifoldCFException e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          catch (Error e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          finally
+          {
+            database.endTransaction();
+          }
+          System.err.println("Successfully registered transformation connector '"+className+"'");
+        }
         else if (cn.getType().equals(NODE_AUTHORITYCONNECTOR))
         {
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
@@ -565,6 +650,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of writing configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+    ITransformationConnectionManager transManager = TransformationConnectionManagerFactory.make(threadContext);
     IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
@@ -624,6 +710,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
             // The zipentries must be written in an order that permits their proper restoration.  The "lowest level" is thus
             // written first, which yields the order: authority connections, repository connections, jobs
+            java.util.zip.ZipEntry transEntry = new java.util.zip.ZipEntry("transformations");
+            zos.putNextEntry(transEntry);
+            transManager.exportConfiguration(zos);
+            zos.closeEntry();
+
             java.util.zip.ZipEntry outputEntry = new java.util.zip.ZipEntry("outputs");
             zos.putNextEntry(outputEntry);
             outputManager.exportConfiguration(zos);
@@ -705,6 +796,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of reading configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+    ITransformationConnectionManager transManager = TransformationConnectionManagerFactory.make(threadContext);
     IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
@@ -761,7 +853,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
               entries++;
               // Get the name of the entry
               String name = z.getName();
-              if (name.equals("outputs"))
+              if (name.equals("transformations"))
+                transManager.importConfiguration(zis);
+              else if (name.equals("outputs"))
                 outputManager.importConfiguration(zis);
               else if (name.equals("groups"))
                 groupManager.importConfiguration(zis);
@@ -1029,16 +1123,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   }
 
-  /** Qualify output activity name.
-  *@param outputActivityName is the name of the output activity.
-  *@param outputConnectionName is the corresponding name of the output connection.
-  *@return the qualified (global) activity name.
-  */
-  public static String qualifyOutputActivityName(String outputActivityName, String outputConnectionName)
-  {
-    return outputActivityName+" ("+outputConnectionName+")";
-  }
-
   /** Get the activities list for a given repository connection.
   */
   public static String[] getActivitiesList(IThreadContext threadContext, String connectionName)
@@ -1049,31 +1133,35 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     if (thisConnection == null)
       return null;
     String[] outputActivityList = OutputConnectionManagerFactory.getAllOutputActivities(threadContext);
+    String[] transformationActivityList = TransformationConnectionManagerFactory.getAllTransformationActivities(threadContext);
     String[] connectorActivityList = RepositoryConnectorFactory.getActivitiesList(threadContext,thisConnection.getClassName());
     String[] globalActivityList = IRepositoryConnectionManager.activitySet;
-    String[] activityList = new String[outputActivityList.length + ((connectorActivityList==null)?0:connectorActivityList.length) + globalActivityList.length];
+    String[] activityList = new String[transformationActivityList.length + outputActivityList.length + ((connectorActivityList==null)?0:connectorActivityList.length) + globalActivityList.length];
     int k2 = 0;
-    int j;
+    if (transformationActivityList != null)
+    {
+      for (String transformationActivity: transformationActivityList)
+      {
+        activityList[k2++] = transformationActivity;
+      }
+    }
     if (outputActivityList != null)
     {
-      j = 0;
-      while (j < outputActivityList.length)
+      for (String outputActivity : outputActivityList)
       {
-        activityList[k2++] = outputActivityList[j++];
+        activityList[k2++] = outputActivity;
       }
     }
     if (connectorActivityList != null)
     {
-      j = 0;
-      while (j < connectorActivityList.length)
+      for (String connectorActivity : connectorActivityList)
       {
-        activityList[k2++] = connectorActivityList[j++];
+        activityList[k2++] = connectorActivity;
       }
     }
-    j = 0;
-    while (j < globalActivityList.length)
+    for (String globalActivity : globalActivityList)
     {
-      activityList[k2++] = globalActivityList[j++];
+      activityList[k2++] = globalActivity;
     }
     java.util.Arrays.sort(activityList);
     return activityList;
@@ -1109,10 +1197,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String API_AUTHORITYGROUPNODE = "authoritygroup";
   protected static final String API_REPOSITORYCONNECTORNODE = "repositoryconnector";
   protected static final String API_OUTPUTCONNECTORNODE = "outputconnector";
+  protected static final String API_TRANSFORMATIONCONNECTORNODE = "transformationconnector";
   protected static final String API_AUTHORITYCONNECTORNODE = "authorityconnector";
   protected static final String API_MAPPINGCONNECTORNODE = "mappingconnector";
   protected static final String API_REPOSITORYCONNECTIONNODE = "repositoryconnection";
   protected static final String API_OUTPUTCONNECTIONNODE = "outputconnection";
+  protected static final String API_TRANSFORMATIONCONNECTIONNODE = "transformationconnection";
   protected static final String API_AUTHORITYCONNECTIONNODE = "authorityconnection";
   protected static final String API_MAPPINGCONNECTIONNODE = "mappingconnection";
   protected static final String API_CHECKRESULTNODE = "check_result";
@@ -1249,6 +1339,48 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       finally
       {
         outputConnectorPool.release(connection,connector);
+      }
+          
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      output.addChild(output.getChildCount(),response);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Read a transformation connection status */
+  protected static int apiReadTransformationConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(tc);
+      ITransformationConnectionManager connectionManager = TransformationConnectionManagerFactory.make(tc);
+      ITransformationConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+          
+      String results;
+      // Grab a connection handle, and call the test method
+      ITransformationConnector connector = transformationConnectorPool.grab(connection);
+      try
+      {
+        results = connector.check();
+      }
+      catch (ManifoldCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        transformationConnectorPool.release(connection,connector);
       }
           
       ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
@@ -1413,6 +1545,39 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       finally
       {
         outputConnectorPool.release(connection,connector);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Read a transformation connection's info */
+  protected static int apiReadTransformationConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+    throws ManifoldCFException
+  {
+    try
+    {
+      ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(tc);
+      ITransformationConnectionManager connectionManager = TransformationConnectionManagerFactory.make(tc);
+      ITransformationConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+
+      // Grab a connection handle, and call the test method
+      ITransformationConnector connector = transformationConnectorPool.grab(connection);
+      try
+      {
+        return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
+      }
+      finally
+      {
+        transformationConnectorPool.release(connection,connector);
       }
     }
     catch (ManifoldCFException e)
@@ -1669,6 +1834,57 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
 
+    /** Get transformation connections */
+  protected static int apiReadTransformationConnections(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      ITransformationConnectionManager connManager = TransformationConnectionManagerFactory.make(tc);
+      ITransformationConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_TRANSFORMATIONCONNECTIONNODE);
+        formatTransformationConnection(connectionNode,connections[i++]);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read transformation connection */
+  protected static int apiReadTransformationConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      ITransformationConnectionManager connectionManager = TransformationConnectionManagerFactory.make(tc);
+      ITransformationConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_TRANSFORMATIONCONNECTIONNODE);
+        formatTransformationConnection(connectionNode,connection);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+      else
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist.");
+        return READRESULT_NOTFOUND;
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
   /** Get authority connections */
   protected static int apiReadAuthorityConnections(IThreadContext tc, Configuration output)
     throws ManifoldCFException
@@ -1836,6 +2052,43 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       {
         IResultRow row = resultSet.getRow(j++);
         ConfigurationNode child = new ConfigurationNode(API_OUTPUTCONNECTORNODE);
+        String description = (String)row.getValue("description");
+        String className = (String)row.getValue("classname");
+        ConfigurationNode node;
+        if (description != null)
+        {
+          node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+          node.setValue(description);
+          child.addChild(child.getChildCount(),node);
+        }
+        node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+        node.setValue(className);
+        child.addChild(child.getChildCount(),node);
+
+        output.addChild(output.getChildCount(),child);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** List transformation connectors */
+  protected static int apiReadTransformationConnectors(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    // List registered transformation connectors
+    try
+    {
+      ITransformationConnectorManager manager = TransformationConnectorManagerFactory.make(tc);
+      IResultSet resultSet = manager.getConnectors();
+      int j = 0;
+      while (j < resultSet.getRowCount())
+      {
+        IResultRow row = resultSet.getRow(j++);
+        ConfigurationNode child = new ConfigurationNode(API_TRANSFORMATIONCONNECTORNODE);
         String description = (String)row.getValue("description");
         String className = (String)row.getValue("classname");
         ConfigurationNode node;
@@ -2681,6 +2934,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       {
         return apiReadOutputConnectionStatus(tc,output,connectionName);
       }
+      else if (connectionType.equals("transformationconnections"))
+      {
+        return apiReadTransformationConnectionStatus(tc,output,connectionName);
+      }
       else if (connectionType.equals("mappingconnections"))
       {
         return apiReadMappingConnectionStatus(tc,output,connectionName);
@@ -2723,6 +2980,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (connectionType.equals("outputconnections"))
       {
         return apiReadOutputConnectionInfo(tc,output,connectionName,command);
+      }
+      else if (connectionType.equals("transformationconnections"))
+      {
+        return apiReadTransformationConnectionInfo(tc,output,connectionName,command);
       }
       else if (connectionType.equals("repositoryconnections"))
       {
@@ -2770,6 +3031,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
       return apiReadOutputConnection(tc,output,connectionName);
     }
+    else if (path.equals("transformationconnections"))
+    {
+      return apiReadTransformationConnections(tc,output);
+    }
+    else if (path.startsWith("transformationconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("transformationconnections/".length()));
+      return apiReadTransformationConnection(tc,output,connectionName);
+    }
     else if (path.equals("mappingconnections"))
     {
       return apiReadMappingConnections(tc,output);
@@ -2800,6 +3070,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (path.equals("outputconnectors"))
     {
       return apiReadOutputConnectors(tc,output);
+    }
+    else if (path.equals("transformationconnectors"))
+    {
+      return apiReadTransformationConnectors(tc,output);
     }
     else if (path.equals("mappingconnectors"))
     {
@@ -3109,6 +3383,41 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     return WRITERESULT_FOUND;
   }
+
+  /** Write transformation connection.
+  */
+  protected static int apiWriteTransformationConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+    throws ManifoldCFException
+  {
+    ConfigurationNode connectionNode = findConfigurationNode(input,API_TRANSFORMATIONCONNECTIONNODE);
+    if (connectionNode == null)
+      throw new ManifoldCFException("Input argument must have '"+API_TRANSFORMATIONCONNECTIONNODE+"' field");
+      
+    // Turn the configuration node into a TransformationConnection
+    org.apache.manifoldcf.agents.transformationconnection.TransformationConnection transformationConnection = new org.apache.manifoldcf.agents.transformationconnection.TransformationConnection();
+    processTransformationConnection(transformationConnection,connectionNode);
+      
+    if (transformationConnection.getName() == null)
+      transformationConnection.setName(connectionName);
+    else
+    {
+      if (!transformationConnection.getName().equals(connectionName))
+        throw new ManifoldCFException("Connection name in path and in object must agree");
+    }
+      
+    try
+    {
+      // Save the connection.
+      ITransformationConnectionManager connectionManager = TransformationConnectionManagerFactory.make(tc);
+      if (connectionManager.save(transformationConnection))
+        return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
   
   /** Write authority connection.
   */
@@ -3331,6 +3640,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
       return apiWriteOutputConnection(tc,output,input,connectionName);
+    }
+    else if (path.startsWith("transformationconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("transformationconnections/".length()));
+      return apiWriteTransformationConnection(tc,output,input,connectionName);
     }
     else if (path.startsWith("mappingconnections/"))
     {
@@ -3560,6 +3874,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBNODE_FORCEDPARAM = "forcedparam";
   protected static final String JOBNODE_PARAMNAME = "paramname";
   protected static final String JOBNODE_PARAMVALUE = "paramvalue";
+  protected static final String JOBNODE_PIPELINESTAGE = "pipelinestage";
+  protected static final String JOBNODE_STAGECONNECTIONNAME = "stage_connectionname";
+  protected static final String JOBNODE_STAGEDESCRIPTION = "stage_description";
+  protected static final String JOBNODE_STAGESPECIFICATION = "stage_specification";
 
   /** Convert a node into a job description.
   *@param jobDescription is the job to be filled in.
@@ -3592,15 +3910,43 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       {
         jobDescription.setOutputConnectionName(child.getValue());
       }
+      else if (childType.equals(JOBNODE_PIPELINESTAGE))
+      {
+        String stageConnectionName = null;
+        String stageDescription = null;
+        ConfigurationNode stageSpecification = null;
+        for (int q = 0; q < child.getChildCount(); q++)
+        {
+          ConfigurationNode cn = child.findChild(q);
+          if (cn.getType().equals(JOBNODE_STAGECONNECTIONNAME))
+            stageConnectionName = cn.getValue();
+          else if (cn.getType().equals(JOBNODE_STAGEDESCRIPTION))
+            stageDescription = cn.getValue();
+          else if (cn.getType().equals(JOBNODE_STAGESPECIFICATION))
+          {
+            stageSpecification = cn;
+          }
+          else
+            throw new ManifoldCFException("Found an unexpected node type: '"+cn.getType()+"'");
+        }
+        if (stageConnectionName == null)
+          throw new ManifoldCFException("Missing required field: '"+JOBNODE_STAGECONNECTIONNAME+"'");
+        OutputSpecification os = jobDescription.addPipelineStage(stageConnectionName,stageDescription);
+        os.clearChildren();
+        for (int j = 0; j < stageSpecification.getChildCount(); j++)
+        {
+          ConfigurationNode cn = stageSpecification.findChild(j);
+          os.addChild(os.getChildCount(),new SpecificationNode(cn));
+        }
+      }
       else if (childType.equals(JOBNODE_DOCUMENTSPECIFICATION))
       {
         // Get the job's document specification, clear out the children, and copy new ones from the child.
         DocumentSpecification ds = jobDescription.getSpecification();
         ds.clearChildren();
-        int j = 0;
-        while (j < child.getChildCount())
+        for (int j = 0; j < child.getChildCount(); j++)
         {
-          ConfigurationNode cn = child.findChild(j++);
+          ConfigurationNode cn = child.findChild(j);
           ds.addChild(ds.getChildCount(),new SpecificationNode(cn));
         }
       }
@@ -3609,10 +3955,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         // Get the job's output specification, clear out the children, and copy new ones from the child.
         OutputSpecification os = jobDescription.getOutputSpecification();
         os.clearChildren();
-        int j = 0;
-        while (j < child.getChildCount())
+        for (int j = 0; j < child.getChildCount(); j++)
         {
-          ConfigurationNode cn = child.findChild(j++);
+          ConfigurationNode cn = child.findChild(j);
           os.addChild(os.getChildCount(),new SpecificationNode(cn));
         }
       }
@@ -3770,7 +4115,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     // For each field of the job, add an appropriate child node, with value.
     ConfigurationNode child;
-    int j;
     
     // id
     if (job.getID() != null)
@@ -3807,10 +4151,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Document specification
     DocumentSpecification ds = job.getSpecification();
     child = new ConfigurationNode(JOBNODE_DOCUMENTSPECIFICATION);
-    j = 0;
-    while (j < ds.getChildCount())
+    for (int j = 0; j < ds.getChildCount(); j++)
     {
-      ConfigurationNode cn = ds.getChild(j++);
+      ConfigurationNode cn = ds.getChild(j);
       child.addChild(child.getChildCount(),cn);
     }
     jobNode.addChild(jobNode.getChildCount(),child);
@@ -3818,13 +4161,38 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Output specification
     OutputSpecification os = job.getOutputSpecification();
     child = new ConfigurationNode(JOBNODE_OUTPUTSPECIFICATION);
-    j = 0;
-    while (j < os.getChildCount())
+    for (int j = 0; j < os.getChildCount(); j++)
     {
-      ConfigurationNode cn = os.getChild(j++);
+      ConfigurationNode cn = os.getChild(j);
       child.addChild(child.getChildCount(),cn);
     }
     jobNode.addChild(jobNode.getChildCount(),child);
+
+    // Pipeline stages
+    for (int j = 0; j < job.countPipelineStages(); j++)
+    {
+      child = new ConfigurationNode(JOBNODE_PIPELINESTAGE);
+      ConfigurationNode stage;
+      stage = new ConfigurationNode(JOBNODE_STAGECONNECTIONNAME);
+      stage.setValue(job.getPipelineStageConnectionName(j));
+      child.addChild(child.getChildCount(),stage);
+      String description = job.getPipelineStageDescription(j);
+      if (description != null)
+      {
+        stage = new ConfigurationNode(JOBNODE_STAGEDESCRIPTION);
+        stage.setValue(description);
+        child.addChild(child.getChildCount(),stage);
+      }
+      OutputSpecification spec = job.getPipelineStageSpecification(j);
+      stage = new ConfigurationNode(JOBNODE_STAGESPECIFICATION);
+      for (int k = 0; k < spec.getChildCount(); k++)
+      {
+        ConfigurationNode cn = spec.getChild(k);
+        stage.addChild(stage.getChildCount(),cn);
+      }
+      child.addChild(child.getChildCount(),stage);
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
 
     // Start mode
     child = new ConfigurationNode(JOBNODE_STARTMODE);
@@ -3897,10 +4265,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     
     // Schedule records
-    j = 0;
-    while (j < job.getScheduleRecordCount())
+    for (int j = 0; j < job.getScheduleRecordCount(); j++)
     {
-      ScheduleRecord sr = job.getScheduleRecord(j++);
+      ScheduleRecord sr = job.getScheduleRecord(j);
       child = new ConfigurationNode(JOBNODE_SCHEDULE);
       ConfigurationNode recordChild;
       
@@ -4367,6 +4734,118 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   /** Format an output connection.
   */
   protected static void formatOutputConnection(ConfigurationNode connectionNode, IOutputConnection connection)
+  {
+    ConfigurationNode child;
+    int j;
+
+    child = new ConfigurationNode(CONNECTIONNODE_ISNEW);
+    child.setValue(connection.getIsNew()?"true":"false");
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_NAME);
+    child.setValue(connection.getName());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_CLASSNAME);
+    child.setValue(connection.getClassName());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_MAXCONNECTIONS);
+    child.setValue(Integer.toString(connection.getMaxConnections()));
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    if (connection.getDescription() != null)
+    {
+      child = new ConfigurationNode(CONNECTIONNODE_DESCRIPTION);
+      child.setValue(connection.getDescription());
+      connectionNode.addChild(connectionNode.getChildCount(),child);
+    }
+    
+    ConfigParams cp = connection.getConfigParams();
+    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
+    j = 0;
+    while (j < cp.getChildCount())
+    {
+      ConfigurationNode cn = cp.findChild(j++);
+      child.addChild(child.getChildCount(),cn);
+    }
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+  }
+
+  // Transformation connection API support
+  
+    /** Convert input hierarchy into a TransformationConnection object.
+  */
+  protected static void processTransformationConnection(org.apache.manifoldcf.agents.transformationconnection.TransformationConnection connection, ConfigurationNode connectionNode)
+    throws ManifoldCFException
+  {
+    // Walk through the node's children
+    int i = 0;
+    while (i < connectionNode.getChildCount())
+    {
+      ConfigurationNode child = connectionNode.findChild(i++);
+      String childType = child.getType();
+      if (childType.equals(CONNECTIONNODE_ISNEW))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection isnew node requires a value");
+        connection.setIsNew(child.getValue().equals("true"));
+      }
+      else if (childType.equals(CONNECTIONNODE_NAME))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection name node requires a value");
+        connection.setName(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_CLASSNAME))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection classname node requires a value");
+        connection.setClassName(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection maxconnections node requires a value");
+        try
+        {
+          connection.setMaxConnections(Integer.parseInt(child.getValue()));
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException("Error parsing max connections: "+e.getMessage(),e);
+        }
+      }
+      else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection description node requires a value");
+        connection.setDescription(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
+      {
+        // Get the connection's configuration, clear out the children, and copy new ones from the child.
+        ConfigParams cp = connection.getConfigParams();
+        cp.clearChildren();
+        int j = 0;
+        while (j < child.getChildCount())
+        {
+          ConfigurationNode cn = child.findChild(j++);
+          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
+        }
+      }
+      else
+        throw new ManifoldCFException("Unrecognized output connection field: '"+childType+"'");
+    }
+    if (connection.getClassName() == null)
+      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+
+  }
+
+  /** Format a transformation connection.
+  */
+  protected static void formatTransformationConnection(ConfigurationNode connectionNode, ITransformationConnection connection)
   {
     ConfigurationNode child;
     int j;

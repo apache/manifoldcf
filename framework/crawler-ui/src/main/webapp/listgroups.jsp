@@ -23,6 +23,8 @@
 %>
 
 <?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -94,8 +96,8 @@
 		<tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
 			<td class="columncell">
 				<nobr>
-					<a href='<%="viewgroup.jsp?groupname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.View")%></a>
-					<a href='<%="editgroup.jsp?groupname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Edit")%></a>
+					<a href='<%="viewgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.View")%></a>
+					<a href='<%="editgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Edit")%></a>
 					<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Delete")%></a>
 				</nobr>
 			</td>
