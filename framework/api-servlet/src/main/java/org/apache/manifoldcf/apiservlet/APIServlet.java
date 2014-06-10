@@ -23,10 +23,11 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
-
+import org.apache.manifoldcf.core.util.URLDecoder;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.net.*;
+
 
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -259,7 +260,7 @@ public class APIServlet extends HttpServlet
     if (readResult == ManifoldCF.READRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
 
-    byte[] responseValue = outputText.getBytes("utf-8");
+    byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
     // Set response mime type
     response.setContentType("text/plain; charset=utf-8");
@@ -303,7 +304,7 @@ public class APIServlet extends HttpServlet
     // We presume the data is utf-8
     StringBuilder sb = new StringBuilder();
     char[] buffer = new char[65536];
-    Reader r = new InputStreamReader(data,"utf-8");
+    Reader r = new InputStreamReader(data,StandardCharsets.UTF_8);
     while (true)
     {
       int amt = r.read(buffer);
@@ -373,7 +374,7 @@ public class APIServlet extends HttpServlet
     else if (writeResult == ManifoldCF.WRITERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
     
-    byte[] responseValue = outputText.getBytes("utf-8");
+    byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
     // Set response mime type
     response.setContentType("text/plain; charset=utf-8");
@@ -417,7 +418,7 @@ public class APIServlet extends HttpServlet
     // We presume the data is utf-8
     StringBuilder sb = new StringBuilder();
     char[] buffer = new char[65536];
-    Reader r = new InputStreamReader(data,"utf-8");
+    Reader r = new InputStreamReader(data,StandardCharsets.UTF_8);
     while (true)
     {
       int amt = r.read(buffer);
@@ -484,7 +485,7 @@ public class APIServlet extends HttpServlet
     else if (writeResult == ManifoldCF.POSTRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
     
-    byte[] responseValue = outputText.getBytes("utf-8");
+    byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
     // Set response mime type
     response.setContentType("text/plain; charset=utf-8");
@@ -560,7 +561,7 @@ public class APIServlet extends HttpServlet
     if (result == ManifoldCF.DELETERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
     
-    byte[] responseValue = outputText.getBytes("utf-8");
+    byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
     // Set response mime type
     response.setContentType("text/plain; charset=utf-8");
@@ -580,7 +581,6 @@ public class APIServlet extends HttpServlet
   }
   
   protected static Map<String,List<String>> parseQueryString(String queryString)
-    throws UnsupportedEncodingException
   {
     if (queryString == null)
       return null;
@@ -590,9 +590,9 @@ public class APIServlet extends HttpServlet
     {
       int index = term.indexOf("=");
       if (index == -1)
-        addValue(rval,URLDecoder.decode(term,"utf-8"),"");
+        addValue(rval,URLDecoder.decode(term),"");
       else
-        addValue(rval,URLDecoder.decode(term.substring(0,index),"utf-8"),URLDecoder.decode(term.substring(index+1),"utf-8"));
+        addValue(rval,URLDecoder.decode(term.substring(0,index)),URLDecoder.decode(term.substring(index+1)));
     }
     return rval;
   }

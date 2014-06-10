@@ -25,6 +25,7 @@ import org.apache.manifoldcf.core.common.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.ArrayList;
@@ -978,7 +979,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
             String documentURI = jiraFile.getSelf();
             String document = getJiraBody(jiraFile);
             try {
-              byte[] documentBytes = document.getBytes("UTF-8");
+              byte[] documentBytes = document.getBytes(StandardCharsets.UTF_8);
               InputStream is = new ByteArrayInputStream(documentBytes);
               try {
                 rd.setBinary(is, documentBytes.length);

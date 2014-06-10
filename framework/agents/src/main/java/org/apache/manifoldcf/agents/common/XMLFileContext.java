@@ -27,7 +27,6 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.io.FileNotFoundException;
 
 import org.apache.manifoldcf.core.interfaces.*;
@@ -41,7 +40,7 @@ public class XMLFileContext extends XMLOutputStreamContext
 
   /** Full constructor.  Used for individual tags. */
   public XMLFileContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, File f)
-    throws ManifoldCFException, UnsupportedEncodingException, FileNotFoundException
+    throws FileNotFoundException
   {
     // Construct an appropriate writer
     super(theStream,namespaceURI,localname,qname,theseAttributes,new FileOutputStream(f));

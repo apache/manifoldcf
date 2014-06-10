@@ -20,7 +20,8 @@ package org.apache.manifoldcf.crawler.connectors.generic;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
+import org.apache.manifoldcf.core.util.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -204,13 +205,9 @@ public class GenericConnector extends BaseRepositoryConnector {
     for (int i = 0; i < spec.getChildCount(); i++) {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals("param")) {
-        try {
           String paramName = sn.getAttributeValue("name");
           String paramValue = sn.getValue();
-          url.append("&").append(URLEncoder.encode(paramName, "UTF-8")).append("=").append(URLEncoder.encode(paramValue, "UTF-8"));
-        } catch (UnsupportedEncodingException ex) {
-          throw new ManifoldCFException("addSeedDocuments error: " + ex.getMessage(), ex);
-        }
+          url.append("&").append(URLEncoder.encode(paramName)).append("=").append(URLEncoder.encode(paramValue));
       }
     }
     ExecuteSeedingThread t = new ExecuteSeedingThread(client, url.toString());
@@ -272,22 +269,19 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     HttpClient client = getClient();
     StringBuilder url = new StringBuilder(genericEntryPoint);
-    try {
+
       url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_ITEMS);
       for (int i = 0; i < documentIdentifiers.length; i++) {
-        url.append("&id[]=").append(URLEncoder.encode(documentIdentifiers[i], "UTF-8"));
+        url.append("&id[]=").append(URLEncoder.encode(documentIdentifiers[i]));
       }
       for (int i = 0; i < spec.getChildCount(); i++) {
         SpecificationNode sn = spec.getChild(i);
         if (sn.getType().equals("param")) {
           String paramName = sn.getAttributeValue("name");
           String paramValue = sn.getValue();
-          url.append("&").append(URLEncoder.encode(paramName, "UTF-8")).append("=").append(URLEncoder.encode(paramValue, "UTF-8"));
+          url.append("&").append(URLEncoder.encode(paramName)).append("=").append(URLEncoder.encode(paramValue));
         }
       }
-    } catch (UnsupportedEncodingException ex) {
-      throw new ManifoldCFException("getDocumentVersions error: " + ex.getMessage(), ex);
-    }
     try {
       DocumentVersionThread versioningThread = new DocumentVersionThread(client, url.toString(), documentIdentifiers, genericAuthMode, rights, documentCache);
       versioningThread.start();
@@ -401,7 +395,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
       if (item.content != null) {
         try {
-          byte[] content = item.content.getBytes("UTF-8");
+          byte[] content = item.content.getBytes(StandardCharsets.UTF_8);
           ByteArrayInputStream is = new ByteArrayInputStream(content);
           try {
             doc.setBinary(is, content.length);
@@ -415,20 +409,18 @@ public class GenericConnector extends BaseRepositoryConnector {
         }
       } else {
         StringBuilder url = new StringBuilder(genericEntryPoint);
-        try {
+
           url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_ITEM);
-          url.append("&id=").append(URLEncoder.encode(documentIdentifiers[i], "UTF-8"));
+          url.append("&id=").append(URLEncoder.encode(documentIdentifiers[i]));
           for (int j = 0; j < spec.getChildCount(); j++) {
             SpecificationNode sn = spec.getChild(j);
             if (sn.getType().equals("param")) {
               String paramName = sn.getAttributeValue("name");
               String paramValue = sn.getValue();
-              url.append("&").append(URLEncoder.encode(paramName, "UTF-8")).append("=").append(URLEncoder.encode(paramValue, "UTF-8"));
+              url.append("&").append(URLEncoder.encode(paramName)).append("=").append(URLEncoder.encode(paramValue));
             }
           }
-        } catch (UnsupportedEncodingException ex) {
-          throw new ManifoldCFException("processDocuments error: " + ex.getMessage(), ex);
-        }
+
 
         ExecuteProcessThread t = new ExecuteProcessThread(client, url.toString());
         try {

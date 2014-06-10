@@ -72,18 +72,21 @@
           <p></p>
           <table>
             <tr><th>Method</th><th>What it should do</th></tr>
+            <tr><td><strong>checkMimetypeIndexable()</strong></td><td>Decide whether a document with a given mime type is indexable or not</td></tr>
             <tr><td><strong>checkDocumentIndexable()</strong></td><td>Decide whether a file is indexable or not</td></tr>
-            <tr><td><strong>getOutputDescription()</strong></td><td>Use the supplied output specification to come up with an output version string</td></tr>
+            <tr><td><strong>checkLengthIndexable()</strong></td><td>Decide whether a document of a given length is indexable or not</td></tr>
+            <tr><td><strong>checkURLIndexable()</strong></td><td>Decide whether a document with a given URL is indexable or not</td></tr>
+            <tr><td><strong>getPipelineDescription()</strong></td><td>Use the supplied output specification to come up with an output version string</td></tr>
             <tr><td><strong>addOrReplaceDocument()</strong></td><td>Add or replace the specified document within the target repository, or signal if the document cannot be handled</td></tr>
             <tr><td><strong>removeDocument()</strong></td><td>Remove the specified document from the target repository</td></tr>
             <tr><td><strong>outputConfigurationHeader()</strong></td><td>Output the head-section part of an output connection <em>ConfigParams</em> editing page</td></tr>
             <tr><td><strong>outputConfigurationBody()</strong></td><td>Output the body-section part of an output connection <em>ConfigParams</em> editing page</td></tr>
             <tr><td><strong>processConfigurationPost()</strong></td><td>Receive and process form data from an output connection <em>ConfigParams</em> editing page</td></tr>
             <tr><td><strong>viewConfiguration()</strong></td><td>Output the viewing HTML for an output connection <em>ConfigParams</em> object</td></tr>
-            <tr><td><strong>outputSpecificationHeader()</strong></td><td>Output the head-section part of an <em>OutputSpecification</em> editing page</td></tr>
-            <tr><td><strong>outputSpecificationBody()</strong></td><td>Output the body-section part of an <em>OutputSpecification</em> editing page</td></tr>
-            <tr><td><strong>processSpecificationPost()</strong></td><td>Receive and process form data from an <em>OutputSpecification</em> editing page</td></tr>
-            <tr><td><strong>viewSpecification()</strong></td><td>Output the viewing page for an <em>OutputSpecification</em> object</td></tr>
+            <tr><td><strong>outputSpecificationHeader()</strong></td><td>Output the head-section part of a <em>Specification</em> editing page</td></tr>
+            <tr><td><strong>outputSpecificationBody()</strong></td><td>Output the body-section part of a <em>Specification</em> editing page</td></tr>
+            <tr><td><strong>processSpecificationPost()</strong></td><td>Receive and process form data from a <em>Specification</em> editing page</td></tr>
+            <tr><td><strong>viewSpecification()</strong></td><td>Output the viewing page for a <em>Specification</em> object</td></tr>
           </table>
           <p></p>
           <p>These methods come in three broad classes: (a) functional methods for doing the work of the connector; (b) UI methods for configuring a connection; and (c) UI methods for editing the output specification for a job.  Together they do the heavy lifting of your connector.  But before you can write any code at all, you need to plan things out a bit.</p>
