@@ -84,6 +84,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   
   /** Idle connection expiration interval */
   protected final static long EXPIRATION_INTERVAL = 300000L;
+
+  static
+  {
+    System.setProperty("jdk.xml.maxGeneralEntitySizeLimit",new Integer(Integer.MAX_VALUE).toString());
+  }
   
   /** Constructor.
   */

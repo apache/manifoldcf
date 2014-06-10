@@ -1,7 +1,91 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.6-dev =====================
+======================= 1.7-dev =====================
+
+CONNECTORS-960: Remove Specification subclass usage from main connector API's.
+(Karl Wright)
+
+CONNECTORS-953: Forced metadata changes do not reset seeding start time
+(Karl Wright)
+
+CONNECTORS-952: Crawler UI generates bad XML.
+(Karl Wright)
+
+CONNECTORS-951: Import/export does not handle forced metadata.
+(Karl Wright)
+
+CONNECTORS-946: Add pipeline support.  This is a major change that adds a new class of connector, UI changes,
+and includes structural as well as schema changes.  WARNING: Schema change!!
+(Karl Wright)
+
+CONNECTORS-950:CMIS Connector should ingest only the properties specified in the select clause
+(Piergiorgio Lucidi)
+
+CONNECTORS-916: Supply an Amazon Cloud Search connector.
+(Takumi Yoshida, Karl Wright)
+
+CONNECTORS-948: CMIS Connector returns couldn't encrypt null when the query doesn't include cmis:objectId
+(Piergiorgio Lucidi)
+
+CONNECTORS-947: ant test fails when make-deps is not run.
+(Karl Wright)
+
+CONNECTORS-945: GridFS connector.
+(Muhammed Olgun)
+
+CONNECTORS-944: Maven build has different stuff in war file than
+ant build.
+(Arcadius Ahouansou, Karl Wright)
+
+CONNECTORS-943: .aspx files not indexed by Sharepoint connector due to missing mime type in core
+
+CONNECTORS-941: Solr connector not working properly with basic auth.
+(Erlend Garåsen, Karl Wright)
+
+CONNECTORS-942: Add output connector method to handle notification
+of removal of all connection-related records.
+(Karl Wright)
+
+CONNECTORS-940: Upgrade slf4j and commons-logging to latest versions.
+(Karl Wright)
+
+CONNECTORS-933: Simplified chinese localizations.
+(Mingchun Zhao)
+
+CONNECTORS-938: Allow JSPs to all work properly with Java 8.
+(Arcadius Ahouansou, Ahmet Arslan)
+
+CONNECTORS-936: Handle null content streams in CMIS connector.
+(Cetra Free)
+
+CONNECTORS-935 : Use Java 7 in ant build
+(Ahmet Arslan)
+
+CONNECTORS-932 : Avoid UnsupportedEncodingException handling
+(Ahmet Arslan)
+
+CONNECTORS-927: Override JDK's entity expansion limit for Solr
+connector.
+(David Morana, Karl Wright)
+
+======================= Release 1.6 =====================
+
+CONNECTORS-928: Remove unused directory.
+(Ahmet Arslan, Karl Wright)
+
+CONNECTORS-925: Fix ant exclusions for zip/tar distributions on Linux variants.
+(Ahmet Arslan)
+
+CONNECTORS-923: Fix bandwidth throttling.
+(Karl Wright)
+
+CONNECTORS-920: Be more explicit in Solr connector about handling
+SocketTimeoutException.
+(Hitoshi Tatsumi, Karl Wright)
+
+CONNECTORS-919: Fix example-proprietary.
+(Karl Wright)
 
 CONNECTORS-913: Only remove connector registration when connectors
 are being delivered.

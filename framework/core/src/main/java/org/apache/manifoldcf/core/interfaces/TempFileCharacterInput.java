@@ -19,6 +19,8 @@
 package org.apache.manifoldcf.core.interfaces;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+
 import org.apache.manifoldcf.core.system.ManifoldCF;
 
 /** This class represents a temporary file character input
@@ -72,7 +74,7 @@ public class TempFileCharacterInput extends CharacterInput
 
         FileOutputStream outStream = new FileOutputStream(outfile);
         // Create a Writer corresponding to the file output stream, and encode using utf-8
-        OutputStreamWriter outWriter = new OutputStreamWriter(outStream,"utf-8");
+        OutputStreamWriter outWriter = new OutputStreamWriter(outStream,StandardCharsets.UTF_8);
         try
         {
           char[] buffer = new char[CHUNK_SIZE];
@@ -187,13 +189,9 @@ public class TempFileCharacterInput extends CharacterInput
     {
       // Open the file and create a stream.
       InputStream binaryStream = new FileInputStream(file);
-      stream = new InputStreamReader(binaryStream,"utf-8");
+      stream = new InputStreamReader(binaryStream, StandardCharsets.UTF_8);
     }
     catch (FileNotFoundException e)
-    {
-      throw new ManifoldCFException("Can't create stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
-    }
-    catch (UnsupportedEncodingException e)
     {
       throw new ManifoldCFException("Can't create stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
@@ -253,7 +251,7 @@ public class TempFileCharacterInput extends CharacterInput
     {
       // Open the file and create a stream.
       InputStream binaryStream = new FileInputStream(file);
-      Reader reader = new InputStreamReader(binaryStream,"utf-8");
+      Reader reader = new InputStreamReader(binaryStream,StandardCharsets.UTF_8);
       try
       {
         // Set up hash digest and character length counter before we start anything.

@@ -94,10 +94,10 @@
             <tr><td><strong>outputConfigurationBody()</strong></td><td>Output the body-section part of a repository connection <em>ConfigParams</em> editing page</td></tr>
             <tr><td><strong>processConfigurationPost()</strong></td><td>Receive and process form data from a repository connection <em>ConfigParams</em> editing page</td></tr>
             <tr><td><strong>viewConfiguration()</strong></td><td>Output the viewing HTML for a repository connection <em>ConfigParams</em> object</td></tr>
-            <tr><td><strong>outputSpecificationHeader()</strong></td><td>Output the head-section part of an <em>DocumentSpecification</em> editing page</td></tr>
-            <tr><td><strong>outputSpecificationBody()</strong></td><td>Output the body-section part of an <em>DocumentSpecification</em> editing page</td></tr>
-            <tr><td><strong>processSpecificationPost()</strong></td><td>Receive and process form data from an <em>DocumentSpecification</em> editing page</td></tr>
-            <tr><td><strong>viewSpecification()</strong></td><td>Output the viewing page for an <em>DocumentSpecification</em> object</td></tr>
+            <tr><td><strong>outputSpecificationHeader()</strong></td><td>Output the head-section part of a <em>Specification</em> editing page</td></tr>
+            <tr><td><strong>outputSpecificationBody()</strong></td><td>Output the body-section part of a <em>Specification</em> editing page</td></tr>
+            <tr><td><strong>processSpecificationPost()</strong></td><td>Receive and process form data from a <em>Specification</em> editing page</td></tr>
+            <tr><td><strong>viewSpecification()</strong></td><td>Output the viewing page for a <em>Specification</em> object</td></tr>
           </table>
           <p></p>
           <p>These methods come in three broad classes: (a) functional methods for doing the work of the connector; (b) UI methods for configuring a connection; and (c) UI methods for editing the document specification for a job.  Together they do the heavy lifting of your connector.  But before you can write any code at all, you need to plan things out a bit.</p>

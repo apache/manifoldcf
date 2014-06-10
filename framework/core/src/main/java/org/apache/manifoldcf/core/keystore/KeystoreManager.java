@@ -82,15 +82,11 @@ public class KeystoreManager implements IKeystoreManager
     try
     {
       keystore = KeyStore.getInstance("JKS");
-      byte[] decodedBytes = new Base64().decodeString(base64String);
-      InputStream base64Input = new ByteArrayInputStream(decodedBytes);
-      try
+      byte[] decodedBytes = new org.apache.manifoldcf.core.common.Base64().decodeString(base64String);
+
+      try(InputStream base64Input = new ByteArrayInputStream(decodedBytes))
       {
         keystore.load(base64Input,passcode.toCharArray());
-      }
-      finally
-      {
-        base64Input.close();
       }
     }
     catch (KeyStoreException e)
@@ -283,7 +279,7 @@ public class KeystoreManager implements IKeystoreManager
       try
       {
         keystore.store(output,passcode.toCharArray());
-        return new Base64().encodeByteArray(output.toByteArray());
+        return new org.apache.manifoldcf.core.common.Base64().encodeByteArray(output.toByteArray());
       }
       catch (KeyStoreException e)
       {

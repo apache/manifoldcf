@@ -39,7 +39,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 * <tr><td>connectionname</td><td>VARCHAR(32)</td><td>Primary Key</td></tr>
 * <tr><td>description</td><td>VARCHAR(255)</td><td></td></tr>
 * <tr><td>classname</td><td>VARCHAR(255)</td><td></td></tr>
-* <tr><td>authorityname</td><td>VARCHAR(32)</td><td></td></tr>
+* <tr><td>groupname</td><td>VARCHAR(32)</td><td></td></tr>
 * <tr><td>maxcount</td><td>BIGINT</td><td></td></tr>
 * <tr><td>configxml</td><td>LONGTEXT</td><td></td></tr>
 * </table>

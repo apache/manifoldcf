@@ -18,9 +18,9 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-import java.io.UnsupportedEncodingException;
 import java.io.PrintWriter;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 
 /** This factory returns a database interface appropriate for
 * a specified client connection.  The client or company name is
@@ -35,14 +35,7 @@ public final class UTF8Stdout
   // this is called before invoking any methods
   static
   {
-    try
-    {
-      out = new PrintWriter(new OutputStreamWriter(System.out, "UTF-8"), true);
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      System.out.println(e);
-    }
+    out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
   }
 
   private UTF8Stdout()

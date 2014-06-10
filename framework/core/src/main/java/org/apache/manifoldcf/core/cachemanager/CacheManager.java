@@ -19,6 +19,8 @@
 package org.apache.manifoldcf.core.cachemanager;
 
 import org.apache.manifoldcf.core.interfaces.*;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.system.ManifoldCF;
@@ -847,15 +849,11 @@ public class CacheManager implements ICacheManager
     byte[] cacheResourceData = lockManager.readData("cache-"+key);
     if (cacheResourceData == null)
       return 0L;
-    try
-    {
-      String expiration = new String(cacheResourceData,"utf-8");
-      return new Long(expiration).longValue();
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+
+    String expiration = new String(cacheResourceData, StandardCharsets.UTF_8);
+    return new Long(expiration).longValue();
+
+
   }
 
   /** Write the invalidation file contents.
@@ -869,14 +867,7 @@ public class CacheManager implements ICacheManager
       lockManager.writeData(key,null);
     else
     {
-      try
-      {
-        lockManager.writeData("cache-"+key,Long.toString(value).getBytes("utf-8"));
-      }
-      catch (UnsupportedEncodingException e)
-      {
-        throw new ManifoldCFException(e.getMessage(),e);
-      }
+      lockManager.writeData("cache-"+key,Long.toString(value).getBytes(StandardCharsets.UTF_8));
     }
   }
 

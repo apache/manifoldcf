@@ -45,6 +45,12 @@ public class JobManager implements IJobManager
   protected final IDBInterface database;
   protected final IOutputConnectionManager outputMgr;
   protected final IRepositoryConnectionManager connectionMgr;
+  protected final ITransformationConnectionManager transformationMgr;
+  
+  protected final IOutputConnectorManager outputConnectorMgr;
+  protected final IConnectorManager connectorMgr;
+  protected final ITransformationConnectorManager transformationConnectorMgr;
+  
   protected final IRepositoryConnectorPool repositoryConnectorPool;
   protected final ILockManager lockManager;
   protected final IThreadContext threadContext;
@@ -73,6 +79,10 @@ public class JobManager implements IJobManager
     eventManager = new EventManager(database);
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
     connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+    transformationMgr = TransformationConnectionManagerFactory.make(threadContext);
+    outputConnectorMgr = OutputConnectorManagerFactory.make(threadContext);
+    connectorMgr = ConnectorManagerFactory.make(threadContext);
+    transformationConnectorMgr = TransformationConnectorManagerFactory.make(threadContext);
     repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
     lockManager = LockManagerFactory.make(threadContext);
   }
@@ -83,7 +93,9 @@ public class JobManager implements IJobManager
   public void install()
     throws ManifoldCFException
   {
-    jobs.install(outputMgr.getTableName(),outputMgr.getConnectionNameColumn(),connectionMgr.getTableName(),connectionMgr.getConnectionNameColumn());
+    jobs.install(transformationMgr.getTableName(),transformationMgr.getConnectionNameColumn(),
+      outputMgr.getTableName(),outputMgr.getConnectionNameColumn(),
+      connectionMgr.getTableName(),connectionMgr.getConnectionNameColumn());
     jobQueue.install(jobs.getTableName(),jobs.idField);
     hopCount.install(jobs.getTableName(),jobs.idField);
     carryDown.install(jobs.getTableName(),jobs.idField);
@@ -109,16 +121,14 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,3);
+    ManifoldCF.writeDword(os,4);
     // Get the job list
     IJobDescription[] list = getAllJobs();
     // Write the number of authorities
     ManifoldCF.writeDword(os,list.length);
     // Loop through the list and write the individual repository connection info
-    int i = 0;
-    while (i < list.length)
+    for (IJobDescription job : list)
     {
-      IJobDescription job = list[i++];
       ManifoldCF.writeString(os,job.getConnectionName());
       ManifoldCF.writeString(os,job.getOutputConnectionName());
       ManifoldCF.writeString(os,job.getDescription());
@@ -135,10 +145,9 @@ public class JobManager implements IJobManager
       // Write schedule
       int recCount = job.getScheduleRecordCount();
       ManifoldCF.writeDword(os,recCount);
-      int j = 0;
-      while (j < recCount)
+      for (int j = 0; j < recCount; j++)
       {
-        ScheduleRecord sr = job.getScheduleRecord(j++);
+        ScheduleRecord sr = job.getScheduleRecord(j);
         writeEnumeratedValues(os,sr.getDayOfWeek());
         writeEnumeratedValues(os,sr.getMonthOfYear());
         writeEnumeratedValues(os,sr.getDayOfMonth());
@@ -160,6 +169,29 @@ public class JobManager implements IJobManager
         Long hopcount = (Long)filters.get(linkType);
         ManifoldCF.writeString(os,linkType);
         ManifoldCF.writeLong(os,hopcount);
+      }
+      
+      // Write forced metadata information
+      Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
+      ManifoldCF.writeDword(os,forcedMetadata.size());
+      for (String key : forcedMetadata.keySet())
+      {
+        ManifoldCF.writeString(os,key);
+        Set<String> values = forcedMetadata.get(key);
+        ManifoldCF.writeDword(os,values.size());
+        for (String value : values)
+        {
+          ManifoldCF.writeString(os,value);
+        }
+      }
+      
+      // Write pipeline information
+      ManifoldCF.writeDword(os,job.countPipelineStages());
+      for (int j = 0; j < job.countPipelineStages(); j++)
+      {
+        ManifoldCF.writeString(os,job.getPipelineStageConnectionName(j));
+        ManifoldCF.writeString(os,job.getPipelineStageDescription(j));
+        ManifoldCF.writeString(os,job.getPipelineStageSpecification(j).toXML());
       }
     }
   }
@@ -187,11 +219,10 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     int version = ManifoldCF.readDword(is);
-    if (version != 2 && version != 3)
+    if (version != 2 && version != 3 && version != 4)
       throw new java.io.IOException("Unknown job configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
-    int i = 0;
-    while (i < count)
+    for (int i = 0; i < count; i++)
     {
       IJobDescription job = createJob();
 
@@ -210,8 +241,7 @@ public class JobManager implements IJobManager
 
       // Read schedule
       int recCount = ManifoldCF.readDword(is);
-      int j = 0;
-      while (j < recCount)
+      for (int j = 0; j < recCount; j++)
       {
         EnumeratedValues dayOfWeek = readEnumeratedValues(is);
         EnumeratedValues monthOfYear = readEnumeratedValues(is);
@@ -230,23 +260,45 @@ public class JobManager implements IJobManager
         ScheduleRecord sr = new ScheduleRecord(dayOfWeek, monthOfYear, dayOfMonth, year,
           hourOfDay, minutesOfHour, timezone, duration, requestMinimum);
         job.addScheduleRecord(sr);
-        j++;
       }
 
       // Read hop count filters
       int hopFilterCount = ManifoldCF.readDword(is);
-      j = 0;
-      while (j < hopFilterCount)
+      for (int j = 0; j < hopFilterCount; j++)
       {
         String linkType = ManifoldCF.readString(is);
         Long hopcount = ManifoldCF.readLong(is);
         job.addHopCountFilter(linkType,hopcount);
-        j++;
       }
 
+      if (version >= 4)
+      {
+        // Read forced metadata information
+        int paramCount = ManifoldCF.readDword(is);
+        for (int j = 0; j < paramCount; j++)
+        {
+          String key = ManifoldCF.readString(is);
+          int valueCount = ManifoldCF.readDword(is);
+          for (int k = 0; k < valueCount; k++)
+          {
+            String value = ManifoldCF.readString(is);
+            job.addForcedMetadataValue(key,value);
+          }
+        }
+        
+        // Read pipeline information
+        int pipelineCount = ManifoldCF.readDword(is);
+        for (int j = 0; j < pipelineCount; j++)
+        {
+          String connectionName = ManifoldCF.readString(is);
+          String description = ManifoldCF.readString(is);
+          String specification = ManifoldCF.readString(is);
+          job.addPipelineStage(connectionName,description).fromXML(specification);
+        }
+      }
+      
       // Attempt to save this job
       save(job);
-      i++;
     }
   }
 
@@ -275,7 +327,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
     int currentCount = 0;
     int i = 0;
@@ -297,7 +349,7 @@ public class JobManager implements IJobManager
 
   /** Note deregistration for a batch of connection names.
   */
-  protected void noteConnectionDeregistration(ArrayList list)
+  protected void noteConnectionDeregistration(List<String> list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -327,7 +379,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
     int currentCount = 0;
     int i = 0;
@@ -349,7 +401,7 @@ public class JobManager implements IJobManager
 
   /** Note registration for a batch of connection names.
   */
-  protected void noteConnectionRegistration(ArrayList list)
+  protected void noteConnectionRegistration(List<String> list)
     throws ManifoldCFException
   {
     // Query for the matching jobs, and then for each job potentially adjust the state
@@ -369,17 +421,6 @@ public class JobManager implements IJobManager
     }
   }
 
-  /** Note a change in connection configuration.
-  * This method will be called whenever a connection's configuration is modified, or when an external repository change
-  * is signalled.
-  */
-  @Override
-  public void noteConnectionChange(String connectionName)
-    throws ManifoldCFException
-  {
-    jobs.noteConnectionChange(connectionName);
-  }
-
   /**  Note the deregistration of an output connector used by the specified connections.
   * This method will be called when the connector is deregistered.  Jobs that use these connections
   *  must therefore enter appropriate states.
@@ -390,7 +431,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
     int currentCount = 0;
     int i = 0;
@@ -412,7 +453,7 @@ public class JobManager implements IJobManager
 
   /** Note deregistration for a batch of output connection names.
   */
-  protected void noteOutputConnectionDeregistration(ArrayList list)
+  protected void noteOutputConnectionDeregistration(List<String> list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -442,7 +483,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
     int currentCount = 0;
     int i = 0;
@@ -464,7 +505,7 @@ public class JobManager implements IJobManager
 
   /** Note registration for a batch of output connection names.
   */
-  protected void noteOutputConnectionRegistration(ArrayList list)
+  protected void noteOutputConnectionRegistration(List<String> list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -484,6 +525,129 @@ public class JobManager implements IJobManager
     }
   }
 
+  /**  Note the deregistration of a transformation connector used by the specified connections.
+  * This method will be called when the connector is deregistered.  Jobs that use these connections
+  *  must therefore enter appropriate states.
+  *@param connectionNames is the set of connection names.
+  */
+  @Override
+  public void noteTransformationConnectorDeregistration(String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
+    List<String> list = new ArrayList<String>();
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    int i = 0;
+    while (i < connectionNames.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteConnectionDeregistration(list);
+        list.clear();
+        currentCount = 0;
+      }
+
+      list.add(connectionNames[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteTransformationConnectionDeregistration(list);
+  }
+
+  /** Note deregistration for a batch of transformation connection names.
+  */
+  protected void noteTransformationConnectionDeregistration(List<String> list)
+    throws ManifoldCFException
+  {
+    // Query for the matching jobs, and then for each job potentially adjust the state
+    Long[] jobIDs = jobs.findJobsMatchingTransformations(list);
+    StringBuilder query = new StringBuilder();
+    ArrayList newList = new ArrayList();
+    
+    query.append("SELECT ").append(jobs.idField).append(",").append(jobs.statusField)
+      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(newList,new ClauseDescription[]{
+        new MultiClause(jobs.idField,jobIDs)}))
+      .append(" FOR UPDATE");
+    IResultSet set = database.performQuery(query.toString(),newList,null,null);
+    int i = 0;
+    while (i < set.getRowCount())
+    {
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
+      int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+      jobs.noteTransformationConnectorDeregistration(jobID,statusValue);
+    }
+  }
+
+  /** Note the registration of a transformation connector used by the specified connections.
+  * This method will be called when a connector is registered, on which the specified
+  * connections depend.
+  *@param connectionNames is the set of connection names.
+  */
+  @Override
+  public void noteTransformationConnectorRegistration(String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
+    List<String> list = new ArrayList<String>();
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    int i = 0;
+    while (i < connectionNames.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteConnectionDeregistration(list);
+        list.clear();
+        currentCount = 0;
+      }
+
+      list.add(connectionNames[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteTransformationConnectionRegistration(list);
+  }
+
+  /** Note registration for a batch of transformation connection names.
+  */
+  protected void noteTransformationConnectionRegistration(List<String> list)
+    throws ManifoldCFException
+  {
+    // Query for the matching jobs, and then for each job potentially adjust the state
+    Long[] jobIDs = jobs.findJobsMatchingTransformations(list);
+    StringBuilder query = new StringBuilder();
+    ArrayList newList = new ArrayList();
+    
+    query.append("SELECT ").append(jobs.idField).append(",").append(jobs.statusField)
+      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(newList,new ClauseDescription[]{
+        new MultiClause(jobs.idField,jobIDs)}))
+      .append(" FOR UPDATE");
+    IResultSet set = database.performQuery(query.toString(),newList,null,null);
+    int i = 0;
+    while (i < set.getRowCount())
+    {
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
+      int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+      jobs.noteTransformationConnectorRegistration(jobID,statusValue);
+    }
+  }
+
+  /** Note a change in connection configuration.
+  * This method will be called whenever a connection's configuration is modified, or when an external repository change
+  * is signalled.
+  */
+  @Override
+  public void noteConnectionChange(String connectionName)
+    throws ManifoldCFException
+  {
+    jobs.noteConnectionChange(connectionName);
+  }
+
   /** Note a change in output connection configuration.
   * This method will be called whenever a connection's configuration is modified, or when an external target config change
   * is signalled.
@@ -493,6 +657,48 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     jobs.noteOutputConnectionChange(connectionName);
+  }
+
+  /** Note a change in transformation connection configuration.
+  * This method will be called whenever a connection's configuration is modified.
+  */
+  @Override
+  public void noteTransformationConnectionChange(String connectionName)
+    throws ManifoldCFException
+  {
+    jobs.noteTransformationConnectionChange(connectionName);
+  }
+
+  /** Assess jobs marked to be in need of assessment for connector status changes.
+  */
+  public void assessMarkedJobs()
+    throws ManifoldCFException
+  {
+    database.beginTransaction();
+    try
+    {
+      // Query for all jobs marked "ASSESSMENT_UNKNOWN".
+      jobs.assessMarkedJobs();
+    }
+    catch (ManifoldCFException e)
+    {
+      database.signalRollback();
+      throw e;
+    }
+    catch (RuntimeException e)
+    {
+      database.signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      database.signalRollback();
+      throw e;
+    }
+    finally
+    {
+      database.endTransaction();
+    }
   }
 
   /** Load a sorted list of job descriptions.
@@ -545,9 +751,7 @@ public class JobManager implements IJobManager
       IResultRow row = set.getRow(0);
       int status = jobs.stringToStatus(row.getValue(jobs.statusField).toString());
       if (status == jobs.STATUS_ACTIVE || status == jobs.STATUS_ACTIVESEEDING ||
-        status == jobs.STATUS_ACTIVE_UNINSTALLED || status == jobs.STATUS_ACTIVESEEDING_UNINSTALLED ||
-        status == jobs.STATUS_ACTIVE_NOOUTPUT || status == jobs.STATUS_ACTIVESEEDING_NOOUTPUT ||
-        status == jobs.STATUS_ACTIVE_NEITHER || status == jobs.STATUS_ACTIVESEEDING_NEITHER)
+        status == jobs.STATUS_ACTIVE_UNINSTALLED || status == jobs.STATUS_ACTIVESEEDING_UNINSTALLED)
       throw new ManifoldCFException("Job "+id+" is active; you must shut it down before deleting it");
       if (status != jobs.STATUS_INACTIVE)
         throw new ManifoldCFException("Job "+id+" is busy; you must wait and/or shut it down before deleting it");
@@ -556,6 +760,11 @@ public class JobManager implements IJobManager
         Logging.jobs.debug("Job "+id+" marked for deletion");
     }
     catch (ManifoldCFException e)
+    {
+      database.signalRollback();
+      throw e;
+    }
+    catch (RuntimeException e)
     {
       database.signalRollback();
       throw e;
@@ -626,6 +835,17 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     return jobs.checkIfOutputReference(connectionName);
+  }
+
+  /** See if there's a reference to a transformation connection name.
+  *@param connectionName is the name of the connection.
+  *@return true if there is a reference, false otherwise.
+  */
+  @Override
+  public boolean checkIfTransformationReference(String connectionName)
+    throws ManifoldCFException
+  {
+    return jobs.checkIfTransformationReference(connectionName);
   }
 
   /** Get the job IDs associated with a given connection name.
@@ -1932,11 +2152,7 @@ public class JobManager implements IJobManager
           Jobs.statusToString(Jobs.STATUS_ACTIVE),
           Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING),
           Jobs.statusToString(Jobs.STATUS_ACTIVE_UNINSTALLED),
-          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED),
-          Jobs.statusToString(Jobs.STATUS_ACTIVE_NOOUTPUT),
-          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NOOUTPUT),
-          Jobs.statusToString(Jobs.STATUS_ACTIVE_NEITHER),
-          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NEITHER)
+          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED)
           }),
         new JoinClause("t1."+jobs.idField,"t0."+jobQueue.jobIDField)}))
       .append(") ");
@@ -2582,7 +2798,39 @@ public class JobManager implements IJobManager
       true)).append(" ")
       .append(database.constructOffsetLimitClause(0,1,true));
 
-    IResultSet set = database.performQuery(sb.toString(),list,null,null,1,null);
+    IResultSet set;
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        set = database.performQuery(sb.toString(),list,null,null,1,null);
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction adding document bins: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+      }
+    }
+
     if (set.getRowCount() > 0)
     {
       IResultRow row = set.getRow(0);
@@ -2659,6 +2907,8 @@ public class JobManager implements IJobManager
       "t0."+jobQueue.docPriorityField, "t0."+jobQueue.statusField, "t0."+jobQueue.checkActionField, "t0."+jobQueue.checkTimeField},
       true)).append(" ");
 
+    String query = sb.toString();
+
     // Before entering the transaction, we must provide the throttlelimit object with all the connector
     // instances it could possibly need.  The purpose for doing this is to prevent a deadlock where
     // connector starvation causes database lockup.
@@ -2700,7 +2950,7 @@ public class JobManager implements IJobManager
 
           // Now we can tack the limit onto the query.  Before this point, remainingDocuments would be crap
           int limitValue = vList.getRemainingDocuments();
-          sb.append(database.constructOffsetLimitClause(0,limitValue,true));
+          String finalQuery = query + database.constructOffsetLimitClause(0,limitValue,true);
 
           if (Logging.perf.isDebugEnabled())
           {
@@ -2711,7 +2961,7 @@ public class JobManager implements IJobManager
           database.beginTransaction();
           try
           {
-            IResultSet set = database.performQuery(sb.toString(),list,null,null,-1,vList);
+            IResultSet set = database.performQuery(finalQuery,list,null,null,-1,vList);
 
             if (Logging.perf.isDebugEnabled())
               Logging.perf.debug(" Queuing "+Integer.toString(set.getRowCount())+" documents");
@@ -5634,10 +5884,6 @@ public class JobManager implements IJobManager
             jobs.statusToString(jobs.STATUS_ACTIVESEEDING),
             jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED),
             jobs.statusToString(jobs.STATUS_ACTIVESEEDING_UNINSTALLED),
-            jobs.statusToString(jobs.STATUS_ACTIVE_NOOUTPUT),
-            jobs.statusToString(jobs.STATUS_ACTIVESEEDING_NOOUTPUT),
-            jobs.statusToString(jobs.STATUS_ACTIVE_NEITHER),
-            jobs.statusToString(jobs.STATUS_ACTIVESEEDING_NEITHER),
             jobs.statusToString(jobs.STATUS_PAUSED),
             jobs.statusToString(jobs.STATUS_PAUSEDSEEDING)})})).append(" AND ")
         .append(jobs.windowEndField).append("<? FOR UPDATE");
@@ -5661,8 +5907,6 @@ public class JobManager implements IJobManager
         {
         case Jobs.STATUS_ACTIVE:
         case Jobs.STATUS_ACTIVE_UNINSTALLED:
-        case Jobs.STATUS_ACTIVE_NOOUTPUT:
-        case Jobs.STATUS_ACTIVE_NEITHER:
           jobs.waitJob(jobID,Jobs.STATUS_ACTIVEWAITING);
           if (Logging.jobs.isDebugEnabled())
           {
@@ -5671,8 +5915,6 @@ public class JobManager implements IJobManager
           break;
         case Jobs.STATUS_ACTIVESEEDING:
         case Jobs.STATUS_ACTIVESEEDING_UNINSTALLED:
-        case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
-        case Jobs.STATUS_ACTIVESEEDING_NEITHER:
           jobs.waitJob(jobID,Jobs.STATUS_ACTIVEWAITINGSEEDING);
           if (Logging.jobs.isDebugEnabled())
           {
@@ -6125,12 +6367,15 @@ public class JobManager implements IJobManager
         jobQueue.preparePartialScan(jobID);
       return;
     }
-    
-    // Similarly, minimal crawl attempts no delete phase unless the connector explicitly forbids it, or unless
-    // the job criteria have changed.
+
+    // Look for a minimum crawl.
+    // Minimum crawls do only what is seeded, in general.  These are partial scans, always.  MODEL_ALL disables this
+    // functionality, as does a scan from the beginning of time (after the job spec has been changed).
     if (requestMinimum && connectorModel != IRepositoryConnector.MODEL_ALL && !fromBeginningOfTime)
     {
-      // If it is a chained model, do the partial prep.
+      // Minimum crawl requested.
+      // If it is a chained model, do the partial prep.  If it's a non-chained model, do nothing for prep; the seeding
+      // will flag the documents we want to look at.
       if (connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD ||
         connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD_CHANGE)
         jobQueue.preparePartialScan(jobID);
@@ -6139,9 +6384,23 @@ public class JobManager implements IJobManager
     
     if (!continuousJob && connectorModel != IRepositoryConnector.MODEL_PARTIAL &&
       (connectorModel == IRepositoryConnector.MODEL_ALL || fromBeginningOfTime))
+    {
+      // Prepare for a full scan if:
+      // (a) not a continuous job, and
+      // (b) not a partial model (which always disables full scans), and
+      // (c) either MODEL_ALL or from the beginning of time (which are essentially equivalent)
       prepareFullScan(jobID,legalLinkTypes,hopcountMethod);
+    }
     else
+    {
+      // Map COMPLETE and UNCHANGED to PENDINGPURGATORY, if:
+      // (a) job is continuous, OR
+      // (b) MODEL_PARTIAL, OR
+      // (c) not MODEL_ALL AND not from beginning of time
+      // This causes all existing documents to be rechecked!  This is needed because the model is not
+      // complete at this point; we have ADD but we don't have either CHANGE or DELETE.
       jobQueue.prepareIncrementalScan(jobID);
+    }
   }
 
   /** Queue all existing.
@@ -7140,20 +7399,6 @@ public class JobManager implements IJobManager
           // Set the state of the job back to "Active"
           jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_UNINSTALLED);
           break;
-        case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
-          if (Logging.jobs.isDebugEnabled())
-            Logging.jobs.debug("Setting job "+jobID+" back to 'Active_NoOutput' state");
-
-          // Set the state of the job back to "Active"
-          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_NOOUTPUT);
-          break;
-        case Jobs.STATUS_ACTIVESEEDING_NEITHER:
-          if (Logging.jobs.isDebugEnabled())
-            Logging.jobs.debug("Setting job "+jobID+" back to 'Active_Neither' state");
-
-          // Set the state of the job back to "Active"
-          jobs.writePermanentStatus(jobID,jobs.STATUS_ACTIVE_NEITHER);
-          break;
         case Jobs.STATUS_ACTIVESEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active' state");
@@ -7204,8 +7449,6 @@ public class JobManager implements IJobManager
         case Jobs.STATUS_ABORTINGFORRESTARTMINIMAL:
         case Jobs.STATUS_ACTIVE:
         case Jobs.STATUS_ACTIVE_UNINSTALLED:
-        case Jobs.STATUS_ACTIVE_NOOUTPUT:
-        case Jobs.STATUS_ACTIVE_NEITHER:
         case Jobs.STATUS_PAUSED:
         case Jobs.STATUS_ACTIVEWAIT:
         case Jobs.STATUS_PAUSEDWAIT:
@@ -7382,9 +7625,7 @@ public class JobManager implements IJobManager
             new MultiClause(jobs.statusField,new Object[]{
               jobs.statusToString(jobs.STATUS_ACTIVE),
               jobs.statusToString(jobs.STATUS_ACTIVEWAIT),
-              jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED),
-              jobs.statusToString(jobs.STATUS_ACTIVE_NOOUTPUT),
-              jobs.statusToString(jobs.STATUS_ACTIVE_NEITHER)})}))
+              jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED)})}))
           .append(" FOR UPDATE");
         
         IResultSet set = database.performQuery(sb.toString(),list,null,null);
@@ -7913,10 +8154,6 @@ public class JobManager implements IJobManager
         Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING),
         Jobs.statusToString(Jobs.STATUS_ACTIVE_UNINSTALLED),
         Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED),
-        Jobs.statusToString(Jobs.STATUS_ACTIVE_NOOUTPUT),
-        Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NOOUTPUT),
-        Jobs.statusToString(Jobs.STATUS_ACTIVE_NEITHER),
-        Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NEITHER),
         Jobs.statusToString(Jobs.STATUS_PAUSED),
         Jobs.statusToString(Jobs.STATUS_PAUSEDSEEDING),
         Jobs.statusToString(Jobs.STATUS_ACTIVEWAIT),
@@ -8049,10 +8286,6 @@ public class JobManager implements IJobManager
         break;
       case Jobs.STATUS_ACTIVE_UNINSTALLED:
       case Jobs.STATUS_ACTIVESEEDING_UNINSTALLED:
-      case Jobs.STATUS_ACTIVE_NOOUTPUT:
-      case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
-      case Jobs.STATUS_ACTIVE_NEITHER:
-      case Jobs.STATUS_ACTIVESEEDING_NEITHER:
         rstatus = JobStatus.JOBSTATUS_RUNNING_UNINSTALLED;
         break;
       case Jobs.STATUS_ACTIVE:
