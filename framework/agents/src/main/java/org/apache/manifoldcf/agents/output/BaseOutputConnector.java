@@ -222,10 +222,10 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   * if two such strings are equal, nothing that affects how or whether the document is indexed will be different.
   */
   @Override
-  public String getPipelineDescription(OutputSpecification spec)
+  public String getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
-    return getOutputDescription(spec);
+    return getOutputDescription((OutputSpecification)spec);
   }
 
   /** Get an output version string, given an output specification.  The output version string is used to uniquely describe the pertinent details of
@@ -329,6 +329,13 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, List<String> tabsArray)
+    throws ManifoldCFException, IOException
+  {
+    outputSpecificationHeader(out,locale,(OutputSpecification)os,tabsArray);
+  }
+
   public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os,
     int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
@@ -386,13 +393,13 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os,
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
-    outputSpecificationBody(out,locale,os,tabName);
+    outputSpecificationBody(out,locale,(OutputSpecification)os,tabName);
   }
-
+  
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
@@ -432,11 +439,11 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os,
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    return processSpecificationPost(variableContext,locale,os);
+    return processSpecificationPost(variableContext,locale,(OutputSpecification)os);
   }
 
   /** Process a specification post.
@@ -477,13 +484,13 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param os is the current output specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os,
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
-    viewSpecification(out,locale,os);
+    viewSpecification(out,locale,(OutputSpecification)os);
   }
-
+  
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
