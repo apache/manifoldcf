@@ -291,7 +291,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
 
     String[] keys = new String[params.size()];
     int j = 0;
-    while (String key : params.keySet())
+    for (String key : params.keySet())
     {
       keys[j++] = key;
     }
