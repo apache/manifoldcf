@@ -53,7 +53,8 @@
             as of this writing have any of these any longer).</li>
         </ul>
         <p></p>
-        <p>An individual connector package will typically supply an output connector, or a repository connector, or both a repository connector and an authority connector.  The
+        <p>An individual connector package will typically supply an output connector, or a transformation connector, or a mapping connector, or a repository connector, or
+          sometimes both a repository connector and an authority connector.  The
           main ant build script automatically forms each individual connector's contribution to the overall system into the overall package.</p>
       </section>
       
@@ -122,6 +123,12 @@
           <li>WGET-compatible filesystem output connector</li>
           <li>HDFS output connector</li>
           <li>Null output connector</li>
+        </ul>
+        <p></p>
+        <p>The following transformation connectors will be built:</p>
+        <p></p>
+        <ul>
+          <li>Null transformation connector</li>
         </ul>
         <p></p>
         <p>The following mapping connectors will be built:</p>
@@ -260,7 +267,7 @@
             <tr><th>ManifoldCF versions</th><th>Plugin version</th></tr>
             <tr><td>0.1.x-1.4.x</td><td>0.x</td></tr>
             <tr><td>1.5.x</td><td>1.x</td></tr>
-            <tr><td>1.6.x</td><td>2.x</td></tr>
+            <tr><td>&#62;=1.6.x</td><td>2.x</td></tr>
           </table>
           <p></p>
           <p><strong>If the proper version of the plugin is not deployed on Solr, documents will not be properly secured.</strong>  Thus, it is essential to verify that the
@@ -282,7 +289,7 @@
             <tr><th>ManifoldCF versions</th><th>Plugin version</th></tr>
             <tr><td>0.1.x-1.4.x</td><td>0.x</td></tr>
             <tr><td>1.5.x</td><td>1.x</td></tr>
-            <tr><td>1.6.x</td><td>2.x</td></tr>
+            <tr><td>&#62;=1.6.x</td><td>2.x</td></tr>
           </table>
           <p></p>
           <p><strong>If the proper version of the plugin is not deployed and properly integrated, documents will not be properly secured.</strong>  Thus, it is essential to verify that the
@@ -613,8 +620,10 @@ cd example
              <li>Start/Stop the <strong>agents</strong> process</li>
              <li>Register/Unregister an agent class (there's currently only one included)</li>
              <li>Register/Unregister an output connector</li>
+             <li>Register/Unregister a transformation connector</li>
              <li>Register/Unregister a repository connector</li>
              <li>Register/Unregister an authority connector</li>
+             <li>Register/Unregister a mapping connector</li>
              <li>Clean up synchronization directory garbage resulting from an ungraceful interruption of an ManifoldCF process</li>
              <li>Query for certain kinds of job-related information</li>
           </ul>
@@ -677,6 +686,10 @@ cd example
               <tr><td>org.apache.manifoldcf.agents.UnRegisterOutput</td><td><em>classname</em></td><td>Un-register an output connector class</td></tr>
               <tr><td>org.apache.manifoldcf.agents.UnRegisterAllOutputs</td><td>None</td><td>Un-register all current output connector classes</td></tr>
               <tr><td>org.apache.manifoldcf.agents.SynchronizeOutputs</td><td>None</td><td>Un-register all registered output connector classes that can't be found</td></tr>
+              <tr><td>org.apache.manifoldcf.agents.RegisterTransformation</td><td><em>classname</em> <em>description</em></td><td>Register a transformation connector class</td></tr>
+              <tr><td>org.apache.manifoldcf.agents.UnRegisterTransformation</td><td><em>classname</em></td><td>Un-register a transformation connector class</td></tr>
+              <tr><td>org.apache.manifoldcf.agents.UnRegisterAllTransformations</td><td>None</td><td>Un-register all current transformation connector classes</td></tr>
+              <tr><td>org.apache.manifoldcf.agents.SynchronizeTransformations</td><td>None</td><td>Un-register all registered transformation connector classes that can't be found</td></tr>
               <tr><td>org.apache.manifoldcf.agents.AgentRun</td><td>None</td><td>Main <strong>agents</strong> process class</td></tr>
               <tr><td>org.apache.manifoldcf.agents.AgentStop</td><td>None</td><td>Stops the running <strong>agents</strong> process</td></tr>
             </table>
@@ -764,11 +777,14 @@ cd example
 &#60;/connectors&#62;
         </source>
         <p></p>
-        <p>The following tags are available to specify your connectors:</p>
+        <p>The following tags are available to specify your connectors and authorization domains:</p>
         <p></p>
         <p>&#60;repositoryconnector name="<em>pretty_name</em>" class="<em>connector_class</em>"/&#62;</p>
         <p>&#60;authorityconnector name="<em>pretty_name</em>" class="<em>connector_class</em>"/&#62;</p>
+        <p>&#60;mappingconnector name="<em>pretty_name</em>" class="<em>connector_class</em>"/&#62;</p>
         <p>&#60;outputconnector name="<em>pretty_name</em>" class="<em>connector_class</em>"/&#62;</p>
+        <p>&#60;transformationconnector name="<em>pretty_name</em>" class="<em>connector_class</em>"/&#62;</p>
+        <p>&#60;authorizationdomain name="<em>pretty_name</em>" domain="<em>domain_name</em>"/&#62;</p>
         <p></p>
         <p>The <em>connectors.xml</em> file typically has some connectors commented out - namely the ones build with stubs which require you to supply a
           third-party library in order for the connector to run.  If you build ManifoldCF yourself, the <em>example-proprietary</em> and <em>multiprocess-file-example-proprietary</em>
