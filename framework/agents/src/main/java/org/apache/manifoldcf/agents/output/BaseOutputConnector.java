@@ -336,13 +336,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
     outputSpecificationHeader(out,locale,(OutputSpecification)os,tabsArray);
   }
 
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os,
-    int connectionSequenceNumber, List<String> tabsArray)
-    throws ManifoldCFException, IOException
-  {
-    outputSpecificationHeader(out,locale,os,tabsArray);
-  }
-
   /** Output the specification header section.
   * This method is called in the head section of a job page which has selected an output connection of the current type.  Its purpose is to add the required tabs
   * to the list, and to output any javascript methods that might be needed by the job editing HTML.
