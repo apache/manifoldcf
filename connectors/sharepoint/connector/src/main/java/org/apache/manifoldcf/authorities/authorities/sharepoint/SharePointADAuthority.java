@@ -23,6 +23,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
+import org.apache.manifoldcf.core.util.URLEncoder;
 
 import java.io.*;
 import java.util.*;
@@ -471,14 +472,7 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
   
   protected static String userTokenFromLoginName(String loginName)
   {
-    try
-    {
-      return "Ui:0#.w|"+URLEncoder.encode(loginName,"utf-8").toLowerCase(Locale.ROOT);
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new RuntimeException("Utf-8 encoding unrecognized");
-    }
+      return "Ui:0#.w|"+URLEncoder.encode(loginName).toLowerCase(Locale.ROOT);
   }
   
   // UI support methods.
@@ -519,8 +513,8 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
     Map<String,Object> velocityContext = new HashMap<String,Object>();
     velocityContext.put("TabName",tabName);
     fillInDomainControllerTab(velocityContext,out,parameters);
-    fillInCacheTab(velocityContext,out,parameters);
-    Messages.outputResourceWithVelocity(out,locale,"editADConfiguration_DomainController.html",velocityContext);
+    fillInCacheTab(velocityContext, out, parameters);
+    Messages.outputResourceWithVelocity(out, locale, "editADConfiguration_DomainController.html", velocityContext);
     Messages.outputResourceWithVelocity(out,locale,"editADConfiguration_Cache.html",velocityContext);
   }
 
@@ -544,7 +538,7 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
         domainControllers.add(createDomainControllerMap(mapper,dcSuffix,dcDomainController,dcUserName,dcPassword,dcAuthentication,dcUserACLsUsername));
       }
     }
-    velocityContext.put("DOMAINCONTROLLERS",domainControllers);
+    velocityContext.put("DOMAINCONTROLLERS", domainControllers);
   }
 
   protected static Map<String,String> createDomainControllerMap(IPasswordMapperActivity mapper, String suffix, String domainControllerName,

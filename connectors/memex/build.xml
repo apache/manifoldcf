@@ -43,14 +43,34 @@
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="mxie-java" includes="*.jar"/>
+        <fileset dir="lib-proprietary" includes="*.jar"/>
     </path>
 
-    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-            <fileset dir="mxie-java" includes="*.jar"/>
+    <target name="has-proprietary-materials-check">
+        <available file="lib-proprietary/mxie.jar" property="mxieStatus"/>
+        <condition property="proprietaryMaterialsAvailable">
+            <isset property="mxieStatus"/>
+        </condition>
+    </target>
+    
+    <target name="calculate-run-condition" depends="has-proprietary-materials-check">
+        <condition property="libs-present">
+            <isset property="proprietaryMaterialsAvailable"/>
+        </condition>
+    </target>
+
+    <target name="prerun-warn" depends="calculate-run-condition" unless="libs-present">
+        <echo message="Memex connector requires mxie.jar to be runnable"/>
+    </target>
+
+    <target name="copy-proprietary-libs" depends="prerun-check" if="canRun">
+        <mkdir dir="dist/lib-proprietary-only"/>
+        <copy todir="dist/lib-proprietary-only">
+            <fileset dir="lib-proprietary" includes="*.jar"/>
         </copy>
+    </target>
+
+    <target name="lib" depends="mcf-connector-build.lib,copy-proprietary-libs,precompile-check" if="canBuild">
     </target>
 
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">

@@ -19,8 +19,7 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-import java.net.*;
-import java.io.*;
+import org.apache.manifoldcf.core.util.URLEncoder;
 
 /** Variable class representing a ManifoldCF query argument, with a name
 * and a value.
@@ -107,15 +106,8 @@ public class VariableQueryArg extends VariableBase
   public String getStringValue()
     throws ScriptException
   {
-    try
-    {
-      return URLEncoder.encode(name,"utf-8").replace("+","%20") + "=" +
-        URLEncoder.encode(value,"utf-8").replace("+","%20");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ScriptException(composeMessage(e.getMessage()),e);
-    }
+      return URLEncoder.encode(name).replace("+","%20") + "=" +
+        URLEncoder.encode(value).replace("+","%20");
   }
 
   @Override

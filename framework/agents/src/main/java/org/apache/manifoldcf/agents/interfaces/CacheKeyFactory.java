@@ -46,4 +46,21 @@ public class CacheKeyFactory extends org.apache.manifoldcf.core.interfaces.Cache
     return "OUTPUTCONNECTION_"+connectionName;
   }
 
+  /** Construct a key which represents the general list of transformation connectors.
+  *@return the cache key.
+  */
+  public static String makeTransformationConnectionsKey()
+  {
+    return "TRANSCONNECTIONS";
+  }
+
+  /** Construct a key which represents an individual transformation connection.
+  *@param connectionName is the name of the connector.
+  *@return the cache key.
+  */
+  public static String makeTransformationConnectionKey(String connectionName)
+  {
+    return "TRANSCONNECTION_"+connectionName;
+  }
+
 }

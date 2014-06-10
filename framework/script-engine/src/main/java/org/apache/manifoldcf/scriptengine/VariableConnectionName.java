@@ -19,8 +19,7 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-import java.io.*;
-import java.net.*;
+import org.apache.manifoldcf.core.util.URLEncoder;
 
 /** Variable class representing a ManifoldCF API URL connection name segment.  In conjunction
 * with the URL variable, this variable will properly character-stuff the connection name to make
@@ -91,14 +90,7 @@ public class VariableConnectionName extends VariableBase
   public String getURLPathValue()
     throws ScriptException
   {
-    try
-    {
-      return URLEncoder.encode(encodedConnectionName,"utf-8").replace("+","%20");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ScriptException(composeMessage(e.getMessage()),e);
-    }
+      return URLEncoder.encode(encodedConnectionName).replace("+","%20");
   }
 
   /** Check if the variable has a string value */

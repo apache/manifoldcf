@@ -57,6 +57,7 @@ import java.util.*;
  * <tr><td>processid</td><td>VARCHAR(16)</td><td></td></tr>
  * <tr><td>failtime</td><td>BIGINT</td><td></td></tr>
  * <tr><td>failcount</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>assessmentstate</td><td>CHAR(1)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -124,12 +125,18 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   // connector exists before deciding what state to put the job into.
   public static final int STATUS_ACTIVE_UNINSTALLED = 38;               // Active, but repository connector not installed
   public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 39;   // Active and seeding, but repository connector not installed
-  public static final int STATUS_ACTIVE_NOOUTPUT = 40;                  // Active, but output connector not installed
-  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 41;       // Active and seeding, but output connector not installed
-  public static final int STATUS_ACTIVE_NEITHER = 42;                     // Active, but neither repository connector nor output connector installed
-  public static final int STATUS_ACTIVESEEDING_NEITHER = 43;          // Active and seeding, but neither repository connector nor output connector installed
-  public static final int STATUS_DELETING_NOOUTPUT = 44;                // Job is being deleted but there's no output connector installed
+  public static final int STATUS_DELETING_NOOUTPUT = 40;                // Job is being deleted but there's no output connector installed
 
+  // Deprecated states.  These states should never be used; they're defined only for upgrade purposes
+  public static final int STATUS_ACTIVE_NOOUTPUT = 100;                  // Active, but output connector not installed
+  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 101;       // Active and seeding, but output connector not installed
+  public static final int STATUS_ACTIVE_NEITHER = 102;                     // Active, but neither repository connector nor output connector installed
+  public static final int STATUS_ACTIVESEEDING_NEITHER = 103;          // Active and seeding, but neither repository connector nor output connector installed
+
+  // Need Connector Assessment states
+  public static final int ASSESSMENT_KNOWN = 0;                         // State is known.
+  public static final int ASSESSMENT_UNKNOWN = 1;                       // State is unknown, and job needs assessment
+  
   // Type field values
   public static final int TYPE_CONTINUOUS = IJobDescription.TYPE_CONTINUOUS;
   public static final int TYPE_SPECIFIED = IJobDescription.TYPE_SPECIFIED;
@@ -192,14 +199,18 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public static final String failTimeField = "failtime";
   /** When non-null, indicates the number of retries remaining, after which the attempt will be considered to have actually failed */
   public static final String failCountField = "failcount";
-
-  protected static Map statusMap;
-  protected static Map typeMap;
-  protected static Map startMap;
-  protected static Map hopmodeMap;
+  /** Set to N when the job needs connector-installed assessment */
+  public static final String assessmentStateField = "assessmentstate";
+  
+  protected static Map<String,Integer> statusMap;
+  protected static Map<String,Integer> typeMap;
+  protected static Map<String,Integer> startMap;
+  protected static Map<String,Integer> hopmodeMap;
+  protected static Map<String,Integer> assessmentMap;
+  
   static
   {
-    statusMap = new HashMap();
+    statusMap = new HashMap<String,Integer>();
     statusMap.put("N",new Integer(STATUS_INACTIVE));
     statusMap.put("A",new Integer(STATUS_ACTIVE));
     statusMap.put("P",new Integer(STATUS_PAUSED));
@@ -247,19 +258,23 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("u",new Integer(STATUS_ACTIVESEEDING_NEITHER));
     statusMap.put("D",new Integer(STATUS_DELETING_NOOUTPUT));
     
-    typeMap = new HashMap();
+    typeMap = new HashMap<String,Integer>();
     typeMap.put("C",new Integer(TYPE_CONTINUOUS));
     typeMap.put("S",new Integer(TYPE_SPECIFIED));
 
-    startMap = new HashMap();
+    startMap = new HashMap<String,Integer>();
     startMap.put("B",new Integer(START_WINDOWBEGIN));
     startMap.put("I",new Integer(START_WINDOWINSIDE));
     startMap.put("D",new Integer(START_DISABLE));
 
-    hopmodeMap = new HashMap();
+    hopmodeMap = new HashMap<String,Integer>();
     hopmodeMap.put("A",new Integer(HOPCOUNT_ACCURATE));
     hopmodeMap.put("N",new Integer(HOPCOUNT_NODELETE));
     hopmodeMap.put("V",new Integer(HOPCOUNT_NEVERDELETE));
+    
+    assessmentMap = new HashMap<String,Integer>();
+    assessmentMap.put("Y",new Integer(ASSESSMENT_KNOWN));
+    assessmentMap.put("N",new Integer(ASSESSMENT_UNKNOWN));
   }
 
   /* Transient vs. non-transient states
@@ -321,15 +336,17 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   */
   
   // Local variables
-  protected ICacheManager cacheManager;
-  protected ScheduleManager scheduleManager;
-  protected HopFilterManager hopFilterManager;
-  protected ForcedParamManager forcedParamManager;
-
-  protected IOutputConnectionManager outputMgr;
-  protected IRepositoryConnectionManager connectionMgr;
-
-  protected IThreadContext threadContext;
+  protected final ICacheManager cacheManager;
+  protected final ScheduleManager scheduleManager;
+  protected final HopFilterManager hopFilterManager;
+  protected final ForcedParamManager forcedParamManager;
+  protected final PipelineManager pipelineManager;
+  
+  protected final IOutputConnectionManager outputMgr;
+  protected final IRepositoryConnectionManager connectionMgr;
+  protected final ITransformationConnectionManager transMgr;
+  
+  protected final IThreadContext threadContext;
   
   /** Constructor.
   *@param database is the database handle.
@@ -342,16 +359,20 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     scheduleManager = new ScheduleManager(threadContext,database);
     hopFilterManager = new HopFilterManager(threadContext,database);
     forcedParamManager = new ForcedParamManager(threadContext,database);
+    pipelineManager = new PipelineManager(threadContext,database);
     
     cacheManager = CacheManagerFactory.make(threadContext);
 
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
     connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+    transMgr = TransformationConnectionManagerFactory.make(threadContext);
   }
 
   /** Install or upgrade this table.
   */
-  public void install(String outputTableName, String outputNameField, String connectionTableName, String connectionNameField)
+  public void install(String transTableName, String transNameField,
+    String outputTableName, String outputNameField,
+    String connectionTableName, String connectionNameField)
     throws ManifoldCFException
   {
     // Standard practice: Have a loop around everything, in case upgrade needs it.
@@ -386,6 +407,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         map.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
         map.put(failTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(failCountField,new ColumnDescription("BIGINT",false,true,null,null,false));
+        map.put(assessmentStateField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
         performCreate(map,null);
       }
       else
@@ -415,9 +437,33 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           insertMap.put(failCountField,new ColumnDescription("BIGINT",false,true,null,null,false));
           performAlter(insertMap,null,null,null);
         }
+        if (existing.get(assessmentStateField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(assessmentStateField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+          String query;
+          ArrayList list = new ArrayList();
+          HashMap map = new HashMap();
+          query = buildConjunctionClause(list,new ClauseDescription[]{
+            new MultiClause(statusField,new Object[]{
+              statusToString(STATUS_ACTIVE_NOOUTPUT),
+              statusToString(STATUS_ACTIVE_NEITHER)})});
+          map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
+          performUpdate(map,"WHERE "+query,list,null);
+          list.clear();
+          map.clear();
+          query = buildConjunctionClause(list,new ClauseDescription[]{
+            new MultiClause(statusField,new Object[]{
+              statusToString(STATUS_ACTIVESEEDING_NOOUTPUT),
+              statusToString(STATUS_ACTIVESEEDING_NEITHER)})});
+          map.put(statusField,statusToString(STATUS_ACTIVESEEDING_UNINSTALLED));
+          performUpdate(map,"WHERE "+query,list,null);
+        }
       }
 
       // Handle related tables
+      pipelineManager.install(getTableName(),idField,transTableName,transNameField);
       scheduleManager.install(getTableName(),idField);
       hopFilterManager.install(getTableName(),idField);
       forcedParamManager.install(getTableName(),idField);
@@ -480,6 +526,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       forcedParamManager.deinstall();
       hopFilterManager.deinstall();
       scheduleManager.deinstall();
+      pipelineManager.deinstall();
       performDrop(null);
     }
     catch (ManifoldCFException e)
@@ -516,6 +563,27 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     analyzeTable();
   }
 
+  /** Find a list of jobs matching specified transformation names.
+  */
+  public Long[] findJobsMatchingTransformations(List<String> transformationConnectionNames)
+    throws ManifoldCFException
+  {
+    StringBuilder query = new StringBuilder();
+    ArrayList params = new ArrayList();
+    query.append("SELECT ").append(idField)
+      .append(" FROM ").append(getTableName()).append(" t1 WHERE EXISTS(");
+    pipelineManager.buildQueryClause(query,params,"t1."+idField,transformationConnectionNames);
+    query.append(")");
+    IResultSet set = performQuery(query.toString(),params,null,null);
+    Long[] rval = new Long[set.getRowCount()];
+    for (int i = 0; i < rval.length; i++)
+    {
+      IResultRow row = set.getRow(i);
+      rval[i] = (Long)row.getValue(idField);
+    }
+    return rval;
+  }
+  
   /** Read schedule records for a specified set of jobs.  Cannot use caching!
   */
   public ScheduleRecord[][] readScheduleRecords(Long[] jobIDs)
@@ -837,11 +905,18 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
               IResultRow row = set.getRow(0);
 
-              boolean isSame = true;
-
               // Determine whether we need to reset the scan time for documents.
               // Basically, any change to job parameters that could affect ingestion should clear isSame so that we
               // relook at all the documents, not just the recent ones.
+
+              boolean isSame = pipelineManager.compareRows(id,jobDescription);
+              if (!isSame)
+              {
+                int currentStatus = stringToStatus((String)row.getValue(statusField));
+                if (currentStatus == STATUS_ACTIVE || currentStatus == STATUS_ACTIVESEEDING ||
+                  currentStatus == STATUS_ACTIVE_UNINSTALLED || currentStatus == STATUS_ACTIVESEEDING_UNINSTALLED)
+                  values.put(assessmentStateField,assessmentStateToString(ASSESSMENT_UNKNOWN));
+              }
 
               if (isSame)
               {
@@ -858,32 +933,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
               }
 
               if (isSame)
-              {
-                // Compare hopcount filter criteria.
-                Map filterRows = hopFilterManager.readRows(id);
-                Map newFilterRows = jobDescription.getHopCountFilters();
-                if (filterRows.size() != newFilterRows.size())
-                  isSame = false;
-                else
-                {
-                  for (String linkType : (Collection<String>)filterRows.keySet())
-                  {
-                    Long oldCount = (Long)filterRows.get(linkType);
-                    Long newCount = (Long)newFilterRows.get(linkType);
-                    if (oldCount == null || newCount == null)
-                    {
-                      isSame = false;
-                      break;
-                    }
-                    else if (oldCount.longValue() != newCount.longValue())
-                    {
-                      isSame = false;
-                      break;
-                    }
-                  }
-                }
-              }
-              
+                isSame = hopFilterManager.compareRows(id,jobDescription);
+
+              if (isSame)
+                isSame = forcedParamManager.compareRows(id,jobDescription);
+
               if (!isSame)
                 values.put(lastCheckTimeField,null);
 
@@ -891,6 +945,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
               query = buildConjunctionClause(params,new ClauseDescription[]{
                 new UnitaryClause(idField,id)});
               performUpdate(values," WHERE "+query,params,null);
+              pipelineManager.deleteRows(id);
               scheduleManager.deleteRows(id);
               hopFilterManager.deleteRows(id);
               forcedParamManager.deleteRows(id);
@@ -907,6 +962,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
               performInsert(values,null);
             }
 
+            // Write pipeline rows
+            pipelineManager.writeRows(id,jobDescription);
             // Write schedule records
             scheduleManager.writeRows(id,jobDescription);
             // Write hop filter rows
@@ -1112,19 +1169,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
     list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NOOUTPUT)),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NEITHER)),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
 
   }
 
@@ -1256,18 +1300,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NOOUTPUT))});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NEITHER))});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
 
   }
 
@@ -1280,6 +1312,74 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new NullCheckClause(failTimeField,false)});
     performUpdate(map,"WHERE "+query,list,null);
+  }
+
+  /** Invalidate current state with respect to installed connectors, as a result of registration.
+  */
+  public void invalidateCurrentUnregisteredState(Long jobID, int oldStatusValue)
+    throws ManifoldCFException
+  {
+    // If we are in a state that cares about the connector state, then we have to signal we need an assessment.
+    if (oldStatusValue == STATUS_ACTIVE_UNINSTALLED || oldStatusValue == STATUS_ACTIVESEEDING_UNINSTALLED || oldStatusValue == STATUS_DELETING_NOOUTPUT)
+    {
+      // Assessment state is not cached, so no cache invalidation needed
+      ArrayList list = new ArrayList();
+      String query = buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(idField,jobID)});
+      HashMap map = new HashMap();
+      map.put(assessmentStateField,assessmentStateToString(ASSESSMENT_UNKNOWN));
+      performUpdate(map,"WHERE "+query,list,null);
+    }
+  }
+  
+  /** Signal to a job that an underlying transformation connector has gone away.
+  *@param jobID is the identifier of the job.
+  *@param oldStatusValue is the current status value for the job.
+  */
+  public void noteTransformationConnectorDeregistration(Long jobID, int oldStatusValue)
+    throws ManifoldCFException
+  {
+    int newStatusValue;
+    // The following states are special, in that when the underlying connector goes away, the jobs
+    // in such states are switched away to something else.  There are TWO reasons that a state may be in
+    // this category: EITHER we don't want the job in this state to be treated in the same way if its
+    // connector is uninstalled, OR we need feedback for the user interface.  If it's the latter situation,
+    // then all usages of the corresponding states will be identical - and that's in fact precisely where we
+    // start with in all the code.
+    switch (oldStatusValue)
+    {
+    case STATUS_ACTIVE:
+      newStatusValue = STATUS_ACTIVE_UNINSTALLED;
+      break;
+    case STATUS_ACTIVESEEDING:
+      newStatusValue = STATUS_ACTIVESEEDING_UNINSTALLED;
+      break;
+    default:
+      newStatusValue = oldStatusValue;
+      break;
+    }
+    if (newStatusValue == oldStatusValue)
+      return;
+
+    StringSet invKey = new StringSet(getJobStatusKey());
+
+    HashMap newValues = new HashMap();
+    newValues.put(statusField,statusToString(newStatusValue));
+    newValues.put(assessmentStateField,assessmentStateToString(ASSESSMENT_KNOWN));
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    performUpdate(newValues,"WHERE "+query,list,invKey);
+  }
+
+  /** Signal to a job that an underlying transformation connector has been registered.
+  *@param jobID is the identifier of the job.
+  *@param oldStatusValue is the current status value for the job.
+  */
+  public void noteTransformationConnectorRegistration(Long jobID, int oldStatusValue)
+    throws ManifoldCFException
+  {
+    invalidateCurrentUnregisteredState(jobID,oldStatusValue);
   }
 
   /** Signal to a job that its underlying output connector has gone away.
@@ -1299,16 +1399,10 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     switch (oldStatusValue)
     {
     case STATUS_ACTIVE:
-      newStatusValue = STATUS_ACTIVE_NOOUTPUT;
+      newStatusValue = STATUS_ACTIVE_UNINSTALLED;
       break;
     case STATUS_ACTIVESEEDING:
-      newStatusValue = STATUS_ACTIVESEEDING_NOOUTPUT;
-      break;
-    case STATUS_ACTIVE_UNINSTALLED:
-      newStatusValue = STATUS_ACTIVE_NEITHER;
-      break;
-    case STATUS_ACTIVESEEDING_UNINSTALLED:
-      newStatusValue = STATUS_ACTIVESEEDING_NEITHER;
+      newStatusValue = STATUS_ACTIVESEEDING_UNINSTALLED;
       break;
     case STATUS_DELETING:
       newStatusValue = STATUS_DELETING_NOOUTPUT;
@@ -1324,12 +1418,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
     HashMap newValues = new HashMap();
     newValues.put(statusField,statusToString(newStatusValue));
+    newValues.put(assessmentStateField,assessmentStateToString(ASSESSMENT_KNOWN));
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,jobID)});
     performUpdate(newValues,"WHERE "+query,list,invKey);
   }
-
+  
   /** Signal to a job that its underlying output connector has returned.
   *@param jobID is the identifier of the job.
   *@param oldStatusValue is the current status value for the job.
@@ -1337,43 +1432,24 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void noteOutputConnectorRegistration(Long jobID, int oldStatusValue)
     throws ManifoldCFException
   {
-    int newStatusValue;
-    // The following states are special, in that when the underlying connector returns, the jobs
-    // in such states are switched back to their connector-installed value.
-    switch (oldStatusValue)
+    if (oldStatusValue == STATUS_DELETING_NOOUTPUT)
     {
-    case STATUS_ACTIVE_NOOUTPUT:
-      newStatusValue = STATUS_ACTIVE;
-      break;
-    case STATUS_ACTIVESEEDING_NOOUTPUT:
-      newStatusValue = STATUS_ACTIVESEEDING;
-      break;
-    case STATUS_ACTIVE_NEITHER:
-      newStatusValue = STATUS_ACTIVE_UNINSTALLED;
-      break;
-    case STATUS_ACTIVESEEDING_NEITHER:
-      newStatusValue = STATUS_ACTIVESEEDING_UNINSTALLED;
-      break;
-    case STATUS_DELETING_NOOUTPUT:
-      newStatusValue = STATUS_DELETING;
-      break;
-    default:
-      newStatusValue = oldStatusValue;
-      break;
-    }
-    if (newStatusValue == oldStatusValue)
+      // We can do the state transition now.
+      StringSet invKey = new StringSet(getJobStatusKey());
+
+      HashMap newValues = new HashMap();
+      newValues.put(statusField,statusToString(STATUS_DELETING));
+      newValues.put(assessmentStateField,assessmentStateToString(ASSESSMENT_KNOWN));
+      ArrayList list = new ArrayList();
+      String query = buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(idField,jobID)});
+      performUpdate(newValues,"WHERE "+query,list,invKey);
       return;
-
-    StringSet invKey = new StringSet(getJobStatusKey());
-
-    HashMap newValues = new HashMap();
-    newValues.put(statusField,statusToString(newStatusValue));
-    ArrayList list = new ArrayList();
-    String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(idField,jobID)});
-    performUpdate(newValues,"WHERE "+query,list,invKey);
+    }
+    // Otherwise, we don't know the state, and can't do the work now because we'd deadlock
+    invalidateCurrentUnregisteredState(jobID,oldStatusValue);
   }
-
+  
   /** Signal to a job that its underlying connector has gone away.
   *@param jobID is the identifier of the job.
   *@param oldStatusValue is the current status value for the job.
@@ -1396,12 +1472,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_ACTIVESEEDING:
       newStatusValue = STATUS_ACTIVESEEDING_UNINSTALLED;
       break;
-    case STATUS_ACTIVE_NOOUTPUT:
-      newStatusValue = STATUS_ACTIVE_NEITHER;
-      break;
-    case STATUS_ACTIVESEEDING_NOOUTPUT:
-      newStatusValue = STATUS_ACTIVESEEDING_NEITHER;
-      break;
     default:
       newStatusValue = oldStatusValue;
       break;
@@ -1413,12 +1483,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
     HashMap newValues = new HashMap();
     newValues.put(statusField,statusToString(newStatusValue));
+    newValues.put(assessmentStateField,assessmentStateToString(ASSESSMENT_KNOWN));
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,jobID)});
     performUpdate(newValues,"WHERE "+query,list,invKey);
   }
-
+  
   /** Signal to a job that its underlying connector has returned.
   *@param jobID is the identifier of the job.
   *@param oldStatusValue is the current status value for the job.
@@ -1426,40 +1497,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void noteConnectorRegistration(Long jobID, int oldStatusValue)
     throws ManifoldCFException
   {
-    int newStatusValue;
-    // The following states are special, in that when the underlying connector returns, the jobs
-    // in such states are switched back to their connector-installed value.
-    switch (oldStatusValue)
-    {
-    case STATUS_ACTIVE_UNINSTALLED:
-      newStatusValue = STATUS_ACTIVE;
-      break;
-    case STATUS_ACTIVESEEDING_UNINSTALLED:
-      newStatusValue = STATUS_ACTIVESEEDING;
-      break;
-    case STATUS_ACTIVE_NEITHER:
-      newStatusValue = STATUS_ACTIVE_NOOUTPUT;
-      break;
-    case STATUS_ACTIVESEEDING_NEITHER:
-      newStatusValue = STATUS_ACTIVESEEDING_NOOUTPUT;
-      break;
-    default:
-      newStatusValue = oldStatusValue;
-      break;
-    }
-    if (newStatusValue == oldStatusValue)
-      return;
-
-    StringSet invKey = new StringSet(getJobStatusKey());
-
-    HashMap newValues = new HashMap();
-    newValues.put(statusField,statusToString(newStatusValue));
-    ArrayList list = new ArrayList();
-    String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(idField,jobID)});
-    performUpdate(newValues,"WHERE "+query,list,invKey);
+    invalidateCurrentUnregisteredState(jobID,oldStatusValue);
   }
-
+  
   /** Note a change in connection configuration.
   * This method will be called whenever a connection's configuration is modified, or when an external repository change
   * is signalled.
@@ -1490,6 +1530,22 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(outputNameField,connectionName)});
     performUpdate(newValues,"WHERE "+query,list,null);
+  }
+
+  /** Note a change in transformation connection configuration.
+  * This method will be called whenever a connection's configuration is modified.
+  */
+  public void noteTransformationConnectionChange(String connectionName)
+    throws ManifoldCFException
+  {
+    // No cache keys need invalidation, since we're changing the start time, not the status.
+    HashMap newValues = new HashMap();
+    newValues.put(lastCheckTimeField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new JoinClause(getTableName()+"."+idField,pipelineManager.ownerIDField),
+      new UnitaryClause(pipelineManager.transformationNameField,connectionName)});
+    performUpdate(newValues,"WHERE EXISTS(SELECT 'x' FROM "+pipelineManager.getTableName()+" WHERE "+query+")",list,null);
   }
   
   /** Check whether a job's status indicates that it is in ACTIVE or ACTIVESEEDING state.
@@ -1683,20 +1739,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
     map.put(processIDField,null);
     performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NOOUTPUT)),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
-    list.clear();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ACTIVESEEDING_NEITHER)),
-      new UnitaryClause(processIDField,processID)});
-    map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
-    map.put(processIDField,null);
-    performUpdate(map,"WHERE "+query,list,invKey);
 
   }
 
@@ -1768,12 +1810,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         break;
       case STATUS_ACTIVESEEDING_UNINSTALLED:
         newStatus = STATUS_ACTIVE_UNINSTALLED;
-        break;
-      case STATUS_ACTIVESEEDING_NOOUTPUT:
-        newStatus = STATUS_ACTIVE_NOOUTPUT;
-        break;
-      case STATUS_ACTIVESEEDING_NEITHER:
-        newStatus = STATUS_ACTIVE_NEITHER;
         break;
       case STATUS_ACTIVEWAITSEEDING:
         newStatus = STATUS_ACTIVEWAIT;
@@ -1873,6 +1909,67 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }
 
+  /** Assess all marked jobs to determine if they can be reactivated.
+  */
+  public void assessMarkedJobs()
+    throws ManifoldCFException
+  {
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(assessmentStateField,assessmentStateToString(ASSESSMENT_UNKNOWN))});
+    // Query for the matching jobs, and then for each job potentially adjust the state based on the connector status
+    IResultSet set = performQuery("SELECT "+idField+","+statusField+","+connectionNameField+","+outputNameField+" FROM "+
+      getTableName()+" WHERE "+query+" FOR UPDATE",
+      newList,null,null);
+    for (int i = 0; i < set.getRowCount(); i++)
+    {
+      IResultRow row = set.getRow(i);
+      Long jobID = (Long)row.getValue(idField);
+      String outputName = (String)row.getValue(outputNameField);
+      String connectionName = (String)row.getValue(connectionNameField);
+      String[] transformationNames = pipelineManager.getConnectionNames(jobID);
+      int statusValue = stringToStatus((String)row.getValue(statusField));
+      int newValue;
+      
+      // Based on status value, see what we need to know to determine if the state can be switched
+      switch (statusValue)
+      {
+      case STATUS_DELETING_NOOUTPUT:
+        if (outputMgr.checkConnectorExists(outputName))
+          newValue = STATUS_DELETING;
+        else
+          return;
+        break;
+      case STATUS_ACTIVE_UNINSTALLED:
+        if (outputMgr.checkConnectorExists(outputName) &&
+          connectionMgr.checkConnectorExists(connectionName) &&
+          checkTransformationsInstalled(transformationNames))
+          newValue = STATUS_ACTIVE;
+        else
+          return;
+        break;
+      case STATUS_ACTIVESEEDING_UNINSTALLED:
+        if (outputMgr.checkConnectorExists(outputName) &&
+          connectionMgr.checkConnectorExists(connectionName) &&
+          checkTransformationsInstalled(transformationNames))
+          newValue = STATUS_ACTIVESEEDING;
+        else
+          return;
+        break;
+      default:
+        return;
+      }
+      
+      ArrayList list = new ArrayList();
+      query = buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(idField,jobID)});
+      HashMap map = new HashMap();
+      map.put(assessmentStateField,assessmentStateToString(ASSESSMENT_KNOWN));
+      performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+    }
+
+  }
+  
   /** Put job back into active state, from the shutting-down state.
   *@param jobID is the job identifier.
   */
@@ -1889,26 +1986,24 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         query+" FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
         throw new ManifoldCFException("Can't find job "+jobID.toString());
+      
       IResultRow row = set.getRow(0);
+      
       int status = stringToStatus((String)row.getValue(statusField));
       int newStatus;
       switch (status)
       {
       case STATUS_SHUTTINGDOWN:
-        if (connectionMgr.checkConnectorExists((String)row.getValue(connectionNameField)))
-        {
-          if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
-            newStatus = STATUS_ACTIVE;
-          else
-            newStatus = STATUS_ACTIVE_NOOUTPUT;
-        }
+        String[] transformationConnectionNames = pipelineManager.getConnectionNames(jobID);
+        String connectionName = (String)row.getValue(connectionNameField);
+        String outputName = (String)row.getValue(outputNameField);
+        // Want either STATUS_ACTIVE, or STATUS_ACTIVE_UNINSTALLED
+        if (!checkTransformationsInstalled(transformationConnectionNames) ||
+          !connectionMgr.checkConnectorExists(connectionName) ||
+          !outputMgr.checkConnectorExists(outputName))
+          newStatus = STATUS_ACTIVE_UNINSTALLED;
         else
-        {
-          if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
-            newStatus = STATUS_ACTIVE_UNINSTALLED;
-          else
-            newStatus = STATUS_ACTIVE_NEITHER;
-        }
+          newStatus = STATUS_ACTIVE;
         break;
       default:
         // Complain!
@@ -1939,6 +2034,17 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     {
       endTransaction();
     }
+  }
+
+  protected boolean checkTransformationsInstalled(String[] transformationNames)
+    throws ManifoldCFException
+  {
+    for (String transformationName : transformationNames)
+    {
+      if (!transMgr.checkConnectorExists(transformationName))
+        return false;
+    }
+    return true;
   }
   
   /** Put job into "deleting" state, and set the start time field.
@@ -2022,26 +2128,24 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       if (set.getRowCount() == 0)
         throw new ManifoldCFException("Can't find job "+jobID.toString());
       IResultRow row = set.getRow(0);
+      
       int status = stringToStatus((String)row.getValue(statusField));
       int newStatus;
       switch (status)
       {
       case STATUS_STARTINGUP:
       case STATUS_STARTINGUPMINIMAL:
-        if (connectionMgr.checkConnectorExists((String)row.getValue(connectionNameField)))
-        {
-          if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
-            newStatus = STATUS_ACTIVE;
-          else
-            newStatus = STATUS_ACTIVE_NOOUTPUT;
-        }
+        String[] transformationConnectionNames = pipelineManager.getConnectionNames(jobID);
+        String connectionName = (String)row.getValue(connectionNameField);
+        String outputName = (String)row.getValue(outputNameField);
+
+        // Need to set either STATUS_ACTIVE, or STATUS_ACTIVE_UNINSTALLED
+        if (!checkTransformationsInstalled(transformationConnectionNames) ||
+          !connectionMgr.checkConnectorExists(connectionName) ||
+          !outputMgr.checkConnectorExists(outputName))
+          newStatus = STATUS_ACTIVE_UNINSTALLED;
         else
-        {
-          if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
-            newStatus = STATUS_ACTIVE_UNINSTALLED;
-          else
-            newStatus = STATUS_ACTIVE_NEITHER;
-        }
+          newStatus = STATUS_ACTIVE;
         break;
       case STATUS_ABORTINGSTARTINGUPFORRESTART:
         newStatus = STATUS_ABORTINGFORRESTART;
@@ -2056,8 +2160,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
       HashMap map = new HashMap();
       map.put(statusField,statusToString(newStatus));
-      if (newStatus == STATUS_ACTIVE || newStatus == STATUS_ACTIVE_UNINSTALLED ||
-        newStatus == STATUS_ACTIVE_NOOUTPUT || newStatus == STATUS_ACTIVE_NEITHER)
+      if (newStatus == STATUS_ACTIVE || newStatus == STATUS_ACTIVE_UNINSTALLED)
       {
         map.put(startTimeField,new Long(startTime));
       }
@@ -2127,12 +2230,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         break;
       case STATUS_ACTIVESEEDING_UNINSTALLED:
         newStatus = STATUS_ACTIVE_UNINSTALLED;
-        break;
-      case STATUS_ACTIVESEEDING_NOOUTPUT:
-        newStatus = STATUS_ACTIVE_NOOUTPUT;
-        break;
-      case STATUS_ACTIVESEEDING_NEITHER:
-        newStatus = STATUS_ACTIVE_NEITHER;
         break;
       case STATUS_ACTIVEWAITSEEDING:
         newStatus = STATUS_ACTIVEWAIT;
@@ -2212,6 +2309,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,jobID)});
     HashMap map = new HashMap();
     map.put(statusField,statusToString(newStatus));
+    map.put(assessmentStateField,assessmentStateToString(ASSESSMENT_KNOWN));
     map.put(windowEndField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }
@@ -2258,8 +2356,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_READYFORSTARTUPMINIMAL:
     case STATUS_ACTIVE:
     case STATUS_ACTIVE_UNINSTALLED:
-    case STATUS_ACTIVE_NOOUTPUT:
-    case STATUS_ACTIVE_NEITHER:
     case STATUS_ACTIVEWAIT:
     case STATUS_PAUSING:
     case STATUS_ACTIVEWAITING:
@@ -2272,8 +2368,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       break;
     case STATUS_ACTIVESEEDING:
     case STATUS_ACTIVESEEDING_UNINSTALLED:
-    case STATUS_ACTIVESEEDING_NOOUTPUT:
-    case STATUS_ACTIVESEEDING_NEITHER:
     case STATUS_ACTIVEWAITSEEDING:
     case STATUS_PAUSINGSEEDING:
     case STATUS_ACTIVEWAITINGSEEDING:
@@ -2331,8 +2425,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_READYFORSTARTUPMINIMAL:
     case STATUS_ACTIVE:
     case STATUS_ACTIVE_UNINSTALLED:
-    case STATUS_ACTIVE_NOOUTPUT:
-    case STATUS_ACTIVE_NEITHER:
     case STATUS_ACTIVEWAIT:
     case STATUS_PAUSING:
     case STATUS_ACTIVEWAITING:
@@ -2343,8 +2435,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       break;
     case STATUS_ACTIVESEEDING:
     case STATUS_ACTIVESEEDING_UNINSTALLED:
-    case STATUS_ACTIVESEEDING_NOOUTPUT:
-    case STATUS_ACTIVESEEDING_NEITHER:
     case STATUS_ACTIVEWAITSEEDING:
     case STATUS_PAUSINGSEEDING:
     case STATUS_ACTIVEWAITINGSEEDING:
@@ -2383,8 +2473,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     {
     case STATUS_ACTIVE:
     case STATUS_ACTIVE_UNINSTALLED:
-    case STATUS_ACTIVE_NOOUTPUT:
-    case STATUS_ACTIVE_NEITHER:
       newStatus = STATUS_PAUSING;
       break;
     case STATUS_ACTIVEWAITING:
@@ -2395,8 +2483,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       break;
     case STATUS_ACTIVESEEDING:
     case STATUS_ACTIVESEEDING_UNINSTALLED:
-    case STATUS_ACTIVESEEDING_NOOUTPUT:
-    case STATUS_ACTIVESEEDING_NEITHER:
       newStatus = STATUS_PAUSINGSEEDING;
       break;
     case STATUS_ACTIVEWAITINGSEEDING:
@@ -2618,6 +2704,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         throw new ManifoldCFException("Job does not exist: "+jobID);
       IResultRow row = set.getRow(0);
       int status = stringToStatus(row.getValue(statusField).toString());
+      String[] transformationConnectionNames = pipelineManager.getConnectionNames(jobID);
       String connectionName = (String)row.getValue(connectionNameField);
       String outputName = (String)row.getValue(outputNameField);
       int newStatus;
@@ -2625,37 +2712,23 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       switch (status)
       {
       case STATUS_RESUMING:
-        if (connectionMgr.checkConnectorExists(connectionName))
-        {
-          if (outputMgr.checkConnectorExists(outputName))
-            newStatus = STATUS_ACTIVE;
-          else
-            newStatus = STATUS_ACTIVE_NOOUTPUT;
-        }
+        // Want either STATUS_ACTIVE or STATUS_ACTIVE_UNINSTALLED
+        if (!checkTransformationsInstalled(transformationConnectionNames) ||
+          !connectionMgr.checkConnectorExists(connectionName) ||
+          !outputMgr.checkConnectorExists(outputName))
+          newStatus = STATUS_ACTIVE_UNINSTALLED;
         else
-        {
-          if (outputMgr.checkConnectorExists(outputName))
-            newStatus = STATUS_ACTIVE_UNINSTALLED;
-          else
-            newStatus = STATUS_ACTIVE_NEITHER;
-        }
+          newStatus = STATUS_ACTIVE;
         map.put(statusField,statusToString(newStatus));
         break;
       case STATUS_RESUMINGSEEDING:
-        if (connectionMgr.checkConnectorExists(connectionName))
-        {
-          if (outputMgr.checkConnectorExists(outputName))
-            newStatus = STATUS_ACTIVESEEDING;
-          else
-            newStatus = STATUS_ACTIVESEEDING_NOOUTPUT;
-        }
+        // Want either STATUS_ACTIVESEEDING or STATUS_ACTIVESEEDING_UNINSTALLED
+        if (!checkTransformationsInstalled(transformationConnectionNames) ||
+          !connectionMgr.checkConnectorExists(connectionName) ||
+          !outputMgr.checkConnectorExists(outputName))
+          newStatus = STATUS_ACTIVESEEDING_UNINSTALLED;
         else
-        {
-          if (outputMgr.checkConnectorExists(outputName))
-            newStatus = STATUS_ACTIVESEEDING_UNINSTALLED;
-          else
-            newStatus = STATUS_ACTIVESEEDING_NEITHER;
-        }
+          newStatus = STATUS_ACTIVESEEDING;
         map.put(statusField,statusToString(newStatus));
         break;
       default:
@@ -2806,6 +2879,21 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(outputNameField,connectionName)});
     IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+
+      " WHERE "+query,list,new StringSet(getJobsKey()),null);
+    return set.getRowCount() > 0;
+  }
+
+  /** See if there's a reference to a transformation connection name.
+  *@param connectionName is the name of the connection.
+  *@return true if there is a reference, false otherwise.
+  */
+  public boolean checkIfTransformationReference(String connectionName)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(pipelineManager.transformationNameField,connectionName)});
+    IResultSet set = performQuery("SELECT "+pipelineManager.ownerIDField+" FROM "+pipelineManager.getTableName()+
       " WHERE "+query,list,new StringSet(getJobsKey()),null);
     return set.getRowCount() > 0;
   }
@@ -3063,6 +3151,35 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
+  /** Go from string to assessment state.
+  */
+  public static int stringToAssessmentState(String value)
+    throws ManifoldCFException
+  {
+    if (value == null || value.length() == 0)
+      return ASSESSMENT_KNOWN;
+    Integer x = assessmentMap.get(value);
+    if (x == null)
+      throw new ManifoldCFException("Bad assessment value: '"+value+"'");
+    return x.intValue();
+  }
+  
+  /** Go from assessment state to string.
+  */
+  public static String assessmentStateToString(int value)
+    throws ManifoldCFException
+  {
+    switch(value)
+    {
+    case ASSESSMENT_KNOWN:
+      return "Y";
+    case ASSESSMENT_UNKNOWN:
+      return "N";
+    default:
+      throw new ManifoldCFException("Unknown assessment state value "+Integer.toString(value));
+    }
+  }
+
   /** Go from string to hopcount mode.
   */
   public static int stringToHopcountMode(String value)
@@ -3070,7 +3187,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   {
     if (value == null || value.length() == 0)
       return HOPCOUNT_ACCURATE;
-    Integer x = (Integer)hopmodeMap.get(value);
+    Integer x = hopmodeMap.get(value);
     if (x == null)
       throw new ManifoldCFException("Bad hopcount mode value: '"+value+"'");
     return x.intValue();
@@ -3214,14 +3331,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     // Fetch all the jobs, but only once for each ID.  Then, assign each one by id into the final array.
-    HashMap uniqueIDs = new HashMap();
-    int i = 0;
-    while (i < ids.length)
+    Set<Long> uniqueIDs = new HashSet<Long>();
+    for (Long id : ids)
     {
-      uniqueIDs.put(ids[i],ids[i]);
-      i++;
+      uniqueIDs.add(id);
     }
-    HashMap returnValues = new HashMap();
+    Map<Long,JobDescription> returnValues = new HashMap<Long,JobDescription>();
     beginTransaction();
     try
     {
@@ -3229,8 +3344,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       ArrayList params = new ArrayList();
       int j = 0;
       int maxIn = getMaxInClause();
-      Iterator iter = uniqueIDs.keySet().iterator();
-      while (iter.hasNext())
+      for (Long uniqueID : uniqueIDs)
       {
         if (j == maxIn)
         {
@@ -3242,7 +3356,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         if (j > 0)
           sb.append(',');
         sb.append('?');
-        params.add((Long)iter.next());
+        params.add(uniqueID);
         j++;
       }
       if (j > 0)
@@ -3265,15 +3379,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
     // Build the return array
     JobDescription[] rval = new JobDescription[ids.length];
-    i = 0;
-    while (i < rval.length)
+    for (int i = 0; i < rval.length; i++)
     {
       Long id = ids[i];
-      JobDescription jd = (JobDescription)returnValues.get(id);
+      JobDescription jd = returnValues.get(id);
       if (jd != null)
         jd.makeReadOnly();
       rval[i] = jd;
-      i++;
     }
     return rval;
   }
@@ -3283,7 +3395,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   *@param idList is the list of id's.
   *@param params is the set of parameters.
   */
-  protected void getJobsChunk(Map returnValues, String idList, ArrayList params)
+  protected void getJobsChunk(Map<Long,JobDescription> returnValues, String idList, ArrayList params)
     throws ManifoldCFException
   {
     try
@@ -3321,6 +3433,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       }
 
       // Fill in schedules for jobs
+      pipelineManager.getRows(returnValues,idList,params);
       scheduleManager.getRows(returnValues,idList,params);
       hopFilterManager.getRows(returnValues,idList,params);
       forcedParamManager.getRows(returnValues,idList,params);

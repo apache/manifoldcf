@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import org.junit.*;
 
@@ -184,7 +185,7 @@ public class TestFuzzyML
     throws IOException, ManifoldCFException
   {
     org.apache.manifoldcf.core.system.Logging.misc = org.apache.log4j.Logger.getLogger("test");
-    InputStream is = new ByteArrayInputStream(fuzzyTestString.getBytes("utf-8"));
+    InputStream is = new ByteArrayInputStream(fuzzyTestString.getBytes(StandardCharsets.UTF_8));
     Parser p = new Parser();
     // Parse the document.  This will cause various things to occur, within the instantiated XMLParsingContext class.
     XMLFuzzyHierarchicalParseState x = new XMLFuzzyHierarchicalParseState();

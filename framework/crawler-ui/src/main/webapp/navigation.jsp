@@ -31,6 +31,9 @@
 <p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Outputs")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
+		<nobr><a class="menulink" href="listtransformations.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listtransformationconnections")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListTransformationConnections")%></a></nobr>
+	</li>
+	<li class="menuitem">
 		<nobr><a class="menulink" href="listoutputs.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listoutputconnections")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListOutputConnections")%></a></nobr>
 	</li>
 </ul>

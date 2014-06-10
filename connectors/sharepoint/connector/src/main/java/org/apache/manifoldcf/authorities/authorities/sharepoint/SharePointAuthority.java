@@ -23,6 +23,8 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
+import org.apache.manifoldcf.core.util.URLEncoder;
+import org.apache.manifoldcf.core.util.URLDecoder;
 
 import java.io.*;
 import java.util.*;
@@ -777,31 +779,16 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   */
   public static String pathItemDecode(String pathItem)
   {
-    try
-    {
-      return java.net.URLDecoder.decode(pathItem.replaceAll("\\%20","+"),"utf-8");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      // Bad news, utf-8 not available!
-      throw new RuntimeException("No utf-8 encoding available");
-    }
+      return URLDecoder.decode(pathItem.replaceAll("\\%20","+"));
   }
 
   /** Encode a path item.
   */
   public static String pathItemEncode(String pathItem)
   {
-    try
-    {
-      String output = java.net.URLEncoder.encode(pathItem,"utf-8");
+      String output = URLEncoder.encode(pathItem);
       return output.replaceAll("\\+","%20");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      // Bad news, utf-8 not available!
-      throw new RuntimeException("No utf-8 encoding available");
-    }
+
   }
 
   /** Given a path that is /-separated, and otherwise encoded, decode properly to convert to
