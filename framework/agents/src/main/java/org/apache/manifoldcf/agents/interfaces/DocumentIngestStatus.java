@@ -32,18 +32,21 @@ public class DocumentIngestStatus
   public static final String _rcsid = "@(#)$Id: DocumentIngestStatus.java 988245 2010-08-23 18:39:35Z kwright $";
 
   protected final String documentVersionString;
+  protected final String transformationVersionString;
   protected final String outputVersionString;
-  protected final String documentAuthorityNameString;
   protected final String parameterVersionString;
+  protected final String documentAuthorityNameString;
 
   /** Constructor */
-  public DocumentIngestStatus(String documentVersionString, String outputVersionString,
-    String documentAuthorityNameString, String parameterVersionString)
+  public DocumentIngestStatus(String documentVersionString,
+    String transformationVersionString, String outputVersionString, String parameterVersionString,
+    String documentAuthorityNameString)
   {
     this.documentVersionString = documentVersionString;
+    this.transformationVersionString = transformationVersionString;
     this.outputVersionString = outputVersionString;
-    this.documentAuthorityNameString = documentAuthorityNameString;
     this.parameterVersionString = parameterVersionString;
+    this.documentAuthorityNameString = documentAuthorityNameString;
   }
 
   /** Get the document version */
@@ -52,22 +55,28 @@ public class DocumentIngestStatus
     return documentVersionString;
   }
 
+  /** Get the transformation version strings */
+  public String getTransformationVersion()
+  {
+    return transformationVersionString;
+  }
+  
   /** Get the output version */
   public String getOutputVersion()
   {
     return outputVersionString;
   }
 
-  /** Get the document authority name string */
-  public String getDocumentAuthorityNameString()
-  {
-    return documentAuthorityNameString;
-  }
-  
   /** Get the parameter version string */
   public String getParameterVersion()
   {
     return parameterVersionString;
+  }
+  
+  /** Get the document authority name string */
+  public String getDocumentAuthorityNameString()
+  {
+    return documentAuthorityNameString;
   }
   
 }

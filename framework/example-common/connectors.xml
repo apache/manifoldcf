@@ -28,7 +28,9 @@
     <!-- authorizationdomain domain="FB" name="FaceBook"/-->
 
     <!-- Add your output connectors here -->
-    
+
+    <!-- Add your transformation connectors here -->
+
     <!-- Add your mapping connectors here -->
     
     <!-- Add your authority connectors here -->

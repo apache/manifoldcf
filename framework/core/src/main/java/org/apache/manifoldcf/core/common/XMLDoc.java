@@ -18,6 +18,7 @@
 */
 package org.apache.manifoldcf.core.common;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
 import javax.xml.transform.*;
@@ -231,14 +232,8 @@ public class XMLDoc
   public String getXML()
     throws ManifoldCFException
   {
-    try
-    {
-      return new String(toByteArray(),"utf-8");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+    return new String(toByteArray(), StandardCharsets.UTF_8);
+
   }
 
   /** Get XML with no entity preamble */
@@ -287,15 +282,10 @@ public class XMLDoc
   public XMLDoc(String data)
     throws ManifoldCFException
   {
-    try
-    {
-      ByteArrayInputStream bis = new ByteArrayInputStream(data.getBytes("utf-8"));
+      ByteArrayInputStream bis = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
       _doc = init(bis);
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+
+
   }
 
   /** Construct a new document tree from a StringBuilder form of
@@ -305,16 +295,10 @@ public class XMLDoc
   public XMLDoc(StringBuilder data)
     throws ManifoldCFException
   {
-    try
-    {
       ByteArrayInputStream bis =
-        new ByteArrayInputStream(data.toString().getBytes("utf-8"));
+        new ByteArrayInputStream(data.toString().getBytes(StandardCharsets.UTF_8));
       _doc = init(bis);
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+
   }
 
   /** Build a document object tree from an input
@@ -392,7 +376,7 @@ public class XMLDoc
           {
             // Append the bytes we have, and stop.  Presume the encoding is utf-8;
             // if we're wrong it will come out as garbage, but that can't be helped.
-            sw.append(new String(buf, 0, len, "UTF-8"));
+            sw.append(new String(buf, 0, len, StandardCharsets.UTF_8));
             if (len == buf.length)
               sw.append("...");
           }
@@ -746,7 +730,7 @@ public class XMLDoc
       throws SAXException, java.io.IOException
     {
       // ALL references resolve to blank documents
-      return new org.xml.sax.InputSource(new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes()));
+      return new org.xml.sax.InputSource(new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes(StandardCharsets.UTF_8)));
     }
   }
 

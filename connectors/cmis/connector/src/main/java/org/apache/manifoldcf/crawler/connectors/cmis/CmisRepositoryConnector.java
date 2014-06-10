@@ -50,6 +50,7 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.Constants;
+import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -140,6 +141,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   protected static final long timeToRelease = 300000L;
   protected long lastSessionFetch = -1L;
+  
+  protected String cmisQuery = StringUtils.EMPTY;
 
   /**
    * Constructor
@@ -646,7 +649,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
     getSession();
 
-    String cmisQuery = StringUtils.EMPTY;
+    cmisQuery = StringUtils.EMPTY;
     int i = 0;
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i);
@@ -665,6 +668,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         activities.addSeedDocument(cmisObject.getId());
       }
     } else {
+      cmisQuery = CmisRepositoryConnectorUtils.getCmisQueryWithObjectId(cmisQuery);
       ItemIterable<QueryResult> results = session.query(cmisQuery, false).getPage(1000000000);
       for (QueryResult result : results) {
         String id = result.getPropertyValueById(PropertyIds.OBJECT_ID);
@@ -673,6 +677,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     }
 
   }
+  
+  
 
   /** 
    * Get the maximum number of documents to amalgamate together into one batch, for this connector.
@@ -1098,6 +1104,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           if(fileLength>0 && document.getContentStream()!=null){
             is = document.getContentStream().getStream();
             rd.setBinary(is, fileLength);
+          } else {
+            rd.setBinary(new NullInputStream(0),0);
           }
 
           //properties
@@ -1105,93 +1113,99 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           String id = StringUtils.EMPTY;
           for (Property<?> property : properties) {
             String propertyId = property.getId();
-            if (propertyId.endsWith(Constants.PARAM_OBJECT_ID))
-              id = (String) property.getValue();
-
-            if (property.getValue() !=null 
-                || property.getValues() != null) {
-              PropertyType propertyType = property.getType();
-
-              switch (propertyType) {
-
-              case STRING:
-              case ID:
-              case URI:
-              case HTML:
-                if(property.isMultiValued()){
-                  List<String> htmlPropertyValues = (List<String>) property.getValues();
-                  for (String htmlPropertyValue : htmlPropertyValues) {
-                    rd.addField(propertyId, htmlPropertyValue);
-                  }
-                } else {
-                  String stringValue = (String) property.getValue();
-                  if(StringUtils.isNotEmpty(stringValue)){
-                    rd.addField(propertyId, stringValue);
+            
+            if(CmisRepositoryConnectorUtils.existsInSelectClause(cmisQuery, propertyId)){
+              
+              if (propertyId.endsWith(Constants.PARAM_OBJECT_ID))
+                id = (String) property.getValue();
+  
+                if (property.getValue() !=null 
+                    || property.getValues() != null) {
+                  PropertyType propertyType = property.getType();
+    
+                  switch (propertyType) {
+    
+                  case STRING:
+                  case ID:
+                  case URI:
+                  case HTML:
+                    if(property.isMultiValued()){
+                      List<String> htmlPropertyValues = (List<String>) property.getValues();
+                      for (String htmlPropertyValue : htmlPropertyValues) {
+                        rd.addField(propertyId, htmlPropertyValue);
+                      }
+                    } else {
+                      String stringValue = (String) property.getValue();
+                      if(StringUtils.isNotEmpty(stringValue)){
+                        rd.addField(propertyId, stringValue);
+                      }
+                    }
+                    break;
+         
+                  case BOOLEAN:
+                    if(property.isMultiValued()){
+                      List<Boolean> booleanPropertyValues = (List<Boolean>) property.getValues();
+                      for (Boolean booleanPropertyValue : booleanPropertyValues) {
+                        rd.addField(propertyId, booleanPropertyValue.toString());
+                      }
+                    } else {
+                      Boolean booleanValue = (Boolean) property.getValue();
+                      if(booleanValue!=null){
+                        rd.addField(propertyId, booleanValue.toString());
+                      }
+                    }
+                    break;
+    
+                  case INTEGER:
+                    if(property.isMultiValued()){
+                      List<BigInteger> integerPropertyValues = (List<BigInteger>) property.getValues();
+                      for (BigInteger integerPropertyValue : integerPropertyValues) {
+                        rd.addField(propertyId, integerPropertyValue.toString());
+                      }
+                    } else {
+                      BigInteger integerValue = (BigInteger) property.getValue();
+                      if(integerValue!=null){
+                        rd.addField(propertyId, integerValue.toString());
+                      }
+                    }
+                    break;
+    
+                  case DECIMAL:
+                    if(property.isMultiValued()){
+                      List<BigDecimal> decimalPropertyValues = (List<BigDecimal>) property.getValues();
+                      for (BigDecimal decimalPropertyValue : decimalPropertyValues) {
+                        rd.addField(propertyId, decimalPropertyValue.toString());
+                      }
+                    } else {
+                      BigDecimal decimalValue = (BigDecimal) property.getValue();
+                      if(decimalValue!=null){
+                        rd.addField(propertyId, decimalValue.toString());
+                      }
+                    }
+                    break;
+    
+                  case DATETIME:
+                    if(property.isMultiValued()){
+                      List<GregorianCalendar> datePropertyValues = (List<GregorianCalendar>) property.getValues();
+                      for (GregorianCalendar datePropertyValue : datePropertyValues) {
+                        rd.addField(propertyId,
+                            ISO8601_DATE_FORMATTER.format(datePropertyValue.getTime()));
+                      }
+                    } else {
+                      GregorianCalendar dateValue = (GregorianCalendar) property.getValue();
+                      if(dateValue!=null){
+                        rd.addField(propertyId, ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
+                      }
+                    }
+                    break;
+    
+                  default:
+                    break;
                   }
                 }
-                break;
-     
-              case BOOLEAN:
-                if(property.isMultiValued()){
-                  List<Boolean> booleanPropertyValues = (List<Boolean>) property.getValues();
-                  for (Boolean booleanPropertyValue : booleanPropertyValues) {
-                    rd.addField(propertyId, booleanPropertyValue.toString());
-                  }
-                } else {
-                  Boolean booleanValue = (Boolean) property.getValue();
-                  if(booleanValue!=null){
-                    rd.addField(propertyId, booleanValue.toString());
-                  }
-                }
-                break;
-
-              case INTEGER:
-                if(property.isMultiValued()){
-                  List<BigInteger> integerPropertyValues = (List<BigInteger>) property.getValues();
-                  for (BigInteger integerPropertyValue : integerPropertyValues) {
-                    rd.addField(propertyId, integerPropertyValue.toString());
-                  }
-                } else {
-                  BigInteger integerValue = (BigInteger) property.getValue();
-                  if(integerValue!=null){
-                    rd.addField(propertyId, integerValue.toString());
-                  }
-                }
-                break;
-
-              case DECIMAL:
-                if(property.isMultiValued()){
-                  List<BigDecimal> decimalPropertyValues = (List<BigDecimal>) property.getValues();
-                  for (BigDecimal decimalPropertyValue : decimalPropertyValues) {
-                    rd.addField(propertyId, decimalPropertyValue.toString());
-                  }
-                } else {
-                  BigDecimal decimalValue = (BigDecimal) property.getValue();
-                  if(decimalValue!=null){
-                    rd.addField(propertyId, decimalValue.toString());
-                  }
-                }
-                break;
-
-              case DATETIME:
-                if(property.isMultiValued()){
-                  List<GregorianCalendar> datePropertyValues = (List<GregorianCalendar>) property.getValues();
-                  for (GregorianCalendar datePropertyValue : datePropertyValues) {
-                    rd.addField(propertyId,
-                        ISO8601_DATE_FORMATTER.format(datePropertyValue.getTime()));
-                  }
-                } else {
-                  GregorianCalendar dateValue = (GregorianCalendar) property.getValue();
-                  if(dateValue!=null){
-                    rd.addField(propertyId, ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
-                  }
-                }
-                break;
-
-              default:
-                break;
+                
               }
-            }
+            
           }
           
           //ingestion

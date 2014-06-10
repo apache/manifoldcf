@@ -17,12 +17,12 @@
 
 package org.apache.manifoldcf.agents.output.opensearchserver;
 
-import java.io.BufferedReader;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+
+
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -42,7 +42,6 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;

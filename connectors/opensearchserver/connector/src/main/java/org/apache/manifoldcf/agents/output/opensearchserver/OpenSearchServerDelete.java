@@ -21,6 +21,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.util.URLEncoder;
 
 public class OpenSearchServerDelete extends OpenSearchServerConnection {
 
@@ -29,7 +30,7 @@ public class OpenSearchServerDelete extends OpenSearchServerConnection {
     super(client, config);
     StringBuffer url = getApiUrl("delete");
     url.append("&uniq=");
-    url.append(urlEncode(documentURI));
+    url.append(URLEncoder.encode(documentURI));
     HttpGet method = new HttpGet(url.toString());
     call(method);
     if ("OK".equals(checkXPath(xPathStatus)))

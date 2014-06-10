@@ -50,6 +50,7 @@ public class ExtensionMimeMap
     mimeMap.put("ots", "application/vnd.oasis.opendocument.spreadsheet");
     mimeMap.put("txt", "text/plain");
     mimeMap.put("log", "text/plain");
+    mimeMap.put("aspx", "text/html");
   }
 
   /** Map extension to mime type */
