@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-connectors</artifactId>
-    <version>1.6-SNAPSHOT</version>
+    <version>1.7-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -230,18 +230,6 @@
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>org.powermock</groupId>
-          <artifactId>powermock-module-junit4</artifactId>
-          <version>${powerMock.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.powermock</groupId>
-          <artifactId>powermock-api-mockito</artifactId>
-          <version>${powerMock.version}</version>
-          <scope>test</scope>
-      </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-core</artifactId>

@@ -4248,7 +4248,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "    <td class=\"value\">\n"+
 "      "+Encoder.bodyEscape(name)+"\n"+
 "    </td>\n"+
-"    <td class=\"value\">=</td>\n"+
+"    <td class=\"value\">==&gt;&nbsp;</td>\n"+
 "    <td class=\"value\">\n"+
 "      "+Encoder.bodyEscape(value)+"\n"+
 "    </td>\n"+
@@ -4279,7 +4279,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "    <td class=\"value\">\n"+
 "      <input type=\"text\" size=\"30\" name=\"specmetaname\" value=\"\"/>\n"+
 "    </td>\n"+
-"    <td class=\"value\">=</td>\n"+
+"    <td class=\"value\">==&gt;&nbsp;</td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"text\" size=\"80\" name=\"specmetavalue\" value=\"\"/>\n"+
 "    </td>\n"+

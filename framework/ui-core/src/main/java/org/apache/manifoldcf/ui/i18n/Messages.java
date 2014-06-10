@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
@@ -249,7 +250,7 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
       InputStream is = getResourceAsStream(classInstance,pathName,locale,resourceKey);
       try
       {
-        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+        BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
         String line;
         while ((line = br.readLine()) != null)
         {

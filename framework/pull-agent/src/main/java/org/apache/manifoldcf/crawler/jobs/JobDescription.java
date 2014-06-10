@@ -44,6 +44,7 @@ public class JobDescription implements IJobDescription
   protected String description = null;
   protected String outputConnectionName = null;
   protected String connectionName = null;
+  protected final List<PipelineStage> pipelineStages = new ArrayList<PipelineStage>();
   protected int type = TYPE_CONTINUOUS;
   protected int startMethod = START_WINDOWBEGIN;
   protected int priority = 5;
@@ -96,7 +97,15 @@ public class JobDescription implements IJobDescription
     rval.id = id;
     rval.isNew = isNew;
     rval.outputConnectionName = outputConnectionName;
+    // Direct modification of this object is possible - so it also has to know if it is read-only!!
+    rval.outputSpecification = outputSpecification.duplicate(readOnly);
     rval.connectionName = connectionName;
+    // Direct modification of this object is possible - so it also has to know if it is read-only!!
+    rval.documentSpecification = documentSpecification.duplicate(readOnly);
+    for (PipelineStage pipelineStage : pipelineStages)
+    {
+      rval.pipelineStages.add(new PipelineStage(pipelineStage.getConnectionName(),pipelineStage.getDescription(),pipelineStage.getSpecification().duplicate(readOnly)));
+    }
     rval.description = description;
     rval.type = type;
     // No direct modification of this object is possible
@@ -124,10 +133,6 @@ public class JobDescription implements IJobDescription
         rval.addForcedMetadataValue(forcedParamName,value);
       }
     }
-    // Direct modification of this object is possible - so it also has to know if it is read-only!!
-    rval.outputSpecification = outputSpecification.duplicate(readOnly);
-    // Direct modification of this object is possible - so it also has to know if it is read-only!!
-    rval.documentSpecification = documentSpecification.duplicate(readOnly);
     rval.readOnly = readOnly;
     return rval;
   }
@@ -240,6 +245,91 @@ public class JobDescription implements IJobDescription
   public String getConnectionName()
   {
     return connectionName;
+  }
+
+  /** Clear pipeline connections */
+  @Override
+  public void clearPipeline()
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    pipelineStages.clear();
+  }
+  
+  /** Add a pipeline connection.
+  *@param pipelineStageConnectionName is the name of the pipeline connection to add.
+  *@param pipelineStageDescription is a description of the pipeline stage being added.
+  *@return the empty output specification for this pipeline stage.
+  */
+  @Override
+  public OutputSpecification addPipelineStage(String pipelineStageConnectionName, String pipelineStageDescription)
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    PipelineStage ps = new PipelineStage(pipelineStageConnectionName,pipelineStageDescription);
+    pipelineStages.add(ps);
+    return ps.getSpecification();
+  }
+  
+  /** Get a count of pipeline stages */
+  @Override
+  public int countPipelineStages()
+  {
+    return pipelineStages.size();
+  }
+  
+  /** Insert a new pipeline stage.
+  *@param index is the index to insert pipeline stage before
+  *@param pipelineStageConnectionName is the connection name.
+  *@param pipelineStageDescription is the description.
+  *@return the newly-created output specification.
+  */
+  public OutputSpecification insertPipelineStage(int index, String pipelineStageConnectionName, String pipelineStageDescription)
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    PipelineStage ps = new PipelineStage(pipelineStageConnectionName,pipelineStageDescription);
+    pipelineStages.add(index,ps);
+    return ps.getSpecification();
+  }
+  
+  /** Get a specific pipeline connection name.
+  *@param index is the index of the pipeline stage whose connection name to get.
+  *@return the name of the connection.
+  */
+  @Override
+  public String getPipelineStageConnectionName(int index)
+  {
+    return pipelineStages.get(index).getConnectionName();
+  }
+  
+  /** Get a specific pipeline stage description.
+  *@param index is the index of the pipeline stage whose description to get.
+  *@return the name of the connection.
+  */
+  @Override
+  public String getPipelineStageDescription(int index)
+  {
+    return pipelineStages.get(index).getDescription();
+  }
+
+  /** Get a specific pipeline stage specification.
+  *@param index is the index of the pipeline stage whose specification is needed.
+  *@return the specification for the connection.
+  */
+  @Override
+  public OutputSpecification getPipelineStageSpecification(int index)
+  {
+    return pipelineStages.get(index).getSpecification();
+  }
+
+  /** Delete a pipeline stage.
+  *@param index is the index of the pipeline stage to delete.
+  */
+  @Override
+  public void deletePipelineStage(int index)
+  {
+    pipelineStages.remove(index);
   }
 
   /** Set the job type.
@@ -544,4 +634,40 @@ public class JobDescription implements IJobDescription
     rval.add(value);
   }
 
+  protected static class PipelineStage
+  {
+    protected final String connectionName;
+    protected final String description;
+    protected final OutputSpecification specification;
+    
+    public PipelineStage(String connectionName, String description)
+    {
+      this.connectionName = connectionName;
+      this.description = description;
+      this.specification = new OutputSpecification();
+    }
+
+    public PipelineStage(String connectionName, String description, OutputSpecification spec)
+    {
+      this.connectionName = connectionName;
+      this.description = description;
+      this.specification = spec;
+    }
+    
+    public OutputSpecification getSpecification()
+    {
+      return specification;
+    }
+    
+    public String getConnectionName()
+    {
+      return connectionName;
+    }
+    
+    public String getDescription()
+    {
+      return description;
+    }
+  }
+  
 }

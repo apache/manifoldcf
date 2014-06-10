@@ -49,6 +49,7 @@
 	</p> 
 	<ul>
 	    <li><a href="writing-output-connectors.html">出力コネクションの作成</a></li>
+	    <li><a href="writing-transformation-connectors.html">How to write a transformation connector</a></li>
 	    <li><a href="writing-mapping-connectors.html">How to write a user mapping connector</a></li>
 	    <li><a href="writing-authority-connectors.html">権限コネクションの作成</a></li>
 	    <li><a href="writing-repository-connectors.html">リポジトリコネクションの作成</a></li>

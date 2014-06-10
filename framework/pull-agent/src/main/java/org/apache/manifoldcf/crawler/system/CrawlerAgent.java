@@ -50,7 +50,8 @@ public class CrawlerAgent implements IAgent
   protected IdleCleanupThread idleCleanupThread = null;
   protected SetPriorityThread setPriorityThread = null;
   protected HistoryCleanupThread historyCleanupThread = null;
-
+  protected AssessmentThread assessmentThread = null;
+  
   // Reset managers
   /** Worker thread pool reset manager */
   protected WorkerResetManager workerResetManager = null;
@@ -282,6 +283,55 @@ public class CrawlerAgent implements IAgent
     jobManager.noteOutputConnectionChange(connectionName);
   }
 
+  /** Request permission from agent to delete a transformation connection.
+  *@param connName is the name of the transformation connection.
+  *@return true if the connection is in use, false otherwise.
+  */
+  @Override
+  public boolean isTransformationConnectionInUse(IThreadContext threadContext, String connName)
+    throws ManifoldCFException
+  {
+    // Check with job manager.
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    return jobManager.checkIfTransformationReference(connName);
+  }
+
+  /** Note the deregistration of a set of transformation connections.
+  *@param connectionNames are the names of the connections being deregistered.
+  */
+  @Override
+  public void noteTransformationConnectorDeregistration(IThreadContext threadContext, String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // Notify job manager
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    jobManager.noteTransformationConnectorDeregistration(connectionNames);
+  }
+
+  /** Note the registration of a set of transformation connections.
+  *@param connectionNames are the names of the connections being registered.
+  */
+  @Override
+  public void noteTransformationConnectorRegistration(IThreadContext threadContext, String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // Notify job manager
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    jobManager.noteTransformationConnectorRegistration(connectionNames);
+  }
+
+  /** Note a change in configuration for a transformation connection.
+  *@param connectionName is the name of the connection being changed.
+  */
+  @Override
+  public void noteTransformationConnectionChange(IThreadContext threadContext, String connectionName)
+    throws ManifoldCFException
+  {
+    // Notify job manager
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    jobManager.noteTransformationConnectionChange(connectionName);
+  }
+
   /** Start everything.
   */
   public void startSystem(IThreadContext threadContext)
@@ -373,6 +423,7 @@ public class CrawlerAgent implements IAgent
     jobResetThread = new JobResetThread(processID);
     seedingThread = new SeedingThread(new SeedingResetManager(processID),processID);
     idleCleanupThread = new IdleCleanupThread(processID);
+    assessmentThread = new AssessmentThread(processID);
 
     // Start all the threads
     jobStartThread.start();
@@ -419,6 +470,7 @@ public class CrawlerAgent implements IAgent
     jobResetThread.start();
     seedingThread.start();
     idleCleanupThread.start();
+    assessmentThread.start();
 
     Logging.root.info("Pull-agent started");
   }
@@ -434,7 +486,7 @@ public class CrawlerAgent implements IAgent
       finisherThread != null || notificationThread != null || workerThreads != null || expireStufferThread != null || expireThreads != null ||
       deleteStufferThread != null || deleteThreads != null ||
       cleanupStufferThread != null || cleanupThreads != null ||
-      jobResetThread != null || seedingThread != null || idleCleanupThread != null || setPriorityThread != null || historyCleanupThread != null)
+      jobResetThread != null || seedingThread != null || idleCleanupThread != null || assessmentThread != null || setPriorityThread != null || historyCleanupThread != null)
     {
       // Send an interrupt to all threads that are still there.
       // In theory, this only needs to be done once.  In practice, I have seen cases where the thread loses track of the fact that it has been
@@ -538,6 +590,10 @@ public class CrawlerAgent implements IAgent
       if (idleCleanupThread != null)
       {
         idleCleanupThread.interrupt();
+      }
+      if (assessmentThread != null)
+      {
+        assessmentThread.interrupt();
       }
 
       // Now, wait for all threads to die.
@@ -703,6 +759,11 @@ public class CrawlerAgent implements IAgent
       {
         if (!idleCleanupThread.isAlive())
           idleCleanupThread = null;
+      }
+      if (assessmentThread != null)
+      {
+        if (!assessmentThread.isAlive())
+          assessmentThread = null;
       }
     }
 

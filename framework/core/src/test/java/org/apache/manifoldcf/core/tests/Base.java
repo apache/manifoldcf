@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import org.junit.*;
 
@@ -250,7 +251,7 @@ public class Base
     OutputStream os = new FileOutputStream(f);
     try
     {
-      Writer w = new OutputStreamWriter(os,"UTF-8");
+      Writer w = new OutputStreamWriter(os, StandardCharsets.UTF_8);
       try
       {
         w.write(fileContents);

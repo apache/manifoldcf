@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0"?>
 
 <!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
           "http://forrest.apache.org/dtd/document-v20.dtd">
@@ -30,34 +30,35 @@
     <section>
       <title>ManifoldCF Javadoc</title>
       <p></p>
-      <p>最新版のManifoldCFのJavadocは以下のリンクから参照することができます：</p>
-      <p><a href="../api/framework/index.html">ManifoldCFフレームワーク</a></p>
-      <p><a href="../api/activedirectory/index.html">Active Directory権限コネクタ</a></p>
-      <p><a href="../api/alfresco/index.html">Alfrescoコネクタ</a></p>
-      <p><a href="../api/cmis/index.html">CMIS権限コネクタ</a></p>
-      <p><a href="../api/documentum/index.html">Documentum権限コネクタ</a></p>
-      <p><a href="../api/dropbox/index.html">Dropboxコネクタ</a></p>
+      <p>The javadoc for the last released version of ManifoldCF and its connectors can be found by following the links below.</p>
+      <p><a href="../api/framework/index.html">ManifoldCF Framework</a></p>
+      <p><a href="../api/activedirectory/index.html">Active Directory authority</a></p>
+      <p><a href="../api/alfresco/index.html">Alfresco connector</a></p>
+      <p><a href="../api/cmis/index.html">CMIS authority and connector</a></p>
+      <p><a href="../api/documentum/index.html">Documentum authority, connector, and support processes</a></p>
+      <p><a href="../api/dropbox/index.html">Dropbox connector</a></p>
       <p><a href="../api/email/index.html">Email connector</a></p>
-      <p><a href="../api/filenet/index.html">FileNetコネクタ</a></p>
+      <p><a href="../api/filenet/index.html">FileNet connector and support processes</a></p>
       <p><a href="../api/filesystem/index.html">File system repository and output connector</a></p>
-      <p><a href="../api/googledrive/index.html">GoogleDriveコネクタ</a></p>
-      <p><a href="../api/gts/index.html">qBase GTS出力コネクタ</a></p>
+      <p><a href="../api/googledrive/index.html">GoogleDrive connector</a></p>
+      <p><a href="../api/gridfs/index.html">GridFS connector</a></p>
+      <p><a href="../api/gts/index.html">qBase GTS output connector</a></p>
       <p><a href="../api/hdfs/index.html">HDFS repository and output connector</a></p>
-      <p><a href="../api/jcifs/index.html">CIFSコネクタ</a></p>
-      <p><a href="../api/jdbc/index.html">JDBCコネクタ</a></p>
+      <p><a href="../api/jcifs/index.html">CIFS connector</a></p>
       <p><a href="../api/jira/index.html">JIRA connector and authority</a></p>
-      <p><a href="../api/livelink/index.html">LiveLink権限コネクタ</a></p>
-      <p><a href="../api/meridio/index.html">Meridio権限コネクタ</a></p>
-      <p><a href="../api/opensearchserver/index.html">OpenSearchServer出力コネクタ</a></p>
-      <p><a href="../api/elasticsearch/index.html">ElasticSearch出力コネクタ</a></p>
-      <p><a href="../api/nullauthority/index.html">Null権限コネクタ</a></p>
-      <p><a href="../api/nulloutput/index.html">Null出力コネクタ</a></p>
+      <p><a href="../api/jdbc/index.html">JDBC connector</a></p>
+      <p><a href="../api/livelink/index.html">LiveLink authority and connector</a></p>
+      <p><a href="../api/meridio/index.html">Meridio authority and connector</a></p>
+      <p><a href="../api/opensearchserver/index.html">OpenSearchServer output connector</a></p>
+      <p><a href="../api/elasticsearch/index.html">ElasticSearch output connector</a></p>
+      <p><a href="../api/nullauthority/index.html">Null authority</a></p>
+      <p><a href="../api/nulloutput/index.html">Null output connector</a></p>
       <p><a href="../api/regexpmapper/index.html">Regular expression mapping connector</a></p>
-      <p><a href="../api/rss/index.html">RSSコネクタ</a></p>
-      <p><a href="../api/sharepoint/index.html">SharePointコネクタ</a></p>
-      <p><a href="../api/solr/index.html">Solr出力コネクタ</a></p>
-      <p><a href="../api/webcrawler/index.html">Webコネクタ</a></p>
-      <p><a href="../api/wiki/index.html">Wikiコネクタ</a></p>
+      <p><a href="../api/rss/index.html">RSS connector</a></p>
+      <p><a href="../api/sharepoint/index.html">SharePoint connector</a></p>
+      <p><a href="../api/solr/index.html">Solr output connector</a></p>
+      <p><a href="../api/webcrawler/index.html">Web connector</a></p>
+      <p><a href="../api/wiki/index.html">Wiki connector</a></p>
     </section>
   </body>
 </document>

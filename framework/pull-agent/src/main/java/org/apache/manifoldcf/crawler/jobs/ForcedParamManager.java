@@ -121,9 +121,10 @@ public class ForcedParamManager extends org.apache.manifoldcf.core.database.Base
   public Map<String,Set<String>> readRows(Long id)
     throws ManifoldCFException
   {
-    ArrayList list = new ArrayList();
-    list.add(id);
-    IResultSet set = performQuery("SELECT "+paramNameField+","+paramValueField+" FROM "+getTableName()+" WHERE "+ownerIDField+"=?",list,
+    ArrayList params = new ArrayList();
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(ownerIDField,id)});
+    IResultSet set = performQuery("SELECT "+paramNameField+","+paramValueField+" FROM "+getTableName()+" WHERE "+query,params,
       null,null);
     Map<String,Set<String>> rval = new HashMap<String,Set<String>>();
     if (set.getRowCount() == 0)
@@ -168,6 +169,34 @@ public class ForcedParamManager extends org.apache.manifoldcf.core.database.Base
     }
   }
 
+  /** Compare rows in database against what is in job description.
+  *@param ownerID is the owning identifier.
+  *@param list is the job description to write hopcount filters for.
+  */
+  public boolean compareRows(Long ownerID, IJobDescription list)
+    throws ManifoldCFException
+  {
+    Map<String,Set<String>> map = readRows(ownerID);
+    Map<String,Set<String>> otherMap = list.getForcedMetadata();
+    if (map.size() != otherMap.size())
+      return false;
+    for (String x : map.keySet())
+    {
+      Set<String> xValues = map.get(x);
+      Set<String> otherValues = otherMap.get(x);
+      if (otherValues == null)
+        return false;
+      if (xValues.size() != otherValues.size())
+        return false;
+      for (String y : xValues)
+      {
+        if (!otherValues.contains(y))
+          return false;
+      }
+    }
+    return true;
+  }
+  
   /** Write a filter list into the database.
   *@param ownerID is the owning identifier.
   *@param list is the job description to write hopcount filters for.
