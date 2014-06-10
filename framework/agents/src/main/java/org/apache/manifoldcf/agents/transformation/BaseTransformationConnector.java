@@ -139,7 +139,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   * if two such strings are equal, nothing that affects how or whether the document is indexed will be different.
   */
   @Override
-  public String getPipelineDescription(OutputSpecification spec)
+  public String getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     return "";
@@ -204,7 +204,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os,
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
@@ -222,7 +222,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os,
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -239,7 +239,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os,
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
@@ -255,7 +255,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   *@param os is the current output specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os,
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
