@@ -416,9 +416,11 @@
 
             <section id="jobs">
                 <title>Creating Jobs</title>
-                <p>A "job" in ManifoldCF is a description of a set of documents.  The Framework's job is to fetch this set of documents come from a specific repository connection, and
+                <p>A "job" in ManifoldCF is a description of a set of documents.  The Framework's job is to fetch this set of documents come from a specific repository connection,
+                       transform them using zero or more transformation connections, and
                        send them to a specific output connection.  The repository connection that is associated with the job will determine exactly how this set of documents is described,
-                       and to some degree how they are indexed.  The output connection associated with the job can also affect how each document is indexed.</p>
+                       and to some degree how they are indexed.  The output connection associated with the job can also affect how each document is indexed, as will any transformation
+                       connections that are specified.</p>
                 <p>Every job is expected to be run more than once.  Each time a job is run, it is responsible not only for sending new or changed documents to the output connection,
                        but also for notifying the output connection of any documents that are no longer part of the set.  Note that there are two ways for a document to no longer be part
                        of the included set of documents: Either the document may have been deleted from the repository, or the document may no longer be included in the allowed set
@@ -465,6 +467,9 @@
                 <br/><br/>
                 <p>Now, you should select both the output connection name, and the repository connection name.  Bear in mind that whatever you select cannot be changed after the
                        job is saved the first time.</p>
+                <p>If you do not have any transformation connections defined, you will not be given the option of inserting a transformation connection into the pipeline.  But if
+                       you have transformation connections defined, and you want to include them in the document pipeline, you can select them from the transformation connection
+                       pulldown, type a description into the description box, and then click one of the "Insert before" buttons to insert it into the document pipeline.</p>
                 <p>You also have the opportunity to modify the job's priority and start method at this time.  The priority
                        controls how important this job's documents are, relative to documents from any other job.  The higher the number, the more important it is considered for that job's
                        documents to be fetched first.  The start method is as previously described; you get a choice of manual start, starting on the beginning of a scheduling window, or
