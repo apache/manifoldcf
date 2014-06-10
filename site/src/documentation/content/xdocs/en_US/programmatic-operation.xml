@@ -81,6 +81,7 @@
             <tr><th>Resource</th><th>Verb</th><th>What it does</th><th>Input format/query args</th><th>Output format</th></tr>
             <tr><td>authorizationdomains</td><td>GET</td><td>List all registered authorization domains</td><td>N/A</td><td>{"authorizationdomain":[<em>&lt;list_of_authorization_domain_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>outputconnectors</td><td>GET</td><td>List all registered output connectors</td><td>N/A</td><td>{"outputconnector":[<em>&lt;list_of_output_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>transformationconnectors</td><td>GET</td><td>List all registered transformation connectors</td><td>N/A</td><td>{"transformationconnector":[<em>&lt;list_of_transformation_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>mappingconnectors</td><td>GET</td><td>List all registered mapping connectors</td><td>N/A</td><td>{"mappingconnector":[<em>&lt;list_of_mapping_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>authorityconnectors</td><td>GET</td><td>List all registered authority connectors</td><td>N/A</td><td>{"authorityconnector":[<em>&lt;list_of_authority_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>repositoryconnectors</td><td>GET</td><td>List all registered repository connectors</td><td>N/A</td><td>{"repositoryconnector":[<em>&lt;list_of_repository_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
@@ -94,6 +95,12 @@
             <tr><td>outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>DELETE</td><td>Delete an output connection</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>status/outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Check the status of an output connection</td><td>N/A</td><td>{"check_result":<em>&lt;message&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>info/outputconnections/<em>&lt;encoded_connection_name&gt;</em>/<em>&lt;connector_specific_resource&gt;</em></td><td>GET</td><td>Retrieve arbitrary connector-specific resource</td><td>N/A</td><td><em>&lt;response_data&gt;</em> <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} <strong>OR</strong> {"service_interruption":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>transformationconnections</td><td>GET</td><td>List all transformation connections</td><td>N/A</td><td>{"transformationconnection":[<em>&lt;list_of_transformation_connection_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>transformationconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a specific transformation connection</td><td>N/A</td><td>{"transformationconnection":<em>&lt;transformation_connection_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>transformationconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Save or create a transformation connection</td><td>{"outputconnection":<em>&lt;transformation_connection_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>transformationconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>DELETE</td><td>Delete a transformation connection</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>status/transformationconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Check the status of a transformation connection</td><td>N/A</td><td>{"check_result":<em>&lt;message&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>info/transformationconnections/<em>&lt;encoded_connection_name&gt;</em>/<em>&lt;connector_specific_resource&gt;</em></td><td>GET</td><td>Retrieve arbitrary connector-specific resource</td><td>N/A</td><td><em>&lt;response_data&gt;</em> <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} <strong>OR</strong> {"service_interruption":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>clearversions/<em>&lt;encoded_output_connection_name&gt;</em></td><td>PUT</td><td>Forget previous indexed document versions</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>clearrecords/<em>&lt;encoded_output_connection_name&gt;</em></td><td>PUT</td><td>Remove all previous indexing records</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>mappingconnections</td><td>GET</td><td>List all mapping connections</td><td>N/A</td><td>{"mappingconnection":[<em>&lt;list_of_mapping_connection_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
@@ -227,6 +234,18 @@
           <p></p>
         </section>
         <section>
+          <title>Transformation connector objects</title>
+          <p></p>
+          <p>The JSON fields a transformation connector object has are as follows:</p>
+          <p></p>
+          <table>
+            <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"description"</td><td>The optional description of the connector</td></tr>
+            <tr><td>"class_name"</td><td>The class name of the class implementing the connector</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
           <title>Mapping connector objects</title>
           <p></p>
           <p>The JSON fields a mapping connector object has are as follows:</p>
@@ -286,6 +305,29 @@
           <title>Output connection objects</title>
           <p></p>
           <p>Output connection names, when they are part of a URL, should be encoded as follows:</p>
+          <p></p>
+          <ol>
+            <li>All instances of '.' should be replaced by '..'.</li>
+            <li>All instances of '/' should be replaced by '.+'.</li>
+            <li>The URL should be encoded using standard URL utf-8-based %-encoding.</li>
+          </ol>
+          <p></p>
+          <p>The JSON fields an output connection object has are as follows:</p>
+          <p></p>
+          <table>
+            <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"name"</td><td>The unique name of the connection</td></tr>
+            <tr><td>"description"</td><td>The description of the connection</td></tr>
+            <tr><td>"class_name"</td><td>The java class name of the class implementing the connection</td></tr>
+            <tr><td>"max_connections"</td><td>The total number of outstanding connections allowed to exist at a time</td></tr>
+            <tr><td>"configuration"</td><td>The configuration object for the connection, which is specific to the connection class</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
+          <title>Transformation connection objects</title>
+          <p></p>
+          <p>Transformation connection names, when they are part of a URL, should be encoded as follows:</p>
           <p></p>
           <ol>
             <li>All instances of '.' should be replaced by '..'.</li>
@@ -411,6 +453,25 @@
             <tr><td>"reseed_interval"</td><td>The time between reseeding operations (if the job is "continuous"), in milliseconds, or "infinite" for infinity</td></tr>
             <tr><td>"hopcount"</td><td>An array of hopcount objects, describing the link types and associated maximum hops permitted for the job</td></tr>
             <tr><td>"schedule"</td><td>An array of schedule objects, describing when the job should be started and run</td></tr>
+            <tr><td>"forcedparam"</td><td>An array of forcedparam objects, describing what forced parameters should be set</td></tr>
+            <tr><td>"pipelinestage"</td><td>An array of pipelinestage objects, describing what the transformation pipeline is</td></tr>
+          </table>
+          <p></p>
+          <p>Each pipelinestage object has the following fields:</p>
+          <p></p>
+          <table>
+            <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"stage_connectionname"</td><td>The connection name for the pipeline stage</td></tr>
+            <tr><td>"stage_description"</td><td>A description of the pipeline stage</td></tr>
+            <tr><td>"stage_specification"</td><td>The transformation specification for the pipeline stage</td></tr>
+          </table>
+          <p></p>
+          <p>Each forcedparam object has the following fields:</p>
+          <p></p>
+          <table>
+            <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"paramname"</td><td>The name of the parameter</td></tr>
+            <tr><td>"paramvalue"</td><td>The value of the parameter</td></tr>
           </table>
           <p></p>
           <p>Each hopcount object has the following fields:</p>
@@ -490,6 +551,8 @@
           <tr><th>Command</th><th>What it does</th></tr>
           <tr><td>org.apache.manifoldcf.agents.DefineOutputConnection</td><td>Create a new output connection</td></tr>
           <tr><td>org.apache.manifoldcf.agents.DeleteOutputConnection</td><td>Delete an existing output connection</td></tr>
+          <tr><td>org.apache.manifoldcf.agents.DefineTransformationConnection</td><td>Create a new transformation connection</td></tr>
+          <tr><td>org.apache.manifoldcf.agents.DeleteTransformationConnection</td><td>Delete an existing transformation connection</td></tr>
           <tr><td>org.apache.manifoldcf.authorities.ChangeAuthSpec</td><td>Modify an authority's configuration information</td></tr>
           <tr><td>org.apache.manifoldcf.authorities.CheckAll</td><td>Check all authorities to be sure they are functioning</td></tr>
           <tr><td>org.apache.manifoldcf.authorities.DefineAuthorityConnection</td><td>Create a new authority connection</td></tr>

@@ -18,6 +18,7 @@
 */
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
 import org.apache.manifoldcf.core.interfaces.*;
@@ -311,7 +312,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
         records = null;
         return;
       }
-      Reader r = new InputStreamReader(is,"utf-8");
+      Reader r = new InputStreamReader(is, StandardCharsets.UTF_8);
       try
       {
         BufferedReader br = new BufferedReader(r);

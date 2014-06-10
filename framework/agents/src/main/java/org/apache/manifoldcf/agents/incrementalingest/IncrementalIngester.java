@@ -46,6 +46,7 @@ import java.io.*;
 * <tr><td>urihash</td><td>VARCHAR(40)</td><td></td></tr>
 * <tr><td>lastversion</td><td>LONGTEXT</td><td></td></tr>
 * <tr><td>lastoutputversion</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>lasttransformationversion</td><td>LONGTEXT</td><td></td></tr>
 * <tr><td>forcedparams</td><td>LONGTEXT</td><td></td></tr>
 * <tr><td>changecount</td><td>BIGINT</td><td></td></tr>
 * <tr><td>firstingest</td><td>BIGINT</td><td></td></tr>
@@ -67,6 +68,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected final static String uriHashField = "urihash";
   protected final static String lastVersionField = "lastversion";
   protected final static String lastOutputVersionField = "lastoutputversion";
+  protected final static String lastTransformationVersionField = "lasttransformationversion";
   protected final static String forcedParamsField = "forcedparams";
   protected final static String changeCountField = "changecount";
   protected final static String firstIngestField = "firstingest";
@@ -74,13 +76,17 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected final static String authorityNameField = "authorityname";
 
   // Thread context.
-  protected IThreadContext threadContext;
+  protected final IThreadContext threadContext;
   // Lock manager.
-  protected ILockManager lockManager;
+  protected final ILockManager lockManager;
   // Output connection manager
-  protected IOutputConnectionManager connectionManager;
+  protected final IOutputConnectionManager connectionManager;
   // Output connector pool manager
-  protected IOutputConnectorPool outputConnectorPool;
+  protected final IOutputConnectorPool outputConnectorPool;
+  // Transformation connection manager
+  protected final ITransformationConnectionManager transformationConnectionManager;
+  // Transformation connector pool manager
+  protected final ITransformationConnectorPool transformationConnectorPool;
   
   /** Constructor.
   */
@@ -92,6 +98,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     lockManager = LockManagerFactory.make(threadContext);
     connectionManager = OutputConnectionManagerFactory.make(threadContext);
     outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+    transformationConnectionManager = TransformationConnectionManagerFactory.make(threadContext);
+    transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
   }
 
   /** Install the incremental ingestion manager.
@@ -120,6 +128,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         map.put(uriHashField,new ColumnDescription("VARCHAR(40)",false,true,null,null,false));
         map.put(lastVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(lastOutputVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
+        map.put(lastTransformationVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(forcedParamsField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(changeCountField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(firstIngestField,new ColumnDescription("BIGINT",false,false,null,null,false));
@@ -137,6 +146,16 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           addMap.put(forcedParamsField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
           performAlter(addMap,null,null,null);
         }
+        
+        // Schema upgrade from 1.6 to 1.7
+        cd = (ColumnDescription)existing.get(lastTransformationVersionField);
+        if (cd == null)
+        {
+          Map<String,ColumnDescription> addMap = new HashMap<String,ColumnDescription>();
+          addMap.put(lastTransformationVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
+          performAlter(addMap,null,null,null);
+        }
+
       }
 
       // Now, do indexes
@@ -207,21 +226,47 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public boolean checkMimeTypeIndexable(String outputConnectionName, String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption
   {
-    IOutputConnection connection = connectionManager.load(outputConnectionName);
-    IOutputConnector connector = outputConnectorPool.grab(connection);
-    if (connector == null)
-      // The connector is not installed; treat this as a service interruption.
-      throw new ServiceInterruption("Output connector not installed",0L);
+    return checkMimeTypeIndexable(new String[0], new String[0],
+      outputConnectionName, outputDescription,
+      mimeType,null);
+  }
+
+  /** Check if a mime type is indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param mimeType is the mime type to check.
+  *@param activity are the activities available to this method.
+  *@return true if the mimeType is indexable.
+  */
+  @Override
+  public boolean checkMimeTypeIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    String mimeType,
+    IOutputCheckActivity activity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    PipelineObject pipeline = pipelineGrab(
+      transformationConnectionManager.loadMultiple(transformationConnectionNames),
+      connectionManager.load(outputConnectionName),
+      transformationDescriptions,outputDescription);
+    if (pipeline == null)
+      // A connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("One or more connectors are not installed",0L);
     try
     {
-      return connector.checkMimeTypeIndexable(outputDescription,mimeType);
+      return pipeline.checkMimeTypeIndexable(mimeType,activity);
     }
     finally
     {
-      outputConnectorPool.release(connection,connector);
+      pipeline.release();
     }
   }
 
+  
+  
   /** Check if a file is indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
@@ -232,18 +277,42 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public boolean checkDocumentIndexable(String outputConnectionName, String outputDescription, File localFile)
     throws ManifoldCFException, ServiceInterruption
   {
-    IOutputConnection connection = connectionManager.load(outputConnectionName);
-    IOutputConnector connector = outputConnectorPool.grab(connection);
-    if (connector == null)
-      // The connector is not installed; treat this as a service interruption.
-      throw new ServiceInterruption("Output connector not installed",0L);
+    return checkDocumentIndexable(new String[0], new String[0],
+      outputConnectionName, outputDescription,
+      localFile,null);
+  }
+  
+  /** Check if a file is indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param localFile is the local file to check.
+  *@param activity are the activities available to this method.
+  *@return true if the local file is indexable.
+  */
+  @Override
+  public boolean checkDocumentIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    File localFile,
+    IOutputCheckActivity activity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    PipelineObject pipeline = pipelineGrab(
+      transformationConnectionManager.loadMultiple(transformationConnectionNames),
+      connectionManager.load(outputConnectionName),
+      transformationDescriptions,outputDescription);
+    if (pipeline == null)
+      // A connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("One or more connectors are not installed",0L);
     try
     {
-      return connector.checkDocumentIndexable(outputDescription,localFile);
+      return pipeline.checkDocumentIndexable(localFile,activity);
     }
     finally
     {
-      outputConnectorPool.release(connection,connector);
+      pipeline.release();
     }
   }
 
@@ -258,18 +327,43 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public boolean checkLengthIndexable(String outputConnectionName, String outputDescription, long length)
     throws ManifoldCFException, ServiceInterruption
   {
-    IOutputConnection connection = connectionManager.load(outputConnectionName);
-    IOutputConnector connector = outputConnectorPool.grab(connection);
-    if (connector == null)
-      // The connector is not installed; treat this as a service interruption.
-      throw new ServiceInterruption("Output connector not installed",0L);
+    return checkLengthIndexable(new String[0], new String[0],
+      outputConnectionName, outputDescription,
+      length,null);
+  }
+  
+  /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are too long to be indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param length is the length of the document.
+  *@param activity are the activities available to this method.
+  *@return true if the file is indexable.
+  */
+  @Override
+  public boolean checkLengthIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    long length,
+    IOutputCheckActivity activity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    PipelineObject pipeline = pipelineGrab(
+      transformationConnectionManager.loadMultiple(transformationConnectionNames),
+      connectionManager.load(outputConnectionName),
+      transformationDescriptions,outputDescription);
+    if (pipeline == null)
+      // A connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("One or more connectors are not installed",0L);
     try
     {
-      return connector.checkLengthIndexable(outputDescription,length);
+      return pipeline.checkLengthIndexable(length,activity);
     }
     finally
     {
-      outputConnectorPool.release(connection,connector);
+      pipeline.release();
     }
   }
 
@@ -284,18 +378,98 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public boolean checkURLIndexable(String outputConnectionName, String outputDescription, String url)
     throws ManifoldCFException, ServiceInterruption
   {
-    IOutputConnection connection = connectionManager.load(outputConnectionName);
-    IOutputConnector connector = outputConnectorPool.grab(connection);
-    if (connector == null)
-      // The connector is not installed; treat this as a service interruption.
-      throw new ServiceInterruption("Output connector not installed",0L);
+    return checkURLIndexable(new String[0], new String[0],
+      outputConnectionName, outputDescription,
+      url,null);
+  }
+  
+  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that not indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param url is the url of the document.
+  *@param activity are the activities available to this method.
+  *@return true if the file is indexable.
+  */
+  @Override
+  public boolean checkURLIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    String url,
+    IOutputCheckActivity activity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    PipelineObject pipeline = pipelineGrab(
+      transformationConnectionManager.loadMultiple(transformationConnectionNames),
+      connectionManager.load(outputConnectionName),
+      transformationDescriptions,outputDescription);
+    if (pipeline == null)
+      // A connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("One or more connectors are not installed",0L);
     try
     {
-      return connector.checkURLIndexable(outputDescription,url);
+      return pipeline.checkURLIndexable(url,activity);
     }
     finally
     {
-      outputConnectorPool.release(connection,connector);
+      pipeline.release();
+    }
+  }
+
+  
+  /** Grab the entire pipeline.
+  *@param transformationConnections - the transformation connections, in order
+  *@param outputConnection - the output connection
+  *@param transformationDescriptionStrings - the array of description strings for transformations
+  *@param outputDescriptionString - the output description string
+  *@return the pipeline description, or null if any part of the pipeline cannot be grabbed.
+  */
+  protected PipelineObject pipelineGrab(ITransformationConnection[] transformationConnections, IOutputConnection outputConnection,
+    String[] transformationDescriptionStrings, String outputDescriptionString)
+    throws ManifoldCFException
+  {
+    // Pick up all needed transformation connectors
+    String[] transformationConnectionNames = new String[transformationConnections.length];
+    for (int i = 0; i < transformationConnections.length; i++)
+    {
+      transformationConnectionNames[i] = transformationConnections[i].getName();
+    }
+    
+    ITransformationConnector[] transformationConnectors = transformationConnectorPool.grabMultiple(transformationConnectionNames,transformationConnections);
+    for (ITransformationConnector c : transformationConnectors)
+    {
+      if (c == null)
+      {
+        transformationConnectorPool.releaseMultiple(transformationConnections,transformationConnectors);
+        return null;
+      }
+    }
+    
+    // Last, pick up output connector.  If it fails we have to release the transformation connectors.
+    try
+    {
+      IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
+      if (outputConnector == null)
+      {
+        transformationConnectorPool.releaseMultiple(transformationConnections,transformationConnectors);
+        return null;
+      }
+      return new PipelineObject(transformationConnections,transformationConnectors,outputConnection,outputConnector,
+        transformationDescriptionStrings,outputDescriptionString);
+    }
+    catch (Throwable e)
+    {
+      transformationConnectorPool.releaseMultiple(transformationConnections,transformationConnectors);
+      if (e instanceof ManifoldCFException)
+        throw (ManifoldCFException)e;
+      else if (e instanceof RuntimeException)
+        throw (RuntimeException)e;
+      else if (e instanceof Error)
+        throw (Error)e;
+      else
+        throw new RuntimeException("Unexpected exception type: "+e.getClass().getName()+": "+e.getMessage(),e);
     }
   }
 
@@ -315,13 +489,44 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.getOutputDescription(spec);
+      return connector.getPipelineDescription(spec);
     }
     finally
     {
       outputConnectorPool.release(connection,connector);
     }
 
+  }
+
+  /** Get transformation version strings for a document.
+  *@param transformationConnectionNames are the names of the transformation connections associated with this action.
+  *@param specs are the transformation specifications.
+  *@return the description strings.
+  */
+  @Override
+  public String[] getTransformationDescriptions(String[] transformationConnectionNames, OutputSpecification[] specs)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    String[] rval = new String[transformationConnectionNames.length];
+    for (int i = 0; i < rval.length; i++)
+    {
+      String transformationConnectionName = transformationConnectionNames[i];
+      OutputSpecification spec = specs[i];
+      ITransformationConnection connection = transformationConnectionManager.load(transformationConnectionName);
+      ITransformationConnector connector = transformationConnectorPool.grab(connection);
+      if (connector == null)
+        // The connector is not installed; treat this as a service interruption.
+        throw new ServiceInterruption("Transformation connector not installed",0L);
+      try
+      {
+        rval[i] = connector.getPipelineDescription(spec);
+      }
+      finally
+      {
+        transformationConnectorPool.release(connection,connector);
+      }
+    }
+    return rval;
   }
 
   /** Record a document version, but don't ingest it.
@@ -341,8 +546,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     long recordTime, IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    IOutputConnection connection = connectionManager.load(outputConnectionName);
-
     String docKey = makeKey(identifierClass,identifierHash);
 
     if (Logging.ingest.isDebugEnabled())
@@ -350,7 +553,14 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       Logging.ingest.debug("Recording document '"+docKey+"' for output connection '"+outputConnectionName+"'");
     }
 
-    performIngestion(connection,docKey,documentVersion,null,null,null,null,recordTime,null,activities);
+    performIngestion(new ITransformationConnection[0],new String[0],
+      connectionManager.load(outputConnectionName),null,
+      docKey,documentVersion,null,null,null,
+      null,
+      null,
+      recordTime,
+      null,
+      activities);
   }
 
   /** Ingest a document.
@@ -424,29 +634,90 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    IOutputConnection connection = connectionManager.load(outputConnectionName);
-
+    return documentIngest(new String[0],
+      new String[0],
+      outputConnectionName,
+      outputVersion,
+      identifierClass, identifierHash,
+      documentVersion,
+      "",
+      outputVersion,
+      parameterVersion,
+      authorityName,
+      data,
+      ingestTime, documentURI,
+      activities);
+  }
+  
+  /** Ingest a document.
+  * This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
+  * method also REMOVES ALL OLD METADATA.  When complete, the index will contain only the metadata
+  * described by the RepositoryDocument object passed to this method.
+  * ServiceInterruption is thrown if the document ingestion must be rescheduled.
+  *@param transformationConnectionNames are the names of the transformation connections associated with this action.
+  *@param transformationDescriptionStrings are the description strings corresponding to the transformation connection names.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param otuputDescriptionString is the description string corresponding to the output connection.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hashed document identifier.
+  *@param documentVersion is the document version.
+  *@param transformationVersion is the version string for the transformations to be performed on the document.
+  *@param outputVersion is the output version string for the output connection.
+  *@param parameterVersion is the version string for the forced parameters.
+  *@param authorityName is the name of the authority associated with the document, if any.
+  *@param data is the document data.  The data is closed after ingestion is complete.
+  *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
+  *@param documentURI is the URI of the document, which will be used as the key of the document in the index.
+  *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
+  *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
+  */
+  public boolean documentIngest(
+    String[] transformationConnectionNames,
+    String[] transformationDescriptionStrings,
+    String outputConnectionName,
+    String outputDescriptionString,
+    String identifierClass, String identifierHash,
+    String documentVersion,
+    String transformationVersion,
+    String outputVersion,
+    String parameterVersion,
+    String authorityName,
+    RepositoryDocument data,
+    long ingestTime, String documentURI,
+    IOutputActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    IOutputConnection outputConnection = connectionManager.load(outputConnectionName);
+    ITransformationConnection[] transformationConnections = transformationConnectionManager.loadMultiple(transformationConnectionNames);
+    
     String docKey = makeKey(identifierClass,identifierHash);
 
     if (Logging.ingest.isDebugEnabled())
     {
       Logging.ingest.debug("Ingesting document '"+docKey+"' into output connection '"+outputConnectionName+"'");
     }
-
-    return performIngestion(connection,docKey,documentVersion,outputVersion,parameterVersion,authorityName,
-      data,ingestTime,documentURI,activities);
+    return performIngestion(transformationConnections,transformationDescriptionStrings,
+      outputConnection,outputDescriptionString,
+      docKey,documentVersion,outputVersion,transformationVersion,parameterVersion,
+      authorityName,
+      data,
+      ingestTime,documentURI,
+      activities);
   }
 
-  
   /** Do the actual ingestion, or just record it if there's nothing to ingest. */
-  protected boolean performIngestion(IOutputConnection connection,
-    String docKey, String documentVersion, String outputVersion, String parameterVersion,
+  protected boolean performIngestion(
+    ITransformationConnection[] transformationConnections, String[] transformationDescriptionStrings,
+    IOutputConnection outputConnection, String outputDescriptionString,
+    String docKey, String documentVersion, String outputVersion, String transformationVersion, String parameterVersion,
     String authorityNameString,
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    String outputConnectionName = outputConnection.getName();
+    
     // No transactions; not safe because post may take too much time
 
     // First, calculate a document uri hash value
@@ -468,7 +739,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         ArrayList list = new ArrayList();
         String query = buildConjunctionClause(list,new ClauseDescription[]{
           new UnitaryClause(docKeyField,docKey),
-          new UnitaryClause(outputConnNameField,connection.getName())});
+          new UnitaryClause(outputConnNameField,outputConnectionName)});
           
         IResultSet set = performQuery("SELECT "+docURIField+","+uriHashField+","+lastOutputVersionField+" FROM "+getTableName()+
           " WHERE "+query,list,null,null);
@@ -514,9 +785,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     String[] lockArray = new String[uriCount];
     uriCount = 0;
     if (documentURI != null)
-      lockArray[uriCount++] = connection.getName()+":"+documentURI;
+      lockArray[uriCount++] = outputConnectionName+":"+documentURI;
     if (oldURI != null && (documentURI == null || !documentURI.equals(oldURI)))
-      lockArray[uriCount++] = connection.getName()+":"+oldURI;
+      lockArray[uriCount++] = outputConnectionName+":"+oldURI;
 
     lockManager.enterCriticalSections(null,null,lockArray);
     try
@@ -530,10 +801,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         list.clear();
         String query = buildConjunctionClause(list,new ClauseDescription[]{
           new UnitaryClause(uriHashField,"=",oldURIHash),
-          new UnitaryClause(outputConnNameField,"=",connection.getName())});
+          new UnitaryClause(outputConnNameField,"=",outputConnectionName)});
         list.add(docKey);
         performDelete("WHERE "+query+" AND "+docKeyField+"!=?",list,null);
-        removeDocument(connection,oldURI,oldOutputVersion,activities);
+        removeDocument(outputConnection,oldURI,oldOutputVersion,new OutputRemoveActivitiesWrapper(activities,outputConnectionName));
       }
 
       if (documentURI != null)
@@ -542,7 +813,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         list.clear();
         String query = buildConjunctionClause(list,new ClauseDescription[]{
           new UnitaryClause(uriHashField,"=",documentURIHash),
-          new UnitaryClause(outputConnNameField,"=",connection.getName())});
+          new UnitaryClause(outputConnNameField,"=",outputConnectionName)});
         list.add(docKey);
         performDelete("WHERE "+query+" AND "+ docKeyField+"!=?",list,null);
       }
@@ -567,15 +838,18 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         // This is a marker that says "something is there"; it has an empty version, which indicates
         // that we don't know anything about it.  That means it will be reingested when the
         // next version comes along, and will be deleted if called for also.
-        noteDocumentIngest(connection.getName(),docKey,null,null,null,null,ingestTime,documentURI,documentURIHash);
-        int result = addOrReplaceDocument(connection,documentURI,outputVersion,data,authorityNameString,activities);
-        noteDocumentIngest(connection.getName(),docKey,documentVersion,outputVersion,parameterVersion,authorityNameString,ingestTime,documentURI,documentURIHash);
+        noteDocumentIngest(outputConnectionName,docKey,null,null,null,null,null,ingestTime,documentURI,documentURIHash);
+        int result = addOrReplaceDocument(transformationConnections,transformationDescriptionStrings,
+          outputConnection,outputDescriptionString,
+          documentURI,data,authorityNameString,
+          activities);
+        noteDocumentIngest(outputConnectionName,docKey,documentVersion,transformationVersion, outputVersion,parameterVersion,authorityNameString,ingestTime,documentURI,documentURIHash);
         return result == IOutputConnector.DOCUMENTSTATUS_ACCEPTED;
       }
 
       // If we get here, it means we are noting that the document was examined, but that no change was required.  This is signaled
       // to noteDocumentIngest by having the null documentURI.
-      noteDocumentIngest(connection.getName(),docKey,documentVersion,outputVersion,parameterVersion,authorityNameString,ingestTime,null,null);
+      noteDocumentIngest(outputConnectionName,docKey,documentVersion,transformationVersion,outputVersion,parameterVersion,authorityNameString,ingestTime,null,null);
       return true;
     }
     finally
@@ -718,6 +992,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+
     // Segregate request by connection names
     HashMap keyMap = new HashMap();
     int i = 0;
@@ -766,6 +1041,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    activities = new OutputRemoveActivitiesWrapper(activities,outputConnectionName);
+
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
     if (Logging.ingest.isDebugEnabled())
@@ -1396,17 +1673,34 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public void removeOutputConnection(String outputConnectionName)
     throws ManifoldCFException
   {
+    IOutputConnection connection = connectionManager.load(outputConnectionName);
+    
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(outputConnNameField,outputConnectionName)});
       
     performDelete("WHERE "+query,list,null);
+      
+    // Notify the output connection of the removal of all the records for the connection
+    IOutputConnector connector = outputConnectorPool.grab(connection);
+    if (connector == null)
+      return;
+    try
+    {
+      connector.noteAllRecordsRemoved();
+    }
+    finally
+    {
+      outputConnectorPool.release(connection,connector);
+    }
+
   }
   
   /** Note the ingestion of a document, or the "update" of a document.
   *@param outputConnectionName is the name of the output connection.
   *@param docKey is the key string describing the document.
   *@param documentVersion is a string describing the new version of the document.
+  *@param transformationVersion is a string describing all current transformations for the document.
   *@param outputVersion is the version string calculated for the output connection.
   *@param authorityNameString is the name of the relevant authority connection.
   *@param packedForcedParameters is the string we use to determine differences in packed parameters.
@@ -1416,7 +1710,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param documentURIHash is the hash of the document uri.
   */
   protected void noteDocumentIngest(String outputConnectionName,
-    String docKey, String documentVersion,
+    String docKey, String documentVersion, String transformationVersion,
     String outputVersion, String packedForcedParameters,
     String authorityNameString,
     long ingestTime, String documentURI, String documentURIHash)
@@ -1446,6 +1740,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // Try the update first.  Typically this succeeds except in the case where a doc is indexed for the first time.
       map.clear();
       map.put(lastVersionField,documentVersion);
+      map.put(lastTransformationVersionField,transformationVersion);
       map.put(lastOutputVersionField,outputVersion);
       map.put(forcedParamsField,packedForcedParameters);
       map.put(lastIngestField,new Long(ingestTime));
@@ -1524,6 +1819,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // Set up for insert
       map.clear();
       map.put(lastVersionField,documentVersion);
+      map.put(lastTransformationVersionField,transformationVersion);
       map.put(lastOutputVersionField,outputVersion);
       map.put(forcedParamsField,packedForcedParameters);
       map.put(lastIngestField,new Long(ingestTime));
@@ -1653,10 +1949,21 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       {
         Long id = (Long)row.getValue(idField);
         String lastVersion = (String)row.getValue(lastVersionField);
+        if (lastVersion == null)
+          lastVersion = "";
+        String lastTransformationVersion = (String)row.getValue(lastTransformationVersionField);
+        if (lastTransformationVersion == null)
+          lastTransformationVersion = "";
         String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
-        String authorityName = (String)row.getValue(authorityNameField);
+        if (lastOutputVersion == null)
+          lastOutputVersion = "";
         String paramVersion = (String)row.getValue(forcedParamsField);
-        rval[position.intValue()] = new DocumentIngestStatus(lastVersion,lastOutputVersion,authorityName,paramVersion);
+        if (paramVersion == null)
+          paramVersion = "";
+        String authorityName = (String)row.getValue(authorityNameField);
+        if (authorityName == null)
+          authorityName = "";
+        rval[position.intValue()] = new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName);
       }
     }
   }
@@ -1665,24 +1972,29 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   /** Add or replace document, using the specified output connection, via the standard pool.
   */
-  protected int addOrReplaceDocument(IOutputConnection connection, String documentURI, String outputDescription,
-    RepositoryDocument document, String authorityNameString,
-    IOutputAddActivity activities)
+  protected int addOrReplaceDocument(
+    ITransformationConnection[] transformationConnections, String[] transformationDescriptionStrings,
+    IOutputConnection outputConnection, String outputDescriptionString,
+    String documentURI, RepositoryDocument document, String authorityNameString,
+    IOutputAddActivity finalActivities)
     throws ManifoldCFException, ServiceInterruption
   {
     // Set indexing date
     document.setIndexingDate(new Date());
-    IOutputConnector connector = outputConnectorPool.grab(connection);
-    if (connector == null)
-      // The connector is not installed; treat this as a service interruption.
-      throw new ServiceInterruption("Output connector not installed",0L);
+    
+    // Set up a pipeline
+    PipelineObject pipeline = pipelineGrab(transformationConnections,outputConnection,
+      transformationDescriptionStrings,outputDescriptionString);
+    if (pipeline == null)
+      // A connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("Pipeline connector not installed",0L);
     try
     {
-      return connector.addOrReplaceDocument(documentURI,outputDescription,document,authorityNameString,activities);
+      return pipeline.addOrReplaceDocument(documentURI,document,authorityNameString,finalActivities);
     }
     finally
     {
-      outputConnectorPool.release(connection,connector);
+      pipeline.release();
     }
   }
 
@@ -1733,4 +2045,547 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       return outputVersion;
     }
   }
+  
+  /** Wrapper class for add activity.  This handles conversion of output connector activity logging to 
+  * qualified activity names */
+  protected static class OutputRecordingActivity implements IOutputHistoryActivity
+  {
+    protected final IOutputHistoryActivity activityProvider;
+    protected final String outputConnectionName;
+    
+    public OutputRecordingActivity(IOutputHistoryActivity activityProvider, String outputConnectionName)
+    {
+      this.activityProvider = activityProvider;
+      this.outputConnectionName = outputConnectionName;
+    }
+    
+    /** Record time-stamped information about the activity of the output connector.
+    *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
+    *       activity has an associated time; the startTime field records when the activity began.  A null value
+    *       indicates that the start time and the finishing time are the same.
+    *@param activityType is a string which is fully interpretable only in the context of the connector involved, which is
+    *       used to categorize what kind of activity is being recorded.  For example, a web connector might record a
+    *       "fetch document" activity.  Cannot be null.
+    *@param dataSize is the number of bytes of data involved in the activity, or null if not applicable.
+    *@param entityURI is a (possibly long) string which identifies the object involved in the history record.
+    *       The interpretation of this field will differ from connector to connector.  May be null.
+    *@param resultCode contains a terse description of the result of the activity.  The description is limited in
+    *       size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
+    *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
+    *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
+    */
+    @Override
+    public void recordActivity(Long startTime, String activityType, Long dataSize,
+      String entityURI, String resultCode, String resultDescription)
+      throws ManifoldCFException
+    {
+      activityProvider.recordActivity(startTime,ManifoldCF.qualifyOutputActivityName(activityType,outputConnectionName),
+        dataSize,entityURI,resultCode,resultDescription);
+    }
+
+  }
+  
+  /** Wrapper class for add activity.  This handles conversion of transformation connector activity logging to 
+  * qualified activity names */
+  protected static class TransformationRecordingActivity implements IOutputHistoryActivity
+  {
+    protected final IOutputHistoryActivity activityProvider;
+    protected final String transformationConnectionName;
+    
+    public TransformationRecordingActivity(IOutputHistoryActivity activityProvider, String transformationConnectionName)
+    {
+      this.activityProvider = activityProvider;
+      this.transformationConnectionName = transformationConnectionName;
+    }
+    
+    /** Record time-stamped information about the activity of the output connector.
+    *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
+    *       activity has an associated time; the startTime field records when the activity began.  A null value
+    *       indicates that the start time and the finishing time are the same.
+    *@param activityType is a string which is fully interpretable only in the context of the connector involved, which is
+    *       used to categorize what kind of activity is being recorded.  For example, a web connector might record a
+    *       "fetch document" activity.  Cannot be null.
+    *@param dataSize is the number of bytes of data involved in the activity, or null if not applicable.
+    *@param entityURI is a (possibly long) string which identifies the object involved in the history record.
+    *       The interpretation of this field will differ from connector to connector.  May be null.
+    *@param resultCode contains a terse description of the result of the activity.  The description is limited in
+    *       size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
+    *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
+    *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
+    */
+    @Override
+    public void recordActivity(Long startTime, String activityType, Long dataSize,
+      String entityURI, String resultCode, String resultDescription)
+      throws ManifoldCFException
+    {
+      activityProvider.recordActivity(startTime,ManifoldCF.qualifyTransformationActivityName(activityType,transformationConnectionName),
+        dataSize,entityURI,resultCode,resultDescription);
+    }
+
+  }
+
+  protected static class OutputRemoveActivitiesWrapper extends OutputRecordingActivity implements IOutputRemoveActivity
+  {
+    protected final IOutputRemoveActivity activities;
+    
+    public OutputRemoveActivitiesWrapper(IOutputRemoveActivity activities, String outputConnectionName)
+    {
+      super(activities,outputConnectionName);
+      this.activities = activities;
+    }
+
+  }
+  
+  protected static class OutputAddActivitiesWrapper extends OutputRecordingActivity implements IOutputAddActivity
+  {
+    protected final IOutputAddActivity activities;
+    
+    public OutputAddActivitiesWrapper(IOutputAddActivity activities, String outputConnectionName)
+    {
+      super(activities,outputConnectionName);
+      this.activities = activities;
+    }
+    
+    /** Qualify an access token appropriately, to match access tokens as returned by mod_aa.  This method
+    * includes the authority name with the access token, if any, so that each authority may establish its own token space.
+    *@param authorityNameString is the name of the authority to use to qualify the access token.
+    *@param accessToken is the raw, repository access token.
+    *@return the properly qualified access token.
+    */
+    @Override
+    public String qualifyAccessToken(String authorityNameString, String accessToken)
+      throws ManifoldCFException
+    {
+      return activities.qualifyAccessToken(authorityNameString,accessToken);
+    }
+
+    /** Send a document via the pipeline to the next output connection.
+    *@param documentURI is the document's URI.
+    *@param document is the document data to be processed (handed to the output data store).
+    *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
+    *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+    */
+    public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.sendDocument(documentURI,document,authorityNameString);
+    }
+
+    /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param mimeType is the mime type of the document.
+    *@return true if the mime type can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkMimeTypeIndexable(String mimeType)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkMimeTypeIndexable(mimeType);
+    }
+
+    /** Pre-determine whether a document (passed here as a File object) is acceptable downstream.  This method is
+    * used to determine whether a document needs to be actually transferred.  This hook is provided mainly to support
+    * search engines that only handle a small set of accepted file types.
+    *@param localFile is the local file to check.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkDocumentIndexable(File localFile)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkDocumentIndexable(localFile);
+    }
+
+    /** Pre-determine whether a document's length is acceptable downstream.  This method is used
+    * to determine whether to fetch a document in the first place.
+    *@param length is the length of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkLengthIndexable(long length)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkLengthIndexable(length);
+    }
+
+    /** Pre-determine whether a document's URL is acceptable downstream.  This method is used
+    * to help filter out documents that cannot be indexed in advance.
+    *@param url is the URL of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkURLIndexable(String url)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkURLIndexable(url);
+    }
+
+  }
+  
+  protected static class OutputActivitiesWrapper extends OutputAddActivitiesWrapper implements IOutputActivity
+  {
+    protected final IOutputActivity activities;
+    
+    public OutputActivitiesWrapper(IOutputActivity activities, String outputConnectionName)
+    {
+      super(activities,outputConnectionName);
+      this.activities = activities;
+    }
+  }
+  
+  protected class PipelineObject
+  {
+    public final IOutputConnection outputConnection;
+    public final IOutputConnector outputConnector;
+    public final ITransformationConnection[] transformationConnections;
+    public final ITransformationConnector[] transformationConnectors;
+    public final String outputDescription;
+    public final String[] transformationDescriptions;
+    
+    public PipelineObject(
+      ITransformationConnection[] transformationConnections, ITransformationConnector[] transformationConnectors,
+      IOutputConnection outputConnection, IOutputConnector outputConnector,
+      String[] transformationDescriptions, String outputDescription)
+    {
+      this.transformationConnections = transformationConnections;
+      this.transformationConnectors = transformationConnectors;
+      this.outputConnection = outputConnection;
+      this.outputConnector = outputConnector;
+      this.outputDescription = outputDescription;
+      this.transformationDescriptions = transformationDescriptions;
+    }
+    
+    public boolean checkMimeTypeIndexable(String mimeType, IOutputCheckActivity finalActivity)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      PipelineCheckEntryPoint entryPoint = buildCheckPipeline(finalActivity);
+      return entryPoint.getPipelineConnector().checkMimeTypeIndexable(entryPoint.getPipelineDescriptionString(),mimeType,entryPoint.getPipelineCheckActivity());
+    }
+
+    public boolean checkDocumentIndexable(File localFile, IOutputCheckActivity finalActivity)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      PipelineCheckEntryPoint entryPoint = buildCheckPipeline(finalActivity);
+      return entryPoint.getPipelineConnector().checkDocumentIndexable(entryPoint.getPipelineDescriptionString(),localFile,entryPoint.getPipelineCheckActivity());
+    }
+
+    public boolean checkLengthIndexable(long length, IOutputCheckActivity finalActivity)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      PipelineCheckEntryPoint entryPoint = buildCheckPipeline(finalActivity);
+      return entryPoint.getPipelineConnector().checkLengthIndexable(entryPoint.getPipelineDescriptionString(),length,entryPoint.getPipelineCheckActivity());
+    }
+    
+    public boolean checkURLIndexable(String uri, IOutputCheckActivity finalActivity)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      PipelineCheckEntryPoint entryPoint = buildCheckPipeline(finalActivity);
+      return entryPoint.getPipelineConnector().checkURLIndexable(entryPoint.getPipelineDescriptionString(),uri,entryPoint.getPipelineCheckActivity());
+    }
+
+    public int addOrReplaceDocument(String documentURI, RepositoryDocument document, String authorityNameString, IOutputAddActivity finalActivity)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      PipelineAddEntryPoint entryPoint = buildAddPipeline(finalActivity);
+      return entryPoint.getPipelineConnector().addOrReplaceDocument(documentURI,entryPoint.getPipelineDescriptionString(),
+        document,authorityNameString,entryPoint.getPipelineAddActivity());
+    }
+    
+    public void release()
+      throws ManifoldCFException
+    {
+      outputConnectorPool.release(outputConnection,outputConnector);
+      transformationConnectorPool.releaseMultiple(transformationConnections,transformationConnectors);
+    }
+    
+    protected PipelineCheckEntryPoint buildCheckPipeline(IOutputCheckActivity finalActivity)
+    {
+      // Build output stage first
+      PipelineCheckEntryPoint currentStage = new PipelineCheckEntryPoint(outputConnector,outputDescription,finalActivity);
+      // Go through transformations backwards
+      int i = transformationConnectors.length;
+      while (i > 0)
+      {
+        i--;
+        currentStage = new PipelineCheckEntryPoint(transformationConnectors[i],transformationDescriptions[i],
+          new PipelineCheckActivity(currentStage.getPipelineConnector(),currentStage.getPipelineDescriptionString(),currentStage.getPipelineCheckActivity()));
+      }
+      return currentStage;
+    }
+
+    protected PipelineAddEntryPoint buildAddPipeline(IOutputAddActivity finalActivity)
+    {
+      // Build output stage first
+      PipelineAddEntryPoint currentStage = new PipelineAddEntryPoint(outputConnector,outputDescription,
+        new OutputAddActivitiesWrapper(finalActivity,outputConnection.getName()));
+      // Go through transformations backwards
+      int i = transformationConnectors.length;
+      while (i > 0)
+      {
+        i--;
+        currentStage = new PipelineAddEntryPoint(transformationConnectors[i],transformationDescriptions[i],
+          new PipelineAddActivity(currentStage.getPipelineConnector(),currentStage.getPipelineDescriptionString(),currentStage.getPipelineAddActivity(),
+            new TransformationRecordingActivity(finalActivity,transformationConnections[i].getName()),finalActivity));
+      }
+      return currentStage;
+    }
+
+  }
+
+  /** This class describes the entry stage of a check pipeline.
+  */
+  public static class PipelineCheckEntryPoint
+  {
+    protected final IPipelineConnector pipelineConnector;
+    protected final String pipelineDescriptionString;
+    protected final IOutputCheckActivity checkActivity;
+    
+    public PipelineCheckEntryPoint(IPipelineConnector pipelineConnector,
+      String pipelineDescriptionString,
+      IOutputCheckActivity checkActivity)
+    {
+      this.pipelineConnector = pipelineConnector;
+      this.pipelineDescriptionString = pipelineDescriptionString;
+      this.checkActivity = checkActivity;
+    }
+    
+    public IPipelineConnector getPipelineConnector()
+    {
+      return pipelineConnector;
+    }
+    
+    public String getPipelineDescriptionString()
+    {
+      return pipelineDescriptionString;
+    }
+    
+    public IOutputCheckActivity getPipelineCheckActivity()
+    {
+      return checkActivity;
+    }
+  }
+  
+  /** This class is used to join together pipeline stages for check operations */
+  public static class PipelineCheckActivity implements IOutputCheckActivity
+  {
+    protected final IPipelineConnector pipelineConnector;
+    protected final String pipelineDescriptionString;
+    protected final IOutputCheckActivity checkActivity;
+
+    public PipelineCheckActivity(IPipelineConnector pipelineConnector, String pipelineDescriptionString, IOutputCheckActivity checkActivity)
+    {
+      this.pipelineConnector = pipelineConnector;
+      this.pipelineDescriptionString = pipelineDescriptionString;
+      this.checkActivity = checkActivity;
+    }
+
+    /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param mimeType is the mime type of the document.
+    *@return true if the mime type can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkMimeTypeIndexable(String mimeType)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return pipelineConnector.checkMimeTypeIndexable(pipelineDescriptionString,mimeType,checkActivity);
+    }
+
+    /** Pre-determine whether a document (passed here as a File object) is acceptable downstream.  This method is
+    * used to determine whether a document needs to be actually transferred.  This hook is provided mainly to support
+    * search engines that only handle a small set of accepted file types.
+    *@param localFile is the local file to check.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkDocumentIndexable(File localFile)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return pipelineConnector.checkDocumentIndexable(pipelineDescriptionString,localFile,checkActivity);
+    }
+
+    /** Pre-determine whether a document's length is acceptable downstream.  This method is used
+    * to determine whether to fetch a document in the first place.
+    *@param length is the length of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkLengthIndexable(long length)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return pipelineConnector.checkLengthIndexable(pipelineDescriptionString,length,checkActivity);
+    }
+
+    /** Pre-determine whether a document's URL is acceptable downstream.  This method is used
+    * to help filter out documents that cannot be indexed in advance.
+    *@param url is the URL of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkURLIndexable(String url)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return pipelineConnector.checkURLIndexable(pipelineDescriptionString,url,checkActivity);
+    }
+
+  }
+
+  /** This class describes the entry stage of an add pipeline.
+  */
+  public static class PipelineAddEntryPoint
+  {
+    protected final IPipelineConnector pipelineConnector;
+    protected final String pipelineDescriptionString;
+    protected final IOutputAddActivity addActivity;
+    
+    public PipelineAddEntryPoint(IPipelineConnector pipelineConnector,
+      String pipelineDescriptionString,
+      IOutputAddActivity addActivity)
+    {
+      this.pipelineConnector = pipelineConnector;
+      this.pipelineDescriptionString = pipelineDescriptionString;
+      this.addActivity = addActivity;
+    }
+    
+    public IPipelineConnector getPipelineConnector()
+    {
+      return pipelineConnector;
+    }
+    
+    public String getPipelineDescriptionString()
+    {
+      return pipelineDescriptionString;
+    }
+    
+    public IOutputAddActivity getPipelineAddActivity()
+    {
+      return addActivity;
+    }
+  }
+
+  /** This class is used to join together pipeline stages for add operations */
+  public static class PipelineAddActivity implements IOutputAddActivity
+  {
+    protected final IPipelineConnector pipelineConnector;
+    protected final String pipelineDescriptionString;
+    protected final IOutputAddActivity addActivity;
+    protected final IOutputHistoryActivity finalHistoryActivity;
+    protected final IOutputQualifyActivity finalQualifyActivity;
+
+    public PipelineAddActivity(IPipelineConnector pipelineConnector,
+      String pipelineDescriptionString,
+      IOutputAddActivity addActivity,
+      IOutputHistoryActivity finalHistoryActivity,
+      IOutputQualifyActivity finalQualifyActivity)
+    {
+      this.pipelineConnector = pipelineConnector;
+      this.pipelineDescriptionString = pipelineDescriptionString;
+      this.addActivity = addActivity;
+      this.finalHistoryActivity = finalHistoryActivity;
+      this.finalQualifyActivity = finalQualifyActivity;
+    }
+
+    /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param mimeType is the mime type of the document.
+    *@return true if the mime type can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkMimeTypeIndexable(String mimeType)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return pipelineConnector.checkMimeTypeIndexable(pipelineDescriptionString,mimeType,addActivity);
+    }
+
+    /** Pre-determine whether a document (passed here as a File object) is acceptable downstream.  This method is
+    * used to determine whether a document needs to be actually transferred.  This hook is provided mainly to support
+    * search engines that only handle a small set of accepted file types.
+    *@param localFile is the local file to check.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkDocumentIndexable(File localFile)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return pipelineConnector.checkDocumentIndexable(pipelineDescriptionString,localFile,addActivity);
+    }
+
+    /** Pre-determine whether a document's length is acceptable downstream.  This method is used
+    * to determine whether to fetch a document in the first place.
+    *@param length is the length of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkLengthIndexable(long length)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return pipelineConnector.checkLengthIndexable(pipelineDescriptionString,length,addActivity);
+    }
+
+    /** Pre-determine whether a document's URL is acceptable downstream.  This method is used
+    * to help filter out documents that cannot be indexed in advance.
+    *@param url is the URL of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkURLIndexable(String url)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return pipelineConnector.checkURLIndexable(pipelineDescriptionString,url,addActivity);
+    }
+    
+    /** Send a document via the pipeline to the next output connection.
+    *@param documentURI is the document's URI.
+    *@param document is the document data to be processed (handed to the output data store).
+    *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
+    *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+    */
+    public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      // This goes to the next pipeline stage.
+      return pipelineConnector.addOrReplaceDocument(documentURI,pipelineDescriptionString,
+        document,authorityNameString,addActivity);
+    }
+
+    /** Qualify an access token appropriately, to match access tokens as returned by mod_aa.  This method
+    * includes the authority name with the access token, if any, so that each authority may establish its own token space.
+    *@param authorityNameString is the name of the authority to use to qualify the access token.
+    *@param accessToken is the raw, repository access token.
+    *@return the properly qualified access token.
+    */
+    @Override
+    public String qualifyAccessToken(String authorityNameString, String accessToken)
+      throws ManifoldCFException
+    {
+      // This functionality does not need to be staged; we just want to vector through to the final stage directly.
+      return finalQualifyActivity.qualifyAccessToken(authorityNameString,accessToken);
+    }
+
+    /** Record time-stamped information about the activity of the output connector.
+    *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
+    *       activity has an associated time; the startTime field records when the activity began.  A null value
+    *       indicates that the start time and the finishing time are the same.
+    *@param activityType is a string which is fully interpretable only in the context of the connector involved, which is
+    *       used to categorize what kind of activity is being recorded.  For example, a web connector might record a
+    *       "fetch document" activity.  Cannot be null.
+    *@param dataSize is the number of bytes of data involved in the activity, or null if not applicable.
+    *@param entityURI is a (possibly long) string which identifies the object involved in the history record.
+    *       The interpretation of this field will differ from connector to connector.  May be null.
+    *@param resultCode contains a terse description of the result of the activity.  The description is limited in
+    *       size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
+    *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
+    *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
+    */
+    public void recordActivity(Long startTime, String activityType, Long dataSize,
+      String entityURI, String resultCode, String resultDescription)
+      throws ManifoldCFException
+    {
+      // Each stage of the pipeline uses a specific activity for recording history, but it's not fundamentally
+      // pipelined
+      finalHistoryActivity.recordActivity(startTime,activityType,dataSize,entityURI,resultCode,resultDescription);
+    }
+
+  }
+  
 }

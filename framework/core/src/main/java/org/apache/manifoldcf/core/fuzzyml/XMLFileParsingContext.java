@@ -31,7 +31,7 @@ public class XMLFileParsingContext extends XMLOutputStreamParsingContext
 
   /** Full constructor.  Used for individual tags. */
   public XMLFileParsingContext(XMLFuzzyHierarchicalParseState theStream, String namespace, String localname, String qname, Map<String,String> theseAttributes, File f)
-    throws ManifoldCFException, UnsupportedEncodingException, FileNotFoundException
+    throws ManifoldCFException, FileNotFoundException
   {
     // Construct an appropriate writer
     super(theStream,namespace,localname,qname,theseAttributes,new FileOutputStream(f));

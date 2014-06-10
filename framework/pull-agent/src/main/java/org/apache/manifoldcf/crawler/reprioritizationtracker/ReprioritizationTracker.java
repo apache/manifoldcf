@@ -22,6 +22,8 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
 
@@ -383,14 +385,9 @@ public class ReprioritizationTracker implements IReprioritizationTracker
     byte[] processIDData = lockManager.readData(trackerProcessIDResource);
     if (processIDData == null)
       return null;
-    try
-    {
-      return new String(processIDData, "utf-8");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new RuntimeException(e.getMessage(),e);
-    }
+    else
+      return new String(processIDData, StandardCharsets.UTF_8);
+
   }
   
   /** Write process ID.
@@ -403,15 +400,8 @@ public class ReprioritizationTracker implements IReprioritizationTracker
       lockManager.writeData(trackerProcessIDResource, null);
     else
     {
-      try
-      {
-        byte[] processIDData = processID.getBytes("utf-8");
+        byte[] processIDData = processID.getBytes(StandardCharsets.UTF_8);
         lockManager.writeData(trackerProcessIDResource, processIDData);
-      }
-      catch (UnsupportedEncodingException e)
-      {
-        throw new RuntimeException(e.getMessage(),e);
-      }
     }
   }
 
@@ -424,14 +414,9 @@ public class ReprioritizationTracker implements IReprioritizationTracker
     byte[] reproIDData = lockManager.readData(trackerReproIDResource);
     if (reproIDData == null)
       return null;
-    try
-    {
-      return new String(reproIDData, "utf-8");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new RuntimeException(e.getMessage(),e);
-    }
+    else
+      return new String(reproIDData, StandardCharsets.UTF_8);
+
   }
   
   /** Write repro ID.
@@ -444,15 +429,8 @@ public class ReprioritizationTracker implements IReprioritizationTracker
       lockManager.writeData(trackerReproIDResource, null);
     else
     {
-      try
-      {
-        byte[] reproIDData = reproID.getBytes("utf-8");
+        byte[] reproIDData = reproID.getBytes(StandardCharsets.UTF_8);
         lockManager.writeData(trackerReproIDResource, reproIDData);
-      }
-      catch (UnsupportedEncodingException e)
-      {
-        throw new RuntimeException(e.getMessage(),e);
-      }
     }
   }
 

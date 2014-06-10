@@ -19,11 +19,13 @@
 package org.apache.manifoldcf.crawler.connectors.cmis;
 
 import java.lang.reflect.Method;
+import java.util.StringTokenizer;
 
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.bindings.spi.atompub.AbstractAtomPubService;
 import org.apache.chemistry.opencmis.client.bindings.spi.atompub.AtomPubParser;
+import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 /**
@@ -34,6 +36,11 @@ import org.apache.manifoldcf.crawler.system.Logging;
 public class CmisRepositoryConnectorUtils {
 
   private static final String LOAD_LINK_METHOD_NAME = "loadLink";
+  private static final String FROM_TOKEN = "from";
+  private static final String SEP = " ";
+  private static final String SELECT_STAR_CLAUSE = "select *";
+  private static final String OBJECT_ID_TERM = "cmis:objectId,";
+  private static final String SELECT_CLAUSE_TERM_SEP = ",";
   
   public static final String getDocumentURL(final Document document, final Session session) {
     String link = null;
@@ -51,6 +58,92 @@ public class CmisRepositoryConnectorUtils {
               + e.getMessage(), e);
     }
     return link;
+  }
+  
+  /**
+   * Utility method to consider the objectId whenever it is not present in the select clause
+   * @param cmisQuery
+   * @return the cmisQuery with the cmis:objectId property added in the select clause
+   */
+  public static String getCmisQueryWithObjectId(String cmisQuery){
+    String cmisQueryResult = StringUtils.EMPTY;
+    String selectClause = getSelectClause(cmisQuery);
+    if(selectClause.equalsIgnoreCase(SELECT_STAR_CLAUSE)){
+      cmisQueryResult = cmisQuery;
+    } else {
+      //get the second term and add the cmis:objectId term
+      StringTokenizer selectClauseTokenized = new StringTokenizer(selectClause.trim());
+      boolean firstTermSelectClause = true;
+      String secondTerm = StringUtils.EMPTY;
+      while(selectClauseTokenized.hasMoreElements()){
+          String term = selectClauseTokenized.nextToken();
+          if(firstTermSelectClause){
+            firstTermSelectClause = false;
+          } else if(!firstTermSelectClause){
+            //this is the second term
+            secondTerm = term;
+            break;
+          }
+      }
+      cmisQueryResult = StringUtils.replaceOnce(cmisQuery, secondTerm, OBJECT_ID_TERM + secondTerm);
+    }
+    return cmisQueryResult;
+  }
+
+  /**
+   * Utility method to understand if a property must be indexed or not
+   * @param cmisQuery
+   * @param propertyId
+   * @return TRUE if the property is included in the select clause of the query, otherwise it will return FALSE
+   */
+  public static boolean existsInSelectClause(String cmisQuery, String propertyId) {
+    String selectClause = getSelectClause(cmisQuery);
+    if(selectClause.startsWith(SELECT_STAR_CLAUSE)){
+      return true;
+    } else {
+      StringTokenizer cmisQueryTokenized = new StringTokenizer(cmisQuery.trim());
+      while(cmisQueryTokenized.hasMoreElements()){
+          String term = cmisQueryTokenized.nextToken();
+          if(!term.equalsIgnoreCase(FROM_TOKEN)){
+            if(term.equalsIgnoreCase(propertyId)){
+              return true;
+            } else if(StringUtils.contains(term, SELECT_CLAUSE_TERM_SEP)){
+              //in this case means that we have: select cmis:objectId,cmis:name from ...
+              StringTokenizer termsTokenized = new StringTokenizer(term, SELECT_CLAUSE_TERM_SEP);
+              while(termsTokenized.hasMoreElements()){
+                String termTokenized = termsTokenized.nextToken().trim();
+                if(termTokenized.equalsIgnoreCase(propertyId)){
+                  return true;
+                }
+              }
+            }
+          } else {
+            break;
+          }
+      }
+      return false;
+    }
+  }
+
+  private static String getSelectClause(String cmisQuery) {
+    StringTokenizer cmisQueryTokenized = new StringTokenizer(cmisQuery.trim());
+    String selectClause = StringUtils.EMPTY;
+    boolean firstTerm = true;
+    while(cmisQueryTokenized.hasMoreElements()){
+        String term = cmisQueryTokenized.nextToken();
+        if(!term.equalsIgnoreCase(FROM_TOKEN)){
+          if(firstTerm){
+            selectClause+=term;
+            firstTerm = false;
+          } else {
+            selectClause+=SEP+term;
+          }
+          
+        } else {
+          break;
+        }
+    }
+    return selectClause;
   }
   
 }

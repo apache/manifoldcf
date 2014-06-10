@@ -69,7 +69,11 @@
     </target>
 
     <target name="calculate-testcode-condition">
-        <available file="test-materials-proprietary" property="tests-present"/>
+        <available file="test-materials-proprietary/elasticsearch-1.0.1" property="tests-present"/>
+    </target>
+
+    <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
+        <echo message="Need ElasticSearch download in order to compile tests - run ant make-deps"/>
     </target>
 
     <path id="connector-test-classpath">

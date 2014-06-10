@@ -20,15 +20,14 @@
 package org.apache.manifoldcf.agents.output.elasticsearch;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.io.StringWriter;
 import java.io.Reader;
 import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
@@ -52,9 +51,9 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
 import org.apache.http.ParseException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.core.util.URLEncoder;
 
 public class ElasticSearchConnection
 {
@@ -80,8 +79,6 @@ public class ElasticSearchConnection
   }
 
   private Result result;
-
-  private final static Charset UTF_8 = Charset.forName("UTF-8");
   
   protected ElasticSearchConnection(ElasticSearchConfig config, HttpClient client)
   {
@@ -95,16 +92,6 @@ public class ElasticSearchConnection
     indexName = config.getIndexName();
   }
 
-  protected final String urlEncode(String t) throws ManifoldCFException
-  {
-    try
-    {
-      return URLEncoder.encode(t, "UTF-8");
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException(e);
-    }
-  }
 
   protected StringBuffer getApiUrl(String command, boolean checkConnection) throws ManifoldCFException
   {
@@ -112,7 +99,7 @@ public class ElasticSearchConnection
     if (!serverLocation.endsWith("/"))
       url.append('/');
     if(!checkConnection)
-      url.append(urlEncode(indexName)+"/");
+      url.append(URLEncoder.encode(indexName)).append("/");
     url.append(command);
     callUrlSnippet = url.toString();
     return url;
@@ -291,13 +278,13 @@ public class ElasticSearchConnection
         {
           ContentType ct = ContentType.get(entity);
           if (ct == null)
-            charSet = UTF_8;
+            charSet = StandardCharsets.UTF_8;
           else
             charSet = ct.getCharset();
         }
         catch (ParseException e)
         {
-          charSet = UTF_8;
+          charSet = StandardCharsets.UTF_8;
         }
         char[] buffer = new char[65536];
         Reader r = new InputStreamReader(is,charSet);
