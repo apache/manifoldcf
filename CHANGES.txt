@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-960: Remove Specification subclass usage from main connector API's.
+(Karl Wright)
+
 CONNECTORS-953: Forced metadata changes do not reset seeding start time
 (Karl Wright)
 

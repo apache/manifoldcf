@@ -54,7 +54,7 @@ public interface IPipelineConnector extends IConnector
   *@return a string, of unlimited length, which uniquely describes configuration and specification in such a way that
   * if two such strings are equal, nothing that affects how or whether the document is indexed will be different.
   */
-  public String getPipelineDescription(OutputSpecification spec)
+  public String getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Detect if a mime type is acceptable or not.  This method is used to determine whether it makes sense to fetch a document
@@ -146,7 +146,7 @@ public interface IPipelineConnector extends IConnector
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os,
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException;
   
@@ -161,7 +161,7 @@ public interface IPipelineConnector extends IConnector
   *@param actualSequenceNumber is the connection within the job that has currently been selected.
   *@param tabName is the current tab name.
   */
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os,
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException;
   
@@ -175,7 +175,7 @@ public interface IPipelineConnector extends IConnector
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os,
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
     int connectionSequenceNumber)
     throws ManifoldCFException;
   
@@ -187,7 +187,7 @@ public interface IPipelineConnector extends IConnector
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param os is the current pipeline specification for this job.
   */
-  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os,
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException;
   

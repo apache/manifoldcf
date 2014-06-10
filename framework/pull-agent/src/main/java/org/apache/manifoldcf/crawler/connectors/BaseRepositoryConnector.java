@@ -149,6 +149,13 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
   @Override
+  public void addSeedDocuments(ISeedingActivity activities, Specification spec,
+    long startTime, long endTime, int jobMode)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    addSeedDocuments(activities,(DocumentSpecification)spec,startTime,endTime,jobMode);
+  }
+
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
@@ -293,6 +300,13 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   */
   @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
+    Specification spec, int jobMode, boolean usesDefaultAuthority)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return getDocumentVersions(documentIdentifiers,oldVersions,activities,(DocumentSpecification)spec,jobMode,usesDefaultAuthority);
+  }
+
+  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -427,6 +441,13 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   */
   @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
+    Specification spec, boolean[] scanOnly, int jobMode)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    processDocuments(documentIdentifiers,versions,activities,(DocumentSpecification)spec,scanOnly,jobMode);
+  }
+  
+  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     DocumentSpecification spec, boolean[] scanOnly, int jobMode)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -491,11 +512,11 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds,
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
     int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    outputSpecificationHeader(out,locale,ds,tabsArray);
+    outputSpecificationHeader(out,locale,(DocumentSpecification)ds,tabsArray);
   }
   
   /** Output the specification header section.
@@ -554,11 +575,11 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *  the job.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds,
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
-    outputSpecificationBody(out,locale,ds,tabName);
+    outputSpecificationBody(out,locale,(DocumentSpecification)ds,tabName);
   }
 
   /** Output the specification body section.
@@ -604,11 +625,11 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   * the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds,
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    return processSpecificationPost(variableContext,locale,ds);
+    return processSpecificationPost(variableContext,locale,(DocumentSpecification)ds);
   }
 
   /** Process a specification post.
@@ -653,11 +674,11 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds,
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
-    viewSpecification(out,locale,ds);
+    viewSpecification(out,locale,(DocumentSpecification)ds);
   }
 
   /** View specification.
