@@ -82,6 +82,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   // ACTIVE means a newly-added reference that is being scanned for the first time.
   // COMPLETE means a reference that has been already scanned (and does not need to be
   //   scanned again for this job session)
+  // UNCHANGED represents a document that was previously COMPLETE, and is eligible
+  //   to be discovered or seeded, but hasn't been yet.  This is different from PURGATORY because
+  //   UNCHANGED documents are not cleaned up at the end, but PURGATORY documents are.
   // PURGATORY means a reference that was complete before, which means it will need to be deleted if
   //   it isn't included in this job session)
   // PENDINGPURGATORY means a reference that was complete before, but which has been rediscovered in

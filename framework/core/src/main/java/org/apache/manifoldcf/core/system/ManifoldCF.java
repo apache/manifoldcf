@@ -20,6 +20,7 @@ package org.apache.manifoldcf.core.system;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.security.MessageDigest;
 
@@ -584,7 +585,7 @@ public class ManifoldCF
   {
     try
     {
-      byte[] inputBytes = input.getBytes("UTF-8");
+      byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
       digest.update(inputBytes);
     }
     catch (Exception e)
@@ -655,14 +656,12 @@ public class ManifoldCF
   public static String obfuscate(String input)
     throws ManifoldCFException
   {
-    try
-    {
       if (input == null)
         return null;
       if (input.length() == 0)
         return input;
       // First, convert to binary
-      byte[] array = input.getBytes("UTF-8");
+      byte[] array = input.getBytes(StandardCharsets.UTF_8);
       // Shift and xor
       // We shift by some number not a multiple of 4.
       // The resulting hexadecimal is then not a simple shift.
@@ -686,11 +685,6 @@ public class ManifoldCF
         rval.append(writeNibble(x & 0x0f));
       }
       return rval.toString();
-    }
-    catch (java.io.UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException("UTF-8 not supported",e,ManifoldCFException.GENERAL_ERROR);
-    }
   }
 
   /** Write a hex nibble.
@@ -713,8 +707,6 @@ public class ManifoldCF
   public static String deobfuscate(String input)
     throws ManifoldCFException
   {
-    try
-    {
       if (input == null)
         return null;
       if (input.length() == 0)
@@ -748,12 +740,7 @@ public class ManifoldCF
       }
 
       // Convert from utf-8 to a string
-      return new String(bytes,"UTF-8");
-    }
-    catch (java.io.UnsupportedEncodingException e)
-    {
-      throw new ManifoldCFException("UTF-8 unsupported",e,ManifoldCFException.GENERAL_ERROR);
-    }
+      return new String(bytes,StandardCharsets.UTF_8);
   }
 
   /** Read a hex nibble.
@@ -1047,7 +1034,7 @@ public class ManifoldCF
   public static void writeBytes(OutputStream os, byte[] byteArray)
     throws IOException
   {
-    os.write(byteArray,0,byteArray.length);
+    os.write(byteArray, 0, byteArray.length);
   }
 
   /** Write a byte to an output stream */
@@ -1085,7 +1072,7 @@ public class ManifoldCF
     buffer[1] = (byte)((dwordValue >>> 8) & 0xff);
     buffer[2] = (byte)((dwordValue >>> 16) & 0xff);
     buffer[3] = (byte)((dwordValue >>> 24) & 0xff);
-    writeBytes(os,buffer);
+    writeBytes(os, buffer);
   }
 
   /** Write a Long to an output stream */
@@ -1119,8 +1106,8 @@ public class ManifoldCF
     if (stringValue == null)
       characters = null;
     else
-      characters = stringValue.getBytes("utf-8");
-    writeByteArray(os,characters);
+      characters = stringValue.getBytes(StandardCharsets.UTF_8);
+    writeByteArray(os, characters);
   }
 
   /** Write a byte array to an output stream */
@@ -1140,7 +1127,7 @@ public class ManifoldCF
   public static void writefloat(OutputStream os, float floatValue)
     throws IOException
   {
-    writeSdword(os,Float.floatToIntBits(floatValue));
+    writeSdword(os, Float.floatToIntBits(floatValue));
   }
 
   /** Read  bytes from the input stream into specified array. */
@@ -1227,7 +1214,7 @@ public class ManifoldCF
     byte[] bytes = readByteArray(is);
     if (bytes == null)
       return null;
-    return new String(bytes,"utf-8");
+    return new String(bytes,StandardCharsets.UTF_8);
   }
 
   /** Read a byte array from an input stream */

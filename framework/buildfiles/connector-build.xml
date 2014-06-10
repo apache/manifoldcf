@@ -113,7 +113,6 @@
             <include name="mcf-pull-agent.jar"/>
         </fileset>
         <fileset dir="${mcf-dist}/lib">
-            <include name="zookeeper*.jar"/>
             <include name="mail*.jar"/>
             <include name="json*.jar"/>
             <include name="commons-codec*.jar"/>
@@ -284,14 +283,16 @@
 
     <target name="compile-stubs" depends="build-stubs-check" if="buildStubs">
         <mkdir dir="build/stubclasses"/>
-        <javac srcdir="build-stub/src/main/java" destdir="build/stubclasses" deprecation="true" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="build-stub/src/main/java" destdir="build/stubclasses" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
             </classpath>
         </javac>
     </target>
 
-    <target name="has-tests-check" depends="precompile-check" if="canBuild">
-        <available file="connector/src/test/java" property="hasTests"/>
+    <target name="has-tests-check" depends="pretest-check">
+        <condition property="hasTests">
+            <isset property="canTest"/>
+        </condition>
     </target>
 
     <target name="has-test-resources-check" depends="has-tests-check" if="hasTests">
@@ -376,7 +377,7 @@
 
     <target name="compile-wsdls" depends="has-wsdls-check" if="hasWSDLs">
         <mkdir dir="build/wsdlclasses"/>
-        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" deprecation="true" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <fileset dir="${mcf-dist}/lib">
                     <include name="axis*.jar"/>
@@ -398,7 +399,7 @@
 
     <target name="compile-xsds" depends="has-xsds-check" if="hasXSDs">
         <mkdir dir="build/xsdclasses"/>
-        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" deprecation="true" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <fileset dir="${mcf-dist}/lib">
                     <include name="castor*.jar"/>
@@ -427,7 +428,7 @@
 
     <target name="doc-rmi" depends="compile-wsdls,compile-xsds,has-RMI-check" if="hasRMI">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.6">
+        <javadoc destdir="dist/doc" source="1.7">
             <classpath>
                 <path refid="connector-classpath"/>
             </classpath>
@@ -438,7 +439,7 @@
 
     <target name="doc" depends="compile-stubs,doc-rmi,compile-wsdls,compile-xsds,has-RMI-check,precompile-check" if="canBuild" unless="hasRMI">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.6">
+        <javadoc destdir="dist/doc" source="1.7">
             <classpath>
                 <path refid="connector-classpath"/>
             </classpath>
@@ -475,7 +476,7 @@
     
     <target name="compile-server" depends="compile-interface,compile-implementation,compile-rmic,has-RMI-check" if="hasRMI">
         <mkdir dir="build/server/classes"/>
-        <javac srcdir="server/src/main/java" destdir="build/server/classes" deprecation="true" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="server/src/main/java" destdir="build/server/classes" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <pathelement location="build/interface/classes"/>
                 <pathelement location="build/implementation/classes"/>
@@ -487,7 +488,7 @@
 
     <target name="compile-registry" depends="compile-interface,has-RMI-check" if="hasRMI">
         <mkdir dir="build/registry/classes"/>
-        <javac srcdir="registry/src/main/java" destdir="build/registry/classes" deprecation="true" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="registry/src/main/java" destdir="build/registry/classes" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <pathelement location="build/interface/classes"/>
             </classpath>
@@ -496,7 +497,7 @@
 
     <target name="compile-connector" depends="compile-stubs,compile-connector-native2ascii,compile-connector-resources,compile-wsdls,compile-xsds,compile-interface,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" deprecation="true" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <path refid="connector-classpath"/>
             </classpath>
@@ -505,7 +506,7 @@
 
     <target name="compile-implementation" depends="compile-stubs,compile-interface,has-RMI-check" if="hasRMI">
         <mkdir dir="build/implementation/classes"/>
-        <javac srcdir="implementation/src/main/java" destdir="build/implementation/classes" deprecation="true" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="implementation/src/main/java" destdir="build/implementation/classes" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <path refid="implementation-classpath"/>
             </classpath>
@@ -514,7 +515,7 @@
 
     <target name="compile-interface" depends="has-RMI-check" if="hasRMI">
         <mkdir dir="build/interface/classes"/>
-        <javac srcdir="interface/src/main/java" destdir="build/interface/classes" deprecation="true" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="interface/src/main/java" destdir="build/interface/classes" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <path refid="interface-classpath"/>
             </classpath>
@@ -530,7 +531,7 @@
 
     <target name="compile-tests" depends="compile-connector,compile-test-resources,has-tests-check" if="hasTests">
         <mkdir dir="build/connector-tests/classes"/>
-        <javac srcdir="connector/src/test/java" destdir="build/connector-tests/classes" deprecation="true" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="connector/src/test/java" destdir="build/connector-tests/classes" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <path refid="connector-test-classpath"/>
             </classpath>
@@ -805,6 +806,25 @@
     </target>
 
     <target name="general-add-output-connector" depends="general-add-output-connector-commented,general-add-output-connector-non-commented,general-add-output-connector-proprietary-commented,general-add-output-connector-proprietary-non-commented">
+    </target>
+
+    <target name="general-add-transformation-connector-commented" depends="general-connector-runnable-check" unless="is-runnable">
+        <replace file="${mcf-dist}/connectors.xml" token="&lt;!-- Add your transformation connectors here --&gt;" value="&lt;!-- Add your transformation connectors here --&gt;&#0010;  &lt;!--transformationconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    </target>
+
+    <target name="general-add-transformation-connector-non-commented" depends="general-connector-runnable-check" if="is-runnable">
+        <replace file="${mcf-dist}/connectors.xml" token="&lt;!-- Add your transformation connectors here --&gt;" value="&lt;!-- Add your transformation connectors here --&gt;&#0010;  &lt;transformationconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-transformation-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="is-proprietary-runnable">
+        <replace file="${mcf-dist}/connectors-proprietary.xml" token="&lt;!-- Add your transformation connectors here --&gt;" value="&lt;!-- Add your transformation connectors here --&gt;&#0010;  &lt;!--transformationconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    </target>
+
+    <target name="general-add-transformation-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="is-proprietary-runnable">
+        <replace file="${mcf-dist}/connectors-proprietary.xml" token="&lt;!-- Add your transformation connectors here --&gt;" value="&lt;!-- Add your transformation connectors here --&gt;&#0010;  &lt;transformationconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-transformation-connector" depends="general-add-transformation-connector-commented,general-add-transformation-connector-non-commented,general-add-transformation-connector-proprietary-commented,general-add-transformation-connector-proprietary-non-commented">
     </target>
 
     <target name="general-add-repository-connector-commented" depends="general-connector-runnable-check" unless="is-runnable">

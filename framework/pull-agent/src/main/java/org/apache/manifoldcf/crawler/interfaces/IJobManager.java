@@ -125,6 +125,13 @@ public interface IJobManager
   public boolean checkIfOutputReference(String connectionName)
     throws ManifoldCFException;
 
+  /** See if there's a reference to a transformation connection name.
+  *@param connectionName is the name of the connection.
+  *@return true if there is a reference, false otherwise.
+  */
+  public boolean checkIfTransformationReference(String connectionName)
+    throws ManifoldCFException;
+
   /** Get the job IDs associated with a given connection name.
   *@param connectionName is the name of the connection.
   *@return the set of job id's associated with that connection.
@@ -953,6 +960,33 @@ public interface IJobManager
   * is signalled.
   */
   public void noteOutputConnectionChange(String connectionName)
+    throws ManifoldCFException;
+
+  /**  Note the deregistration of a transformation connector used by the specified connections.
+  * This method will be called when the connector is deregistered.  Jobs that use these connections
+  *  must therefore enter appropriate states.
+  *@param connectionNames is the set of connection names.
+  */
+  public void noteTransformationConnectorDeregistration(String[] connectionNames)
+    throws ManifoldCFException;
+
+  /** Note the registration of a transformation connector used by the specified connections.
+  * This method will be called when a connector is registered, on which the specified
+  * connections depend.
+  *@param connectionNames is the set of connection names.
+  */
+  public void noteTransformationConnectorRegistration(String[] connectionNames)
+    throws ManifoldCFException;
+
+  /** Note a change in transformation connection configuration.
+  * This method will be called whenever a connection's configuration is modified.
+  */
+  public void noteTransformationConnectionChange(String connectionName)
+    throws ManifoldCFException;
+
+  /** Assess jobs marked to be in need of assessment for connector status changes.
+  */
+  public void assessMarkedJobs()
     throws ManifoldCFException;
 
   /** Delete jobs in need of being deleted (which are marked "ready for delete").

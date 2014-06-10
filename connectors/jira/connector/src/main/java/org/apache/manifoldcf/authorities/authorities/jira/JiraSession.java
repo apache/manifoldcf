@@ -20,6 +20,7 @@ package org.apache.manifoldcf.authorities.authorities.jira;
 import org.apache.manifoldcf.core.common.*;
 import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.util.URLEncoder;
 
 import java.io.Reader;
 import java.io.Writer;
@@ -31,9 +32,9 @@ import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -99,8 +100,6 @@ public class JiraSession {
     {
     }
   }
-
-  protected static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /**
    * Constructor. Create a session.
@@ -251,13 +250,13 @@ public class JiraSession {
     {
       ContentType ct = ContentType.get(entity);
       if (ct == null)
-        charSet = UTF_8;
+        charSet = StandardCharsets.UTF_8;
       else
         charSet = ct.getCharset();
     }
     catch (ParseException e)
     {
-      charSet = UTF_8;
+      charSet = StandardCharsets.UTF_8;
     }
     return charSet;
   }
@@ -292,9 +291,9 @@ public class JiraSession {
 
   /** Check if user exists.
   */
-  public boolean checkUserExists(String userName) throws IOException, ResponseException {
+  public boolean checkUserExists(String userName) throws IOException, ResponseException, ManifoldCFException {
     JiraUserQueryResults qr = new JiraUserQueryResults();
-    getRest("user/search?username="+URLEncoder.encode(userName,"utf-8")+"&maxResults=1&startAt=0", qr);
+    getRest("user/search?username="+URLEncoder.encode(userName)+"&maxResults=1&startAt=0", qr);
     List<String> values = new ArrayList<String>();
     qr.getNames(values);
     if (values.size() == 0)

@@ -18,36 +18,32 @@
 */
 package org.apache.manifoldcf.agents.output.solr;
 
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.*;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.common.DateParser;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.*;
 
 import java.io.*;
-import java.net.*;
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.regex.*;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
-import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.protocol.HttpContext;
 
+import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
@@ -82,7 +78,7 @@ public class HttpPoster
   public static String ingestMaxConnectionsProperty = "org.apache.manifoldcf.ingest.maxconnections";
 
   // Solrj connection-associated objects
-  protected ClientConnectionManager connectionManager = null;
+  protected PoolingHttpClientConnectionManager connectionManager = null;
   protected SolrServer solrServer = null;
   
   // Action URI pieces
@@ -203,64 +199,60 @@ public class HttpPoster
 
     // Initialize standard solr-j.
     // First, we need an HttpClient where basic auth is properly set up.
-    PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
-    localConnectionManager.setMaxTotal(1);
-    SSLSocketFactory myFactory;
+    connectionManager = new PoolingHttpClientConnectionManager();
+    connectionManager.setMaxTotal(1);
+
+    SSLConnectionSocketFactory myFactory;
     if (keystoreManager != null)
     {
-      myFactory = new SSLSocketFactory(keystoreManager.getSecureSocketFactory(),
-        new AllowAllHostnameVerifier());
+      myFactory = new SSLConnectionSocketFactory(keystoreManager.getSecureSocketFactory(), SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
     }
     else
     {
       // Use the "trust everything" one
-      myFactory = new SSLSocketFactory(KeystoreManagerFactory.getTrustingSecureSocketFactory(),
-        new AllowAllHostnameVerifier());
+      myFactory = new SSLConnectionSocketFactory(KeystoreManagerFactory.getTrustingSecureSocketFactory(),SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
     }
-    Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
-    localConnectionManager.getSchemeRegistry().register(myHttpsProtocol);
-    connectionManager = localConnectionManager;
-          
-    BasicHttpParams params = new BasicHttpParams();
-    // This one is essential to prevent us from reading from the content stream before necessary during auth, but
-    // is incompatible with some proxies.
-    params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
-    params.setIntParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE,socketTimeout);
-    params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-    params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
-    params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-    params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
-    params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
-    params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,true);
-    DefaultHttpClient localClient = new DefaultHttpClient(connectionManager,params);
 
-    // No retries
-    localClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-      {
-        @Override
-        public boolean retryRequest(
-          IOException exception,
-          int executionCount,
-          HttpContext context)
-        {
-          return false;
-        }
-     
-      });
-    
+    RequestConfig.Builder requestBuilder = RequestConfig.custom()
+      .setCircularRedirectsAllowed(true)
+      .setSocketTimeout(socketTimeout)
+      .setStaleConnectionCheckEnabled(true)
+      .setExpectContinueEnabled(true)
+      .setConnectTimeout(connectionTimeout)
+      .setConnectionRequestTimeout(socketTimeout);
+
+      HttpClientBuilder clientBuilder = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setMaxConnTotal(1)
+        .disableAutomaticRetries()
+        .setDefaultRequestConfig(requestBuilder.build())
+        .setRedirectStrategy(new DefaultRedirectStrategy())
+        .setSSLSocketFactory(myFactory)
+        .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+        .setDefaultSocketConfig(SocketConfig.custom()
+          .setTcpNoDelay(true)
+          .setSoTimeout(socketTimeout)
+          .build()
+        );
+
+
     if (userID != null && userID.length() > 0 && password != null)
     {
+      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
       Credentials credentials = new UsernamePasswordCredentials(userID, password);
       if (realm != null)
-        localClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, realm), credentials);
+        credentialsProvider.setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, realm), credentials);
       else
-        localClient.getCredentialsProvider().setCredentials(AuthScope.ANY, credentials);
+        credentialsProvider.setCredentials(AuthScope.ANY, credentials);
+
+      clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
     }
 
+    HttpClient localClient = clientBuilder.build();
+
+
     String httpSolrServerUrl = protocol + "://" + server + ":" + port + location;
-    HttpSolrServer httpSolrServer = new ModifiedHttpSolrServer(httpSolrServerUrl, localClient, new XMLResponseParser());
-    // Set the solrj instance we want to use
-    solrServer = httpSolrServer;
+    solrServer = new ModifiedHttpSolrServer(httpSolrServerUrl, localClient, new XMLResponseParser());
   }
 
   /** Shut down the poster.
@@ -444,6 +436,18 @@ public class HttpPoster
         true);
     }
     
+    if (e instanceof java.net.SocketTimeoutException)
+    {
+      String message2 = "Socket timeout exception during "+context+": "+e.getMessage();
+      Logging.ingest.warn(message2,e);
+      throw new ServiceInterruption(message2,
+        e,
+        currentTime + interruptionRetryTime,
+        currentTime + 20L * 60000L,
+        -1,
+        false);
+    }
+      
     if (e.getClass().getName().equals("java.net.SocketException"))
     {
       // In the past we would have treated this as a straight document rejection, and
@@ -474,7 +478,7 @@ public class HttpPoster
       // Other socket exceptions are service interruptions - but if we keep getting them, it means 
       // that a socket timeout is probably set too low to accept this particular document.  So
       // we retry for a while, then skip the document.
-      String message2 = "Socket timeout exception during "+context+": "+e.getMessage();
+      String message2 = "Socket exception during "+context+": "+e.getMessage();
       Logging.ingest.warn(message2,e);
       throw new ServiceInterruption(message2,
         e,
@@ -483,7 +487,7 @@ public class HttpPoster
         -1,
         false);
     }
-    
+
     // Otherwise, no idea what the trouble is, so presume that retries might fix it.
     String message3 = "IO exception during "+context+": "+e.getMessage();
     Logging.ingest.warn(message3,e);
@@ -758,14 +762,7 @@ public class HttpPoster
   */
   protected static String preEncode(String fieldName)
   {
-    try
-    {
-      return java.net.URLEncoder.encode(fieldName, "utf-8");
-    }
-    catch (IOException e)
-    {
-      throw new RuntimeException("Could not find utf-8 encoding!");
-    }
+      return URLEncoder.encode(fieldName);
   }
   
   /** Write a field */

@@ -17,9 +17,17 @@
 
 <project name="manifoldcf" default="help">
 
+    <presetdef name="javac">
+      <javac includeantruntime="false" />
+    </presetdef>
+
     <import file="site-options.xml" optional="true"/>
 
     <import file="common-build.xml"/>
+    
+    <defaultexcludes add="**/*.patch"/>   
+    <defaultexcludes add="**/*.iml"/> 
+    <defaultexcludes add="**/.idea/**"/> 
     
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
@@ -98,953 +106,6 @@
 
     <target name="run-tests-HSQLDBext-framework" depends="setup-framework" if="downloaded">
         <ant dir="framework" target="run-tests-HSQLDBext"/>
-    </target>
-
-    <target name="setup-activedirectory-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-activedirectory-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-activedirectory-connector" depends="setup-activedirectory-connector" if="downloaded">
-        <ant dir="connectors/activedirectory" target="build"/>
-    </target>
-
-    <target name="doc-activedirectory-connector" depends="setup-activedirectory-connector" if="downloaded">
-      <ant dir="connectors/activedirectory" target="doc"/>
-    </target>
-    
-    <target name="build-tests-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests" if="downloaded">
-        <ant dir="connectors/activedirectory" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests" if="downloaded">
-        <ant dir="connectors/activedirectory" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests" if="downloaded">
-        <ant dir="connectors/activedirectory" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests" if="downloaded">
-        <ant dir="connectors/activedirectory" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests" if="downloaded">
-        <ant dir="connectors/activedirectory" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests" if="downloaded">
-        <ant dir="connectors/activedirectory" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-ldap-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-ldap-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-ldap-connector" depends="setup-ldap-connector" if="downloaded">
-        <ant dir="connectors/ldap" target="build"/>
-    </target>
-
-    <target name="doc-ldap-connector" depends="setup-ldap-connector" if="downloaded">
-      <ant dir="connectors/ldap" target="doc"/>
-    </target>
-    
-    <target name="build-tests-ldap-connector" depends="setup-ldap-connector,setup-ldap-connector-tests" if="downloaded">
-        <ant dir="connectors/ldap" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-ldap-connector" depends="setup-ldap-connector,setup-ldap-connector-tests" if="downloaded">
-        <ant dir="connectors/ldap" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-ldap-connector" depends="setup-ldap-connector,setup-ldap-connector-tests" if="downloaded">
-        <ant dir="connectors/ldap" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-ldap-connector" depends="setup-ldap-connector,setup-ldap-connector-tests" if="downloaded">
-        <ant dir="connectors/ldap" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-ldap-connector" depends="setup-ldap-connector,setup-ldap-connector-tests" if="downloaded">
-        <ant dir="connectors/ldap" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-ldap-connector" depends="setup-ldap-connector,setup-ldap-connector-tests" if="downloaded">
-        <ant dir="connectors/ldap" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-alfresco-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-cmis-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-dropbox-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-generic-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-googledrive-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-jira-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-alfresco-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="setup-cmis-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-alfresco-connector" depends="setup-alfresco-connector" if="downloaded">
-        <ant dir="connectors/alfresco" target="build"/>
-    </target>
-
-    <target name="build-alfresco-connector-testmaterials" depends="setup-alfresco-connector" if="downloaded">
-        <ant dir="connectors/alfresco" target="build-test-materials"/>
-    </target>
-
-    <target name="build-cmis-connector" depends="setup-cmis-connector" if="downloaded">
-        <ant dir="connectors/cmis" target="build"/>
-    </target>
-    
-    <target name="build-dropbox-connector" depends="setup-dropbox-connector" if="downloaded">
-        <ant dir="connectors/dropbox" target="build"/>
-    </target>
-
-    <target name="build-generic-connector" depends="setup-generic-connector" if="downloaded">
-        <ant dir="connectors/generic" target="build"/>
-    </target>
-
-    <target name="build-googledrive-connector" depends="setup-googledrive-connector" if="downloaded">
-        <ant dir="connectors/googledrive" target="build"/>
-    </target>
-
-    <target name="build-jira-connector" depends="setup-jira-connector" if="downloaded">
-        <ant dir="connectors/jira" target="build"/>
-    </target>
-	
-
-    <target name="doc-dropbox-connector" depends="setup-dropbox-connector" if="downloaded">
-        <ant dir="connectors/dropbox" target="doc"/>
-    </target>
-
-    <target name="doc-generic-connector" depends="setup-generic-connector" if="downloaded">
-        <ant dir="connectors/generic" target="doc"/>
-    </target>
-
-    <target name="doc-googledrive-connector" depends="setup-googledrive-connector" if="downloaded">
-        <ant dir="connectors/googledrive" target="doc"/>
-    </target>
-
-    <target name="doc-jira-connector" depends="setup-jira-connector" if="downloaded">
-        <ant dir="connectors/googledrive" target="doc"/>
-    </target>
-	
-    <target name="doc-alfresco-connector" depends="setup-alfresco-connector" if="downloaded">
-        <ant dir="connectors/alfresco" target="doc"/>
-    </target>
-    
-    <target name="doc-cmis-connector" depends="setup-cmis-connector" if="downloaded">
-        <ant dir="connectors/cmis" target="doc"/>
-    </target>
-    
-    <target name="build-tests-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests" if="downloaded">
-        <ant dir="connectors/alfresco" target="build-tests"/>
-    </target>
-
-    <target name="build-tests-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests" if="downloaded">
-        <ant dir="connectors/cmis" target="build-tests"/>
-    </target>
-    
-     <target name="run-tests-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests" if="downloaded">
-        <ant dir="connectors/alfresco" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests" if="downloaded">
-        <ant dir="connectors/cmis" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests" if="downloaded">
-        <ant dir="connectors/alfresco" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-derby-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests" if="downloaded">
-        <ant dir="connectors/cmis" target="run-tests-derby"/>
-    </target>
-    
-    <target name="run-tests-postgresql-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests" if="downloaded">
-        <ant dir="connectors/alfresco" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests" if="downloaded">
-        <ant dir="connectors/alfresco" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests" if="downloaded">
-        <ant dir="connectors/alfresco" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="run-tests-postgresql-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests" if="downloaded">
-        <ant dir="connectors/cmis" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests" if="downloaded">
-        <ant dir="connectors/cmis" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests" if="downloaded">
-        <ant dir="connectors/cmis" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-documentum-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-documentum-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-documentum-connector" depends="setup-documentum-connector" if="downloaded">
-        <ant dir="connectors/documentum" target="build"/>
-    </target>
-
-    <target name="doc-documentum-connector" depends="setup-documentum-connector" if="downloaded">
-      <ant dir="connectors/documentum" target="doc"/>
-    </target>
-
-    <target name="build-tests-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests" if="downloaded">
-        <ant dir="connectors/documentum" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests" if="downloaded">
-        <ant dir="connectors/documentum" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests" if="downloaded">
-        <ant dir="connectors/documentum" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests" if="downloaded">
-        <ant dir="connectors/documentum" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests" if="downloaded">
-        <ant dir="connectors/documentum" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests" if="downloaded">
-        <ant dir="connectors/documentum" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-filenet-connector" depends="build-framework" if="downloaded"/>
-  
-    <target name="setup-filenet-connector-tests" depends="build-tests-framework" if="downloaded"/>
-    
-    <target name="build-filenet-connector" depends="setup-filenet-connector" if="downloaded">
-        <ant dir="connectors/filenet" target="build"/>
-    </target>
-
-    <target name="doc-filenet-connector" depends="setup-filenet-connector" if="downloaded">
-      <ant dir="connectors/filenet" target="doc"/>
-    </target>
-
-    <target name="build-tests-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests" if="downloaded">
-        <ant dir="connectors/filenet" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests" if="downloaded">
-        <ant dir="connectors/filenet" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests" if="downloaded">
-        <ant dir="connectors/filenet" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests" if="downloaded">
-        <ant dir="connectors/filenet" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests" if="downloaded">
-        <ant dir="connectors/filenet" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests" if="downloaded">
-        <ant dir="connectors/filenet" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-filesystem-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-filesystem-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-filesystem-connector" depends="setup-filesystem-connector" if="downloaded">
-        <ant dir="connectors/filesystem" target="build"/>
-    </target>
-
-    <target name="doc-filesystem-connector" depends="setup-filesystem-connector" if="downloaded">
-      <ant dir="connectors/filesystem" target="doc"/>
-    </target>
-
-    <target name="build-tests-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests" if="downloaded">
-        <ant dir="connectors/filesystem" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests" if="downloaded">
-        <ant dir="connectors/filesystem" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests" if="downloaded">
-        <ant dir="connectors/filesystem" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests" if="downloaded">
-        <ant dir="connectors/filesystem" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests" if="downloaded">
-        <ant dir="connectors/filesystem" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests" if="downloaded">
-        <ant dir="connectors/filesystem" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-gts-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-gts-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-gts-connector" depends="setup-gts-connector" if="downloaded">
-        <ant dir="connectors/gts" target="build"/>
-    </target>
-
-    <target name="doc-gts-connector" depends="setup-gts-connector" if="downloaded">
-        <ant dir="connectors/gts" target="doc"/>
-    </target>
-
-    <target name="build-tests-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests" if="downloaded">
-        <ant dir="connectors/gts" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests" if="downloaded">
-        <ant dir="connectors/gts" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests" if="downloaded">
-        <ant dir="connectors/gts" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests" if="downloaded">
-        <ant dir="connectors/gts" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests" if="downloaded">
-        <ant dir="connectors/gts" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests" if="downloaded">
-        <ant dir="connectors/gts" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-hdfs-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-hdfs-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-hdfs-connector" depends="setup-hdfs-connector" if="downloaded">
-        <ant dir="connectors/hdfs" target="build"/>
-    </target>
-
-    <target name="doc-hdfs-connector" depends="setup-hdfs-connector" if="downloaded">
-      <ant dir="connectors/hdfs" target="doc"/>
-    </target>
-
-    <target name="build-tests-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
-        <ant dir="connectors/hdfs" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
-        <ant dir="connectors/hdfs" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
-        <ant dir="connectors/hdfs" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
-        <ant dir="connectors/hdfs" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
-        <ant dir="connectors/hdfs" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
-        <ant dir="connectors/hdfs" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-jcifs-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-jcifs-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-jcifs-connector" depends="setup-jcifs-connector" if="downloaded">
-        <ant dir="connectors/jcifs" target="build"/>
-    </target>
-
-    <target name="doc-jcifs-connector" depends="setup-jcifs-connector" if="downloaded">
-        <ant dir="connectors/jcifs" target="doc"/>
-    </target>
-
-    <target name="build-tests-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests" if="downloaded">
-        <ant dir="connectors/jcifs" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests" if="downloaded">
-        <ant dir="connectors/jcifs" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests" if="downloaded">
-        <ant dir="connectors/jcifs" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests" if="downloaded">
-        <ant dir="connectors/jcifs" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests" if="downloaded">
-        <ant dir="connectors/jcifs" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests" if="downloaded">
-        <ant dir="connectors/jcifs" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-jdbc-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-jdbc-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-jdbc-connector" depends="setup-jdbc-connector" if="downloaded">
-        <ant dir="connectors/jdbc" target="build"/>
-    </target>
-
-    <target name="doc-jdbc-connector" depends="setup-jdbc-connector" if="downloaded">
-        <ant dir="connectors/jdbc" target="doc"/>
-    </target>
-
-    <target name="build-tests-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests" if="downloaded">
-        <ant dir="connectors/jdbc" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests" if="downloaded">
-        <ant dir="connectors/jdbc" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests" if="downloaded">
-        <ant dir="connectors/jdbc" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests" if="downloaded">
-        <ant dir="connectors/jdbc" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests" if="downloaded">
-        <ant dir="connectors/jdbc" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests" if="downloaded">
-        <ant dir="connectors/jdbc" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-livelink-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-livelink-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-livelink-connector" depends="setup-livelink-connector" if="downloaded">
-        <ant dir="connectors/livelink" target="build"/>
-    </target>
-
-    <target name="doc-livelink-connector" depends="setup-livelink-connector" if="downloaded">
-        <ant dir="connectors/livelink" target="doc"/>
-    </target>
-
-    <target name="build-tests-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests" if="downloaded">
-        <ant dir="connectors/livelink" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests" if="downloaded">
-        <ant dir="connectors/livelink" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests" if="downloaded">
-        <ant dir="connectors/livelink" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests" if="downloaded">
-        <ant dir="connectors/livelink" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests" if="downloaded">
-        <ant dir="connectors/livelink" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests" if="downloaded">
-        <ant dir="connectors/livelink" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-solr-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-solr-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-solr-connector" depends="setup-solr-connector" if="downloaded">
-        <ant dir="connectors/solr" target="build"/>
-    </target>
-
-    <target name="doc-solr-connector" depends="setup-solr-connector" if="downloaded">
-        <ant dir="connectors/solr" target="doc"/>
-    </target>
-
-    <target name="build-tests-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests" if="downloaded">
-        <ant dir="connectors/solr" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests" if="downloaded">
-        <ant dir="connectors/solr" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests" if="downloaded">
-        <ant dir="connectors/solr" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests" if="downloaded">
-        <ant dir="connectors/solr" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests" if="downloaded">
-        <ant dir="connectors/solr" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests" if="downloaded">
-        <ant dir="connectors/solr" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-memex-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-memex-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-memex-connector" depends="setup-memex-connector" if="downloaded">
-        <ant dir="connectors/memex" target="build"/>
-    </target>
-
-    <target name="doc-memex-connector" depends="setup-memex-connector" if="downloaded">
-        <ant dir="connectors/memex" target="doc"/>
-    </target>
-
-    <target name="build-tests-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests" if="downloaded">
-        <ant dir="connectors/memex" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests" if="downloaded">
-        <ant dir="connectors/memex" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests" if="downloaded">
-        <ant dir="connectors/memex" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests" if="downloaded">
-        <ant dir="connectors/memex" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests" if="downloaded">
-        <ant dir="connectors/memex" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests" if="downloaded">
-        <ant dir="connectors/memex" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-meridio-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-meridio-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-meridio-connector" depends="setup-meridio-connector" if="downloaded">
-        <ant dir="connectors/meridio" target="build"/>
-    </target>
-
-    <target name="doc-meridio-connector" depends="setup-meridio-connector" if="downloaded">
-        <ant dir="connectors/meridio" target="doc"/>
-    </target>
-
-    <target name="build-tests-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests" if="downloaded">
-        <ant dir="connectors/meridio" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests" if="downloaded">
-        <ant dir="connectors/meridio" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests" if="downloaded">
-        <ant dir="connectors/meridio" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests" if="downloaded">
-        <ant dir="connectors/meridio" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests" if="downloaded">
-        <ant dir="connectors/meridio" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests" if="downloaded">
-        <ant dir="connectors/meridio" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-opensearchserver-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-opensearchserver-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-opensearchserver-connector" depends="setup-opensearchserver-connector" if="downloaded">
-      <ant dir="connectors/opensearchserver" target="build"/>
-    </target>
-
-    <target name="doc-opensearchserver-connector" depends="setup-opensearchserver-connector" if="downloaded">
-        <ant dir="connectors/opensearchserver" target="doc"/>
-    </target>
-
-    <target name="build-tests-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests" if="downloaded">
-        <ant dir="connectors/opensearchserver" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests" if="downloaded">
-        <ant dir="connectors/opensearchserver" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests" if="downloaded">
-        <ant dir="connectors/opensearchserver" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests" if="downloaded">
-        <ant dir="connectors/opensearchserver" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests" if="downloaded">
-        <ant dir="connectors/opensearchserver" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests" if="downloaded">
-        <ant dir="connectors/opensearchserver" target="run-tests-HSQLDB"/>
-    </target>
-	
-
-
-    <target name="setup-elasticsearch-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-elasticsearch-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-elasticsearch-connector" depends="setup-elasticsearch-connector" if="downloaded">
-      <ant dir="connectors/elasticsearch" target="build"/>
-    </target>
-
-    <target name="doc-elasticsearch-connector" depends="setup-elasticsearch-connector" if="downloaded">
-        <ant dir="connectors/elasticsearch" target="doc"/>
-    </target>
-
-    <target name="build-tests-elasticsearch-connector" depends="setup-elasticsearch-connector,setup-elasticsearch-connector-tests" if="downloaded">
-        <ant dir="connectors/elasticsearch" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-elasticsearch-connector" depends="setup-elasticsearch-connector,setup-elasticsearch-connector-tests" if="downloaded">
-        <ant dir="connectors/elasticsearch" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-elasticsearch-connector" depends="setup-elasticsearch-connector,setup-elasticsearch-connector-tests" if="downloaded">
-        <ant dir="connectors/elasticsearch" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-elasticsearch-connector" depends="setup-elasticsearch-connector,setup-elasticsearch-connector-tests" if="downloaded">
-        <ant dir="connectors/elasticsearch" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-elasticsearch-connector" depends="setup-elasticsearch-connector,setup-elasticsearch-connector-tests" if="downloaded">
-        <ant dir="connectors/elasticsearch" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-elasticsearch-connector" depends="setup-elasticsearch-connector,setup-elasticsearch-connector-tests" if="downloaded">
-        <ant dir="connectors/elasticsearch" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-nullauthority-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-nullauthority-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-nullauthority-connector" depends="setup-nullauthority-connector" if="downloaded">
-        <ant dir="connectors/nullauthority" target="build"/>
-    </target>
-
-    <target name="doc-nullauthority-connector" depends="setup-nullauthority-connector" if="downloaded">
-        <ant dir="connectors/nullauthority" target="doc"/>
-    </target>
-
-    <target name="build-tests-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests" if="downloaded">
-        <ant dir="connectors/nullauthority" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests" if="downloaded">
-        <ant dir="connectors/nullauthority" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests" if="downloaded">
-        <ant dir="connectors/nullauthority" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests" if="downloaded">
-        <ant dir="connectors/nullauthority" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests" if="downloaded">
-        <ant dir="connectors/nullauthority" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests" if="downloaded">
-        <ant dir="connectors/nullauthority" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-nulloutput-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-nulloutput-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-nulloutput-connector" depends="setup-nulloutput-connector" if="downloaded">
-        <ant dir="connectors/nulloutput" target="build"/>
-    </target>
-
-    <target name="doc-nulloutput-connector" depends="setup-nulloutput-connector" if="downloaded">
-        <ant dir="connectors/nulloutput" target="doc"/>
-    </target>
-
-    <target name="build-tests-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests" if="downloaded">
-        <ant dir="connectors/nulloutput" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests" if="downloaded">
-        <ant dir="connectors/nulloutput" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests" if="downloaded">
-        <ant dir="connectors/nulloutput" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests" if="downloaded">
-        <ant dir="connectors/nulloutput" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests" if="downloaded">
-        <ant dir="connectors/nulloutput" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests" if="downloaded">
-        <ant dir="connectors/nulloutput" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-rss-connector" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-rss-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-rss-connector" depends="setup-rss-connector" if="downloaded">
-        <ant dir="connectors/rss" target="build"/>
-    </target>
-
-    <target name="doc-rss-connector" depends="setup-rss-connector" if="downloaded">
-        <ant dir="connectors/rss" target="doc"/>
-    </target>
-
-    <target name="build-tests-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests" if="downloaded">
-        <ant dir="connectors/rss" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests" if="downloaded">
-        <ant dir="connectors/rss" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests" if="downloaded">
-        <ant dir="connectors/rss" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests" if="downloaded">
-        <ant dir="connectors/rss" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests" if="downloaded">
-        <ant dir="connectors/rss" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests" if="downloaded">
-        <ant dir="connectors/rss" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-regexp-mapper" depends="build-framework" if="downloaded"/>
-
-    <target name="setup-regexp-mapper-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-regexp-mapper" depends="setup-regexp-mapper" if="downloaded">
-        <ant dir="connectors/regexpmapper" target="build"/>
-    </target>
-
-    <target name="doc-regexp-mapper" depends="setup-regexp-mapper" if="downloaded">
-        <ant dir="connectors/regexpmapper" target="doc"/>
-    </target>
-
-    <target name="build-tests-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
-        <ant dir="connectors/regexpmapper" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
-        <ant dir="connectors/regexpmapper" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
-        <ant dir="connectors/regexpmapper" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
-        <ant dir="connectors/regexpmapper" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
-        <ant dir="connectors/regexpmapper" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
-        <ant dir="connectors/regexpmapper" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-sharepoint-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-sharepoint-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-sharepoint-connector" depends="setup-sharepoint-connector" if="downloaded">
-        <ant dir="connectors/sharepoint" target="build"/>
-    </target>
-
-    <target name="doc-sharepoint-connector" depends="setup-sharepoint-connector" if="downloaded">
-        <ant dir="connectors/sharepoint" target="doc"/>
-    </target>
-
-    <target name="build-tests-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests" if="downloaded">
-        <ant dir="connectors/sharepoint" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests" if="downloaded">
-        <ant dir="connectors/sharepoint" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests" if="downloaded">
-        <ant dir="connectors/sharepoint" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests" if="downloaded">
-        <ant dir="connectors/sharepoint" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests" if="downloaded">
-        <ant dir="connectors/sharepoint" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests" if="downloaded">
-        <ant dir="connectors/sharepoint" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-webcrawler-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-webcrawler-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-webcrawler-connector" depends="setup-webcrawler-connector" if="downloaded">
-        <ant dir="connectors/webcrawler" target="build"/>
-    </target>
-
-    <target name="doc-webcrawler-connector" depends="setup-webcrawler-connector" if="downloaded">
-        <ant dir="connectors/webcrawler" target="doc"/>
-    </target>
-
-    <target name="build-tests-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests" if="downloaded">
-        <ant dir="connectors/webcrawler" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests" if="downloaded">
-        <ant dir="connectors/webcrawler" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests" if="downloaded">
-        <ant dir="connectors/webcrawler" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests" if="downloaded">
-        <ant dir="connectors/webcrawler" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests" if="downloaded">
-        <ant dir="connectors/webcrawler" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests" if="downloaded">
-        <ant dir="connectors/webcrawler" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-wiki-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-wiki-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-wiki-connector" depends="setup-wiki-connector" if="downloaded">
-        <ant dir="connectors/wiki" target="build"/>
-    </target>
-
-    <target name="doc-wiki-connector" depends="setup-wiki-connector" if="downloaded">
-        <ant dir="connectors/wiki" target="doc"/>
-    </target>
-
-    <target name="build-tests-wiki-connector" depends="setup-wiki-connector,setup-wiki-connector-tests" if="downloaded">
-        <ant dir="connectors/wiki" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-wiki-connector" depends="setup-wiki-connector,setup-wiki-connector-tests" if="downloaded">
-        <ant dir="connectors/wiki" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-wiki-connector" depends="setup-wiki-connector,setup-wiki-connector-tests" if="downloaded">
-        <ant dir="connectors/wiki" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-wiki-connector" depends="setup-wiki-connector,setup-wiki-connector-tests" if="downloaded">
-        <ant dir="connectors/wiki" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-wiki-connector" depends="setup-wiki-connector,setup-wiki-connector-tests" if="downloaded">
-        <ant dir="connectors/wiki" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-wiki-connector" depends="setup-wiki-connector,setup-wiki-connector-tests" if="downloaded">
-        <ant dir="connectors/wiki" target="run-tests-HSQLDB"/>
-    </target>
-
-    <target name="setup-email-connector" depends="build-framework" if="downloaded"/>
-    
-    <target name="setup-email-connector-tests" depends="build-tests-framework" if="downloaded"/>
-
-    <target name="build-email-connector" depends="setup-email-connector" if="downloaded">
-        <ant dir="connectors/email" target="build"/>
-    </target>
-
-    <target name="doc-email-connector" depends="setup-email-connector" if="downloaded">
-        <ant dir="connectors/email" target="doc"/>
-    </target>
-
-    <target name="build-tests-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="build-tests"/>
-    </target>
-
-    <target name="run-tests-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="run-tests-derby"/>
-    </target>
-
-    <target name="run-tests-postgresql-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="run-tests-postgresql"/>
-    </target>
-
-    <target name="run-tests-mysql-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-tests-HSQLDB-email-connector" depends="setup-email-connector,setup-email-connector-tests" if="downloaded">
-        <ant dir="connectors/email" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="deliver-site-doc" depends="presite-check" if="site-exists">
@@ -1319,21 +380,21 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="1.6-dev"/>
+      <property name="release-version" value="1.7-dev"/>
     </target>
     
     <target name="create-source-zip" depends="set-version">
       <zip destfile="apache-manifoldcf-${release-version}-src.zip" update="false">
         <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
-          <exclude name="/lib/"/>
-          <exclude name="/connectors/*/lib/"/>
-          <exclude name="/framework/lib/"/>
+          <exclude name="lib/"/>
+          <exclude name="connectors/*/lib/"/>
+          <exclude name="framework/lib/"/>
           <exclude name="**/build/"/>
           <exclude name="**/tmp/"/>
-          <exclude name="/site/fonts/"/>
-          <exclude name="/dist/"/>
-          <exclude name="/connectors/*/dist/"/>
-          <exclude name="/framework/dist/"/>
+          <exclude name="site/fonts/"/>
+          <exclude name="dist/"/>
+          <exclude name="connectors/*/dist/"/>
+          <exclude name="framework/dist/"/>
           <exclude name="**/target/"/>
           <exclude name="**/test-output/"/>
           <exclude name="**/test-derby-output/"/>
@@ -1350,8 +411,8 @@
           <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
           <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
-          <exclude name="/legacy-*/"/>
-          <exclude name="apache-manifoldcf-*"/>
+          <exclude name="legacy-*/"/>
+          <exclude name="apache-manifoldcf-*/"/>        
         </zipfileset>
       </zip>
     </target>
@@ -1361,19 +422,19 @@
         <zipfileset dir="lib" prefix="apache-manifoldcf-${release-version}"/>
       </zip>
     </target>
-
-    <target name="create-source-tar" depends="set-version">
-      <tar destfile="apache-manifoldcf-${release-version}-src.tar.gz" compression="gzip" longfile="gnu">
+      
+    <target name="create-source-tar" depends="set-version">  
+      <tar destfile="apache-manifoldcf-${release-version}-src.tar.gz" compression="gzip" longfile="gnu">        
         <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
-          <exclude name="/lib/"/>
-          <exclude name="/connectors/*/lib/"/>
-          <exclude name="/framework/lib/"/>
+          <exclude name="lib/"/>
+          <exclude name="connectors/*/lib/"/>
+          <exclude name="framework/lib/"/>
           <exclude name="**/build/"/>
           <exclude name="**/tmp/"/>
-          <exclude name="/site/fonts/"/>
-          <exclude name="/dist/"/>
-          <exclude name="/connectors/*/dist/"/>
-          <exclude name="/framework/dist/"/>
+          <exclude name="site/fonts/"/>
+          <exclude name="dist/"/>
+          <exclude name="connectors/*/dist/"/>
+          <exclude name="framework/dist/"/>
           <exclude name="**/target/"/>
           <exclude name="**/test-output/"/>
           <exclude name="**/test-derby-output/"/>
@@ -1390,8 +451,8 @@
           <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
           <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
-          <exclude name="/legacy-*/"/>
-          <exclude name="apache-manifoldcf-*"/>
+          <exclude name="legacy-*/"/>
+          <exclude name="apache-manifoldcf-*/"/>
         </tarfileset>
       </tar>
     </target>
@@ -1410,10 +471,10 @@
           <exclude name="lib-proprietary/*.jar"/>
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
-          <exclude name="/example-proprietary/"/>
-          <exclude name="/multiprocess-file-example-proprietary/"/>
-          <exclude name="/multiprocess-zk-example-proprietary/"/>
-          <exclude name="/web-proprietary/"/>
+          <exclude name="example-proprietary/"/>
+          <exclude name="multiprocess-file-example-proprietary/"/>
+          <exclude name="multiprocess-zk-example-proprietary/"/>
+          <exclude name="web-proprietary/"/>
         </zipfileset>
       </zip>
     </target>
@@ -1426,10 +487,10 @@
           <exclude name="lib-proprietary/*.jar"/>
           <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
-          <exclude name="/example-proprietary/"/>
-          <exclude name="/multiprocess-file-example-proprietary/"/>
-          <exclude name="/multiprocess-zk-example-proprietary/"/>
-          <exclude name="/web-proprietary/"/>
+          <exclude name="example-proprietary/"/>
+          <exclude name="multiprocess-file-example-proprietary/"/>
+          <exclude name="multiprocess-zk-example-proprietary/"/>
+          <exclude name="web-proprietary/"/>
         </tarfileset>
       </tar>
     </target>
@@ -1588,6 +649,18 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </java>
     </target>
 
+    <target name="download-mongo-java-driver">
+        <mkdir dir="lib"/>
+
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/mongodb"/>
+            <param name="artifact-version" value="2.11.3"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="mongo-java-driver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
     <target name="download-httpcomponents">
         <mkdir dir="lib"/>
 
@@ -1844,7 +917,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-logging"/>
-            <param name="artifact-version" value="1.1.1"/>
+            <param name="artifact-version" value="1.1.3"/>
             <param name="artifact-name" value="commons-logging"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1864,7 +937,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
   
     <target name="download-slf4j">
         <mkdir dir="lib"/>
-        <property name="slf4j-version" value="1.6.6"/>
+        <property name="slf4j-version" value="1.7.7"/>
         <property name="slf4j-package" value="org/slf4j"/>
         <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="slf4j-api"/>
@@ -1962,7 +1035,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
-            <param name="artifact-version" value="3.7"/>
+            <param name="artifact-version" value="3.10-beta2"/>
             <param name="artifact-name" value="poi"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1996,7 +1069,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/eclipse/jdt/core/compiler"/>
-            <param name="artifact-version" value="3.7.1"/>
+            <param name="artifact-version" value="4.3.1"/>
             <param name="artifact-name" value="ecj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -2314,8 +1387,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="download-wss4j">
-        <!-- This dependency is for alfresco, so download their patched jar from their svn -->
-        <get src="https://maven.alfresco.com/nexus/content/groups/public/org/apache/ws/security/wss4j/1.5.4-patched/wss4j-1.5.4-patched.jar" dest="lib/wss4j.jar"/>
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/ws/security"/>
+            <param name="artifact-version" value="1.5.12"/>
+            <param name="artifact-name" value="wss4j"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
     <target name="download-xmlgraphics-commons">
@@ -2584,7 +1662,213 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-mock,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf">
+    <target name="download-tika">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-name" value="tika-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-name" value="tika-parsers"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ccil/cowan/tagsoup"/>
+            <param name="artifact-version" value="1.2.1"/>
+            <param name="artifact-name" value="tagsoup"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/james"/>
+            <param name="artifact-name" value="apache-mime4j-core"/>
+            <param name="artifact-version" value="0.7.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/james"/>
+            <param name="artifact-name" value="apache-mime4j-dom"/>
+            <param name="artifact-version" value="0.7.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/gagravarr"/>
+            <param name="artifact-name" value="vorbis-java-tika"/>
+            <param name="artifact-version" value="0.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/poi"/>
+            <param name="artifact-name" value="poi-scratchpad"/>
+            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/drewnoakes"/>
+            <param name="artifact-name" value="metadata-extractor"/>
+            <param name="artifact-version" value="2.6.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/aspectj"/>
+            <param name="artifact-name" value="aspectjrt"/>
+            <param name="artifact-version" value="1.6.11"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/uwyn"/>
+            <param name="artifact-name" value="jhighlight"/>
+            <param name="artifact-version" value="1.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/xmlbeans"/>
+            <param name="artifact-name" value="xmlbeans"/>
+            <param name="artifact-version" value="2.3.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/bouncycastle"/>
+            <param name="artifact-name" value="bcprov-jdk15"/>
+            <param name="artifact-version" value="1.45"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/tukaani"/>
+            <param name="artifact-name" value="xz"/>
+            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/pdfbox"/>
+            <param name="artifact-name" value="jempbox"/>
+            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/pdfbox"/>
+            <param name="artifact-name" value="pdfbox"/>
+            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/pdfbox"/>
+            <param name="artifact-name" value="fontbox"/>
+            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/commons"/>
+            <param name="artifact-name" value="commons-compress"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/googlecode/juniversalchardet"/>
+            <param name="artifact-name" value="juniversalchardet"/>
+            <param name="artifact-version" value="1.0.3"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="edu/ucar"/>
+            <param name="artifact-name" value="netcdf"/>
+            <param name="artifact-version" value="4.2-min"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="de/l3s/boilerpipe"/>
+            <param name="artifact-name" value="boilerpipe"/>
+            <param name="artifact-version" value="1.1.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="dom4j"/>
+            <param name="artifact-name" value="dom4j"/>
+            <param name="artifact-version" value="1.6.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ow2/asm"/>
+            <param name="artifact-name" value="asm-debug-all"/>
+            <param name="artifact-version" value="4.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/adobe/xmp"/>
+            <param name="artifact-name" value="xmpcore"/>
+            <param name="artifact-version" value="5.1.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/gagravarr"/>
+            <param name="artifact-name" value="vorbis-java-core"/>
+            <param name="artifact-version" value="0.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/poi"/>
+            <param name="artifact-name" value="poi-ooxml"/>
+            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/poi"/>
+            <param name="artifact-name" value="poi-ooxml-schemas"/>
+            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/bouncycastle"/>
+            <param name="artifact-name" value="bcmail-jdk15"/>
+            <param name="artifact-version" value="1.45"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="jdom"/>
+            <param name="artifact-name" value="jdom"/>
+            <param name="artifact-version" value="1.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/geronimo/specs"/>
+            <param name="artifact-name" value="geronimo-stax-api_1.0_spec"/>
+            <param name="artifact-version" value="1.0.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="rome"/>
+            <param name="artifact-name" value="rome"/>
+            <param name="artifact-version" value="0.9"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/googlecode/mp4parser"/>
+            <param name="artifact-name" value="isoparser"/>
+            <param name="artifact-version" value="1.0-RC-1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+	
+    <target name="download-jackson">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/jackson/core"/>
+            <param name="artifact-version" value="2.1.3"/>
+            <param name="artifact-name" value="jackson-databind"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/jackson/core"/>
+            <param name="artifact-version" value="2.1.2"/>
+            <param name="artifact-name" value="jackson-annotations"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+	
+    <target name="make-core-deps" depends="download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-mock,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
