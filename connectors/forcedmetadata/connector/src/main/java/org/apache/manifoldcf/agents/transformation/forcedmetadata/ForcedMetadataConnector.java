@@ -267,9 +267,8 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
 
   protected void fillInForcedMetadataTab(Map<String,Object> paramMap, Specification os)
   {
-    // We construct a list of maps from the parameters
-    List<Map<String,String>> pObject = new ArrayList<Map<String,String>>();
-    
+    // First, sort everything
+    Map<String,Set<String>> params = new HashMap<String,Set<String>>();
     for (int i = 0; i < os.getChildCount(); i++)
     {
       SpecificationNode sn = os.getChild(i);
@@ -277,12 +276,48 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
       {
         String parameter = sn.getAttributeValue(ATTR_PARAMETER);
         String value = sn.getAttributeValue(ATTR_VALUE);
+        Set<String> values = params.get(parameter);
+        if (values == null)
+        {
+          values = new HashSet<String>();
+          params.put(parameter,values);
+        }
+        values.add(value);
+      }
+    }
+    
+    // We construct a list of maps from the parameters
+    List<Map<String,String>> pObject = new ArrayList<Map<String,String>>();
+
+    String[] keys = new String[params.size()];
+    int j = 0;
+    while (String key : params.keySet())
+    {
+      keys[j++] = key;
+    }
+    java.util.Arrays.sort(keys);
+    
+    // Now, build map
+    for (String key : keys)
+    {
+      Set<String> values = params.get(key);
+      String[] valueArray = new String[values.size()];
+      j = 0;
+      for (String value : values)
+      {
+        valueArray[j++] = value;
+      }
+      java.util.Arrays.sort(valueArray);
+      
+      for (String value : valueArray)
+      {
         Map<String,String> record = new HashMap<String,String>();
-        record.put("parameter",parameter);
+        record.put("parameter",key);
         record.put("value",value);
         pObject.add(record);
       }
     }
+    
     paramMap.put("Parameters",pObject);
   }
 
