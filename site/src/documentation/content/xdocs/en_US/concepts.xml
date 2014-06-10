@@ -100,12 +100,13 @@
         <section>
           <title>Connectors</title>
           <p></p>
-          <p>ManifoldCF defines four different kinds of connectors.  These are:</p>
+          <p>ManifoldCF defines five different kinds of connectors.  These are:</p>
           <p></p>
           <ul>
             <li>User mapping connectors</li>
             <li>Authority connectors</li>
             <li>Repository connectors</li>
+            <li>Transformation connectors</li>
             <li>Output connectors</li>
           </ul>
           <p></p>
@@ -121,6 +122,7 @@
             <tr><td>User mapping connector</td><td>Maps a user name to another (equivalent) user name, typically by means of a regular expression mechanism, or by repository access</td></tr>
             <tr><td>Authority connector</td><td>Furnishes a standard way of mapping a user name to access tokens that are meaningful for a given type of repository</td></tr>
             <tr><td>Repository connector</td><td>Fetches documents from a specific kind of repository, such as SharePoint or off the web</td></tr>
+            <tr><td>Transformation connector</td><td>Modifies documents or their metadata, after fetched by a repository connector and before being sent to the index by an output connector</td></tr>
             <tr><td>Output connector</td><td>Pushes document ingestion requests and deletion requests to a specific kind of back end search engine or other entity, such as Lucene</td></tr>
           </table>
           <p></p>
@@ -135,9 +137,11 @@
             LiveLink connection by specifying how to talk to the LiveLink server.  You would <strong>not</strong> include information about which documents to select in such a
             configuration.</p>
           <p></p>
-          <p>There is one difference between how you define a <em>repository connection</em>, vs. how you would define an <em>authority connection</em> or <em>output
-            connection</em> or <em>mapping connection</em>.  The difference is that you must specify a governing authority connection for your repository connection.  This is
-            because <strong>all</strong> documents ingested by ManifoldCF need to include appropriate access tokens, and those access tokens are specific to the governing authority.</p>
+          <p>There is one difference between how you define a <em>repository connection</em> or <em>authority connection</em>, vs. how you would define a <em>transformation connection</em> or <em>output
+            connection</em> or <em>mapping connection</em>.  The difference is that you must specify a governing authority group for your repository connection, and an owning
+            authority group for your authority connection.  This is
+            because <strong>all</strong> documents ingested by ManifoldCF need to include appropriate access tokens, and those access tokens are specific to
+            the governing authority group.</p>
           <p></p>
           <p>Another difference in how you define an <em>authority connection</em> or <em>mapping connection</em>, vs. other connections, is that you can specify a prerequisite
             <em>mapping connection</em> that must occur beforehand.  This means you can have multiple user mappings that occur in a defined sequence, before the authority is
@@ -152,9 +156,12 @@
           <p></p>
           <ul>
             <li>A verbal description</li>
-            <li>A repository connection (and thus implicitly an authority connection as well)</li>
+            <li>A repository connection (and thus implicitly an authority group as well)</li>
+            <li>Zero or more transformation connections</li>
             <li>An output connection</li>
             <li>A repository-connection-specific description of "what" documents and metadata the job applies to</li>
+            <li>Zero or more transformation-connection-specific descriptions of "how" documents and metadata should be manipulated before indexing</li>
+            <li> An output-connection-specific description of how documents should be indexed</li>
             <li>A model for crawling: either "run to completion", or "run continuously"</li>
             <li>A schedule for when the job will run: either within specified time windows, or on demand</li>
           </ul>

@@ -58,12 +58,10 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   protected final static String maxCountField = "maxcount";
   protected final static String configField = "configxml";
 
-  protected static Random random = new Random();
-
   // Cache manager
-  ICacheManager cacheManager;
+  protected final ICacheManager cacheManager;
   // Thread context
-  IThreadContext threadContext;
+  protected final IThreadContext threadContext;
 
   /** Constructor.
   *@param threadContext is the thread context.
@@ -165,7 +163,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   {
     int version = ManifoldCF.readDword(is);
     if (version != 1)
-      throw new java.io.IOException("Unknown repository connection configuration version: "+Integer.toString(version));
+      throw new java.io.IOException("Unknown output connection configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
     int i = 0;
     while (i < count)

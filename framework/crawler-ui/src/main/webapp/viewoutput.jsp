@@ -23,6 +23,8 @@
 %>
 
 <?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -172,8 +174,8 @@
 			</tr>
 			<tr>
 				<td class="message" colspan="4">
-					<nobr><a href='<%="viewoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.Refresh")%></a></nobr>
-					<nobr><a href='<%="editoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.EditThisOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.Edit")%></a></nobr>
+					<nobr><a href='<%="viewoutput.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.Refresh")%></a></nobr>
+					<nobr><a href='<%="editoutput.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.EditThisOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.Edit")%></a></nobr>
 					<nobr><a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.DeleteThisOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.Delete")%></a></nobr>
 					<nobr><a href="javascript:void()" onclick='<%="javascript:ReingestAll(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.ReIngestAllDocumentsAssociatedWithThisOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.ReIngestAllAssociatedDocuments")%></a></nobr>
 					<nobr><a href="javascript:void()" onclick='<%="javascript:RemoveAll(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.RemoveAllDocumentsAssociatedWithThisOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.RemoveAllAssociatedDocuments")%></a></nobr>

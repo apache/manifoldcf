@@ -23,6 +23,7 @@ import org.apache.manifoldcf.core.database.*;
 import org.apache.manifoldcf.core.jdbcpool.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import javax.naming.*;
 import javax.sql.*;
@@ -285,7 +286,7 @@ public class JDBCConnection
         InputStream is = bi.getStream();
         try
         {
-          InputStreamReader reader = new InputStreamReader(is,"utf-8");
+          InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
           StringBuilder sb = new StringBuilder();
           while (true)
           {

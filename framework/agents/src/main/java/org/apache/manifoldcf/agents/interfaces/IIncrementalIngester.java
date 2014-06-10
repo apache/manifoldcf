@@ -68,6 +68,30 @@ public interface IIncrementalIngester
   public String getOutputDescription(String outputConnectionName, OutputSpecification spec)
     throws ManifoldCFException, ServiceInterruption;
 
+  /** Get transformation version strings for a document.
+  *@param transformationConnectionNames are the names of the transformation connections associated with this action.
+  *@param specs are the transformation specifications.
+  *@return the description strings.
+  */
+  public String[] getTransformationDescriptions(String[] transformationConnectionNames, OutputSpecification[] specs)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Check if a mime type is indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param mimeType is the mime type to check.
+  *@param activity are the activities available to this method.
+  *@return true if the mimeType is indexable.
+  */
+  public boolean checkMimeTypeIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    String mimeType,
+    IOutputCheckActivity activity)
+    throws ManifoldCFException, ServiceInterruption;
+
   /** Check if a mime type is indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
@@ -75,6 +99,22 @@ public interface IIncrementalIngester
   *@return true if the mimeType is indexable.
   */
   public boolean checkMimeTypeIndexable(String outputConnectionName, String outputDescription, String mimeType)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Check if a file is indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param localFile is the local file to check.
+  *@param activity are the activities available to this method.
+  *@return true if the local file is indexable.
+  */
+  public boolean checkDocumentIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    File localFile,
+    IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Check if a file is indexable.
@@ -88,12 +128,46 @@ public interface IIncrementalIngester
 
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
   * to help filter out documents that are too long to be indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param length is the length of the document.
+  *@param activity are the activities available to this method.
+  *@return true if the file is indexable.
+  */
+  public boolean checkLengthIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    long length,
+    IOutputCheckActivity activity)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are too long to be indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
   *@param length is the length of the document.
   *@return true if the file is indexable.
   */
   public boolean checkLengthIndexable(String outputConnectionName, String outputDescription, long length)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that not indexable.
+  *@param transformationConnectionNames is the ordered list of transformation connection names.
+  *@param transformationDescriptions is the ordered list of transformation description strings.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param url is the url of the document.
+  *@param activity are the activities available to this method.
+  *@return true if the file is indexable.
+  */
+  public boolean checkURLIndexable(
+    String[] transformationConnectionNames, String[] transformationDescriptions,
+    String outputConnectionName, String outputDescription,
+    String url,
+    IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
@@ -170,6 +244,44 @@ public interface IIncrementalIngester
   public boolean documentIngest(String outputConnectionName,
     String identifierClass, String identifierHash,
     String documentVersion,
+    String outputVersion,
+    String parameterVersion,
+    String authorityName,
+    RepositoryDocument data,
+    long ingestTime, String documentURI,
+    IOutputActivity activities)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Ingest a document.
+  * This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
+  * method also REMOVES ALL OLD METADATA.  When complete, the index will contain only the metadata
+  * described by the RepositoryDocument object passed to this method.
+  * ServiceInterruption is thrown if the document ingestion must be rescheduled.
+  *@param transformationConnectionNames are the names of the transformation connections associated with this action.
+  *@param transformationDescriptionStrings are the description strings corresponding to the transformation connection names.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param otuputDescriptionString is the description string corresponding to the output connection.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hashed document identifier.
+  *@param documentVersion is the document version.
+  *@param transformationVersion is the version string for the transformations to be performed on the document.
+  *@param outputVersion is the output version string for the output connection.
+  *@param parameterVersion is the version string for the forced parameters.
+  *@param authorityName is the name of the authority associated with the document, if any.
+  *@param data is the document data.  The data is closed after ingestion is complete.
+  *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
+  *@param documentURI is the URI of the document, which will be used as the key of the document in the index.
+  *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
+  *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
+  */
+  public boolean documentIngest(
+    String[] transformationConnectionNames,
+    String[] transformationDescriptionStrings,
+    String outputConnectionName,
+    String outputDescriptionString,
+    String identifierClass, String identifierHash,
+    String documentVersion,
+    String transformationVersion,
     String outputVersion,
     String parameterVersion,
     String authorityName,

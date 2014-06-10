@@ -41,6 +41,7 @@
       <p><a href="../api/filenet/index.html">FileNet connector and support processes</a></p>
       <p><a href="../api/filesystem/index.html">File system repository and output connector</a></p>
       <p><a href="../api/googledrive/index.html">GoogleDrive connector</a></p>
+      <p><a href="../api/gridfs/index.html">GridFS connector</a></p>
       <p><a href="../api/gts/index.html">qBase GTS output connector</a></p>
       <p><a href="../api/hdfs/index.html">HDFS repository and output connector</a></p>
       <p><a href="../api/jcifs/index.html">CIFS connector</a></p>

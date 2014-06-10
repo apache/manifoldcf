@@ -55,6 +55,8 @@ public class IdleCleanupThread extends Thread
       ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
       // Get the output connector pool handle
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
+      // Get the transformation connector pool handle
+      ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
       // Throttler subsystem
       IThrottleGroups throttleGroups = ThrottleGroupsFactory.make(threadContext);
       
@@ -90,6 +92,7 @@ public class IdleCleanupThread extends Thread
           
           // Do the cleanup
           outputConnectorPool.pollAllConnectors();
+          transformationConnectorPool.pollAllConnectors();
           // Poll connection bins
           throttleGroups.poll();
           // Expire objects

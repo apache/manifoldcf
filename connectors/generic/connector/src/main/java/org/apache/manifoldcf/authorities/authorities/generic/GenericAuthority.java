@@ -16,10 +16,11 @@
 package org.apache.manifoldcf.authorities.authorities.generic;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
+import org.apache.manifoldcf.core.util.URLEncoder;
+
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import javax.xml.bind.JAXBContext;
@@ -284,12 +285,9 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
   protected AuthorizationResponse getAuthorizationResponseUncached(HttpClient client, String userName)
     throws ManifoldCFException {
     StringBuilder url = new StringBuilder(genericEntryPoint);
-    try {
-      url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_AUTH);
-      url.append("&username=").append(URLEncoder.encode(userName, "UTF-8"));
-    } catch (UnsupportedEncodingException ex) {
-      throw new ManifoldCFException("getAuthorizationResponseUncached error: " + ex.getMessage(), ex);
-    }
+    url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_AUTH);
+    url.append("&username=").append(URLEncoder.encode(userName));
+
 
     try {
       FetchTokensThread t = new FetchTokensThread(client, url.toString());
