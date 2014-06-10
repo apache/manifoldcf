@@ -38,6 +38,12 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   public static final String ATTR_PARAMETER = "parameter";
   public static final String ATTR_VALUE = "value";
   
+  // Templates
+  
+  private static final String VIEW_SPEC = "viewSpecification.html";
+  private static final String EDIT_SPEC_HEADER = "editSpecification.js";
+  private static final String EDIT_SPEC_FORCED_METADATA = "editSpecification_ForcedMetadata.html";
+
   /** Get a pipeline version string, given a pipeline specification object.  The version string is used to
   * uniquely describe the pertinent details of the specification and the configuration, to allow the Connector 
   * Framework to determine whether a document will need to be processed again.
@@ -95,6 +101,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
       {
         valueArray[j++] = value;
       }
+      java.util.Arrays.sort(valueArray);
       packList(sb,valueArray,'+');
     }
     return sb.toString();
@@ -182,7 +189,14 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     throws ManifoldCFException, IOException
   {
     // Output specification header
-    // MHL
+    
+    // Add Forced Metadata to tab array
+    tabsArray.add(Messages.getString(locale, "ForcedMetadata.ForcedMetadata"));
+
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SeqNum",Integer.toString(connectionSequenceNumber));
+
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_HEADER,paramMap);
   }
   
   /** Output the specification body section.
@@ -201,7 +215,13 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     throws ManifoldCFException, IOException
   {
     // Output specification body
-    // MHL
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("TabName", tabName);
+    paramMap.put("SeqNum",Integer.toString(connectionSequenceNumber));
+    paramMap.put("SelectedNum",Integer.toString(actualSequenceNumber));
+
+    fillInForcedMetadataTab(paramMap, os);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_FORCED_METADATA,paramMap);
   }
   
   /** Process a specification post.
@@ -236,9 +256,35 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     throws ManifoldCFException, IOException
   {
     // View specification
-    // MHL
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SeqNum",Integer.toString(connectionSequenceNumber));
+    
+    // Fill in the map with data from all tabs
+    fillInForcedMetadataTab(paramMap, os);
+
+    Messages.outputResourceWithVelocity(out,locale,VIEW_SPEC,paramMap);
   }
 
+  protected void fillInForcedMetadataTab(Map<String,Object> paramMap, Specification os)
+  {
+    // We construct a list of maps from the parameters
+    List<Map<String,String>> pObject = new ArrayList<Map<String,String>>();
+    
+    for (int i = 0; i < os.getChildCount(); i++)
+    {
+      SpecificationNode sn = os.getChild(i);
+      if (sn.getType().equals(NODE_PAIR))
+      {
+        String parameter = sn.getAttributeValue(ATTR_PARAMETER);
+        String value = sn.getAttributeValue(ATTR_VALUE);
+        Map<String,String> record = new HashMap<String,String>();
+        record.put("parameter",parameter);
+        record.put("value",value);
+        pObject.add(record);
+      }
+    }
+    paramMap.put("Parameters",pObject);
+  }
 
 }
 
