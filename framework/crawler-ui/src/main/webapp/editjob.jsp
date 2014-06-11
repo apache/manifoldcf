@@ -1663,7 +1663,7 @@
 		{
 			try
 			{
-				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,1,tabSequenceInt,tabName);
+				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,1+transformationConnections.length,tabSequenceInt,tabName);
 			}
 			finally
 			{
@@ -1693,6 +1693,23 @@
 <%
 		}
 	}
+	
+	for (int j = 0; j < transformationConnections.length; j++)
+	{
+		ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnections[j]);
+		if (transformationConnector != null)
+		{
+			try
+			{
+				transformationConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),transformationSpecifications[j],1+j,tabSequenceInt,tabName);
+			}
+			finally
+			{
+				transformationConnectorPool.release(transformationConnections[j],transformationConnector);
+			}
+		}
+	}
+
 %>
 		  <table class="displaytable">
 			<tr><td class="separator" colspan="4"><hr/></td></tr>
