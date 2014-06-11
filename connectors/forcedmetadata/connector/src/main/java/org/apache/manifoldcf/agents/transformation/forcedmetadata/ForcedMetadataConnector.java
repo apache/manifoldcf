@@ -163,7 +163,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   */
   public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
   {
-    return "checkSpecification_"+connectionSequenceNumber;
+    return "s"+connectionSequenceNumber+"_checkSpecification";
   }
 
   /** Obtain the name of the form presave check javascript method to call.
@@ -172,7 +172,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   */
   public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
   {
-    return "checkSpecificationForSave_"+connectionSequenceNumber;
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
   }
 
   /** Output the specification header section.
@@ -239,7 +239,46 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     throws ManifoldCFException
   {
     // Process specification post
-    // MHL
+    String prefix = "s"+connectionSequenceNumber+"_";
+    String forcedCount = variableContext.getParameter(prefix+"forcedmetadata_count");
+    if (forcedCount != null)
+    {
+      int count = Integer.parseInt(forcedCount);
+      // Delete old spec data
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode cn = os.getChild(i);
+        if (cn.getType().equals(NODE_PAIR))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      // Now, go through form data
+      for (int j = 0; j < count; j++)
+      {
+        String op = variableContext.getParameter(prefix+"forcedmetadata_"+j+"_op");
+        if (op != null && op.equals("Delete"))
+          continue;
+        String paramName = variableContext.getParameter(prefix+"forcedmetadata_"+j+"_name");
+        String paramValue = variableContext.getParameter(prefix+"forcedmetadata_"+j+"_value");
+        SpecificationNode sn = new SpecificationNode(NODE_PAIR);
+        sn.setAttribute(ATTR_PARAMETER,paramName);
+        sn.setAttribute(ATTR_VALUE,paramValue);
+        os.addChild(os.getChildCount(),sn);
+      }
+      // Look for add operation
+      String addOp = variableContext.getParameter(prefix+"forcedmetadata_op");
+      if (addOp != null && addOp.equals("Add"))
+      {
+        String paramName = variableContext.getParameter(prefix+"forcedmetadata_name");
+        String paramValue = variableContext.getParameter(prefix+"forcedmetadata_value");
+        SpecificationNode sn = new SpecificationNode(NODE_PAIR);
+        sn.setAttribute(ATTR_PARAMETER,paramName);
+        sn.setAttribute(ATTR_VALUE,paramValue);
+        os.addChild(os.getChildCount(),sn);
+      }
+    }
     return null;
   }
   
