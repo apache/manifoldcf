@@ -184,11 +184,7 @@
 	{
 		outputConnection = outputMgr.load(outputName);
 	}
-	ITransformationConnection[] transformationConnections = new ITransformationConnection[transformationNames.length];
-	for (int j = 0; j < transformationConnections.length; j++)
-	{
-		transformationConnections[j] = transformationMgr.load(transformationNames[j]);
-	}
+	ITransformationConnection[] transformationConnections = transformationMgr.loadMultiple(transformationNames);
 
 	// Set up the predefined tabs
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name"));
@@ -1050,6 +1046,8 @@
 		{
 			String transformationName = transformationNames[j];
 			String transformationDescription = transformationDescriptions[j];
+			if (transformationDescription == null)
+				transformationDescription = "";
 %>
 						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
 							<td class="formcolumncell">
@@ -1187,6 +1185,8 @@
 		{
 			String transformationName = transformationNames[j];
 			String transformationDescription = transformationDescriptions[j];
+			if (transformationDescription == null)
+				transformationDescription = "";
 %>
 		  <input type="hidden" name="pipeline_<%=j%>_connectionname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(transformationName)%>"/>
 		  <input type="hidden" name="pipeline_<%=j%>_description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(transformationDescription)%>"/>
@@ -1663,7 +1663,7 @@
 		{
 			try
 			{
-				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,1,tabSequenceInt,tabName);
+				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,1+transformationConnections.length,tabSequenceInt,tabName);
 			}
 			finally
 			{
@@ -1693,6 +1693,23 @@
 <%
 		}
 	}
+	
+	for (int j = 0; j < transformationConnections.length; j++)
+	{
+		ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnections[j]);
+		if (transformationConnector != null)
+		{
+			try
+			{
+				transformationConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),transformationSpecifications[j],1+j,tabSequenceInt,tabName);
+			}
+			finally
+			{
+				transformationConnectorPool.release(transformationConnections[j],transformationConnector);
+			}
+		}
+	}
+
 %>
 		  <table class="displaytable">
 			<tr><td class="separator" colspan="4"><hr/></td></tr>

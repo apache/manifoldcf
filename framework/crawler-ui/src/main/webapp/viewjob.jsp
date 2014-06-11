@@ -142,8 +142,23 @@
 
 		int priority = job.getPriority();
 
-		IRepositoryConnection connection = connManager.load(job.getConnectionName());
-		IOutputConnection outputConnection = outputManager.load(job.getOutputConnectionName());
+		String connectionName = job.getConnectionName();
+		String outputName = job.getOutputConnectionName();
+		String[] transformationNames = new String[job.countPipelineStages()];
+		String[] transformationDescriptions = new String[job.countPipelineStages()];
+		for (int j = 0; j < job.countPipelineStages(); j++)
+		{
+			transformationNames[j] = job.getPipelineStageConnectionName(j);
+			String transformationDescription = job.getPipelineStageDescription(j);
+			if (transformationDescription == null)
+				transformationDescription = "";
+			transformationDescriptions[j] = transformationDescription;
+		}
+
+		IRepositoryConnection connection = connManager.load(connectionName);
+		IOutputConnection outputConnection = outputManager.load(outputName);
+		ITransformationConnection[] transformationConnections = transformationManager.loadMultiple(transformationNames);
+
 		int model = RepositoryConnectorFactory.getConnectorModel(threadContext,connection.getClassName());
 		String[] relationshipTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
 		Map hopCountFilters = job.getHopCountFilters();
@@ -180,18 +195,16 @@
 						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
 							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
 							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.RepositoryStage")%></td>
-							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getConnectionName())%></td>
+							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></td>
 						</tr>
 <%
-		for (int j = 0; j < job.countPipelineStages(); j++)
+		for (int j = 0; j < transformationNames.length; j++)
 		{
-			String transformationConnectionName = job.getPipelineStageConnectionName(j);
-			String transformationDescription = job.getPipelineStageDescription(j);
 %>
 						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
 							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
-							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(transformationDescription)%></td>
-							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(transformationConnectionName)%></td>
+							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(transformationDescriptions[j])%></td>
+							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(transformationNames[j])%></td>
 						</tr>
 <%
 		}
@@ -199,7 +212,7 @@
 						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
 							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
 							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.OutputStage")%></td>
-							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getOutputConnectionName())%></td>
+							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(outputName)%></td>
 						</tr>
 					</table>
 				</td>
@@ -693,7 +706,7 @@
 			{
 				try
 				{
-					outputConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),job.getOutputSpecification(),1);
+					outputConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),job.getOutputSpecification(),1+transformationConnections.length);
 				}
 				finally
 				{
@@ -704,6 +717,38 @@
 %>
 				</td>
 			</tr>
+<%
+		if (transformationConnections.length > 0)
+		{
+%>
+			<tr>
+				<td class="separator" colspan="4"><hr/></td>
+			</tr>
+			<tr>
+				<td colspan="4">
+<%
+			for (int j = 0; j < transformationConnections.length; j++)
+			{
+				OutputSpecification os = job.getPipelineStageSpecification(j);
+				ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnections[j]);
+				if (transformationConnector != null)
+				{
+					try
+					{
+						transformationConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),os,1+j);
+					}
+					finally
+					{
+						transformationConnectorPool.release(transformationConnections[j],transformationConnector);
+					}
+				}
+			}
+%>
+				</td>
+			</tr>
+<%
+		}
+%>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
@@ -731,16 +776,16 @@
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
-		<tr>
-			<td class="message" colspan="4">
-				<nobr>
-					<a href='<%="editjob.jsp?jobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.EditThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Edit")%></a>
-					<a href='<%="javascript:Delete(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.DeleteThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Delete")%></a>
-					<a href='<%="editjob.jsp?origjobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.CopyThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Copy")%></a>
-					<a href='<%="javascript:StartOver(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.ResetSeedingThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ResetSeeding")%></a>
-				</nobr>
-			</td>
-		</tr>
+			<tr>
+				<td class="message" colspan="4">
+					<nobr>
+						<a href='<%="editjob.jsp?jobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.EditThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Edit")%></a>
+						<a href='<%="javascript:Delete(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.DeleteThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Delete")%></a>
+						<a href='<%="editjob.jsp?origjobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.CopyThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Copy")%></a>
+						<a href='<%="javascript:StartOver(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.ResetSeedingThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ResetSeeding")%></a>
+					</nobr>
+				</td>
+			</tr>
 		</table>
 
 <%
