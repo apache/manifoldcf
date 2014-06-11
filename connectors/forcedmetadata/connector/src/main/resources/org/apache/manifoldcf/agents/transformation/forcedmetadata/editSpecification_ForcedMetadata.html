@@ -82,6 +82,7 @@
   #foreach($paramrecord in $Parameters)
 <input type="hidden" name="s${SeqNum}_forcedmetadata_${paramcounter}_name" value="$Encoder.attributeEscape($paramrecord.get('parameter'))" />
 <input type="hidden" name="s${SeqNum}_forcedmetadata_${paramcounter}_value" value="$Encoder.attributeEscape($paramrecord.get('value'))" />
+    #set($paramcounter = $paramcounter + 1)
   #end
 <input type="hidden" name="s${SeqNum}_forcedmetadata_count" value="${paramcounter}"/>
 
