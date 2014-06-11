@@ -553,14 +553,27 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       Logging.ingest.debug("Recording document '"+docKey+"' for output connection '"+outputConnectionName+"'");
     }
 
-    performIngestion(new ITransformationConnection[0],new String[0],
-      connectionManager.load(outputConnectionName),null,
-      docKey,documentVersion,null,null,null,
-      null,
-      null,
-      recordTime,
-      null,
-      activities);
+    // With a null document URI, this can't throw either ServiceInterruption or IOException
+    try
+    {
+      performIngestion(new ITransformationConnection[0],new String[0],
+        connectionManager.load(outputConnectionName),null,
+        docKey,documentVersion,null,null,null,
+        null,
+        null,
+        recordTime,
+        null,
+        activities);
+    }
+    catch (IOException e)
+    {
+      throw new RuntimeException("Unexpected IOException thrown: "+e.getMessage(),e);
+    }
+    catch (ServiceInterruption e)
+    {
+      throw new RuntimeException("Unexpected ServiceInterruption thrown: "+e.getMessage(),e);
+    }
+
   }
 
   /** Ingest a document.
@@ -581,6 +594,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
   */
   @Override
+  @Deprecated
   public boolean documentIngest(String outputConnectionName,
     String identifierClass, String identifierHash,
     String documentVersion,
@@ -623,6 +637,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
   */
   @Override
+  @Deprecated
   public boolean documentIngest(String outputConnectionName,
     String identifierClass, String identifierHash,
     String documentVersion,
@@ -634,21 +649,115 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    return documentIngest(new String[0],
-      new String[0],
-      outputConnectionName,
-      outputVersion,
-      identifierClass, identifierHash,
-      documentVersion,
-      "",
-      outputVersion,
-      parameterVersion,
-      authorityName,
-      data,
-      ingestTime, documentURI,
-      activities);
+    try
+    {
+      return documentIngest(new String[0],
+        new String[0],
+        outputConnectionName,
+        outputVersion,
+        identifierClass, identifierHash,
+        documentVersion,
+        "",
+        outputVersion,
+        parameterVersion,
+        authorityName,
+        data,
+        ingestTime, documentURI,
+        activities);
+    }
+    catch (IOException e)
+    {
+      handleIOException(e,"fetching");
+      return false;
+    }
   }
   
+  // Standard handling for IOExceptions from reading data
+  protected final static long interruptionRetryTime = 5L*60L*1000L;
+  protected static void handleIOException(IOException e, String context)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if ((e instanceof InterruptedIOException) && (!(e instanceof java.net.SocketTimeoutException)))
+      throw new ManifoldCFException(e.getMessage(), ManifoldCFException.INTERRUPTED);
+
+    long currentTime = System.currentTimeMillis();
+    
+    if (e instanceof java.net.ConnectException)
+    {
+      // Server isn't up at all.  Try for a brief time then give up.
+      String message = "Server could not be contacted during "+context+": "+e.getMessage();
+      Logging.ingest.warn(message,e);
+      throw new ServiceInterruption(message,
+        e,
+        currentTime + interruptionRetryTime,
+        -1L,
+        3,
+        true);
+    }
+    
+    if (e instanceof java.net.SocketTimeoutException)
+    {
+      String message2 = "Socket timeout exception during "+context+": "+e.getMessage();
+      Logging.ingest.warn(message2,e);
+      throw new ServiceInterruption(message2,
+        e,
+        currentTime + interruptionRetryTime,
+        currentTime + 20L * 60000L,
+        -1,
+        false);
+    }
+      
+    if (e.getClass().getName().equals("java.net.SocketException"))
+    {
+      // In the past we would have treated this as a straight document rejection, and
+      // treated it in the same manner as a 400.  The reasoning is that the server can
+      // perfectly legally send out a 400 and drop the connection immediately thereafter,
+      // this a race condition.
+      // However, Solr 4.0 (or the Jetty version that the example runs on) seems
+      // to have a bug where it drops the connection when two simultaneous documents come in
+      // at the same time.  This is the final version of Solr 4.0 so we need to deal with
+      // this.
+      if (e.getMessage().toLowerCase(Locale.ROOT).indexOf("broken pipe") != -1 ||
+        e.getMessage().toLowerCase(Locale.ROOT).indexOf("connection reset") != -1 ||
+        e.getMessage().toLowerCase(Locale.ROOT).indexOf("target server failed to respond") != -1)
+      {
+        // Treat it as a service interruption, but with a limited number of retries.
+        // In that way we won't burden the user with a huge retry interval; it should
+        // give up fairly quickly, and yet NOT give up if the error was merely transient
+        String message = "Server dropped connection during "+context+": "+e.getMessage();
+        Logging.ingest.warn(message,e);
+        throw new ServiceInterruption(message,
+          e,
+          currentTime + interruptionRetryTime,
+          -1L,
+          3,
+          false);
+      }
+      
+      // Other socket exceptions are service interruptions - but if we keep getting them, it means 
+      // that a socket timeout is probably set too low to accept this particular document.  So
+      // we retry for a while, then skip the document.
+      String message2 = "Socket exception during "+context+": "+e.getMessage();
+      Logging.ingest.warn(message2,e);
+      throw new ServiceInterruption(message2,
+        e,
+        currentTime + interruptionRetryTime,
+        currentTime + 20L * 60000L,
+        -1,
+        false);
+    }
+
+    // Otherwise, no idea what the trouble is, so presume that retries might fix it.
+    String message3 = "IO exception during "+context+": "+e.getMessage();
+    Logging.ingest.warn(message3,e);
+    throw new ServiceInterruption(message3,
+      e,
+      currentTime + interruptionRetryTime,
+      currentTime + 2L * 60L * 60000L,
+      -1,
+      true);
+  }
+
   /** Ingest a document.
   * This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
   * method also REMOVES ALL OLD METADATA.  When complete, the index will contain only the metadata
@@ -670,7 +779,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param documentURI is the URI of the document, which will be used as the key of the document in the index.
   *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
   *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
+  *@throws IOException only if data stream throws an IOException.
   */
+  @Override
   public boolean documentIngest(
     String[] transformationConnectionNames,
     String[] transformationDescriptionStrings,
@@ -685,7 +796,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
-    throws ManifoldCFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption, IOException
   {
     IOutputConnection outputConnection = connectionManager.load(outputConnectionName);
     ITransformationConnection[] transformationConnections = transformationConnectionManager.loadMultiple(transformationConnectionNames);
@@ -714,7 +825,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
-    throws ManifoldCFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption, IOException
   {
     String outputConnectionName = outputConnection.getName();
     
@@ -1977,7 +2088,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputConnection outputConnection, String outputDescriptionString,
     String documentURI, RepositoryDocument document, String authorityNameString,
     IOutputAddActivity finalActivities)
-    throws ManifoldCFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption, IOException
   {
     // Set indexing date
     document.setIndexingDate(new Date());
@@ -1990,7 +2101,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Pipeline connector not installed",0L);
     try
     {
-      return pipeline.addOrReplaceDocument(documentURI,document,authorityNameString,finalActivities);
+      return pipeline.addOrReplaceDocumentWithException(documentURI,document,authorityNameString,finalActivities);
     }
     finally
     {
@@ -2164,9 +2275,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     *@param document is the document data to be processed (handed to the output data store).
     *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
     *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+    *@throws IOException only if there's an IO error reading the data from the document.
     */
     public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption, IOException
     {
       return activities.sendDocument(documentURI,document,authorityNameString);
     }
@@ -2283,11 +2395,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       return entryPoint.getPipelineConnector().checkURLIndexable(entryPoint.getPipelineDescriptionString(),uri,entryPoint.getPipelineCheckActivity());
     }
 
-    public int addOrReplaceDocument(String documentURI, RepositoryDocument document, String authorityNameString, IOutputAddActivity finalActivity)
-      throws ManifoldCFException, ServiceInterruption
+    public int addOrReplaceDocumentWithException(String documentURI, RepositoryDocument document, String authorityNameString, IOutputAddActivity finalActivity)
+      throws ManifoldCFException, ServiceInterruption, IOException
     {
       PipelineAddEntryPoint entryPoint = buildAddPipeline(finalActivity);
-      return entryPoint.getPipelineConnector().addOrReplaceDocument(documentURI,entryPoint.getPipelineDescriptionString(),
+      return entryPoint.getPipelineConnector().addOrReplaceDocumentWithException(documentURI,entryPoint.getPipelineDescriptionString(),
         document,authorityNameString,entryPoint.getPipelineAddActivity());
     }
     
@@ -2539,12 +2651,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     *@param document is the document data to be processed (handed to the output data store).
     *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
     *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+    *@throws IOException only if there's an IO error reading the data from the document.
     */
     public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption, IOException
     {
       // This goes to the next pipeline stage.
-      return pipelineConnector.addOrReplaceDocument(documentURI,pipelineDescriptionString,
+      return pipelineConnector.addOrReplaceDocumentWithException(documentURI,pipelineDescriptionString,
         document,authorityNameString,addActivity);
     }
 

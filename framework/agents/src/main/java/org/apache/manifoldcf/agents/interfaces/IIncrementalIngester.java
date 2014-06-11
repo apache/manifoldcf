@@ -213,6 +213,7 @@ public interface IIncrementalIngester
   *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
   *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
   */
+  @Deprecated
   public boolean documentIngest(String outputConnectionName,
     String identifierClass, String identifierHash,
     String documentVersion,
@@ -241,6 +242,7 @@ public interface IIncrementalIngester
   *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
   *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
   */
+  @Deprecated
   public boolean documentIngest(String outputConnectionName,
     String identifierClass, String identifierHash,
     String documentVersion,
@@ -273,6 +275,7 @@ public interface IIncrementalIngester
   *@param documentURI is the URI of the document, which will be used as the key of the document in the index.
   *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
   *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
+  *@throws IOException only if data stream throws an IOException.
   */
   public boolean documentIngest(
     String[] transformationConnectionNames,
@@ -288,7 +291,7 @@ public interface IIncrementalIngester
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
-    throws ManifoldCFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption, IOException;
 
   /** Note the fact that we checked a document (and found that it did not need to be ingested, because the
   * versions agreed).
