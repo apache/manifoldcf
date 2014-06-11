@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-961: Debug pipeline usage in job UI, and add a Forced Metadata
+transformation connector that has a job tab.
+(Karl Wright)
+
 CONNECTORS-960: Remove Specification subclass usage from main connector API's.
 (Karl Wright)
 

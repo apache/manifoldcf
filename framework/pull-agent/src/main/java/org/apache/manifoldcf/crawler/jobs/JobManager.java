@@ -562,6 +562,9 @@ public class JobManager implements IJobManager
   {
     // Query for the matching jobs, and then for each job potentially adjust the state
     Long[] jobIDs = jobs.findJobsMatchingTransformations(list);
+    if (jobIDs.length == 0)
+      return;
+
     StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();
     
@@ -618,6 +621,9 @@ public class JobManager implements IJobManager
   {
     // Query for the matching jobs, and then for each job potentially adjust the state
     Long[] jobIDs = jobs.findJobsMatchingTransformations(list);
+    if (jobIDs.length == 0)
+      return;
+
     StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();
     
