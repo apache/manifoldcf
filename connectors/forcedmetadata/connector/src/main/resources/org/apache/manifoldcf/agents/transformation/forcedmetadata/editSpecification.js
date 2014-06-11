@@ -18,33 +18,33 @@
 <script type="text/javascript">
 <!--
 
-function s$SeqNum_AddForcedMetadata()
+function s${SeqNum}_AddForcedMetadata()
 {
-  if (editjob.s$SeqNum_forcedmetadata_name.value == "")
+  if (editjob.s${SeqNum}_forcedmetadata_name.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ForcedMetadata.ForcedMetadataNameMustNotBeNull'))");
-    editjob.s$SeqNum_forcedmetadata_name.focus();
+    editjob.s${SeqNum}_forcedmetadata_name.focus();
     return;
   }
-  document.editjob.s$SeqNum_forcedmetadata_op.value="Add";
-  postFormSetAnchor("s$SeqNum_forcedmetadata_tag");
+  document.editjob.s${SeqNum}_forcedmetadata_op.value="Add";
+  postFormSetAnchor("s${SeqNum}_forcedmetadata_tag");
 }
 	
-function s$SeqNum_DeleteForcedMetadata(n)
+function s${SeqNum}_DeleteForcedMetadata(n)
 {
-  eval("document.editjob.s$SeqNum_forcedmetadata_"+n+"_op.value = 'Delete'");
+  eval("document.editjob.s${SeqNum}_forcedmetadata_"+n+"_op.value = 'Delete'");
   if (n == 0)
-    postFormSetAnchor("s$SeqNum_forcedmetadata_tag");
+    postFormSetAnchor("s${SeqNum}_forcedmetadata_tag");
   else
-    postFormSetAnchor("s$SeqNum_forcedmetadata_"+(n-1)+"_tag");
+    postFormSetAnchor("s${SeqNum}_forcedmetadata_"+(n-1)+"_tag");
 }
 
-function s$SeqNum_checkSpecificationForSave()
+function s${SeqNum}_checkSpecificationForSave()
 {
   return true;
 }
 
-function s$SeqNum_checkSpecification()
+function s${SeqNum}_checkSpecification()
 {
   return true;
 }
