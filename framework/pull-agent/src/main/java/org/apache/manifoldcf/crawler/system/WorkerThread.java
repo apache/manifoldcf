@@ -2791,8 +2791,11 @@ public class WorkerThread extends Thread
   {
     protected final String[] transformationConnectionNames;
     protected final String outputConnectionName;
+    protected final String[] transformationDescriptionStrings;
+    protected final String outputDescriptionString;
     
-    public PipelineSpecification(IJobDescription job)
+    public PipelineSpecification(IJobDescription job, String[] transformationDescriptionStrings,
+      String outputDescriptionString)
     {
       transformationConnectionNames = new String[job.countPipelineStages()];
       outputConnectionName = job.getOutputConnectionName();
@@ -2800,6 +2803,8 @@ public class WorkerThread extends Thread
       {
         transformationConnectionNames[i] = job.getPipelineStageConnectionName(i);
       }
+      this.transformationDescriptionStrings = transformationDescriptionStrings;
+      this.outputDescriptionString = outputDescriptionString;
     }
     
     /** Find children of a given pipeline stage.  Pass -1 to find the children of the root stage.
@@ -2824,6 +2829,17 @@ public class WorkerThread extends Thread
       return outputConnectionName;
     }
     
+    /** Get the description string for a pipeline stage.
+    *@param stage is the stage to get the connection name for.
+    *@return the description string that stage.
+    */
+    public String getStageDescriptionString(int stage)
+    {
+      if (stage < transformationConnectionNames.length)
+        return transformationDescriptionStrings[stage];
+      return outputDescriptionString;
+    }
+
     /** Check if a stage is an output stage.
     *@param stage is the stage to check.
     *@return true if the stage represents an output connection.
