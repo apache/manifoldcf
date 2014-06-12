@@ -38,6 +38,12 @@ public interface IPipelineSpecification
   *@return the connection name for that stage.
   */
   public String getStageConnectionName(int stage);
+
+  /** Get the description string for a pipeline stage.
+  *@param stage is the stage to get the connection name for.
+  *@return the description string that stage.
+  */
+  public String getStageDescriptionString(int stage);
   
   /** Check if a stage is an output stage.
   *@param stage is the stage to check.
