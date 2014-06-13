@@ -1804,6 +1804,7 @@ public class WorkerThread extends Thread
     public void recordDocument(String documentIdentifier, String version)
       throws ManifoldCFException, ServiceInterruption
     {
+      // MHL -- this must write a record for all records!!
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
       ingester.documentRecord(outputName,connectionName,documentIdentifierHash,version,currentTime,ingestLogger);
     }
@@ -2787,15 +2788,12 @@ public class WorkerThread extends Thread
 
   /** Pipeline specification implementation.
   */
-  protected static class PipelineSpecification implements IPipelineSpecification
+  protected static class PipelineSpecificationBasic implements IPipelineSpecificationBasic
   {
     protected final String[] transformationConnectionNames;
     protected final String outputConnectionName;
-    protected final String[] transformationDescriptionStrings;
-    protected final String outputDescriptionString;
     
-    public PipelineSpecification(IJobDescription job, String[] transformationDescriptionStrings,
-      String outputDescriptionString)
+    public PipelineSpecificationBasic(IJobDescription job)
     {
       transformationConnectionNames = new String[job.countPipelineStages()];
       outputConnectionName = job.getOutputConnectionName();
@@ -2803,14 +2801,22 @@ public class WorkerThread extends Thread
       {
         transformationConnectionNames[i] = job.getPipelineStageConnectionName(i);
       }
-      this.transformationDescriptionStrings = transformationDescriptionStrings;
-      this.outputDescriptionString = outputDescriptionString;
     }
     
+    /** Get a count of all stages.
+    *@return the total count of all stages.
+    */
+    @Override
+    public int getStageCount()
+    {
+      return transformationConnectionNames.length + 1;
+    }
+
     /** Find children of a given pipeline stage.  Pass -1 to find the children of the root stage.
     *@param stage is the stage index to get the children of.
     *@return the pipeline stages that represent those children.
     */
+    @Override
     public int[] getStageChildren(int stage)
     {
       if (stage < transformationConnectionNames.length + 1)
@@ -2818,10 +2824,20 @@ public class WorkerThread extends Thread
       return new int[0];
     }
     
+    /** Find parent of a given pipeline stage.  Returns -1 if there's no parent (it's the root).
+    *@param stage is the stage index to get the parent of.
+    *@return the pipeline stage that is the parent, or -1.
+    */
+    public int getStageParent(int stage)
+    {
+      return stage - 1;
+    }
+
     /** Get the connection name for a pipeline stage.
     *@param stage is the stage to get the connection name for.
     *@return the connection name for that stage.
     */
+    @Override
     public String getStageConnectionName(int stage)
     {
       if (stage < transformationConnectionNames.length)
@@ -2829,10 +2845,53 @@ public class WorkerThread extends Thread
       return outputConnectionName;
     }
     
+    /** Check if a stage is an output stage.
+    *@param stage is the stage to check.
+    *@return true if the stage represents an output connection.
+    */
+    @Override
+    public boolean checkStageOutputConnection(int stage)
+    {
+      return stage == transformationConnectionNames.length;
+    }
+
+    /** Return the number of output connections.
+    *@return the total number of output connections in this specification.
+    */
+    public int getOutputCount()
+    {
+      return 1;
+    }
+    
+    /** Given an output index, return the stage number for that output.
+    *@param index is the output connection index.
+    *@return the stage number.
+    */
+    public int getOutputStage(int index)
+    {
+      return transformationConnectionNames.length;
+    }
+
+  }
+  
+  protected static class PipelineSpecification extends PipelineSpecificationBasic implements IPipelineSpecification
+  {
+    protected final String[] transformationDescriptionStrings;
+    protected final String outputDescriptionString;
+    
+    public PipelineSpecificationBasic(IJobDescription job, String[] transformationDescriptionStrings,
+      String outputDescriptionString)
+    {
+      super(job);
+      this.transformationDescriptionStrings = transformationDescriptionStrings;
+      this.outputDescriptionString = outputDescriptionString;
+    }
+    
     /** Get the description string for a pipeline stage.
     *@param stage is the stage to get the connection name for.
     *@return the description string that stage.
     */
+    @Override
     public String getStageDescriptionString(int stage)
     {
       if (stage < transformationConnectionNames.length)
@@ -2840,15 +2899,5 @@ public class WorkerThread extends Thread
       return outputDescriptionString;
     }
 
-    /** Check if a stage is an output stage.
-    *@param stage is the stage to check.
-    *@return true if the stage represents an output connection.
-    */
-    public boolean checkStageOutputConnection(int stage)
-    {
-      return stage == transformationConnectionNames.length;
-    }
-
   }
-  
 }
