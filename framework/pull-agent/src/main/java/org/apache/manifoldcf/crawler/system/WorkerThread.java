@@ -2879,7 +2879,7 @@ public class WorkerThread extends Thread
     protected final String[] transformationDescriptionStrings;
     protected final String outputDescriptionString;
     
-    public PipelineSpecificationBasic(IJobDescription job, String[] transformationDescriptionStrings,
+    public PipelineSpecification(IJobDescription job, String[] transformationDescriptionStrings,
       String outputDescriptionString)
     {
       super(job);
