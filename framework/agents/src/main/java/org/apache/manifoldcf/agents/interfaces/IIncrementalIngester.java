@@ -60,6 +60,13 @@ public interface IIncrementalIngester
     throws ManifoldCFException;
 
 
+  /** From a pipeline specification, get the name of the output connection that will be indexed last
+  * in the pipeline.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@return the last indexed output connection name.
+  */
+  public String getLastIndexedOutputConnectionName(IPipelineSpecificationBasic pipelineSpecificationBasic);
+  
   /** Get an output version string for a document.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param spec is the output specification.
@@ -432,6 +439,7 @@ public interface IIncrementalIngester
   *@return the array of document data.  Null will come back for any identifier that doesn't
   * exist in the index.
   */
+  @Deprecated
   public DocumentIngestStatus[] getDocumentIngestDataMultiple(String[] outputConnectionNames,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException;
@@ -443,6 +451,7 @@ public interface IIncrementalIngester
   *@return the array of document data.  Null will come back for any identifier that doesn't
   * exist in the index.
   */
+  @Deprecated
   public DocumentIngestStatus[] getDocumentIngestDataMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException;
@@ -453,7 +462,44 @@ public interface IIncrementalIngester
   *@param identifierHash is the hash of the id of the document.
   *@return the current document's ingestion data, or null if the document is not currently ingested.
   */
+  @Deprecated
   public DocumentIngestStatus getDocumentIngestData(String outputConnectionName,
+    String identifierClass, String identifierHash)
+    throws ManifoldCFException;
+
+  /** Look up ingestion data for a set of documents.
+  *@param rval is a map of output key to document data, in no particular order, which will be loaded with all matching results.
+  *@param pipelineSpecificationBasics are the pipeline specifications corresponding to the identifier classes and hashes.
+  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
+  *@param identifierHashes is the array of document identifier hashes to look up.
+  */
+  public void getPipelineDocumentIngestDataMultiple(
+    Map<OutputKey,DocumentIngestStatus> rval,
+    IPipelineSpecificationBasic[] pipelineSpecificationBasics,
+    String[] identifierClasses, String[] identifierHashes)
+    throws ManifoldCFException;
+
+  /** Look up ingestion data for a SET of documents.
+  *@param rval is a map of output key to document data, in no particular order, which will be loaded with all matching results.
+  *@param pipelineSpecificationBasic is the pipeline specification for all documents.
+  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
+  *@param identifierHashes is the array of document identifier hashes to look up.
+  */
+  public void getPipelineDocumentIngestDataMultiple(
+    Map<OutputKey,DocumentIngestStatus> rval,
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String[] identifierClasses, String[] identifierHashes)
+    throws ManifoldCFException;
+
+  /** Look up ingestion data for a document.
+  *@param rval is a map of output key to document data, in no particular order, which will be loaded with all matching results.
+  *@param pipelineSpecificationBasic is the pipeline specification for the document.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hash of the id of the document.
+  */
+  public void getPipelineDocumentIngestData(
+    Map<OutputKey,DocumentIngestStatus> rval,
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
     String identifierClass, String identifierHash)
     throws ManifoldCFException;
 
@@ -464,6 +510,7 @@ public interface IIncrementalIngester
   *@param identifierHashes is the hashes of the ids of the documents.
   *@return the number of milliseconds between changes, or 0 if this cannot be calculated.
   */
+  @Deprecated
   public long[] getDocumentUpdateIntervalMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException;
@@ -475,7 +522,32 @@ public interface IIncrementalIngester
   *@param identifierHash is the hash of the id of the document.
   *@return the number of milliseconds between changes, or 0 if this cannot be calculated.
   */
+  @Deprecated
   public long getDocumentUpdateInterval(String outputConnectionName,
+    String identifierClass, String identifierHash)
+    throws ManifoldCFException;
+
+  /** Calculate the average time interval between changes for a document.
+  * This is based on the data gathered for the document.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
+  *@param identifierHashes is the hashes of the ids of the documents.
+  *@return the number of milliseconds between changes, or 0 if this cannot be calculated.
+  */
+  public long[] getDocumentUpdateIntervalMultiple(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String[] identifierClasses, String[] identifierHashes)
+    throws ManifoldCFException;
+
+  /** Calculate the average time interval between changes for a document.
+  * This is based on the data gathered for the document.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hash of the id of the document.
+  *@return the number of milliseconds between changes, or 0 if this cannot be calculated.
+  */
+  public long getDocumentUpdateInterval(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
     String identifierClass, String identifierHash)
     throws ManifoldCFException;
 
