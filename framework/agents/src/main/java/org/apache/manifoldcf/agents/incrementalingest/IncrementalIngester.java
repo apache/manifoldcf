@@ -216,6 +216,21 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     performDelete("",null,null);
   }
 
+  /** From a pipeline specification, get the name of the output connection that will be indexed last
+  * in the pipeline.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@return the last indexed output connection name.
+  */
+  @Override
+  public String getLastIndexedOutputConnectionName(IPipelineSpecificationBasic pipelineSpecificationBasic)
+  {
+    // It's always the last in the sequence.
+    int count = pipelineSpecificationBasic.getOutputCount();
+    if (count == 0)
+      return null;
+    return pipelineSpecificationBasic.getStageConnectionName(count-1);
+  }
+
   /** Check if a mime type is indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param outputDescription is the output description string.
@@ -558,13 +573,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     String newParameterVersion,
     String newAuthorityNameString)
   {
+    IPipelineSpecification pipelineSpecification = pipelineSpecificationWithVersions.getPipelineSpecification();
+    IPipelineSpecificationBasic basicSpecification = pipelineSpecification.getBasicPipelineSpecification();
     // Empty document version has a special meaning....
     if (newDocumentVersion.length() == 0)
       return true;
     // Otherwise, cycle through the outputs
-    for (int i = 0; i < pipelineSpecificationWithVersions.getOutputCount(); i++)
+    for (int i = 0; i < basicSpecification.getOutputCount(); i++)
     {
-      int stage = pipelineSpecificationWithVersions.getOutputStage(i);
+      int stage = basicSpecification.getOutputStage(i);
       String oldDocumentVersion = pipelineSpecificationWithVersions.getOutputDocumentVersionString(i);
       String oldParameterVersion = pipelineSpecificationWithVersions.getOutputParameterVersionString(i);
       String oldOutputVersion = pipelineSpecificationWithVersions.getOutputVersionString(i);
@@ -576,11 +593,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       if (!oldDocumentVersion.equals(newDocumentVersion) ||
         !oldParameterVersion.equals(newParameterVersion) ||
         !oldAuthorityName.equals(newAuthorityNameString) ||
-        !oldOutputVersion.equals(pipelineSpecificationWithVersions.getStageDescriptionString(stage)))
+        !oldOutputVersion.equals(pipelineSpecification.getStageDescriptionString(stage)))
         return true;
       
       // Everything matches so far.  Next step is to compute a transformation path an corresponding version string.
-      String newTransformationVersion = computePackedTransformationVersion(pipelineSpecificationWithVersions,stage);
+      String newTransformationVersion = computePackedTransformationVersion(pipelineSpecification,stage);
       if (!pipelineSpecificationWithVersions.getOutputTransformationVersionString(i).equals(newTransformationVersion))
         return true;
     }
@@ -595,12 +612,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   protected static String computePackedTransformationVersion(IPipelineSpecification pipelineSpecification, int stage)
   {
+    IPipelineSpecificationBasic basicSpecification = pipelineSpecification.getBasicPipelineSpecification();
     // First, count the stages we need to represent
     int stageCount = 0;
     int currentStage = stage;
     while (true)
     {
-      int newStage = pipelineSpecification.getStageParent(currentStage);
+      int newStage = basicSpecification.getStageParent(currentStage);
       if (newStage == -1)
         break;
       stageCount++;
@@ -613,10 +631,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     currentStage = stage;
     while (true)
     {
-      int newStage = pipelineSpecification.getStageParent(currentStage);
+      int newStage = basicSpecification.getStageParent(currentStage);
       if (newStage == -1)
         break;
-      stageNames[stageCount] = pipelineSpecification.getStageConnectionName(newStage);
+      stageNames[stageCount] = basicSpecification.getStageConnectionName(newStage);
       stageDescriptions[stageCount] = pipelineSpecification.getStageDescriptionString(newStage);
       stageCount++;
       currentStage = newStage;
@@ -1585,22 +1603,20 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException
   {
     DeleteInfo[] rval = new DeleteInfo[identifierHashes.length];
-    HashMap map = new HashMap();
-    int i = 0;
-    while (i < identifierHashes.length)
+    Map<String,Integer> map = new HashMap<String,Integer>();
+    for (int i = 0; i < identifierHashes.length; i++)
     {
       map.put(makeKey(identifierClasses[i],identifierHashes[i]),new Integer(i));
       rval[i] = null;
-      i++;
     }
 
     beginTransaction();
     try
     {
-      ArrayList list = new ArrayList();
+      List<String> list = new ArrayList<String>();
       int maxCount = maxClauseDocumentURIChunk(outputConnectionName);
       int j = 0;
-      Iterator iter = map.keySet().iterator();
+      Iterator<String> iter = map.keySet().iterator();
       while (iter.hasNext())
       {
         if (j == maxCount)
@@ -1632,6 +1648,179 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
+  /** Look up ingestion data for a set of documents.
+  *@param rval is a map of output key to document data, in no particular order, which will be loaded with all matching results.
+  *@param pipelineSpecificationBasics are the pipeline specifications corresponding to the identifier classes and hashes.
+  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
+  *@param identifierHashes is the array of document identifier hashes to look up.
+  */
+  @Override
+  public void getPipelineDocumentIngestDataMultiple(
+    Map<OutputKey,DocumentIngestStatus> rval,
+    IPipelineSpecificationBasic[] pipelineSpecificationBasics,
+    String[] identifierClasses, String[] identifierHashes)
+    throws ManifoldCFException
+  {
+    // Organize by pipeline spec.
+    Map<IPipelineSpecificationBasic,List<Integer>> keyMap = new HashMap<IPipelineSpecificationBasic,List<Integer>>();
+    for (int i = 0; i < pipelineSpecificationBasics.length; i++)
+    {
+      IPipelineSpecificationBasic spec = pipelineSpecificationBasics[i];
+      List<Integer> list = keyMap.get(spec);
+      if (list == null)
+      {
+        list = new ArrayList<Integer>();
+        keyMap.put(spec,list);
+      }
+      list.add(new Integer(i));
+    }
+
+    // Create the return array.
+    Iterator<IPipelineSpecificationBasic> iter = keyMap.keySet().iterator();
+    while (iter.hasNext())
+    {
+      IPipelineSpecificationBasic spec = iter.next();
+      List<Integer> list = keyMap.get(spec);
+      String[] localIdentifierClasses = new String[list.size()];
+      String[] localIdentifierHashes = new String[list.size()];
+      for (int i = 0; i < localIdentifierClasses.length; i++)
+      {
+        int index = list.get(i).intValue();
+        localIdentifierClasses[i] = identifierClasses[index];
+        localIdentifierHashes[i] = identifierHashes[index];
+      }
+      getPipelineDocumentIngestDataMultiple(rval,spec,localIdentifierClasses,localIdentifierHashes);
+    }
+  }
+
+  /** Look up ingestion data for a SET of documents.
+  *@param rval is a map of output key to document data, in no particular order, which will be loaded with all matching results.
+  *@param pipelineSpecificationBasic is the pipeline specification for all documents.
+  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
+  *@param identifierHashes is the array of document identifier hashes to look up.
+  */
+  @Override
+  public void getPipelineDocumentIngestDataMultiple(
+    Map<OutputKey,DocumentIngestStatus> rval,
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String[] identifierClasses, String[] identifierHashes)
+    throws ManifoldCFException
+  {
+    String[] outputConnectionNames = extractOutputConnectionNames(pipelineSpecificationBasic);
+
+    // Build a map, so we can convert an identifier into an array index.
+    Map<String,Integer> indexMap = new HashMap<String,Integer>();
+    for (int i = 0; i < identifierHashes.length; i++)
+    {
+      indexMap.put(makeKey(identifierClasses[i],identifierHashes[i]),new Integer(i));
+    }
+
+    beginTransaction();
+    try
+    {
+      List<String> list = new ArrayList<String>();
+      int maxCount = maxClausePipelineDocumentIngestDataChunk(outputConnectionNames);
+      int j = 0;
+      Iterator<String> iter = indexMap.keySet().iterator();
+      while (iter.hasNext())
+      {
+        if (j == maxCount)
+        {
+          getPipelineDocumentIngestDataChunk(rval,indexMap,outputConnectionNames,list,identifierClasses,identifierHashes);
+          j = 0;
+          list.clear();
+        }
+        list.add(iter.next());
+        j++;
+      }
+      if (j > 0)
+        getPipelineDocumentIngestDataChunk(rval,indexMap,outputConnectionNames,list,identifierClasses,identifierHashes);
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
+
+  }
+
+  /** Get a chunk of document ingest data records.
+  *@param rval is the document ingest status array where the data should be put.
+  *@param map is the map from id to index.
+  *@param clause is the in clause for the query.
+  *@param list is the parameter list for the query.
+  */
+  protected void getPipelineDocumentIngestDataChunk(Map<OutputKey,DocumentIngestStatus> rval, Map<String,Integer> map, String[] outputConnectionNames, List<String> list,
+    String[] identifierClasses, String[] identifierHashes)
+    throws ManifoldCFException
+  {
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(docKeyField,list),
+      new MultiClause(outputConnNameField,outputConnectionNames)});
+      
+    // Get the primary records associated with this hash value
+    IResultSet set = performQuery("SELECT "+idField+","+outputConnNameField+","+docKeyField+","+lastVersionField+","+lastOutputVersionField+","+authorityNameField+","+forcedParamsField+
+      " FROM "+getTableName()+" WHERE "+query,newList,null,null);
+
+    // Now, go through the original request once more, this time building the result
+    for (int i = 0; i < set.getRowCount(); i++)
+    {
+      IResultRow row = set.getRow(i);
+      String docHash = row.getValue(docKeyField).toString();
+      Integer position = map.get(docHash);
+      if (position != null)
+      {
+        Long id = (Long)row.getValue(idField);
+        String outputConnectionName = (String)row.getValue(outputConnNameField);
+        String lastVersion = (String)row.getValue(lastVersionField);
+        if (lastVersion == null)
+          lastVersion = "";
+        String lastTransformationVersion = (String)row.getValue(lastTransformationVersionField);
+        if (lastTransformationVersion == null)
+          lastTransformationVersion = "";
+        String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
+        if (lastOutputVersion == null)
+          lastOutputVersion = "";
+        String paramVersion = (String)row.getValue(forcedParamsField);
+        if (paramVersion == null)
+          paramVersion = "";
+        String authorityName = (String)row.getValue(authorityNameField);
+        if (authorityName == null)
+          authorityName = "";
+        int indexValue = position.intValue();
+        rval.put(new OutputKey(identifierClasses[indexValue],identifierHashes[indexValue],outputConnectionName),
+          new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName));
+      }
+    }
+  }
+  
+  /** Look up ingestion data for a document.
+  *@param rval is a map of output key to document data, in no particular order, which will be loaded with all matching results.
+  *@param pipelineSpecificationBasic is the pipeline specification for the document.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hash of the id of the document.
+  */
+  @Override
+  public void getPipelineDocumentIngestData(
+    Map<OutputKey,DocumentIngestStatus> rval,
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String identifierClass, String identifierHash)
+    throws ManifoldCFException
+  {
+    getPipelineDocumentIngestDataMultiple(rval,pipelineSpecificationBasic,
+      new String[]{identifierClass},new String[]{identifierHash});
+  }
+
   /** Look up ingestion data for a SET of documents.
   *@param outputConnectionNames are the names of the output connections associated with this action.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
@@ -1640,50 +1829,45 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   * exist in the index.
   */
   @Override
+  @Deprecated
   public DocumentIngestStatus[] getDocumentIngestDataMultiple(String[] outputConnectionNames,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException
   {
     // Segregate request by connection names
-    HashMap keyMap = new HashMap();
-    int i = 0;
-    while (i < outputConnectionNames.length)
+    Map<String,List<Integer>> keyMap = new HashMap<String,List<Integer>>();
+    for (int i = 0; i < outputConnectionNames.length; i++)
     {
       String outputConnectionName = outputConnectionNames[i];
-      ArrayList list = (ArrayList)keyMap.get(outputConnectionName);
+      List<Integer> list = keyMap.get(outputConnectionName);
       if (list == null)
       {
-        list = new ArrayList();
+        list = new ArrayList<Integer>();
         keyMap.put(outputConnectionName,list);
       }
       list.add(new Integer(i));
-      i++;
     }
 
     // Create the return array.
     DocumentIngestStatus[] rval = new DocumentIngestStatus[outputConnectionNames.length];
-    Iterator iter = keyMap.keySet().iterator();
+    Iterator<String> iter = keyMap.keySet().iterator();
     while (iter.hasNext())
     {
-      String outputConnectionName = (String)iter.next();
-      ArrayList list = (ArrayList)keyMap.get(outputConnectionName);
+      String outputConnectionName = iter.next();
+      List<Integer> list = keyMap.get(outputConnectionName);
       String[] localIdentifierClasses = new String[list.size()];
       String[] localIdentifierHashes = new String[list.size()];
-      i = 0;
-      while (i < localIdentifierClasses.length)
+      for (int i = 0; i < localIdentifierClasses.length; i++)
       {
-        int index = ((Integer)list.get(i)).intValue();
+        int index = list.get(i).intValue();
         localIdentifierClasses[i] = identifierClasses[index];
         localIdentifierHashes[i] = identifierHashes[index];
-        i++;
       }
       DocumentIngestStatus[] localRval = getDocumentIngestDataMultiple(outputConnectionName,localIdentifierClasses,localIdentifierHashes);
-      i = 0;
-      while (i < localRval.length)
+      for (int i = 0; i < localRval.length; i++)
       {
-        int index = ((Integer)list.get(i)).intValue();
+        int index = list.get(i).intValue();
         rval[index] = localRval[i];
-        i++;
       }
     }
     return rval;
@@ -1697,6 +1881,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   * exist in the index.
   */
   @Override
+  @Deprecated
   public DocumentIngestStatus[] getDocumentIngestDataMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException
@@ -1705,22 +1890,20 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     DocumentIngestStatus[] rval = new DocumentIngestStatus[identifierHashes.length];
 
     // Build a map, so we can convert an identifier into an array index.
-    HashMap indexMap = new HashMap();
-    int i = 0;
-    while (i < identifierHashes.length)
+    Map<String,Integer> indexMap = new HashMap<String,Integer>();
+    for (int i = 0; i < identifierHashes.length; i++)
     {
       indexMap.put(makeKey(identifierClasses[i],identifierHashes[i]),new Integer(i));
       rval[i] = null;
-      i++;
     }
 
     beginTransaction();
     try
     {
-      ArrayList list = new ArrayList();
+      List<String> list = new ArrayList<String>();
       int maxCount = maxClauseDocumentIngestDataChunk(outputConnectionName);
       int j = 0;
-      Iterator iter = indexMap.keySet().iterator();
+      Iterator<String> iter = indexMap.keySet().iterator();
       while (iter.hasNext())
       {
         if (j == maxCount)
@@ -1759,11 +1942,93 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@return the current document's ingestion data, or null if the document is not currently ingested.
   */
   @Override
+  @Deprecated
   public DocumentIngestStatus getDocumentIngestData(String outputConnectionName,
     String identifierClass, String identifierHash)
     throws ManifoldCFException
   {
     return getDocumentIngestDataMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash})[0];
+  }
+
+  /** Calculate the average time interval between changes for a document.
+  * This is based on the data gathered for the document.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
+  *@param identifierHashes is the hashes of the ids of the documents.
+  *@return the number of milliseconds between changes, or 0 if this cannot be calculated.
+  */
+  public long[] getDocumentUpdateIntervalMultiple(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String[] identifierClasses, String[] identifierHashes)
+    throws ManifoldCFException
+  {
+    // Get the output connection names
+    String[] outputConnectionNames = extractOutputConnectionNames(pipelineSpecificationBasic);
+
+    // Do these all at once!!
+    // First, create a return array
+    long[] rval = new long[identifierHashes.length];
+    // Also create a map from identifier to return index.
+    Map<String,Integer> returnMap = new HashMap<String,Integer>();
+    // Finally, need the set of hash codes
+    Set<String> idCodes = new HashSet<String>();
+    for (int j = 0; j < identifierHashes.length; j++)
+    {
+      String key = makeKey(identifierClasses[j],identifierHashes[j]);
+      rval[j] = Long.MAX_VALUE;
+      returnMap.put(key,new Integer(j));
+      idCodes.add(key);
+    }
+
+    // Get the chunk size
+    int maxClause = maxClauseGetIntervals(outputConnectionNames);
+
+    // Loop through the hash codes
+    Iterator<String> iter = idCodes.iterator();
+    List<String> list = new ArrayList<String>();
+    int j = 0;
+    while (iter.hasNext())
+    {
+      if (j == maxClause)
+      {
+        getIntervals(rval,outputConnectionNames,list,returnMap);
+        list.clear();
+        j = 0;
+      }
+
+      list.add(iter.next());
+      j++;
+    }
+
+    if (j > 0)
+      getIntervals(rval,outputConnectionNames,list,returnMap);
+
+    for (int i = 0; i < rval.length; i++)
+    {
+      if (rval[i] == Long.MAX_VALUE)
+        rval[i] = 0;
+    }
+    
+    return rval;
+
+  }
+
+  /** Calculate the average time interval between changes for a document.
+  * This is based on the data gathered for the document.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hash of the id of the document.
+  *@return the number of milliseconds between changes, or 0 if this cannot be calculated.
+  */
+  @Override
+  public long getDocumentUpdateInterval(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String identifierClass, String identifierHash)
+    throws ManifoldCFException
+  {
+    return getDocumentUpdateIntervalMultiple(
+      pipelineSpecificationBasic,
+      new String[]{identifierClass},new String[]{identifierHash})[0];
   }
 
   /** Calculate the average time interval between changes for a document.
@@ -1774,6 +2039,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@return the number of milliseconds between changes, or 0 if this cannot be calculated.
   */
   @Override
+  @Deprecated
   public long getDocumentUpdateInterval(String outputConnectionName,
     String identifierClass, String identifierHash)
     throws ManifoldCFException
@@ -1789,82 +2055,43 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@return the number of milliseconds between changes, or 0 if this cannot be calculated.
   */
   @Override
+  @Deprecated
   public long[] getDocumentUpdateIntervalMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException
   {
-    // Do these all at once!!
-    // First, create a return array
-    long[] rval = new long[identifierHashes.length];
-    // Also create a map from identifier to return index.
-    HashMap returnMap = new HashMap();
-    // Finally, need the set of hash codes
-    HashMap idCodes = new HashMap();
-    int j = 0;
-    while (j < identifierHashes.length)
-    {
-      String key = makeKey(identifierClasses[j],identifierHashes[j]);
-      rval[j] = 0L;
-      returnMap.put(key,new Integer(j));
-      idCodes.put(key,key);
-      j++;
-    }
-
-    // Get the chunk size
-    int maxClause = maxClauseGetIntervals(outputConnectionName);
-
-    // Loop through the hash codes
-    Iterator iter = idCodes.keySet().iterator();
-    ArrayList list = new ArrayList();
-    j = 0;
-    while (iter.hasNext())
-    {
-      if (j == maxClause)
-      {
-        getIntervals(rval,outputConnectionName,list,returnMap);
-        list.clear();
-        j = 0;
-      }
-
-      list.add(iter.next());
-      j++;
-    }
-
-    if (j > 0)
-      getIntervals(rval,outputConnectionName,list,returnMap);
-
-    return rval;
+    return getDocumentUpdateIntervalMultiple(new RuntPipelineSpecificationBasic(outputConnectionName),
+      identifierClasses,identifierHashes);
   }
-
+  
   /** Calculate the number of clauses.
   */
-  protected int maxClauseGetIntervals(String outputConnectionName)
+  protected int maxClauseGetIntervals(String[] outputConnectionNames)
   {
     return findConjunctionClauseMax(new ClauseDescription[]{
-      new UnitaryClause(outputConnNameField,outputConnectionName)});
-    }
-    
+      new MultiClause(outputConnNameField,outputConnectionNames)});
+  }
+  
   /** Query for and calculate the interval for a bunch of hashcodes.
   *@param rval is the array to stuff calculated return values into.
   *@param list is the list of parameters.
   *@param queryPart is the part of the query pertaining to the list of hashcodes
   *@param returnMap is a mapping from document id to rval index.
   */
-  protected void getIntervals(long[] rval, String outputConnectionName, ArrayList list, HashMap returnMap)
+  protected void getIntervals(long[] rval, String[] outputConnectionNames, List<String> list, Map<String,Integer> returnMap)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
     String query = buildConjunctionClause(newList,new ClauseDescription[]{
       new MultiClause(docKeyField,list),
-      new UnitaryClause(outputConnNameField,outputConnectionName)});
+      new MultiClause(outputConnNameField,outputConnectionNames)});
       
     IResultSet set = performQuery("SELECT "+docKeyField+","+changeCountField+","+firstIngestField+","+lastIngestField+
       " FROM "+getTableName()+" WHERE "+query,newList,null,null);
 
-    int i = 0;
-    while (i < set.getRowCount())
+    for (int i = 0; i < set.getRowCount(); i++)
     {
-      IResultRow row = set.getRow(i++);
+      IResultRow row = set.getRow(i);
       String docHash = (String)row.getValue(docKeyField);
       Integer index = (Integer)returnMap.get(docHash);
       if (index != null)
@@ -1873,7 +2100,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         long changeCount = ((Long)row.getValue(changeCountField)).longValue();
         long firstIngest = ((Long)row.getValue(firstIngestField)).longValue();
         long lastIngest = ((Long)row.getValue(lastIngestField)).longValue();
-        rval[index.intValue()] = (long)(((double)(lastIngest-firstIngest))/(double)changeCount);
+        int indexValue = index.intValue();
+        long newValue = (long)(((double)(lastIngest-firstIngest))/(double)changeCount);
+        if (newValue < rval[indexValue])
+          rval[indexValue] = newValue;
       }
     }
   }
@@ -2115,7 +2345,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param clause is the in clause for the query.
   *@param list is the parameter list for the query.
   */
-  protected void getDocumentURIChunk(DeleteInfo[] rval, Map map, String outputConnectionName, ArrayList list)
+  protected void getDocumentURIChunk(DeleteInfo[] rval, Map<String,Integer> map, String outputConnectionName, List<String> list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -2127,10 +2357,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       query,newList,null,null);
 
     // Go through list and put into buckets.
-    int i = 0;
-    while (i < set.getRowCount())
+    for (int i = 0; i < set.getRowCount(); i++)
     {
-      IResultRow row = set.getRow(i++);
+      IResultRow row = set.getRow(i);
       String docHash = row.getValue(docKeyField).toString();
       Integer position = (Integer)map.get(docHash);
       if (position != null)
@@ -2151,6 +2380,14 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     return findConjunctionClauseMax(new ClauseDescription[]{
       new UnitaryClause(outputConnNameField,outputConnectionName)});
   }
+
+  /** Count the clauses
+  */
+  protected int maxClausePipelineDocumentIngestDataChunk(String[] outputConnectionNames)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new MultiClause(outputConnNameField,outputConnectionNames)});
+  }
   
   /** Get a chunk of document ingest data records.
   *@param rval is the document ingest status array where the data should be put.
@@ -2158,7 +2395,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param clause is the in clause for the query.
   *@param list is the parameter list for the query.
   */
-  protected void getDocumentIngestDataChunk(DocumentIngestStatus[] rval, Map map, String outputConnectionName, ArrayList list)
+  protected void getDocumentIngestDataChunk(DocumentIngestStatus[] rval, Map<String,Integer> map, String outputConnectionName, List<String> list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -2171,12 +2408,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       " FROM "+getTableName()+" WHERE "+query,newList,null,null);
 
     // Now, go through the original request once more, this time building the result
-    int i = 0;
-    while (i < set.getRowCount())
+    for (int i = 0; i < set.getRowCount(); i++)
     {
-      IResultRow row = set.getRow(i++);
+      IResultRow row = set.getRow(i);
       String docHash = row.getValue(docKeyField).toString();
-      Integer position = (Integer)map.get(docHash);
+      Integer position = map.get(docHash);
       if (position != null)
       {
         Long id = (Long)row.getValue(idField);
@@ -2195,7 +2431,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         String authorityName = (String)row.getValue(authorityNameField);
         if (authorityName == null)
           authorityName = "";
-        rval[position.intValue()] = new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName);
+        int indexValue = position.intValue();
+        rval[indexValue] = new DocumentIngestStatus(
+          lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName);
       }
     }
   }
@@ -2502,10 +2740,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       Map<Integer,PipelineCheckEntryPoint> currentSet = new HashMap<Integer,PipelineCheckEntryPoint>();
       // First, locate all the output stages, and enter them into the set
       IPipelineSpecification spec = pipelineConnections.getSpecification();
-      int count = spec.getOutputCount();
+      IPipelineSpecificationBasic basicSpec = spec.getBasicPipelineSpecification();
+      int count = basicSpec.getOutputCount();
       for (int i = 0; i < count; i++)
       {
-        int outputStage = spec.getOutputStage(i);
+        int outputStage = basicSpec.getOutputStage(i);
         PipelineCheckEntryPoint outputStageEntryPoint = new PipelineCheckEntryPoint(
           outputConnectors[pipelineConnections.getOutputConnectionIndex(outputStage).intValue()],
           spec.getStageDescriptionString(outputStage),finalActivity);
@@ -2518,9 +2757,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         int[] siblings = null;
         for (Integer outputStage : currentSet.keySet())
         {
-          parent = spec.getStageParent(outputStage.intValue());
+          parent = basicSpec.getStageParent(outputStage.intValue());
           // Look up the children
-          siblings = spec.getStageChildren(parent);
+          siblings = basicSpec.getStageChildren(parent);
           // Are all the siblings in the current set yet?  If not, we can't proceed with this entry.
           boolean skipToNext = false;
           for (int sibling : siblings)
@@ -2595,18 +2834,21 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // Create the current set
       Map<Integer,PipelineAddEntryPoint> currentSet = new HashMap<Integer,PipelineAddEntryPoint>();
       // First, locate all the output stages, and enter them into the set
-      IPipelineSpecificationWithVersions spec = pipelineConnectionsWithVersions.getSpecificationWithVersions();
-      int outputCount = spec.getOutputCount();
+      IPipelineSpecificationWithVersions fullSpec = pipelineConnectionsWithVersions.getSpecificationWithVersions();
+      IPipelineSpecification pipelineSpec = fullSpec.getPipelineSpecification();
+      IPipelineSpecificationBasic basicSpec = pipelineSpec.getBasicPipelineSpecification();
+      
+      int outputCount = basicSpec.getOutputCount();
       for (int i = 0; i < outputCount; i++)
       {
-        int outputStage = spec.getOutputStage(i);
+        int outputStage = basicSpec.getOutputStage(i);
         
         // Compute whether we need to reindex this record to this output or not, based on spec.
-        String oldDocumentVersion = spec.getOutputDocumentVersionString(i);
-        String oldParameterVersion = spec.getOutputParameterVersionString(i);
-        String oldOutputVersion = spec.getOutputVersionString(i);
-        String oldTransformationVersion = spec.getOutputTransformationVersionString(i);
-        String oldAuthorityName = spec.getAuthorityNameString(i);
+        String oldDocumentVersion = fullSpec.getOutputDocumentVersionString(i);
+        String oldParameterVersion = fullSpec.getOutputParameterVersionString(i);
+        String oldOutputVersion = fullSpec.getOutputVersionString(i);
+        String oldTransformationVersion = fullSpec.getOutputTransformationVersionString(i);
+        String oldAuthorityName = fullSpec.getAuthorityNameString(i);
 
         String newTransformationVersion = null;
         
@@ -2615,23 +2857,23 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         {
           needToReindex = (!oldDocumentVersion.equals(newDocumentVersion) ||
             !oldParameterVersion.equals(newParameterVersion) ||
-            !oldOutputVersion.equals(spec.getStageDescriptionString(outputStage)) ||
+            !oldOutputVersion.equals(pipelineSpec.getStageDescriptionString(outputStage)) ||
             !oldAuthorityName.equals(newAuthorityNameString));
         }
         if (needToReindex == false)
         {
           // Compute the transformation version string
-          newTransformationVersion = computePackedTransformationVersion(spec,outputStage);
+          newTransformationVersion = computePackedTransformationVersion(pipelineSpec,outputStage);
           needToReindex = (!oldTransformationVersion.equals(newTransformationVersion));
         }
 
         int connectionIndex = pipelineConnectionsWithVersions.getOutputConnectionIndex(outputStage).intValue();
         PipelineAddEntryPoint outputStageEntryPoint = new OutputAddEntryPoint(
           outputConnectors[connectionIndex],
-          spec.getStageDescriptionString(outputStage),
-          new OutputActivitiesWrapper(finalActivity,spec.getStageConnectionName(outputStage)),
+          pipelineSpec.getStageDescriptionString(outputStage),
+          new OutputActivitiesWrapper(finalActivity,basicSpec.getStageConnectionName(outputStage)),
           needToReindex,
-          spec.getStageConnectionName(outputStage),
+          basicSpec.getStageConnectionName(outputStage),
           newTransformationVersion,
           ingestTime,
           newDocumentVersion,
@@ -2646,9 +2888,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         int[] siblings = null;
         for (Integer outputStage : currentSet.keySet())
         {
-          parent = spec.getStageParent(outputStage.intValue());
+          parent = basicSpec.getStageParent(outputStage.intValue());
           // Look up the children
-          siblings = spec.getStageChildren(parent);
+          siblings = basicSpec.getStageChildren(parent);
           // Are all the siblings in the current set yet?  If not, we can't proceed with this entry.
           boolean skipToNext = false;
           for (int sibling : siblings)
@@ -2680,13 +2922,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         // Wrap the entry points in a fan-out class, which has pipe connector-like methods that fire across all the connectors.
         PipelineAddFanout pcf = new PipelineAddFanout(siblingEntryPoints,
           (parent==-1)?null:new TransformationRecordingActivity(finalActivity,
-            spec.getStageConnectionName(parent)),
+            basicSpec.getStageConnectionName(parent)),
           finalActivity);
         if (parent == -1)
           return pcf;
         PipelineAddEntryPoint newEntry = new PipelineAddEntryPoint(
           transformationConnectors[pipelineConnections.getTransformationConnectionIndex(parent).intValue()],
-          spec.getStageDescriptionString(parent),pcf,pcf.checkNeedToReindex());
+          pipelineSpec.getStageDescriptionString(parent),pcf,pcf.checkNeedToReindex());
         currentSet.put(new Integer(parent), newEntry);
       }
 
@@ -3277,7 +3519,16 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       super(outputConnectionName);
       this.outputDescriptionString = outputDescriptionString;
     }
-    
+
+    /** Get the basic pipeline specification.
+    *@return the specification.
+    */
+    @Override
+    public IPipelineSpecificationBasic getBasicPipelineSpecification()
+    {
+      return this;
+    }
+
     /** Get the description string for a pipeline stage.
     *@param stage is the stage to get the connection name for.
     *@return the description string that stage.
@@ -3312,11 +3563,21 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       this.oldTransformationVersion = oldTransformationVersion;
       this.oldAuthorityNameString = oldAuthorityNameString;
     }
-    
+
+    /** Get pipeline specification.
+    *@return the pipeline specification.
+    */
+    @Override
+    public IPipelineSpecification getPipelineSpecification()
+    {
+      return this;
+    }
+
     /** For a given output index, return a document version string.
     *@param index is the output index.
     *@return the document version string.
     */
+    @Override
     public String getOutputDocumentVersionString(int index)
     {
       if (index == 0)
@@ -3328,6 +3589,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     *@param index is the output index.
     *@return the parameter version string.
     */
+    @Override
     public String getOutputParameterVersionString(int index)
     {
       if (index == 0)
@@ -3339,6 +3601,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     *@param index is the output index.
     *@return the transformation version string.
     */
+    @Override
     public String getOutputTransformationVersionString(int index)
     {
       if (index == 0)
@@ -3350,6 +3613,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     *@param index is the output index.
     *@return the output version string.
     */
+    @Override
     public String getOutputVersionString(int index)
     {
       if (index == 0)
@@ -3361,6 +3625,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     *@param index is the output index.
     *@return the authority name string.
     */
+    @Override
     public String getAuthorityNameString(int index)
     {
       if (index == 0)
@@ -3388,17 +3653,18 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throws ManifoldCFException
     {
       this.spec = spec;
+      IPipelineSpecificationBasic basicSpec = spec.getBasicPipelineSpecification();
       // Now, load all the connections we'll ever need, being sure to only load one copy of each.
       // We first segregate them into unique transformation and output connections.
-      int count = spec.getStageCount();
+      int count = basicSpec.getStageCount();
       Set<String> transformations = new HashSet<String>();
       Set<String> outputs = new HashSet<String>();
       for (int i = 0; i < count; i++)
       {
-        if (spec.checkStageOutputConnection(i))
-          outputs.add(spec.getStageConnectionName(i));
+        if (basicSpec.checkStageOutputConnection(i))
+          outputs.add(basicSpec.getStageConnectionName(i));
         else
-          transformations.add(spec.getStageConnectionName(i));
+          transformations.add(basicSpec.getStageConnectionName(i));
       }
       
       Map<String,Integer> transformationNameMap = new HashMap<String,Integer>();
@@ -3424,13 +3690,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       for (int i = 0; i < count; i++)
       {
         Integer k;
-        if (spec.checkStageOutputConnection(i))
+        if (basicSpec.checkStageOutputConnection(i))
         {
-          outputConnectionLookupMap.put(new Integer(i),outputNameMap.get(spec.getStageConnectionName(i)));
+          outputConnectionLookupMap.put(new Integer(i),outputNameMap.get(basicSpec.getStageConnectionName(i)));
         }
         else
         {
-          transformationConnectionLookupMap.put(new Integer(i),transformationNameMap.get(spec.getStageConnectionName(i)));
+          transformationConnectionLookupMap.put(new Integer(i),transformationNameMap.get(basicSpec.getStageConnectionName(i)));
         }
       }
     }
@@ -3479,7 +3745,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     public PipelineConnectionsWithVersions(IPipelineSpecificationWithVersions pipelineSpecificationWithVersions)
       throws ManifoldCFException
     {
-      super(pipelineSpecificationWithVersions);
+      super(pipelineSpecificationWithVersions.getPipelineSpecification());
       this.pipelineSpecificationWithVersions = pipelineSpecificationWithVersions;
     }
     

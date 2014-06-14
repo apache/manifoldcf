@@ -23,10 +23,15 @@ import org.apache.manifoldcf.core.interfaces.*;
 /** This interface describes a multi-output pipeline, where each stage has an already-computed
 * description string.
 */
-public interface IPipelineSpecification extends IPipelineSpecificationBasic
+public interface IPipelineSpecification
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /** Get the basic pipeline specification.
+  *@return the specification.
+  */
+  public IPipelineSpecificationBasic getBasicPipelineSpecification();
+  
   /** Get the description string for a pipeline stage.
   *@param stage is the stage to get the connection name for.
   *@return the description string that stage.

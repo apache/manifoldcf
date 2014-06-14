@@ -23,10 +23,15 @@ import org.apache.manifoldcf.core.interfaces.*;
 /** This interface describes a multi-output pipeline, with existing document version information from
 * each output.. 
 */
-public interface IPipelineSpecificationWithVersions extends IPipelineSpecification
+public interface IPipelineSpecificationWithVersions
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /** Get pipeline specification.
+  *@return the pipeline specification.
+  */
+  public IPipelineSpecification getPipelineSpecification();
+  
   /** For a given output index, return a document version string.
   *@param index is the output index.
   *@return the document version string.
