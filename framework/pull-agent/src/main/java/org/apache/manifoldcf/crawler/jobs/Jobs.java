@@ -792,6 +792,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       scheduleManager.deleteRows(id);
       hopFilterManager.deleteRows(id);
       forcedParamManager.deleteRows(id);
+      pipelineManager.deleteRows(id);
       ArrayList params = new ArrayList();
       String query = buildConjunctionClause(params,new ClauseDescription[]{
         new UnitaryClause(idField,id)});

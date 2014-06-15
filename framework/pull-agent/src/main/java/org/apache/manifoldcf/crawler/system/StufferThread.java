@@ -104,16 +104,15 @@ public class StufferThread extends Thread
       // This way we can guarantee priority will do the right thing, because the
       // priority is per-job.  We CANNOT guarantee anything about scheduling order, however,
       // other than that it falls in the time window.
-      HashMap documentSets = new HashMap();
-      ArrayList versionMap = new ArrayList();
+      Map<Long,List<QueuedDocument>> documentSets = new HashMap<Long,List<QueuedDocument>>();
 
       // Job description map (local) - designed to improve performance.
       // Cleared and reloaded on every batch of documents.
-      HashMap jobDescriptionMap = new HashMap();
+      Map<Long,IJobDescription> jobDescriptionMap = new HashMap<Long,IJobDescription>();
 
       // Repository connection map (local) - designed to improve performance.
       // Cleared and reloaded on every batch of documents.
-      HashMap connectionMap = new HashMap();
+      Map<String,IRepositoryConnection> connectionMap = new HashMap<String,IRepositoryConnection>();
 
       // Parameters we need in order to adjust the number of documents we fetch.  We base the number on how long it took to queue documents vs.
       // how long it took to need to queue again.
@@ -219,17 +218,16 @@ public class StufferThread extends Thread
 
           IJobDescription[] jobs = new IJobDescription[descs.length];
           IRepositoryConnection[] connections = new IRepositoryConnection[descs.length];
-          DocumentIngestStatus[] versions = new DocumentIngestStatus[descs.length];
-          String[] outputConnectionNames = new String[descs.length];
+          Map[] versions = new HashMap[descs.length];
+          IPipelineSpecificationBasic[] pipelineSpecifications = new IPipelineSpecificationBasic[descs.length];
           String[] documentClasses = new String[descs.length];
           String[] documentIDHashes = new String[descs.length];
 
           // Go through the documents and set up jobs, prefixed id's
-          int i = 0;
-          while (i < descs.length)
+          for (int i = 0; i < descs.length; i++)
           {
             DocumentDescription dd = descs[i];
-            IJobDescription job = (IJobDescription)jobDescriptionMap.get(dd.getJobID());
+            IJobDescription job = jobDescriptionMap.get(dd.getJobID());
             if (job == null)
             {
               job = jobManager.load(dd.getJobID(),true);
@@ -238,8 +236,8 @@ public class StufferThread extends Thread
             jobs[i] = job;
             String connectionName = job.getConnectionName();
             documentClasses[i] = connectionName;
-            outputConnectionNames[i] = job.getOutputConnectionName();
-            IRepositoryConnection connection = (IRepositoryConnection)connectionMap.get(connectionName);
+            pipelineSpecifications[i] = new PipelineSpecificationBasic(job);
+            IRepositoryConnection connection = connectionMap.get(connectionName);
             if (connection == null)
             {
               connection = mgr.load(connectionName);
@@ -248,18 +246,28 @@ public class StufferThread extends Thread
             connections[i] = connection;
             documentIDHashes[i] = dd.getDocumentIdentifierHash();
 
-            i++;
           }
 
-          versions = ingester.getDocumentIngestDataMultiple(outputConnectionNames,documentClasses,documentIDHashes);
-
-          // Now, do the incremental ingestion version request.
+          Map<OutputKey,DocumentIngestStatus> statuses = new HashMap<OutputKey,DocumentIngestStatus>();
+          ingester.getPipelineDocumentIngestDataMultiple(statuses,pipelineSpecifications,documentClasses,documentIDHashes);
+          // Break apart the result.
+          for (int i = 0; i < descs.length; i++)
+          {
+            versions[i] = new HashMap<String,DocumentIngestStatus>();
+            for (int j = 0; j < pipelineSpecifications[i].getOutputCount(); j++)
+            {
+              String outputName = pipelineSpecifications[i].getStageConnectionName(pipelineSpecifications[i].getOutputStage(j));
+              OutputKey key = new OutputKey(documentClasses[i],documentIDHashes[i],outputName);
+              DocumentIngestStatus status = statuses.get(key);
+              if (status != null)
+                versions[i].put(outputName,status);
+            }
+          }
 
           // We need to go through the list, and segregate them by job, so the individual
           // connectors can work in batch.
           documentSets.clear();
-          i = 0;
-          while (i < descs.length)
+          for (int i = 0; i < descs.length; i++)
           {
             Long jobID = jobs[i].getID();
 
@@ -327,13 +335,13 @@ public class StufferThread extends Thread
               binNames = new String[]{""};
             }
 
-            QueuedDocument qd = new QueuedDocument(descs[i],versions[i],binNames);
+            QueuedDocument qd = new QueuedDocument(descs[i],(Map<String,DocumentIngestStatus>)versions[i],binNames);
 
             // Grab the arraylist that's there, or create it.
-            ArrayList set = (ArrayList)documentSets.get(jobID);
+            List<QueuedDocument> set = documentSets.get(jobID);
             if (set == null)
             {
-              set = new ArrayList();
+              set = new ArrayList<QueuedDocument>();
               documentSets.put(jobID,set);
             }
             set.add(qd);
@@ -350,22 +358,19 @@ public class StufferThread extends Thread
               documentQueue.addDocument(qds);
               set.clear();
             }
-            i++;
           }
 
           // Stuff everything left into the queue.
-          i = 0;
-          while (i < descs.length)
+          for (int i = 0; i < descs.length; i++)
           {
             Long jobID = jobs[i].getID();
-            ArrayList x = (ArrayList)documentSets.get(jobID);
+            List<QueuedDocument> x = documentSets.get(jobID);
             if (x != null && x.size() > 0)
             {
               QueuedDocumentSet set = new QueuedDocumentSet(x,jobs[i],connections[i]);
               documentQueue.addDocument(set);
               documentSets.remove(jobID);
             }
-            i++;
           }
 
           // If we don't wait here, the other threads don't seem to have a chance to queue anything else up.
