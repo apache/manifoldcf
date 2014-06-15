@@ -27,12 +27,12 @@ public class DocumentDescription
   public static final String _rcsid = "@(#)$Id: DocumentDescription.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Member variables
-  protected Long id;
-  protected Long jobID;
-  protected String documentIdentifierHash;
-  protected String documentIdentifier;
-  protected long failTime;
-  protected int failRetryCount;
+  protected final Long id;
+  protected final Long jobID;
+  protected final String documentIdentifierHash;
+  protected final String documentIdentifier;
+  protected final long failTime;
+  protected final int failRetryCount;
 
   /** Constructor.
   *@param id is the record id.
