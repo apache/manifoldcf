@@ -1749,7 +1749,7 @@ public class WorkerThread extends Thread
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
       ingester.documentRecord(
         pipelineSpecification.getBasicPipelineSpecification(),
-        documentIdentifier,documentIdentifierHash,
+        connectionName,documentIdentifierHash,
         version,currentTime,ingestLogger);
     }
 
