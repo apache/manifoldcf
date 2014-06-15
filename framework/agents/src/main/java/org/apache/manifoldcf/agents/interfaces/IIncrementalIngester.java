@@ -101,6 +101,7 @@ public interface IIncrementalIngester
   *@param mimeType is the mime type to check.
   *@return true if the mimeType is indexable.
   */
+  @Deprecated
   public boolean checkMimeTypeIndexable(String outputConnectionName, String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption;
 
@@ -122,6 +123,7 @@ public interface IIncrementalIngester
   *@param localFile is the local file to check.
   *@return true if the local file is indexable.
   */
+  @Deprecated
   public boolean checkDocumentIndexable(String outputConnectionName, String outputDescription, File localFile)
     throws ManifoldCFException, ServiceInterruption;
 
@@ -145,6 +147,7 @@ public interface IIncrementalIngester
   *@param length is the length of the document.
   *@return true if the file is indexable.
   */
+  @Deprecated
   public boolean checkLengthIndexable(String outputConnectionName, String outputDescription, long length)
     throws ManifoldCFException, ServiceInterruption;
 
@@ -168,6 +171,7 @@ public interface IIncrementalIngester
   *@param url is the url of the document.
   *@return true if the file is indexable.
   */
+  @Deprecated
   public boolean checkURLIndexable(String outputConnectionName, String outputDescription, String url)
     throws ManifoldCFException, ServiceInterruption;
 
