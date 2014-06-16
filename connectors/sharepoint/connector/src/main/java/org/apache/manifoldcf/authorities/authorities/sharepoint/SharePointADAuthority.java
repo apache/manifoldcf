@@ -452,12 +452,18 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
     
     // User is in AD, so add the 'everyone' group
     theGroups.add(everyoneGroup());
+    theGroups.add(authenticatedUserGroup());
     return theGroups;
   }
 
   protected static String everyoneGroup()
   {
     return "Uc:0!.s|windows";
+  }
+  
+  protected static String authenticatedUserGroup()
+  {
+    return "Uc:0!.s|true";
   }
   
   protected static String groupTokenFromSID(String SID)
