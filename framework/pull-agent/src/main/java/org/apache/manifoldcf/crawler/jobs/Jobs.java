@@ -40,9 +40,7 @@ import java.util.*;
  * <tr><td>lastchecktime</td><td>BIGINT</td><td>operational field</td></tr>
  * <tr><td>endtime</td><td>BIGINT</td><td>operational field</td></tr>
  * <tr><td>docspec</td><td>LONGTEXT</td><td></td></tr>
- * <tr><td>outputspec</td><td>LONGTEXT</td><td></td></tr>
  * <tr><td>connectionname</td><td>VARCHAR(32)</td><td>Reference:repoconnections.connectionname</td></tr>
- * <tr><td>outputname</td><td>VARCHAR(32)</td><td>Reference:outputconnections.connectionname</td></tr>
  * <tr><td>type</td><td>CHAR(1)</td><td></td></tr>
  * <tr><td>intervaltime</td><td>BIGINT</td><td></td></tr>
  * <tr><td>maxintervaltime</td><td>BIGINT</td><td></td></tr>
@@ -156,8 +154,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public final static String descriptionField = "description";
   public final static String documentSpecField = "docspec";
   public final static String connectionNameField = "connectionname";
-  public final static String outputSpecField = "outputspec";
-  public final static String outputNameField = "outputname";
   public final static String typeField = "type";
   /** This is the minimum reschedule interval for a document being crawled adaptively (in ms.) */
   public final static String intervalField = "intervaltime";
@@ -378,6 +374,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     // Standard practice: Have a loop around everything, in case upgrade needs it.
     while (true)
     {
+      // These are fields we want to get rid of.
+      String oldOutputSpecField = "outputspec";
+      String oldOutputNameField = "outputname";
+
+      // A place to keep the outputs we find, so we can add them into the pipeline at the end.
+      IResultSet outputSet = null;
+      
       Map existing = getTableSchema(null,null);
       if (existing == null)
       {
@@ -390,9 +393,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         map.put(lastCheckTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(endTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(documentSpecField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
-        map.put(outputSpecField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(this.connectionNameField,new ColumnDescription("VARCHAR(32)",false,false,connectionTableName,connectionNameField,false));
-        map.put(this.outputNameField,new ColumnDescription("VARCHAR(32)",false,false,outputTableName,outputNameField,false));
         map.put(typeField,new ColumnDescription("CHAR(1)",false,false,null,null,false));
         map.put(intervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(maxIntervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
@@ -460,10 +461,32 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           map.put(statusField,statusToString(STATUS_ACTIVESEEDING_UNINSTALLED));
           performUpdate(map,"WHERE "+query,list,null);
         }
+        if (existing.get(oldOutputNameField) != null)
+        {
+          // Remove output name and spec fields, but first read them so we can put them into the pipeline manager
+          outputSet = performQuery("SELECT "+idField+","+oldOutputSpecField+","+oldOutputNameField+" FROM "+getTableName(),null,null,null);
+          // Now, delete columns
+          List<String> deleteList = new ArrayList<String>();
+          deleteList.add(oldOutputSpecField);
+          deleteList.add(oldOutputNameField);
+          performAlter(null,null,deleteList,null);
+        }
       }
 
       // Handle related tables
-      pipelineManager.install(getTableName(),idField,transTableName,transNameField);
+      pipelineManager.install(getTableName(),idField,outputTableName,outputNameField,transTableName,transNameField);
+      if (outputSet != null)
+      {
+        // Go through set and add pipeline stages corresponding to outputs
+        for (int k = 0; k < outputSet.getRowCount(); k++)
+        {
+          IResultRow row = outputSet.getRow(k);
+          Long id = (Long)row.getValue(idField);
+          String outputConnectionName = (String)row.getValue(oldOutputNameField);
+          String outputConnectionSpec = (String)row.getValue(oldOutputSpecField);
+          pipelineManager.writeOutputStage(id,outputConnectionName,outputConnectionSpec);
+        }
+      }
       scheduleManager.install(getTableName(),idField);
       hopFilterManager.install(getTableName(),idField);
       forcedParamManager.install(getTableName(),idField);
@@ -472,7 +495,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       IndexDescription statusIndex = new IndexDescription(false,new String[]{statusField,idField,priorityField});
       IndexDescription statusProcessIndex = new IndexDescription(false,new String[]{statusField,processIDField});
       IndexDescription connectionIndex = new IndexDescription(false,new String[]{connectionNameField});
-      IndexDescription outputIndex = new IndexDescription(false,new String[]{outputNameField});
       IndexDescription failTimeIndex = new IndexDescription(false,new String[]{failTimeField});
 
       // Get rid of indexes that shouldn't be there
@@ -489,8 +511,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           statusProcessIndex = null;
         else if (connectionIndex != null && id.equals(connectionIndex))
           connectionIndex = null;
-        else if (outputIndex != null && id.equals(outputIndex))
-          outputIndex = null;
         else if (failTimeIndex != null && id.equals(failTimeIndex))
           failTimeIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
@@ -505,8 +525,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         performAddIndex(null,statusProcessIndex);
       if (connectionIndex != null)
         performAddIndex(null,connectionIndex);
-      if (outputIndex != null)
-        performAddIndex(null,outputIndex);
       if (failTimeIndex != null)
         performAddIndex(null,failTimeIndex);
 
@@ -572,7 +590,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList params = new ArrayList();
     query.append("SELECT ").append(idField)
       .append(" FROM ").append(getTableName()).append(" t1 WHERE EXISTS(");
-    pipelineManager.buildQueryClause(query,params,"t1."+idField,transformationConnectionNames);
+    pipelineManager.buildTransformationQueryClause(query,params,"t1."+idField,transformationConnectionNames);
     query.append(")");
     IResultSet set = performQuery(query.toString(),params,null,null);
     Long[] rval = new Long[set.getRowCount()];
@@ -583,7 +601,28 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     }
     return rval;
   }
-  
+
+  /** Find a list of jobs matching specified output names.
+  */
+  public Long[] findJobsMatchingOutputs(List<String> outputConnectionNames)
+    throws ManifoldCFException
+  {
+    StringBuilder query = new StringBuilder();
+    ArrayList params = new ArrayList();
+    query.append("SELECT ").append(idField)
+      .append(" FROM ").append(getTableName()).append(" t1 WHERE EXISTS(");
+    pipelineManager.buildOutputQueryClause(query,params,"t1."+idField,outputConnectionNames);
+    query.append(")");
+    IResultSet set = performQuery(query.toString(),params,null,null);
+    Long[] rval = new Long[set.getRowCount()];
+    for (int i = 0; i < rval.length; i++)
+    {
+      IResultRow row = set.getRow(i);
+      rval[i] = (Long)row.getValue(idField);
+    }
+    return rval;
+  }
+
   /** Read schedule records for a specified set of jobs.  Cannot use caching!
   */
   public ScheduleRecord[][] readScheduleRecords(Long[] jobIDs)
@@ -883,10 +922,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
               query+" FOR UPDATE",params,null,null);
             HashMap values = new HashMap();
             values.put(descriptionField,jobDescription.getDescription());
-            values.put(outputNameField,jobDescription.getOutputConnectionName());
             values.put(connectionNameField,jobDescription.getConnectionName());
-            String newOutputXML = jobDescription.getOutputSpecification().toXML();
-            values.put(outputSpecField,newOutputXML);
             String newXML = jobDescription.getSpecification().toXML();
             values.put(documentSpecField,newXML);
             values.put(typeField,typeToString(jobDescription.getType()));
@@ -917,13 +953,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
                 if (currentStatus == STATUS_ACTIVE || currentStatus == STATUS_ACTIVESEEDING ||
                   currentStatus == STATUS_ACTIVE_UNINSTALLED || currentStatus == STATUS_ACTIVESEEDING_UNINSTALLED)
                   values.put(assessmentStateField,assessmentStateToString(ASSESSMENT_UNKNOWN));
-              }
-
-              if (isSame)
-              {
-                String oldOutputSpecXML = (String)row.getValue(outputSpecField);
-                if (!oldOutputSpecXML.equals(newOutputXML))
-                  isSame = false;
               }
 
               if (isSame)
@@ -1529,8 +1558,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     newValues.put(lastCheckTimeField,null);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(outputNameField,connectionName)});
-    performUpdate(newValues,"WHERE "+query,list,null);
+      new JoinClause(getTableName()+"."+idField,pipelineManager.ownerIDField),
+      new UnitaryClause(pipelineManager.outputNameField,connectionName)});
+    performUpdate(newValues,"WHERE EXISTS(SELECT 'x' FROM "+pipelineManager.getTableName()+" WHERE "+query+")",list,null);
   }
 
   /** Note a change in transformation connection configuration.
@@ -1919,16 +1949,16 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(newList,new ClauseDescription[]{
       new UnitaryClause(assessmentStateField,assessmentStateToString(ASSESSMENT_UNKNOWN))});
     // Query for the matching jobs, and then for each job potentially adjust the state based on the connector status
-    IResultSet set = performQuery("SELECT "+idField+","+statusField+","+connectionNameField+","+outputNameField+" FROM "+
+    IResultSet set = performQuery("SELECT "+idField+","+statusField+","+connectionNameField+" FROM "+
       getTableName()+" WHERE "+query+" FOR UPDATE",
       newList,null,null);
     for (int i = 0; i < set.getRowCount(); i++)
     {
       IResultRow row = set.getRow(i);
       Long jobID = (Long)row.getValue(idField);
-      String outputName = (String)row.getValue(outputNameField);
       String connectionName = (String)row.getValue(connectionNameField);
-      String[] transformationNames = pipelineManager.getConnectionNames(jobID);
+      String[] transformationNames = pipelineManager.getTransformationConnectionNames(jobID);
+      String[] outputNames = pipelineManager.getOutputConnectionNames(jobID);
       int statusValue = stringToStatus((String)row.getValue(statusField));
       int newValue;
       
@@ -1936,23 +1966,23 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       switch (statusValue)
       {
       case STATUS_DELETING_NOOUTPUT:
-        if (outputMgr.checkConnectorExists(outputName))
+        if (checkOutputsInstalled(outputNames))
           newValue = STATUS_DELETING;
         else
           return;
         break;
       case STATUS_ACTIVE_UNINSTALLED:
-        if (outputMgr.checkConnectorExists(outputName) &&
-          connectionMgr.checkConnectorExists(connectionName) &&
-          checkTransformationsInstalled(transformationNames))
+        if (connectionMgr.checkConnectorExists(connectionName) &&
+          checkTransformationsInstalled(transformationNames) &&
+          checkOutputsInstalled(outputNames))
           newValue = STATUS_ACTIVE;
         else
           return;
         break;
       case STATUS_ACTIVESEEDING_UNINSTALLED:
-        if (outputMgr.checkConnectorExists(outputName) &&
-          connectionMgr.checkConnectorExists(connectionName) &&
-          checkTransformationsInstalled(transformationNames))
+        if (connectionMgr.checkConnectorExists(connectionName) &&
+          checkTransformationsInstalled(transformationNames) &&
+          checkOutputsInstalled(outputNames))
           newValue = STATUS_ACTIVESEEDING;
         else
           return;
@@ -1983,7 +2013,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       ArrayList list = new ArrayList();
       String query = buildConjunctionClause(list,new ClauseDescription[]{
         new UnitaryClause(idField,jobID)});
-      IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+" WHERE "+
+      IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+" FROM "+getTableName()+" WHERE "+
         query+" FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
         throw new ManifoldCFException("Can't find job "+jobID.toString());
@@ -1995,13 +2025,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       switch (status)
       {
       case STATUS_SHUTTINGDOWN:
-        String[] transformationConnectionNames = pipelineManager.getConnectionNames(jobID);
+        String[] transformationConnectionNames = pipelineManager.getTransformationConnectionNames(jobID);
+        String[] outputConnectionNames = pipelineManager.getOutputConnectionNames(jobID);
         String connectionName = (String)row.getValue(connectionNameField);
-        String outputName = (String)row.getValue(outputNameField);
         // Want either STATUS_ACTIVE, or STATUS_ACTIVE_UNINSTALLED
         if (!checkTransformationsInstalled(transformationConnectionNames) ||
-          !connectionMgr.checkConnectorExists(connectionName) ||
-          !outputMgr.checkConnectorExists(outputName))
+          !checkOutputsInstalled(outputConnectionNames) ||
+          !connectionMgr.checkConnectorExists(connectionName))
           newStatus = STATUS_ACTIVE_UNINSTALLED;
         else
           newStatus = STATUS_ACTIVE;
@@ -2047,6 +2077,17 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     }
     return true;
   }
+
+  protected boolean checkOutputsInstalled(String[] outputNames)
+    throws ManifoldCFException
+  {
+    for (String outputName : outputNames)
+    {
+      if (!outputMgr.checkConnectorExists(outputName))
+        return false;
+    }
+    return true;
+  }
   
   /** Put job into "deleting" state, and set the start time field.
   *@param jobID is the job identifier.
@@ -2061,17 +2102,18 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       ArrayList list = new ArrayList();
       String query = buildConjunctionClause(list,new ClauseDescription[]{
         new UnitaryClause(idField,jobID)});
-      IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+" WHERE "+
+      IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+" WHERE "+
         query+" FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
         throw new ManifoldCFException("Can't find job "+jobID.toString());
       IResultRow row = set.getRow(0);
       int status = stringToStatus((String)row.getValue(statusField));
+      String[] outputNames = pipelineManager.getOutputConnectionNames(jobID);
       int newStatus;
       switch (status)
       {
       case STATUS_DELETESTARTINGUP:
-        if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
+        if (checkOutputsInstalled(outputNames))
           newStatus = STATUS_DELETING;
         else
           newStatus = STATUS_DELETING_NOOUTPUT;
@@ -2124,7 +2166,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       ArrayList list = new ArrayList();
       String query = buildConjunctionClause(list,new ClauseDescription[]{
         new UnitaryClause(idField,jobID)});
-      IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+" WHERE "+
+      IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+" FROM "+getTableName()+" WHERE "+
         query+" FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
         throw new ManifoldCFException("Can't find job "+jobID.toString());
@@ -2136,14 +2178,14 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       {
       case STATUS_STARTINGUP:
       case STATUS_STARTINGUPMINIMAL:
-        String[] transformationConnectionNames = pipelineManager.getConnectionNames(jobID);
+        String[] transformationConnectionNames = pipelineManager.getTransformationConnectionNames(jobID);
+        String[] outputConnectionNames = pipelineManager.getOutputConnectionNames(jobID);
         String connectionName = (String)row.getValue(connectionNameField);
-        String outputName = (String)row.getValue(outputNameField);
 
         // Need to set either STATUS_ACTIVE, or STATUS_ACTIVE_UNINSTALLED
         if (!checkTransformationsInstalled(transformationConnectionNames) ||
-          !connectionMgr.checkConnectorExists(connectionName) ||
-          !outputMgr.checkConnectorExists(outputName))
+          !checkOutputsInstalled(outputConnectionNames) ||
+          !connectionMgr.checkConnectorExists(connectionName))
           newStatus = STATUS_ACTIVE_UNINSTALLED;
         else
           newStatus = STATUS_ACTIVE;
@@ -2511,14 +2553,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,jobID)});
-    IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+
+    IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
       " WHERE "+query+" FOR UPDATE",list,null,null);
     if (set.getRowCount() == 0)
       throw new ManifoldCFException("Job does not exist: "+jobID);
     IResultRow row = set.getRow(0);
     int status = stringToStatus(row.getValue(statusField).toString());
-    String connectionName = (String)row.getValue(connectionNameField);
-    String outputName = (String)row.getValue(outputNameField);
     int newStatus;
     switch (status)
     {
@@ -2699,15 +2739,15 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       ArrayList list = new ArrayList();
       String query = buildConjunctionClause(list,new ClauseDescription[]{
         new UnitaryClause(idField,jobID)});
-      IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+
+      IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+" FROM "+getTableName()+
         " WHERE "+query+" FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
         throw new ManifoldCFException("Job does not exist: "+jobID);
       IResultRow row = set.getRow(0);
       int status = stringToStatus(row.getValue(statusField).toString());
-      String[] transformationConnectionNames = pipelineManager.getConnectionNames(jobID);
+      String[] transformationConnectionNames = pipelineManager.getTransformationConnectionNames(jobID);
+      String[] outputConnectionNames = pipelineManager.getOutputConnectionNames(jobID);
       String connectionName = (String)row.getValue(connectionNameField);
-      String outputName = (String)row.getValue(outputNameField);
       int newStatus;
       HashMap map = new HashMap();
       switch (status)
@@ -2715,8 +2755,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       case STATUS_RESUMING:
         // Want either STATUS_ACTIVE or STATUS_ACTIVE_UNINSTALLED
         if (!checkTransformationsInstalled(transformationConnectionNames) ||
-          !connectionMgr.checkConnectorExists(connectionName) ||
-          !outputMgr.checkConnectorExists(outputName))
+          !checkOutputsInstalled(outputConnectionNames) ||
+          !connectionMgr.checkConnectorExists(connectionName))
           newStatus = STATUS_ACTIVE_UNINSTALLED;
         else
           newStatus = STATUS_ACTIVE;
@@ -2725,8 +2765,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       case STATUS_RESUMINGSEEDING:
         // Want either STATUS_ACTIVESEEDING or STATUS_ACTIVESEEDING_UNINSTALLED
         if (!checkTransformationsInstalled(transformationConnectionNames) ||
-          !connectionMgr.checkConnectorExists(connectionName) ||
-          !outputMgr.checkConnectorExists(outputName))
+          !checkOutputsInstalled(outputConnectionNames) ||
+          !connectionMgr.checkConnectorExists(connectionName))
           newStatus = STATUS_ACTIVESEEDING_UNINSTALLED;
         else
           newStatus = STATUS_ACTIVESEEDING;
@@ -2878,8 +2918,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   {
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(outputNameField,connectionName)});
-    IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+
+      new UnitaryClause(pipelineManager.outputNameField,connectionName)});
+    IResultSet set = performQuery("SELECT "+pipelineManager.ownerIDField+" FROM "+pipelineManager.getTableName()+
       " WHERE "+query,list,new StringSet(getJobsKey()),null);
     return set.getRowCount() > 0;
   }
@@ -3413,13 +3453,10 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         rc.setID(id);
         rc.setIsNew(false);
         rc.setDescription(row.getValue(descriptionField).toString());
-        rc.setOutputConnectionName(row.getValue(outputNameField).toString());
         rc.setConnectionName(row.getValue(connectionNameField).toString());
         rc.setType(stringToType(row.getValue(typeField).toString()));
         rc.setStartMethod(stringToStartMethod(row.getValue(startMethodField).toString()));
         rc.setHopcountMode(stringToHopcountMode((String)row.getValue(hopcountModeField)));
-        // System.out.println("XML = "+row.getValue(documentSpecField).toString());
-        rc.getOutputSpecification().fromXML(row.getValue(outputSpecField).toString());
         rc.getSpecification().fromXML(row.getValue(documentSpecField).toString());
 
         Object x;

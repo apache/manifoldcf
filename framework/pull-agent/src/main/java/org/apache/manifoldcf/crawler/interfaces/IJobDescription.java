@@ -81,31 +81,35 @@ public interface IJobDescription
   */
   public String getConnectionName();
 
-  /** Set the output connection name.
-  *@param connectionName is the output connection name.
-  */
-  public void setOutputConnectionName(String connectionName);
-
-  /** Get the output connection name.
-  *@return the output connection name.
-  */
-  public String getOutputConnectionName();
-
   /** Clear pipeline connections.
   */
   public void clearPipeline();
   
   /** Add a pipeline connection.
+  *@param prerequisiteStage is the prerequisite stage number for this connection, or -1 if there is none.
+  *@param isOutput is true if the pipeline stage is an output connection.
   *@param pipelineStageConnectionName is the name of the pipeline connection to add.
   *@param pipelineStageDescription is a description of the pipeline stage being added.
   *@return the empty output specification for this pipeline stage.
   */
-  public OutputSpecification addPipelineStage(String pipelineStageConnectionName, String pipelineStageDescription);
+  public OutputSpecification addPipelineStage(int prerequisiteStage, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription);
   
   /** Get a count of pipeline connections.
   *@return the current number of pipeline connections.
   */
   public int countPipelineStages();
+  
+  /** Get the prerequisite stage number for a pipeline stage.
+  *@param index is the index of the pipeline stage to get.
+  *@return the preceding stage number for that stage, or -1 if there is none.
+  */
+  public int getPipelineStagePrerequisite(int index);
+  
+  /** Check if a pipeline stage is an output connection.
+  *@param index is the index of the pipeline stage to check.
+  *@return true if it is an output connection.
+  */
+  public boolean getPipelineStageIsOutputConnection(int index);
   
   /** Get a specific pipeline connection name.
   *@param index is the index of the pipeline stage whose connection name to get.
@@ -136,7 +140,7 @@ public interface IJobDescription
   *@param pipelineStageDescription is the description.
   *@return the newly-created output specification.
   */
-  public OutputSpecification insertPipelineStage(int index, String pipelineStageConnectionName, String pipelineStageDescription);
+  public OutputSpecification insertPipelineStage(int index, int prerequisiteStage, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription);
   
   /** Set the job type.
   *@param type is the type (as an integer).
@@ -230,13 +234,6 @@ public interface IJobDescription
   *@return the interval, or null if infinite.
   */
   public Long getReseedInterval();
-
-  // Output specification
-
-  /** Get the output specification (which can be modified).
-  *@return the specification.
-  */
-  public OutputSpecification getOutputSpecification();
 
   // Document specification
 

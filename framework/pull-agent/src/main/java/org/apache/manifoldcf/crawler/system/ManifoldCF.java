@@ -3847,9 +3847,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBNODE_ID = "id";
   protected static final String JOBNODE_DESCRIPTION = "description";
   protected static final String JOBNODE_CONNECTIONNAME = "repository_connection";
-  protected static final String JOBNODE_OUTPUTNAME = "output_connection";
   protected static final String JOBNODE_DOCUMENTSPECIFICATION = "document_specification";
-  protected static final String JOBNODE_OUTPUTSPECIFICATION = "output_specification";
   protected static final String JOBNODE_STARTMODE = "start_mode";
   protected static final String JOBNODE_RUNMODE = "run_mode";
   protected static final String JOBNODE_HOPCOUNTMODE = "hopcount_mode";
@@ -3875,6 +3873,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBNODE_PARAMNAME = "paramname";
   protected static final String JOBNODE_PARAMVALUE = "paramvalue";
   protected static final String JOBNODE_PIPELINESTAGE = "pipelinestage";
+  protected static final String JOBNODE_STAGEID = "stage_id";
+  protected static final String JOBNODE_STAGEPREREQUISITE = "stage_prerequisite";
+  protected static final String JOBNODE_STAGEISOUTPUT = "stage_isoutput";
   protected static final String JOBNODE_STAGECONNECTIONNAME = "stage_connectionname";
   protected static final String JOBNODE_STAGEDESCRIPTION = "stage_description";
   protected static final String JOBNODE_STAGESPECIFICATION = "stage_specification";
@@ -3887,10 +3888,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     throws ManifoldCFException
   {
     // Walk through the node's children
-    int i = 0;
-    while (i < jobNode.getChildCount())
+    Map<String,PipelineStage> pipelineStages = new HashMap<String,PipelineStage>();
+    for (int i = 0; i < jobNode.getChildCount(); i++)
     {
-      ConfigurationNode child = jobNode.findChild(i++);
+      ConfigurationNode child = jobNode.findChild(i);
       String childType = child.getType();
       if (childType.equals(JOBNODE_ID))
       {
@@ -3906,19 +3907,24 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       {
         jobDescription.setConnectionName(child.getValue());
       }
-      else if (childType.equals(JOBNODE_OUTPUTNAME))
-      {
-        jobDescription.setOutputConnectionName(child.getValue());
-      }
       else if (childType.equals(JOBNODE_PIPELINESTAGE))
       {
+        String stageID = null;
+        String stagePrerequisite = null;
+        String stageIsOutput = null;
         String stageConnectionName = null;
         String stageDescription = null;
         ConfigurationNode stageSpecification = null;
         for (int q = 0; q < child.getChildCount(); q++)
         {
           ConfigurationNode cn = child.findChild(q);
-          if (cn.getType().equals(JOBNODE_STAGECONNECTIONNAME))
+          if (cn.getType().equals(JOBNODE_STAGEID))
+            stageID = cn.getValue();
+          else if (cn.getType().equals(JOBNODE_STAGEPREREQUISITE))
+            stagePrerequisite = cn.getValue();
+          else if (cn.getType().equals(JOBNODE_STAGEISOUTPUT))
+            stageIsOutput = cn.getValue();
+          else if (cn.getType().equals(JOBNODE_STAGECONNECTIONNAME))
             stageConnectionName = cn.getValue();
           else if (cn.getType().equals(JOBNODE_STAGEDESCRIPTION))
             stageDescription = cn.getValue();
@@ -3929,15 +3935,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           else
             throw new ManifoldCFException("Found an unexpected node type: '"+cn.getType()+"'");
         }
+        if (stageID == null)
+          throw new ManifoldCFException("Missing required field: '"+JOBNODE_STAGEID+"'");
+        if (stageIsOutput == null)
+          throw new ManifoldCFException("Missing required field: '"+JOBNODE_STAGEISOUTPUT+"'");
         if (stageConnectionName == null)
           throw new ManifoldCFException("Missing required field: '"+JOBNODE_STAGECONNECTIONNAME+"'");
-        OutputSpecification os = jobDescription.addPipelineStage(stageConnectionName,stageDescription);
-        os.clearChildren();
-        for (int j = 0; j < stageSpecification.getChildCount(); j++)
-        {
-          ConfigurationNode cn = stageSpecification.findChild(j);
-          os.addChild(os.getChildCount(),new SpecificationNode(cn));
-        }
+        pipelineStages.put(stageID,new PipelineStage(stagePrerequisite,stageIsOutput.equals("true"),
+          stageConnectionName,stageDescription,stageSpecification));
       }
       else if (childType.equals(JOBNODE_DOCUMENTSPECIFICATION))
       {
@@ -3948,17 +3953,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         {
           ConfigurationNode cn = child.findChild(j);
           ds.addChild(ds.getChildCount(),new SpecificationNode(cn));
-        }
-      }
-      else if (childType.equals(JOBNODE_OUTPUTSPECIFICATION))
-      {
-        // Get the job's output specification, clear out the children, and copy new ones from the child.
-        OutputSpecification os = jobDescription.getOutputSpecification();
-        os.clearChildren();
-        for (int j = 0; j < child.getChildCount(); j++)
-        {
-          ConfigurationNode cn = child.findChild(j);
-          os.addChild(os.getChildCount(),new SpecificationNode(cn));
         }
       }
       else if (childType.equals(JOBNODE_STARTMODE))
@@ -4105,8 +4099,72 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else
         throw new ManifoldCFException("Unrecognized job field: '"+childType+"'");
     }
+    
+    // Do pipeline stages.  These must be ordered so that the prerequisites are always done first.
+    List<String> orderedStageNames = new ArrayList<String>();
+    Set<String> keysSeen = new HashSet<String>();
+    for (String stageName : pipelineStages.keySet())
+    {
+      PipelineStage ps = pipelineStages.get(stageName);
+      if (keysSeen.contains(stageName))
+        continue;
+      // Look at the prerequisite; insert them beforehand if they aren't already there
+      addStage(stageName,orderedStageNames,keysSeen,pipelineStages);
+    }
+    
+    // Now, add stages to job in  order, and map to ordinals
+    int k = 0;
+    for (String stageName : orderedStageNames)
+    {
+      PipelineStage ps = pipelineStages.get(stageName);
+      ps.ordinal = k++;
+      int prerequisite = (ps.prerequisite == null)?-1:pipelineStages.get(ps.prerequisite).ordinal;
+      OutputSpecification os = jobDescription.addPipelineStage(prerequisite,ps.isOutput,ps.connectionName,ps.description);
+      os.clearChildren();
+      for (int j = 0; j < ps.specification.getChildCount(); j++)
+      {
+        ConfigurationNode cn = ps.specification.findChild(j);
+        os.addChild(os.getChildCount(),new SpecificationNode(cn));
+      }
+    }
   }
 
+  protected static void addStage(String stageName, List<String> orderedStageNames, Set<String> keysSeen,
+    Map<String,PipelineStage> pipelineStages)
+    throws ManifoldCFException
+  {
+    if (keysSeen.contains(stageName))
+      return;
+    PipelineStage ps = pipelineStages.get(stageName);
+    if (ps != null)
+      throw new ManifoldCFException("Stage reference error: '"+stageName+"' is unknown");
+    if (ps.prerequisite != null)
+      addStage(ps.prerequisite,orderedStageNames,keysSeen,pipelineStages);
+    // All prerequisites added!
+    orderedStageNames.add(stageName);
+    keysSeen.add(stageName);
+  }
+  
+  protected static class PipelineStage
+  {
+    public final String prerequisite;
+    public final boolean isOutput;
+    public final String connectionName;
+    public final String description;
+    public final ConfigurationNode specification;
+    public int ordinal;
+    
+    public PipelineStage(String prerequisite, boolean isOutput, String connectionName, String description, ConfigurationNode specification)
+    {
+      this.prerequisite = prerequisite;
+      this.isOutput = isOutput;
+      this.connectionName = connectionName;
+      this.description = description;
+      this.specification = specification;
+    }
+    
+  }
+  
   /** Convert a job description into a ConfigurationNode.
   *@param jobNode is the node to be filled in.
   *@param job is the job description.
@@ -4140,14 +4198,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       jobNode.addChild(jobNode.getChildCount(),child);
     }
 
-    // output connection
-    if (job.getOutputConnectionName() != null)
-    {
-      child = new ConfigurationNode(JOBNODE_OUTPUTNAME);
-      child.setValue(job.getOutputConnectionName());
-      jobNode.addChild(jobNode.getChildCount(),child);
-    }
-
     // Document specification
     DocumentSpecification ds = job.getSpecification();
     child = new ConfigurationNode(JOBNODE_DOCUMENTSPECIFICATION);
@@ -4158,21 +4208,23 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     jobNode.addChild(jobNode.getChildCount(),child);
 
-    // Output specification
-    OutputSpecification os = job.getOutputSpecification();
-    child = new ConfigurationNode(JOBNODE_OUTPUTSPECIFICATION);
-    for (int j = 0; j < os.getChildCount(); j++)
-    {
-      ConfigurationNode cn = os.getChild(j);
-      child.addChild(child.getChildCount(),cn);
-    }
-    jobNode.addChild(jobNode.getChildCount(),child);
-
     // Pipeline stages
     for (int j = 0; j < job.countPipelineStages(); j++)
     {
       child = new ConfigurationNode(JOBNODE_PIPELINESTAGE);
       ConfigurationNode stage;
+      stage = new ConfigurationNode(JOBNODE_STAGEID);
+      stage.setValue(Integer.toString(j));
+      child.addChild(child.getChildCount(),stage);
+      if (job.getPipelineStagePrerequisite(j) != -1)
+      {
+        stage = new ConfigurationNode(JOBNODE_STAGEPREREQUISITE);
+        stage.setValue(Integer.toString(job.getPipelineStagePrerequisite(j)));
+        child.addChild(child.getChildCount(),stage);
+      }
+      stage = new ConfigurationNode(JOBNODE_STAGEISOUTPUT);
+      stage.setValue(job.getPipelineStageIsOutputConnection(j)?"true":"false");
+      child.addChild(child.getChildCount(),stage);
       stage = new ConfigurationNode(JOBNODE_STAGECONNECTIONNAME);
       stage.setValue(job.getPipelineStageConnectionName(j));
       child.addChild(child.getChildCount(),stage);

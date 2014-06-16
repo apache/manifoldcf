@@ -38,7 +38,7 @@ public class DefineJob
   {
     if (args.length != 13)
     {
-      System.err.println("Usage: DefineJob <description> <connection_name> <output_name> <type> <start_method> <hopcount_method> <recrawl_interval> <expiration_interval> <reseed_interval> <job_priority> <hop_filters> <filespec_xml> <outputspec_xml>");
+      System.err.println("Usage: DefineJob <description> <connection_name> <type> <start_method> <hopcount_method> <recrawl_interval> <expiration_interval> <reseed_interval> <job_priority> <hop_filters> <filespec_xml>");
       System.err.println("<type> is one of: continuous or specified");
       System.err.println("<start_method> is one of: windowbegin, windowinside, disable");
       System.err.println("<hopcount_method> is one of: accurate, nodelete, neverdelete");
@@ -48,23 +48,20 @@ public class DefineJob
       System.err.println("<job_priority> is the job priority (and integer between 0 and 10)");
       System.err.println("<hop_filters> is a comma-separated list of tuples, of the form 'linktype=maxhops'");
       System.err.println("<filespec_xml> is the document specification XML, its form dependent on the connection type");
-      System.err.println("<outputspec_xml> is the output specification XML, its form dependent on the output connection type");
       System.exit(-1);
     }
 
     String description = args[0];
     String connectionName = args[1];
-    String outputConnectionName = args[2];
-    String typeString = args[3];
-    String startString = args[4];
-    String hopcountString = args[5];
-    String recrawlInterval = args[6];
-    String expirationInterval = args[7];
-    String reseedInterval = args[8];
-    String jobPriority = args[9];
-    String hopFilters = args[10];
-    String filespecXML = args[11];
-    String outputspecXML = args[12];
+    String typeString = args[2];
+    String startString = args[3];
+    String hopcountString = args[4];
+    String recrawlInterval = args[5];
+    String expirationInterval = args[6];
+    String reseedInterval = args[7];
+    String jobPriority = args[8];
+    String hopFilters = args[9];
+    String filespecXML = args[10];
 
     try
     {
@@ -75,7 +72,6 @@ public class DefineJob
 
       desc.setDescription(description);
       desc.setConnectionName(connectionName);
-      desc.setOutputConnectionName(outputConnectionName);
 
       if (typeString.equals("continuous"))
         desc.setType(IJobDescription.TYPE_CONTINUOUS);
@@ -123,8 +119,6 @@ public class DefineJob
       }
       
       desc.getSpecification().fromXML(filespecXML);
-      if (outputspecXML.length() > 0)
-        desc.getOutputSpecification().fromXML(outputspecXML);
       
       // Now, save
       jobManager.save(desc);

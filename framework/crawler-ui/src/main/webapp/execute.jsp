@@ -918,7 +918,7 @@
 							// Gather everything first; we'll look at edits later
 							String connectionName = variableContext.getParameter("pipeline_"+j+"_connectionname");
 							String description = variableContext.getParameter("pipeline_"+j+"_description");
-							job.addPipelineStage(connectionName, description);
+							job.addPipelineStage(j-1, false, connectionName, description);
 						}
 					}
 
@@ -1284,7 +1284,8 @@
 							// Insert a new stage before this one
 							String connectionName = variableContext.getParameter("pipeline_connectionname");
 							String description = variableContext.getParameter("pipeline_description");
-							job.insertPipelineStage(currentStage++,connectionName,description);
+							job.insertPipelineStage(currentStage,currentStage-1,false,connectionName,description);
+							currentStage++;
 						}
 						else
 							currentStage++;

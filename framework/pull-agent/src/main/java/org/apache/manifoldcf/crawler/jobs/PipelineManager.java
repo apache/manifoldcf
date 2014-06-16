@@ -33,9 +33,11 @@ import java.util.*;
 * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
 * <tr><td>ownerid</td><td>BIGINT</td><td>Reference:jobs.id</td></tr>
 * <tr><td>ordinal</td><td>BIGINT</td><td></td></tr>
+* <tr><td>prerequisite</td><td>BIGINT</td><td></td></tr>
+* <tr><td>outputname</td><td>VARCHAR(32)</td><td></td></tr>
 * <tr><td>transformationname</td><td>VARCHAR(32)</td><td></td></tr>
-* <tr><td>transformationdesc</td><td>VARCHAR(255)</td><td></td></tr>
-* <tr><td>transformationspec</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>connectiondesc</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>connectionspec</td><td>LONGTEXT</td><td></td></tr>
 * </table>
 * <br><br>
 * 
@@ -47,9 +49,11 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
   // Schema
   public final static String ownerIDField = "ownerid";
   public final static String ordinalField = "ordinal";
+  public final static String prerequisiteField = "prerequisite";
+  public final static String outputNameField = "outputname";
   public final static String transformationNameField = "transformationname";
-  public final static String transformationDescriptionField = "transformationdesc";
-  public final static String transformationSpecField = "transformationspec";
+  public final static String connectionDescriptionField = "connectiondesc";
+  public final static String connectionSpecField = "connectionspec";
 
   /** Constructor.
   *@param threadContext is the thread context.
@@ -65,7 +69,9 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
   *@param ownerTable is the name of the table that owns this one.
   *@param owningTablePrimaryKey is the primary key of the owning table.
   */
-  public void install(String ownerTable, String owningTablePrimaryKey, String transformationTableName, String transformationTableNameField)
+  public void install(String ownerTable, String owningTablePrimaryKey,
+    String outputTableName, String outputTableNameField,
+    String transformationTableName, String transformationTableNameField)
     throws ManifoldCFException
   {
     // Standard practice: Outer loop to support upgrades
@@ -77,9 +83,11 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
         HashMap map = new HashMap();
         map.put(ownerIDField,new ColumnDescription("BIGINT",false,false,ownerTable,owningTablePrimaryKey,false));
         map.put(ordinalField,new ColumnDescription("BIGINT",false,false,null,null,false));
-        map.put(transformationNameField,new ColumnDescription("VARCHAR(32)",false,false,transformationTableName,transformationTableNameField,false));
-        map.put(transformationDescriptionField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
-        map.put(transformationSpecField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
+        map.put(prerequisiteField,new ColumnDescription("BIGINT",false,true,null,null,false));
+        map.put(outputNameField,new ColumnDescription("VARCHAR(32)",false,true,outputTableName,outputTableNameField,false));
+        map.put(transformationNameField,new ColumnDescription("VARCHAR(32)",false,true,transformationTableName,transformationTableNameField,false));
+        map.put(connectionDescriptionField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
+        map.put(connectionSpecField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         performCreate(map,null);
       }
       else
@@ -89,6 +97,8 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
 
       // Index management
       IndexDescription ownerIndex = new IndexDescription(false,new String[]{ownerIDField});
+      IndexDescription transformationNameIndex = new IndexDescription(false,new String[]{transformationNameField});
+      IndexDescription outputNameIndex = new IndexDescription(false,new String[]{outputNameField});
 
       // Get rid of indexes that shouldn't be there
       Map indexes = getTableIndexes(null,null);
@@ -100,6 +110,10 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
 
         if (ownerIndex != null && id.equals(ownerIndex))
           ownerIndex = null;
+        else if (transformationNameIndex != null && id.equals(transformationNameIndex))
+          transformationNameIndex = null;
+        else if (outputNameIndex != null && id.equals(outputNameIndex))
+          outputNameIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
           // This index shouldn't be here; drop it
           performRemoveIndex(indexName);
@@ -108,6 +122,10 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
       // Add the ones we didn't find
       if (ownerIndex != null)
         performAddIndex(null,ownerIndex);
+      if (transformationNameIndex != null)
+        performAddIndex(null,transformationNameIndex);
+      if (outputNameIndex != null)
+        performAddIndex(null,outputNameIndex);
 
       break;
     }
@@ -121,9 +139,9 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     performDrop(null);
   }
 
-  /** Build a query clause matching a set of connection names.
+  /** Build a query clause matching a set of transformation connection names.
   */
-  public void buildQueryClause(StringBuilder query, ArrayList params,
+  public void buildTransformationQueryClause(StringBuilder query, ArrayList params,
     String parentIDField, List<String> connectionNames)
   {
     query.append("SELECT 'x' FROM ").append(getTableName()).append(" WHERE ");
@@ -131,12 +149,23 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
       new JoinClause(parentIDField,ownerIDField),
       new MultiClause(transformationNameField,connectionNames)}));
   }
+
+  /** Build a query clause matching a set of output connection names.
+  */
+  public void buildOutputQueryClause(StringBuilder query, ArrayList params,
+    String parentIDField, List<String> connectionNames)
+  {
+    query.append("SELECT 'x' FROM ").append(getTableName()).append(" WHERE ");
+    query.append(buildConjunctionClause(params,new ClauseDescription[]{
+      new JoinClause(parentIDField,ownerIDField),
+      new MultiClause(outputNameField,connectionNames)}));
+  }
   
   /** Get all the transformation connection names for a job.
   *@param ownerID is the job ID.
   *@return the set of connection names.
   */
-  public String[] getConnectionNames(Long ownerID)
+  public String[] getTransformationConnectionNames(Long ownerID)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -153,7 +182,29 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     }
     return rval;
   }
-  
+
+  /** Get all the output connection names for a job.
+  *@param ownerID is the job ID.
+  *@return the set of connection names.
+  */
+  public String[] getOutputConnectionNames(Long ownerID)
+    throws ManifoldCFException
+  {
+    ArrayList newList = new ArrayList();
+    StringBuilder query = new StringBuilder("SELECT ");
+    query.append(transformationNameField).append(" FROM ").append(getTableName()).append(" WHERE ");
+    query.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(ownerIDField,ownerID)}));
+    IResultSet set = performQuery(query.toString(),newList,null,null);
+    String[] rval = new String[set.getRowCount()];
+    for (int i = 0; i < set.getRowCount(); i++)
+    {
+      IResultRow row = set.getRow(i);
+      rval[i] = (String)row.getValue(outputNameField);
+    }
+    return rval;
+  }
+
   /** Fill in a set of pipelines corresponding to a set of owner id's.
   *@param returnValues is a map keyed by ownerID, with value of JobDescription.
   *@param ownerIDList is the list of owner id's.
@@ -168,11 +219,15 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     {
       IResultRow row = set.getRow(i);
       Long ownerID = (Long)row.getValue(ownerIDField);
+      Long prerequisite = (Long)row.getValue(prerequisiteField);
+      String outputName = (String)row.getValue(outputNameField);
       String transformationName = (String)row.getValue(transformationNameField);
-      String transformationDesc = (String)row.getValue(transformationDescriptionField);
-      String transformationSpec = (String)row.getValue(transformationSpecField);
+      String transformationDesc = (String)row.getValue(connectionDescriptionField);
+      String transformationSpec = (String)row.getValue(connectionSpecField);
+      boolean isOutput = outputName != null && outputName.length() > 0;
+      int prerequisiteValue = (prerequisite == null)?-1:(int)prerequisite.longValue();
       JobDescription jd = returnValues.get(ownerID);
-      jd.addPipelineStage(transformationName,transformationDesc).fromXML(transformationSpec);
+      jd.addPipelineStage(prerequisiteValue,isOutput,isOutput?outputName:transformationName,transformationDesc).fromXML(transformationSpec);
     }
   }
 
@@ -193,16 +248,37 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     for (int i = 0; i < set.getRowCount(); i++)
     {
       IResultRow row = set.getRow(i);
-      String connectionName = (String)row.getValue(transformationNameField);
-      String spec = (String)row.getValue(transformationSpecField);
+      String outputConnectionName = (String)row.getValue(outputNameField);
+      String transformationConnectionName = (String)row.getValue(transformationNameField);
+      Long prerequisite = (Long)row.getValue(prerequisiteField);
+      String spec = (String)row.getValue(connectionSpecField);
       if (spec == null)
         spec = "";
-      if (!job.getPipelineStageConnectionName(i).equals(connectionName))
+      int prerequisiteValue = (prerequisite==null)?-1:(int)prerequisite.longValue();
+      boolean isOutputConnection = outputConnectionName != null && outputConnectionName.length() > 0;
+      if (job.getPipelineStagePrerequisite(i) != prerequisiteValue)
+        return false;
+      if (job.getPipelineStageIsOutputConnection(i) != isOutputConnection)
+        return false;
+      if (!job.getPipelineStageConnectionName(i).equals(isOutputConnection?outputConnectionName:transformationConnectionName))
         return false;
       if (!job.getPipelineStageSpecification(i).toXML().equals(spec))
         return false;
     }
     return true;
+  }
+  
+  /** Write an output stage (part of the upgrade code).
+  */
+  public void writeOutputStage(Long ownerID, String outputConnectionName, String outputSpecification)
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    map.put(ownerIDField,ownerID);
+    map.put(ordinalField,new Long(0));
+    map.put(outputNameField,outputConnectionName);
+    map.put(connectionSpecField,outputSpecification);
+    performInsert(map,null);
   }
   
   /** Write a pipeline list into the database.
@@ -218,16 +294,23 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
       HashMap map = new HashMap();
       for (int i = 0; i < job.countPipelineStages(); i++)
       {
+        boolean isOutput = job.getPipelineStageIsOutputConnection(i);
+        int prerequisite = job.getPipelineStagePrerequisite(i);
         String pipelineConnectionName = job.getPipelineStageConnectionName(i);
         String pipelineStageDescription = job.getPipelineStageDescription(i);
         OutputSpecification os = job.getPipelineStageSpecification(i);
         map.clear();
         map.put(ownerIDField,ownerID);
         map.put(ordinalField,new Long((long)i));
-        map.put(transformationNameField,pipelineConnectionName);
+        if (prerequisite != -1)
+          map.put(prerequisiteField,new Long(prerequisite));
+        if (isOutput)
+          map.put(outputNameField,pipelineConnectionName);
+        else
+          map.put(transformationNameField,pipelineConnectionName);
         if (pipelineStageDescription != null && pipelineStageDescription.length() > 0)
-          map.put(transformationDescriptionField,pipelineStageDescription);
-        map.put(transformationSpecField,os.toXML());
+          map.put(connectionDescriptionField,pipelineStageDescription);
+        map.put(connectionSpecField,os.toXML());
         performInsert(map,null);
         i++;
       }
