@@ -143,22 +143,8 @@
 		int priority = job.getPriority();
 
 		String connectionName = job.getConnectionName();
-		String outputName = job.getOutputConnectionName();
-		String[] transformationNames = new String[job.countPipelineStages()];
-		String[] transformationDescriptions = new String[job.countPipelineStages()];
-		for (int j = 0; j < job.countPipelineStages(); j++)
-		{
-			transformationNames[j] = job.getPipelineStageConnectionName(j);
-			String transformationDescription = job.getPipelineStageDescription(j);
-			if (transformationDescription == null)
-				transformationDescription = "";
-			transformationDescriptions[j] = transformationDescription;
-		}
-
 		IRepositoryConnection connection = connManager.load(connectionName);
-		IOutputConnection outputConnection = outputManager.load(outputName);
-		ITransformationConnection[] transformationConnections = transformationManager.loadMultiple(transformationNames);
-
+		
 		int model = RepositoryConnectorFactory.getConnectorModel(threadContext,connection.getClassName());
 		String[] relationshipTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
 		Map hopCountFilters = job.getHopCountFilters();
@@ -169,7 +155,7 @@
 		//threadContext.save("OutputConnection",outputConnection);
 		//threadContext.save("DocumentSpecification",job.getSpecification());
 		//threadContext.save("RepositoryConnection",connection);
-		int displaySequence = 0;
+		int rowCounter = 0;
 
 %>
 		<table class="displaytable">
@@ -189,31 +175,32 @@
 					<table class="formtable">
 						<tr class="formheaderrow">
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageNumber")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageType")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StagePrecedent")%></nobr></td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageDescription")%></nobr></td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageConnectionName")%></nobr></td>
 						</tr>
-						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
-							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
+						<tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
+							<td class="formcolumncell">1.</td>
+							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Repository")%></td>
+							<td class="formcolumncell"></td>
 							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.RepositoryStage")%></td>
 							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></td>
 						</tr>
 <%
-		for (int j = 0; j < transformationNames.length; j++)
+		for (int j = 0; j < job.countPipelineStages(); j++)
 		{
 %>
-						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
-							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
-							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(transformationDescriptions[j])%></td>
-							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(transformationNames[j])%></td>
+						<tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
+							<td class="formcolumncell"><%=(j+2)%>.</td>
+							<td class="formcolumncell"><%=job.getPipelineStageIsOutputConnection(j)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Output"):Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Transformation")%></td>
+							<td class="formcolumncell"><%=(job.getPipelineStagePrerequisite(j)+2)%>.</td>
+							<td class="formcolumncell"><%=(job.getPipelineStageDescription(j)!=null)?org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getPipelineStageDescription(j)):""%></td>
+							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getPipelineStageConnectionName(j))%></td>
 						</tr>
 <%
 		}
 %>
-						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
-							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
-							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.OutputStage")%></td>
-							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(outputName)%></td>
-						</tr>
 					</table>
 				</td>
 			</tr>
@@ -692,65 +679,8 @@
 
 		}
 %>
-
 			<tr>
-				<td class="separator" colspan="4"><hr/></td>
-			</tr>
-			<tr>
-				<td colspan="4">
-<%
-		if (outputConnection != null)
-		{
-			IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
-			if (outputConnector != null)
-			{
-				try
-				{
-					outputConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),job.getOutputSpecification(),1+transformationConnections.length);
-				}
-				finally
-				{
-					outputConnectorPool.release(outputConnection,outputConnector);
-				}
-			}
-		}
-%>
-				</td>
-			</tr>
-<%
-		if (transformationConnections.length > 0)
-		{
-%>
-			<tr>
-				<td class="separator" colspan="4"><hr/></td>
-			</tr>
-			<tr>
-				<td colspan="4">
-<%
-			for (int j = 0; j < transformationConnections.length; j++)
-			{
-				OutputSpecification os = job.getPipelineStageSpecification(j);
-				ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnections[j]);
-				if (transformationConnector != null)
-				{
-					try
-					{
-						transformationConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),os,1+j);
-					}
-					finally
-					{
-						transformationConnectorPool.release(transformationConnections[j],transformationConnector);
-					}
-				}
-			}
-%>
-				</td>
-			</tr>
-<%
-		}
-%>
-			<tr>
-				<td class="separator" colspan="4"><hr/></td>
+				<td class="separator" colspan="4">1.<hr/></td>
 			</tr>
 			<tr>
 				<td colspan="4">
@@ -773,6 +703,55 @@
 %>
 				</td>
 			</tr>
+<%
+		for (int j = 0; j < job.countPipelineStages(); j++)
+		{
+%>
+			<tr>
+				<td class="separator" colspan="4"><%=(j+2)%>.<hr/></td>
+			</tr>
+			<tr>
+				<td colspan="4">
+<%
+			OutputSpecification os = job.getPipelineStageSpecification(j);
+			if (job.getPipelineStageIsOutputConnection(j))
+			{
+				IOutputConnection thisConnection = outputManager.load(job.getPipelineStageConnectionName(j));
+				IOutputConnector outputConnector = outputConnectorPool.grab(thisConnection);
+				if (outputConnector != null)
+				{
+					try
+					{
+						outputConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),os,1+j);
+					}
+					finally
+					{
+						outputConnectorPool.release(thisConnection,outputConnector);
+					}
+				}
+			}
+			else
+			{
+				ITransformationConnection thisConnection = transformationManager.load(job.getPipelineStageConnectionName(j));
+				ITransformationConnector transformationConnector = transformationConnectorPool.grab(thisConnection);
+				if (transformationConnector != null)
+				{
+					try
+					{
+						transformationConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),os,1+j);
+					}
+					finally
+					{
+						transformationConnectorPool.release(thisConnection,transformationConnector);
+					}
+				}
+			}
+%>
+				</td>
+			</tr>
+<%
+		}
+%>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
