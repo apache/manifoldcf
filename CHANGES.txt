@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-963: SharePoint/AD authority did not generate the "true"
+token.
+(Karl Wright)
+
 CONNECTORS-961: Debug pipeline usage in job UI, and add a Forced Metadata
 transformation connector that has a job tab.
 (Karl Wright)
