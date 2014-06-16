@@ -130,7 +130,6 @@ public class JobManager implements IJobManager
     for (IJobDescription job : list)
     {
       ManifoldCF.writeString(os,job.getConnectionName());
-      ManifoldCF.writeString(os,job.getOutputConnectionName());
       ManifoldCF.writeString(os,job.getDescription());
       ManifoldCF.writeDword(os,job.getType());
       ManifoldCF.writeDword(os,job.getStartMethod());
@@ -140,7 +139,6 @@ public class JobManager implements IJobManager
       ManifoldCF.writeDword(os,job.getPriority());
       ManifoldCF.writeDword(os,job.getHopcountMode());
       ManifoldCF.writeString(os,job.getSpecification().toXML());
-      ManifoldCF.writeString(os,job.getOutputSpecification().toXML());
 
       // Write schedule
       int recCount = job.getScheduleRecordCount();
@@ -189,6 +187,8 @@ public class JobManager implements IJobManager
       ManifoldCF.writeDword(os,job.countPipelineStages());
       for (int j = 0; j < job.countPipelineStages(); j++)
       {
+        ManifoldCF.writeSdword(os,job.getPipelineStagePrerequisite(j));
+        ManifoldCF.writeByte(os,job.getPipelineStageIsOutputConnection(j)?0x1:0x0);
         ManifoldCF.writeString(os,job.getPipelineStageConnectionName(j));
         ManifoldCF.writeString(os,job.getPipelineStageDescription(j));
         ManifoldCF.writeString(os,job.getPipelineStageSpecification(j).toXML());
@@ -226,8 +226,12 @@ public class JobManager implements IJobManager
     {
       IJobDescription job = createJob();
 
+      String outputConnectionName = null;
+      String outputSpecification = null;
+      
       job.setConnectionName(ManifoldCF.readString(is));
-      job.setOutputConnectionName(ManifoldCF.readString(is));
+      if (version < 4)
+        outputConnectionName = ManifoldCF.readString(is);
       job.setDescription(ManifoldCF.readString(is));
       job.setType(ManifoldCF.readDword(is));
       job.setStartMethod(ManifoldCF.readDword(is));
@@ -237,7 +241,8 @@ public class JobManager implements IJobManager
       job.setPriority(ManifoldCF.readDword(is));
       job.setHopcountMode(ManifoldCF.readDword(is));
       job.getSpecification().fromXML(ManifoldCF.readString(is));
-      job.getOutputSpecification().fromXML(ManifoldCF.readString(is));
+      if (version < 4)
+        outputSpecification = ManifoldCF.readString(is);
 
       // Read schedule
       int recCount = ManifoldCF.readDword(is);
@@ -290,11 +295,19 @@ public class JobManager implements IJobManager
         int pipelineCount = ManifoldCF.readDword(is);
         for (int j = 0; j < pipelineCount; j++)
         {
+          int prerequisite = ManifoldCF.readSdword(is);
+          int isOutput = ManifoldCF.readByte(is);
           String connectionName = ManifoldCF.readString(is);
           String description = ManifoldCF.readString(is);
           String specification = ManifoldCF.readString(is);
-          job.addPipelineStage(connectionName,description).fromXML(specification);
+          job.addPipelineStage(prerequisite,isOutput == 0x1,connectionName,description).fromXML(specification);
         }
+      }
+      
+      if (outputConnectionName != null)
+      {
+        // Add a single pipeline stage for the output connection
+        job.addPipelineStage(-1,true,outputConnectionName,"").fromXML(outputSpecification);
       }
       
       // Attempt to save this job
@@ -456,13 +469,20 @@ public class JobManager implements IJobManager
   protected void noteOutputConnectionDeregistration(List<String> list)
     throws ManifoldCFException
   {
-    ArrayList newList = new ArrayList();
-    String query = database.buildConjunctionClause(newList,new ClauseDescription[]{
-      new MultiClause(jobs.outputNameField,list)});
     // Query for the matching jobs, and then for each job potentially adjust the state
-    IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
-      jobs.getTableName()+" WHERE "+query+" FOR UPDATE",
-      newList,null,null);
+    Long[] jobIDs = jobs.findJobsMatchingOutputs(list);
+    if (jobIDs.length == 0)
+      return;
+
+    StringBuilder query = new StringBuilder();
+    ArrayList newList = new ArrayList();
+    
+    query.append("SELECT ").append(jobs.idField).append(",").append(jobs.statusField)
+      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(newList,new ClauseDescription[]{
+        new MultiClause(jobs.idField,jobIDs)}))
+      .append(" FOR UPDATE");
+    IResultSet set = database.performQuery(query.toString(),newList,null,null);
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -508,13 +528,20 @@ public class JobManager implements IJobManager
   protected void noteOutputConnectionRegistration(List<String> list)
     throws ManifoldCFException
   {
-    ArrayList newList = new ArrayList();
-    String query = database.buildConjunctionClause(newList,new ClauseDescription[]{
-      new MultiClause(jobs.outputNameField,list)});
     // Query for the matching jobs, and then for each job potentially adjust the state
-    IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
-      jobs.getTableName()+" WHERE "+query+" FOR UPDATE",
-      newList,null,null);
+    Long[] jobIDs = jobs.findJobsMatchingOutputs(list);
+    if (jobIDs.length == 0)
+      return;
+
+    StringBuilder query = new StringBuilder();
+    ArrayList newList = new ArrayList();
+    
+    query.append("SELECT ").append(jobs.idField).append(",").append(jobs.statusField)
+      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(newList,new ClauseDescription[]{
+        new MultiClause(jobs.idField,jobIDs)}))
+      .append(" FOR UPDATE");
+    IResultSet set = database.performQuery(query.toString(),newList,null,null);
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -1519,10 +1546,9 @@ public class JobManager implements IJobManager
           // use  getUnindexableDocumentIdentifiers.
           // This is a table keyed by connection name and containing an ArrayList, which in turn contains DocumentDescription
           // objects.
-          HashMap connectionNameMap = new HashMap();
-          HashMap documentIDMap = new HashMap();
-          int i = 0;
-          while (i < set.getRowCount())
+          Map<String,List<DocumentDescription>> connectionNameMap = new HashMap<String,List<DocumentDescription>>();
+          Map<String,DocumentDescription> documentIDMap = new HashMap<String,DocumentDescription>();
+          for (int i = 0; i < set.getRowCount(); i++)
           {
             IResultRow row = set.getRow(i);
             Long jobID = (Long)row.getValue(jobQueue.jobIDField);
@@ -1543,84 +1569,65 @@ public class JobManager implements IJobManager
               failCount = (int)failCountValue.longValue();
             IJobDescription jobDesc = load(jobID);
             String connectionName = jobDesc.getConnectionName();
-            String outputConnectionName = jobDesc.getOutputConnectionName();
             DocumentDescription dd = new DocumentDescription((Long)row.getValue(jobQueue.idField),
               jobID,documentIDHash,documentID,failTime,failCount);
             String compositeDocumentID = makeCompositeID(documentIDHash,connectionName);
             documentIDMap.put(compositeDocumentID,dd);
-            Map y = (Map)connectionNameMap.get(connectionName);
-            if (y == null)
-            {
-              y = new HashMap();
-              connectionNameMap.put(connectionName,y);
-            }
-            ArrayList x = (ArrayList)y.get(outputConnectionName);
+            List<DocumentDescription> x = connectionNameMap.get(connectionName);
             if (x == null)
             {
               // New entry needed
-              x = new ArrayList();
-              y.put(outputConnectionName,x);
+              x = new ArrayList<DocumentDescription>();
+              connectionNameMap.put(connectionName,x);
             }
             x.add(dd);
-            i++;
           }
 
           // For each bin, obtain a filtered answer, and enter all answers into a hash table.
           // We'll then scan the result again to look up the right descriptions for return,
           // and delete the ones that are owned multiply.
-          HashMap allowedDocIds = new HashMap();
-          Iterator iter = connectionNameMap.keySet().iterator();
+          Map<String,String> allowedDocIds = new HashMap<String,String>();
+          Iterator<String> iter = connectionNameMap.keySet().iterator();
           while (iter.hasNext())
           {
-            String connectionName = (String)iter.next();
-            Map y = (Map)connectionNameMap.get(connectionName);
-            Iterator outputIter = y.keySet().iterator();
-            while (outputIter.hasNext())
+            String connectionName = iter.next();
+            List<DocumentDescription> x = connectionNameMap.get(connectionName);
+            // Do the filter query
+            DocumentDescription[] descriptions = new DocumentDescription[x.size()];
+            for (int j = 0; j < descriptions.length; j++)
             {
-              String outputConnectionName = (String)outputIter.next();
-              ArrayList x = (ArrayList)y.get(outputConnectionName);
-              // Do the filter query
-              DocumentDescription[] descriptions = new DocumentDescription[x.size()];
-              int j = 0;
-              while (j < descriptions.length)
-              {
-                descriptions[j] = (DocumentDescription)x.get(j);
-                j++;
-              }
-              String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName,outputConnectionName);
-              j = 0;
-              while (j < docIDHashes.length)
-              {
-                String docIDHash = docIDHashes[j++];
-                String key = makeCompositeID(docIDHash,connectionName);
-                allowedDocIds.put(key,docIDHash);
-              }
+              descriptions[j] = (DocumentDescription)x.get(j);
+            }
+            String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName);
+            for (String docIDHash : docIDHashes)
+            {
+              String key = makeCompositeID(docIDHash,connectionName);
+              allowedDocIds.put(key,docIDHash);
             }
           }
 
           // Now, assemble a result, and change the state of the records accordingly
           // First thing to do is order by document hash, so we reduce the risk of deadlock.
           String[] compositeIDArray = new String[documentIDMap.size()];
-          i = 0;
+          int j = 0;
           iter = documentIDMap.keySet().iterator();
           while (iter.hasNext())
           {
-            compositeIDArray[i++] = (String)iter.next();
+            compositeIDArray[j++] = iter.next();
           }
           
           java.util.Arrays.sort(compositeIDArray);
           
           DocumentDescription[] rval = new DocumentDescription[documentIDMap.size()];
           boolean[] rvalBoolean = new boolean[documentIDMap.size()];
-          i = 0;
-          while (i < compositeIDArray.length)
+          for (int i = 0; i < compositeIDArray.length; i++)
           {
             String compositeDocID = compositeIDArray[i];
-            DocumentDescription dd = (DocumentDescription)documentIDMap.get(compositeDocID);
+            DocumentDescription dd = documentIDMap.get(compositeDocID);
             // Determine whether we can delete it from the index or not
             rvalBoolean[i] = (allowedDocIds.get(compositeDocID) != null);
             // Set the record status to "being cleaned" and return it
-            rval[i++] = dd;
+            rval[i] = dd;
             jobQueue.setCleaningStatus(dd.getID(),processID);
           }
 
@@ -1782,10 +1789,9 @@ public class JobManager implements IJobManager
           // use  getUnindexableDocumentIdentifiers.
           // This is a table keyed by connection name and containing an ArrayList, which in turn contains DocumentDescription
           // objects.
-          HashMap connectionNameMap = new HashMap();
-          HashMap documentIDMap = new HashMap();
-          int i = 0;
-          while (i < set.getRowCount())
+          Map<String,List<DocumentDescription>> connectionNameMap = new HashMap<String,List<DocumentDescription>>();
+          Map<String,DocumentDescription> documentIDMap = new HashMap<String,DocumentDescription>();
+          for (int i = 0; i < set.getRowCount(); i++)
           {
             IResultRow row = set.getRow(i);
             Long jobID = (Long)row.getValue(jobQueue.jobIDField);
@@ -1806,80 +1812,62 @@ public class JobManager implements IJobManager
               failCount = (int)failCountValue.longValue();
             IJobDescription jobDesc = load(jobID);
             String connectionName = jobDesc.getConnectionName();
-            String outputConnectionName = jobDesc.getOutputConnectionName();
             DocumentDescription dd = new DocumentDescription((Long)row.getValue(jobQueue.idField),
               jobID,documentIDHash,documentID,failTime,failCount);
             String compositeDocumentID = makeCompositeID(documentIDHash,connectionName);
             documentIDMap.put(compositeDocumentID,dd);
-            Map y = (Map)connectionNameMap.get(connectionName);
-            if (y == null)
-            {
-              y = new HashMap();
-              connectionNameMap.put(connectionName,y);
-            }
-            ArrayList x = (ArrayList)y.get(outputConnectionName);
+            List<DocumentDescription> x = connectionNameMap.get(connectionName);
             if (x == null)
             {
               // New entry needed
-              x = new ArrayList();
-              y.put(outputConnectionName,x);
+              x = new ArrayList<DocumentDescription>();
+              connectionNameMap.put(connectionName,x);
             }
             x.add(dd);
-            i++;
           }
 
           // For each bin, obtain a filtered answer, and enter all answers into a hash table.
           // We'll then scan the result again to look up the right descriptions for return,
           // and delete the ones that are owned multiply.
-          HashMap allowedDocIds = new HashMap();
-          Iterator iter = connectionNameMap.keySet().iterator();
+          Map<String,String> allowedDocIds = new HashMap<String,String>();
+          Iterator<String> iter = connectionNameMap.keySet().iterator();
           while (iter.hasNext())
           {
-            String connectionName = (String)iter.next();
-            Map y = (Map)connectionNameMap.get(connectionName);
-            Iterator outputIter = y.keySet().iterator();
-            while (outputIter.hasNext())
+            String connectionName = iter.next();
+            List<DocumentDescription> x = connectionNameMap.get(connectionName);
+            // Do the filter query
+            DocumentDescription[] descriptions = new DocumentDescription[x.size()];
+            for (int j = 0; j < descriptions.length; j++)
             {
-              String outputConnectionName = (String)outputIter.next();
-              ArrayList x = (ArrayList)y.get(outputConnectionName);
-              // Do the filter query
-              DocumentDescription[] descriptions = new DocumentDescription[x.size()];
-              int j = 0;
-              while (j < descriptions.length)
-              {
-                descriptions[j] = (DocumentDescription)x.get(j);
-                j++;
-              }
-              String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName,outputConnectionName);
-              j = 0;
-              while (j < docIDHashes.length)
-              {
-                String docIDHash = docIDHashes[j++];
-                String key = makeCompositeID(docIDHash,connectionName);
-                allowedDocIds.put(key,docIDHash);
-              }
+              descriptions[j] = x.get(j);
+            }
+            String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName);
+            for (int j = 0; j < docIDHashes.length; j++)
+            {
+              String docIDHash = docIDHashes[j];
+              String key = makeCompositeID(docIDHash,connectionName);
+              allowedDocIds.put(key,docIDHash);
             }
           }
 
           // Now, assemble a result, and change the state of the records accordingly
           // First thing to do is order by document hash to reduce chances of deadlock.
           String[] compositeIDArray = new String[documentIDMap.size()];
-          i = 0;
+          int j = 0;
           iter = documentIDMap.keySet().iterator();
           while (iter.hasNext())
           {
-            compositeIDArray[i++] = (String)iter.next();
+            compositeIDArray[j++] = iter.next();
           }
           
           java.util.Arrays.sort(compositeIDArray);
           
           DocumentDescription[] rval = new DocumentDescription[allowedDocIds.size()];
-          int j = 0;
-          i = 0;
-          while (i < compositeIDArray.length)
+          j = 0;
+          for (int i = 0; i < compositeIDArray.length; i++)
           {
             String compositeDocumentID = compositeIDArray[i];
-            DocumentDescription dd = (DocumentDescription)documentIDMap.get(compositeDocumentID);
+            DocumentDescription dd = documentIDMap.get(compositeDocumentID);
             if (allowedDocIds.get(compositeDocumentID) == null)
             {
               // Delete this record and do NOT return it.
@@ -1949,22 +1937,20 @@ public class JobManager implements IJobManager
   * The input list is guaranteed to be smaller in size than maxInClauseCount for the database.
   *@param documentIdentifiers is the set of document identifiers to consider.
   *@param connectionName is the connection name for ALL the document identifiers.
-  *@param outputConnectionName is the output connection name for ALL the document identifiers.
-  *@return the set of documents which should be removed from the index.
+  *@return the set of documents which should be removed from the index, where there are no potential conflicts.
   */
-  protected String[] getUnindexableDocumentIdentifiers(DocumentDescription[] documentIdentifiers, String connectionName, String outputConnectionName)
+  protected String[] getUnindexableDocumentIdentifiers(DocumentDescription[] documentIdentifiers, String connectionName)
     throws ManifoldCFException
   {
     // This is where we will count the individual document id's
-    HashMap countMap = new HashMap();
+    Map<String,MutableInteger> countMap = new HashMap<String,MutableInteger>();
 
     // First thing: Compute the set of document identifier hash values to query against
-    HashMap map = new HashMap();
-    int i = 0;
-    while (i < documentIdentifiers.length)
+    Set<String> map = new HashSet<String>();
+    for (int i = 0; i < documentIdentifiers.length; i++)
     {
-      String hash = documentIdentifiers[i++].getDocumentIdentifierHash();
-      map.put(hash,hash);
+      String hash = documentIdentifiers[i].getDocumentIdentifierHash();
+      map.add(hash);
       countMap.put(hash,new MutableInteger(0));
     }
 
@@ -1975,8 +1961,8 @@ public class JobManager implements IJobManager
     StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     
-    ArrayList docList = new ArrayList();
-    Iterator iter = map.keySet().iterator();
+    List<String> docList = new ArrayList<String>();
+    Iterator<String> iter = map.iterator();
     while (iter.hasNext())
     {
       docList.add(iter.next());
@@ -2014,18 +2000,15 @@ public class JobManager implements IJobManager
     sb.append("EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t1 WHERE ")
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{
         new JoinClause("t1."+jobs.idField,"t0."+jobQueue.jobIDField)})).append(" AND ")
-      .append("t1.").append(jobs.connectionNameField).append("=? AND ")
-      .append("t1.").append(jobs.outputNameField).append("=?)");
+      .append("t1.").append(jobs.connectionNameField).append("=?)");
 
     list.add(connectionName);
-    list.add(outputConnectionName);
 
     // Do the query, and then count the number of times each document identifier occurs.
     IResultSet results = database.performQuery(sb.toString(),list,null,null);
-    i = 0;
-    while (i < results.getRowCount())
+    for (int i = 0; i < results.getRowCount(); i++)
     {
-      IResultRow row = results.getRow(i++);
+      IResultRow row = results.getRow(i);
       String docIDHash = (String)row.getValue(jobQueue.docHashField);
       MutableInteger mi = (MutableInteger)countMap.get(docIDHash);
       if (mi != null)
@@ -2037,8 +2020,8 @@ public class JobManager implements IJobManager
     iter = countMap.keySet().iterator();
     while (iter.hasNext())
     {
-      String docIDHash = (String)iter.next();
-      MutableInteger mi = (MutableInteger)countMap.get(docIDHash);
+      String docIDHash = iter.next();
+      MutableInteger mi = countMap.get(docIDHash);
       if (mi.intValue() == 1)
         count++;
     }
@@ -2048,8 +2031,8 @@ public class JobManager implements IJobManager
     count = 0;
     while (iter.hasNext())
     {
-      String docIDHash = (String)iter.next();
-      MutableInteger mi = (MutableInteger)countMap.get(docIDHash);
+      String docIDHash = iter.next();
+      MutableInteger mi = countMap.get(docIDHash);
       if (mi.intValue() == 1)
         rval[count++] = docIDHash;
     }
@@ -2368,12 +2351,11 @@ public class JobManager implements IJobManager
 
           // To avoid deadlock, we want to update the document id hashes in order.  This means reading into a structure I can sort by docid hash,
           // before updating any rows in jobqueue.
-          HashMap connectionNameMap = new HashMap();
-          HashMap documentIDMap = new HashMap();
-          Map statusMap = new HashMap();
+          Map<String,List<DocumentDescription>> connectionNameMap = new HashMap<String,List<DocumentDescription>>();
+          Map<String,DocumentDescription> documentIDMap = new HashMap<String,DocumentDescription>();
+          Map<String,Integer> statusMap = new HashMap<String,Integer>();
 
-          int i = 0;
-          while (i < set.getRowCount())
+          for (int i = 0; i < set.getRowCount(); i++)
           {
             IResultRow row = set.getRow(i);
             Long jobID = (Long)row.getValue(jobQueue.jobIDField);
@@ -2395,86 +2377,68 @@ public class JobManager implements IJobManager
               failCount = (int)failCountValue.longValue();
             IJobDescription jobDesc = load(jobID);
             String connectionName = jobDesc.getConnectionName();
-            String outputConnectionName = jobDesc.getOutputConnectionName();
             DocumentDescription dd = new DocumentDescription((Long)row.getValue(jobQueue.idField),
               jobID,documentIDHash,documentID,failTime,failCount);
             String compositeDocumentID = makeCompositeID(documentIDHash,connectionName);
             documentIDMap.put(compositeDocumentID,dd);
             statusMap.put(compositeDocumentID,new Integer(status));
-            Map y = (Map)connectionNameMap.get(connectionName);
-            if (y == null)
-            {
-              y = new HashMap();
-              connectionNameMap.put(connectionName,y);
-            }
-            ArrayList x = (ArrayList)y.get(outputConnectionName);
+            List<DocumentDescription> x = connectionNameMap.get(connectionName);
             if (x == null)
             {
               // New entry needed
-              x = new ArrayList();
-              y.put(outputConnectionName,x);
+              x = new ArrayList<DocumentDescription>();
+              connectionNameMap.put(connectionName,x);
             }
             x.add(dd);
-            i++;
           }
 
           // For each bin, obtain a filtered answer, and enter all answers into a hash table.
           // We'll then scan the result again to look up the right descriptions for return,
           // and delete the ones that are owned multiply.
-          HashMap allowedDocIds = new HashMap();
-          Iterator iter = connectionNameMap.keySet().iterator();
+          Map<String,String> allowedDocIds = new HashMap<String,String>();
+          Iterator<String> iter = connectionNameMap.keySet().iterator();
           while (iter.hasNext())
           {
-            String connectionName = (String)iter.next();
-            Map y = (Map)connectionNameMap.get(connectionName);
-            Iterator outputIter = y.keySet().iterator();
-            while (outputIter.hasNext())
+            String connectionName = iter.next();
+            List<DocumentDescription> x = connectionNameMap.get(connectionName);
+            // Do the filter query
+            DocumentDescription[] descriptions = new DocumentDescription[x.size()];
+            for (int j = 0; j < descriptions.length; j++)
             {
-              String outputConnectionName = (String)outputIter.next();
-              ArrayList x = (ArrayList)y.get(outputConnectionName);
-              // Do the filter query
-              DocumentDescription[] descriptions = new DocumentDescription[x.size()];
-              int j = 0;
-              while (j < descriptions.length)
-              {
-                descriptions[j] = (DocumentDescription)x.get(j);
-                j++;
-              }
-              String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName,outputConnectionName);
-              j = 0;
-              while (j < docIDHashes.length)
-              {
-                String docIDHash = docIDHashes[j++];
-                String key = makeCompositeID(docIDHash,connectionName);
-                allowedDocIds.put(key,docIDHash);
-              }
+              descriptions[j] = x.get(j);
+            }
+            String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName);
+            for (int j = 0; j < docIDHashes.length; j++)
+            {
+              String docIDHash = docIDHashes[j];
+              String key = makeCompositeID(docIDHash,connectionName);
+              allowedDocIds.put(key,docIDHash);
             }
           }
 
           // Now, assemble a result, and change the state of the records accordingly
           // First thing to do is order by document hash, so we reduce the risk of deadlock.
           String[] compositeIDArray = new String[documentIDMap.size()];
-          i = 0;
+          int j = 0;
           iter = documentIDMap.keySet().iterator();
           while (iter.hasNext())
           {
-            compositeIDArray[i++] = (String)iter.next();
+            compositeIDArray[j++] = iter.next();
           }
           
           java.util.Arrays.sort(compositeIDArray);
           
           DocumentDescription[] rval = new DocumentDescription[documentIDMap.size()];
           boolean[] rvalBoolean = new boolean[documentIDMap.size()];
-          i = 0;
-          while (i < compositeIDArray.length)
+          for (int i = 0; i < compositeIDArray.length; i++)
           {
             String compositeDocID = compositeIDArray[i];
-            DocumentDescription dd = (DocumentDescription)documentIDMap.get(compositeDocID);
+            DocumentDescription dd = documentIDMap.get(compositeDocID);
             // Determine whether we can delete it from the index or not
             rvalBoolean[i] = (allowedDocIds.get(compositeDocID) != null);
             // Set the record status to "being cleaned" and return it
-            rval[i++] = dd;
-            jobQueue.updateActiveRecord(dd.getID(),((Integer)statusMap.get(compositeDocID)).intValue(),processID);
+            rval[i] = dd;
+            jobQueue.updateActiveRecord(dd.getID(),statusMap.get(compositeDocID).intValue(),processID);
           }
 
           TrackerClass.notePrecommit();
@@ -5640,7 +5604,6 @@ public class JobManager implements IJobManager
           .append(jobs.lastTimeField).append(",")
           .append(jobs.statusField).append(",")
           .append(jobs.startMethodField).append(",")
-          .append(jobs.outputNameField).append(",")
           .append(jobs.connectionNameField)
           .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
           .append(database.buildConjunctionClause(list,new ClauseDescription[]{
@@ -5675,7 +5638,6 @@ public class JobManager implements IJobManager
 
           Long jobID = (Long)row.getValue(jobs.idField);
           int startMethod = jobs.stringToStartMethod((String)row.getValue(jobs.startMethodField));
-          String outputName = (String)row.getValue(jobs.outputNameField);
           String connectionName = (String)row.getValue(jobs.connectionNameField);
           ScheduleRecord[] thisSchedule = srSet[i++];
 

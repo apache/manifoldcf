@@ -41,7 +41,7 @@ public class ListJobs
       System.err.println("Usage: ListJobs");
       System.err.println("");
       System.err.println("The result will be printed to standard out, will be UTF-8 encoded, and will contain the following columns:");
-      System.err.println("    identifier,description,connection,outputconnection,startmode,runmode,hopcountmode,priority,rescaninterval,expirationinterval,reseedinterval,outputspecification");
+      System.err.println("    identifier,description,connection,startmode,runmode,hopcountmode,priority,rescaninterval,expirationinterval,reseedinterval");
       System.exit(1);
     }
 
@@ -57,20 +57,18 @@ public class ListJobs
       {
         IJobDescription job = jobs[i++];
 
-        //identifier,description,connection,outputconnection,startmode,runmode,hopcountmode,priority,rescaninterval,expirationinterval,reseedinterval,outputspecification
+        //identifier,description,connection,startmode,runmode,hopcountmode,priority,rescaninterval,expirationinterval,reseedinterval
 
         UTF8Stdout.println(job.getID().toString()+","+
           ((job.getDescription()==null)?"":commaEscape(job.getDescription()))+","+
           commaEscape(job.getConnectionName())+","+
-          commaEscape(job.getOutputConnectionName())+","+
           startModeMap(job.getStartMethod())+","+
           runModeMap(job.getType())+","+
           hopcountModeMap(job.getHopcountMode())+","+
           Integer.toString(job.getPriority())+","+
           presentInterval(job.getInterval())+","+
           presentInterval(job.getExpiration())+","+
-          presentInterval(job.getReseedInterval())+","+
-          ((job.getOutputSpecification()==null)?"":commaEscape(job.getOutputSpecification().toXML())));
+          presentInterval(job.getReseedInterval()));
       }
       System.err.println("Job list done");
     }
