@@ -162,7 +162,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (serverVersion == null)
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
-      dspStsWorks = serverVersion.equals("2.0") || serverVersion.equals("3.0");
+      dspStsWorks = !serverVersion.equals("4.0");
       attachmentsSupported = !serverVersion.equals("2.0");
       
       String authorityType = params.getParameter( SharePointConfig.PARAM_AUTHORITYTYPE );
@@ -1513,8 +1513,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                       }
                     }
                     data.addField("GUID",guid);
-                    
-                    activities.ingestDocument( documentIdentifier, version, itemUrl , data );
+                    try
+                    {
+                      activities.ingestDocumentWithException( documentIdentifier, version, itemUrl , data );
+                    }
+                    catch (IOException e)
+                    {
+                      handleIOException(e,"reading document");
+                    }
                   }
                   finally
                   {
@@ -1522,13 +1528,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     {
                       is.close();
                     }
-                    catch (InterruptedIOException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
                     catch (IOException e)
                     {
-                      // This should never happen; we're closing a bytearrayinputstream
+                      handleIOException(e,"closing stream");
                     }
                   }
                 }
@@ -2008,7 +2010,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 }
                 data.addField("GUID",guid);
                 
-                activities.ingestDocument( documentIdentifier, version, fileUrl , data );
+                try
+                {
+                  activities.ingestDocumentWithException( documentIdentifier, version, fileUrl , data );
+                }
+                catch (IOException e)
+                {
+                  handleIOException(e,"reading document");
+                }
                 return true;
               }
               finally
@@ -2085,6 +2094,27 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
 
+  protected static void handleIOException(IOException e, String context)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (e instanceof java.net.SocketTimeoutException)
+    {
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("SharePoint is down attempting to "+context+", retrying: "+e.getMessage(),e,currentTime + 300000L,
+        currentTime + 12 * 60 * 60000L,-1,true);
+    }
+    else if (e instanceof org.apache.http.conn.ConnectTimeoutException)
+    {
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("SharePoint is down attempting to "+context+", retrying: "+e.getMessage(),e,currentTime + 300000L,
+        currentTime + 12 * 60 * 60000L,-1,true);
+    }
+    else if (e instanceof InterruptedIOException)
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    else
+      throw new ManifoldCFException(e.getMessage(),e);
+  }
+  
   /** Map an extension to a mime type */
   protected static String mapExtensionToMimeType(String fileName)
   {
