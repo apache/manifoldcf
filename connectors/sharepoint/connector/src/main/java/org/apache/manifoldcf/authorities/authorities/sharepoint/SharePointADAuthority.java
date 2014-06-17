@@ -463,7 +463,7 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
   
   protected static String authenticatedUserGroup()
   {
-    return "Uc:0!.s|true";
+    return "Uc:0(.s|true";
   }
   
   protected static String groupTokenFromSID(String SID)
