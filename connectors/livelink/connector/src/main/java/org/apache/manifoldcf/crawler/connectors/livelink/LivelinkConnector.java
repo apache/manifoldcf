@@ -4456,7 +4456,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                         {
                           rd.setBinary(is,dataSize);
                             
-                          activities.ingestDocument(documentIdentifier,version,viewHttpAddress,rd);
+                          activities.ingestDocumentWithException(documentIdentifier,version,viewHttpAddress,rd);
 
                           if (Logging.connectors.isDebugEnabled())
                             Logging.connectors.debug("Livelink: Ingesting done "+contextMsg);
@@ -4650,7 +4650,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                   {
                     // Can only index while background thread is running!
                     rd.setBinary(is, dataSize);
-                    activities.ingestDocument(documentIdentifier, version, viewHttpAddress, rd);
+                    activities.ingestDocumentWithException(documentIdentifier, version, viewHttpAddress, rd);
                   }
                   finally
                   {

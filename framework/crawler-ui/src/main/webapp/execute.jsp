@@ -884,16 +884,11 @@
 					// Figure out what got posted.
 					String x = variableContext.getParameter("connectionpresent");
 					boolean connectionPresent = (x != null && x.equals("true"));
-					x = variableContext.getParameter("outputpresent");
-					boolean outputPresent = (x != null && x.equals("true"));
 					
 					// Gather the rest of the data.
 					x = variableContext.getParameter("description");
 					if (x != null)
 						job.setDescription(x);
-					x = variableContext.getParameter("outputname");
-					if (x != null)
-						job.setOutputConnectionName(x);
 					x = variableContext.getParameter("connectionname");
 					if (x != null)
 						job.setConnectionName(x);
@@ -916,9 +911,11 @@
 						for (int j = 0; j < count; j++)
 						{
 							// Gather everything first; we'll look at edits later
+							int precedent = Integer.parseInt(variableContext.getParameter("pipeline_"+j+"_precedent"));
+							boolean isOutput = variableContext.getParameter("pipeline_"+j+"_isoutput").equals("true");
 							String connectionName = variableContext.getParameter("pipeline_"+j+"_connectionname");
 							String description = variableContext.getParameter("pipeline_"+j+"_description");
-							job.addPipelineStage(connectionName, description);
+							job.addPipelineStage(precedent, isOutput, connectionName, description);
 						}
 					}
 
@@ -1165,9 +1162,6 @@
 					IRepositoryConnection connection = null;
 					if (job.getConnectionName() != null && job.getConnectionName().length() > 0)
 						connection = connManager.load(job.getConnectionName());
-					IOutputConnection outputConnection = null;
-					if (job.getOutputConnectionName() != null && job.getOutputConnectionName().length() > 0)
-						outputConnection = outputManager.load(job.getOutputConnectionName());
 					
 					if (connection != null)
 					{
@@ -1187,30 +1181,6 @@
 								{
 									job.addHopCountFilter(relationshipType,new Long(x));
 								}
-							}
-						}
-					}
-					
-					if (outputPresent && outputConnection != null)
-					{
-						IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
-						if (outputConnector != null)
-						{
-							try
-							{
-								String error = outputConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getOutputSpecification(),1+job.countPipelineStages());
-								if (error != null)
-								{
-									variableContext.setParameter("text",error);
-									variableContext.setParameter("target","listjobs.jsp");
-%>
-									<jsp:forward page="error.jsp"/>
-<%
-								}
-							}
-							finally
-							{
-								outputConnectorPool.release(outputConnection,outputConnector);
 							}
 						}
 					}
@@ -1242,32 +1212,62 @@
 					// Process all pipeline stages
 					for (int j = 0; j < job.countPipelineStages(); j++)
 					{
-						ITransformationConnection transformationConnection = transformationManager.load(job.getPipelineStageConnectionName(j));
-						if (transformationConnection != null)
+						if (job.getPipelineStageIsOutputConnection(j))
 						{
-							ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnection);
-							if (transformationConnector != null)
+							IOutputConnection outputConnection = outputManager.load(job.getPipelineStageConnectionName(j));
+							if (outputConnection != null)
 							{
-								try
+								IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
+								if (outputConnector != null)
 								{
-									String error = transformationConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getPipelineStageSpecification(j),1+j);
-									if (error != null)
+									try
 									{
-										variableContext.setParameter("text",error);
-										variableContext.setParameter("target","listjobs.jsp");
+										String error = outputConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getPipelineStageSpecification(j),1+j);
+										if (error != null)
+										{
+											variableContext.setParameter("text",error);
+											variableContext.setParameter("target","listjobs.jsp");
 %>
 									<jsp:forward page="error.jsp"/>
 <%
+										}
+									}
+									finally
+									{
+										outputConnectorPool.release(outputConnection,outputConnector);
 									}
 								}
-								finally
+							}
+						}
+						else
+						{
+							ITransformationConnection transformationConnection = transformationManager.load(job.getPipelineStageConnectionName(j));
+							if (transformationConnection != null)
+							{
+								ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnection);
+								if (transformationConnector != null)
 								{
-									transformationConnectorPool.release(transformationConnection,transformationConnector);
+									try
+									{
+										String error = transformationConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getPipelineStageSpecification(j),1+j);
+										if (error != null)
+										{
+											variableContext.setParameter("text",error);
+											variableContext.setParameter("target","listjobs.jsp");
+%>
+									<jsp:forward page="error.jsp"/>
+<%
+										}
+									}
+									finally
+									{
+										transformationConnectorPool.release(transformationConnection,transformationConnector);
+									}
 								}
 							}
 						}
 					}
-					
+
 					// Now, after gathering is complete, consider doing changes to the pipeline.
 					int currentStage = 0;
 					for (int j = 0; j < job.countPipelineStages(); j++)
@@ -1276,26 +1276,36 @@
 						x = variableContext.getParameter("pipeline_"+j+"_op");
 						if (x != null && x.equals("Delete"))
 						{
-							// Delete this pipeline stage
+							// Delete this pipeline stage (and rewire other stages according to rules)
 							job.deletePipelineStage(currentStage);
 						}
-						else if (x != null && x.equals("Insert"))
+						else if (x != null && x.equals("InsertTransformation"))
 						{
 							// Insert a new stage before this one
-							String connectionName = variableContext.getParameter("pipeline_connectionname");
-							String description = variableContext.getParameter("pipeline_description");
-							job.insertPipelineStage(currentStage++,connectionName,description);
+							String connectionName = variableContext.getParameter("transformation_connectionname");
+							String description = variableContext.getParameter("transformation_description");
+							job.insertPipelineStage(currentStage,false,connectionName,description);
+							currentStage++;
+						}
+						else if (x != null && x.equals("InsertOutput"))
+						{
+							// Insert a new stage before this one
+							String connectionName = variableContext.getParameter("output_connectionname");
+							String description = variableContext.getParameter("output_description");
+							job.insertPipelineStage(currentStage,true,connectionName,description);
+							currentStage++;
 						}
 						else
 							currentStage++;
 					}
-					x = variableContext.getParameter("pipeline_op");
+					x = variableContext.getParameter("output_op");
 					if (x != null && x.equals("Add"))
 					{
 						// Append a new stage at the end
-						String connectionName = variableContext.getParameter("pipeline_connectionname");
-						String description = variableContext.getParameter("pipeline_description");
-						job.addPipelineStage(connectionName,description);
+						int precedent = Integer.parseInt(variableContext.getParameter("output_precedent"));
+						String connectionName = variableContext.getParameter("output_connectionname");
+						String description = variableContext.getParameter("output_description");
+						job.addPipelineStage(precedent,true,connectionName,description);
 					}
 					
 					if (op.equals("Continue"))

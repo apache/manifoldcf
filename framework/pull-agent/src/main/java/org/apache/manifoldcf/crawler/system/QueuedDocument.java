@@ -22,6 +22,8 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 
+import java.util.*;
+
 /** This class represents a document that will be placed on the document queue, and will be
 * processed by a worker thread.
 * The reason that DocumentDescription by itself is not used has to do with the fact that
@@ -35,11 +37,11 @@ public class QueuedDocument
   public static final String _rcsid = "@(#)$Id: QueuedDocument.java 988245 2010-08-23 18:39:35Z kwright $";
 
   /** The document description. */
-  protected DocumentDescription documentDescription;
+  protected final DocumentDescription documentDescription;
   /** The last ingested status, null meaning "never ingested". */
-  protected DocumentIngestStatus lastIngestedStatus;
+  protected final Map<String,DocumentIngestStatus> lastIngestedStatus;
   /** The binnames for the document, according to the connector */
-  protected String[] binNames;
+  protected final String[] binNames;
   /** This flag indicates whether the document has been processed or not. */
   protected boolean wasProcessed = false;
 
@@ -48,7 +50,7 @@ public class QueuedDocument
   *@param lastIngestedStatus is the document's last ingested status.
   *@param binNames are the bins associated with the document.
   */
-  public QueuedDocument(DocumentDescription documentDescription, DocumentIngestStatus lastIngestedStatus, String[] binNames)
+  public QueuedDocument(DocumentDescription documentDescription, Map<String,DocumentIngestStatus> lastIngestedStatus, String[] binNames)
   {
     this.documentDescription = documentDescription;
     this.lastIngestedStatus = lastIngestedStatus;
@@ -64,13 +66,26 @@ public class QueuedDocument
   }
 
   /** Get the last ingested status.
-  *@return the last ingested status, or null if not ingested before.
+  *@param outputConnectionName is the name of the output connection.
+  *@return the last ingested status for that output, or null if not found.
   */
-  public DocumentIngestStatus getLastIngestedStatus()
+  public DocumentIngestStatus getLastIngestedStatus(String outputConnectionName)
   {
-    return lastIngestedStatus;
+    if (lastIngestedStatus == null)
+      return null;
+    return lastIngestedStatus.get(outputConnectionName);
   }
 
+  /** Return true if there are *any* last ingested records.
+  *@return true if any last ingested records exist.
+  */
+  public boolean anyLastIngestedRecords()
+  {
+    if (lastIngestedStatus == null)
+      return false;
+    return lastIngestedStatus.size() > 0;
+  }
+  
   /** Get the bin names for this document */
   public String[] getBinNames()
   {

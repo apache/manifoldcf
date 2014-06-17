@@ -59,6 +59,7 @@
             <include name="slf4j*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
+            <include name="junit*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
             <include name="servlet-api*.jar"/>
@@ -80,22 +81,6 @@
             <include name="jtds*.jar"/>
         </fileset>
 
-    </path>
-
-    <path id="framework-test-classpath">
-        <path refid="framework-classpath"/>
-        <fileset dir="../lib">
-            <include name="junit*.jar"/>
-            <include name="powermock-module-junit4*.jar"/>
-            <include name="powermock-core*.jar"/>
-            <include name="powermock-reflect*.jar"/>
-            <include name="powermock-api-support*.jar"/>
-            <include name="powermock-api-mockito*.jar"/>
-            <include name="mockito-all*.jar"/>
-            <include name="noggit*.jar"/>
-            <include name="javassist*.jar"/>
-            <include name="objenesis*.jar"/>
-        </fileset>
     </path>
     
     <target name="doc">
@@ -1548,7 +1533,7 @@
         <mkdir dir="build/core-tests/classes"/>
         <javac srcdir="core/src/test/java" destdir="build/core-tests/classes" deprecation="true" target="1.7" source="1.7" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
             </classpath>
         </javac>
@@ -1558,7 +1543,7 @@
         <mkdir dir="build/agents-tests/classes"/>
         <javac srcdir="agents/src/test/java" destdir="build/agents-tests/classes" deprecation="true" target="1.7" source="1.7" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1570,7 +1555,7 @@
         <mkdir dir="build/pull-agent-tests/classes"/>
         <javac srcdir="pull-agent/src/test/java" destdir="build/pull-agent-tests/classes" deprecation="true" target="1.7" source="1.7" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1584,7 +1569,7 @@
         <mkdir dir="build/script-engine-tests/classes"/>
         <javac srcdir="script-engine/src/test/java" destdir="build/script-engine-tests/classes" deprecation="true" target="1.7" source="1.7" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/script-engine/classes"/>
             </classpath>
@@ -1624,15 +1609,6 @@
             <fileset dir="../lib">
                 <include name="junit*.jar"/>
                 <include name="juli*.jar"/>
-                <include name="powermock-module-junit4*.jar"/>
-                <include name="powermock-core*.jar"/>
-                <include name="powermock-reflect*.jar"/>
-                <include name="powermock-api-support*.jar"/>
-                <include name="powermock-api-mockito*.jar"/>
-                <include name="mockito-all*.jar"/>
-                <include name="noggit*.jar"/>
-                <include name="javassist*.jar"/>
-                <include name="objenesis*.jar"/>
             </fileset>
             <fileset dir="build/test-jar">
                 <include name="mcf-core-tests.jar"/>
@@ -1649,7 +1625,7 @@
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
             </classpath>
@@ -1667,7 +1643,7 @@
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1686,7 +1662,7 @@
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/script-engine/classes"/>
                 <pathelement location="build/script-engine-tests/classes"/>
@@ -1703,7 +1679,7 @@
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <fileset dir="build/test-jar">
                     <include name="mcf-core-tests.jar"/>
                 </fileset>
@@ -1721,7 +1697,7 @@
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1744,7 +1720,7 @@
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1767,7 +1743,7 @@
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1790,7 +1766,7 @@
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -1813,7 +1789,7 @@
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <path refid="framework-test-classpath"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
