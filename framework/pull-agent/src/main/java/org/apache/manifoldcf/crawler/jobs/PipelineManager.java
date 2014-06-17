@@ -238,6 +238,18 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
   public boolean compareRows(Long ownerID, IJobDescription job)
     throws ManifoldCFException
   {
+    // Compute a set of the outputs
+    Set<String> outputSet = new HashSet<String>();
+    for (int i = 0; i < job.countPipelineStages(); i++)
+    {
+      if (job.getPipelineStageIsOutputConnection(i))
+      {
+        String outputName = job.getPipelineStageConnectionName(i);
+        if (outputSet.contains(outputName))
+          throw new ManifoldCFException("Output name '"+outputName+"' is duplicated within job; not allowed");
+        outputSet.add(outputName);
+      }
+    }
     ArrayList params = new ArrayList();
     String query = buildConjunctionClause(params,new ClauseDescription[]{
       new UnitaryClause(ownerIDField,ownerID)});
@@ -249,6 +261,8 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     {
       IResultRow row = set.getRow(i);
       String outputConnectionName = (String)row.getValue(outputNameField);
+      if (!outputSet.contains(outputConnectionName))
+        throw new ManifoldCFException("Output name '"+outputConnectionName+"' removed from job; not allowed");
       String transformationConnectionName = (String)row.getValue(transformationNameField);
       Long prerequisite = (Long)row.getValue(prerequisiteField);
       String spec = (String)row.getValue(connectionSpecField);
