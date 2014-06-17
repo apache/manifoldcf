@@ -91,10 +91,6 @@ public class SolrTester
     sn.setAttribute("count","111");
     ds.addChild(ds.getChildCount(),sn);
       
-    // Set up the output specification.
-    OutputSpecification os = job.getOutputSpecification();
-    // Solr output specification is not needed
-      
     // Save the job.
     jobManager.save(job);
 
