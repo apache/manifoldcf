@@ -267,17 +267,21 @@ public class JobDescription implements IJobDescription
   *@return the newly-created output specification.
   */
   @Override
-  public OutputSpecification insertPipelineStage(int index, int prerequisiteStage, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription)
+  public OutputSpecification insertPipelineStage(int index, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription)
   {
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
-    PipelineStage ps = new PipelineStage(prerequisiteStage,isOutput,pipelineStageConnectionName,pipelineStageDescription);
+    // What we do here depends on the kind of stage we're inserting.
+    // Both kinds take the current stage's prerequisite as their own.  But what happens to the current stage will
+    // differ as to whether its reference changes or not.
+    PipelineStage currentStage = pipelineStages.get(index);
+    PipelineStage ps = new PipelineStage(currentStage.getPrerequisiteStage(),isOutput,pipelineStageConnectionName,pipelineStageDescription);
     pipelineStages.add(index,ps);
     // Adjust stage back-references
     int stage = index + 1;
     while (stage < pipelineStages.size())
     {
-      pipelineStages.get(stage).adjustForInsert(index);
+      pipelineStages.get(stage).adjustForInsert(index,isOutput);
       stage++;
     }
     return ps.getSpecification();
@@ -666,9 +670,9 @@ public class JobDescription implements IJobDescription
       this.specification = spec;
     }
     
-    public void adjustForInsert(int index)
+    public void adjustForInsert(int index, boolean isOutput)
     {
-      if (prerequisiteStage >= index)
+      if (prerequisiteStage > index || (prerequisiteStage == index && !isOutput))
         prerequisiteStage++;
     }
     

@@ -1063,14 +1063,14 @@
 		// A list of precedents to pick from, displayed at the end
 		List<Integer> precedents = new ArrayList<Integer>();
 		// Repository connection is always allowed
-		precedents.add(new Integer(0));
+		precedents.add(new Integer(-1));
 		Set<String> alreadyPresent = new HashSet<String>();
 		for (int j = 0; j < pipelineConnectionNames.length; j++)
 		{
 			if (pipelineIsOutputs[j])
 				alreadyPresent.add(pipelineConnectionNames[j]);
 			else
-				precedents.add(new Integer(j+1));
+				precedents.add(new Integer(j));
 			if (pipelinePrerequisites[j] != -1)
 			{
 				Integer thisOne = new Integer(pipelinePrerequisites[j]);
@@ -1791,12 +1791,6 @@
 		}
 	}
 
-	if (outputPresent)
-	{
-%>
-		  <input type="hidden" name="outputpresent" value="true"/>
-<%
-	}
 %>
 		  <table class="displaytable">
 			<tr><td class="separator" colspan="4"><hr/></td></tr>
