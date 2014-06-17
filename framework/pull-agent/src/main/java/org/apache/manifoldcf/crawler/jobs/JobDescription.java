@@ -277,11 +277,12 @@ public class JobDescription implements IJobDescription
     PipelineStage currentStage = pipelineStages.get(index);
     PipelineStage ps = new PipelineStage(currentStage.getPrerequisiteStage(),isOutput,pipelineStageConnectionName,pipelineStageDescription);
     pipelineStages.add(index,ps);
+    currentStage.adjustReplacedStage(index,isOutput);
     // Adjust stage back-references
-    int stage = index + 1;
+    int stage = index + 2;
     while (stage < pipelineStages.size())
     {
-      pipelineStages.get(stage).adjustForInsert(index,isOutput);
+      pipelineStages.get(stage).adjustForInsert(index);
       stage++;
     }
     return ps.getSpecification();
@@ -348,6 +349,7 @@ public class JobDescription implements IJobDescription
     while (stage < pipelineStages.size())
     {
       pipelineStages.get(stage).adjustForDelete(index,ps.getPrerequisiteStage());
+      stage++;
     }
   }
 
@@ -670,10 +672,20 @@ public class JobDescription implements IJobDescription
       this.specification = spec;
     }
     
-    public void adjustForInsert(int index, boolean isOutput)
+    public void adjustReplacedStage(int index, boolean isOutput)
     {
-      if (prerequisiteStage > index || (prerequisiteStage == index && !isOutput))
+      if (!isOutput)
+	prerequisiteStage = index;
+      else
+	adjustForInsert(index);
+    }
+    
+    public void adjustForInsert(int index)
+    {
+      if (prerequisiteStage >= index)
+      {
         prerequisiteStage++;
+      }
     }
     
     public void adjustForDelete(int index, int prerequisite)
