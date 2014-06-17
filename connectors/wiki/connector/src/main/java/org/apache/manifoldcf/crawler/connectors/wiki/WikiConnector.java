@@ -3871,7 +3871,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
                   rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,allowACL,denyACL);
                 }
 
-                activities.ingestDocument(documentIdentifier,documentVersion,fullURL,rd);
+                activities.ingestDocumentWithException(documentIdentifier,documentVersion,fullURL,rd);
               }
               finally
               {
