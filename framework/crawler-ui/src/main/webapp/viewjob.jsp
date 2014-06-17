@@ -680,7 +680,10 @@
 		}
 %>
 			<tr>
-				<td class="separator" colspan="4">1.<hr/></td>
+				<td class="separator" colspan="4"><hr/></td>
+			</tr>
+			<tr>
+				<td class="message" colspan="4">1.</td>
 			</tr>
 			<tr>
 				<td colspan="4">
@@ -708,7 +711,10 @@
 		{
 %>
 			<tr>
-				<td class="separator" colspan="4"><%=(j+2)%>.<hr/></td>
+				<td class="separator" colspan="4"><hr/></td>
+			</tr>
+			<tr>
+				<td class="message" colspan="4"><%=(j+2)%>.</td>
 			</tr>
 			<tr>
 				<td colspan="4">

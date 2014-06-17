@@ -1121,7 +1121,7 @@
 							<td class="formcolumncell"><%=pipelineType%>
 								<input name="pipeline_<%=j%>_isoutput" type="hidden" value='<%=pipelineIsOutputs[j]?"true":"false"%>'/>
 							</td>
-							<td class="formcolumncell"><%=(pipelinePrerequisites[j] + 2)%>
+							<td class="formcolumncell"><%=(pipelinePrerequisites[j] + 2)%>.
 								<input name="pipeline_<%=j%>_precedent" type="hidden" value="<%=pipelinePrerequisites[j]%>"/>
 							</td>
 							<td class="formcolumncell">
