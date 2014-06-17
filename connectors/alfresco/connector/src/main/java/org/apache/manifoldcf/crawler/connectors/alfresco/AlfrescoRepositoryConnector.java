@@ -931,7 +931,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
             //the document uri is related to the specific d:content property available in the node
             //we want to ingest each content stream that are nested in a single node
             String documentURI = binary.getUrl();
-            activities.ingestDocument(id, version, documentURI, rd);
+            activities.ingestDocumentWithException(id, version, documentURI, rd);
           }
           
           AuthenticationUtils.endSession();
