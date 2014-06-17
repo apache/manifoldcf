@@ -1887,7 +1887,6 @@ public class JobManager implements IJobManager
               rval[j++] = dd;
               jobQueue.setDeletingStatus(dd.getID(),processID);
             }
-            i++;
           }
 
           TrackerClass.notePrecommit();
