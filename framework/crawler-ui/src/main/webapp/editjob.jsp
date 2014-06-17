@@ -1081,6 +1081,7 @@
 					referenceCounts.put(thisOne,new Integer(x.intValue() + 1));
 			}
 		}
+		boolean anyTransformationButtons = false;
 		for (int j = 0; j < pipelineConnectionNames.length; j++)
 		{
 			String pipelineConnectionName = pipelineConnectionNames[j];
@@ -1105,6 +1106,7 @@
 			}
 			if (transformationList.length > 0)
 			{
+				anyTransformationButtons = true;
 %>
 								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertTransformationBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewtransformationhere")%>' onclick="javascript:InsertPipelineStageTransformation(<%=j%>);"/>
 <%
@@ -1134,7 +1136,7 @@
 						</tr>
 <%
 		}
-		if (transformationList.length > 0)
+		if (anyTransformationButtons)
 		{
 %>
 						<tr class="formrow"><td class="formseparator" colspan="4"><hr/></td></tr>
