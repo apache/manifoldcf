@@ -168,8 +168,17 @@ public class APISanityDerbyIT extends BaseITDerby
       child.setValue("Test Connection");
       jobObject.addChild(jobObject.getChildCount(),child);
 
-      child = new ConfigurationNode("output_connection");
-      child.setValue("ElasticSearch");
+      // Revamped way of adding output connection
+      child = new ConfigurationNode("pipelinestage");
+      ConfigurationNode pipelineChild = new ConfigurationNode("stage_id");
+      pipelineChild.setValue("0");
+      child.addChild(child.getChildCount(),pipelineChild);
+      pipelineChild = new ConfigurationNode("stage_isoutput");
+      pipelineChild.setValue("true");
+      child.addChild(child.getChildCount(),pipelineChild);
+      pipelineChild = new ConfigurationNode("stage_connectionname");
+      pipelineChild.setValue("ElasticSearch");
+      child.addChild(child.getChildCount(),pipelineChild);
       jobObject.addChild(jobObject.getChildCount(),child);
 
       child = new ConfigurationNode("run_mode");

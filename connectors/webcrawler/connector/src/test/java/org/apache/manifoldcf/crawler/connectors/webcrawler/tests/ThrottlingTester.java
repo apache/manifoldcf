@@ -94,7 +94,7 @@ public class ThrottlingTester
     IJobDescription job = jobManager.createJob();
     job.setDescription("Test Job");
     job.setConnectionName("Web Connection");
-    job.setOutputConnectionName("Null Connection");
+    job.addPipelineStage(-1,true,"Null Connection","");
     job.setType(job.TYPE_SPECIFIED);
     job.setStartMethod(job.START_DISABLE);
     job.setHopcountMode(job.HOPCOUNT_NEVERDELETE);
@@ -120,10 +120,6 @@ public class ThrottlingTester
     sn.setValue(".*\n");
     ds.addChild(ds.getChildCount(),sn);
 
-    // Set up the output specification.
-    OutputSpecification os = job.getOutputSpecification();
-    // Null output connections have no output specification, so this is a no-op.
-    
     // Save the job.
     jobManager.save(job);
 
