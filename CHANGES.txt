@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-965: Update end-user documentation to reflect
+multiple outputs per job.
+(Karl Wright)
+
 CONNECTORS-964: Document REST API changes for multiple outputs
 per job.
 (Karl Wright)
