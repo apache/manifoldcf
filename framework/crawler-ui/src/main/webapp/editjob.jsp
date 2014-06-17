@@ -78,14 +78,17 @@
 
 	// Setup default fields
 	String connectionName = "";
-	String outputName = "";
-	String[] transformationNames = new String[0];
-	String[] transformationDescriptions = new String[0];
 	String description = "";
 	int type = IJobDescription.TYPE_SPECIFIED;
-	OutputSpecification outputSpecification = new OutputSpecification();
 	DocumentSpecification documentSpecification = new DocumentSpecification();
-	OutputSpecification[] transformationSpecifications = new OutputSpecification[0];
+	
+	// Pipeline data
+	String[] pipelineConnectionNames = new String[0];
+	String[] pipelineDescriptions = new String[0];
+	boolean[] pipelineIsOutputs = new boolean[0];
+	int[] pipelinePrerequisites = new int[0];
+	OutputSpecification[] pipelineSpecifications = new OutputSpecification[0];
+	
 	ArrayList scheduleRecords = new ArrayList();
 
 	EnumeratedValues dayOfWeek = null;
@@ -123,21 +126,24 @@
 	{
 		// Set up values
 		description = job.getDescription();
-		outputName = job.getOutputConnectionName();
 		connectionName = job.getConnectionName();
-		transformationNames = new String[job.countPipelineStages()];
-		transformationDescriptions = new String[job.countPipelineStages()];
-		transformationSpecifications = new OutputSpecification[job.countPipelineStages()];
+		
+		pipelineConnectionNames = new String[job.countPipelineStages()];
+		pipelineDescriptions = new String[job.countPipelineStages()];
+		pipelineIsOutputs = new boolean[job.countPipelineStages()];
+		pipelinePrerequisites = new int[job.countPipelineStages()];
+		pipelineSpecifications = new OutputSpecification[job.countPipelineStages()];
 		for (int j = 0; j < job.countPipelineStages(); j++)
 		{
-			transformationNames[j] = job.getPipelineStageConnectionName(j);
-			transformationDescriptions[j] = job.getPipelineStageDescription(j);
-			transformationSpecifications[j] = job.getPipelineStageSpecification(j);
+			pipelineConnectionNames[j] = job.getPipelineStageConnectionName(j);
+			pipelineDescriptions[j] = job.getPipelineStageDescription(j);
+			pipelineIsOutputs[j] = job.getPipelineStageIsOutputConnection(j);
+			pipelinePrerequisites[j] = job.getPipelineStagePrerequisite(j);
+			pipelineSpecifications[j] = job.getPipelineStageSpecification(j);
 		}
 		type = job.getType();
 		startMethod = job.getStartMethod();
 		hopcountMode = job.getHopcountMode();
-		outputSpecification = job.getOutputSpecification();
 		documentSpecification = job.getSpecification();
 		// Fill in schedule records from job
 		for (int j = 0; j < job.getScheduleRecordCount(); j++)
@@ -173,18 +179,12 @@
 	List<Integer> sequenceArray = new ArrayList<Integer>();
 	
 	IRepositoryConnection connection = null;
-	IOutputConnection outputConnection = null;
 	if (connectionName.length() > 0)
 	{
 		connection = connMgr.load(connectionName);
 		model = RepositoryConnectorFactory.getConnectorModel(threadContext,connection.getClassName());
 		relationshipTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
 	}
-	if (outputName.length() > 0)
-	{
-		outputConnection = outputMgr.load(outputName);
-	}
-	ITransformationConnection[] transformationConnections = transformationMgr.loadMultiple(transformationNames);
 
 	// Set up the predefined tabs
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name"));
@@ -205,28 +205,16 @@
 	}
 
 	// Get the names of the various Javascript methods we'll need to call
-	String outputCheckMethod = "checkOutputSpecification";
-	String outputSaveCheckMethod = "checkOutputSpecificationForSave";
 	String checkMethod = "checkSpecification";
 	String saveCheckMethod = "checkSpecificationForSave";
-	String[] transformationCheckMethods = new String[transformationConnections.length];
-	String[] transformationCheckForSaveMethods = new String[transformationConnections.length];
-	for (int j = 0; j < transformationConnections.length; j++)
+	String[] pipelineCheckMethods = new String[pipelineConnectionNames.length];
+	String[] pipelineCheckForSaveMethods = new String[pipelineConnectionNames.length];
+	for (int j = 0; j < pipelineConnectionNames.length; j++)
 	{
-		transformationCheckMethods[j] = "unknown";
-		transformationCheckForSaveMethods[j] = "unknown";
+		pipelineCheckMethods[j] = "unknown";
+		pipelineCheckForSaveMethods[j] = "unknown";
 	}
 	
-	if (outputConnection != null)
-	{
-		IOutputConnector outputConnector = OutputConnectorFactory.getConnectorNoCheck(outputConnection.getClassName());
-		if (outputConnector != null)
-		{
-			outputCheckMethod = outputConnector.getFormCheckJavascriptMethodName(1+transformationNames.length);
-			outputSaveCheckMethod = outputConnector.getFormPresaveCheckJavascriptMethodName(1+transformationNames.length);
-		}
-	}
-
 	if (connection != null)
 	{
 		IRepositoryConnector connector = RepositoryConnectorFactory.getConnectorNoCheck(connection.getClassName());
@@ -237,13 +225,33 @@
 		}
 	}
 
-	for (int j = 0; j < transformationConnections.length; j++)
+	for (int j = 0; j < pipelineConnectionNames.length; j++)
 	{
-		ITransformationConnector transformationConnector = TransformationConnectorFactory.getConnectorNoCheck(transformationConnections[j].getClassName());
-		if (transformationConnector != null)
+		if (pipelineIsOutputs[j])
 		{
-			transformationCheckMethods[j] = transformationConnector.getFormCheckJavascriptMethodName(1+j);
-			transformationCheckForSaveMethods[j] = transformationConnector.getFormPresaveCheckJavascriptMethodName(1+j);
+			IOutputConnection outputConnection = outputMgr.load(pipelineConnectionNames[j]);
+			if (outputConnection != null)
+			{
+				IOutputConnector outputConnector = OutputConnectorFactory.getConnectorNoCheck(outputConnection.getClassName());
+				if (outputConnector != null)
+				{
+					pipelineCheckMethods[j] = outputConnector.getFormCheckJavascriptMethodName(1+j);
+					pipelineCheckForSaveMethods[j] = outputConnector.getFormPresaveCheckJavascriptMethodName(1+j);
+				}
+			}
+		}
+		else
+		{
+			ITransformationConnection transformationConnection = transformationMgr.load(pipelineConnectionNames[j]);
+			if (transformationConnection != null)
+			{
+				ITransformationConnector transformationConnector = TransformationConnectorFactory.getConnectorNoCheck(transformationConnection.getClassName());
+				if (transformationConnector != null)
+				{
+					pipelineCheckMethods[j] = transformationConnector.getFormCheckJavascriptMethodName(1+j);
+					pipelineCheckForSaveMethods[j] = transformationConnector.getFormPresaveCheckJavascriptMethodName(1+j);
+				}
+			}
 		}
 	}
 
@@ -332,18 +340,13 @@
 				document.editjob.description.focus();
 				return;
 			}
-			if (window.<%=outputSaveCheckMethod%>)
-			{
-				if (<%=outputSaveCheckMethod%>() == false)
-					return;
-			}
 <%
-	for (int j = 0; j < transformationCheckForSaveMethods.length; j++)
+	for (int j = 0; j < pipelineCheckForSaveMethods.length; j++)
 	{
 %>
-			if (window.<%=transformationCheckForSaveMethods[j]%>)
+			if (window.<%=pipelineCheckForSaveMethods[j]%>)
 			{
-				if (<%=transformationCheckForSaveMethods[j]%>() == false)
+				if (<%=pipelineCheckForSaveMethods[j]%>() == false)
 					return;
 			}
 <%
@@ -371,28 +374,40 @@
 		postFormNew();
 	}
 
-	function InsertPipelineStage(n)
+	function InsertPipelineStageTransformation(n)
 	{
-		if (editjob.pipeline_connectionname.value == "")
+		if (editjob.transformation_connectionname.value == "")
 		{
-			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.SelectAPipelineStageConnectionName")%>");
-			editjob.pipeline_connectionname.focus();
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.SelectATransformationStageConnectionName")%>");
+			editjob.transformation_connectionname.focus();
 			return;
 		}
-		eval("document.editjob.pipeline_"+n+"_op.value = 'Insert'");
+		eval("document.editjob.pipeline_"+n+"_op.value = 'InsertTransformation'");
 		postFormSetAnchor("pipeline_"+(n+1)+"_tag");
 	}
 
-	function AppendPipelineStage()
+	function InsertPipelineStageOutput(n)
 	{
-		if (editjob.pipeline_connectionname.value == "")
+		if (editjob.output_connectionname.value == "")
 		{
-			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.SelectAPipelineStageConnectionName")%>");
-			editjob.pipeline_connectionname.focus();
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.SelectAnOutputStageConnectionName")%>");
+			editjob.output_connectionname.focus();
 			return;
 		}
-		document.editjob.pipeline_op.value="Add";
-		postFormSetAnchor("pipeline_tag");
+		eval("document.editjob.pipeline_"+n+"_op.value = 'InsertOutput'");
+		postFormSetAnchor("pipeline_"+(n+1)+"_tag");
+	}
+
+	function AppendPipelineStageOutput()
+	{
+		if (editjob.output_connectionname.value == "")
+		{
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.SelectAnOutputStageConnectionName")%>");
+			editjob.output_connectionname.focus();
+			return;
+		}
+		document.editjob.output_op.value="Add";
+		postFormSetAnchor("output_tag");
 	}
 	
 	function DeletePipelineStage(n)
@@ -460,19 +475,13 @@
 			return false;
 		if (!checkSchedule())
 			return false;
-		// Check the output connector part
-		if (window.<%=outputCheckMethod%>)
-		{
-			if (<%=outputCheckMethod%>() == false)
-				return false;
-		}
 <%
-	for (int j = 0; j < transformationCheckMethods.length; j++)
+	for (int j = 0; j < pipelineCheckMethods.length; j++)
 	{
 %>
-		if (window.<%=transformationCheckMethods[j]%>)
+		if (window.<%=pipelineCheckMethods[j]%>)
 		{
-			if (<%=transformationCheckMethods[j]%>() == false)
+			if (<%=pipelineCheckMethods[j]%>() == false)
 				return false;
 		}
 <%
@@ -583,29 +592,6 @@
 	//-->
 	</script>
 <%
-	if (outputConnection != null)
-	{
-		IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
-		if (outputConnector != null)
-		{
-			try
-			{
-				outputConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,1,tabsArray);
-			}
-			finally
-			{
-				outputConnectorPool.release(outputConnection,outputConnector);
-			}
-		}
-		Integer outputConnectionSequenceNumber = new Integer(1+transformationConnections.length);
-		while (sequenceArray.size() < tabsArray.size())
-		{
-			sequenceArray.add(outputConnectionSequenceNumber);
-		}
-	}
-%>
-
-<%
 	if (connection != null)
 	{
 		IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
@@ -629,24 +615,50 @@
 %>
 
 <%
-	for (int j = 0; j < transformationConnections.length; j++)
+	for (int j = 0; j < pipelineConnectionNames.length; j++)
 	{
-		ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnections[j]);
-		if (transformationConnector != null)
+		if (pipelineIsOutputs[j])
 		{
-			try
+			IOutputConnection outputConnection = outputMgr.load(pipelineConnectionNames[j]);
+			if (outputConnection != null)
 			{
-				transformationConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),transformationSpecifications[j],1+j,tabsArray);
-			}
-			finally
-			{
-				transformationConnectorPool.release(transformationConnections[j],transformationConnector);
+				IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
+				if (outputConnector != null)
+				{
+					try
+					{
+						outputConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),pipelineSpecifications[j],1+j,tabsArray);
+					}
+					finally
+					{
+						outputConnectorPool.release(outputConnection,outputConnector);
+					}
+				}
 			}
 		}
-		Integer transformationConnectionSequenceNumber = new Integer(1+j);
+		else
+		{
+			ITransformationConnection transformationConnection = transformationMgr.load(pipelineConnectionNames[j]);
+			if (transformationConnection != null)
+			{
+				ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnection);
+				if (transformationConnector != null)
+				{
+					try
+					{
+						transformationConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),pipelineSpecifications[j],1+j,tabsArray);
+					}
+					finally
+					{
+						transformationConnectorPool.release(transformationConnection,transformationConnector);
+					}
+				}
+			}
+		}
+		Integer connectionSequenceNumber = new Integer(1+j);
 		while (sequenceArray.size() < tabsArray.size())
 		{
-			sequenceArray.add(transformationConnectionSequenceNumber);
+			sequenceArray.add(connectionSequenceNumber);
 		}
 	}
 	
@@ -993,7 +1005,7 @@
 	// Connection tab
 	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")) && tabSequenceInt == -1)
 	{
-		int displaySequence = 0;
+		int rowCounter = 0;
 
 %>
 		  <table class="displaytable">
@@ -1004,16 +1016,20 @@
 					<table class="formtable">
 						<tr class="formheaderrow">
 							<td class="formcolumnheader">
-								<input name="pipeline_count" type="hidden" value="<%=transformationNames.length%>"/>
+								<input name="pipeline_count" type="hidden" value="<%=pipelineConnectionNames.length%>"/>
 							</td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageNumber")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageType")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StagePrecedent")%></nobr></td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageDescription")%></nobr></td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageConnectionName")%></nobr></td>
 						</tr>
-						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
+						<tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
 							<td class="formcolumncell"></td>
-							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
-							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RepositoryStage")%></td>
+							<td class="formcolumncell">1.</td>
+							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Repository")%></td>
+							<td class="formcolumncell"></td>
+							<td class="formcolumncell"></td>
 							<td class="formcolumncell">
 <%
 		if (connectionName.length() == 0)
@@ -1042,89 +1058,98 @@
 							</td>
 						</tr>
 <%
-		for (int j = 0; j < transformationNames.length; j++)
+		// A map of stage number to reference count
+		Map<Integer,Integer> referenceCounts = new HashMap<Integer,Integer>();
+		// A list of precedents to pick from, displayed at the end
+		List<Integer> precedents = new ArrayList<Integer>();
+		// Repository connection is always allowed
+		precedents.add(new Integer(-1));
+		Set<String> alreadyPresent = new HashSet<String>();
+		for (int j = 0; j < pipelineConnectionNames.length; j++)
 		{
-			String transformationName = transformationNames[j];
-			String transformationDescription = transformationDescriptions[j];
-			if (transformationDescription == null)
-				transformationDescription = "";
+			if (pipelineIsOutputs[j])
+				alreadyPresent.add(pipelineConnectionNames[j]);
+			else
+				precedents.add(new Integer(j));
+			if (pipelinePrerequisites[j] != -1)
+			{
+				Integer thisOne = new Integer(pipelinePrerequisites[j]);
+				Integer x = referenceCounts.get(thisOne);
+				if (x == null)
+					referenceCounts.put(thisOne,new Integer(1));
+				else
+					referenceCounts.put(thisOne,new Integer(x.intValue() + 1));
+			}
+		}
+		for (int j = 0; j < pipelineConnectionNames.length; j++)
+		{
+			String pipelineConnectionName = pipelineConnectionNames[j];
+			String pipelineDescription = pipelineDescriptions[j];
+			if (pipelineDescription == null)
+				pipelineDescription = "";
+			String pipelineType = pipelineIsOutputs[j]?Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Output"):Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Transformation");
 %>
-						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
+						<tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
 							<td class="formcolumncell">
 								<input name="pipeline_<%=j%>_op" type="hidden" value="Continue"/>
 								<a name="pipeline_<%=j%>_tag"/>
-								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Delete")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Deletestage")%>' onclick="javascript:DeletePipelineStage(<%=j%>);"/>
-								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewstagehere")%>' onclick="javascript:InsertPipelineStage(<%=j%>);"/>
-							</td>
-							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
-							<td class="formcolumncell">
-								<input name="pipeline_<%=j%>_description" type="text" size="30" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(transformationDescription)%>"/>
-							</td>
-							<td class="formcolumncell">
-								<nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(transformationName)%></nobr>
-								<input name="pipeline_<%=j%>_connectionname" type="hidden" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(transformationName)%>"/>
-							</td>
-						</tr>
 <%
-		}
-%>
-						<tr class="<%=((displaySequence % 2)==0)?"evenformrow":"oddformrow"%>">
-							<td class="formcolumncell">
-<%
-		if (transformationList.length > 0)
-		{
-%>
-								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewstagehere")%>' onclick="javascript:AppendPipelineStage();"/>
-<%
-		}
-%>
-							</td>
-							<td class="formcolumncell"><%=(++displaySequence)%>.</td>
-							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.OutputStage")%></td>
-							<td class="formcolumncell">
-<%
-		if (outputName.length() == 0)
-		{
-%>
-								<select name="outputname" size="1">
-									<option <%="".equals(outputName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
-<%
-			for (IOutputConnection conn : outputList)
+			// We don't want to leave orphans around.  If the pipeline stage is an output, we can delete it ONLY if:
+			// -- the precedent is -1, OR
+			// -- the precedent is not -1 BUT more than one stage refers to the precedent
+			if (!pipelineIsOutputs[j] || pipelinePrerequisites[j] == -1 || referenceCounts.get(new Integer(pipelinePrerequisites[j])).intValue() > 1)
 			{
 %>
-									<option <%=conn.getName().equals(outputName)?"selected=\"selected\"":""%> value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Delete")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Deletepipelinestage")%>' onclick="javascript:DeletePipelineStage(<%=j%>);"/>
+<%
+			}
+			if (transformationList.length > 0)
+			{
+%>
+								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertTransformationBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewtransformationhere")%>' onclick="javascript:InsertPipelineStageTransformation(<%=j%>);"/>
+<%
+			}
+			if (outputList.length != alreadyPresent.size())
+			{
+%>
+								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertOutputBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewoutputhere")%>' onclick="javascript:InsertPipelineStageOutput(<%=j%>);"/>
 <%
 			}
 %>
-								</select>
-<%
-		}
-		else
-		{
-%>
-								<input type="hidden" name="outputname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(outputName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(outputName)%>
-<%
-		}
-%>
+							</td>
+							<td class="formcolumncell"><%=(j+2)%>.</td>
+							<td class="formcolumncell"><%=pipelineType%>
+								<input name="pipeline_<%=j%>_isoutput" type="hidden" value='<%=pipelineIsOutputs[j]?"true":"false"%>'/>
+							</td>
+							<td class="formcolumncell"><%=(pipelinePrerequisites[j] + 2)%>.
+								<input name="pipeline_<%=j%>_precedent" type="hidden" value="<%=pipelinePrerequisites[j]%>"/>
+							</td>
+							<td class="formcolumncell">
+								<input name="pipeline_<%=j%>_description" type="text" size="30" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineDescription)%>"/>
+							</td>
+							<td class="formcolumncell">
+								<nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pipelineConnectionName)%></nobr>
+								<input name="pipeline_<%=j%>_connectionname" type="hidden" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineConnectionName)%>"/>
 							</td>
 						</tr>
 <%
+		}
 		if (transformationList.length > 0)
 		{
 %>
 						<tr class="formrow"><td class="formseparator" colspan="4"><hr/></td></tr>
 						<tr class="formrow">
 							<td class="formcolumncell">
-								<input name="pipeline_op" type="hidden" value="Continue"/>
-								<a name="pipeline_tag"/>
+								<a name="transformation_tag"/>
+							</td>
+							<td class="formcolumncell"></td>
+							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Transformation")%></td>
+							<td class="formcolumncell"></td>
+							<td class="formcolumncell">
+								<input name="transformation_description" type="text" size="30" value=""/>
 							</td>
 							<td class="formcolumncell">
-							</td>
-							<td class="formcolumncell">
-								<input name="pipeline_description" type="text" size="30" value=""/>
-							</td>
-							<td class="formcolumncell">
-								<select name="pipeline_connectionname" size="1">
+								<select name="transformation_connectionname" size="1">
 									<option selected="selected" value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
 <%
 			for (ITransformationConnection conn : transformationList)
@@ -1132,6 +1157,52 @@
 %>
 									<option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
 <%
+			}
+%>
+								</select>
+							</td>
+						</tr>
+<%
+		}
+		if (outputList.length != alreadyPresent.size())
+		{
+%>
+						<tr class="formrow"><td class="formseparator" colspan="4"><hr/></td></tr>
+						<tr class="formrow">
+							<td class="formcolumncell">
+								<a name="output_tag"/>
+								<input type="button" value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddOutput")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddAnOutput")%>' onclick="javascript:AppendPipelineStageOutput();"/>
+								<input name="output_op" type="hidden" value="Continue"/>
+							</td>
+							<td class="formcolumncell"></td>
+							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Output")%></td>
+							<td class="formcolumncell">
+								<select name="output_precedent" size="1">
+<%
+			for (Integer pre : precedents)
+			{
+%>
+									<option value="<%=pre%>"><%=(pre.intValue()+2)%></option>
+<%
+			}
+%>
+								</select>
+							</td>
+							<td class="formcolumncell">
+								<input name="output_description" type="text" size="30" value=""/>
+							</td>
+							<td class="formcolumncell">
+								<select name="output_connectionname" size="1">
+									<option selected="selected" value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+<%
+			for (IOutputConnection conn : outputList)
+			{
+				if (!alreadyPresent.contains(conn.getName()))
+				{
+%>
+									<option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+<%
+				}
 			}
 %>
 								</select>
@@ -1177,19 +1248,20 @@
 	else
 	{
 %>
-		  <input type="hidden" name="outputname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(outputName)%>'/>
 		  <input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
-		  <input type="hidden" name="pipeline_count" value="<%=transformationNames.length%>"/>
+		  <input type="hidden" name="pipeline_count" value="<%=pipelineConnectionNames.length%>"/>
 <%
-		for (int j = 0; j < transformationNames.length; j++)
+		for (int j = 0; j < pipelineConnectionNames.length; j++)
 		{
-			String transformationName = transformationNames[j];
-			String transformationDescription = transformationDescriptions[j];
-			if (transformationDescription == null)
-				transformationDescription = "";
+			String pipelineConnectionName = pipelineConnectionNames[j];
+			String pipelineDescription = pipelineDescriptions[j];
+			if (pipelineDescription == null)
+				pipelineDescription = "";
 %>
-		  <input type="hidden" name="pipeline_<%=j%>_connectionname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(transformationName)%>"/>
-		  <input type="hidden" name="pipeline_<%=j%>_description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(transformationDescription)%>"/>
+		  <input name="pipeline_<%=j%>_isoutput" type="hidden" value='<%=pipelineIsOutputs[j]?"true":"false"%>'/>
+		  <input name="pipeline_<%=j%>_precedent" type="hidden" value="<%=pipelinePrerequisites[j]%>"/>
+		  <input type="hidden" name="pipeline_<%=j%>_connectionname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineConnectionName)%>"/>
+		  <input type="hidden" name="pipeline_<%=j%>_description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineDescription)%>"/>
 <%
 		}
 %>
@@ -1656,25 +1728,6 @@
 	      }
 	}
 
-	if (outputConnection != null)
-	{
-		IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
-		if (outputConnector != null)
-		{
-			try
-			{
-				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,1+transformationConnections.length,tabSequenceInt,tabName);
-			}
-			finally
-			{
-				outputConnectorPool.release(outputConnection,outputConnector);
-			}
-%>
-		  <input type="hidden" name="outputpresent" value="true"/>
-<%
-		}
-	}
-
 	if (connection != null)
 	{
 		IRepositoryConnector repositoryConnector = repositoryConnectorPool.grab(connection);
@@ -1694,18 +1747,46 @@
 		}
 	}
 	
-	for (int j = 0; j < transformationConnections.length; j++)
+	boolean outputPresent = false;
+	for (int j = 0; j < pipelineConnectionNames.length; j++)
 	{
-		ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnections[j]);
-		if (transformationConnector != null)
+		if (pipelineIsOutputs[j])
 		{
-			try
+			outputPresent = true;
+			IOutputConnection outputConnection = outputMgr.load(pipelineConnectionNames[j]);
+			if (outputConnection != null)
 			{
-				transformationConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),transformationSpecifications[j],1+j,tabSequenceInt,tabName);
+				IOutputConnector outputConnector = outputConnectorPool.grab(outputConnection);
+				if (outputConnector != null)
+				{
+					try
+					{
+						outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),pipelineSpecifications[j],1+j,tabSequenceInt,tabName);
+					}
+					finally
+					{
+						outputConnectorPool.release(outputConnection,outputConnector);
+					}
+				}
 			}
-			finally
+		}
+		else
+		{
+			ITransformationConnection transformationConnection = transformationMgr.load(pipelineConnectionNames[j]);
+			if (transformationConnection != null)
 			{
-				transformationConnectorPool.release(transformationConnections[j],transformationConnector);
+				ITransformationConnector transformationConnector = transformationConnectorPool.grab(transformationConnection);
+				if (transformationConnector != null)
+				{
+					try
+					{
+						transformationConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),pipelineSpecifications[j],1+j,tabSequenceInt,tabName);
+					}
+					finally
+					{
+						transformationConnectorPool.release(transformationConnection,transformationConnector);
+					}
+				}
 			}
 		}
 	}
@@ -1715,7 +1796,7 @@
 			<tr><td class="separator" colspan="4"><hr/></td></tr>
 			<tr><td class="message" colspan="4"><nobr>
 <%
-	if (connectionName.length() > 0 && outputName.length() > 0)
+	if (connectionName.length() > 0 && outputPresent)
 	{
 %>
 			<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.SaveThisJob")%>"/>

@@ -3215,19 +3215,48 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
-      // MHL to clone document if there are multiple targets!!
-      if (entryPoints.length > 1)
-        throw new RuntimeException("Cannot handle fanouts yet");
-      // If any of them accept the document, we return "accept".
-      int rval = IPipelineConnector.DOCUMENTSTATUS_REJECTED;
+      // First, count the number of active entry points.
+      int activeCount = 0;
       for (PipelineAddEntryPoint p : entryPoints)
       {
-        if (!p.isActive())
-          continue;
-        if (p.addOrReplaceDocumentWithException(documentURI,document,authorityNameString) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED)
-          rval = IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
+        if (p.isActive())
+          activeCount++;
       }
-      return rval;
+      if (activeCount <= 1)
+      {
+        // No need to copy anything.
+        int rval = IPipelineConnector.DOCUMENTSTATUS_REJECTED;
+        for (PipelineAddEntryPoint p : entryPoints)
+        {
+          if (!p.isActive())
+            continue;
+          if (p.addOrReplaceDocumentWithException(documentURI,document,authorityNameString) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED)
+            rval = IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
+        }
+        return rval;
+      }
+      else
+      {
+        // Create a RepositoryDocumentFactory, which we'll need to clean up at the end.
+        RepositoryDocumentFactory factory = new RepositoryDocumentFactory(document);
+        try
+        {
+          // If any of them accept the document, we return "accept".
+          int rval = IPipelineConnector.DOCUMENTSTATUS_REJECTED;
+          for (PipelineAddEntryPoint p : entryPoints)
+          {
+            if (!p.isActive())
+              continue;
+            if (p.addOrReplaceDocumentWithException(documentURI,factory.createDocument(),authorityNameString) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED)
+              rval = IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
+          }
+          return rval;
+        }
+        finally
+        {
+          factory.close();
+        }
+      }
     }
 
     /** Qualify an access token appropriately, to match access tokens as returned by mod_aa.  This method
