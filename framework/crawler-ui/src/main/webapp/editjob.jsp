@@ -1182,7 +1182,7 @@
 			for (Integer pre : precedents)
 			{
 %>
-									<option value="<%=pre%>"><%=(pre.intValue()+1)%></option>
+									<option value="<%=pre%>"><%=(pre.intValue()+2)%></option>
 <%
 			}
 %>
