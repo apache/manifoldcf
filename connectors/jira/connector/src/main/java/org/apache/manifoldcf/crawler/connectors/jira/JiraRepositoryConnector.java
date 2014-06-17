@@ -983,7 +983,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
               InputStream is = new ByteArrayInputStream(documentBytes);
               try {
                 rd.setBinary(is, documentBytes.length);
-                activities.ingestDocument(nodeId, version, documentURI, rd);
+                activities.ingestDocumentWithException(nodeId, version, documentURI, rd);
                 // No errors.  Record the fact that we made it.
                 errorCode = "OK";
                 fileSize = new Long(documentBytes.length);
@@ -991,7 +991,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
                 is.close();
               }
             } catch (java.io.IOException e) {
-              throw new RuntimeException("UTF-8 encoding unknown!!");
+              handleIOException(e);
             }
           }
         }
