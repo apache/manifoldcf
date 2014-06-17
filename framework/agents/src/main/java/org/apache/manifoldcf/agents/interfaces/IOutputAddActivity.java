@@ -18,6 +18,8 @@
 */
 package org.apache.manifoldcf.agents.interfaces;
 
+import java.io.*;
+
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 
@@ -33,8 +35,9 @@ public interface IOutputAddActivity extends IOutputQualifyActivity,IOutputHistor
   *@param document is the document data to be processed (handed to the output data store).
   *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
   *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+  *@throws IOException only if there's an IO error reading the data from the document.
   */
   public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
-    throws ManifoldCFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption, IOException;
 
 }

@@ -159,8 +159,14 @@ public class NavigationDerbyUI extends BaseUIDerby
     // Select the connections
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editjob"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("outputname"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("output_connectionname"));
     selectbox.selectValue(testerInstance.createStringDescription("MyOutputConnection"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("output_precedent"));
+    selectbox.selectValue(testerInstance.createStringDescription("-1"));
+    button = window.findButton(testerInstance.createStringDescription("Add an output"));
+    button.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
     selectbox = form.findSelectbox(testerInstance.createStringDescription("connectionname"));
     selectbox.selectValue(testerInstance.createStringDescription("MyRepositoryConnection"));
     button = window.findButton(testerInstance.createStringDescription("Continue to next screen"));

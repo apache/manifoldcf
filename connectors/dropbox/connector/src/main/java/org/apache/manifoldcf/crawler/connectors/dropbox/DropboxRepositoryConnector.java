@@ -966,7 +966,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
                 InputStream is = t.getSafeInputStream();
                 try {
                   rd.setBinary(is, fileLength);
-                  activities.ingestDocument(nodeId, version, documentURI, rd);
+                  activities.ingestDocumentWithException(nodeId, version, documentURI, rd);
                 } finally {
                   is.close();
                 }

@@ -87,9 +87,13 @@ public class JobNotificationThread extends Thread
               {
                 // Get the connection name
                 String repositoryConnectionName = job.getConnectionName();
-                String outputConnectionName = job.getOutputConnectionName();
-                OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
-                connectionNames.add(c);
+                IPipelineSpecificationBasic basicSpec = new PipelineSpecificationBasic(job);
+                for (int i = 0; i < basicSpec.getOutputCount(); i++)
+                {
+                  String outputConnectionName = basicSpec.getStageConnectionName(basicSpec.getOutputStage(i));
+                  OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
+                  connectionNames.add(c);
+                }
               }
             }
             
@@ -152,58 +156,71 @@ public class JobNotificationThread extends Thread
               if (job != null)
               {
                 // Get the connection name
-                String outputConnectionName = job.getOutputConnectionName();
                 String repositoryConnectionName = job.getConnectionName();
-                OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
-                
-                Disposition d = notifiedConnections.get(c);
-                if (d != null)
+                IPipelineSpecificationBasic basicSpec = new PipelineSpecificationBasic(job);
+                boolean allOK = true;
+                for (int i = 0; i < basicSpec.getOutputCount(); i++)
                 {
-                  ServiceInterruption e = d.getServiceInterruption();
-                  if (e == null)
-                  {
-                    jobManager.inactivateJob(jobID);
-                    jsr.noteStarted();
-                  }
-                  else
-                  {
-                    if (!e.jobInactiveAbort())
-                    {
-                      Logging.jobs.warn("Notification service interruption reported for job "+
-                        jobID+" output connection '"+outputConnectionName+"': "+
-                        e.getMessage(),e);
-                    }
+                  String outputConnectionName = basicSpec.getStageConnectionName(basicSpec.getOutputStage(i));
 
-                    // If either we are going to be requeuing beyond the fail time, OR
-                    // the number of retries available has hit 0, THEN we treat this
-                    // as either an "ignore" or a hard error.
-                    if (!e.jobInactiveAbort() && (jsr.getFailTime() != -1L && jsr.getFailTime() < e.getRetryTime() ||
-                      jsr.getFailRetryCount() == 0))
+                  OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
+                  
+                  Disposition d = notifiedConnections.get(c);
+                  if (d != null)
+                  {
+                    ServiceInterruption e = d.getServiceInterruption();
+                    if (e == null)
                     {
-                      // Treat this as a hard failure.
-                      if (e.isAbortOnFail())
-                      {
-                        // Note the error in the job, and transition to inactive state
-                        String message = e.jobInactiveAbort()?"":"Repeated service interruptions during notification"+((e.getCause()!=null)?": "+e.getCause().getMessage():"");
-                        if (jobManager.errorAbort(jobID,message) && message.length() > 0)
-                          Logging.jobs.error(message,e.getCause());
-                        jsr.noteStarted();
-                      }
-                      else
-                      {
-                        // Not sure this can happen -- but just transition silently to inactive state
-                        jobManager.inactivateJob(jobID);
-                        jsr.noteStarted();
-                      }
+                      break;
                     }
                     else
                     {
-                      // Reset the job to the READYFORNOTIFY state, updating the failtime and failcount fields
-                      jobManager.retryNotification(jsr,e.getFailTime(),e.getFailRetryCount());
-                      jsr.noteStarted();
+                      if (!e.jobInactiveAbort())
+                      {
+                        Logging.jobs.warn("Notification service interruption reported for job "+
+                          jobID+" output connection '"+outputConnectionName+"': "+
+                          e.getMessage(),e);
+                      }
+
+                      // If either we are going to be requeuing beyond the fail time, OR
+                      // the number of retries available has hit 0, THEN we treat this
+                      // as either an "ignore" or a hard error.
+                      if (!e.jobInactiveAbort() && (jsr.getFailTime() != -1L && jsr.getFailTime() < e.getRetryTime() ||
+                        jsr.getFailRetryCount() == 0))
+                      {
+                        // Treat this as a hard failure.
+                        if (e.isAbortOnFail())
+                        {
+                          // Note the error in the job, and transition to inactive state
+                          String message = e.jobInactiveAbort()?"":"Repeated service interruptions during notification"+((e.getCause()!=null)?": "+e.getCause().getMessage():"");
+                          if (jobManager.errorAbort(jobID,message) && message.length() > 0)
+                            Logging.jobs.error(message,e.getCause());
+                          jsr.noteStarted();
+                        }
+                        else
+                        {
+                          // Not sure this can happen -- but just transition silently to inactive state
+                          jobManager.inactivateJob(jobID);
+                          jsr.noteStarted();
+                        }
+                      }
+                      else
+                      {
+                        // Reset the job to the READYFORNOTIFY state, updating the failtime and failcount fields
+                        jobManager.retryNotification(jsr,e.getFailTime(),e.getFailRetryCount());
+                        jsr.noteStarted();
+                      }
+                      allOK = false;
+                      break;
                     }
                   }
                 }
+                if (allOK)
+                {
+                  jobManager.inactivateJob(jobID);
+                  jsr.noteStarted();
+                }
+
               }
             }
           }
