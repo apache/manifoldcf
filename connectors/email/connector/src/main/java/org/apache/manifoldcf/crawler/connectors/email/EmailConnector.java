@@ -608,7 +608,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               }
             }
             String documentURI = makeDocumentURI(urlTemplate, folderName, id);
-            activities.ingestDocument(id, version, documentURI, rd);
+            activities.ingestDocumentWithException(id, version, documentURI, rd);
 
           }
         } catch (InterruptedException e) {
