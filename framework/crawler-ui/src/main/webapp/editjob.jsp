@@ -1058,6 +1058,9 @@
 							</td>
 						</tr>
 <%
+		// A map of stage number to reference count
+		Map<Integer,Integer> referenceCounts = new HashMap<Integer,Integer>();
+		// A list of precedents to pick from, displayed at the end
 		List<Integer> precedents = new ArrayList<Integer>();
 		// Repository connection is always allowed
 		precedents.add(new Integer(0));
@@ -1068,6 +1071,15 @@
 				alreadyPresent.add(pipelineConnectionNames[j]);
 			else
 				precedents.add(new Integer(j+1));
+			if (pipelinePrerequisites[j] != -1)
+			{
+				Integer thisOne = new Integer(pipelinePrerequisites[j]);
+				Integer x = referenceCounts.get(thisOne);
+				if (x == null)
+					referenceCounts.put(thisOne,new Integer(1));
+				else
+					referenceCounts.put(thisOne,new Integer(x.intValue() + 1));
+			}
 		}
 		for (int j = 0; j < pipelineConnectionNames.length; j++)
 		{
@@ -1082,10 +1094,13 @@
 								<input name="pipeline_<%=j%>_op" type="hidden" value="Continue"/>
 								<a name="pipeline_<%=j%>_tag"/>
 <%
-			if (!pipelineIsOutputs[j])
+			// We don't want to leave orphans around.  If the pipeline stage is an output, we can delete it ONLY if:
+			// -- the precedent is -1, OR
+			// -- the precedent is not -1 BUT more than one stage refers to the precedent
+			if (!pipelineIsOutputs[j] || pipelinePrerequisites[j] == -1 || referenceCounts.get(new Integer(pipelinePrerequisites[j])).intValue() > 1)
 			{
 %>
-								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Delete")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Deletetransformation")%>' onclick="javascript:DeletePipelineStage(<%=j%>);"/>
+								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Delete")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Deletepipelinestage")%>' onclick="javascript:DeletePipelineStage(<%=j%>);"/>
 <%
 			}
 			if (transformationList.length > 0)
