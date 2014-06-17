@@ -174,11 +174,22 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     query.append(buildConjunctionClause(newList,new ClauseDescription[]{
       new UnitaryClause(ownerIDField,ownerID)}));
     IResultSet set = performQuery(query.toString(),newList,null,null);
-    String[] rval = new String[set.getRowCount()];
+    int count = 0;
     for (int i = 0; i < set.getRowCount(); i++)
     {
       IResultRow row = set.getRow(i);
-      rval[i] = (String)row.getValue(transformationNameField);
+      String value = (String)row.getValue(transformationNameField);
+      if (value != null && value.length() > 0)
+        count++;
+    }
+    String[] rval = new String[count];
+    count = 0;
+    for (int i = 0; i < set.getRowCount(); i++)
+    {
+      IResultRow row = set.getRow(i);
+      String value = (String)row.getValue(transformationNameField);
+      if (value != null && value.length() > 0)
+        rval[count++] = value;
     }
     return rval;
   }
@@ -196,11 +207,22 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     query.append(buildConjunctionClause(newList,new ClauseDescription[]{
       new UnitaryClause(ownerIDField,ownerID)}));
     IResultSet set = performQuery(query.toString(),newList,null,null);
-    String[] rval = new String[set.getRowCount()];
+    int count = 0;
     for (int i = 0; i < set.getRowCount(); i++)
     {
       IResultRow row = set.getRow(i);
-      rval[i] = (String)row.getValue(outputNameField);
+      String value = (String)row.getValue(outputNameField);
+      if (value != null && value.length() > 0)
+        count++;
+    }
+    String[] rval = new String[count];
+    count = 0;
+    for (int i = 0; i < set.getRowCount(); i++)
+    {
+      IResultRow row = set.getRow(i);
+      String value = (String)row.getValue(outputNameField);
+      if (value != null && value.length() > 0)
+        rval[count++] = value;
     }
     return rval;
   }
@@ -326,7 +348,6 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
           map.put(connectionDescriptionField,pipelineStageDescription);
         map.put(connectionSpecField,os.toXML());
         performInsert(map,null);
-        i++;
       }
     }
     catch (ManifoldCFException e)
