@@ -172,24 +172,14 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     StringBuilder query = new StringBuilder("SELECT ");
     query.append(transformationNameField).append(" FROM ").append(getTableName()).append(" WHERE ");
     query.append(buildConjunctionClause(newList,new ClauseDescription[]{
-      new UnitaryClause(ownerIDField,ownerID)}));
+      new UnitaryClause(ownerIDField,ownerID),
+      new NullCheckClause(transformationNameField,false)}));
     IResultSet set = performQuery(query.toString(),newList,null,null);
-    int count = 0;
+    String[] rval = new String[set.getRowCount()];
     for (int i = 0; i < set.getRowCount(); i++)
     {
       IResultRow row = set.getRow(i);
-      String value = (String)row.getValue(transformationNameField);
-      if (value != null && value.length() > 0)
-        count++;
-    }
-    String[] rval = new String[count];
-    count = 0;
-    for (int i = 0; i < set.getRowCount(); i++)
-    {
-      IResultRow row = set.getRow(i);
-      String value = (String)row.getValue(transformationNameField);
-      if (value != null && value.length() > 0)
-        rval[count++] = value;
+      rval[i] = (String)row.getValue(transformationNameField);
     }
     return rval;
   }
@@ -203,26 +193,16 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
   {
     ArrayList newList = new ArrayList();
     StringBuilder query = new StringBuilder("SELECT ");
-    query.append(transformationNameField).append(" FROM ").append(getTableName()).append(" WHERE ");
+    query.append(outputNameField).append(" FROM ").append(getTableName()).append(" WHERE ");
     query.append(buildConjunctionClause(newList,new ClauseDescription[]{
-      new UnitaryClause(ownerIDField,ownerID)}));
+      new UnitaryClause(ownerIDField,ownerID),
+      new NullCheckClause(outputNameField,false)}));
     IResultSet set = performQuery(query.toString(),newList,null,null);
-    int count = 0;
+    String[] rval = new String[set.getRowCount()];
     for (int i = 0; i < set.getRowCount(); i++)
     {
       IResultRow row = set.getRow(i);
-      String value = (String)row.getValue(outputNameField);
-      if (value != null && value.length() > 0)
-        count++;
-    }
-    String[] rval = new String[count];
-    count = 0;
-    for (int i = 0; i < set.getRowCount(); i++)
-    {
-      IResultRow row = set.getRow(i);
-      String value = (String)row.getValue(outputNameField);
-      if (value != null && value.length() > 0)
-        rval[count++] = value;
+      rval[i] = (String)row.getValue(outputNameField);
     }
     return rval;
   }
