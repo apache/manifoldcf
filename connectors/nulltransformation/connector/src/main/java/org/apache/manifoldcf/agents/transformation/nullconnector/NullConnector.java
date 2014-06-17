@@ -59,10 +59,11 @@ public class NullConnector extends org.apache.manifoldcf.agents.transformation.B
   *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity,
   * or sending a modified document to the next stage in the pipeline.
   *@return the document status (accepted or permanently rejected).
+  *@throws IOException only if there's a stream error reading the document data.
   */
   @Override
-  public int addOrReplaceDocument(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws ManifoldCFException, ServiceInterruption
+  public int addOrReplaceDocumentWithException(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+    throws ManifoldCFException, ServiceInterruption, IOException
   {
     long startTime = System.currentTimeMillis();
     String resultCode = "OK";
@@ -85,6 +86,12 @@ public class NullConnector extends org.apache.manifoldcf.agents.transformation.B
     catch (ManifoldCFException e)
     {
       resultCode = "EXCEPTION";
+      description = e.getMessage();
+      throw e;
+    }
+    catch (IOException e)
+    {
+      resultCode = "IOEXCEPTION";
       description = e.getMessage();
       throw e;
     }

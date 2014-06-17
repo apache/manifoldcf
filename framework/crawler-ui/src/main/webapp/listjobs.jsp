@@ -84,11 +84,22 @@
 				<td class="columnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.ScheduleType")%></nobr></td>
 			</tr>
 <%
-	int i = 0;
-	while (i < jobs.length)
+	for (int i = 0; i < jobs.length; i++)
 	{
-		IJobDescription jd = jobs[i++];
+		IJobDescription jd = jobs[i];
 
+		StringBuilder sb = new StringBuilder();
+		for (int j = 0; j < jd.countPipelineStages(); j++)
+		{
+			if (jd.getPipelineStageIsOutputConnection(j))
+			{
+				if (sb.length() > 0)
+					sb.append(",");
+				sb.append(jd.getPipelineStageConnectionName(j));
+			}
+		}
+		String outputConnectionNames = sb.toString();
+		
 		String jobType = "";
 		switch (jd.getType())
 		{
@@ -112,7 +123,7 @@
 			</nobr>
 		    </td>
 		    <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(jd.getDescription())%></td>
-		    <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(jd.getOutputConnectionName())%></td>
+		    <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(outputConnectionNames)%></td>
 		    <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(jd.getConnectionName())%></td>
 		    <td class="columncell"><%=jobType%></td>
 		</tr>
