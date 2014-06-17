@@ -100,8 +100,8 @@ public class DocumentDeleteThread extends Thread
           
           IJobDescription job = dds.getJobDescription();
           String connectionName = job.getConnectionName();
-          String outputConnectionName = job.getOutputConnectionName();
-
+          IPipelineSpecificationBasic pipelineSpecificationBasic = new PipelineSpecificationBasic(job);
+          
           try
           {
             // Do the delete work.
@@ -115,8 +115,7 @@ public class DocumentDeleteThread extends Thread
             String[] docClassesToRemove = new String[dds.getCount()];
             String[] hashedDocsToRemove = new String[dds.getCount()];
             DeleteQueuedDocument[] docsToDelete = new DeleteQueuedDocument[dds.getCount()];
-            int j = 0;
-            while (j < dds.getCount())
+            for (int j = 0; j < dds.getCount(); j++)
             {
               DeleteQueuedDocument dqd = dds.getDocument(j);
               DocumentDescription ddd = dqd.getDocumentDescription();
@@ -124,19 +123,16 @@ public class DocumentDeleteThread extends Thread
               hashedDocsToRemove[j] = ddd.getDocumentIdentifierHash();
               docsToDelete[j] = dqd;
               deleteFromQueue[j] = false;
-              j++;
             }
                 
-            OutputRemoveActivity logger = new OutputRemoveActivity(connectionName,connMgr,outputConnectionName);
+            OutputRemoveActivity logger = new OutputRemoveActivity(connectionName,connMgr);
                 
             try
             {
-              ingester.documentDeleteMultiple(outputConnectionName,docClassesToRemove,hashedDocsToRemove,logger);
-              j = 0;
-              while (j < dds.getCount())
+              ingester.documentDeleteMultiple(pipelineSpecificationBasic,docClassesToRemove,hashedDocsToRemove,logger);
+              for (int j = 0; j < dds.getCount(); j++)
               {
                 deleteFromQueue[j] = true;
-                j++;
               }
             }
             catch (ServiceInterruption e)
@@ -145,46 +141,38 @@ public class DocumentDeleteThread extends Thread
               // Go through the list of documents we just tried, and reset them on the queue based on the
               // ServiceInterruption parameters.  Then we must proceed to delete ONLY the documents that
               // were not part of the index deletion attempt.
-              j = 0;
-              while (j < dds.getCount())
+              for (int j = 0; j < dds.getCount(); j++)
               {
                 DeleteQueuedDocument cqd = docsToDelete[j];
                 DocumentDescription dd = cqd.getDocumentDescription();
                 // To recover from an expiration failure, requeue the document to COMPLETED etc.
                 jobManager.resetDeletingDocument(dd,e.getRetryTime());
                 cqd.setProcessed();
-                j++;
               }
             }
 
             // Count the records we're actually going to delete
             int recordCount = 0;
-            j = 0;
-            while (j < dds.getCount())
+            for (int j = 0; j < dds.getCount(); j++)
             {
               if (deleteFromQueue[j])
                 recordCount++;
-              j++;
             }
                 
             // Delete the records
             DocumentDescription[] deleteDescriptions = new DocumentDescription[recordCount];
-            j = 0;
             recordCount = 0;
-            while (j < dds.getCount())
+            for (int j = 0; j < dds.getCount(); j++)
             {
               if (deleteFromQueue[j])
                 deleteDescriptions[recordCount++] = docsToDelete[j].getDocumentDescription();
-              j++;
             }
             jobManager.deleteIngestedDocumentIdentifiers(deleteDescriptions);
             // Mark them as gone
-            j = 0;
-            while (j < dds.getCount())
+            for (int j = 0; j < dds.getCount(); j++)
             {
               if (deleteFromQueue[j])
                 docsToDelete[j].wasProcessed();
-              j++;
             }
             // Go around again
           }
@@ -193,10 +181,9 @@ public class DocumentDeleteThread extends Thread
             // Here we should take steps to insure that the documents that have been handed to us
             // are dealt with appropriately.  This may involve setting the document state to "complete"
             // so that they will be picked up again.
-            int j = 0;
-            while (j < dds.getCount())
+            for (int j = 0; j < dds.getCount(); j++)
             {
-              DeleteQueuedDocument dqd = dds.getDocument(j++);
+              DeleteQueuedDocument dqd = dds.getDocument(j);
 
               if (dqd.wasProcessed() == false)
               {
@@ -272,19 +259,16 @@ public class DocumentDeleteThread extends Thread
   /** The OutputRemoveActivity class */
   protected static class OutputRemoveActivity implements IOutputRemoveActivity
   {
-    // Connection name
-    protected String connectionName;
     // Connection manager
-    protected IRepositoryConnectionManager connMgr;
+    protected final IRepositoryConnectionManager connMgr;
     // Output connection name
-    protected String outputConnectionName;
+    protected final String connectionName;
 
     /** Constructor */
-    public OutputRemoveActivity(String connectionName, IRepositoryConnectionManager connMgr, String outputConnectionName)
+    public OutputRemoveActivity(String connectionName, IRepositoryConnectionManager connMgr)
     {
       this.connectionName = connectionName;
       this.connMgr = connMgr;
-      this.outputConnectionName = outputConnectionName;
     }
 
     /** Record time-stamped information about the activity of the output connector.
@@ -306,7 +290,7 @@ public class DocumentDeleteThread extends Thread
       String entityURI, String resultCode, String resultDescription)
       throws ManifoldCFException
     {
-      connMgr.recordHistory(connectionName,startTime,ManifoldCF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
+      connMgr.recordHistory(connectionName,startTime,activityType,dataSize,entityURI,resultCode,
         resultDescription,null);
     }
   }

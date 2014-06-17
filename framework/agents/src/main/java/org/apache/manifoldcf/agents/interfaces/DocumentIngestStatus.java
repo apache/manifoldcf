@@ -38,10 +38,12 @@ public class DocumentIngestStatus
   protected final String documentAuthorityNameString;
 
   /** Constructor */
-  public DocumentIngestStatus(String documentVersionString,
+  public DocumentIngestStatus(
+    String documentVersionString,
     String transformationVersionString, String outputVersionString, String parameterVersionString,
     String documentAuthorityNameString)
   {
+    // Looked-up information
     this.documentVersionString = documentVersionString;
     this.transformationVersionString = transformationVersionString;
     this.outputVersionString = outputVersionString;
