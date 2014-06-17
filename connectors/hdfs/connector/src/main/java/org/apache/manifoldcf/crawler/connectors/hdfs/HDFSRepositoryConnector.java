@@ -478,7 +478,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
               InputStream is = t.getSafeInputStream();
               try {
                 data.setBinary(is, fileSize);
-                activities.ingestDocument(documentIdentifier,version,uri,data);
+                activities.ingestDocumentWithException(documentIdentifier,version,uri,data);
               } finally {
                 is.close();
               }

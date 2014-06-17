@@ -431,8 +431,8 @@
                 <p>Note that the Framework allows jobs that describe overlapping sets of documents to be defined.  Documents that exist in more than one job are treated in the
                        following special ways:</p>
                 <ul>
-                    <li>When a job is deleted, the output connection is notified of deletion of documents belonging to that job only if they don't belong to another job</li>
-                    <li>The version of the document sent to the output connection depends on which job was run last</li>
+                    <li>When a job is deleted, the output connections are notified of deletion of documents belonging to that job only if they don't belong to another job</li>
+                    <li>The version of the document sent to an output connection depends on which job was run last</li>
                 </ul>
                 <p>The subtle logic of overlapping documents means that you probably want to avoid this situation entirely, if it is at all feasible.</p>
                 <p>A typical non-continuous run of a job has the following stages of execution:</p>
@@ -465,8 +465,11 @@
                 <br/><br/>
                 <figure src="images/en_US/add-new-job-connection.PNG" alt="Add New Job, connection tab" width="80%"/>
                 <br/><br/>
-                <p>Now, you should select both the output connection name, and the repository connection name.  Bear in mind that whatever you select cannot be changed after the
+                <p>Now, you should select the repository connection name.  Bear in mind that whatever you select cannot be changed after the
                        job is saved the first time.</p>
+                <p>Add an output, or more than one, by selecting the output in the pulldown, selecting the prerequisite pipeline stage, and clicking the "Add output" button.
+                      Note that once the job is saved the first time, you cannot delete an output.  But you can rearrange your document processing pipeline in most other ways whenever
+                      you want to, including adding or removing transformation connections.</p>
                 <p>If you do not have any transformation connections defined, you will not be given the option of inserting a transformation connection into the pipeline.  But if
                        you have transformation connections defined, and you want to include them in the document pipeline, you can select them from the transformation connection
                        pulldown, type a description into the description box, and then click one of the "Insert before" buttons to insert it into the document pipeline.</p>

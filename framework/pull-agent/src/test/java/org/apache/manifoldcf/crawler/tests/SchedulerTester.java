@@ -72,7 +72,8 @@ public class SchedulerTester
     IJobDescription job = jobManager.createJob();
     job.setDescription("Test Job");
     job.setConnectionName("SchedulerTest Connection");
-    job.setOutputConnectionName("Null Connection");
+    job.addPipelineStage(-1,true,"Null Connection","");
+    //job.setOutputConnectionName("Null Connection");
     job.setType(job.TYPE_SPECIFIED);
     job.setStartMethod(job.START_DISABLE);
     job.setHopcountMode(job.HOPCOUNT_ACCURATE);

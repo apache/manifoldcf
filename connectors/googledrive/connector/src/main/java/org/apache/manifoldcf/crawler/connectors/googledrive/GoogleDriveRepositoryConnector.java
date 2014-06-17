@@ -1131,7 +1131,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                   try {
                     // Can only index while background thread is running!
                     rd.setBinary(is, fileLength);
-                    activities.ingestDocument(nodeId, version, documentURI, rd);
+                    activities.ingestDocumentWithException(nodeId, version, documentURI, rd);
                   } finally {
                     is.close();
                   }
