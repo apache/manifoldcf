@@ -184,7 +184,7 @@
 							<td class="formcolumncell">1.</td>
 							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Repository")%></td>
 							<td class="formcolumncell"></td>
-							<td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.RepositoryStage")%></td>
+							<td class="formcolumncell"></td>
 							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></td>
 						</tr>
 <%
