@@ -26,16 +26,39 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 */
 public class PipelineSpecificationBasic implements IPipelineSpecificationBasic
 {
-  protected final String[] transformationConnectionNames;
-  protected final String outputConnectionName;
-    
+  protected final IJobDescription job;
+  
+  // This is offset by 1, so the first element corresponds to -1
+  protected final int[][] pipelineStageChildren;
+  
+  protected final int[] outputs;
+  
   public PipelineSpecificationBasic(IJobDescription job)
   {
-    transformationConnectionNames = new String[job.countPipelineStages()];
-    outputConnectionName = job.getOutputConnectionName();
-    for (int i = 0; i < transformationConnectionNames.length; i++)
+    this.job = job;
+    this.pipelineStageChildren = new int[job.countPipelineStages()+1][];
+    int[] childrenCount = new int[pipelineStageChildren.length];
+    int outputCount = 0;
+    for (int i = 0; i < job.countPipelineStages(); i++)
     {
-      transformationConnectionNames[i] = job.getPipelineStageConnectionName(i);
+      int prerequisite = job.getPipelineStagePrerequisite(i);
+      childrenCount[prerequisite+1] ++;
+      if (job.getPipelineStageIsOutputConnection(i))
+        outputCount++;
+    }
+    for (int i = 0; i < pipelineStageChildren.length; i++)
+    {
+      pipelineStageChildren[i] = new int[childrenCount[i]];
+      childrenCount[i] = 0;
+    }
+    outputs = new int[outputCount];
+    outputCount = 0;
+    for (int i = 0; i < job.countPipelineStages(); i++)
+    {
+      int prerequisite = job.getPipelineStagePrerequisite(i);
+      (pipelineStageChildren[prerequisite+1])[childrenCount[prerequisite+1]++] = i;
+      if (job.getPipelineStageIsOutputConnection(i))
+        outputs[outputCount++] = i;
     }
   }
     
@@ -45,7 +68,7 @@ public class PipelineSpecificationBasic implements IPipelineSpecificationBasic
   @Override
   public int getStageCount()
   {
-    return transformationConnectionNames.length + 1;
+    return job.countPipelineStages();
   }
 
   /** Find children of a given pipeline stage.  Pass -1 to find the children of the root stage.
@@ -55,9 +78,7 @@ public class PipelineSpecificationBasic implements IPipelineSpecificationBasic
   @Override
   public int[] getStageChildren(int stage)
   {
-    if (stage < transformationConnectionNames.length + 1)
-      return new int[]{stage + 1};
-    return new int[0];
+    return pipelineStageChildren[stage+1];
   }
     
   /** Find parent of a given pipeline stage.  Returns -1 if there's no parent (it's the root).
@@ -66,7 +87,7 @@ public class PipelineSpecificationBasic implements IPipelineSpecificationBasic
   */
   public int getStageParent(int stage)
   {
-    return stage - 1;
+    return job.getPipelineStagePrerequisite(stage);
   }
 
   /** Get the connection name for a pipeline stage.
@@ -76,9 +97,7 @@ public class PipelineSpecificationBasic implements IPipelineSpecificationBasic
   @Override
   public String getStageConnectionName(int stage)
   {
-    if (stage < transformationConnectionNames.length)
-      return transformationConnectionNames[stage];
-    return outputConnectionName;
+    return job.getPipelineStageConnectionName(stage);
   }
     
   /** Check if a stage is an output stage.
@@ -88,7 +107,7 @@ public class PipelineSpecificationBasic implements IPipelineSpecificationBasic
   @Override
   public boolean checkStageOutputConnection(int stage)
   {
-    return stage == transformationConnectionNames.length;
+    return job.getPipelineStageIsOutputConnection(stage);
   }
 
   /** Return the number of output connections.
@@ -96,7 +115,7 @@ public class PipelineSpecificationBasic implements IPipelineSpecificationBasic
   */
   public int getOutputCount()
   {
-    return 1;
+    return outputs.length;
   }
     
   /** Given an output index, return the stage number for that output.
@@ -105,7 +124,7 @@ public class PipelineSpecificationBasic implements IPipelineSpecificationBasic
   */
   public int getOutputStage(int index)
   {
-    return transformationConnectionNames.length;
+    return outputs[index];
   }
 
 }

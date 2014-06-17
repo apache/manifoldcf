@@ -42,7 +42,6 @@ public class JobDescription implements IJobDescription
   protected boolean isNew = true;
   protected Long id = null;
   protected String description = null;
-  protected String outputConnectionName = null;
   protected String connectionName = null;
   protected final List<PipelineStage> pipelineStages = new ArrayList<PipelineStage>();
   protected int type = TYPE_CONTINUOUS;
@@ -66,9 +65,6 @@ public class JobDescription implements IJobDescription
 
   // Default reseed interval for continuous crawling
   protected Long reseedInterval = new Long(60L * 60L * 1000L);    // 1 hour is the default
-
-  // Output specification
-  protected OutputSpecification outputSpecification = new OutputSpecification();
 
   // Document specification
   protected DocumentSpecification documentSpecification = new DocumentSpecification();
@@ -96,15 +92,16 @@ public class JobDescription implements IJobDescription
     JobDescription rval = new JobDescription();
     rval.id = id;
     rval.isNew = isNew;
-    rval.outputConnectionName = outputConnectionName;
-    // Direct modification of this object is possible - so it also has to know if it is read-only!!
-    rval.outputSpecification = outputSpecification.duplicate(readOnly);
     rval.connectionName = connectionName;
     // Direct modification of this object is possible - so it also has to know if it is read-only!!
     rval.documentSpecification = documentSpecification.duplicate(readOnly);
     for (PipelineStage pipelineStage : pipelineStages)
     {
-      rval.pipelineStages.add(new PipelineStage(pipelineStage.getConnectionName(),pipelineStage.getDescription(),pipelineStage.getSpecification().duplicate(readOnly)));
+      rval.pipelineStages.add(new PipelineStage(pipelineStage.getPrerequisiteStage(),
+        pipelineStage.getIsOutput(),
+        pipelineStage.getConnectionName(),
+        pipelineStage.getDescription(),
+        pipelineStage.getSpecification().duplicate(readOnly)));
     }
     rval.description = description;
     rval.type = type;
@@ -145,7 +142,10 @@ public class JobDescription implements IJobDescription
     if (readOnly)
       return;
     readOnly = true;
-    outputSpecification.makeReadOnly();
+    for (PipelineStage pipelineStage : pipelineStages)
+    {
+      pipelineStage.getSpecification().makeReadOnly();
+    }
     documentSpecification.makeReadOnly();
   }
 
@@ -207,26 +207,6 @@ public class JobDescription implements IJobDescription
     return description;
   }
 
-  /** Set the output connection name.
-  *@param connectionName is the connection name.
-  */
-  @Override
-  public void setOutputConnectionName(String connectionName)
-  {
-    if (readOnly)
-      throw new IllegalStateException("Attempt to change read-only object");
-    this.outputConnectionName = connectionName;
-  }
-
-  /** Get the output connection name.
-  *@return the output connection name.
-  */
-  @Override
-  public String getOutputConnectionName()
-  {
-    return outputConnectionName;
-  }
-
   /** Set the connection name.
   *@param connectionName is the connection name.
   */
@@ -257,16 +237,18 @@ public class JobDescription implements IJobDescription
   }
   
   /** Add a pipeline connection.
+  *@param prerequisiteStage is the prerequisite stage number for this connection, or -1 if there is none.
+  *@param isOutput is true if the pipeline stage is an output connection.
   *@param pipelineStageConnectionName is the name of the pipeline connection to add.
   *@param pipelineStageDescription is a description of the pipeline stage being added.
   *@return the empty output specification for this pipeline stage.
   */
   @Override
-  public OutputSpecification addPipelineStage(String pipelineStageConnectionName, String pipelineStageDescription)
+  public OutputSpecification addPipelineStage(int prerequisiteStage, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription)
   {
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
-    PipelineStage ps = new PipelineStage(pipelineStageConnectionName,pipelineStageDescription);
+    PipelineStage ps = new PipelineStage(prerequisiteStage,isOutput,pipelineStageConnectionName,pipelineStageDescription);
     pipelineStages.add(ps);
     return ps.getSpecification();
   }
@@ -284,15 +266,47 @@ public class JobDescription implements IJobDescription
   *@param pipelineStageDescription is the description.
   *@return the newly-created output specification.
   */
-  public OutputSpecification insertPipelineStage(int index, String pipelineStageConnectionName, String pipelineStageDescription)
+  @Override
+  public OutputSpecification insertPipelineStage(int index, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription)
   {
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
-    PipelineStage ps = new PipelineStage(pipelineStageConnectionName,pipelineStageDescription);
+    // What we do here depends on the kind of stage we're inserting.
+    // Both kinds take the current stage's prerequisite as their own.  But what happens to the current stage will
+    // differ as to whether its reference changes or not.
+    PipelineStage currentStage = pipelineStages.get(index);
+    PipelineStage ps = new PipelineStage(currentStage.getPrerequisiteStage(),isOutput,pipelineStageConnectionName,pipelineStageDescription);
     pipelineStages.add(index,ps);
+    // Adjust stage back-references
+    int stage = index + 1;
+    while (stage < pipelineStages.size())
+    {
+      pipelineStages.get(stage).adjustForInsert(index,isOutput);
+      stage++;
+    }
     return ps.getSpecification();
   }
   
+  /** Get the prerequisite stage number for a pipeline stage.
+  *@param index is the index of the pipeline stage to get.
+  *@return the preceding stage number for that stage, or -1 if there is none.
+  */
+  @Override
+  public int getPipelineStagePrerequisite(int index)
+  {
+    return pipelineStages.get(index).getPrerequisiteStage();
+  }
+  
+  /** Check if a pipeline stage is an output connection.
+  *@param index is the index of the pipeline stage to check.
+  *@return true if it is an output connection.
+  */
+  @Override
+  public boolean getPipelineStageIsOutputConnection(int index)
+  {
+    return pipelineStages.get(index).getIsOutput();
+  }
+
   /** Get a specific pipeline connection name.
   *@param index is the index of the pipeline stage whose connection name to get.
   *@return the name of the connection.
@@ -329,7 +343,12 @@ public class JobDescription implements IJobDescription
   @Override
   public void deletePipelineStage(int index)
   {
-    pipelineStages.remove(index);
+    PipelineStage ps = pipelineStages.remove(index);
+    int stage = index;
+    while (stage < pipelineStages.size())
+    {
+      pipelineStages.get(stage).adjustForDelete(index,ps.getPrerequisiteStage());
+    }
   }
 
   /** Set the job type.
@@ -511,15 +530,6 @@ public class JobDescription implements IJobDescription
     return reseedInterval;
   }
 
-  /** Get the output specification.
-  *@return the output specification object.
-  */
-  @Override
-  public OutputSpecification getOutputSpecification()
-  {
-    return outputSpecification;
-  }
-
   /** Get the document specification.
   *@return the document specification object.
   */
@@ -636,27 +646,57 @@ public class JobDescription implements IJobDescription
 
   protected static class PipelineStage
   {
+    protected int prerequisiteStage;
+    protected final boolean isOutput;
     protected final String connectionName;
     protected final String description;
     protected final OutputSpecification specification;
     
-    public PipelineStage(String connectionName, String description)
+    public PipelineStage(int prerequisiteStage, boolean isOutput, String connectionName, String description)
     {
+      this.prerequisiteStage = prerequisiteStage;
+      this.isOutput = isOutput;
       this.connectionName = connectionName;
       this.description = description;
       this.specification = new OutputSpecification();
     }
 
-    public PipelineStage(String connectionName, String description, OutputSpecification spec)
+    public PipelineStage(int prerequisiteStage, boolean isOutput, String connectionName, String description, OutputSpecification spec)
     {
+      this.prerequisiteStage = prerequisiteStage;
+      this.isOutput = isOutput;
       this.connectionName = connectionName;
       this.description = description;
       this.specification = spec;
     }
     
+    public void adjustForInsert(int index, boolean isOutput)
+    {
+      if (prerequisiteStage > index || (prerequisiteStage == index && !isOutput))
+        prerequisiteStage++;
+    }
+    
+    public void adjustForDelete(int index, int prerequisite)
+    {
+      if (prerequisiteStage > index)
+        prerequisiteStage--;
+      else if (prerequisiteStage == index)
+        prerequisiteStage = prerequisite;
+    }
+    
     public OutputSpecification getSpecification()
     {
       return specification;
+    }
+    
+    public int getPrerequisiteStage()
+    {
+      return prerequisiteStage;
+    }
+    
+    public boolean getIsOutput()
+    {
+      return isOutput;
     }
     
     public String getConnectionName()

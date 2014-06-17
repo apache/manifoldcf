@@ -40,7 +40,7 @@ public class PipelineSpecification implements IPipelineSpecification
       String descriptionString;
       if (basicSpecification.checkStageOutputConnection(i))
       {
-        descriptionString = ingester.getOutputDescription(basicSpecification.getStageConnectionName(i),job.getOutputSpecification());
+        descriptionString = ingester.getOutputDescription(basicSpecification.getStageConnectionName(i),job.getPipelineStageSpecification(i));
       }
       else
       {

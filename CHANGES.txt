@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-962: Add support for multiple outputs for a given job.
+WARNING: Schema change!  REST API change!  Upgrade from 1.6.x
+has been added but not yet tested.
+(Karl Wright)
+
 CONNECTORS-963: SharePoint/AD authority did not generate the "true"
 token.
 (Karl Wright)
