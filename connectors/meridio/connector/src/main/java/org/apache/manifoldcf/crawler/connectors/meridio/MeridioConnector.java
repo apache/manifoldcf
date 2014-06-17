@@ -1360,7 +1360,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
                     if (null != activities)
                     {
-                      activities.ingestDocument(documentIdentifier, docVersion,
+                      activities.ingestDocumentWithException(documentIdentifier, docVersion,
                         fileURL, repositoryDocument);
                     }
                   }
