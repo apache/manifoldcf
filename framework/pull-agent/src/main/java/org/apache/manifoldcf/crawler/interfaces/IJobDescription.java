@@ -140,7 +140,7 @@ public interface IJobDescription
   *@param pipelineStageDescription is the description.
   *@return the newly-created output specification.
   */
-  public OutputSpecification insertPipelineStage(int index, int prerequisiteStage, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription);
+  public OutputSpecification insertPipelineStage(int index, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription);
   
   /** Set the job type.
   *@param type is the type (as an integer).
