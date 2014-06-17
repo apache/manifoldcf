@@ -4121,10 +4121,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       int prerequisite = (ps.prerequisite == null)?-1:pipelineStages.get(ps.prerequisite).ordinal;
       OutputSpecification os = jobDescription.addPipelineStage(prerequisite,ps.isOutput,ps.connectionName,ps.description);
       os.clearChildren();
-      for (int j = 0; j < ps.specification.getChildCount(); j++)
+      if (ps.specification != null)
       {
-        ConfigurationNode cn = ps.specification.findChild(j);
-        os.addChild(os.getChildCount(),new SpecificationNode(cn));
+        for (int j = 0; j < ps.specification.getChildCount(); j++)
+        {
+          ConfigurationNode cn = ps.specification.findChild(j);
+          os.addChild(os.getChildCount(),new SpecificationNode(cn));
+        }
       }
     }
   }
@@ -4136,7 +4139,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     if (keysSeen.contains(stageName))
       return;
     PipelineStage ps = pipelineStages.get(stageName);
-    if (ps != null)
+    if (ps == null)
       throw new ManifoldCFException("Stage reference error: '"+stageName+"' is unknown");
     if (ps.prerequisite != null)
       addStage(ps.prerequisite,orderedStageNames,keysSeen,pipelineStages);
