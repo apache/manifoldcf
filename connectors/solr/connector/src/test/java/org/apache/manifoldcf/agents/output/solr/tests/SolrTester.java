@@ -80,7 +80,7 @@ public class SolrTester
     IJobDescription job = jobManager.createJob();
     job.setDescription("Test Job");
     job.setConnectionName("Test Connection");
-    job.setOutputConnectionName("Solr Connection");
+    job.addPipelineStage(-1,true,"Solr Connection","");
     job.setType(job.TYPE_SPECIFIED);
     job.setStartMethod(job.START_DISABLE);
     job.setHopcountMode(job.HOPCOUNT_NEVERDELETE);
