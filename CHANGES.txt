@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-964: Document REST API changes for multiple outputs
+per job.
+(Karl Wright)
+
 CONNECTORS-962: Add support for multiple outputs for a given job.
 WARNING: Schema change!  REST API change!  Upgrade from 1.6.x
 has been added but not yet tested.
