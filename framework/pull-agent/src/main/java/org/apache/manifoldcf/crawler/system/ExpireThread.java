@@ -100,7 +100,7 @@ public class ExpireThread extends Thread
 
           IJobDescription job = dds.getJobDescription();
           String connectionName = job.getConnectionName();
-          String outputConnectionName = job.getOutputConnectionName();
+          IPipelineSpecificationBasic pipelineSpecificationBasic = new PipelineSpecificationBasic(job);
           
           try
           {
@@ -112,10 +112,10 @@ public class ExpireThread extends Thread
             IRepositoryConnection connection = connMgr.load(connectionName);
             
             // This is where we store the hopcount cleanup data
-            ArrayList arrayDocHashes = new ArrayList();
-            ArrayList arrayDocsToDelete = new ArrayList();
-            ArrayList arrayRelationshipTypes = new ArrayList();
-            ArrayList hopcountMethods = new ArrayList();
+            List<String> arrayDocHashes = new ArrayList<String>();
+            List<CleanupQueuedDocument> arrayDocsToDelete = new ArrayList<CleanupQueuedDocument>();
+            List<String[]> arrayRelationshipTypes = new ArrayList<String[]>();
+            List<Integer> hopcountMethods = new ArrayList<Integer>();
             
             int j = 0;
             while (j < dds.getCount())
@@ -146,18 +146,16 @@ public class ExpireThread extends Thread
               boolean[] deleteFromQueue = new boolean[arrayDocHashes.size()];
                     
               // Count the number of docs to actually delete.  This will be a subset of the documents in the list.
-              int k = 0;
               int removeCount = 0;
-              while (k < arrayDocHashes.size())
+              for (int k = 0; k < arrayDocHashes.size(); k++)
               {
-                if (((CleanupQueuedDocument)arrayDocsToDelete.get(k)).shouldBeRemovedFromIndex())
+                if (arrayDocsToDelete.get(k).shouldBeRemovedFromIndex())
                 {
                   deleteFromQueue[k] = false;
                   removeCount++;
                 }
                 else
                   deleteFromQueue[k] = true;
-                k++;
               }
                     
               // Allocate removal arrays
@@ -165,33 +163,29 @@ public class ExpireThread extends Thread
               String[] hashedDocsToRemove = new String[removeCount];
 
               // Now, iterate over the list
-              k = 0;
               removeCount = 0;
-              while (k < arrayDocHashes.size())
+              for (int k = 0; k < arrayDocHashes.size(); k++)
               {
-                if (((CleanupQueuedDocument)arrayDocsToDelete.get(k)).shouldBeRemovedFromIndex())
+                if (arrayDocsToDelete.get(k).shouldBeRemovedFromIndex())
                 {
                   docClassesToRemove[removeCount] = connectionName;
-                  hashedDocsToRemove[removeCount] = (String)arrayDocHashes.get(k);
+                  hashedDocsToRemove[removeCount] = arrayDocHashes.get(k);
                   removeCount++;
                 }
-                k++;
               }
 
-              OutputRemoveActivity activities = new OutputRemoveActivity(connectionName,connMgr,outputConnectionName);
+              OutputRemoveActivity activities = new OutputRemoveActivity(connectionName,connMgr);
 
               // Finally, go ahead and delete the documents from the ingestion system.
               // If we fail, we need to put the documents back on the queue.
               try
               {
-                ingester.documentDeleteMultiple(outputConnectionName,docClassesToRemove,hashedDocsToRemove,activities);
+                ingester.documentDeleteMultiple(pipelineSpecificationBasic,docClassesToRemove,hashedDocsToRemove,activities);
                 // Success!  Label all these as needing deletion from queue.
-                k = 0;
-                while (k < arrayDocHashes.size())
+                for (int k = 0; k < arrayDocHashes.size(); k++)
                 {
-                  if (((CleanupQueuedDocument)arrayDocsToDelete.get(k)).shouldBeRemovedFromIndex())
+                  if (arrayDocsToDelete.get(k).shouldBeRemovedFromIndex())
                     deleteFromQueue[k] = true;
-                  k++;
                 }
               }
               catch (ServiceInterruption e)
@@ -200,10 +194,9 @@ public class ExpireThread extends Thread
                 // Go through the list of documents we just tried, and reset them on the queue based on the
                 // ServiceInterruption parameters.  Then we must proceed to delete ONLY the documents that
                 // were not part of the index deletion attempt.
-                k = 0;
-                while (k < arrayDocHashes.size())
+                for (int k = 0; k < arrayDocHashes.size(); k++)
                 {
-                  CleanupQueuedDocument cqd = (CleanupQueuedDocument)arrayDocsToDelete.get(k);
+                  CleanupQueuedDocument cqd = arrayDocsToDelete.get(k);
                   if (cqd.shouldBeRemovedFromIndex())
                   {
                     DocumentDescription dd = cqd.getDocumentDescription();
@@ -222,23 +215,21 @@ public class ExpireThread extends Thread
                       cqd.setProcessed();
                     }
                   }
-                  k++;
                 }
               }
 
               // Successfully deleted some documents from ingestion system.  Now, remove them from job queue.  This
               // must currently happen one document at a time, because the jobs and connectors for each document
               // potentially differ.
-              k = 0;
-              while (k < arrayDocHashes.size())
+              for (int k = 0; k < arrayDocHashes.size(); k++)
               {
                 if (deleteFromQueue[k])
                 {
-                  CleanupQueuedDocument dqd = (CleanupQueuedDocument)arrayDocsToDelete.get(k);
+                  CleanupQueuedDocument dqd = arrayDocsToDelete.get(k);
                   DocumentDescription ddd = dqd.getDocumentDescription();
                   Long jobID = ddd.getJobID();
-                  int hopcountMethod = ((Integer)hopcountMethods.get(k)).intValue();
-                  String[] legalLinkTypes = (String[])arrayRelationshipTypes.get(k);
+                  int hopcountMethod = hopcountMethods.get(k).intValue();
+                  String[] legalLinkTypes = arrayRelationshipTypes.get(k);
                   DocumentDescription[] requeueCandidates = jobManager.markDocumentExpired(jobID,legalLinkTypes,ddd,hopcountMethod);
                   // Use the common method for doing the requeuing
                   ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
@@ -246,7 +237,6 @@ public class ExpireThread extends Thread
                   // Finally, completed expiration of the document.
                   dqd.setProcessed();
                 }
-                k++;
               }
             }
             finally
@@ -352,18 +342,15 @@ public class ExpireThread extends Thread
   {
 
     // Connection name
-    protected String connectionName;
+    protected final String connectionName;
     // Connection manager
-    protected IRepositoryConnectionManager connMgr;
-    // Output connection name
-    protected String outputConnectionName;
+    protected final IRepositoryConnectionManager connMgr;
 
     /** Constructor */
-    public OutputRemoveActivity(String connectionName, IRepositoryConnectionManager connMgr, String outputConnectionName)
+    public OutputRemoveActivity(String connectionName, IRepositoryConnectionManager connMgr)
     {
       this.connectionName = connectionName;
       this.connMgr = connMgr;
-      this.outputConnectionName = outputConnectionName;
     }
 
     /** Record time-stamped information about the activity of the output connector.
@@ -385,7 +372,7 @@ public class ExpireThread extends Thread
       String entityURI, String resultCode, String resultDescription)
       throws ManifoldCFException
     {
-      connMgr.recordHistory(connectionName,startTime,ManifoldCF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
+      connMgr.recordHistory(connectionName,startTime,activityType,dataSize,entityURI,resultCode,
         resultDescription,null);
     }
   }

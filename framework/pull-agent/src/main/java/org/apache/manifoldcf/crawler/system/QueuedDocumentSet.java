@@ -31,26 +31,20 @@ public class QueuedDocumentSet
   public static final String _rcsid = "@(#)$Id: QueuedDocumentSet.java 988245 2010-08-23 18:39:35Z kwright $";
 
   /** This is the array of QueuedDocument objects. */
-  protected QueuedDocument[] documents;
+  protected final QueuedDocument[] documents;
   /** The job description that applies to this document set.  There is no guarantee that
   * this won't change before we get around to processing the document; therefore any
   * job-based metadata changes will also need to go through the queue mechanism. */
-  protected IJobDescription jobDescription;
+  protected final IJobDescription jobDescription;
   /** The connection description that applies to this document set. */
-  protected IRepositoryConnection connection;
+  protected final IRepositoryConnection connection;
 
   /** Constructor.
   *@param documents is the arraylist representing the documents accumulated for a single connection.
   */
-  public QueuedDocumentSet(ArrayList documents, IJobDescription jobDescription, IRepositoryConnection connection)
+  public QueuedDocumentSet(List<QueuedDocument> documents, IJobDescription jobDescription, IRepositoryConnection connection)
   {
-    this.documents = new QueuedDocument[documents.size()];
-    int i = 0;
-    while (i < this.documents.length)
-    {
-      this.documents[i] = (QueuedDocument)documents.get(i);
-      i++;
-    }
+    this.documents = (QueuedDocument[])documents.toArray(new QueuedDocument[0]);
     this.jobDescription = jobDescription;
     this.connection = connection;
   }

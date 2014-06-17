@@ -441,9 +441,7 @@
             <tr><td>"id"</td><td>The job's identifier, if present.  If not present, ManifoldCF will create one (and will also create the job when saved).</td></tr>
             <tr><td>"description"</td><td>Text describing the job</td></tr>
             <tr><td>"repository_connection"</td><td>The name of the repository connection to use with the job</td></tr>
-            <tr><td>"output_connection"</td><td>The name of the output connection to use with the job</td></tr>
             <tr><td>"document_specification"</td><td>The document specification object for the job, whose format is repository-connection specific</td></tr>
-            <tr><td>"output_specification"</td><td>The output specification object for the job, whose format is output-connection specific</td></tr>
             <tr><td>"start_mode"</td><td>The start mode for the job, which can be one of "schedule window start", "schedule window anytime", or "manual"</td></tr>
             <tr><td>"run_mode"</td><td>The run mode for the job, which can be either "continuous" or "scan once"</td></tr>
             <tr><td>"hopcount_mode"</td><td>The hopcount mode for the job, which can be either "accurate", "no delete", "never delete"</td></tr>
@@ -461,9 +459,12 @@
           <p></p>
           <table>
             <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"stage_id"</td><td>The unique identifier for the pipeline stage</td></tr>
+            <tr><td>"stage_prerequisite"</td><td>The unique identifier for the preceding pipeline stage; may be missing if none</td></tr>
+            <tr><td>"stage_isoutput"</td><td>"true" if the stage is an output connection</td></tr>
             <tr><td>"stage_connectionname"</td><td>The connection name for the pipeline stage</td></tr>
             <tr><td>"stage_description"</td><td>A description of the pipeline stage</td></tr>
-            <tr><td>"stage_specification"</td><td>The transformation specification for the pipeline stage</td></tr>
+            <tr><td>"stage_specification"</td><td>The specification string for the pipeline stage</td></tr>
           </table>
           <p></p>
           <p>Each forcedparam object has the following fields:</p>

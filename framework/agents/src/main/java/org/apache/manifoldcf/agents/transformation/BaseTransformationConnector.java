@@ -153,15 +153,17 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   * an output description string in order to determine what should be done.
   *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
   * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
-  *@param pipelineDescription is the description string that was constructed for this document by the getOutputDescription() method.
+  *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
   *@param document is the document data to be processed (handed to the output data store).
   *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
-  *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity.
+  *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity,
+  * or sending a modified document to the next stage in the pipeline.
   *@return the document status (accepted or permanently rejected).
+  *@throws IOException only if there's a stream error reading the document data.
   */
   @Override
-  public int addOrReplaceDocument(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws ManifoldCFException, ServiceInterruption
+  public int addOrReplaceDocumentWithException(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+    throws ManifoldCFException, ServiceInterruption, IOException
   {
     return DOCUMENTSTATUS_REJECTED;
   }
