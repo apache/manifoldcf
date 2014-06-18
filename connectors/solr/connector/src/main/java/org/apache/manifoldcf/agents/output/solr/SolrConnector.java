@@ -29,9 +29,9 @@ import java.util.Map;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
-import org.apache.manifoldcf.agents.interfaces.OutputSpecification;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.ConfigNode;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
@@ -456,7 +456,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   * the document will not need to be sent again to the output data store.
   */
   @Override
-  public String getOutputDescription(OutputSpecification spec)
+  public String getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
@@ -2250,49 +2250,73 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     );
   }
   
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  @Override
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+  }
+
   /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected an output connection of the current type.  Its purpose is to add the required tabs
+  * This method is called in the head section of a job page which has selected a pipeline connection of the current type.  Its purpose is to add the required tabs
   * to the list, and to output any javascript methods that might be needed by the job editing HTML.
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this connection.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
     tabsArray.add(Messages.getString(locale,"SolrConnector.SolrFieldMapping"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
-"function checkOutputSpecification()\n"+
+"function "+seqPrefix+"checkSpecification()\n"+
 "{\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
-"function addFieldMapping()\n"+
+"function "+seqPrefix+"addFieldMapping()\n"+
 "{\n"+
-"  if (editjob.solr_fieldmapping_source.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"solr_fieldmapping_source.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.FieldMapMustHaveNonNullSource")+"\");\n"+
-"    editjob.solr_fieldmapping_source.focus();\n"+
+"    editjob."+seqPrefix+"solr_fieldmapping_source.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  editjob.solr_fieldmapping_op.value=\"Add\";\n"+
-"  postFormSetAnchor(\"solr_fieldmapping\");\n"+
+"  editjob."+seqPrefix+"solr_fieldmapping_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\""+seqPrefix+"+solr_fieldmapping\");\n"+
 "}\n"+
 "\n"+
-"function deleteFieldMapping(i)\n"+
+"function "+seqPrefix+"deleteFieldMapping(i)\n"+
 "{\n"+
 "  // Set the operation\n"+
-"  eval(\"editjob.solr_fieldmapping_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
+"  eval(\"editjob."+seqPrefix+"solr_fieldmapping_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
 "  // Submit\n"+
-"  if (editjob.solr_fieldmapping_count.value==i)\n"+
-"    postFormSetAnchor(\"solr_fieldmapping\");\n"+
+"  if (editjob."+seqPrefix+"solr_fieldmapping_count.value==i)\n"+
+"    postFormSetAnchor(\""+seqPrefix+"solr_fieldmapping\");\n"+
 "  else\n"+
-"    postFormSetAnchor(\"solr_fieldmapping_\"+i)\n"+
+"    postFormSetAnchor(\""+seqPrefix+"solr_fieldmapping_\"+i)\n"+
 "  // Undo, so we won't get two deletes next time\n"+
-"  eval(\"editjob.solr_fieldmapping_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
+"  eval(\"editjob."+seqPrefix+"solr_fieldmapping_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
 "}\n"+
 "\n"+
 "//-->\n"+
@@ -2301,21 +2325,27 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   }
   
   /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
+  * This method is called in the body section of a job page which has selected a pipeline connection of the current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
   * form is "editjob".
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+    
     int i = 0;
     
     // Field Mapping tab
-    if (tabName.equals(Messages.getString(locale,"SolrConnector.SolrFieldMapping")))
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.SolrFieldMapping")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2349,7 +2379,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             targetDisplay = "(remove)";
           }
           // It's prefix will be...
-          String prefix = "solr_fieldmapping_" + Integer.toString(fieldCounter);
+          String prefix = seqPrefix+"solr_fieldmapping_" + Integer.toString(fieldCounter);
           out.print(
 "        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -2392,17 +2422,17 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
 "        <tr class=\"formrow\">\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <a name=\"solr_fieldmapping\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SolrConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"SolrConnector.AddFieldMapping") + "\" onclick=\"javascript:addFieldMapping();\"/>\n"+
+"            <a name=\""+seqPrefix+"solr_fieldmapping\">\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SolrConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"SolrConnector.AddFieldMapping") + "\" onclick=\"javascript:"+seqPrefix+"addFieldMapping();\"/>\n"+
 "            </a>\n"+
-"            <input type=\"hidden\" name=\"solr_fieldmapping_count\" value=\""+fieldCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"solr_fieldmapping_op\" value=\"Continue\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"solr_fieldmapping_count\" value=\""+fieldCounter+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"solr_fieldmapping_op\" value=\"Continue\"/>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"15\" name=\"solr_fieldmapping_source\" value=\"\"/></nobr>\n"+
+"            <nobr><input type=\"text\" size=\"15\" name=\""+seqPrefix+"solr_fieldmapping_source\" value=\"\"/></nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"15\" name=\"solr_fieldmapping_target\" value=\"\"/></nobr>\n"+
+"            <nobr><input type=\"text\" size=\"15\" name=\""+seqPrefix+"solr_fieldmapping_target\" value=\"\"/></nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"+
 "      </table>\n"+
@@ -2412,7 +2442,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"SolrConnector.KeepAllMetadata")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"       <input type=\"checkbox\""+keepMetadataValue+" name=\"solr_keepallmetadata\" value=\"true\"/>\n"+
+"       <input type=\"checkbox\""+keepMetadataValue+" name=\""+seqPrefix+"solr_keepallmetadata\" value=\"true\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -2432,7 +2462,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
           if (target == null)
             target = "";
         // It's prefix will be...
-          String prefix = "solr_fieldmapping_" + Integer.toString(fieldCounter);
+          String prefix = seqPrefix+"solr_fieldmapping_" + Integer.toString(fieldCounter);
           out.print(
 "<input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"
@@ -2445,10 +2475,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"solr_keepallmetadata\" value=\""+keepMetadataValue+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"solr_keepallmetadata\" value=\""+keepMetadataValue+"\"/>\n"
       );
       out.print(
-"<input type=\"hidden\" name=\"solr_fieldmapping_count\" value=\""+Integer.toString(fieldCounter)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"solr_fieldmapping_count\" value=\""+Integer.toString(fieldCounter)+"\"/>\n"
       );
     }
 
@@ -2456,17 +2486,21 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   
   /** Process a specification post.
   * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the output specification accordingly.
+  * posted.  Its purpose is to gather form information and modify the transformation specification accordingly.
   * The name of the posted form is "editjob".
   *@param variableContext contains the post data, including binary file-upload information.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
+    int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    String x = variableContext.getParameter("solr_fieldmapping_count");
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+    String x = variableContext.getParameter(seqPrefix+"solr_fieldmapping_count");
     if (x != null && x.length() > 0)
     {
       // About to gather the fieldmapping nodes, so get rid of the old ones.
@@ -2483,7 +2517,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       i = 0;
       while (i < count)
       {
-        String prefix = "solr_fieldmapping_"+Integer.toString(i);
+        String prefix = seqPrefix+"solr_fieldmapping_"+Integer.toString(i);
         String op = variableContext.getParameter(prefix+"_op");
         if (op == null || !op.equals("Delete"))
         {
@@ -2500,11 +2534,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         i++;
       }
       
-      String addop = variableContext.getParameter("solr_fieldmapping_op");
+      String addop = variableContext.getParameter(seqPrefix+"solr_fieldmapping_op");
       if (addop != null && addop.equals("Add"))
       {
-        String source = variableContext.getParameter("solr_fieldmapping_source");
-        String target = variableContext.getParameter("solr_fieldmapping_target");
+        String source = variableContext.getParameter(seqPrefix+"solr_fieldmapping_source");
+        String target = variableContext.getParameter(seqPrefix+"solr_fieldmapping_target");
         if (target == null)
           target = "";
         SpecificationNode node = new SpecificationNode(SolrConfig.NODE_FIELDMAP);
@@ -2515,7 +2549,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       
       // Gather the keep all metadata parameter to be the last one
       SpecificationNode node = new SpecificationNode(SolrConfig.NODE_KEEPMETADATA);
-      String keepAll = variableContext.getParameter("solr_keepallmetadata");
+      String keepAll = variableContext.getParameter(seqPrefix+"solr_keepallmetadata");
       if (keepAll != null) {
         node.setAttribute(SolrConfig.ATTRIBUTE_VALUE, keepAll);
       }
@@ -2530,13 +2564,16 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   }
   
   /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the pipeline specification information to the user.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param os is the current pipeline specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
     // Prep for field mappings
