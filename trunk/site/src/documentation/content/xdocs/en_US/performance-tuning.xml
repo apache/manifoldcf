@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>Performance tuning</title> 
+  </header> 
+
+  <body> 
+    <section>
+      <title>Performance tuning</title>
+      <p></p>
+      <p>
+        In order to get the most out of ManifoldCF, performance-wise, there are a few things you need to know.  First, you need to know how to configure the project so that it performs optimally.  You'll also want to know what hardware would work best.  And, no doubt, you want to have some idea whether you've actually done everything properly, so you need data to compare with.
+        This page will hopefully answer all of those questions.
+      </p>
+      <section>
+        <title>Configuration for performance</title>
+        <p></p>
+        <p>
+          The goal of performance tuning for ManifoldCF is to take maximum advantage of parallelism in the system doing the work, and to make sure there are no bottlenecks anywhere that would slow things down.
+          The most important underpinning of ManifoldCF is the database, since that is the only persistent storage mechanism ManifoldCF uses.  Getting the database right is therefore the first goal.
+        </p>
+        <section>
+          <title>Selecting the database</title>
+          <p>
+            Start by using PostgreSQL rather than Derby, because Derby has known performance problems when it comes to handling deadlocks.
+            Database deadlocks arise naturally in systems like ManifoldCF that are highly threaded, and while the risk of their arising can be reduced, it cannot entirely be eliminated.
+            Derby, on the other hand, has the ability to deadlock with a simple SELECT against a table happening at the same time as a DELETE against the same table, and Derby requires a hang of a minute before it detects the deadlock.
+            Obviously that behavior is incompatible with high performance.  So, use PostgreSQL if you care at all about crawler performance.  See the <a href="how-to-build-and-deploy.html">how-to-deploy</a> page for a description of how to run ManifoldCF under PostgreSQL.
+          </p>
+          <p>
+            Certain PostgreSQL versions are also known to generate bad plans for ManifoldCF queries.  When this happens, crawls of any size may become extremely slow.
+            The ManifoldCF log will start to include many warnings of the sort, "Query took more than a minute", with a corresponding dumped plan that shows a sequential scan of a large table.
+            At this point you should suspect you have a bad version of PostgreSQL.  Known bad versions include 8.3.12.  Known good versions are 8.3.7, 8.3.8, and 8.4.5.
+          </p>
+        </section>
+        <section>
+          <title>Configuring PostgreSQL correctly</title>
+          <p>
+            The key configuration changes you need to make to PostgreSQL from its out-of-the-box settings are intended to:
+          </p>
+          <ul>
+            <li>Set PostgreSQL up with enough database handles so that that will not be a bottleneck;</li>
+            <li>Make sure PostgreSQL has enough shared memory allocated to support the number of handles you selected;</li>
+            <li>Turn off autovacuuming.</li>
+          </ul>
+          <p>
+            The <em>postgresql.conf</em> file is where you set most of these options.  Some recommended settings are described in <a href="how-to-build-and-deploy.html">the deployment page</a>.
+            The postgresql.conf file describes the relationship between parameters, especially between the number of database handles and the amount of shared memory allocated.  This can differ significantly
+            from version to version, so it never hurts to read the text in that file, and understand what you are trying to achieve.
+          </p>
+          <p>
+            The number of database handles you need will depend on your ManifoldCF setup.  If you use the Quick Start, for instance, fewer handles are needed, because only one process is used.  The formula relating handle count to other
+            parameters of ManifoldCF is presented below.
+          </p>
+          <p></p>
+          <p>manifoldcf_db_pool_size * number_of_manifoldcf_processes &lt;= maximum_postgresql_database_handles - 2</p>
+          <p></p>
+          <p>
+            The number of processes you might have depends on how you deployed ManifoldCF.  If you used the Quick Start, you will only have one process.  But if you deployed in a more distributed way,
+            you will have at least a process for the agents daemon, as well as at one process for each web application.  If you anticipate that a command-line utility could be used at the same time,
+            that's one more process.  These multiply quickly, so the number of database handles you need to make available can get quite large, unless you limit the ManifoldCF pool size artificially
+            instead.
+          </p>
+          <p>Setting the parameters that control the size of the database connection pool is covered in the next section.</p>
+        </section>
+        <section>
+          <title>Setting the ManifoldCF database handle pool size</title>
+          <p>
+            The database handle pool size must be set correctly, or ManifoldCF will not perform well, and may even deadlock waiting to get a database handle.
+            The properties.xml parameter that controls this is <em>org.apache.manifoldcf.database.maxhandles</em>.  The formula you should use to properly set the value is below.
+          </p>
+          <p></p>
+          <p>worker_thread_count + delete_thread_count + expiration_thread_count + cleanup_thread_count + 10 &lt; manifoldcf_db_pool_size</p>
+          <p></p>
+        </section>
+        <section>
+          <title>Setting the number of worker, delete, and expiration threads</title>
+          <p>
+            The number of each variety of thread you choose depends on a number of factors that are specific to the kinds of tasks you expect to do.
+            First, note that constraints based on your hardware may have the effect of setting an upper bound on the total number of threads.  If, for example, memory constraints
+            on your system have the effect of limiting the number of available PostgreSQL handles, the total threads will also be limited as a result of applying the formulas already given.
+          </p>
+          <p>
+            If you do not have any such constraints, then you can choose the number of threads based on other hardware factors.  Typically, the number of processors would be what you'd consider
+            in coming up with the total thread count.  A value of between 12 and 35 threads per processor is typical.  The optimal number for you will require some experimentation.
+          </p>
+          <p>The threads then have to be allocated to the worker, deletion, or expiration category.  If your work load does not require much in the way of deleting documents or expiring them,
+            it is usually adequate to retain the default of 10 deletion and 10 expiration threads, and simply adjust the worker thread count.  The worker thread count parameter is <em>org.apache.manifoldcf.crawler.threads</em>.
+            See <a href="how-to-build-and-deploy.html">the deployment page</a> for a list of all of these parameters.
+          </p>
+        </section>
+        <section>
+          <title>Database maintenance</title>
+          <p>
+            Once you have the database and ManifoldCF configurated correctly, you will discover that the performance of the system gradually degrades over time.  This is because PostgreSQL
+            requires periodic maintenance in order to function optimally.  This maintenance is called <em>vacuuming</em>.
+          </p>
+          <p>
+            Our recommendation is to vacuum on a schedule, and to use the "full" variant of the vacuum command (e.g. "VACUUM FULL").  PostgreSQL gives you the option of lesser
+            vacuums, some of which can be done in background, but in our experience these are very expensive performance-wise, and are not very helpful either.  "VACUUM FULL" makes a
+            complete new copy of the database, a table at a time, stored in an optimal way.  It is also reasonably quick, considering what it is doing.
+          </p>
+        </section>
+      </section>
+      <section>
+        <title>Some results</title>
+        <p>
+          We've run performance test on several systems.  Depending on hardware configuration, we've seen as fast as 57 documents per second to 16 documents per second.  We tested with three different systems and ran the test
+          across 306,944 documents.  The table below shows the relevant configurations and results:
+        </p>
+        <table>
+          <tr><th>System</th><th>Processors (2+ Ghz)</th><th>Memory</th><th>Disk drives</th><th>Elapsed time (seconds)</th><th>Documents per second</th></tr>
+          <tr><td>Desktop</td><td>2</td><td>8 GB</td><td>7,200 RPM</td><td>19,492</td><td>16</td></tr>
+          <tr><td>Laptop</td><td>2</td><td>4 GB</td><td>Samsung SSD RBX</td><td>9,230</td><td>33</td></tr>
+          <tr><td>Server</td><td>8</td><td>8 GB</td><td>10,000 RPM</td><td>5,366</td><td>57</td></tr>
+        </table>
+        <p>
+          For these tests, we ran the Quick-Start example configuration from ManifoldCF as is, with the exception of using an external PostgreSQL database instead of the embedded Derby.
+          We altered the ManifoldCF and PostgreSQL configuration from their default settings to maximize system resource usage.  The table below shows the key configuration changes.
+        </p>
+        <table>
+          <tr><th>Workers</th><th>ManifoldCF DB Connections</th><th>PostgreSQL Connections</th><th>Max repository connections</th><th>JVM Memory</th></tr>
+          <tr><td>100</td><td>105</td><td>200</td><td>105</td><td>1024 MB</td></tr>
+        </table>
+        <p>Additionally, we made postgresql.conf changes as shown in the table below:</p>
+        <table>
+          <tr><th>Parameter</th><th>Value</th></tr>
+          <tr><td>shared_buffers</td><td>1024MB</td></tr>
+          <tr><td>checkpoint_segments</td><td>300</td></tr>
+          <tr><td>maintenanceworkmem</td><td>2MB</td></tr>
+          <tr><td>tcpip_socket</td><td>true</td></tr>
+          <tr><td>max_connections</td><td>200</td></tr>
+          <tr><td>checkpoint_timeout</td><td>900</td></tr>
+          <tr><td>datestyle</td><td>ISO,European</td></tr>
+          <tr><td>autovacuum</td><td>off</td></tr>
+        </table>
+        <p>There are some interesting conclusions, for example the use of Solid State Drives for the laptop.  Even though addressable memory was reduced to 4 GB, the system processed twice as much documents than the desktop did with slower disks.  The other interesting fact is that the server had lower performing disks, but 4 times as many processors, and it was twice as fast as the laptop.</p>
+      </section>
+    </section>
+  </body>
+</document>
+
+
+
+
+
+
+        

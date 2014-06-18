@@ -1,0 +1,232 @@
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://schemas.microsoft.com/sharepoint/dsp" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" targetNamespace="http://schemas.microsoft.com/sharepoint/dsp" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/sharepoint/dsp">
+      <s:import namespace="http://www.w3.org/2001/XMLSchema" />
+      <s:element name="queryRequest" nillable="true" type="tns:QueryRequest" />
+      <s:complexType name="QueryRequest">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="dsQuery" type="tns:DSQuery" />
+          <s:element minOccurs="0" maxOccurs="1" name="ptQuery" type="tns:PTQuery" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="DSQuery">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Query" type="tns:DspQuery" />
+        </s:sequence>
+        <s:attribute name="select" type="s:string" />
+        <s:attribute default="both" name="resultContent" type="tns:ResultContentType" />
+        <s:attribute default="element" name="columnMapping" type="tns:ColumnMappingType" />
+        <s:attribute name="resultNamespace" type="s:string" />
+        <s:attribute name="resultPrefix" type="s:string" />
+        <s:attribute name="resultRoot" type="s:string" />
+        <s:attribute name="resultRow" type="s:string" />
+        <s:attribute name="startPosition" type="s:string" />
+        <s:attribute name="comparisonLocale" type="s:string" />
+      </s:complexType>
+      <s:complexType name="DspQuery">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="ServerParameterInfo" type="tns:ServerParameterInfo" />
+          <s:element minOccurs="0" maxOccurs="1" name="Fields" type="tns:Fields" />
+          <s:element minOccurs="0" maxOccurs="1" name="ServerParameters" type="tns:ArrayOfServerParameter" />
+          <s:element minOccurs="0" maxOccurs="1" name="Where">
+            <s:complexType mixed="true">
+              <s:sequence>
+                <s:any />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+          <s:element minOccurs="0" maxOccurs="1" name="OrderBy" type="tns:ArrayOfOrderField" />
+        </s:sequence>
+        <s:attribute default="-1" name="RowLimit" type="s:long" />
+      </s:complexType>
+      <s:complexType name="ServerParameterInfo" />
+      <s:complexType name="Fields">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Field" type="tns:Field" />
+          <s:element minOccurs="0" maxOccurs="1" name="AllFields" type="tns:AllFields" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Field">
+        <s:attribute name="Name" type="s:string" />
+        <s:attribute name="Alias" type="s:string" />
+      </s:complexType>
+      <s:complexType name="AllFields">
+        <s:attribute default="false" name="IncludeHiddenFields" type="s:boolean" />
+      </s:complexType>
+      <s:complexType name="ArrayOfServerParameter">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="ServerParameter" type="tns:ServerParameter" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ServerParameter">
+        <s:simpleContent>
+          <s:extension base="s:string">
+            <s:attribute name="Name" type="s:string" />
+            <s:attribute default="false" name="Null" type="s:boolean" />
+          </s:extension>
+        </s:simpleContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfOrderField">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="OrderField" type="tns:OrderField" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="OrderField">
+        <s:attribute name="Name" type="s:string" />
+        <s:attribute default="ASC" name="Direction" type="tns:OrderDirection" />
+      </s:complexType>
+      <s:simpleType name="OrderDirection">
+        <s:restriction base="s:string">
+          <s:enumeration value="ASC" />
+          <s:enumeration value="DESC" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="ResultContentType">
+        <s:restriction base="s:string">
+          <s:enumeration value="both" />
+          <s:enumeration value="schemaOnly" />
+          <s:enumeration value="dataOnly" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="ColumnMappingType">
+        <s:restriction base="s:string">
+          <s:enumeration value="element" />
+          <s:enumeration value="attribute" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="PTQuery">
+        <s:sequence>
+          <s:any minOccurs="0" maxOccurs="unbounded" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="queryResponse">
+        <s:complexType mixed="true">
+          <s:sequence>
+            <s:any />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="authentication" type="tns:Authentication" />
+      <s:complexType name="Authentication">
+        <s:sequence>
+          <s:any minOccurs="0" maxOccurs="unbounded" />
+        </s:sequence>
+        <s:anyAttribute />
+      </s:complexType>
+      <s:element name="dataRoot" type="tns:DataRoot" />
+      <s:complexType name="DataRoot">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="root" type="s:string" />
+        </s:sequence>
+        <s:attribute default="true" name="allowRemoteDataAccess" type="s:boolean" />
+        <s:anyAttribute />
+      </s:complexType>
+      <s:element name="request" type="tns:RequestHeader" />
+      <s:complexType name="RequestHeader">
+        <s:attribute name="document" type="tns:DocumentType" use="required" />
+        <s:attribute name="method" type="tns:MethodType" use="required" />
+        <s:anyAttribute />
+      </s:complexType>
+      <s:simpleType name="DocumentType">
+        <s:restriction base="s:string">
+          <s:enumeration value="content" />
+          <s:enumeration value="system" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="MethodType">
+        <s:restriction base="s:string">
+          <s:enumeration value="query" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="versions" type="tns:Versions" />
+      <s:complexType name="Versions">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="version" type="s:string" />
+        </s:sequence>
+        <s:anyAttribute />
+      </s:complexType>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="queryRequestSoapIn">
+    <wsdl:part name="Request" element="tns:queryRequest" />
+  </wsdl:message>
+  <wsdl:message name="queryRequestSoapOut">
+    <wsdl:part name="queryRequestResult" element="tns:queryResponse" />
+  </wsdl:message>
+  <wsdl:message name="queryRequestauthentication">
+    <wsdl:part name="authentication" element="tns:authentication" />
+  </wsdl:message>
+  <wsdl:message name="queryRequestdataRoot">
+    <wsdl:part name="dataRoot" element="tns:dataRoot" />
+  </wsdl:message>
+  <wsdl:message name="queryRequestrequest">
+    <wsdl:part name="request" element="tns:request" />
+  </wsdl:message>
+  <wsdl:message name="queryRequestversions">
+    <wsdl:part name="versions" element="tns:versions" />
+  </wsdl:message>
+  <wsdl:portType name="StsAdapterSoap">
+    <wsdl:operation name="Query">
+      <wsdl:input name="queryRequest" message="tns:queryRequestSoapIn" />
+      <wsdl:output name="queryRequest" message="tns:queryRequestSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="StsAdapterSoap" type="tns:StsAdapterSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="Query">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/dsp/queryRequest" style="document" />
+      <wsdl:input name="queryRequest">
+        <soap:body use="literal" />
+        <soap:header message="tns:queryRequestauthentication" part="authentication" use="literal" />
+        <soap:header message="tns:queryRequestdataRoot" part="dataRoot" use="literal" />
+        <soap:header message="tns:queryRequestrequest" part="request" use="literal" />
+        <soap:header message="tns:queryRequestversions" part="versions" use="literal" />
+      </wsdl:input>
+      <wsdl:output name="queryRequest">
+        <soap:body use="literal" />
+        <soap:header message="tns:queryRequestversions" part="versions" use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="StsAdapterSoap12" type="tns:StsAdapterSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="Query">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/dsp/queryRequest" style="document" />
+      <wsdl:input name="queryRequest">
+        <soap12:body use="literal" />
+        <soap12:header message="tns:queryRequestauthentication" part="authentication" use="literal" />
+        <soap12:header message="tns:queryRequestdataRoot" part="dataRoot" use="literal" />
+        <soap12:header message="tns:queryRequestrequest" part="request" use="literal" />
+        <soap12:header message="tns:queryRequestversions" part="versions" use="literal" />
+      </wsdl:input>
+      <wsdl:output name="queryRequest">
+        <soap12:body use="literal" />
+        <soap12:header message="tns:queryRequestversions" part="versions" use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="StsAdapter">
+    <wsdl:port name="StsAdapterSoap" binding="tns:StsAdapterSoap">
+      <soap:address location="http://localhost/_vti_bin/DspSts.asmx" />
+    </wsdl:port>
+    <wsdl:port name="StsAdapterSoap12" binding="tns:StsAdapterSoap12">
+      <soap12:address location="http://localhost/_vti_bin/DspSts.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

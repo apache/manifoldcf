@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>Welcome to ManifoldCF release documentation!</title> 
+  </header> 
+
+  <body> 
+    <section>
+	<title>What Is ManifoldCF?</title>
+	<p>ManifoldCF is an effort to provide an open source framework for connecting source content repositories like Microsoft Sharepoint and EMC Documentum, to target repositories or indexes, such as Apache Solr , OpenSearchServer or ElasticSearch.  ManifoldCF also defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
+	<p>Currently included connectors support FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows shares (Microsoft), and SharePoint (Microsoft).  Also included are a general CMIS connector, a generic file system connector, a general JDBC connector, an RSS feed connector, a Wiki connector, and a general web connector.
+            Currently supported targets include Apache Solr, QBase (formerly MetaCarta) GTS , OpenSearchServer and ElasticSearch.  The complete repository compatibility list can be found <a href="included-connectors.html">here</a>.</p>
+	<p>The original ManifoldCF code base was granted by MetaCarta, Inc., to the Apache Software Foundation in December 2009.  The MetaCarta effort represented more than five years of successful development and testing in multiple, challenging enterprise environments.</p>
+    </section>
+
+    <section>
+	<title>A philosophical note about third-party repositories</title>
+	<p>Many of the connectors included with ManifoldCF currently require third-party libraries, packages, or other licensed materials in order to be built.
+              The code for these connectors can be distributed under Apache guidelines because they are conditionally compiled; that is, you as a developer must
+              supply the necessary third-party components before the connector will build.  While we have every intention of trying to reduce the number of
+              affected connectors by means of clean-room development under the auspices of ASF, realistically the current situation will not change in any
+              dramatic way very quickly.  The focus of this group remains primarily on providing solutions.</p>
+	<p>The required libraries, tools, and procedures for building each of the connectors are well documented in these pages.</p>
+    </section>
+
+  </body>
+
+</document>

@@ -1,0 +1,1851 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<project name="manifoldcf" default="help">
+
+    <presetdef name="javac">
+      <javac includeantruntime="false" />
+    </presetdef>
+
+    <import file="site-options.xml" optional="true"/>
+
+    <import file="common-build.xml"/>
+    
+    <defaultexcludes add="**/*.patch"/>   
+    <defaultexcludes add="**/*.iml"/> 
+    <defaultexcludes add="**/.idea/**"/> 
+    
+    <target name="downloaded-condition">
+        <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
+        <available file="lib/derby.jar" property="derby-found"/>
+        <available file="lib/jetty-server.jar" property="jetty-found"/>
+        <available file="lib/httpclient.jar" property="httpclient-found"/>
+        <available file="lib/xercesImpl.jar" property="xerces-found"/>
+        <available file="lib/fop.jar" property="fop-found"/>
+        <condition property="downloaded">
+            <and>
+                <isset property="derby-found"/>
+                <isset property="jetty-found"/>
+                <isset property="httpclient-found"/>
+                <isset property="xerces-found"/>
+                <isset property="fop-found"/>
+            </and>
+        </condition>
+    </target>
+    
+    <target name="downloaded-check" depends="downloaded-condition" unless="downloaded">
+        <echo message="Overlay -lib package, or run 'make-core-deps' target first"/>
+    </target>
+
+    
+    <target name="build-site" depends="downloaded-check" if="downloaded">
+      <ant dir="site" target="all"/>
+    </target>
+    
+    <target name="check-site-built" depends="build-site">
+      <available file="site/build/site" type="dir" property="site-found"/>
+        <condition property="site-exists">
+            <and>
+                <isset property="site-found"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+
+    <target name="presite-check" depends="check-site-built" unless="site-exists" if="downloaded">
+      <echo message="Site did not build.  Was FORREST_HOME set properly?"/>
+    </target>
+    
+    <target name="setup-framework" depends="downloaded-check" if="downloaded"/>
+      
+      <target name="build-framework" depends="setup-framework" if="downloaded">
+        <ant dir="framework" target="build"/>
+    </target>
+
+    <target name="doc-framework" depends="setup-framework" if="downloaded">
+        <ant dir="framework" target="doc"/>
+    </target>
+
+    <target name="build-tests-framework" depends="setup-framework" if="downloaded">
+        <ant dir="framework" target="build-tests"/>
+    </target>
+
+    <target name="run-tests-framework" depends="setup-framework" if="downloaded">
+        <ant dir="framework" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-framework" depends="setup-framework" if="downloaded">
+        <ant dir="framework" target="run-tests-derby"/>
+    </target>
+
+    <target name="run-tests-postgresql-framework" depends="setup-framework" if="downloaded">
+        <ant dir="framework" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-framework" depends="setup-framework" if="downloaded">
+        <ant dir="framework" target="run-tests-mysql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-framework" depends="setup-framework" if="downloaded">
+        <ant dir="framework" target="run-tests-HSQLDB"/>
+    </target>
+
+    <target name="run-tests-HSQLDBext-framework" depends="setup-framework" if="downloaded">
+        <ant dir="framework" target="run-tests-HSQLDBext"/>
+    </target>
+
+    <target name="deliver-site-doc" depends="presite-check" if="site-exists">
+          <mkdir dir="dist/doc"/>
+          <copy todir="dist/doc">
+              <fileset dir="site/build/site">
+                <exclude name="**/broken-links.xml"/>
+              </fileset>
+          </copy>
+          <copy todir="dist/doc">
+              <fileset dir="site">
+                  <include name=".htaccess"/>
+              </fileset>
+          </copy>
+    </target>
+
+    <target name="preclean-registry">
+        <mkdir dir="dist"/>
+        <delete file="dist/connectors.xml"/>
+        <delete file="dist/connectors-proprietary.xml"/>
+    </target>
+
+    <target name="preclean-for-delivery">
+        <mkdir dir="dist"/>
+        <mkdir dir="dist/example"/>
+        <mkdir dir="dist/example-proprietary"/>
+        <mkdir dir="dist/multiprocess-file-example"/>
+        <mkdir dir="dist/multiprocess-zk-example"/>
+        <mkdir dir="dist/multiprocess-file-example-proprietary"/>
+        <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
+        <delete file="dist/example/properties.xml"/>
+        <delete file="dist/example-proprietary/properties.xml"/>
+        <delete file="dist/multiprocess-file-example/properties.xml"/>
+        <delete file="dist/multiprocess-file-example-proprietary/properties.xml"/>
+        <delete file="dist/multiprocess-zk-example/properties.xml"/>
+        <delete file="dist/multiprocess-zk-example-proprietary/properties.xml"/>
+        <delete file="dist/NOTICE.txt"/>
+        <delete file="dist/LICENSE.txt"/>
+    </target>
+    
+    <target name="deliver-framework" depends="preclean-for-delivery,build-framework" if="downloaded">
+        <mkdir dir="dist"/>
+        <copy todir="dist">
+            <fileset dir="framework/dist">
+                <include name="connector-build.xml"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/web"/>
+        <copy todir="dist/web">
+            <fileset dir="framework/dist/web"/>
+        </copy>
+        <mkdir dir="dist/web-proprietary"/>
+        <copy todir="dist/web-proprietary">
+            <fileset dir="framework/dist/web-proprietary"/>
+        </copy>
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="framework/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/test-lib"/>
+        <copy todir="dist/test-lib">
+            <fileset dir="framework/dist/test-lib"/>
+        </copy>
+        <mkdir dir="dist/lib-proprietary"/>
+        <copy todir="dist/lib-proprietary">
+            <fileset dir="framework/dist/lib-proprietary"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-file-example"/>
+        <copy todir="dist/multiprocess-file-example">
+            <fileset dir="framework/dist/multiprocess-file-example"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-file-example-proprietary"/>
+        <copy todir="dist/multiprocess-file-example-proprietary">
+            <fileset dir="framework/dist/multiprocess-file-example-proprietary"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example"/>
+        <copy todir="dist/multiprocess-zk-example">
+            <fileset dir="framework/dist/multiprocess-zk-example"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
+        <copy todir="dist/multiprocess-zk-example-proprietary">
+            <fileset dir="framework/dist/multiprocess-zk-example-proprietary"/>
+        </copy>
+        <mkdir dir="dist/example"/>
+        <copy todir="dist/example">
+            <fileset dir="framework/dist/example"/>
+        </copy>
+        <mkdir dir="dist/example-proprietary"/>
+        <copy todir="dist/example-proprietary">
+            <fileset dir="framework/dist/example-proprietary"/>
+        </copy>
+        <mkdir dir="dist/script-engine"/>
+        <copy todir="dist/script-engine">
+            <fileset dir="framework/dist/script-engine"/>
+        </copy>
+        <mkdir dir="dist"/>
+        <copy todir="dist">
+            <fileset dir="framework/dist">
+                <include name="connectors.xml"/>
+                <include name="connectors-proprietary.xml"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/connector-lib"/>
+        <copy todir="dist/connector-lib">
+            <fileset dir="framework/dist/connector-lib"/>
+        </copy>
+        <mkdir dir="dist/connector-lib-proprietary"/>
+        <copy todir="dist/connector-lib-proprietary">
+            <fileset dir="framework/dist/connector-lib-proprietary"/>
+        </copy>
+        <chmod dir="dist/script-engine" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/example" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/example-proprietary" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-file-example" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-file-example-proprietary" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-zk-example" perm="a+x" includes="**/*.sh"/>
+        <chmod dir="dist/multiprocess-zk-example-proprietary" perm="a+x" includes="**/*.sh"/>
+        <copy todir="dist">
+            <fileset dir="dist-license" includes="*.txt"/>
+        </copy>
+    </target>
+    
+    <target name="deliver-framework-doc" depends="doc-framework" if="downloaded">
+        <mkdir dir="dist/doc/api/framework"/>
+        <copy todir="dist/doc/api/framework">
+            <fileset dir="framework/dist/doc"/>
+        </copy>
+    </target>
+
+    <!-- Connector crawler.  This iterates over all connector makefiles, invoking the specified target of each. -->
+    <macrodef name="connectors-crawl">
+        <attribute name="target" default=""/>
+        <attribute name="failonerror" default="true"/>
+        <sequential>
+            <subant target="@{target}" failonerror="@{failonerror}" inheritall="false">
+                <!-- propertyset refid="uptodate.and.compiled.properties"/ -->
+                <fileset dir="connectors" includes="*/build.xml" excludes="build/**,build-stubs/**,connector/**,dist/**,test-output*/**"/>
+            </subant>
+        </sequential>
+    </macrodef>
+
+    <!-- Generic connector targets -->
+    
+    <target name="download-connectors-dependencies" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="download-dependencies"/>
+    </target>
+
+    <target name="cleanup-connectors-dependencies" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="download-cleanup"/>
+    </target>
+
+    <target name="deliver-connectors" depends="preclean-registry,deliver-framework" if="downloaded">
+        <connectors-crawl target="deliver-connector"/>
+    </target>
+    
+    <target name="deliver-connectors-doc" depends="deliver-connectors,deliver-framework-doc" if="downloaded">
+        <connectors-crawl target="deliver-connector-doc"/>
+    </target>
+
+    <target name="run-connectors-tests" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests"/>
+    </target>
+
+    <target name="run-connectors-tests-derby" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests-derby"/>
+    </target>
+
+    <target name="run-connectors-tests-HSQLDB" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests-HSQLDB"/>
+    </target>
+
+    <target name="run-connectors-tests-HSQLDBext" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests-HSQLDBext"/>
+    </target>
+
+    <target name="run-connectors-tests-postgresql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-connectors-tests-mysql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-tests-mysql"/>
+    </target>
+
+    <target name="run-connectors-IT-derby" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-IT-derby"/>
+    </target>
+
+    <target name="run-connectors-IT-HSQLDB" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-IT-HSQLDB"/>
+    </target>
+
+    <target name="run-connectors-IT-HSQLDBext" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-IT-HSQLDBext"/>
+    </target>
+
+    <target name="run-connectors-IT-postgresql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-IT-postgresql"/>
+    </target>
+
+    <target name="run-connectors-IT-mysql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-IT-mysql"/>
+    </target>
+
+    <target name="run-connectors-UI-derby" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-UI-derby"/>
+    </target>
+
+    <target name="run-connectors-UI-HSQLDB" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-UI-HSQLDB"/>
+    </target>
+
+    <target name="run-connectors-UI-HSQLDBext" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-UI-HSQLDBext"/>
+    </target>
+
+    <target name="run-connectors-UI-postgresql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-UI-postgresql"/>
+    </target>
+
+    <target name="run-connectors-UI-mysql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-UI-mysql"/>
+    </target>
+
+    <target name="run-connectors-LT-derby" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-LT-derby"/>
+    </target>
+
+    <target name="run-connectors-LT-HSQLDB" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-LT-HSQLDB"/>
+    </target>
+
+    <target name="run-connectors-LT-HSQLDBext" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-LT-HSQLDBext"/>
+    </target>
+
+    <target name="run-connectors-LT-postgresql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-LT-postgresql"/>
+    </target>
+
+    <target name="run-connectors-LT-mysql" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="run-LT-mysql"/>
+    </target>
+
+    <!-- General connectors utility targets -->
+    
+    <target name="clean-connectors" depends="deliver-framework" if="downloaded">
+        <connectors-crawl target="clean"/>
+    </target>
+    
+    <!-- General targets -->
+    <target name="clean" depends="clean-connectors">
+        <delete>
+          <fileset dir="." includes="apache-manifoldcf-*.zip"/>
+          <fileset dir="." includes="apache-manifoldcf-*.tar.gz"/>
+        </delete>
+        <delete dir="build"/>
+        <delete dir="dist"/>
+        <ant dir="site" target="clean"/>
+        <ant dir="framework" target="clean"/>
+    </target>
+
+    <target name="cleanup-afterbuild" depends="clean-connectors">
+        <delete dir="build"/>
+        <ant dir="site" target="clean"/>
+        <ant dir="framework" target="clean"/>
+    </target>
+
+    <target name="build" depends="deliver-connectors"/>
+    <target name="tmpclean" depends="cleanup-afterbuild"/>
+    <target name="buildcln" depends="build,tmpclean"/>
+    <target name="javadoc" depends="deliver-connectors-doc"/>
+    <target name="doc" depends="deliver-site-doc"/>
+    
+    <target name="set-version">
+      <property name="release-version" value="1.7-dev"/>
+    </target>
+    
+    <target name="create-source-zip" depends="set-version">
+      <zip destfile="apache-manifoldcf-${release-version}-src.zip" update="false">
+        <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
+          <exclude name="lib/"/>
+          <exclude name="connectors/*/lib/"/>
+          <exclude name="framework/lib/"/>
+          <exclude name="**/build/"/>
+          <exclude name="**/tmp/"/>
+          <exclude name="site/fonts/"/>
+          <exclude name="dist/"/>
+          <exclude name="connectors/*/dist/"/>
+          <exclude name="framework/dist/"/>
+          <exclude name="**/target/"/>
+          <exclude name="**/test-output/"/>
+          <exclude name="**/test-derby-output/"/>
+          <exclude name="**/test-postgresql-output/"/>
+          <exclude name="**/test-HSQLDB-output/"/>
+          <exclude name="**/test-HSQLDBext-output/"/>
+          <exclude name="**/test-mysql-output/"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="**/test-materials-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.war"/>
+          <exclude name="**/test-materials-proprietary/*.war"/>
+          <exclude name="**/lib-proprietary/*.wsdl"/>
+          <exclude name="**/test-materials-proprietary/*.wsdl"/>
+          <exclude name="**/lib-proprietary/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/*.xsd"/>
+          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
+          <exclude name="legacy-*/"/>
+          <exclude name="apache-manifoldcf-*/"/>        
+        </zipfileset>
+      </zip>
+    </target>
+
+    <target name="create-lib-zip" depends="set-version">
+      <zip destfile="apache-manifoldcf-${release-version}-lib.zip" update="false">
+        <zipfileset dir="lib" prefix="apache-manifoldcf-${release-version}"/>
+      </zip>
+    </target>
+      
+    <target name="create-source-tar" depends="set-version">  
+      <tar destfile="apache-manifoldcf-${release-version}-src.tar.gz" compression="gzip" longfile="gnu">        
+        <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
+          <exclude name="lib/"/>
+          <exclude name="connectors/*/lib/"/>
+          <exclude name="framework/lib/"/>
+          <exclude name="**/build/"/>
+          <exclude name="**/tmp/"/>
+          <exclude name="site/fonts/"/>
+          <exclude name="dist/"/>
+          <exclude name="connectors/*/dist/"/>
+          <exclude name="framework/dist/"/>
+          <exclude name="**/target/"/>
+          <exclude name="**/test-output/"/>
+          <exclude name="**/test-derby-output/"/>
+          <exclude name="**/test-postgresql-output/"/>
+          <exclude name="**/test-HSQLDB-output/"/>
+          <exclude name="**/test-HSQLDBext-output/"/>
+          <exclude name="**/test-mysql-output/"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="**/test-materials-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.war"/>
+          <exclude name="**/test-materials-proprietary/*.war"/>
+          <exclude name="**/lib-proprietary/*.wsdl"/>
+          <exclude name="**/test-materials-proprietary/*.wsdl"/>
+          <exclude name="**/lib-proprietary/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/*.xsd"/>
+          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
+          <exclude name="legacy-*/"/>
+          <exclude name="apache-manifoldcf-*/"/>
+        </tarfileset>
+      </tar>
+    </target>
+
+    <target name="create-lib-tar" depends="set-version">
+      <tar destfile="apache-manifoldcf-${release-version}-lib.tar.gz" compression="gzip" longfile="gnu">
+        <tarfileset dir="lib" prefix="apache-manifoldcf-${release-version}"/>
+      </tar>
+    </target>
+
+    <target name="create-bin-zip" depends="build,doc,javadoc,set-version">
+      <zip destfile="apache-manifoldcf-${release-version}-bin.zip" update="false">
+        <zipfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
+          <exclude name="connector-lib-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="lib-proprietary/*.jar"/>
+          <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
+          <exclude name="connectors-proprietary.xml"/>
+          <exclude name="example-proprietary/"/>
+          <exclude name="multiprocess-file-example-proprietary/"/>
+          <exclude name="multiprocess-zk-example-proprietary/"/>
+          <exclude name="web-proprietary/"/>
+        </zipfileset>
+      </zip>
+    </target>
+    
+    <target name="create-bin-tar" depends="build,doc,javadoc,set-version">
+      <tar destfile="apache-manifoldcf-${release-version}-bin.tar.gz" compression="gzip" longfile="gnu">
+        <tarfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
+          <exclude name="connector-lib-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="lib-proprietary/*.jar"/>
+          <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
+          <exclude name="connectors-proprietary.xml"/>
+          <exclude name="example-proprietary/"/>
+          <exclude name="multiprocess-file-example-proprietary/"/>
+          <exclude name="multiprocess-zk-example-proprietary/"/>
+          <exclude name="web-proprietary/"/>
+        </tarfileset>
+      </tar>
+    </target>
+
+    <target name="image" depends="create-source-zip,create-source-tar,create-lib-zip,create-lib-tar,create-bin-zip,create-bin-tar"/>
+    
+    <target name="test-dr" depends="run-tests-derby-framework,run-connectors-tests-derby,run-connectors-IT-derby"/>
+
+    <target name="test-pg" depends="run-tests-postgresql-framework,run-connectors-tests-postgresql,run-connectors-IT-postgresql"/>
+
+    <target name="test-my" depends="run-tests-mysql-framework,run-connectors-tests-mysql,run-connectors-IT-mysql"/>
+
+    <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDBext-framework,run-connectors-tests-HSQLDB,run-connectors-tests-HSQLDBext,run-connectors-IT-HSQLDB,run-connectors-IT-HSQLDBext"/>
+
+    <target name="load-dr" depends="run-connectors-LT-derby"/>
+
+    <target name="load-pg" depends="run-connectors-LT-postgresql"/>
+
+    <target name="load-my" depends="run-connectors-LT-mysql"/>
+
+    <target name="load-hs" depends="run-connectors-LT-HSQLDB,run-connectors-LT-HSQLDBext"/>
+
+    <target name="test" depends="run-tests-framework,run-connectors-tests,test-dr,test-hs"/>
+
+    <target name="ldtest" depends="run-connectors-LT-derby,run-connectors-LT-HSQLDB"/>
+
+    <target name="uitest" depends="run-connectors-UI-derby,run-connectors-UI-HSQLDB"/>
+    
+    <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
+
+    <target name="help">
+      <echo level="info">
+ManifoldCF build file.  Use this file to build ManifoldCF, generate
+javadocs, generate site docs, run tests, or build distributables.
+
+Useful targets are:
+
+clean    - Clean the build and distribution areas
+build    - Build executable code, jars, processes, and examples,
+           under the 'dist' directory
+buildcln - Same as build, but clean up temp files
+javadoc  - Create the javadocs, under the 'dist/doc' directory
+test     - Compile and run all local tests (Derby and HSQLDB)
+uitest   - Compile and run all UI tests (needs Python)
+ldtest   - Compile and run all local load tests (Derby and HSQLDB)
+doc      - Build html site, under the 'dist/doc' directory
+           (requires Apache Forrest)
+tmpclean - Clean up temporary files used during build and testing
+image    - Build release image, under the '.' directory (requires
+           Apache Forrest)
+
+test-dr  - Compile and run Derby-based tests
+test-pg  - Compile and run postgresql-based tests (needs
+           Postgresql)
+test-my  - Compile and run MySQL-based tests (needs MySQL)
+test-hs  - Compile and run HSQLDB-based tests
+load-dr  - Compile and run Derby-based load tests
+load-pg  - Compile and run postgresql-based load tests (needs
+           Postgresql)
+load-my  - Compile and run MySQL-based load tests (needs MySQL)
+load-hs  - Compile and run HSQLDB-based load tests
+
+all      - Build code and docs, and test (requires Apache Forrest)
+
+run-script-interpreter - Run the ManifoldCF script interpreter
+
+make-deps              - Fetch non-redistributable dependencies
+clean-deps             - Clean up non-redistributable binaries
+
+make-core-deps         - Download and build core dependencies
+clean-core-deps        - Clean up core dependencies
+
+Use Apache Forrest version forrest-0.9-dev or higher.
+      </echo>
+    </target>
+
+    <target name="-taskdef">
+      <typedef resource="org/apache/rat/anttasks/antlib.xml" uri="antlib:rat.anttasks">
+        <classpath>
+          <fileset dir="." includes="rat*.jar"/>
+        </classpath>
+      </typedef>
+    </target>
+    <target name="rat-sources" depends="-taskdef"
+      description="runs the tasks over src/java excluding the license directory">
+      <rat:report xmlns:rat="antlib:org.apache.rat.anttasks">
+        <fileset dir="mod-authz-annotate/">
+        </fileset>
+        <fileset dir="connectors/">
+          <exclude name="**/*"/>
+          <exclude name="elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
+          <exclude name="**/build/"/>
+          <exclude name="**/dist/"/>
+          <exclude name="**/test-output/"/>
+          <exclude name="**/test-derby-output/"/>
+          <exclude name="**/test-postgresql-output/"/>
+          <exclude name="**/test-HSQLDB-output/"/>
+          <exclude name="**/test-HSQLDBext-output/"/>
+          <exclude name="**/test-mysql-output/"/>
+          <exclude name="filenet/lib-proprietary/*.jar"/>
+          <exclude name="documentum/lib-proprietary/*.jar"/>
+          <exclude name="jcifs/lib-proprietary/*.jar"/>
+          <exclude name="jcifs/lib-proprietary/*.diffs"/>
+          <exclude name="livelink/lib-proprietary/*.jar"/>
+          <exclude name="meridio/lib-proprietary/*.wsdl"/>
+          <exclude name="meridio/lib-proprietary/*.xsd"/>
+          <exclude name="sharepoint/lib-proprietary/*.wsdl"/>
+          <exclude name="**/surefire-reports/"/>
+          <exclude name="**/target/"/>
+        </fileset>
+        <fileset dir="framework/">
+          <exclude name="**/build/"/>
+          <exclude name="**/dist/"/>
+          <exclude name="**/test-output/"/>
+          <exclude name="**/test-derby-output/"/>
+          <exclude name="**/test-postgresql-output/"/>
+          <exclude name="**/test-HSQLDB-output/"/>
+          <exclude name="**/test-HSQLDBext-output/"/>
+          <exclude name="**/test-mysql-output/"/>
+          <exclude name="**/web-generated.xml"/>
+          <exclude name="**/surefire-reports/"/>
+          <exclude name="**/target/"/>
+          <exclude name="lib-proprietary/*.jar"/>
+          <exclude name="scripts/*.env.win"/>
+          <exclude name="scripts/*.env.unix"/>
+          <exclude name="scripts-jetty/*.env.win"/>
+          <exclude name="scripts-jetty/*.env.unix"/>
+          <exclude name="scripts-combined/*.env.win"/>
+          <exclude name="scripts-combined/*.env.unix"/>
+          <exclude name="engine-scripts/*.env.win"/>
+          <exclude name="engine-scripts/*.env.unix"/>
+        </fileset>
+        <fileset dir="site/">
+          <exclude name="fonts/"/>
+          <exclude name="**/build/"/>
+          <exclude name="**/tmp/"/>
+          <exclude name="src/documentation/skins/common/xslt/html/split.xsl"/>
+          <exclude name="src/documentation/skins/lucene/note.txt"/>
+        </fileset>
+        <fileset dir="test-materials/">
+          <exclude name="**/build/"/>
+          <exclude name="**/dist/"/>
+          <exclude name="**/surefire-reports/"/>
+          <exclude name="**/target/"/>
+        </fileset>
+      </rat:report>
+    </target>
+
+    <target name="run-script-interpreter" depends="deliver-framework">
+        <java classname="org.apache.manifoldcf.scriptengine.ScriptParser" fork="true" dir="dist/script-engine" maxmemory="128M">
+          <classpath>
+            <fileset dir="dist/script-engine/lib">
+              <include name="*.jar"/>
+            </fileset>
+          </classpath>
+        </java>
+    </target>
+
+    <target name="download-mongo-java-driver">
+        <mkdir dir="lib"/>
+
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/mongodb"/>
+            <param name="artifact-version" value="2.11.3"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="mongo-java-driver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-httpcomponents">
+        <mkdir dir="lib"/>
+
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/apache/httpcomponents"/>
+            <param name="artifact-version" value="4.3.2"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="httpcore"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/apache/httpcomponents"/>
+            <param name="artifact-version" value="4.3.3"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="httpclient"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/httpcomponents"/>
+            <param name="artifact-version" value="4.3.3"/>
+            <param name="artifact-name" value="httpmime"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-json">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/json"/>
+            <param name="artifact-version" value="20090211"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="json"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-derby">
+        <mkdir dir="lib"/>
+        <property name="derby-version" value="10.10.1.1"/>
+        <property name="derby-package" value="org/apache/derby"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derby"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbytools"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbynet"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_it"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_de_DE"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_es"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_ja_JP"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_cs"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_zh_TW"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_zh_CN"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_pt_BR"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_fr"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_ru"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_ko_KR"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_hu"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="derbyLocale_pl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-hsqldb">
+        <mkdir dir="lib"/>
+        <!--mkdir dir="build/download"/>
+        <delete dir="build/download/hsqldb"/>
+        <antcall target="checkout-source-via-svn">
+            <param name="root-dir" value="build/download"/>
+            <param name="svn-url" value="https://hsqldb.svn.sourceforge.net/svnroot/hsqldb/base/trunk"/>
+            <param name="dir-name" value="hsqldb"/>
+        </antcall -->
+        <!-- Build it -->
+        <!--antcall target="build-via-ant">
+            <param name="root-dir" value="build/download/hsqldb/build"/>
+            <param name="target" value="hsqldb"/>
+        </antcall>
+        <copy todir="lib" file="build/download/hsqldb/lib/hsqldb.jar"/ -->
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/hsqldb"/>
+            <param name="artifact-version" value="2.3.1"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="hsqldb"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <!-- get src="http://www.hsqldb.org/repos/org/hsqldb/hsqldb/2.2.9/hsqldb-2.2.9.jar" dest="lib/hsqldb.jar"/-->
+    </target>
+    
+    <target name="download-postgresql">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="postgresql"/>
+            <param name="artifact-version" value="9.1-901.jdbc4"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="postgresql"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-axis">
+        <mkdir dir="lib"/>
+        <property name="axis-version" value="1.4"/>
+        <property name="axis-package" value="org/apache/axis"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${axis-package}"/><param name="artifact-version" value="${axis-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="axis"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${axis-package}"/><param name="artifact-version" value="${axis-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="axis-jaxrpc"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <!-- antcall target="download-via-maven"><param name="project-path" value="${axis-package}"/><param name="artifact-version" value="${axis-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="axis-saaj"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall -->
+    </target>
+
+    <target name="download-saaj">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="javax/xml/soap"/>
+            <param name="artifact-version" value="1.3"/>
+            <param name="artifact-name" value="saaj-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/xml/messaging/saaj"/>
+            <param name="artifact-version" value="1.3.3"/>
+            <param name="artifact-name" value="saaj-impl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-castor">
+        <mkdir dir="lib"/>
+
+        <!-- biblio is very slow -->
+        <!-- get src="http://mirrors.ibiblio.org/pub/mirrors/maven/castor/1.0.5/castor-1.0.5.jar" dest="lib/castor.jar"/ -->
+        <!-- get src="http://mirrors.ibiblio.org/pub/mirrors/maven/castor/1.0.5/castor-1.0.5-xml.jar" dest="lib/castor-xml.jar"/ -->
+        <!-- get src="http://mirrors.ibiblio.org/pub/mirrors/maven/castor/1.0.5/castor-1.0.5-commons.jar" dest="lib/castor-commons.jar"/ -->
+        <property name="castor-version" value="1.0.5"/>
+        <property name="castor-path" value="org/codehaus/castor"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${castor-path}"/><param name="artifact-version" value="${castor-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="castor"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <!-- antcall target="download-via-maven"><param name="project-path" value="${castor-path}"/><param name="artifact-version" value="${castor-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="castor-xml"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${castor-path}"/><param name="artifact-version" value="${castor-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="castor-commons"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall -->
+    </target>
+  
+    <target name="download-wsdl4j">
+        <mkdir dir="lib"/>
+        <property name="wsdl4j-version" value="1.6.2"/>
+        <property name="wsdl4j-package" value="wsdl4j"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${wsdl4j-package}"/><param name="artifact-version" value="${wsdl4j-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="wsdl4j"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-commons">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-codec"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-name" value="commons-codec"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-collections"/>
+            <param name="artifact-version" value="3.2.1"/>
+            <param name="artifact-name" value="commons-collections"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-discovery"/>
+            <param name="artifact-version" value="0.5"/>
+            <param name="artifact-name" value="commons-discovery"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-el"/>
+            <param name="artifact-version" value="1.0"/>
+            <param name="artifact-name" value="commons-el"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-fileupload"/>
+            <param name="artifact-version" value="1.2.2"/>
+            <param name="artifact-name" value="commons-fileupload"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-io"/>
+            <param name="artifact-version" value="2.1"/>
+            <param name="artifact-name" value="commons-io"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-lang"/>
+            <param name="artifact-version" value="2.6"/>
+            <param name="artifact-name" value="commons-lang"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-logging"/>
+            <param name="artifact-version" value="1.1.3"/>
+            <param name="artifact-name" value="commons-logging"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-configuration"/>
+            <param name="artifact-version" value="1.6"/>
+            <param name="artifact-name" value="commons-configuration"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-cli"/>
+            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-name" value="commons-cli"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+  
+    <target name="download-slf4j">
+        <mkdir dir="lib"/>
+        <property name="slf4j-version" value="1.7.7"/>
+        <property name="slf4j-package" value="org/slf4j"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="slf4j-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="slf4j-simple"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jcl-over-slf4j"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-jetty">
+        <mkdir dir="lib"/>
+        <property name="jetty-version" value="7.5.4.v20111024"/>
+        <property name="jetty-package" value="org/eclipse/jetty"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-jndi"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-server"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-webapp"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-servlet"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-plus"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-util"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-http"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-io"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-security"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-continuation"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-xml"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-jsp-2.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-xerces">
+        <mkdir dir="lib"/>
+        <property name="xerces-version" value="2.10.0"/>
+        <property name="xerces-package" value="xerces"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${xerces-package}"/><param name="artifact-version" value="${xerces-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="xercesImpl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-xalan">
+        <mkdir dir="lib"/>
+        <property name="xalan-version" value="2.7.1"/>
+        <property name="xalan-package" value="xalan"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${xalan-package}"/><param name="artifact-version" value="${xalan-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="xalan"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${xalan-package}"/><param name="artifact-version" value="${xalan-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="serializer"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-poi">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/poi"/>
+            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-name" value="poi"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-activation">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="javax/activation"/>
+            <param name="artifact-version" value="1.1.1"/>
+            <param name="artifact-name" value="activation"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-avalon-framework">
+        <property name="avalon.path" value="org/apache/avalon/framework"/>
+        <property name="avalon.version" value="4.3.1"/>
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/><param name="project-path" value="${avalon.path}"/><param name="artifact-version" value="${avalon.version}"/>
+            <param name="artifact-name" value="avalon-framework-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/><param name="project-path" value="${avalon.path}"/><param name="artifact-version" value="${avalon.version}"/>
+            <param name="artifact-name" value="avalon-framework-impl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-ecj">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/eclipse/jdt/core/compiler"/>
+            <param name="artifact-version" value="4.3.1"/>
+            <param name="artifact-name" value="ecj"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-fop">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/xmlgraphics"/>
+            <param name="artifact-version" value="1.0"/>
+            <param name="artifact-name" value="fop"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-geronimo-specs">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/geronimo/specs"/>
+            <param name="artifact-version" value="1.7.1"/>
+            <param name="artifact-name" value="geronimo-javamail_1.4_spec"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-h2">
+        <mkdir dir="lib"/>
+        <!-- Alfresco dependency, so download from there -->
+        <get src="http://repo2.maven.org/maven2/com/h2database/h2/1.3.158/h2-1.3.158.jar" dest="lib/h2.jar"/>
+    </target>
+    
+    <target name="download-h2-support">
+        <mkdir dir="lib"/>
+        <!-- Alfresco dependency, so download from there -->
+        <get src="http://clojars.org/repo/it/sk/alfresco/h2-support/1.1/h2-support-1.1.jar" dest="lib/h2-support.jar"/>
+    </target>
+    
+    <target name="download-tomcat">
+        <mkdir dir="lib"/>
+        <property name="tomcat-version" value="6.0.35"/>
+        <property name="tomcat-package" value="org/apache/tomcat"/>
+        
+        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jasper"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jasper-el"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="juli"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-jaxb">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="javax/xml/bind"/>
+            <param name="artifact-version" value="2.1"/>
+            <param name="artifact-name" value="jaxb-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/xml/bind"/>
+            <param name="artifact-version" value="2.1.11"/>
+            <param name="artifact-name" value="jaxb-impl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-jaxws">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="javax/xml/ws"/>
+            <param name="artifact-version" value="2.2.6"/>
+            <param name="artifact-name" value="jaxws-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/xml/ws"/>
+            <param name="artifact-version" value="2.2.6"/>
+            <param name="artifact-name" value="jaxws-rt"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-chemistry">
+        <mkdir dir="lib"/>
+        <property name="chemistry-version" value="0.9.0"/>
+        <property name="chemistry-package" value="org/apache/chemistry/opencmis"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="chemistry-opencmis-client-impl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="chemistry-opencmis-client-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="chemistry-opencmis-client-bindings"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="chemistry-opencmis-commons-impl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="chemistry-opencmis-commons-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="chemistry-opencmis-server-inmemory"/>
+            <param name="artifact-type" value="war"/>
+        </antcall>
+    </target>
+
+    <target name="download-glassfish">
+        <mkdir dir="lib"/>
+        <property name="glassfish-version" value="2.1.v20091210"/>
+        <property name="glassfish-package" value="org/mortbay/jetty"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${glassfish-package}"/><param name="artifact-version" value="${glassfish-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jsp-2.1-glassfish"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${glassfish-package}"/><param name="artifact-version" value="${glassfish-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jsp-api-2.1-glassfish"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-junit">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="junit"/>
+            <param name="artifact-version" value="4.8.2"/>
+            <param name="artifact-name" value="junit"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-log4j">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="log4j"/>
+            <param name="artifact-version" value="1.2.16"/>
+            <param name="artifact-name" value="log4j"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-mail">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="javax/mail"/>
+            <param name="artifact-version" value="1.4.5"/>
+            <param name="artifact-name" value="mail"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-mimepull">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/jvnet"/>
+            <param name="artifact-version" value="1.3"/>
+            <param name="artifact-name" value="mimepull"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-opensaml">
+        <!-- http://maven.alfresco.com/nexus/content/groups/public/opensaml/opensaml/1.1b/opensaml-1.1b.jar -->
+        <!-- This dependency is for alfresco, so we use the jar alfresco has -->
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/opensaml"/>
+            <param name="artifact-version" value="1.1"/>
+            <param name="artifact-name" value="opensaml"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-osgi">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/felix"/>
+            <param name="artifact-version" value="1.0.0"/>
+            <param name="artifact-name" value="org.osgi.core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-xml-resolver">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="xml-resolver"/>
+            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-name" value="xml-resolver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-servlet-api">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/mortbay/jetty"/>
+            <param name="artifact-version" value="2.5-20081211"/>
+            <param name="artifact-name" value="servlet-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-stax">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="stax"/>
+            <param name="artifact-version" value="1.0.1"/>
+            <param name="artifact-name" value="stax-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/jvnet/staxex"/>
+            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-name" value="stax-ex"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-streambuffer">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/xml/stream/buffer"/>
+            <param name="artifact-version" value="0.9"/>
+            <param name="artifact-name" value="streambuffer"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-velocity">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/velocity"/>
+            <param name="artifact-version" value="1.7"/>
+            <param name="artifact-name" value="velocity"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-wss4j">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/ws/security"/>
+            <param name="artifact-version" value="1.5.12"/>
+            <param name="artifact-name" value="wss4j"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-xmlgraphics-commons">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/xmlgraphics"/>
+            <param name="artifact-version" value="1.4"/>
+            <param name="artifact-name" value="xmlgraphics-commons"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-wstx-asl">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/codehaus/woodstox"/>
+            <param name="artifact-version" value="3.2.9"/>
+            <param name="artifact-name" value="wstx-asl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-xmlsec">
+        <!-- Alfresco dependency, so resolve it from alfresco svn -->
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/santuario"/>
+            <param name="artifact-version" value="1.4.0"/>
+            <param name="artifact-name" value="xmlsec"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-xml-apis">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="xml-apis"/>
+            <param name="artifact-version" value="1.4.01"/>
+            <param name="artifact-name" value="xml-apis"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-jstl">
+        <mkdir dir="lib"/>
+        <property name="jstl-package" value="jstl"/>
+        <property name="jstl-version" value="1.2"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="${jstl-package}"/>
+            <param name="artifact-version" value="${jstl-version}"/>
+            <param name="artifact-name" value="jstl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-elasticsearch-plugin">
+        <mkdir dir="lib/elasticsearch"/>
+        <!-- Download and unpack binary artifact -->
+        <mkdir dir="build/download"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.0-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin"/>
+        <copy todir="lib/elasticsearch">
+            <fileset dir="build/download/apache-manifoldcf-elasticsearch-plugin-bin/elasticsearch-plugin-mcf-2.0"/>
+        </copy>
+    </target>
+
+   <target name="download-dropbox-client">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/syncloud"/>
+            <param name="artifact-version" value="1.5.3"/>
+            <param name="artifact-name" value="dropbox-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/googlecode/json-simple"/>
+            <param name="artifact-version" value="1.1"/>
+            <param name="artifact-name" value="json-simple"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+	
+    <target name="download-jira-client">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/googlecode/json-simple"/>
+            <param name="artifact-version" value="1.1"/>
+            <param name="artifact-name" value="json-simple"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="commons-codec"/>
+            <param name="artifact-version" value="1.8"/>
+            <param name="artifact-name" value="commons-codec"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+   <target name="download-google-api-client">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/apis"/>
+            <param name="artifact-version" value="v2-rev64-1.14.1-beta"/>
+            <param name="artifact-name" value="google-api-services-drive"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/http-client"/>
+            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-name" value="google-http-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/http-client"/>
+            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-name" value="google-http-client-jackson2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/oauth-client"/>
+            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-name" value="google-oauth-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/jackson/core/"/>
+            <param name="artifact-version" value="2.1.3"/>
+            <param name="artifact-name" value="jackson-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall> 
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/api-client"/>
+            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-name" value="google-api-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+
+    </target>
+
+    <target name="download-sharepoint-plugins">
+        <mkdir dir="lib/sharepoint-2007"/>
+        <!-- Download and unpack binary artifact -->
+        <mkdir dir="build/download"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2007-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-sharepoint-2007-plugin-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2007-plugin-bin"/>
+        <copy todir="lib/sharepoint-2007">
+            <fileset dir="build/download/apache-manifoldcf-sharepoint-2007-plugin-bin/apache-manifoldcf-sharepoint-2007-plugin-0.5"/>
+        </copy>
+        <mkdir dir="lib/sharepoint-2010"/>
+        <!-- Download and unpack binary artifact -->
+        <mkdir dir="build/download"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2010-plugin-0.4-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin"/>
+        <copy todir="lib/sharepoint-2010">
+            <fileset dir="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin/apache-manifoldcf-sharepoint-2010-plugin-0.4"/>
+        </copy>
+    </target>
+
+    <target name="download-solr-plugins">
+        <mkdir dir="lib/solr-3.x"/>
+        <mkdir dir="build/download"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin"/>
+        <copy todir="lib/solr-3.x">
+            <fileset dir="build/download/apache-manifoldcf-solr-3.x-plugin-bin/apache-manifoldcf-solr-3.x-plugin-2.0"/>
+        </copy>
+        <mkdir dir="lib/solr-4.x"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin"/>
+        <copy todir="lib/solr-4.x">
+            <fileset dir="build/download/apache-manifoldcf-solr-4.x-plugin-bin/apache-manifoldcf-solr-4.x-plugin-2.0"/>
+        </copy>
+    </target>
+
+    <target name="download-hadoop" depends="download-guava">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-common"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-annotations"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-auth"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="hadoop-hdfs"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-protobuf">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/protobuf"/>
+            <param name="artifact-version" value="2.5.0"/>
+            <param name="artifact-name" value="protobuf-java"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-guava">
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/guava"/>
+            <param name="artifact-version" value="11.0.2"/>
+            <param name="artifact-name" value="guava"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-solrj">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/solr"/>
+            <param name="artifact-version" value="4.7.0"/>
+            <param name="artifact-name" value="solr-solrj"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/noggit"/>
+            <param name="artifact-version" value="0.5"/>
+            <param name="artifact-name" value="noggit"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-zookeeper">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/zookeeper"/>
+            <param name="artifact-version" value="3.4.5"/>
+            <param name="artifact-name" value="zookeeper"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-tika">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-name" value="tika-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-name" value="tika-parsers"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ccil/cowan/tagsoup"/>
+            <param name="artifact-version" value="1.2.1"/>
+            <param name="artifact-name" value="tagsoup"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/james"/>
+            <param name="artifact-name" value="apache-mime4j-core"/>
+            <param name="artifact-version" value="0.7.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/james"/>
+            <param name="artifact-name" value="apache-mime4j-dom"/>
+            <param name="artifact-version" value="0.7.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/gagravarr"/>
+            <param name="artifact-name" value="vorbis-java-tika"/>
+            <param name="artifact-version" value="0.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/poi"/>
+            <param name="artifact-name" value="poi-scratchpad"/>
+            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/drewnoakes"/>
+            <param name="artifact-name" value="metadata-extractor"/>
+            <param name="artifact-version" value="2.6.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/aspectj"/>
+            <param name="artifact-name" value="aspectjrt"/>
+            <param name="artifact-version" value="1.6.11"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/uwyn"/>
+            <param name="artifact-name" value="jhighlight"/>
+            <param name="artifact-version" value="1.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/xmlbeans"/>
+            <param name="artifact-name" value="xmlbeans"/>
+            <param name="artifact-version" value="2.3.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/bouncycastle"/>
+            <param name="artifact-name" value="bcprov-jdk15"/>
+            <param name="artifact-version" value="1.45"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/tukaani"/>
+            <param name="artifact-name" value="xz"/>
+            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/pdfbox"/>
+            <param name="artifact-name" value="jempbox"/>
+            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/pdfbox"/>
+            <param name="artifact-name" value="pdfbox"/>
+            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/pdfbox"/>
+            <param name="artifact-name" value="fontbox"/>
+            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/commons"/>
+            <param name="artifact-name" value="commons-compress"/>
+            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/googlecode/juniversalchardet"/>
+            <param name="artifact-name" value="juniversalchardet"/>
+            <param name="artifact-version" value="1.0.3"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="edu/ucar"/>
+            <param name="artifact-name" value="netcdf"/>
+            <param name="artifact-version" value="4.2-min"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="de/l3s/boilerpipe"/>
+            <param name="artifact-name" value="boilerpipe"/>
+            <param name="artifact-version" value="1.1.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="dom4j"/>
+            <param name="artifact-name" value="dom4j"/>
+            <param name="artifact-version" value="1.6.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ow2/asm"/>
+            <param name="artifact-name" value="asm-debug-all"/>
+            <param name="artifact-version" value="4.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/adobe/xmp"/>
+            <param name="artifact-name" value="xmpcore"/>
+            <param name="artifact-version" value="5.1.2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/gagravarr"/>
+            <param name="artifact-name" value="vorbis-java-core"/>
+            <param name="artifact-version" value="0.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/poi"/>
+            <param name="artifact-name" value="poi-ooxml"/>
+            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/poi"/>
+            <param name="artifact-name" value="poi-ooxml-schemas"/>
+            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/bouncycastle"/>
+            <param name="artifact-name" value="bcmail-jdk15"/>
+            <param name="artifact-version" value="1.45"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="jdom"/>
+            <param name="artifact-name" value="jdom"/>
+            <param name="artifact-version" value="1.0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/geronimo/specs"/>
+            <param name="artifact-name" value="geronimo-stax-api_1.0_spec"/>
+            <param name="artifact-version" value="1.0.1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="rome"/>
+            <param name="artifact-name" value="rome"/>
+            <param name="artifact-version" value="0.9"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/googlecode/mp4parser"/>
+            <param name="artifact-name" value="isoparser"/>
+            <param name="artifact-version" value="1.0-RC-1"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+	
+    <target name="download-jackson">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/jackson/core"/>
+            <param name="artifact-version" value="2.1.3"/>
+            <param name="artifact-name" value="jackson-databind"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/jackson/core"/>
+            <param name="artifact-version" value="2.1.2"/>
+            <param name="artifact-name" value="jackson-annotations"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+	
+    <target name="make-core-deps" depends="download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
+        <copy todir="lib">
+            <fileset dir="lib-license" includes="*.txt"/>
+        </copy>
+    </target>
+    
+    <target name="download-mysql">
+        <antcall target="download-via-maven">
+            <param name="target" value="lib-proprietary"/>
+            <param name="project-path" value="mysql"/>
+            <param name="artifact-version" value="5.1.18"/>
+            <param name="artifact-name" value="mysql-connector-java"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-jtds">
+        <antcall target="download-via-maven">
+            <param name="target" value="lib-proprietary"/>
+            <param name="project-path" value="net/sourceforge/jtds"/>
+            <param name="artifact-version" value="1.2.4"/>
+            <param name="artifact-name" value="jtds"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-proprietary-dependencies" depends="download-mysql,download-jtds"/>
+    
+    <target name="make-deps" depends="download-proprietary-dependencies,download-connectors-dependencies">
+        <ant dir="site" target="download-dependencies"/>
+    </target>
+
+    <target name="download-proprietary-cleanup">
+        <delete>
+            <fileset dir="lib-proprietary" excludes="README.txt"/>
+        </delete>
+    </target>
+
+    <target name="clean-core-deps">
+        <delete dir="lib"/>
+    </target>
+
+    <target name="clean-deps" depends="download-proprietary-cleanup,cleanup-connectors-dependencies">
+        <ant dir="site" target="download-cleanup"/>
+    </target>
+    
+</project>

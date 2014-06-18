@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="http://tempuri.org/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+      <s:element name="GetUsersGroups">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="token" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="userID" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUsersGroupsResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetUsersGroupsResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="groupResults" type="tns:ArrayOfGroupResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfGroupResult">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="GroupResult" nillable="true" type="tns:GroupResult" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="GroupResult">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="groupID" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="groupName" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="GetUsersGroupsSoapIn">
+    <wsdl:part name="parameters" element="tns:GetUsersGroups" />
+  </wsdl:message>
+  <wsdl:message name="GetUsersGroupsSoapOut">
+    <wsdl:part name="parameters" element="tns:GetUsersGroupsResponse" />
+  </wsdl:message>
+  <wsdl:portType name="MetaCartaSoap">
+    <wsdl:operation name="GetUsersGroups">
+      <wsdl:input message="tns:GetUsersGroupsSoapIn" />
+      <wsdl:output message="tns:GetUsersGroupsSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="MetaCartaSoap" type="tns:MetaCartaSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+    <wsdl:operation name="GetUsersGroups">
+      <soap:operation soapAction="http://tempuri.org/GetUsersGroups" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="MetaCarta">
+    <wsdl:port name="MetaCartaSoap" binding="tns:MetaCartaSoap">
+      <soap:address location="http://localhost/MetaCartaWebService/MetaCarta.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

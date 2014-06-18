@@ -1,0 +1,87 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+$Id$
+-----------------------------------------------------------------------------
+mod_authz_annotate is used to populate the incoming request with headers
+containing the authorizations of the authenticated user.  It will also
+authorize the request, rejecting it with a 401 based on the configured 
+authority services.
+
+The authorizations are inserted to the headers as:
+
+AAAUSR:<specific identification of the user>
+	There will be only one of these.
+
+AAAGRP:<grouping that user is member of>
+	There can be many of these.
+
+The module is configured with the following directives:
+
+AuthzAnnotateEnable [On|Off]
+    Toggle state of authority feature
+
+AuthzAnnotateAuthority URL
+    URL of an authority service as defined below.  The configured service
+    will be asked for ACLs but no ID.
+
+AuthzAnnotateACLAuthority URL
+    URL of an authority service as defined below.  The configured service
+    will be asked for ACLs but no ID.
+
+AuthzAnnotateIDAuthority URL
+    URL of an authority service as defined below.  The configured service
+    will be asked for an ID but no ACLs.
+
+AuthzAnnotateIDACLAuthority URL
+    URL of an authority service as defined below.  The configured service
+    will be asked for noth IDs AND ACLs.
+
+The XXXAuthority directives may be repeated and/or mixed and matched so a
+single configuration can query multiple authorities.  When multiple
+auhtorities are configured:
+
+TODO!!!
+
+The source of the authorizations are authority services, which are HTTP
+services that take CGI-like parameters in the URL and return ID/TOKEN lists.
+
+The configured URLs can be anything and will be augmented as follows:
+
+http://CONFIGUREDURL[?|&]
+	username=asdf
+	[idneeded=true|false]
+	[aclneeded=true|false]
+
+The ?|& will be added depending of whether the configured URL has CGI-like
+parmaters already or not.
+
+The username paramaters is *always* appended. 
+
+The idneeded and aclneeded paramaters are also currently always appended,
+but the services should be OK with those not being present.
+
+Order of these parameters is not guaranteed.All parameters values will be
+properly URL-encoded.
+
+
+ID:
+TOKEN:
+
+"UNAUTHORIZED"
+"NOTFOUND"
+"OK"
+
+

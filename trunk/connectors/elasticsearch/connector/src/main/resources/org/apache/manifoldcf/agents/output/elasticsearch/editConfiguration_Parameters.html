@@ -1,0 +1,48 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TABNAME == $ResourceBundle.getString('ElasticSearchConnector.Parameters'))
+
+<table class="displaytable">
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ServerLocation'))</nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.URLColon'))
+    </td>
+    <td class="value"><input name="serverlocation" type="text"
+      value="$Encoder.attributeEscape($SERVERLOCATION)" size="48" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.IndexNameColon'))</nobr></td>
+    <td class="value"><input name="indexname" type="text" value="$Encoder.attributeEscape($INDEXNAME)"
+      size="24" /></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.IndexTypeColon'))</nobr></td>
+    <td class="value"><input name="indextype" type="text" value="$Encoder.attributeEscape($INDEXTYPE)"
+      size="24" /></td>
+  </tr>
+</table>
+
+#else
+
+<input type="hidden" name="serverlocation" value="$Encoder.attributeEscape($SERVERLOCATION)" />
+<input type="hidden" name="indexname" value="$Encoder.attributeEscape($INDEXNAME)" />
+<input type="hidden" name="indextype" value="$Encoder.attributeEscape($INDEXTYPE)" />
+
+#end

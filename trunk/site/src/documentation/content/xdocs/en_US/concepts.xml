@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>Concepts</title> 
+  </header> 
+
+  <body> 
+    <section>
+      <title>Concepts</title>
+      <p>ManifoldCF is a crawler framework which is designed to meet several key goals.</p>
+      <p></p>
+      <ul>
+        <li>It's reliable, and resilient against being shutdown or restarted</li>
+        <li>It's incremental, meaning that jobs describe a set of documents by some criteria, and are meant to be run again and again to pick up any differences</li>
+        <li>It supports connections to multiple kinds of repositories at the same time</li>
+        <li>It defines and fully supports a model of document security, so that each document listed in a search result from the back-end search engine is one that the current user is allowed to see</li>
+        <li>It operates with reasonable efficiency and throughput</li>
+        <li>Its memory usage characteristics are bounded and predictable in advance</li>
+      </ul>
+      <p></p>
+      <p>ManifoldCF meets many of its architectural goals by being implemented on top of a relational database.  The current implementation requires Postgresql or uses the included Derby.  Longer term, we may support other DB bindings.</p>
+      <p></p>
+      <section>
+        <title>ManifoldCF document model</title>
+        <p></p>
+        <p>Each document in ManifoldCF consists of some opaque binary data, plus some opaque associated metadata (which is described by name-value pairs), and is uniquely addressed by a URI.  The back-end search engines which ManifoldCF communicates with are all expected to support, to a greater or lesser degree, this model.</p>
+        <p></p>
+        <p>Documents may also have access tokens associated with them.  These access tokens are described more fully in the next section.</p>
+        <p></p>
+      </section>
+      <section>
+        <title>ManifoldCF security model</title>
+        <p></p>
+        <p>The ManifoldCF security model is based loosely on the standard authorization concepts and hierarchies found in Microsoft's Active Directory.  Active Directory is quite
+          common in the kinds of environments where data repositories exist that are ripe for indexing.  Active Directory's authorization model is also easily used in a general way to 
+          represent authorization for a huge variety of third-party content repositories.</p>
+        <p></p>
+        <p>ManifoldCF defines a concept of an <em>access token</em>.  An access token, to ManifoldCF, is a string which is meaningful only to a specific connector or
+          connectors.  This string describes the ability of a user to view (or not view) some set of documents.  For documents protected by Active Directory itself, an access token
+          would be an Active Directory SID (e.g. "S-1-23-4-1-45").  But, for example, for documents protected by Livelink a wholly different string would be used.</p>
+        <p></p>
+        <p>In the ManifoldCF security model, it is the job of an <em>authority</em> to provide a list of access tokens for a given searching user.  Multiple authorities cooperate
+          in that each one can add to the list of access tokens describing a given user's security.  A user is described in terms of a set of <em>authorization domains</em>
+          and user name tuples.  Any given authority will provide access tokens for a user name corresponding to one authorization domain.  For example,
+          an authority that understands FaceBook users would only respond to a FaceBook user name.  Access tokens from all applicable authorities are added into the final list that is handed to the search engine as part of every
+          search request, so that the search engine may properly exclude documents that the user is not allowed to see.</p>
+        <p></p>
+        <p>When document indexing is done, therefore, it is the job of the crawler to hand access tokens to the search engine, so that it may categorize the documents properly
+          according to their accessibility.  The access tokens the crawler attaches to a document are meaningful only within the space of the governing <em>authority group</em>.  An
+          authority group describes a set of authorities which all can cooperate to provide access tokens for a single given document.  Each authority belongs
+          to exactly one authority group.  Authority groups serve to separate access tokens into different spaces so that they cannot interfere with one another.</p>
+        <p></p>
+        <p>For example, say that you would want to crawl documents from a LiveLink repository, as well as from a Windows shared drive.
+          You will therefore have two kinds of documents that are each secured in an entirely different way.  There is a LiveLink authority connection, which provides LiveLink
+          access tokens, and there is an Active Directory authority connection, which provides Windows access tokens.  Now, you don't want there to be any chance
+          that a LiveLink access token could be confused with an Active Directory SID, so the way you do that in ManifoldCF is to create two distinct
+          authority groups, each of which provides access tokens meant for specific kinds of repository documents.  Thus, documents secured by Active
+          Directory SIDs should be indexed against an Active Directory authority group, and documents secured by LiveLink access tokens should have a LiveLink
+          authority group.  Finally, the Active Directory authority connection should then belong to the Active Directory authority group, and the LiveLink authority connection should
+          belong to the LiveLink authority group.</p>
+        <p></p>
+        <p>In addition to specifying the correct authority group, access tokens can be attached to documents as "grant" tokens, or as "deny" tokens.
+          "Grant" tokens provide access, "deny" tokens restrict it.  "Deny" tokens, if matched, always win over "grant" tokens.
+          And finally, there are multiple levels of tokens, which correspond to Active Directory's concepts
+          of "share" security, specific "directory" security, or "file" security.  (The latter concepts are rarely used except for documents that come from
+          Windows or Samba systems.)  Each level provided must agree that the document is to be visible for the document to appear in search
+          results.</p>
+        <p></p>
+        <p>Once all these documents and their access tokens are handed to the search engine, it is the search engine's job to enforce security by excluding inappropriate documents
+          from the search results.  For Solr and for ElasticSearch, this infrastructure has been included in ManifoldCF releases as a Solr plugin (both 3.x and 4.x varieties) and an
+          ElasticSearch plugin.  Bear in mind that this plug-in is still not a complete solution, as it requires one or more authenticated user
+          names to be passed to it from some upstream source, possibly a JAAS authenticator within an application server framework.</p>
+        <p></p>
+      </section>
+      <section>
+        <title>ManifoldCF conceptual entities</title>
+        <p></p>
+        <section>
+          <title>Connectors</title>
+          <p></p>
+          <p>ManifoldCF defines five different kinds of connectors.  These are:</p>
+          <p></p>
+          <ul>
+            <li>User mapping connectors</li>
+            <li>Authority connectors</li>
+            <li>Repository connectors</li>
+            <li>Transformation connectors</li>
+            <li>Output connectors</li>
+          </ul>
+          <p></p>
+          <p>All connectors share certain characteristics.  First, they are pooled.  This means that ManifoldCF keeps configured and connected instances of a connector around for
+            a while, and has the ability to limit the total number of such instances to within some upper limit.  Connector implementations have specific methods in them for managing
+            their existence in the pools that ManifoldCF keeps them in.  Second, they are configurable.  The configuration description for a connector is an XML document, whose precise
+            format is determined by the connector implementation.  A configured connector instance is called a <em>connection</em>, by common ManifoldCF convention.</p>
+          <p></p>
+          <p>The function of each type of connector is described below.</p>
+          <p></p>
+          <table>
+            <tr><th>Connector type</th><th>Function</th></tr>
+            <tr><td>User mapping connector</td><td>Maps a user name to another (equivalent) user name, typically by means of a regular expression mechanism, or by repository access</td></tr>
+            <tr><td>Authority connector</td><td>Furnishes a standard way of mapping a user name to access tokens that are meaningful for a given type of repository</td></tr>
+            <tr><td>Repository connector</td><td>Fetches documents from a specific kind of repository, such as SharePoint or off the web</td></tr>
+            <tr><td>Transformation connector</td><td>Modifies documents or their metadata, after fetched by a repository connector and before being sent to the index by an output connector</td></tr>
+            <tr><td>Output connector</td><td>Pushes document ingestion requests and deletion requests to a specific kind of back end search engine or other entity, such as Lucene</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
+          <title>Connections</title>
+          <p></p>
+          <p>As described above, a <em>connection</em> is a connector implementation plus connector-specific configuration information.  A user can define a connection of all
+            three types in the crawler UI.</p>
+          <p></p>
+          <p>The kind of information included in the configuration data for a connector typically describes the "how", as opposed to the "what".  For example, you'd configure a
+            LiveLink connection by specifying how to talk to the LiveLink server.  You would <strong>not</strong> include information about which documents to select in such a
+            configuration.</p>
+          <p></p>
+          <p>There is one difference between how you define a <em>repository connection</em> or <em>authority connection</em>, vs. how you would define a <em>transformation connection</em> or <em>output
+            connection</em> or <em>mapping connection</em>.  The difference is that you must specify a governing authority group for your repository connection, and an owning
+            authority group for your authority connection.  This is
+            because <strong>all</strong> documents ingested by ManifoldCF need to include appropriate access tokens, and those access tokens are specific to
+            the governing authority group.</p>
+          <p></p>
+          <p>Another difference in how you define an <em>authority connection</em> or <em>mapping connection</em>, vs. other connections, is that you can specify a prerequisite
+            <em>mapping connection</em> that must occur beforehand.  This means you can have multiple user mappings that occur in a defined sequence, before the authority is
+            invoked.</p>
+          <p></p>
+        </section>
+        <section>
+          <title>Jobs</title>
+          <p></p>
+          <p>A <em>job</em> in ManifoldCF parlance is a description of some kind of synchronization that needs to occur between a specified repository connection and a specified
+            output connection.  A job includes the following:</p>
+          <p></p>
+          <ul>
+            <li>A verbal description</li>
+            <li>A repository connection (and thus implicitly an authority group as well)</li>
+            <li>Zero or more transformation connections</li>
+            <li>An output connection</li>
+            <li>A repository-connection-specific description of "what" documents and metadata the job applies to</li>
+            <li>Zero or more transformation-connection-specific descriptions of "how" documents and metadata should be manipulated before indexing</li>
+            <li> An output-connection-specific description of how documents should be indexed</li>
+            <li>A model for crawling: either "run to completion", or "run continuously"</li>
+            <li>A schedule for when the job will run: either within specified time windows, or on demand</li>
+          </ul>
+          <p></p>
+          <p>Jobs are allowed to share the same repository connection, and thus they can overlap in the set of documents they describe.  ManifoldCF permits this situation, although 
+            when it occurs it is probably an accident.</p>
+        </section>
+        <section>
+          <title>Authorization domains</title>
+          <p></p>
+          <p>ManifoldCF supports a federated concept of a user.  The same user, for instance, may have one login name for FaceBook, another for Windows,
+            and yet another for Google.  We can describe this user as having three different authorization domains: "FaceBook", "Windows", and "Google".</p>
+          <p>In ManifoldCF, each authority understands user names or ids from one specific authorization domain.  This allows ManifoldCF to be configured
+            so that access tokens generated from multiple independent sources are amalgamated, even if the incoming user names differ from source to
+            source.</p>
+        </section>
+        <section>
+          <title>Authority groups</title>
+          <p></p>
+          <p>ManifoldCF groups authority connections together in groups, so that multiple authorities can furnish security for a single document.  An authority
+            group is nothing more than a name and a description that is referenced by authority connections that are part of that group, and is referenced also
+            by repository connections that wish to be secured by that group.  For most simple repositories, there is one authority group per authority.  But
+            repositories capable of federated security (e.g. SharePoint with Claim Space support) can use multiple authorities to describe security for a single
+            document.  Authority groups allow configuration of the appropriate many-to-many relationship for this situation.</p>
+        </section>
+      </section>
+    </section>
+  </body>
+
+</document>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>ManifoldCFにようこそ！</title> 
+  </header> 
+
+  <body> 
+    <section>
+	<title>ManifoldCFとは？</title>
+	<p>ManifoldCFとは、インターネットやイントラネットの様々なサーバに保管されている文書ファイルやWebページなどコンテンツを収集し、それを検索エンジンに送るJavaプログラムです。なお、コンテンツを収集する際にActiveDirectoryなど認証基盤と連携してコンテンツ毎に権限情報も収集し、検索するときにその権限情報を利用して表示内容を制限することもできます。例えば、人事情報に関する文書は、人事部のユーザが検索した時のみに表示するようにできます。</p>
+	<p>現バージョンのManifoldCFは、FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows共有(Microsoft), SharePoint (Microsoft)のような商用商品に保存されているコンテンツと次のような汎用コネクタを使って様々なコンテンツを収集することができます：CMISコネクタ, ファイルシステムコネクタ, JDBCコネクタ, RSSフィードコネクタ, Wikiコネクタ, HTMLコネクタ。また収集したコンテンツをApache Solr, QBase(旧MetaCarta) GTS, OpenSearchServer, ElasticSearchに送ることができます。対応している製品及び規格一覧は<a href="included-connectors.html">ここ</a>にあります。</p>
+	<p>Apache ManifoldCFはMetaCarta, Inc.により開発されました。5年間の年月の間に複数企業用に開発／テストが繰り返された後の2009年12月にApache Software Foundationにコードソースが寄贈されました。</p>
+    </section>
+
+    <section>
+	<title>サードパーティのリポジトリについて</title>
+	<p>ManifoldCFにふくまれる商用ソフトウェア用のコネクタをビルドするには、サードパーティのライブラリ、パッケージ、そのソフトウェアが必要な場合があります。開発者はビルドする時にこれらサードパーティのソフトウェアを入手する必要はありますが、条件付きでコンパイルすることができるため、コネクタ自体のソースコードはApacheとして配布することができます。できる限りすべてをApacheライセンスに準拠するようにしたいと思っていますが、現実的には状況はすぐには変わりません。</p>
+	<p>サードパーティのソフトウェアを含めてビルドする手順はWikiページに掲載しています。</p>
+    </section>
+
+  </body>
+
+</document>

@@ -1,0 +1,131 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TABNAME == $ResourceBundle.getString('AlfrescoConnector.Server'))
+
+<table class="displaytable">
+  <tr>
+    <td class="separator" colspan="2">
+      <hr />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.TenantDomainColon'))
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="tenantDomain" name="tenantDomain" type="text" size="32" value="$Encoder.attributeEscape($TENANTDOMAIN)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.UserNameColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <input id="username" type="text" name="username" value="$Encoder.attributeEscape($USERNAME)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PasswordColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <input id="password" type="password" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.ProtocolColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <select id="protocol" name="protocol">
+#if($PROTOCOL == "http")
+        <option value="http" selected="selected">http</option>
+#else
+        <option value="http">http</option>
+#end
+#if($PROTOCOL == "https")
+        <option value="https" selected="selected">https</option>
+#else
+        <option value="https">https</option>
+#end
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.ServerColon'))
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="server" name="server" type="text" size="32" value="$Encoder.attributeEscape($SERVER)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PortColon'))
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="port" name="port" type="text" size="5" value="$Encoder.attributeEscape($PORT)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PathColon'))
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="path" name="path" type="text" size="32" value="$Encoder.attributeEscape($PATH)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.SocketTimeoutColon'))
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="socketTimeout" name="socketTimeout" type="text" size="10" value="$Encoder.attributeEscape($SOCKETTIMEOUT)" />
+    </td>
+  </tr>
+</table>
+
+#else
+
+<input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)" />
+<input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
+<input type="hidden" name="protocol" value="$Encoder.attributeEscape($PROTOCOL)" />
+<input type="hidden" name="server" value="$Encoder.attributeEscape($SERVER)" />
+<input type="hidden" name="port" value="$Encoder.attributeEscape($PORT)" />
+<input type="hidden" name="path" value="$Encoder.attributeEscape($PATH)" />
+<input type="hidden" name="tenantDomain" value="$Encoder.attributeEscape($TENANTDOMAIN)" />
+<input type="hidden" name="socketTimeout" value="$Encoder.attributeEscape($SOCKETTIMEOUT)" />
+
+#end
+

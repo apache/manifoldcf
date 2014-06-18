@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>Writing authority connectors</title> 
+  </header> 
+
+  <body> 
+    <section>
+      <title>Writing an Authority Connector</title>
+      <p></p>
+      <p>An authority connector to a repository allows a repository's security model to be enforced by a search engine.  Its only function is to convert a user name (which is often a Kerberos principal name) into a set of _access tokens_.</p>
+      <p></p>
+      <p>The definition of an access token within ManifoldCF for a given repository is completely defined by the connectors that deal with that repository, with one exception.  That exception is for Active Directory.  Active Directory is so prevalent as a repository authorization mechanism that ManifoldCF currently treats it as the "default" authority - that is, if you don't specify another authority when you define a repository connection, ManifoldCF presumes that you mean that Active Directory should be the controlling authority for the connection.  In that case, an access token is simply an Active Directory SID.</p>
+      <p></p>
+      <p>For those repositories that do not use Active Directory as their authorization mechanism, an authority connector should be written, along with the repository connector for the repository.  Access tokens in that case represent a contract between your implementation of the authority connector for the repository, and the repository connector for the repository.  They must work together to define access tokens that will limit document access when used properly within any search engine query.</p>
+      <p></p>
+      <p>As is the case with all connectors under the ManifoldCF umbrella, an authority connector consists of a single parts:</p>
+      <p></p>
+      <ul>
+        <li>A class implementing an interface (in this case, <em>org.apache.manifoldcf.authorities.interfaces.IAuthorityConnector</em>)</li>
+      </ul>
+      <p></p>
+      <section>
+        <title>Key concepts</title>
+        <p></p>
+        <p>The authority connector abstraction makes use of, or introduces, the following concepts:</p>
+        <p></p>
+        <table>
+          <tr><th>Concept</th><th>What it is</th></tr>
+          <tr><td>Configuration parameters</td><td>A hierarchical structure, internally represented as an XML document, which describes a specific configuration of a specific authority connector, i.e. <strong>how</strong> the connector should do its job; see <em>org.apache.manifoldcf.core.interfaces.ConfigParams</em></td></tr>
+          <tr><td>Authority connection</td><td>An authority connector instance that has been furnished with configuration data</td></tr>
+          <tr><td>User name</td><td>The name of a user, which is often a Kerberos principal name, e.g. <em>john@apache.org</em></td></tr>
+          <tr><td>Access token</td><td>An arbitrary string, which is only meaningful within the context of a specific authority connector, that describes a quantum of authorization</td></tr>
+          <tr><td>Connection management/threading/pooling model</td><td>How an individual authority connector class instance is managed and used</td></tr>
+          <tr><td>Service interruption</td><td>A specific kind of exception that signals ManifoldCF that the output repository is unavailable, and gives a best estimate of when it might become available again; see <em>org.apache.manifoldcf.agents.interfaces.ServiceInterruption</em></td></tr>
+        </table>
+        <p></p>
+      </section>
+      <section>
+        <title>Implementing the Authority Connector class</title>
+        <p></p>
+        <p>A very good place to start is to read the javadoc for the authority connector interface.  You will note that the javadoc describes the usage and pooling model for a connector class pretty thoroughly.  It is very important to understand the model thoroughly in order to write reliable connectors!  Use of static variables, for one thing, must be done in a very careful way, to avoid issues that would be hard to detect with a cursory test.</p>
+        <p></p>
+        <p>The second thing to do is to examine some of the provided authority connector implementations.  The Documentum connector, the LiveLink connector, the Memex connector, and the Meridio connector all include authority connectors which demonstrate (to some degree) the sorts of techniques you will need for an effective implementation.  You will also note that all of these connectors extend a framework-provided authority connector base class, found at <em>org.apache.manifoldcf.authorities.authorities.BaseAuthorityConnector</em>.  This base class furnishes some basic bookkeeping logic for managing the connector pool, as well as default implementations of some of the less typical functionality a connector may have.  For example, connectors are allowed to have database tables of their own, which are instantiated when the connector is registered, and are torn down when the connector is removed.  This is, however, not very typical, and the base implementation reflects that.</p>
+        <p></p>
+        <section>
+          <title>Principle methods</title>
+          <p></p>
+          <p>The principle methods an implementer should be concerned with for creating an authority connector are the following:</p>
+          <p></p>
+          <table>
+            <tr><th>Method</th><th>What it should do</th></tr>
+            <tr><td><strong>getAuthorizationResponse()</strong></td><td>Obtain the authorization response, given a user name</td></tr>
+            <tr><td><strong>outputConfigurationHeader()</strong></td><td>Output the head-section part of an authority connection <em>ConfigParams</em> editing page</td></tr>
+            <tr><td><strong>outputConfigurationBody()</strong></td><td>Output the body-section part of an authority connection <em>ConfigParams</em> editing page</td></tr>
+            <tr><td><strong>processConfigurationPost()</strong></td><td>Receive and process form data from an authority connection <em>ConfigParams</em> editing page</td></tr>
+            <tr><td><strong>viewConfiguration()</strong></td><td>Output the viewing HTML for an authority connection <em>ConfigParams</em> object</td></tr>
+          </table>
+          <p></p>
+          <p>These methods come in two broad classes: (a) functional methods for doing the work of the connector; (b) UI methods for configuring a connection.  Together they do the heavy lifting of your connector.</p>
+          <p></p>
+          <p>The <em>getAuthorizationResponse()</em> method returns an <em>AuthorizationResponse</em> object, which can describe a number of conditions:</p>
+          <p></p>
+          <table>
+            <tr><th>Condition</th><th>Meaning</th></tr>
+            <tr><td>RESPONSE_OK</td><td>The access tokens for the user were successfully obtained from the repository, and are being returned</td></tr>
+            <tr><td>RESPONSE_UNREACHABLE</td><td>The repository is currently unreachable, and appropriate disabling tokens are being returned</td></tr>
+            <tr><td>RESPONSE_USERNOTFOUND</td><td>The user was not found within the repository, and appropriate disabling tokens are being returned</td></tr>
+            <tr><td>RESPONSE_USERUNAUTHORIZED</td><td>The user was found, but was in some way disabled, and appropriate disabling tokens are being returned</td></tr>
+          </table>
+          <p></p>
+          <p></p>
+          <p>In all cases, the connector returns access tokens.  But in the case where token lookup has failed in some way, it is the responsibility of the connector to insure that inappropriate content is not viewed.  Usually, this is done by ingesting a "global deny" token attached to all documents from the given repository, and then having the associated authority connector return this global deny token when error conditions apply.</p>
+          <p></p>
+          <p></p>
+        </section>
+        <section>
+          <title>Notes on connector UI methods</title>
+          <p></p>
+          <p>The crawler UI uses a tabbed layout structure, and thus each of these elements must properly implement the tabbed model.  This means that the "header" methods above must add the desired tab names to a specified array, and the "body" methods must provide appropriate HTML which handles both the case where a tab is displayed, and where it is not displayed.  Also, it makes sense to use the appropriate css definitions, so that the connector UI pages have a similar look-and-feel to the rest of ManifoldCF's crawler ui.  We strongly suggest starting with one of the supplied authority connector's UI code, both for a description of the arguments to each page, and for some decent ideas of ways to organize your connector's UI code.</p>
+          <p></p>
+        </section>
+      </section>
+      <section>
+        <title>Implementation support provided by the framework</title>
+        <p></p>
+        <p>ManifoldCF's framework provides a number of helpful services designed to make the creation of a connector easier.  These services are summarized below.  (This is not an exhaustive list, by any means.)</p>
+        <p></p>
+        <ul>
+          <li>Lock management and synchronization (see <em>org.apache.manifoldcf.core.interfaces.LockManagerFactory</em>)</li>
+          <li>Cache management (see <em>org.apache.manifoldcf.core.interfaces.CacheManagerFactory</em>)</li>
+          <li>Local keystore management (see <em>org.apache.manifoldcf.core.KeystoreManagerFactory</em>)</li>
+          <li>Database management (see <em>org.apache.manifoldcf.core.DBInterfaceFactory</em>)</li>
+        </ul>
+        <p></p>
+        <p>For UI method support, these too are very useful:</p>
+        <p></p>
+        <ul>
+          <li>Multipart form processing (see <em>org.apache.manifoldcf.ui.multipart.MultipartWrapper</em>)</li>
+          <li>HTML encoding (see <em>org.apache.manifoldcf.ui.util.Encoder</em>)</li>
+          <li>HTML formatting (see <em>org.apache.manifoldcf.ui.util.Formatter</em>)</li>
+        </ul>
+        <p></p>
+      </section>
+      <section>
+        <title>DO's and DON'T DO's</title>
+        <p></p>
+        <p>It's always a good idea to make use of an existing infrastructure component, if it's meant for that purpose, rather than inventing your own.  There are, however, some limitations we recommend you adhere to.</p>
+        <p></p>
+        <ul>
+          <li>DO make use of infrastructure components described in the section above</li>
+          <li>DON'T make use of infrastructure components that aren't mentioned, without checking first</li>
+          <li>NEVER write connector code that directly uses framework database tables, other than the ones installed and managed by your connector</li>
+        </ul>
+        <p></p>
+        <p>If you are tempted to violate these rules, it may well mean you don't understand something important.  At the very least, we'd like to know why.  Send email to dev@manifoldcf.apache.org with a description of your problem and how you are tempted to solve it.</p>
+      </section>
+    </section>
+  </body>
+</document>

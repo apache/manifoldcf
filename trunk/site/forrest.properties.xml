@@ -1,0 +1,37 @@
+<?xml version='1.0'?>
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<properties>
+  <!-- Default values -->
+  <property name="output.pdf.fontFamily.serif" value="DejaVuSerif"/>
+  <property name="output.pdf.fontFamily.sansSerif" value="DejaVuSans"/>
+  <property name="output.pdf.fontFamily.monospace" value="DejaVuSansMono"/>
+  <!-- Overrides for ja_JP -->
+  <property name="output.pdf.fontFamily.serif.ja_JP" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.sansSerif.ja_JP" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.monospace.ja_JP" value="IPAPGothic"/>
+
+  <!-- property name="output.pdf.fontFamily.arial" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.TimesNewRoman" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.Courier" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.arialMT" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.arial-BoldMT" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.arial-ItalicMT" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.TimesNewRomanPSMT" value="IPAPGothic"/ -->
+</properties>

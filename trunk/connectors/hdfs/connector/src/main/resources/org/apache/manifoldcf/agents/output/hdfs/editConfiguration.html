@@ -1,0 +1,84 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TABNAME == $ResourceBundle.getString('HDFSOutputConnector.ServerTabName'))
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodeProtocol'))</nobr></td>
+    <td class="value">
+     <select name="namenodeprotocol" size="2">
+  #if($NAMENODEPROTOCOL == 'file')
+       <option value="file" selected="true">file</option>
+  #else
+       <option value="file">file</option>
+  #end
+  #if($NAMENODEPROTOCOL == 'ftp')
+       <option value="ftp" selected="true">ftp</option>
+  #else
+       <option value="ftp">ftp</option>
+  #end
+  #if($NAMENODEPROTOCOL == 'har')
+       <option value="har" selected="true">har</option>
+  #else
+       <option value="har">har</option>
+  #end
+  #if($NAMENODEPROTOCOL == 'hdfs')
+       <option value="hdfs" selected="true">hdfs</option>
+  #else
+       <option value="hdfs">hdfs</option>
+  #end
+  #if($NAMENODEPROTOCOL == 's3')
+       <option value="s3" selected="true">s3</option>
+  #else
+       <option value="s3">s3</option>
+  #end
+  #if($NAMENODEPROTOCOL == 's3n')
+       <option value="s3n" selected="true">s3n</option>
+  #else
+       <option value="s3n">s3n</option>
+  #end
+  #if($NAMENODEPROTOCOL == 'viewfs')
+       <option value="viewfs" selected="true">viewfs</option>
+  #else
+       <option value="viewfs">viewfs</option>
+  #end
+     </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodeHost'))</nobr></td>
+    <td class="value"><input name="namenodehost" type="text" value="$Encoder.attributeEscape($NAMENODEHOST)" size="32" /></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodePort'))</nobr></td>
+    <td class="value"><input name="namenodeport" type="text" value="$Encoder.attributeEscape($NAMENODEPORT)" size="5" /></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.User'))</nobr></td>
+    <td class="value"><input name="user" type="text" value="$Encoder.attributeEscape($USER)" size="32" /></td>
+  </tr>
+</table>
+
+#else
+
+<input type="hidden" name="namenodehost" value="$Encoder.attributeEscape($NAMENODEHOST)" />
+<input type="hidden" name="namenodeport" value="$Encoder.attributeEscape($NAMENODEPORT)" />
+<input type="hidden" name="user" value="$Encoder.attributeEscape($USER)" />
+
+#end

@@ -1,0 +1,29 @@
+#!/bin/sh -e
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.#
+# IF YOU ARE READING THIS, YOU ARE VIOLATING YOUR LICENSE AGREEMENT.
+#
+# $Id$
+
+# Register the pull agent
+su -p -s /bin/sh tomcat55 -c "/usr/lib/metacarta/agents-registeragent com.metacarta.crawler.system.CrawlerAgent"
+
+# I initially wanted to unregister all connectors and authorities prior to
+# reregistration; however, the unregistration process actually requires the
+# connector (in order to call the uninstall method), so that would not
+# work in any case.  I will add a synchronization method instead, to be called
+# at the end of the agents registration process.
+

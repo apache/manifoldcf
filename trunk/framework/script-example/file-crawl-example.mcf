@@ -1,0 +1,126 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Script to create a file system job and run it, sending the files to the null output connector
+# Argument: the base path of the API service, e.g. "http://localhost:8345/mcf-api-service".
+
+# Decode the argument, if any
+if __args__.__size__ > 2 || __args__.__size__ < 1 then
+  error "Usage: file-crawl-example <file_path> [<url_path>]";
+;
+if __args__.__size__ == 1 then
+  set basepath = "http://localhost:8345/mcf-api-service";
+else
+  set basepath = __args__[1];
+;
+set baseurl = (new url basepath) + "json";
+
+# Define all the connection names, job names, etc.
+set outputConnectionName = "Null Output";
+set outputConnectionDescription = "Null Output Connection";
+set repositoryConnectionName = "File System";
+set repositoryConnectionDescription = "File System Connection";
+set fileCrawlPath = __args__[0];
+set fileCrawlJobName = "File system crawl of "+fileCrawlPath;
+
+# Now, create the null output connection, unless it's already there.
+PUT result = {
+  << "outputconnection" : "" :  :
+    << "description" : outputConnectionDescription :  :  >>,
+    << "configuration" : "" :  :  >>,
+    << "class_name" : "org.apache.manifoldcf.agents.output.nullconnector.NullConnector" :  :  >>,
+    << "name" : outputConnectionName :  :  >>,
+    << "max_connections" : "100" :  :  >> >> }
+  to baseurl + "outputconnections" + new connectionname outputConnectionName;
+if result.__CREATED__ || result.__OK__ then
+  print "Output connection created (or already exists)";
+else
+  error "Unexpected result: "+result.__script__;
+;
+
+# Same deal with the repository connection
+PUT result = {
+  << "repositoryconnection" : "" :  : 
+    << "description" : repositoryConnectionDescription :  :  >>,
+    << "configuration" : "" :  :  >>,
+    << "class_name" : "org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector" :  :  >>,
+    << "name" : repositoryConnectionName :  :  >>,
+    << "max_connections" : "100" :  :  >> >> }
+  to baseurl + "repositoryconnections" + new connectionname repositoryConnectionName;
+if result.__CREATED__ || result.__OK__ then
+  print "Repository connection created (or already exists)";
+else
+  error "Unexpected result: "+result.__script__;
+;
+
+# Create the job (if it can't find it)
+POST result = {
+  << "job" : "" :  : 
+    << "start_mode" : "manual" :  :  >>,
+    << "reseed_interval" : "3600000" :  :  >>,
+    << "recrawl_interval" : "86400000" :  :  >>,
+    << "run_mode" : "scan once" :  :  >>,
+    << "hopcount_mode" : "never delete" :  :  >>,
+    << "output_specification" : "" :  :  >>,
+    << "description" : fileCrawlJobName :  :  >>,
+    << "document_specification" : "" :  :
+      << "startpoint" : "" : "path"=fileCrawlPath : 
+        << "include" : "" : "match"="*", "type"="file" :  >>,
+        << "include" : "" : "match"="*", "type"="directory" :  >> >> >>,
+    << "output_connection" : "Null Output" :  :  >>,
+    << "repository_connection" : "File System" :  :  >>,
+    << "priority" : "5" :  :  >>,
+    << "expiration_interval" : "infinite" :  :  >> >> }
+  to baseurl + "jobs";
+if result.__CREATED__ then
+  print "Job created";
+  set jobid = result.__value__[0].__value__;
+else
+  error "Unexpected result: "+result.__script__;
+;
+
+print "The job id is "+jobid;
+
+# Start the job
+PUT result = { }
+  to baseurl + "start" + jobid;
+  
+# Wait for the job to finish
+while true do
+  GET result = baseurl + "jobstatuses" + jobid;
+  if !result.__OK__ then
+    error "Couldn't get job status";
+  ;
+
+  # Find the job's status
+  set jobstatus = result.__value__.__dict__["jobstatus"];
+  if isnull jobstatus then
+    error "Couldn't find job status in response: " + result.__script__;
+  ;
+  
+  set thestatus = jobstatus.__dict__["status"].__value__;
+  
+  if thestatus == "done" || thestatus == "error" then
+    break;
+  ;
+  wait 10000;
+;
+
+if thestatus == "error" then
+  print "The job aborted, with error: " + jobstatus.__dict__["error_text"].__value;
+else
+  print "The job completed";
+;
+

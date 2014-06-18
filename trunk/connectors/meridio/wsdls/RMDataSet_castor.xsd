@@ -1,0 +1,909 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<xs:schema xmlns:mstns="http://www.meridio.com/RMDataSet.xsd"
+	   xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+           xmlns="http://www.meridio.com/RMDataSet.xsd"
+           attributeFormDefault="qualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://www.meridio.com/RMDataSet.xsd"
+           id="RMDataSet"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:element name="RMDataSet">
+    <xs:complexType>
+      <xs:sequence>
+        
+        <xs:element ref="rm2DisposalInstruction" maxOccurs="unbounded" minOccurs="0"/>            
+        <xs:element ref="rm2DisposalSchedule" maxOccurs="unbounded" minOccurs="0"/>            
+        <xs:element ref="rm2DisposalScheduleChain" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2DisposalScheduleChain_DisposalSchedule" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="rm2EventType" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2ExternalEvent" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2RetentionPeriod" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2ProtectiveMarkingCategory" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2ProtectiveMarkingDef" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2vClass" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2vFolder" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2vPart" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2vRecord" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2Part_Record" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2Part_Document" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2PropertyDef" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2ProtectiveMarking" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2RequestHistory" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2ReleaseHistory" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2ReviewHistory" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2ExportHistory" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2vClassCustomProperties" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2vFolderCustomProperties" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2vRecordCustomProperties" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2Config" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2RelocationHistory" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2AccessControlHistory" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2DisposalScheduleHistory" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2DisposalScheduleChain_Category" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2DisposalSchedule_Category" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2Privilege" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2LookupValue" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2Activities" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2Hold" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2Hold_Object" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2RelatedFolders" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2DisclosabilityHistory" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="rm2Facility" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2ProtectiveMarkingHistory" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2RecordVersion" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="rm2ReferenceCodePattern" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="rm2UserSetting" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="kGroup" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="kGroup_Users" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="kUser" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="eltCheckoutStatus" maxOccurs="unbounded" minOccurs="0"/>             
+        <xs:element ref="eltDateFrequency" maxOccurs="unbounded" minOccurs="0"/>              
+        <xs:element ref="eltPhysical" maxOccurs="unbounded" minOccurs="0"/>              
+
+
+     </xs:sequence>
+    </xs:complexType>
+   </xs:element>
+
+
+<!--
+  <xs:element msdata:IsDataSet="true" name="RMDataSet">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+
+-->
+        <xs:element name="rm2DisposalInstruction">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="priority" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2DisposalSchedule">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="description" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="objectType" type="xs:int" />
+              <xs:element minOccurs="0" name="categoryID" type="xs:int" />
+              <xs:element name="disposalInstructionID" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2DisposalScheduleChain">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="description" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="objectType" type="xs:int" />
+              <xs:element minOccurs="0" name="categoryID" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2DisposalScheduleChain_DisposalSchedule">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="parentObjectID" type="xs:int" />
+              <xs:element name="disposalScheduleID" type="xs:int" />
+              <xs:element name="priority" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2EventType">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="tableName" type="xs:string" />
+              <xs:element minOccurs="0" name="columnName" type="xs:string" />
+              <xs:element minOccurs="0" name="objectType" type="xs:int" />
+              <xs:element minOccurs="0" name="categoryID" type="xs:int" />
+              <xs:element name="isCustom" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2ExternalEvent">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="triggerDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="isTriggered" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2RetentionPeriod">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="months" type="xs:int" />
+              <xs:element minOccurs="0" name="years" type="xs:int" />
+              <xs:element minOccurs="0" name="explicitDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="eventId" type="xs:int" />
+              <xs:element minOccurs="0" name="externalEventId" type="xs:int" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="disposalScheduleId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2ProtectiveMarkingCategory">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="type" type="xs:unsignedByte" />
+              <xs:element default="0" name="readOnly" type="xs:unsignedByte" />
+              <xs:element default="0" name="informative" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2ProtectiveMarkingDef">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element minOccurs="0" name="rank" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2vClass">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element msdata:AutoIncrement="true" minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="ownerID" type="xs:int" />
+              <xs:element minOccurs="0" name="ownerName" type="xs:string" />
+              <xs:element minOccurs="0" name="referenceCode" type="xs:string" />
+              <xs:element minOccurs="0" name="parentTitlePath" type="xs:string" />
+              <xs:element minOccurs="0" name="parentRefCodePath" type="xs:string" />
+              <xs:element minOccurs="0" name="comment" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="createdByUserId" type="xs:int" />
+              <xs:element minOccurs="0" default="0" name="openStatus" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="openDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="closeDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastAdditionDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastRetrievalDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastReviewDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastReleaseDate" type="xs:dateTime" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element minOccurs="0" name="recordCountClosure" type="xs:int" />
+              <xs:element minOccurs="0" name="recordSizeClosure" type="xs:int" />
+              <xs:element minOccurs="0" name="annualClosureDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="cutOffFrequency" type="xs:int" />
+              <xs:element minOccurs="0" name="autoGenerateNewPart" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="generateSequenceNumber" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="hold" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="explicitDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="inheritedDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="effectiveDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="destinationExportOrg" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="dpaDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="dpaExemption" type="xs:string" />
+              <xs:element minOccurs="0" name="dpaNotes" type="xs:string" />
+              <xs:element minOccurs="0" name="foiNotes" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="foiDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="foiExemption" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="eirDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="eirExemption" type="xs:string" />
+              <xs:element minOccurs="0" name="eirNotes" type="xs:string" />
+              <xs:element minOccurs="0" name="groupOwnerID" type="xs:int" />
+              <xs:element minOccurs="0" name="inherit" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="cascadeBehaviour" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="currentDisposalScheduleId" type="xs:int" />
+              <xs:element minOccurs="0" default="0" name="permanentPreservation" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="vitalRecord" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="vitalRecordReviewPeriod" type="xs:int" />
+              <xs:element minOccurs="0" name="homePage" type="xs:string" />
+              <xs:element minOccurs="0" name="replicationType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="homeSystemId" type="xs:int" />
+              <xs:element minOccurs="0" name="homeSystemName" type="xs:string" />
+              <xs:element minOccurs="0" name="globalId" type="xs:string" />
+              <xs:element minOccurs="0" name="lastSynchTime" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2vFolder">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element msdata:AutoIncrement="true" minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="ownerID" type="xs:int" />
+              <xs:element minOccurs="0" name="ownerName" type="xs:string" />
+              <xs:element minOccurs="0" name="referenceCode" type="xs:string" />
+              <xs:element minOccurs="0" name="parentTitlePath" type="xs:string" />
+              <xs:element minOccurs="0" name="parentRefCodePath" type="xs:string" />
+              <xs:element minOccurs="0" name="comment" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="createdByUserId" type="xs:int" />
+              <xs:element minOccurs="0" default="0" name="openStatus" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="openDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="closeDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastAdditionDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastRetrievalDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastReviewDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastReleaseDate" type="xs:dateTime" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element minOccurs="0" name="currentPartId" type="xs:int" />
+              <xs:element minOccurs="0" name="recordCountClosure" type="xs:int" />
+              <xs:element minOccurs="0" name="recordSizeClosure" type="xs:int" />
+              <xs:element minOccurs="0" name="annualClosureDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="cutOffFrequency" type="xs:int" />
+              <xs:element minOccurs="0" name="effectiveCutOffDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="autoGenerateNewPart" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="generateSequenceNumber" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="explicitDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="inheritedDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="effectiveDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="currentDisposalScheduleId" type="xs:int" />
+              <xs:element minOccurs="0" name="lastInstructionExecuted" type="xs:int" />
+              <xs:element minOccurs="0" name="nextInstructionToExecute" type="xs:int" />
+              <xs:element minOccurs="0" name="effectiveDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="hold" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="destinationExportOrg" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="dpaDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="dpaExemption" type="xs:string" />
+              <xs:element minOccurs="0" name="dpaNotes" type="xs:string" />
+              <xs:element minOccurs="0" name="foiNotes" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="foiDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="foiExemption" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="eirDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="eirExemption" type="xs:string" />
+              <xs:element minOccurs="0" name="eirNotes" type="xs:string" />
+              <xs:element minOccurs="0" name="physical" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="physicalHomeLocation" type="xs:string" />
+              <xs:element minOccurs="0" name="physicalCurrentLocation" type="xs:string" />
+              <xs:element minOccurs="0" name="physicalContentsList" type="xs:string" />
+              <xs:element minOccurs="0" name="availableForCheckout" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="checkoutStatus" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="checkedOutByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="checkedOutToUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="requestStatus" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="facilityId" type="xs:int" />
+              <xs:element minOccurs="0" name="barcode" type="xs:string" />
+              <xs:element minOccurs="0" name="inherit" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="groupOwnerID" type="xs:int" />
+              <xs:element minOccurs="0" name="cascadeBehaviour" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="disposalApproved" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="disposed" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" default="0" name="permanentPreservation" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="vitalRecord" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="vitalRecordReviewPeriod" type="xs:int" />
+              <xs:element minOccurs="0" name="lastVitalRecordReviewDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="replicationType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="homeSystemId" type="xs:int" />
+              <xs:element minOccurs="0" name="homeSystemName" type="xs:string" />
+              <xs:element minOccurs="0" name="globalId" type="xs:string" />
+              <xs:element minOccurs="0" name="lastSynchTime" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2vPart">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="partNumber" type="xs:int" />
+              <xs:element minOccurs="0" name="parentTitlePath" type="xs:string" />
+              <xs:element minOccurs="0" name="parentRefCodePath" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="createdByUserId" type="xs:int" />
+              <xs:element minOccurs="0" default="0" name="openStatus" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="openDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="closeDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastAdditionDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastRetrievalDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastReviewDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastReleaseDate" type="xs:dateTime" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element minOccurs="0" name="recordCountClosure" type="xs:int" />
+              <xs:element minOccurs="0" name="recordSizeClosure" type="xs:int" />
+              <xs:element minOccurs="0" name="annualClosureDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="cutOffFrequency" type="xs:int" />
+              <xs:element minOccurs="0" name="effectiveCutOffDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="inheritedDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="explicitDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="effectiveDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="currentDisposalScheduleId" type="xs:int" />
+              <xs:element minOccurs="0" name="lastInstructionExecuted" type="xs:int" />
+              <xs:element minOccurs="0" name="nextInstructionToExecute" type="xs:int" />
+              <xs:element minOccurs="0" name="effectiveDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="hold" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="destinationExportOrg" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="dpaDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="dpaExemption" type="xs:string" />
+              <xs:element minOccurs="0" name="dpaNotes" type="xs:string" />
+              <xs:element minOccurs="0" name="foiNotes" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="foiDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="foiExemption" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="eirDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="eirExemption" type="xs:string" />
+              <xs:element minOccurs="0" name="eirNotes" type="xs:string" />
+              <xs:element minOccurs="0" name="physical" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="physicalHomeLocation" type="xs:string" />
+              <xs:element minOccurs="0" name="physicalCurrentLocation" type="xs:string" />
+              <xs:element minOccurs="0" name="physicalContentsList" type="xs:string" />
+              <xs:element minOccurs="0" name="availableForCheckout" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="checkoutStatus" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="checkedOutByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="checkedOutToUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="requestStatus" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="facilityId" type="xs:int" />
+              <xs:element minOccurs="0" name="barcode" type="xs:string" />
+              <xs:element minOccurs="0" name="disposalApproved" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="disposed" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" default="0" name="permanentPreservation" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="vitalRecord" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="vitalRecordReviewPeriod" type="xs:int" />
+              <xs:element minOccurs="0" name="lastVitalRecordReviewDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="replicationType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="homeSystemId" type="xs:int" />
+              <xs:element minOccurs="0" name="homeSystemName" type="xs:string" />
+              <xs:element minOccurs="0" name="globalId" type="xs:string" />
+              <xs:element minOccurs="0" name="lastSynchTime" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2vRecord">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="createdByUserID" type="xs:int" />
+              <xs:element minOccurs="0" name="createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="ownerID" type="xs:int" />
+              <xs:element minOccurs="0" name="ownerName" type="xs:string" />
+              <xs:element minOccurs="0" name="author" type="xs:string" />
+              <xs:element minOccurs="0" name="comment" type="xs:string" />
+              <xs:element minOccurs="0" name="categoryId" type="xs:int" />
+              <xs:element minOccurs="0" name="categoryTitle" type="xs:string" />
+              <xs:element minOccurs="0" name="sequenceNumber" type="xs:string" />
+              <xs:element minOccurs="0" name="circulationList" type="xs:string" />
+              <xs:element minOccurs="0" name="declaredByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="declaredByUserName" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="declarationDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastRetrievalDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastReviewDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastReleaseDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="inheritedDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="explicitDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="effectiveDisposalScheduleChainId" type="xs:int" />
+              <xs:element minOccurs="0" name="currentDisposalScheduleId" type="xs:int" />
+              <xs:element minOccurs="0" name="lastInstructionExecuted" type="xs:int" />
+              <xs:element minOccurs="0" name="nextInstructionToExecute" type="xs:int" />
+              <xs:element minOccurs="0" name="effectiveDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="hold" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" default="0" name="permanentPreservation" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="destinationExportOrg" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="dpaDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="dpaExemption" type="xs:string" />
+              <xs:element minOccurs="0" name="dpaNotes" type="xs:string" />
+              <xs:element minOccurs="0" name="foiNotes" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="foiDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="foiExemption" type="xs:string" />
+              <xs:element minOccurs="0" default="1" name="eirDisclosability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="eirExemption" type="xs:string" />
+              <xs:element minOccurs="0" name="eirNotes" type="xs:string" />
+              <xs:element minOccurs="0" name="physical" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="physicalHomeLocation" type="xs:string" />
+              <xs:element minOccurs="0" name="physicalCurrentLocation" type="xs:string" />
+              <xs:element minOccurs="0" name="physicalContentsList" type="xs:string" />
+              <xs:element minOccurs="0" name="availableForCheckout" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="checkoutStatus" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="checkedOutByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="checkedOutToUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="requestStatus" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="facilityId" type="xs:int" />
+              <xs:element minOccurs="0" name="barcode" type="xs:string" />
+              <xs:element minOccurs="0" name="groupOwnerID" type="xs:int" />
+              <xs:element minOccurs="0" name="cascadeBehaviour" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="disposalApproved" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="superseded" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="supersededOnDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="disposed" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="vitalRecord" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="vitalRecordReviewPeriod" type="xs:int" />
+              <xs:element minOccurs="0" name="lastVitalRecordReviewDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="documentDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="cutOffDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="replicationType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="homeSystemId" type="xs:int" />
+              <xs:element minOccurs="0" name="homeSystemName" type="xs:string" />
+              <xs:element minOccurs="0" name="globalId" type="xs:string" />
+              <xs:element minOccurs="0" name="lastSynchTime" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="relationshipCount" type="xs:int" />
+              <xs:element minOccurs="0" name="fingerprint" type="xs:string" />
+              <xs:element minOccurs="0" name="defaultLockFileName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2Part_Record">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="recordId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2Part_Document">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="documentId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2PropertyDef">
+          <xs:complexType>
+            <xs:sequence>
+
+              <!-- Added ID as it is in the XML and otherwise castor complains -->
+	      <xs:element minOccurs="0" name="id" type="xs:int" />
+
+              <xs:element name="keyColumn" type="xs:string" />
+              <xs:element name="tableName" type="xs:string" />
+              <xs:element name="columnName" type="xs:string" />
+              <xs:element minOccurs="0" name="lookupTable" type="xs:string" />
+              <xs:element minOccurs="0" name="lookupKeyColumn" type="xs:string" />
+              <xs:element minOccurs="0" name="lookupTextColumn" type="xs:string" />
+              <xs:element name="displayName" type="xs:string" />
+              <xs:element name="type" type="xs:unsignedByte" />
+              <xs:element name="readOnly" type="xs:unsignedByte" />
+              <xs:element name="required" type="xs:unsignedByte" />
+              <xs:element name="systemGenerated" type="xs:unsignedByte" />
+              <xs:element name="hasRange" type="xs:unsignedByte" />
+              <xs:element name="hasDefault" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="min" type="xs:string" />
+              <xs:element minOccurs="0" name="max" type="xs:string" />
+              <xs:element minOccurs="0" name="default" type="xs:string" />
+              <xs:element minOccurs="0" name="categoryId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2ProtectiveMarking">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="parentObjectType" type="xs:unsignedByte" />
+              <xs:element name="protectiveMarkingDefId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2RequestHistory">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element msdata:AutoIncrement="true" minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="parentObjectType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" default="0" name="checkoutStatus" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="requestDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="checkoutDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="checkinDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="bringForwardDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="requestedByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="requestedByUserName" type="xs:string" />
+              <xs:element minOccurs="0" name="checkedoutByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="checkedoutByUserName" type="xs:string" />
+              <xs:element minOccurs="0" name="checkedinByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="checkedinByUserName" type="xs:string" />
+              <xs:element minOccurs="0" name="requestedLocation" type="xs:string" />
+              <xs:element minOccurs="0" name="requestCollection" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2ReleaseHistory">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="parentObjectType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="releaseType" type="xs:string" />
+              <xs:element name="released" type="xs:unsignedByte" />
+              <xs:element name="releaseDetails" type="xs:string" />
+              <xs:element minOccurs="0" name="actionedByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="actionedByUserName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2ReviewHistory">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="parentObjectType" type="xs:unsignedByte" />
+              <xs:element name="reviewDetails" type="xs:string" />
+              <xs:element name="reviewDecision" type="xs:string" />
+              <xs:element minOccurs="0" name="actionedByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="actionedByUserName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2ExportHistory">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="parentObjectType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="exportDetails" type="xs:string" />
+              <xs:element minOccurs="0" name="actionedByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="actionedByUserName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2vClassCustomProperties">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="value" type="xs:string" />
+              <xs:element minOccurs="0" name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="categoryId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2vFolderCustomProperties">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="value" type="xs:string" />
+              <xs:element minOccurs="0" name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="categoryId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2vRecordCustomProperties">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="value" type="xs:string" />
+              <xs:element minOccurs="0" name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="categoryId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2Config">
+          <xs:complexType>
+            <xs:sequence>
+	      <!-- Added 'id' because it's returned in the SOAP response!!! -->
+              <xs:element name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="value" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2RelocationHistory">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="objectId" type="xs:int" />
+              <xs:element name="objectType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="oldParentObjectId" type="xs:int" />
+              <xs:element minOccurs="0" name="oldParentobjectType" type="xs:int" />
+              <xs:element minOccurs="0" name="newParentObjectId" type="xs:int" />
+              <xs:element minOccurs="0" name="newParentObjectType" type="xs:int" />
+              <xs:element minOccurs="0" name="actionedByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="actionedByUserName" type="xs:string" />
+              <xs:element minOccurs="0" name="reason" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2AccessControlHistory">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element name="objectName" type="xs:string" />
+              <xs:element name="objectType" type="xs:int" />
+              <xs:element name="permission" type="xs:int" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="parentObjectType" type="xs:int" />
+              <xs:element name="createdate" type="xs:dateTime" />
+              <xs:element name="action" type="xs:unsignedByte" />
+              <xs:element name="actionedByUserId" type="xs:int" />
+              <xs:element name="actionedByUserName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2DisposalScheduleHistory">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="changeType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="details" type="xs:string" />
+              <xs:element minOccurs="0" name="reason" type="xs:string" />
+              <xs:element minOccurs="0" name="actionedByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="actionedByUsername" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2DisposalScheduleChain_Category">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="disposalScheduleChainId" type="xs:int" />
+              <xs:element name="categoryId" type="xs:int" />
+              <xs:element name="noVersions" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2DisposalSchedule_Category">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="categoryId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2Privilege">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element name="comment" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2LookupValue">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element name="value" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2Activities">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="objectId" type="xs:int" />
+              <xs:element name="objectType" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="permission" type="xs:int" />
+              <xs:element name="cando" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2Hold">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="description" type="xs:string" />
+              <xs:element minOccurs="0" name="createdByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="createdByUserName" type="xs:string" />
+              <xs:element minOccurs="0" name="namedAuthority" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2Hold_Object">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="objectId" type="xs:int" />
+              <xs:element name="objectType" type="xs:unsignedByte" />
+              <xs:element name="state" type="xs:int" />
+              <xs:element minOccurs="0" name="isExplicit" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="referenceCount" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2RelatedFolders">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="childId" type="xs:int" />
+              <xs:element minOccurs="0" name="description" type="xs:string" />
+              <xs:element minOccurs="0" name="actionedByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="actionedByUserName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2DisclosabilityHistory">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element msdata:ReadOnly="true" msdata:AutoIncrement="true" name="id" type="xs:int" />
+              <xs:element name="createDate" type="xs:dateTime" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="parentObjectType" type="xs:unsignedByte" />
+              <xs:element name="columnName" type="xs:string" />
+              <xs:element minOccurs="0" name="originalValue" type="xs:string" />
+              <xs:element minOccurs="0" name="newValue" type="xs:string" />
+              <xs:element minOccurs="0" name="actionedByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="actionedByUserName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2Facility">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="description" type="xs:string" />
+              <xs:element minOccurs="0" name="createdByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="createdByUserName" type="xs:string" />
+              <xs:element minOccurs="0" name="homeLocationFormat" type="xs:string" />
+              <xs:element name="city" type="xs:string" />
+              <xs:element name="stateProvince" type="xs:string" />
+              <xs:element minOccurs="0" name="facOperator" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2ProtectiveMarkingHistory">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="protectiveMarkingCategoryName" type="xs:string" />
+              <xs:element name="protectiveMarkingCategoryId" type="xs:int" />
+              <xs:element name="protectiveMarkingDefName" type="xs:string" />
+              <xs:element name="protectiveMarkingDefId" type="xs:int" />
+              <xs:element minOccurs="0" name="protectiveMarkingDefRank" type="xs:unsignedByte" />
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="parentObjectType" type="xs:unsignedByte" />
+              <xs:element name="createDate" type="xs:dateTime" />
+              <xs:element name="action" type="xs:unsignedByte" />
+              <xs:element name="actionDate" type="xs:dateTime" />
+              <xs:element name="actionedByUserId" type="xs:int" />
+              <xs:element name="actionedByUserName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2RecordVersion">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="parentObjectId" type="xs:int" />
+              <xs:element name="recordVersionId" type="xs:int" />
+              <xs:element name="recordVersionNumber" type="xs:int" />
+              <xs:element minOccurs="0" name="comment" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="createdByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="createdByUserName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2ReferenceCodePattern">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="parentObjectId" type="xs:int" />
+              <xs:element minOccurs="0" name="subLevel" type="xs:int" />
+              <xs:element minOccurs="0" name="pattern" type="xs:string" />
+              <xs:element minOccurs="0" name="startValue" type="xs:string" />
+              <xs:element minOccurs="0" name="increment" type="xs:int" />
+              <xs:element minOccurs="0" name="autoGenerate" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="rm2UserSetting">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="userId" type="xs:int" />
+              <xs:element minOccurs="0" name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="value" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="kGroup">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="createdByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="comment" type="xs:string" />
+              <xs:element minOccurs="0" name="active" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="kGroup_Users">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="parentObjectId" type="xs:int" />
+              <xs:element name="userId" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="kUser">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="realName" type="xs:string" />
+              <xs:element minOccurs="0" name="createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="comment" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="eltCheckoutStatus">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="eltDateFrequency">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="eltPhysical">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="xs:int" />
+              <xs:element name="name" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+<!--
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+-->
+
+
+</xs:schema>

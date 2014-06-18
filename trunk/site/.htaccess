@@ -1,0 +1,33 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+Options +FollowSymlinks
+RewriteEngine on
+#RewriteBase http://incubator.apache.org/connectors/
+rewriterule ^end-user-documentation\.html$ http://incubator.apache.org/connectors/en_US/end-user-documentation.html [r=301,nc] 
+rewriterule ^end-user-documentation\.pdf$ http://incubator.apache.org/connectors/en_US/end-user-documentation.pdf [r=301,nc] 
+rewriterule ^how-to-build-and-deploy\.html$ http://incubator.apache.org/connectors/en_US/how-to-build-and-deploy.html [r=301,nc] 
+rewriterule ^developer-resources\.html$ http://incubator.apache.org/connectors/en_US/developer-resources.html [r=301,nc] 
+rewriterule ^mail\.html$ http://incubator.apache.org/connectors/en_US/mail.html [r=301,nc] 
+rewriterule ^download\.html$ http://incubator.apache.org/connectors/en_US/download.html [r=301,nc] 
+rewriterule ^javadoc\.html$ http://incubator.apache.org/connectors/en_US/javadoc.html [r=301,nc] 
+rewriterule ^faq\.html$ http://incubator.apache.org/connectors/en_US/faq.html [r=301,nc] 
+rewriterule ^concepts\.html$ http://incubator.apache.org/connectors/en_US/concepts.html [r=301,nc] 
+rewriterule ^performance-tuning\.html$ http://incubator.apache.org/connectors/en_US/performance-tuning.html [r=301,nc] 
+rewriterule ^javadoc\.html$ http://incubator.apache.org/connectors/en_US/javadoc.html [r=301,nc] 
+rewriterule ^who\.html$ http://incubator.apache.org/connectors/en_US/who.html [r=301,nc] 
+rewriterule ^script\.html$ http://incubator.apache.org/connectors/en_US/script.html [r=301,nc] 
+rewriterule ^programmatic-operation\.html$ http://incubator.apache.org/connectors/en_US/programmatic-operation.html [r=301,nc] 
+rewriterule ^included-connectors\.html$ http://incubator.apache.org/connectors/en_US/included-connectors.html [r=301,nc] 

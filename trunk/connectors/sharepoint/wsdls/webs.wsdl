@@ -1,0 +1,1033 @@
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://schemas.microsoft.com/sharepoint/soap/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" targetNamespace="http://schemas.microsoft.com/sharepoint/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/sharepoint/soap/">
+      <s:import namespace="http://www.w3.org/2001/XMLSchema" />
+      <s:element name="GetWebCollection">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetWebCollectionResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetWebCollectionResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetWeb">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="webUrl" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetWebResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetWebResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetListTemplates">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetListTemplatesResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetListTemplatesResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAllSubWebCollection">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetAllSubWebCollectionResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetAllSubWebCollectionResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WebUrlFromPageUrl">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="pageUrl" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WebUrlFromPageUrlResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WebUrlFromPageUrlResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetContentTypes">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetContentTypesResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetContentTypesResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetContentType">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="contentTypeId" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetContentTypeResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetContentTypeResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CreateContentType">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="displayName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="parentType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="newFields">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="contentTypeProperties">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CreateContentTypeResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CreateContentTypeResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateContentType">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="contentTypeId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="contentTypeProperties">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="newFields">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="updateFields">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="deleteFields">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateContentTypeResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="UpdateContentTypeResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeleteContentType">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="contentTypeId" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeleteContentTypeResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="DeleteContentTypeResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateContentTypeXmlDocument">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="contentTypeId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="newDocument">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateContentTypeXmlDocumentResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="UpdateContentTypeXmlDocumentResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveContentTypeXmlDocument">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="contentTypeId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="documentUri" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemoveContentTypeXmlDocumentResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="RemoveContentTypeXmlDocumentResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetColumns">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetColumnsResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetColumnsResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateColumns">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="newFields">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="updateFields">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="deleteFields">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateColumnsResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="UpdateColumnsResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCustomizedPageStatus">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="fileUrl" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCustomizedPageStatusResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetCustomizedPageStatusResult" type="tns:CustomizedPageStatus" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:simpleType name="CustomizedPageStatus">
+        <s:restriction base="s:string">
+          <s:enumeration value="None" />
+          <s:enumeration value="Uncustomized" />
+          <s:enumeration value="Customized" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="RevertFileContentStream">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="fileUrl" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RevertFileContentStreamResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RevertAllFileContentStreams">
+        <s:complexType />
+      </s:element>
+      <s:element name="RevertAllFileContentStreamsResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="CustomizeCss">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="cssFile" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CustomizeCssResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RevertCss">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="cssFile" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RevertCssResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetActivatedFeatures">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetActivatedFeaturesResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetActivatedFeaturesResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetObjectIdFromUrl">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="objectUrl" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetObjectIdFromUrlResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetObjectIdFromUrlResult" >
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="GetWebCollectionSoapIn">
+    <wsdl:part name="parameters" element="tns:GetWebCollection" />
+  </wsdl:message>
+  <wsdl:message name="GetWebCollectionSoapOut">
+    <wsdl:part name="parameters" element="tns:GetWebCollectionResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetWebSoapIn">
+    <wsdl:part name="parameters" element="tns:GetWeb" />
+  </wsdl:message>
+  <wsdl:message name="GetWebSoapOut">
+    <wsdl:part name="parameters" element="tns:GetWebResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetListTemplatesSoapIn">
+    <wsdl:part name="parameters" element="tns:GetListTemplates" />
+  </wsdl:message>
+  <wsdl:message name="GetListTemplatesSoapOut">
+    <wsdl:part name="parameters" element="tns:GetListTemplatesResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetAllSubWebCollectionSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAllSubWebCollection" />
+  </wsdl:message>
+  <wsdl:message name="GetAllSubWebCollectionSoapOut">
+    <wsdl:part name="parameters" element="tns:GetAllSubWebCollectionResponse" />
+  </wsdl:message>
+  <wsdl:message name="WebUrlFromPageUrlSoapIn">
+    <wsdl:part name="parameters" element="tns:WebUrlFromPageUrl" />
+  </wsdl:message>
+  <wsdl:message name="WebUrlFromPageUrlSoapOut">
+    <wsdl:part name="parameters" element="tns:WebUrlFromPageUrlResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetContentTypesSoapIn">
+    <wsdl:part name="parameters" element="tns:GetContentTypes" />
+  </wsdl:message>
+  <wsdl:message name="GetContentTypesSoapOut">
+    <wsdl:part name="parameters" element="tns:GetContentTypesResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetContentTypeSoapIn">
+    <wsdl:part name="parameters" element="tns:GetContentType" />
+  </wsdl:message>
+  <wsdl:message name="GetContentTypeSoapOut">
+    <wsdl:part name="parameters" element="tns:GetContentTypeResponse" />
+  </wsdl:message>
+  <wsdl:message name="CreateContentTypeSoapIn">
+    <wsdl:part name="parameters" element="tns:CreateContentType" />
+  </wsdl:message>
+  <wsdl:message name="CreateContentTypeSoapOut">
+    <wsdl:part name="parameters" element="tns:CreateContentTypeResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdateContentTypeSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdateContentType" />
+  </wsdl:message>
+  <wsdl:message name="UpdateContentTypeSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdateContentTypeResponse" />
+  </wsdl:message>
+  <wsdl:message name="DeleteContentTypeSoapIn">
+    <wsdl:part name="parameters" element="tns:DeleteContentType" />
+  </wsdl:message>
+  <wsdl:message name="DeleteContentTypeSoapOut">
+    <wsdl:part name="parameters" element="tns:DeleteContentTypeResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdateContentTypeXmlDocumentSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdateContentTypeXmlDocument" />
+  </wsdl:message>
+  <wsdl:message name="UpdateContentTypeXmlDocumentSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdateContentTypeXmlDocumentResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemoveContentTypeXmlDocumentSoapIn">
+    <wsdl:part name="parameters" element="tns:RemoveContentTypeXmlDocument" />
+  </wsdl:message>
+  <wsdl:message name="RemoveContentTypeXmlDocumentSoapOut">
+    <wsdl:part name="parameters" element="tns:RemoveContentTypeXmlDocumentResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetColumnsSoapIn">
+    <wsdl:part name="parameters" element="tns:GetColumns" />
+  </wsdl:message>
+  <wsdl:message name="GetColumnsSoapOut">
+    <wsdl:part name="parameters" element="tns:GetColumnsResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdateColumnsSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdateColumns" />
+  </wsdl:message>
+  <wsdl:message name="UpdateColumnsSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdateColumnsResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetCustomizedPageStatusSoapIn">
+    <wsdl:part name="parameters" element="tns:GetCustomizedPageStatus" />
+  </wsdl:message>
+  <wsdl:message name="GetCustomizedPageStatusSoapOut">
+    <wsdl:part name="parameters" element="tns:GetCustomizedPageStatusResponse" />
+  </wsdl:message>
+  <wsdl:message name="RevertFileContentStreamSoapIn">
+    <wsdl:part name="parameters" element="tns:RevertFileContentStream" />
+  </wsdl:message>
+  <wsdl:message name="RevertFileContentStreamSoapOut">
+    <wsdl:part name="parameters" element="tns:RevertFileContentStreamResponse" />
+  </wsdl:message>
+  <wsdl:message name="RevertAllFileContentStreamsSoapIn">
+    <wsdl:part name="parameters" element="tns:RevertAllFileContentStreams" />
+  </wsdl:message>
+  <wsdl:message name="RevertAllFileContentStreamsSoapOut">
+    <wsdl:part name="parameters" element="tns:RevertAllFileContentStreamsResponse" />
+  </wsdl:message>
+  <wsdl:message name="CustomizeCssSoapIn">
+    <wsdl:part name="parameters" element="tns:CustomizeCss" />
+  </wsdl:message>
+  <wsdl:message name="CustomizeCssSoapOut">
+    <wsdl:part name="parameters" element="tns:CustomizeCssResponse" />
+  </wsdl:message>
+  <wsdl:message name="RevertCssSoapIn">
+    <wsdl:part name="parameters" element="tns:RevertCss" />
+  </wsdl:message>
+  <wsdl:message name="RevertCssSoapOut">
+    <wsdl:part name="parameters" element="tns:RevertCssResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetActivatedFeaturesSoapIn">
+    <wsdl:part name="parameters" element="tns:GetActivatedFeatures" />
+  </wsdl:message>
+  <wsdl:message name="GetActivatedFeaturesSoapOut">
+    <wsdl:part name="parameters" element="tns:GetActivatedFeaturesResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetObjectIdFromUrlSoapIn">
+    <wsdl:part name="parameters" element="tns:GetObjectIdFromUrl" />
+  </wsdl:message>
+  <wsdl:message name="GetObjectIdFromUrlSoapOut">
+    <wsdl:part name="parameters" element="tns:GetObjectIdFromUrlResponse" />
+  </wsdl:message>
+  <wsdl:portType name="WebsSoap">
+    <wsdl:operation name="GetWebCollection">
+      <wsdl:input message="tns:GetWebCollectionSoapIn" />
+      <wsdl:output message="tns:GetWebCollectionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetWeb">
+      <wsdl:input message="tns:GetWebSoapIn" />
+      <wsdl:output message="tns:GetWebSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetListTemplates">
+      <wsdl:input message="tns:GetListTemplatesSoapIn" />
+      <wsdl:output message="tns:GetListTemplatesSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetAllSubWebCollection">
+      <wsdl:input message="tns:GetAllSubWebCollectionSoapIn" />
+      <wsdl:output message="tns:GetAllSubWebCollectionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WebUrlFromPageUrl">
+      <wsdl:input message="tns:WebUrlFromPageUrlSoapIn" />
+      <wsdl:output message="tns:WebUrlFromPageUrlSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetContentTypes">
+      <wsdl:input message="tns:GetContentTypesSoapIn" />
+      <wsdl:output message="tns:GetContentTypesSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetContentType">
+      <wsdl:input message="tns:GetContentTypeSoapIn" />
+      <wsdl:output message="tns:GetContentTypeSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CreateContentType">
+      <wsdl:input message="tns:CreateContentTypeSoapIn" />
+      <wsdl:output message="tns:CreateContentTypeSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateContentType">
+      <wsdl:input message="tns:UpdateContentTypeSoapIn" />
+      <wsdl:output message="tns:UpdateContentTypeSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DeleteContentType">
+      <wsdl:input message="tns:DeleteContentTypeSoapIn" />
+      <wsdl:output message="tns:DeleteContentTypeSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateContentTypeXmlDocument">
+      <wsdl:input message="tns:UpdateContentTypeXmlDocumentSoapIn" />
+      <wsdl:output message="tns:UpdateContentTypeXmlDocumentSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveContentTypeXmlDocument">
+      <wsdl:input message="tns:RemoveContentTypeXmlDocumentSoapIn" />
+      <wsdl:output message="tns:RemoveContentTypeXmlDocumentSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetColumns">
+      <wsdl:input message="tns:GetColumnsSoapIn" />
+      <wsdl:output message="tns:GetColumnsSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateColumns">
+      <wsdl:input message="tns:UpdateColumnsSoapIn" />
+      <wsdl:output message="tns:UpdateColumnsSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetCustomizedPageStatus">
+      <wsdl:input message="tns:GetCustomizedPageStatusSoapIn" />
+      <wsdl:output message="tns:GetCustomizedPageStatusSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RevertFileContentStream">
+      <wsdl:input message="tns:RevertFileContentStreamSoapIn" />
+      <wsdl:output message="tns:RevertFileContentStreamSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RevertAllFileContentStreams">
+      <wsdl:input message="tns:RevertAllFileContentStreamsSoapIn" />
+      <wsdl:output message="tns:RevertAllFileContentStreamsSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CustomizeCss">
+      <wsdl:input message="tns:CustomizeCssSoapIn" />
+      <wsdl:output message="tns:CustomizeCssSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RevertCss">
+      <wsdl:input message="tns:RevertCssSoapIn" />
+      <wsdl:output message="tns:RevertCssSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetActivatedFeatures">
+      <wsdl:input message="tns:GetActivatedFeaturesSoapIn" />
+      <wsdl:output message="tns:GetActivatedFeaturesSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetObjectIdFromUrl">
+      <wsdl:input message="tns:GetObjectIdFromUrlSoapIn" />
+      <wsdl:output message="tns:GetObjectIdFromUrlSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="WebsSoap" type="tns:WebsSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetWebCollection">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetWebCollection" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetWeb">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetWeb" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetListTemplates">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetListTemplates" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAllSubWebCollection">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetAllSubWebCollection" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WebUrlFromPageUrl">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/WebUrlFromPageUrl" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetContentTypes">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetContentTypes" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetContentType">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetContentType" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateContentType">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/CreateContentType" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateContentType">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/UpdateContentType" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteContentType">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/DeleteContentType" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateContentTypeXmlDocument">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/UpdateContentTypeXmlDocument" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveContentTypeXmlDocument">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/RemoveContentTypeXmlDocument" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetColumns">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetColumns" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateColumns">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/UpdateColumns" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCustomizedPageStatus">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetCustomizedPageStatus" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RevertFileContentStream">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/RevertFileContentStream" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RevertAllFileContentStreams">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/RevertAllFileContentStreams" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CustomizeCss">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/CustomizeCss" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RevertCss">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/RevertCss" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetActivatedFeatures">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetActivatedFeatures" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetObjectIdFromUrl">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetObjectIdFromUrl" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="WebsSoap12" type="tns:WebsSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetWebCollection">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetWebCollection" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetWeb">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetWeb" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetListTemplates">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetListTemplates" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAllSubWebCollection">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetAllSubWebCollection" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WebUrlFromPageUrl">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/WebUrlFromPageUrl" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetContentTypes">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetContentTypes" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetContentType">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetContentType" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateContentType">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/CreateContentType" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateContentType">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/UpdateContentType" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteContentType">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/DeleteContentType" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateContentTypeXmlDocument">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/UpdateContentTypeXmlDocument" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveContentTypeXmlDocument">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/RemoveContentTypeXmlDocument" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetColumns">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetColumns" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateColumns">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/UpdateColumns" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCustomizedPageStatus">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetCustomizedPageStatus" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RevertFileContentStream">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/RevertFileContentStream" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RevertAllFileContentStreams">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/RevertAllFileContentStreams" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CustomizeCss">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/CustomizeCss" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RevertCss">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/RevertCss" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetActivatedFeatures">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetActivatedFeatures" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetObjectIdFromUrl">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/GetObjectIdFromUrl" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Webs">
+    <wsdl:port name="WebsSoap" binding="tns:WebsSoap">
+      <soap:address location="http://localhost/_vti_bin/webs.asmx" />
+    </wsdl:port>
+    <wsdl:port name="WebsSoap12" binding="tns:WebsSoap12">
+      <soap12:address location="http://localhost/_vti_bin/webs.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

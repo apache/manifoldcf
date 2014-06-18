@@ -1,0 +1,73 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<table class="displaytable">
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FoldersColon'))</nobr></td>
+    <td class="value">
+  #foreach($folder in $FOLDERS)
+      <nobr>$Encoder.bodyEscape($folder)</nobr><br/>
+  #end
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.RecordFilterColon'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.MetadataName'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.Value'))</nobr></td>
+        </tr>
+
+#set($k = 0)
+#foreach($match in $MATCHES)
+  #if(($k % 2) == 0)
+        <tr class="evenformrow">
+  #else
+        <tr class="oddformrow">
+  #end
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($match.get('name'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($match.get('value'))</nobr>
+          </td>
+        </tr>
+  #set($k = $k + 1)
+#end
+    
+      </table>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.IncludedMetadataColon'))</nobr></td>
+    <td class="value">
+
+#set($seendata = false)
+#foreach($metadataselection in $METADATASELECTIONS)
+  #if($seendata)
+      <br/>
+  #end
+  #set($seendata = true)
+      <nobr>$Encoder.bodyEscape($metadataselection)</nobr>
+#end
+
+    </td>
+  </tr>
+</table>

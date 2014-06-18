@@ -1,0 +1,96 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<project name="mcf-common-build">
+
+    <target name="setup-maven-url">
+        <property name="maven-base-url" value="http://repo1.maven.org/maven2"/>
+    </target>
+    
+    <target name="download-via-maven" depends="setup-maven-url">
+        <get src="${maven-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}.${artifact-type}"/>
+    </target>
+
+    <target name="checkout-source-via-svn">
+        <mkdir dir="${root-dir}"/>
+        <exec dir="${root-dir}" executable="svn" failifexecutionfails="true" failonerror="true">
+              <arg value="checkout" />
+              <arg value="${svn-url}" />
+              <arg value="${dir-name}" />
+        </exec>
+    </target>
+
+    <target name="calculate-svn-patch-available">
+        <mkdir dir="build/svn-check"/>
+        <exec dir="build/svn-check" output="build/svn-check/svn.output" executable="svn" failifexecutionfails="true" failonerror="true">
+              <arg value="--version" />
+        </exec>
+        <loadfile property="svn-output" srcFile="build/svn-check/svn.output"/>
+        <condition property="svn-version-ok">
+            <or>
+                <contains string="${svn-output}" substring="1.7."/>
+                <contains string="${svn-output}" substring="1.8."/>
+                <contains string="${svn-output}" substring="1.9."/>
+                <contains string="${svn-output}" substring="1.10."/>
+                <contains string="${svn-output}" substring="1.11."/>
+            </or>
+        </condition>
+    </target>
+
+    <target name="calculate-patch-available" depends="calculate-svn-patch-available" unless="svn-version-ok">
+        <condition property="patch-ok">
+            <os family="unix"/>
+        </condition>
+    </target>
+    
+    <target name="check-svn-patch-available" depends="calculate-svn-patch-available" unless="svn-version-ok">
+        <echo message="You need svn version 1.7 or higher - attempting patch instead."/>
+    </target>
+    
+    <target name="check-patch-available" depends="calculate-patch-available" unless="patch-ok">
+    </target>
+    
+    <target name="patch-source-via-svn" depends="check-svn-patch-available" if="svn-version-ok">
+        <mkdir dir="${root-dir}"/>
+        <exec dir="${root-dir}" executable="svn" failifexecutionfails="true" failonerror="true">
+              <arg value="patch" />
+              <arg value="${diff-file}" />
+              <arg value="${dir-name}" />
+        </exec>
+    </target>
+    
+    <target name="patch-source-via-patch" depends="check-patch-available" if="patch-ok">
+        <mkdir dir="${root-dir}"/>
+        <exec dir="${root-dir}/${dir-name}" executable="patch" input="../${diff-file}" failifexecutionfails="true" failonerror="true">
+              <arg value="-p0" />
+        </exec>
+    </target>
+    
+    <target name="patch-source" depends="patch-source-via-svn,patch-source-via-patch"/>
+    
+    <target name="build-via-ant">
+        <exec osfamily="windows" dir="${root-dir}" executable="cmd" failifexecutionfails="true" failonerror="true">
+            <arg value="/c"/>
+            <arg value="ant.bat"/>
+            <arg value="${target}" />
+        </exec>
+        <exec osfamily="unix" dir="${root-dir}" executable="ant" failifexecutionfails="true" failonerror="true">
+            <arg value="${target}" />
+        </exec>
+    </target>
+    
+</project>

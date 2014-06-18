@@ -1,0 +1,305 @@
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://schemas.microsoft.com/sharepoint/soap/directory/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" targetNamespace="http://schemas.microsoft.com/sharepoint/soap/directory/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/sharepoint/soap/directory/">
+      <s:import namespace="http://www.w3.org/2001/XMLSchema" />
+      <s:element name="GetPermissionCollection">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="objectName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="objectType" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPermissionCollectionResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetPermissionCollectionResult">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddPermission">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="objectName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="objectType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="permissionIdentifier" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="permissionType" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="permissionMask" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddPermissionResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AddPermissionCollection">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="objectName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="objectType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="permissionsInfoXml">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddPermissionCollectionResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="UpdatePermission">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="objectName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="objectType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="permissionIdentifier" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="permissionType" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="permissionMask" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdatePermissionResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemovePermission">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="objectName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="objectType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="permissionIdentifier" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="permissionType" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemovePermissionResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="RemovePermissionCollection">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="objectName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="objectType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="memberIdsXml">
+              <s:complexType mixed="true">
+                <s:sequence>
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RemovePermissionCollectionResponse">
+        <s:complexType />
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="GetPermissionCollectionSoapIn">
+    <wsdl:part name="parameters" element="tns:GetPermissionCollection" />
+  </wsdl:message>
+  <wsdl:message name="GetPermissionCollectionSoapOut">
+    <wsdl:part name="parameters" element="tns:GetPermissionCollectionResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddPermissionSoapIn">
+    <wsdl:part name="parameters" element="tns:AddPermission" />
+  </wsdl:message>
+  <wsdl:message name="AddPermissionSoapOut">
+    <wsdl:part name="parameters" element="tns:AddPermissionResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddPermissionCollectionSoapIn">
+    <wsdl:part name="parameters" element="tns:AddPermissionCollection" />
+  </wsdl:message>
+  <wsdl:message name="AddPermissionCollectionSoapOut">
+    <wsdl:part name="parameters" element="tns:AddPermissionCollectionResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdatePermissionSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdatePermission" />
+  </wsdl:message>
+  <wsdl:message name="UpdatePermissionSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdatePermissionResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemovePermissionSoapIn">
+    <wsdl:part name="parameters" element="tns:RemovePermission" />
+  </wsdl:message>
+  <wsdl:message name="RemovePermissionSoapOut">
+    <wsdl:part name="parameters" element="tns:RemovePermissionResponse" />
+  </wsdl:message>
+  <wsdl:message name="RemovePermissionCollectionSoapIn">
+    <wsdl:part name="parameters" element="tns:RemovePermissionCollection" />
+  </wsdl:message>
+  <wsdl:message name="RemovePermissionCollectionSoapOut">
+    <wsdl:part name="parameters" element="tns:RemovePermissionCollectionResponse" />
+  </wsdl:message>
+  <wsdl:portType name="PermissionsSoap">
+    <wsdl:operation name="GetPermissionCollection">
+      <wsdl:input message="tns:GetPermissionCollectionSoapIn" />
+      <wsdl:output message="tns:GetPermissionCollectionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddPermission">
+      <wsdl:input message="tns:AddPermissionSoapIn" />
+      <wsdl:output message="tns:AddPermissionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddPermissionCollection">
+      <wsdl:input message="tns:AddPermissionCollectionSoapIn" />
+      <wsdl:output message="tns:AddPermissionCollectionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdatePermission">
+      <wsdl:input message="tns:UpdatePermissionSoapIn" />
+      <wsdl:output message="tns:UpdatePermissionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemovePermission">
+      <wsdl:input message="tns:RemovePermissionSoapIn" />
+      <wsdl:output message="tns:RemovePermissionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RemovePermissionCollection">
+      <wsdl:input message="tns:RemovePermissionCollectionSoapIn" />
+      <wsdl:output message="tns:RemovePermissionCollectionSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="PermissionsSoap" type="tns:PermissionsSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetPermissionCollection">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetPermissionCollection" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddPermission">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddPermission" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddPermissionCollection">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddPermissionCollection" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdatePermission">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/UpdatePermission" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemovePermission">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemovePermission" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemovePermissionCollection">
+      <soap:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemovePermissionCollection" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="PermissionsSoap12" type="tns:PermissionsSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetPermissionCollection">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/GetPermissionCollection" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddPermission">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddPermission" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddPermissionCollection">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/AddPermissionCollection" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdatePermission">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/UpdatePermission" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemovePermission">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemovePermission" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemovePermissionCollection">
+      <soap12:operation soapAction="http://schemas.microsoft.com/sharepoint/soap/directory/RemovePermissionCollection" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Permissions">
+    <wsdl:port name="PermissionsSoap" binding="tns:PermissionsSoap">
+      <soap:address location="http://localhost/_vti_bin/Permissions.asmx" />
+    </wsdl:port>
+    <wsdl:port name="PermissionsSoap12" binding="tns:PermissionsSoap12">
+      <soap12:address location="http://localhost/_vti_bin/Permissions.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
