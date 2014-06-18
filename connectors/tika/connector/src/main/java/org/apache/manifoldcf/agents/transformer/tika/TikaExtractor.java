@@ -154,6 +154,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         finally
         {
           os.close();
+          length = new Long(ds.getBinaryLength());
         }
       }
       finally
