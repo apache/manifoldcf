@@ -363,7 +363,96 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     }
 
   }
-  
+
+  protected static class SpecPacker {
+    
+    private final Map<String,String> sourceTargets = new HashMap<String,String>();
+    private final boolean keepAllMetadata;
+    
+    public SpecPacker(Specification os) {
+      boolean keepAllMetadata = true;
+      for (int i = 0; i < os.getChildCount(); i++) {
+        SpecificationNode sn = os.getChild(i);
+        
+        if(sn.getType().equals(TikaConfig.NODE_KEEPMETADATA)) {
+          String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+          keepAllMetadata = Boolean.parseBoolean(value);
+        } else if (sn.getType().equals(TikaConfig.NODE_FIELDMAP)) {
+          String source = sn.getAttributeValue(TikaConfig.ATTRIBUTE_SOURCE);
+          String target = sn.getAttributeValue(TikaConfig.ATTRIBUTE_TARGET);
+          
+          if (target == null) {
+            target = "";
+          }
+          sourceTargets.put(source, target);
+        }
+      }
+      this.keepAllMetadata = keepAllMetadata;
+    }
+    
+    public SpecPacker(String packedString) {
+      
+      int index = 0;
+      
+      // Mappings
+      final List<String> packedMappings = new ArrayList<String>();
+      index = unpackList(packedMappings,packedString,index,'+');
+      String[] fixedList = new String[2];
+      for (String packedMapping : packedMappings) {
+        unpackFixedList(fixedList,packedMapping,0,':');
+        sourceTargets.put(fixedList[0], fixedList[1]);
+      }
+      
+      // Keep all metadata
+      if (packedString.length() > index)
+        keepAllMetadata = (packedString.charAt(index++) == '+');
+      else
+        keepAllMetadata = true;
+      
+    }
+    
+    public String toPackedString() {
+      StringBuilder sb = new StringBuilder();
+      int i;
+      
+      // Mappings
+      final String[] sortArray = new String[sourceTargets.size()];
+      i = 0;
+      for (String source : sourceTargets.keySet()) {
+        sortArray[i++] = source;
+      }
+      java.util.Arrays.sort(sortArray);
+      
+      List<String> packedMappings = new ArrayList<String>();
+      String[] fixedList = new String[2];
+      for (String source : sortArray) {
+        String target = sourceTargets.get(source);
+        StringBuilder localBuffer = new StringBuilder();
+        fixedList[0] = source;
+        fixedList[1] = target;
+        packFixedList(localBuffer,fixedList,':');
+        packedMappings.add(localBuffer.toString());
+      }
+      packList(sb,packedMappings,'+');
+
+      // Keep all metadata
+      if (keepAllMetadata)
+        sb.append('+');
+      else
+        sb.append('-');
+      
+      return sb.toString();
+    }
+    
+    public String getMapping(String source) {
+      return sourceTargets.get(source);
+    }
+    
+    public boolean keepAllMetadata() {
+      return keepAllMetadata;
+    }
+  }
+
 }
 
 
