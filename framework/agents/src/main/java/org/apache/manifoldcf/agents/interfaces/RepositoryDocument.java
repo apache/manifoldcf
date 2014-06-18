@@ -63,6 +63,45 @@ public class RepositoryDocument
   {
   }
 
+  /** Create an exact duplicate of this Repository Document.  This is how you are expected to write
+  * transformation connectors: you create a duplicate, and override the fields you want to change.
+  * For streams etc, only the overridden fields need to be explicitly managed by the transformation
+  * connector, since the original fields will be handled by the connector's caller.
+  *@return the exact duplicate.
+  */
+  public RepositoryDocument duplicate()
+  {
+    RepositoryDocument rval = new RepositoryDocument();
+    rval.binaryFieldData = binaryFieldData;
+    rval.binaryLength = binaryLength;
+    rval.fileName = fileName;
+    rval.contentMimeType = contentMimeType;
+    rval.createdDate = createdDate;
+    rval.modifiedDate = modifiedDate;
+    rval.indexingDate = indexingDate;
+    for (String key : fields.keySet())
+    {
+      rval.fields.put(key,fields.get(key));
+    }
+    for (String key : stringFields.keySet())
+    {
+      rval.stringFields.put(key,stringFields.get(key));
+    }
+    for (String key : readerFields.keySet())
+    {
+      rval.readerFields.put(key,readerFields.get(key));
+    }
+    for (String key : dateFields.keySet())
+    {
+      rval.dateFields.put(key,dateFields.get(key));
+    }
+    for (String key : securityLevels.keySet())
+    {
+      rval.securityLevels.put(key,securityLevels.get(key));
+    }
+    return rval;
+  }
+  
   /** Set the document's created date.  Use null to indicate that the date is unknown.
   *@param date is the date.
   */
