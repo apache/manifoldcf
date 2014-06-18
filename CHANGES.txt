@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-967: Add links to Java 1.7 and ManifoldCF framework Javadoc
+for ManifoldCF Javadocs.
+(Shinichiro Abe)
+
 CONNECTORS-965: Update end-user documentation to reflect
 multiple outputs per job.
 (Karl Wright)
