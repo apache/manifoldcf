@@ -35,14 +35,15 @@ import java.nio.channels.FileLock;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
 
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
-import org.apache.manifoldcf.agents.interfaces.OutputSpecification;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
 import org.apache.manifoldcf.agents.system.Logging;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
@@ -143,7 +144,7 @@ public class FileOutputConnector extends BaseOutputConnector {
    * the document will not need to be sent again to the output data store.
    */
   @Override
-  public String getOutputDescription(OutputSpecification spec) throws ManifoldCFException, ServiceInterruption {
+  public String getPipelineDescription(Specification spec) throws ManifoldCFException, ServiceInterruption {
     FileOutputSpecs specs = new FileOutputSpecs(getSpecNode(spec));
     return specs.toJson().toString();
   }
@@ -450,101 +451,84 @@ public class FileOutputConnector extends BaseOutputConnector {
     activities.recordActivity(null, REMOVE_ACTIVITY, null, documentURI, "OK", null);
   }
 
-  /** Output the configuration header section.
-   * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
-   * javascript methods that might be needed by the configuration editing HTML.
-   *@param threadContext is the local thread context.
-   *@param out is the output to which any HTML should be sent.
-   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
-   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
-   */
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray) throws ManifoldCFException, IOException {
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
   }
 
-  /** Output the configuration body section.
-   * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
-   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
-   * form is "editconnection".
-   *@param threadContext is the local thread context.
-   *@param out is the output to which any HTML should be sent.
-   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
-   *@param tabName is the current tab name.
-   */
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName) throws ManifoldCFException, IOException {
-  }
-
-  /** Process a configuration post.
-   * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
-   * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
-   * The name of the posted form is "editconnection".
-   *@param threadContext is the local thread context.
-   *@param variableContext is the set of variables available from the post, including binary file post information.
-   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
-   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
-   */
-  @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, Locale locale, ConfigParams parameters) throws ManifoldCFException {
-    return null;
-  }
-
-  /** View configuration.
-   * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
-   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
-   *@param threadContext is the local thread context.
-   *@param out is the output to which any HTML should be sent.
-   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
-   */
-  @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
   }
 
   /** Output the specification header section.
-   * This method is called in the head section of a job page which has selected an output connection of the current type.  Its purpose is to add the required tabs
-   * to the list, and to output any javascript methods that might be needed by the job editing HTML.
-   *@param out is the output to which any HTML should be sent.
-   *@param os is the current output specification for this job.
-   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
-   */
+  * This method is called in the head section of a job page which has selected a pipeline connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this connection.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os, List<String> tabsArray) throws ManifoldCFException, IOException {
-    super.outputSpecificationHeader(out, locale, os, tabsArray);
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, List<String> tabsArray)
+    throws ManifoldCFException, IOException {
+    super.outputSpecificationHeader(out, locale, os, connectionSequenceNumber, tabsArray);
     tabsArray.add(Messages.getString(locale, "FileConnector.PathTabName"));
-    outputResource(EDIT_SPECIFICATION_JS, out, locale, null, null);
+    outputResource(EDIT_SPECIFICATION_JS, out, locale, null, null, new Integer(connectionSequenceNumber), null);
   }
 
   /** Output the specification body section.
-   * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
-   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
-   * form is "editjob".
-   *@param out is the output to which any HTML should be sent.
-   *@param os is the current output specification for this job.
-   *@param tabName is the current tab name.
-   */
+  * This method is called in the body section of a job page which has selected a pipeline connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
+  *@param tabName is the current tab name.
+  */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName) throws ManifoldCFException, IOException {
-    super.outputSpecificationBody(out, locale, os, tabName);
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
+    throws ManifoldCFException, IOException {
+    super.outputSpecificationBody(out, locale, os, connectionSequenceNumber, actualSequenceNumber, tabName);
     FileOutputSpecs specs = getSpecParameters(os);
-    outputResource(EDIT_SPECIFICATION_HTML, out, locale, specs, tabName);
+    outputResource(EDIT_SPECIFICATION_HTML, out, locale, specs, tabName, new Integer(connectionSequenceNumber), new Integer(actualSequenceNumber));
   }
 
   /** Process a specification post.
-   * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-   * posted.  Its purpose is to gather form information and modify the output specification accordingly.
-   * The name of the posted form is "editjob".
-   *@param variableContext contains the post data, including binary file-upload information.
-   *@param os is the current output specification for this job.
-   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
-   */
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the transformation specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os) throws ManifoldCFException {
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
     ConfigurationNode specNode = getSpecNode(os);
     boolean bAdd = (specNode == null);
     if (bAdd) {
       specNode = new SpecificationNode(FileOutputConstant.PARAM_ROOTPATH);
     }
-    FileOutputSpecs.contextToSpecNode(variableContext, specNode);
+    FileOutputSpecs.contextToSpecNode(variableContext, specNode, connectionSequenceNumber);
     if (bAdd) {
       os.addChild(os.getChildCount(), specNode);
     }
@@ -553,21 +537,25 @@ public class FileOutputConnector extends BaseOutputConnector {
   }
 
   /** View specification.
-   * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
-   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
-   *@param out is the output to which any HTML should be sent.
-   *@param os is the current output specification for this job.
-   */
+  * This method is called in the body section of a job's view page.  Its purpose is to present the pipeline specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the preferred local of the output.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param os is the current pipeline specification for this job.
+  */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os) throws ManifoldCFException, IOException {
-    outputResource(VIEW_SPECIFICATION_HTML, out, locale, getSpecParameters(os), null);
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber)
+    throws ManifoldCFException, IOException {
+    outputResource(VIEW_SPECIFICATION_HTML, out, locale, getSpecParameters(os), null, new Integer(connectionSequenceNumber), null);
   }
 
   /**
    * @param os
    * @return
    */
-  final private SpecificationNode getSpecNode(OutputSpecification os)
+  final private SpecificationNode getSpecNode(Specification os)
   {
     int l = os.getChildCount();
     for (int i = 0; i < l; i++) {
@@ -584,7 +572,7 @@ public class FileOutputConnector extends BaseOutputConnector {
    * @return
    * @throws ManifoldCFException
    */
-  final private FileOutputSpecs getSpecParameters(OutputSpecification os) throws ManifoldCFException {
+  final private FileOutputSpecs getSpecParameters(Specification os) throws ManifoldCFException {
     return new FileOutputSpecs(getSpecNode(os));
   }
 
@@ -604,14 +592,23 @@ public class FileOutputConnector extends BaseOutputConnector {
    * @param resName
    * @param out
    * @throws ManifoldCFException */
-  private static void outputResource(String resName, IHTTPOutput out, Locale locale, FileOutputParam params, String tabName) throws ManifoldCFException {
+  private static void outputResource(String resName, IHTTPOutput out, Locale locale, FileOutputParam params, String tabName,
+    Integer sequenceNumber, Integer currentSequenceNumber) throws ManifoldCFException {
     Map<String,String> paramMap = null;
     if (params != null) {
       paramMap = params.buildMap();
       if (tabName != null) {
         paramMap.put("TabName", tabName);
       }
+      if (currentSequenceNumber != null)
+        paramMap.put("SelectedNum", currentSequenceNumber.toString());
     }
+    else
+    {
+      paramMap = new HashMap<String,String>();
+    }
+    if (sequenceNumber != null)
+      paramMap.put("SeqNum", sequenceNumber.toString());
     Messages.outputResourceWithVelocity(out, locale, resName, paramMap, true);
   }
 
