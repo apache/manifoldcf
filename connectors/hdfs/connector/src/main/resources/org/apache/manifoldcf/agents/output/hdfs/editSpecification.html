@@ -15,18 +15,18 @@
  limitations under the License.
 -->
 
-#if($TABNAME == $ResourceBundle.getString('HDFSOutputConnector.PathTabName'))
+#if($TABNAME == $ResourceBundle.getString('HDFSOutputConnector.PathTabName') && ${SEQNUM} == ${SELECTEDNUM})
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.RootPath'))</nobr></td>
-    <td class="value"><input type="text" name="rootpath" size="64" value="$Encoder.attributeEscape($ROOTPATH)" /></td>
+    <td class="value"><input type="text" name="s${SEQNUM}_rootpath" size="64" value="$Encoder.attributeEscape($ROOTPATH)" /></td>
   </tr>
 </table>
 
 #else
 
-<input type="hidden" name="rootpath" value="$Encoder.attributeEscape($ROOTPATH)" />
+<input type="hidden" name="s${SEQNUM}_rootpath" value="$Encoder.attributeEscape($ROOTPATH)" />
 
 #end
