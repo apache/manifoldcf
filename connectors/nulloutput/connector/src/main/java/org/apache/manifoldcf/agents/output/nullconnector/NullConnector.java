@@ -109,7 +109,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   * the document will not need to be sent again to the output data store.
   */
   @Override
-  public String getOutputDescription(OutputSpecification spec)
+  public String getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     return "";
@@ -165,6 +165,26 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     throws ManifoldCFException, ServiceInterruption
   {
     activities.recordActivity(null,JOB_COMPLETE_ACTIVITY,null,"","OK",null);
+  }
+
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  @Override
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
   }
 
 }
