@@ -25,6 +25,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -449,39 +450,57 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                         validURL = false;
                     }
                     if (validURL) {
-                        InputStream is = document.getInputStream();
                         long fileLenght = document.getLength();
-                        Date indexingDate = new Date();
-                        rd.setBinary(is, fileLenght);
-                        rd.setCreatedDate(document.getUploadDate());
-                        rd.setFileName(document.getFilename());
-                        rd.setIndexingDate(indexingDate);
-                        rd.setMimeType(document.getContentType());
-                        if (acl != null) {
-                            try {
-                                Object aclObject = document.getMetaData().get(acl);
-                                if (aclObject != null) {
-                                    List<String> acls = (List<String>) aclObject;
-                                    rd.setACL((String[]) acls.toArray());
+                        InputStream is = document.getInputStream();
+                        try {
+                            Date indexingDate = new Date();
+                            rd.setBinary(is, fileLenght);
+                            rd.setCreatedDate(document.getUploadDate());
+                            rd.setFileName(document.getFilename());
+                            rd.setIndexingDate(indexingDate);
+                            rd.setMimeType(document.getContentType());
+                            String[] aclsArray = null;
+                            String[] denyAclsArray = null;
+                            if (acl != null) {
+                                try {
+                                    Object aclObject = document.getMetaData().get(acl);
+                                    if (aclObject != null) {
+                                        List<String> acls = (List<String>) aclObject;
+                                        aclsArray = (String[]) acls.toArray();
+                                    }
+                                } catch (ClassCastException e) {
+                                    // This is bad because security will fail
+                                    Logging.connectors.warn("GridFS: Document " + _id + " metadata ACL field doesn't contain List<String> type.");
+                                    throw new ManifoldCFException("Security decoding error: "+e.getMessage(),e);
                                 }
-                            } catch (ClassCastException e) {
-                                Logging.connectors.warn("GridFS: Document " + _id + " metadata ACL field doesn't contain List<String> type.");
+                            }
+                            if (denyAcl != null) {
+                                try {
+                                    Object denyAclObject = document.getMetaData().get(denyAcl);
+                                    if (denyAclObject != null) {
+                                        List<String> denyAcls = (List<String>) denyAclObject;
+                                        denyAcls.add(GLOBAL_DENY_TOKEN);
+                                        denyAclsArray = (String[]) denyAcls.toArray();
+                                    }
+                                } catch (ClassCastException e) {
+                                    // This is bad because security will fail
+                                    Logging.connectors.warn("GridFS: Document " + _id + " metadata DenyACL field doesn't contain List<String> type.");
+                                    throw new ManifoldCFException("Security decoding error: "+e.getMessage(),e);
+                                }
+                            }
+                            rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclsArray,denyAclsArray);
+                            try {
+                                activities.ingestDocumentWithException(_id, version, urlValue, rd);
+                            } catch (IOException e) {
+                                handleIOException(e);
+                            }
+                        } finally {
+                            try {
+                                is.close();
+                            } catch (IOException e) {
+                                handleIOException(e);
                             }
                         }
-                        if (denyAcl != null) {
-                            try {
-                                Object denyAclObject = document.getMetaData().get(denyAcl);
-                                if (denyAclObject != null) {
-                                    List<String> denyAcls = (List<String>) denyAclObject;
-                                    denyAcls.add(GLOBAL_DENY_TOKEN);
-                                    rd.setDenyACL((String[]) denyAcls.toArray());
-                                }
-                            } catch (ClassCastException e) {
-                                Logging.connectors.warn("GridFS: Document " + _id + " metadata DenyACL field doesn't contain List<String> type.");
-                            }
-                        }
-                        activities.ingestDocument(_id, version, urlValue, rd);
-                        IOUtils.closeQuietly(is);
                         gfs.getDB().getMongo().getConnector().close();
                         session = null;
                         activities.recordActivity(startTime, ACTIVITY_FETCH,
@@ -501,6 +520,14 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
         }
     }
 
+    protected static void handleIOException(IOException e) throws ManifoldCFException, ServiceInterruption {
+        if (e instanceof InterruptedIOException) {
+            throw new ManifoldCFException(e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+        } else {
+            throw new ManifoldCFException(e.getMessage(), e);
+        }
+    }
+    
     /**
      * Get document versions given an array of document identifiers. This method
      * is called for EVERY document that is considered. It is therefore

@@ -791,7 +791,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                         {
                           rd.setBinary(inputStream, tempFile.length());
                           
-                          activities.ingestDocument(documentIdentifier, version, uri, rd);
+                          activities.ingestDocumentWithException(documentIdentifier, version, uri, rd);
                         }
                         finally
                         {
@@ -838,7 +838,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                     {
                       rd.setBinary(inputStream, fileLength(file));
                       
-                      activities.ingestDocument(documentIdentifier, version, uri, rd);
+                      activities.ingestDocumentWithException(documentIdentifier, version, uri, rd);
                     }
                     finally
                     {

@@ -59,6 +59,7 @@
     <module>regexpmapper</module>
     <module>email</module>
     <module>amazoncloudsearch</module>
+    <module>forcedmetadata</module>
     <module>rabbitmq</module>
   </modules>
 

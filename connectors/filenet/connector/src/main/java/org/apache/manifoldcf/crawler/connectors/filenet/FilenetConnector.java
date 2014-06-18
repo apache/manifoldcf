@@ -1329,7 +1329,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
                   }
 
                   // Ingest
-                  activities.ingestDocument(documentIdentifier,documentVersion,
+                  activities.ingestDocumentWithException(documentIdentifier,documentVersion,
                     convertToURI(urlBase.toString(),vId,elementNumber,documentClass.toString()),rd);
 
                 }
