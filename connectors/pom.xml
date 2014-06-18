@@ -45,6 +45,7 @@
     <module>nulloutput</module>
     <module>nulltransformation</module>
     <module>rss</module>
+    <module>sharepoint</module>
     <module>solr</module>
     <module>webcrawler</module>
     <module>cmis</module>
@@ -59,7 +60,7 @@
     <module>regexpmapper</module>
     <module>email</module>
     <module>amazoncloudsearch</module>
-    <module>rabbitmq</module>
+    <module>forcedmetadata</module>
   </modules>
 
 </project>

@@ -18,6 +18,8 @@
 */
 package org.apache.manifoldcf.crawler.interfaces;
 
+import java.io.*;
+
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 
@@ -118,7 +120,22 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   *@param documentURI is the URI to use to retrieve this document from the search interface (and is
   *       also the unique key in the index).
   *@param data is the document data.  The data is closed after ingestion is complete.
+  *@throws IOException only when data stream reading fails.
   */
+  public void ingestDocumentWithException(String localIdentifier, String version, String documentURI, RepositoryDocument data)
+    throws ManifoldCFException, ServiceInterruption, IOException;
+
+  /** Ingest the current document.
+  *@param localIdentifier is the document's local identifier.
+  *@param version is the version of the document, as reported by the getDocumentVersions() method of the
+  *       corresponding repository connector.
+  *@param documentURI is the URI to use to retrieve this document from the search interface (and is
+  *       also the unique key in the index).
+  *@param data is the document data.  The data is closed after ingestion is complete.
+  * NOTE: Any data stream IOExceptions will be converted to ManifoldCFExceptions and ServiceInterruptions
+  * according to standard best practices.
+  */
+  @Deprecated
   public void ingestDocument(String localIdentifier, String version, String documentURI, RepositoryDocument data)
     throws ManifoldCFException, ServiceInterruption;
 

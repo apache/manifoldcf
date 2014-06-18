@@ -112,9 +112,10 @@ public interface IPipelineConnector extends IConnector
   *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity,
   * or sending a modified document to the next stage in the pipeline.
   *@return the document status (accepted or permanently rejected).
+  *@throws IOException only if there's a stream error reading the document data.
   */
-  public int addOrReplaceDocument(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws ManifoldCFException, ServiceInterruption;
+  public int addOrReplaceDocumentWithException(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+    throws ManifoldCFException, ServiceInterruption, IOException;
 
   // UI support methods.
   //

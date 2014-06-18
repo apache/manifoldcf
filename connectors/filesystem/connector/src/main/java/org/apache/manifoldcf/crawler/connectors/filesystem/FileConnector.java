@@ -373,7 +373,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
                       data.addField("uri",file.toString());
                     }
                     // MHL for other metadata
-                    activities.ingestDocument(documentIdentifier,version,uri,data);
+                    activities.ingestDocumentWithException(documentIdentifier,version,uri,data);
                     fileLength = new Long(fileBytes);
                   }
                   finally
@@ -385,6 +385,10 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 {
                   //skip. throw nothing.
                   Logging.connectors.debug("Skipping file due to " +e.getMessage());
+                }
+                catch (InterruptedIOException e)
+                {
+                  throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                 }
                 catch (IOException e)
                 {

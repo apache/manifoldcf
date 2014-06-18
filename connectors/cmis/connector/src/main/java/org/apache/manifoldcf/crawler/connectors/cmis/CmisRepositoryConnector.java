@@ -1218,31 +1218,41 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           //documentURI
           String documentURI = CmisRepositoryConnectorUtils.getDocumentURL(document, session);
           
-          activities.ingestDocument(id, version, documentURI, rd);
-
+          try {
+            activities.ingestDocumentWithException(id, version, documentURI, rd);
+          } catch (IOException e) {
+            errorCode = "IO ERROR";
+            errorDesc = e.getMessage();
+            handleIOException(e, "reading file input stream");
+          }
         } finally {
           try {
             if(is!=null){
               is.close();
             }
-          } catch (InterruptedIOException e) {
-            errorCode = "Interrupted error";
-            errorDesc = e.getMessage();
-            throw new ManifoldCFException(e.getMessage(), e,
-                ManifoldCFException.INTERRUPTED);
           } catch (IOException e) {
             errorCode = "IO ERROR";
             errorDesc = e.getMessage();
-            Logging.connectors.warn(
-                "CMIS: IOException closing file input stream: "
-                    + e.getMessage(), e);
-          }
-
-          activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+            handleIOException(e, "closing file input stream");
+          } finally {
+            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
               fileLength, nodeId, errorCode, errorDesc, null);
+          }
         }
       }
       i++;
+    }
+  }
+  
+  protected static void handleIOException(IOException e, String context) throws ManifoldCFException, ServiceInterruption {
+    if (e instanceof InterruptedIOException) {
+      throw new ManifoldCFException(e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } else {
+      Logging.connectors.warn(
+        "CMIS: IOException "+context+": "
+          + e.getMessage(), e);
+      throw new ManifoldCFException(e.getMessage(), e);
     }
   }
   

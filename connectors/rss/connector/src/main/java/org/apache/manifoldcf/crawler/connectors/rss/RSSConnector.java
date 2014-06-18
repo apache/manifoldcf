@@ -1503,7 +1503,14 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               try
               {
                 rd.setBinary(is,dataSize);
-                activities.ingestDocument(urlValue,version,ingestURL,rd);
+                try
+                {
+                  activities.ingestDocumentWithException(urlValue,version,ingestURL,rd);
+                }
+                catch (IOException e)
+                {
+                  handleIOException(e,"reading data");
+                }
               }
               finally
               {
@@ -1511,17 +1518,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 {
                   is.close();
                 }
-                catch (java.net.SocketTimeoutException e)
-                {
-                  throw new ManifoldCFException("IO error closing stream: "+e.getMessage(),e);
-                }
-                catch (InterruptedIOException e)
-                {
-                  throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                }
                 catch (IOException e)
                 {
-                  throw new ManifoldCFException("IO error closing stream: "+e.getMessage(),e);
+                  handleIOException(e,"closing stream");
                 }
               }
             }
@@ -1545,6 +1544,17 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
   }
 
+  protected static void handleIOException(IOException e, String context)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (e instanceof java.net.SocketTimeoutException)
+      throw new ManifoldCFException("IO error "+context+": "+e.getMessage(),e);
+    else if (e instanceof InterruptedIOException)
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    else
+      throw new ManifoldCFException("IO error "+context+": "+e.getMessage(),e);
+  }
+  
   /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
   * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
   * committed during the getDocumentVersions() method.  It is guaranteed to be called AFTER any calls to

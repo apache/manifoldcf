@@ -1846,7 +1846,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                     {
                       rd.setBinary(is, fileLength);
                       // Do the ingestion
-                      activities.ingestDocument(documentIdentifier,versionString,
+                      activities.ingestDocumentWithException(documentIdentifier,versionString,
                         t.getURI(), rd);
                     }
                     finally

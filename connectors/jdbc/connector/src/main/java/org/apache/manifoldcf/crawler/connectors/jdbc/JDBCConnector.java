@@ -592,7 +592,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                         try
                         {
                           rd.setBinary(is,bi.getLength());
-                          activities.ingestDocument(id, version, url, rd);
+                          activities.ingestDocumentWithException(id, version, url, rd);
                         }
                         finally
                         {

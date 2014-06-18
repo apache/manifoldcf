@@ -399,7 +399,7 @@ public class GenericConnector extends BaseRepositoryConnector {
           ByteArrayInputStream is = new ByteArrayInputStream(content);
           try {
             doc.setBinary(is, content.length);
-            activities.ingestDocument(documentIdentifiers[i], versions[i], item.url, doc);
+            activities.ingestDocumentWithException(documentIdentifiers[i], versions[i], item.url, doc);
             is.close();
           } finally {
             is.close();

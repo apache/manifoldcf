@@ -163,7 +163,7 @@ public class SanityDerbyIT extends BaseITDerby
       IJobDescription job = jobManager.createJob();
       job.setDescription("Test Job");
       job.setConnectionName("Wiki Connection");
-      job.setOutputConnectionName("Null Connection");
+      job.addPipelineStage(-1,true,"Null Connection","");
       job.setType(job.TYPE_SPECIFIED);
       job.setStartMethod(job.START_DISABLE);
       job.setHopcountMode(job.HOPCOUNT_ACCURATE);
@@ -171,10 +171,6 @@ public class SanityDerbyIT extends BaseITDerby
       // Now, set up the document specification.
       // Right now we don't need any...
       DocumentSpecification ds = job.getSpecification();
-      
-      // Set up the output specification.
-      OutputSpecification os = job.getOutputSpecification();
-      // Null output connections have no output specification, so this is a no-op.
       
       // Save the job.
       jobManager.save(job);
