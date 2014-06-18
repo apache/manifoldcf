@@ -429,7 +429,9 @@
 
     <target name="doc-rmi" depends="compile-wsdls,compile-xsds,has-RMI-check" if="hasRMI">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.7">
+        <javadoc destdir="dist/doc" source="1.7" use="true" locale="en_US">
+            <link href="http://docs.oracle.com/javase/7/docs/api/"/>
+            <link href="http://manifoldcf.apache.org/release/trunk/api/framework/"/>
             <classpath>
                 <path refid="connector-classpath"/>
             </classpath>
@@ -440,7 +442,9 @@
 
     <target name="doc" depends="compile-stubs,doc-rmi,compile-wsdls,compile-xsds,has-RMI-check,precompile-check" if="canBuild" unless="hasRMI">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.7">
+        <javadoc destdir="dist/doc" source="1.7" use="true" locale="en_US">
+            <link href="http://docs.oracle.com/javase/7/docs/api/"/>
+            <link href="http://manifoldcf.apache.org/release/trunk/api/framework/"/>
             <classpath>
                 <path refid="connector-classpath"/>
             </classpath>
