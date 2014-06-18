@@ -162,6 +162,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@return the name of the form check javascript method.
   */
+  @Override
   public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
   {
     return "s"+connectionSequenceNumber+"_checkSpecification";
@@ -171,6 +172,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@return the name of the form presave check javascript method.
   */
+  @Override
   public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
   {
     return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
@@ -185,6 +187,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
+  @Override
   public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
@@ -211,6 +214,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   *@param actualSequenceNumber is the connection within the job that has currently been selected.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
@@ -235,6 +239,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
     int connectionSequenceNumber)
     throws ManifoldCFException
@@ -291,6 +296,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param os is the current pipeline specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException
