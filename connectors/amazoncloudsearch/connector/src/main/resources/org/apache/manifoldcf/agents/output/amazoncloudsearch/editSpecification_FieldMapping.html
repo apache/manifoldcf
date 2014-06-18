@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-#if($TABNAME == $ResourceBundle.getString('AmazonCloudSearchOutputConnector.FieldMappingTabName'))
+#if($TABNAME == $ResourceBundle.getString('AmazonCloudSearchOutputConnector.FieldMappingTabName') && ${SEQNUM} == ${SELECTEDNUM})
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
@@ -38,11 +38,11 @@
         <tr class="oddformrow">
     #end
           <td class="formcolumncell">
-            <a name="cloudsearch_fieldmapping_$fieldcounter">
-              <input type="button" value="Delete" alt="$Encoder.attributeEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.DeleteFieldMapping'))$fieldcounterdisplay" onclick='javascript:deleteFieldMapping("$fieldcounter");'/>
-              <input type="hidden" name="cloudsearch_fieldmapping_op_$fieldcounter" value="Continue"/>
-              <input type="hidden" name="cloudsearch_fieldmapping_source_$fieldcounter" value="$Encoder.attributeEscape($fieldmapping.get('SOURCE'))"/>
-              <input type="hidden" name="cloudsearch_fieldmapping_target_$fieldcounter" value="$Encoder.attributeEscape($fieldmapping.get('TARGET'))"/>
+            <a name="s${SEQNUM}_cloudsearch_fieldmapping_$fieldcounter">
+              <input type="button" value="Delete" alt="$Encoder.attributeEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.DeleteFieldMapping'))$fieldcounterdisplay" onclick='javascript:s${SEQNUM}_deleteFieldMapping("$fieldcounter");'/>
+              <input type="hidden" name="s${SEQNUM}_cloudsearch_fieldmapping_op_$fieldcounter" value="Continue"/>
+              <input type="hidden" name="s${SEQNUM}_cloudsearch_fieldmapping_source_$fieldcounter" value="$Encoder.attributeEscape($fieldmapping.get('SOURCE'))"/>
+              <input type="hidden" name="s${SEQNUM}_cloudsearch_fieldmapping_target_$fieldcounter" value="$Encoder.attributeEscape($fieldmapping.get('TARGET'))"/>
             </a>
           </td>
           <td class="formcolumncell">
@@ -63,16 +63,16 @@
         <tr class="formrow">
           <td class="formcolumncell">
             <a name="cloudsearch_fieldmapping">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.AddFieldMapping'))" onclick="javascript:addFieldMapping();"/>
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.AddFieldMapping'))" onclick="javascript:s${SEQNUM}_addFieldMapping();"/>
             </a>
-            <input type="hidden" name="cloudsearch_fieldmapping_count" value="$fieldcounter"/>
-            <input type="hidden" name="cloudsearch_fieldmapping_op" value="Continue"/>
+            <input type="hidden" name="s${SEQNUM}_cloudsearch_fieldmapping_count" value="$fieldcounter"/>
+            <input type="hidden" name="s${SEQNUM}_cloudsearch_fieldmapping_op" value="Continue"/>
           </td>
           <td class="formcolumncell">
-            <nobr><input type="text" size="15" name="cloudsearch_fieldmapping_source" value=""/></nobr>
+            <nobr><input type="text" size="15" name="s${SEQNUM}_cloudsearch_fieldmapping_source" value=""/></nobr>
           </td>
           <td class="formcolumncell">
-            <nobr><input type="text" size="15" name="cloudsearch_fieldmapping_target" value=""/></nobr>
+            <nobr><input type="text" size="15" name="s${SEQNUM}_cloudsearch_fieldmapping_target" value=""/></nobr>
           </td>
         </tr>
       </table>
@@ -85,9 +85,9 @@
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.KeepAllMetadata'))</nobr></td>
     <td class="value">
   #if($KEEPALLMETADATA == 'true')
-       <input type="checkbox" checked="true" name="cloudsearch_keepallmetadata" value="true"/>
+       <input type="checkbox" checked="true" name="s${SEQNUM}_cloudsearch_keepallmetadata" value="true"/>
   #else
-       <input type="checkbox" name="cloudsearch_keepallmetadata" value="true"/>
+       <input type="checkbox" name="s${SEQNUM}_cloudsearch_keepallmetadata" value="true"/>
   #end
     </td>
   </tr>
@@ -97,11 +97,11 @@
 
   #set($fieldcounter = 0)
   #foreach($fieldmapping in $FIELDMAPPINGS)
-<input type="hidden" name="cloudsearch_fieldmapping_source_$fieldcounter" value="$Encoder.attributeEscape($fieldmapping.get('SOURCE'))"/>
-<input type="hidden" name="cloudsearch_fieldmapping_target_$fieldcounter" value="$Encoder.attributeEscape($fieldmapping.get('TARGET'))"/>
+<input type="hidden" name="s${SEQNUM}_cloudsearch_fieldmapping_source_$fieldcounter" value="$Encoder.attributeEscape($fieldmapping.get('SOURCE'))"/>
+<input type="hidden" name="s${SEQNUM}_cloudsearch_fieldmapping_target_$fieldcounter" value="$Encoder.attributeEscape($fieldmapping.get('TARGET'))"/>
     #set($fieldcounter = $fieldcounter + 1)
   #end
-<input type="hidden" name="cloudsearch_fieldmapping_count" value="$fieldcounter"/>
-<input type="hidden" name="cloudsearch_keepallmetadata" value="$Encoder.bodyEscape($KEEPALLMETADATA)"/>
+<input type="hidden" name="s${SEQNUM}_cloudsearch_fieldmapping_count" value="$fieldcounter"/>
+<input type="hidden" name="s${SEQNUM}_cloudsearch_keepallmetadata" value="$Encoder.bodyEscape($KEEPALLMETADATA)"/>
 
 #end

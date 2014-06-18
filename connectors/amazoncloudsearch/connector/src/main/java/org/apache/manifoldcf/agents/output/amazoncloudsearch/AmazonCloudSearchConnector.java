@@ -46,11 +46,11 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
-import org.apache.manifoldcf.agents.interfaces.OutputSpecification;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
 import org.apache.manifoldcf.agents.output.amazoncloudsearch.SDFModel.Document;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -284,7 +284,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   * the document will not need to be sent again to the output data store.
   */
   @Override
-  public String getOutputDescription(OutputSpecification os)
+  public String getPipelineDescription(Specification os)
     throws ManifoldCFException, ServiceInterruption
   {
     SpecPacker sp = new SpecPacker(os);
@@ -672,7 +672,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
         currentTime + 300000L, currentTime + 3 * 60 * 60000L, -1, false);
   }
   
-  protected static void fillInFieldMappingSpecificationMap(Map<String,Object> paramMap, OutputSpecification os)
+  protected static void fillInFieldMappingSpecificationMap(Map<String,Object> paramMap, Specification os)
   {
     // Prep for field mappings
     List<Map<String,String>> fieldMappings = new ArrayList<Map<String,String>>();
@@ -706,7 +706,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     paramMap.put("KEEPALLMETADATA",keepAllMetadataValue);
   }
   
-  protected static void fillInContentsSpecificationMap(Map<String,Object> paramMap, OutputSpecification os)
+  protected static void fillInContentsSpecificationMap(Map<String,Object> paramMap, Specification os)
   {
     String maxFileSize = AmazonCloudSearchConfig.MAXLENGTH_DEFAULT;
     String allowedMimeTypes = AmazonCloudSearchConfig.MIMETYPES_DEFAULT;
@@ -726,23 +726,42 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     paramMap.put("EXTENSIONS",allowedFileExtensions);
   }
   
-  /**
-   * Output the specification header section. This method is called in the head
-   * section of a job page which has selected an output connection of the
-   * current type. Its purpose is to add the required tabs to the list, and to
-   * output any javascript methods that might be needed by the job editing HTML.
-   * 
-   * @param out is the output to which any HTML should be sent.
-   * @param os is the current output specification for this job.
-   * @param tabsArray is an array of tab names. Add to this array any tab names
-   *        that are specific to the connector.
-   */
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale,
-      OutputSpecification os, List<String> tabsArray)
-      throws ManifoldCFException, IOException
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+  }
+
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a pipeline connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this connection.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, List<String> tabsArray)
+    throws ManifoldCFException, IOException
   {
     Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SEQNUM",Integer.toString(connectionSequenceNumber));
 
     tabsArray.add(Messages.getString(locale, "AmazonCloudSearchOutputConnector.FieldMappingTabName"));
     tabsArray.add(Messages.getString(locale, "AmazonCloudSearchOutputConnector.ContentsTabName"));
@@ -755,21 +774,27 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   }
   
   /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
+  * This method is called in the body section of a job page which has selected a pipeline connection of the current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
   * form is "editjob".
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Set the tab name
     paramMap.put("TABNAME", tabName);
+    paramMap.put("SEQNUM",Integer.toString(connectionSequenceNumber));
+    paramMap.put("SELECTEDNUM",Integer.toString(actualSequenceNumber));
 
     // Fill in the field mapping tab data
     fillInFieldMappingSpecificationMap(paramMap, os);
@@ -780,18 +805,23 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
 
   /** Process a specification post.
   * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the output specification accordingly.
+  * posted.  Its purpose is to gather form information and modify the transformation specification accordingly.
   * The name of the posted form is "editjob".
   *@param variableContext contains the post data, including binary file-upload information.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext,
-    Locale locale, OutputSpecification os) throws ManifoldCFException {
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     String x;
         
-    x = variableContext.getParameter("maxfilesize");
+    x = variableContext.getParameter(seqPrefix+"maxfilesize");
     if (x != null)
     {
       int i = 0;
@@ -808,7 +838,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       os.addChild(os.getChildCount(),sn);
     }
 
-    x = variableContext.getParameter("mimetypes");
+    x = variableContext.getParameter(seqPrefix+"mimetypes");
     if (x != null)
     {
       int i = 0;
@@ -825,7 +855,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       os.addChild(os.getChildCount(),sn);
     }
 
-    x = variableContext.getParameter("extensions");
+    x = variableContext.getParameter(seqPrefix+"extensions");
     if (x != null)
     {
       int i = 0;
@@ -842,7 +872,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       os.addChild(os.getChildCount(),sn);
     }
     
-    x = variableContext.getParameter("cloudsearch_fieldmapping_count");
+    x = variableContext.getParameter(seqPrefix+"cloudsearch_fieldmapping_count");
     if (x != null && x.length() > 0)
     {
       // About to gather the fieldmapping nodes, so get rid of the old ones.
@@ -859,7 +889,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       i = 0;
       while (i < count)
       {
-        String prefix = "cloudsearch_fieldmapping_";
+        String prefix = seqPrefix+"cloudsearch_fieldmapping_";
         String suffix = "_"+Integer.toString(i);
         String op = variableContext.getParameter(prefix+"op"+suffix);
         if (op == null || !op.equals("Delete"))
@@ -877,11 +907,11 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
         i++;
       }
       
-      String addop = variableContext.getParameter("cloudsearch_fieldmapping_op");
+      String addop = variableContext.getParameter(seqPrefix+"cloudsearch_fieldmapping_op");
       if (addop != null && addop.equals("Add"))
       {
-        String source = variableContext.getParameter("cloudsearch_fieldmapping_source");
-        String target = variableContext.getParameter("cloudsearch_fieldmapping_target");
+        String source = variableContext.getParameter(seqPrefix+"cloudsearch_fieldmapping_source");
+        String target = variableContext.getParameter(seqPrefix+"cloudsearch_fieldmapping_target");
         if (target == null)
           target = "";
         SpecificationNode node = new SpecificationNode(AmazonCloudSearchConfig.NODE_FIELDMAP);
@@ -892,7 +922,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       
       // Gather the keep all metadata parameter to be the last one
       SpecificationNode node = new SpecificationNode(AmazonCloudSearchConfig.NODE_KEEPMETADATA);
-      String keepAll = variableContext.getParameter("cloudsearch_keepallmetadata");
+      String keepAll = variableContext.getParameter(seqPrefix+"cloudsearch_keepallmetadata");
       if (keepAll != null)
       {
         node.setAttribute(AmazonCloudSearchConfig.ATTRIBUTE_VALUE, keepAll);
@@ -910,16 +940,20 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   
 
   /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the pipeline specification information to the user.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param os is the current pipeline specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
     Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SEQNUM",Integer.toString(connectionSequenceNumber));
 
     // Fill in the map with data from all tabs
     fillInFieldMappingSpecificationMap(paramMap, os);
@@ -957,7 +991,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     private final Set<String> mimeTypes = new HashSet<String>();
     private final Long lengthCutoff;
     
-    public SpecPacker(OutputSpecification os) {
+    public SpecPacker(Specification os) {
       boolean keepAllMetadata = true;
       Long lengthCutoff = null;
       String extensions = null;
