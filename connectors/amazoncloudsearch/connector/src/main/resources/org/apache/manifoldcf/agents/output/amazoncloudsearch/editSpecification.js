@@ -17,34 +17,34 @@
 
 <script type="text/javascript">
 <!--
-function checkOutputSpecification()
+function s${SEQNUM}_checkSpecification()
 {
   return true;
 }
 
-function addFieldMapping()
+function s${SEQNUM}_addFieldMapping()
 {
-  if (editjob.cloudsearch_fieldmapping_source.value == "")
+  if (editjob.s${SEQNUM}_cloudsearch_fieldmapping_source.value == "")
   {
     alert("$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.NoFieldMappingSpecified'))");
-    editjob.solr_fieldmapping_source.focus();
+    editjob.s${SEQNUM}_solr_fieldmapping_source.focus();
     return;
   }
-  editjob.cloudsearch_fieldmapping_op.value="Add";
-  postFormSetAnchor("cloudsearch_fieldmapping");
+  editjob.s${SEQNUM}_cloudsearch_fieldmapping_op.value="Add";
+  postFormSetAnchor("s${SEQNUM}_cloudsearch_fieldmapping");
 }
 
-function deleteFieldMapping(i)
+function s${SEQNUM}_deleteFieldMapping(i)
 {
   // Set the operation
-  eval("editjob.cloudsearch_fieldmapping_op_"+i+".value=\"Delete\"");
+  eval("editjob.s${SEQNUM}_cloudsearch_fieldmapping_op_"+i+".value=\"Delete\"");
   // Submit
-  if (editjob.cloudsearch_fieldmapping_count.value==i)
-    postFormSetAnchor("cloudsearch_fieldmapping");
+  if (editjob.s${SEQNUM}_cloudsearch_fieldmapping_count.value==i)
+    postFormSetAnchor("s${SEQNUM}_cloudsearch_fieldmapping");
   else
-    postFormSetAnchor("cloudsearch_fieldmapping_"+i)
+    postFormSetAnchor("s${SEQNUM}_cloudsearch_fieldmapping_"+i)
   // Undo, so we won't get two deletes next time
-  eval("editjob.cloudsearch_fieldmapping_op_"+i+".value=\"Continue\"");
+  eval("editjob.s${SEQNUM}_cloudsearch_fieldmapping_op_"+i+".value=\"Continue\"");
 }
 
 //-->
