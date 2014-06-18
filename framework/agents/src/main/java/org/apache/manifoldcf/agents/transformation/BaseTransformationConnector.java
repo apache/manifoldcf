@@ -183,7 +183,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   @Override
   public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
   {
-    return "checkSpecification_"+connectionSequenceNumber;
+    return "s"+connectionSequenceNumber+"_checkSpecification";
   }
 
   /** Obtain the name of the form presave check javascript method to call.
@@ -193,7 +193,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   @Override
   public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
   {
-    return "checkSpecificationForSave_"+connectionSequenceNumber;
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
   }
 
   /** Output the specification header section.
