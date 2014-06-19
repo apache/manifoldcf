@@ -6245,23 +6245,23 @@ public class JobManager implements IJobManager
   *@param startTime is the job start time.
   */
   @Override
-  public void noteJobStarted(Long jobID, long startTime)
+  public void noteJobStarted(Long jobID, long startTime, String seedingVersion)
     throws ManifoldCFException
   {
-    jobs.noteJobStarted(jobID,startTime);
+    jobs.noteJobStarted(jobID,startTime,seedingVersion);
     if (Logging.jobs.isDebugEnabled())
       Logging.jobs.debug("Job "+jobID+" is now started");
   }
 
   /** Note job seeded.
   *@param jobID is the job id.
-  *@param seedTime is the job seed time.
+  *@param seedingVersion is the job seeding version string to record.
   */
   @Override
-  public void noteJobSeeded(Long jobID, long seedTime)
+  public void noteJobSeeded(Long jobID, String seedingVersion)
     throws ManifoldCFException
   {
-    jobs.noteJobSeeded(jobID,seedTime);
+    jobs.noteJobSeeded(jobID,seedingVersion);
     if (Logging.jobs.isDebugEnabled())
       Logging.jobs.debug("Job "+jobID+" has been successfully reseeded");
   }
@@ -6780,7 +6780,7 @@ public class JobManager implements IJobManager
         ArrayList list = new ArrayList();
         
         sb.append(jobs.idField).append(",")
-          .append(jobs.lastCheckTimeField).append(",")
+          .append(jobs.seedingVersionField).append(",")
           .append(jobs.failTimeField).append(",")
           .append(jobs.failCountField).append(",")
           .append(jobs.reseedIntervalField)
@@ -6802,10 +6802,7 @@ public class JobManager implements IJobManager
         {
           IResultRow row = set.getRow(i);
           Long jobID = (Long)row.getValue(jobs.idField);
-          Long x = (Long)row.getValue(jobs.lastCheckTimeField);
-          long synchTime = 0;
-          if (x != null)
-            synchTime = x.longValue();
+          String seedingVersionString = (String)row.getValue(jobs.seedingVersionField);
 
           Long r = (Long)row.getValue(jobs.reseedIntervalField);
           Long reseedTime;
@@ -6834,8 +6831,7 @@ public class JobManager implements IJobManager
           {
             Logging.jobs.debug("Marked job "+jobID+" for seeding");
           }
-
-          rval[i] = new JobSeedingRecord(jobID,synchTime,failTime,failRetryCount);
+          rval[i] = new JobSeedingRecord(jobID,seedingVersionString,failTime,failRetryCount);
           i++;
         }
         database.performCommit();
@@ -6957,7 +6953,7 @@ public class JobManager implements IJobManager
         sb.append(jobs.idField).append(",")
           .append(jobs.failTimeField).append(",")
           .append(jobs.failCountField).append(",")
-          .append(jobs.lastCheckTimeField).append(",")
+          .append(jobs.seedingVersionField).append(",")
           .append(jobs.statusField)
           .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
           .append(database.buildConjunctionClause(list,new ClauseDescription[]{
@@ -6974,7 +6970,7 @@ public class JobManager implements IJobManager
         {
           IResultRow row = set.getRow(i);
           Long jobID = (Long)row.getValue(jobs.idField);
-          Long x = (Long)row.getValue(jobs.lastCheckTimeField);
+          String seedingVersionString = (String)row.getValue(jobs.seedingVersionField);
           int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
           Long failTimeLong = (Long)row.getValue(jobs.failTimeField);
           Long failRetryCountLong = (Long)row.getValue(jobs.failCountField);
@@ -6991,10 +6987,6 @@ public class JobManager implements IJobManager
 
           boolean requestMinimum = (status == jobs.STATUS_READYFORSTARTUPMINIMAL);
           
-          long synchTime = 0;
-          if (x != null)
-            synchTime = x.longValue();
-
           // Mark status of job as "starting"
           jobs.writeTransientStatus(jobID,requestMinimum?jobs.STATUS_STARTINGUPMINIMAL:jobs.STATUS_STARTINGUP,processID);
           if (Logging.jobs.isDebugEnabled())
@@ -7002,7 +6994,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Marked job "+jobID+" for startup");
           }
 
-          rval[i] = new JobStartRecord(jobID,synchTime,requestMinimum,failTime,failRetryCount);
+          rval[i] = new JobStartRecord(jobID,seedingVersionString,requestMinimum,failTime,failRetryCount);
           i++;
         }
         database.performCommit();
