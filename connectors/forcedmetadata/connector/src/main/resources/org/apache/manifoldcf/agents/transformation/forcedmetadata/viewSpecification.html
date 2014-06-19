@@ -19,6 +19,46 @@
   <tr>
     <td class="separator" colspan="4"><hr/></td>
   </tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.FieldMappings'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.MetadataFieldName'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.FinalFieldName'))</nobr></td>
+        </tr>
+#set($fieldcounter = 0)
+#foreach($fieldmapping in $FIELDMAPPINGS)
+  #if(($fieldcounter % 2) == 0)
+        <tr class="evenformrow">
+  #else
+        <tr class="oddformrow">
+  #end
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($fieldmapping.get('SOURCE'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($fieldmapping.get('TARGETDISPLAY'))</nobr>
+          </td>
+        </tr>
+  #set($fieldcounter = $fieldcounter + 1)
+#end
+#if($fieldcounter == 0)
+        <tr class="formrow"><td class="formmessage" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.NoFieldMappingSpecified'))</td></tr>
+#end
+      </table>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.KeepAllMetadata'))</nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($KEEPALLMETADATA)</nobr></td>
+  </tr>
+
+  <tr>
+    <td class="separator" colspan="4"><hr/></td>
+  </tr>
   <tr>
     <td class="description" colspan="1"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.ForcedMetadataColon'))</nobr></td>
     <td class="boxcell" colspan="3">
@@ -28,7 +68,7 @@
           <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.ParameterValue'))</nobr></td>
         </tr>
   #set($paramcounter = 0)
-  #foreach($paramrecord in $Parameters)
+  #foreach($paramrecord in $PARAMETERS)
     #if(($paramcounter % 2) == 0)
         <tr class="evenformrow">
     #else

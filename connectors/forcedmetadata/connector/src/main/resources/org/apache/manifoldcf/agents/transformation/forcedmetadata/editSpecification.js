@@ -18,33 +18,58 @@
 <script type="text/javascript">
 <!--
 
-function s${SeqNum}_AddForcedMetadata()
+function s${SEQNUM}_AddForcedMetadata()
 {
-  if (editjob.s${SeqNum}_forcedmetadata_name.value == "")
+  if (editjob.s${SEQNUM}_forcedmetadata_name.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ForcedMetadata.ForcedMetadataNameMustNotBeNull'))");
-    editjob.s${SeqNum}_forcedmetadata_name.focus();
+    editjob.s${SEQNUM}_forcedmetadata_name.focus();
     return;
   }
-  document.editjob.s${SeqNum}_forcedmetadata_op.value="Add";
-  postFormSetAnchor("s${SeqNum}_forcedmetadata_tag");
+  document.editjob.s${SEQNUM}_forcedmetadata_op.value="Add";
+  postFormSetAnchor("s${SEQNUM}_forcedmetadata_tag");
 }
 	
-function s${SeqNum}_DeleteForcedMetadata(n)
+function s${SEQNUM}_DeleteForcedMetadata(n)
 {
-  eval("document.editjob.s${SeqNum}_forcedmetadata_"+n+"_op.value = 'Delete'");
+  eval("document.editjob.s${SEQNUM}_forcedmetadata_"+n+"_op.value = 'Delete'");
   if (n == 0)
-    postFormSetAnchor("s${SeqNum}_forcedmetadata_tag");
+    postFormSetAnchor("s${SEQNUM}_forcedmetadata_tag");
   else
-    postFormSetAnchor("s${SeqNum}_forcedmetadata_"+(n-1)+"_tag");
+    postFormSetAnchor("s${SEQNUM}_forcedmetadata_"+(n-1)+"_tag");
 }
 
-function s${SeqNum}_checkSpecificationForSave()
+function s${SEQNUM}_addFieldMapping()
+{
+  if (editjob.s${SEQNUM}_fieldmapping_source.value == "")
+  {
+    alert("$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.NoFieldNameSpecified'))");
+    editjob.s${SEQNUM}_fieldmapping_source.focus();
+    return;
+  }
+  editjob.s${SEQNUM}_fieldmapping_op.value="Add";
+  postFormSetAnchor("s${SEQNUM}_fieldmapping");
+}
+
+function s${SEQNUM}_deleteFieldMapping(i)
+{
+  // Set the operation
+  eval("editjob.s${SEQNUM}_fieldmapping_op_"+i+".value=\"Delete\"");
+  // Submit
+  if (editjob.s${SEQNUM}_fieldmapping_count.value==i)
+    postFormSetAnchor("s${SEQNUM}_fieldmapping");
+  else
+    postFormSetAnchor("s${SEQNUM}_fieldmapping_"+i)
+  // Undo, so we won't get two deletes next time
+  eval("editjob.s${SEQNUM}_fieldmapping_op_"+i+".value=\"Continue\"");
+}
+
+function s${SEQNUM}_checkSpecificationForSave()
 {
   return true;
 }
 
-function s${SeqNum}_checkSpecification()
+function s${SEQNUM}_checkSpecification()
 {
   return true;
 }
