@@ -27,7 +27,7 @@ function s${SEQNUM}_addFieldMapping()
   if (editjob.s${SEQNUM}_cloudsearch_fieldmapping_source.value == "")
   {
     alert("$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.NoFieldMappingSpecified'))");
-    editjob.s${SEQNUM}_solr_fieldmapping_source.focus();
+    editjob.s${SEQNUM}_cloudsearch_fieldmapping_source.focus();
     return;
   }
   editjob.s${SEQNUM}_cloudsearch_fieldmapping_op.value="Add";
