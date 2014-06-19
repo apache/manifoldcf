@@ -101,6 +101,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   public int addOrReplaceDocumentWithException(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
+    SpecPacker sp = new SpecPacker(pipelineDescription);
+
     // Tika's API reads from an input stream and writes to an output Writer.
     // Since a RepositoryDocument includes readers and inputstreams exclusively, AND all downstream
     // processing needs to occur in a ManifoldCF thread, we have some constraints on the architecture we need to get this done:
@@ -203,7 +205,18 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         String[] metaNames = metadata.names();
         for(String mName : metaNames){
           String value = metadata.get(mName);
-          docCopy.addField(mName,value);
+          String target = sp.getMapping(mName);
+          if(target!=null)
+          {
+            docCopy.addField(target, value);
+          }
+          else
+          {
+            if(sp.keepAllMetadata())
+            {
+             docCopy.addField(mName, value);
+            }
+          }
         }
 
         // Send new document downstream
