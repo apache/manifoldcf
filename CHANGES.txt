@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-971: Use a generic "seeding version string" to track the last
+seeding event for every job.  This abstracts away from time intervals and
+permits seeding based on things like transaction IDs.
+(Karl Wright, Piergiorgio Lucidi)
+
 CONNECTORS-967: Add links to Java 1.7 and ManifoldCF framework Javadoc
 for ManifoldCF Javadocs.
 (Shinichiro Abe)
