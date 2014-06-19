@@ -38,6 +38,7 @@ import java.util.*;
  * <tr><td>lasttime</td><td>BIGINT</td><td>operational field</td></tr>
  * <tr><td>starttime</td><td>BIGINT</td><td>operational field</td></tr>
  * <tr><td>lastchecktime</td><td>BIGINT</td><td>operational field</td></tr>
+ * <tr><td>seedingversion</td><td>LONGTEXT</td><td>operational field</td></tr>
  * <tr><td>endtime</td><td>BIGINT</td><td>operational field</td></tr>
  * <tr><td>docspec</td><td>LONGTEXT</td><td></td></tr>
  * <tr><td>connectionname</td><td>VARCHAR(32)</td><td>Reference:repoconnections.connectionname</td></tr>
@@ -175,9 +176,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public final static String lastTimeField = "lasttime";
   /** If active, paused, activewait, or pausedwait, the start time of the current session, else null. */
   public final static String startTimeField = "starttime";
-  /** The time of the LAST session, if any.  This is the place where the "last repository change check time"
-  * is gotten from. */
-  public final static String lastCheckTimeField = "lastchecktime";
+  //public final static String lastCheckTimeField = "lastchecktime";
+  /** This text data represents the seeding version string, which for many connectors is simply the last time seeding was done */
+  public final static String seedingVersionField = "seedingversion";
   /** If inactive, the end time of the LAST session, if any. */
   public final static String endTimeField = "endtime";
   /** If non-null, this is the time that the current execution window closes, in ms since epoch. */
@@ -390,7 +391,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         map.put(statusField,new ColumnDescription("CHAR(1)",false,false,null,null,false));
         map.put(lastTimeField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(startTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
-        map.put(lastCheckTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
+        map.put(seedingVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(endTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(documentSpecField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(this.connectionNameField,new ColumnDescription("VARCHAR(32)",false,false,connectionTableName,connectionNameField,false));
@@ -471,6 +472,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           deleteList.add(oldOutputNameField);
           performAlter(null,null,deleteList,null);
         }
+        // Need upgrade for seedingversionfield and to get rid of lastcheckfield
+        // MHL
       }
 
       // Handle related tables
@@ -937,7 +940,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
             if (set.getRowCount() > 0)
             {
               // Update
-              // We need to reset the lastCheckTimeField if there are any changes that
+              // We need to reset the seedingVersionField if there are any changes that
               // could affect what set of documents we allow!!!
 
               IResultRow row = set.getRow(0);
@@ -969,7 +972,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
                 isSame = forcedParamManager.compareRows(id,jobDescription);
 
               if (!isSame)
-                values.put(lastCheckTimeField,null);
+                values.put(seedingVersionField,null);
 
               params.clear();
               query = buildConjunctionClause(params,new ClauseDescription[]{
@@ -984,7 +987,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
             {
               // Insert
               values.put(startTimeField,null);
-              values.put(lastCheckTimeField,null);
+              values.put(seedingVersionField,null);
               values.put(endTimeField,null);
               values.put(statusField,statusToString(STATUS_INACTIVE));
               values.put(lastTimeField,new Long(System.currentTimeMillis()));
@@ -1045,7 +1048,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     Map values = new HashMap();
-    values.put(lastCheckTimeField,null);
+    values.put(seedingVersionField,null);
     ArrayList params = new ArrayList();
     String query = buildConjunctionClause(params,new ClauseDescription[]{
       new UnitaryClause(idField,jobID)});
@@ -1539,7 +1542,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   {
     // No cache keys need invalidation, since we're changing the start time, not the status.
     HashMap newValues = new HashMap();
-    newValues.put(lastCheckTimeField,null);
+    newValues.put(seedingVersionField,null);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(connectionNameField,connectionName)});
@@ -1555,7 +1558,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   {
     // No cache keys need invalidation, since we're changing the start time, not the status.
     HashMap newValues = new HashMap();
-    newValues.put(lastCheckTimeField,null);
+    newValues.put(seedingVersionField,null);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new JoinClause(getTableName()+"."+idField,pipelineManager.ownerIDField),
@@ -1571,7 +1574,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   {
     // No cache keys need invalidation, since we're changing the start time, not the status.
     HashMap newValues = new HashMap();
-    newValues.put(lastCheckTimeField,null);
+    newValues.put(seedingVersionField,null);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new JoinClause(getTableName()+"."+idField,pipelineManager.ownerIDField),
@@ -2129,7 +2132,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       {
         map.put(startTimeField,new Long(startTime));
       }
-      map.put(lastCheckTimeField,new Long(startTime));
+      // Clear out seeding version, in case we wind up keeping the job and rerunning it
+      map.put(seedingVersionField,null);
       performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
     }
     catch (ManifoldCFException e)
@@ -2156,8 +2160,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   /** Make job active, and set the start time field.
   *@param jobID is the job identifier.
   *@param startTime is the current time in milliseconds from start of epoch.
+  *@param seedVersionString is the version string to record for the seeding.
   */
-  public void noteJobStarted(Long jobID, long startTime)
+  public void noteJobStarted(Long jobID, long startTime, String seedVersionString)
     throws ManifoldCFException
   {
     beginTransaction();
@@ -2208,7 +2213,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         map.put(startTimeField,new Long(startTime));
       }
       // The seeding was complete or we wouldn't have gotten called, so at least note that.
-      map.put(lastCheckTimeField,new Long(startTime));
+      map.put(seedingVersionField,seedVersionString);
       // Clear out the retry fields we might have set
       map.put(failTimeField,null);
       map.put(failCountField,null);
@@ -2238,9 +2243,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Note job seeded.
   *@param jobID is the job id.
-  *@param seedTime is the job seed time.
+  *@param seedVersionString is the job seed version string.
   */
-  public void noteJobSeeded(Long jobID, long seedTime)
+  public void noteJobSeeded(Long jobID, String seedVersionString)
     throws ManifoldCFException
   {
     // We have to convert the current status to the non-seeding equivalent
@@ -2295,7 +2300,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       HashMap map = new HashMap();
       map.put(statusField,statusToString(newStatus));
       map.put(processIDField,null);
-      map.put(lastCheckTimeField,new Long(seedTime));
+      map.put(seedingVersionField,seedVersionString);
       map.put(failTimeField,null);
       map.put(failCountField,null);
       performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));

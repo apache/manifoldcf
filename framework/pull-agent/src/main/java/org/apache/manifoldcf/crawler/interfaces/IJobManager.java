@@ -905,15 +905,16 @@ public interface IJobManager
   /** Note job started.
   *@param jobID is the job id.
   *@param startTime is the job start time.
+  *@param seedingVersion is the seeding version to record with the job start.
   */
-  public void noteJobStarted(Long jobID, long startTime)
+  public void noteJobStarted(Long jobID, long startTime, String seedingVersion)
     throws ManifoldCFException;
 
   /** Note job seeded.
   *@param jobID is the job id.
-  *@param startTime is the job seed time.
+  *@param seedingVersion is the seeding version string to record.
   */
-  public void noteJobSeeded(Long jobID, long startTime)
+  public void noteJobSeeded(Long jobID, String seedingVersion)
     throws ManifoldCFException;
 
   /**  Note the deregistration of a connector used by the specified connections.
