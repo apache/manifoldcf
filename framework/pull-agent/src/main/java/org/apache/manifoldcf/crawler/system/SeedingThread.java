@@ -116,7 +116,7 @@ public class SeedingThread extends Thread
               Long jobID = jsr.getJobID();
               try
               {
-                long lastJobTime = jsr.getSynchTime();
+                String lastSeedingVersion = jsr.getSeedingVersionString();
                 IJobDescription jobDescription = jobManager.load(jobID,true);
                 int jobType = jobDescription.getType();
 
@@ -127,8 +127,11 @@ public class SeedingThread extends Thread
                 // Null will come back if the connector instance could not be obtained, so just skip in that case.
                 if (connector == null)
                   continue;
+
+                String newSeedingVersion = null;
                 try
                 {
+                  
                   // Get the number of link types.
                   String[] legalLinkTypes = connector.getRelationshipTypes();
 
@@ -144,7 +147,7 @@ public class SeedingThread extends Thread
                     if (Logging.threads.isDebugEnabled())
                       Logging.threads.debug("Seeding thread: Getting seeds for job "+jobID.toString());
 
-                    connector.addSeedDocuments(activity,jobDescription.getSpecification(),lastJobTime,currentTime,jobType);
+                    newSeedingVersion = connector.addSeedDocumentsWithVersion(activity,jobDescription.getSpecification(),lastSeedingVersion,currentTime,jobType);
 
                     activity.doneSeeding(model==connector.MODEL_PARTIAL);
 
@@ -180,7 +183,7 @@ public class SeedingThread extends Thread
                       else
                       {
                         // Not sure this can happen -- but just transition silently to active state
-                        jobManager.noteJobSeeded(jobID,currentTime);
+                        jobManager.noteJobSeeded(jobID,newSeedingVersion);
                         jsr.noteStarted();
                       }
                     }
@@ -204,7 +207,7 @@ public class SeedingThread extends Thread
                   Logging.threads.debug("Seeding thread: Successfully reseeded job "+jobID.toString());
 
                 // Note that this job has been seeded!
-                jobManager.noteJobSeeded(jobID,currentTime);
+                jobManager.noteJobSeeded(jobID,newSeedingVersion);
                 jsr.noteStarted();
 
               }
