@@ -99,11 +99,30 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   
   /** Local connection */  protected HttpPost poster = null;    /** Document Chunk Manager */  private DocumentChunkManager documentChunkManager;    /** cloudsearch field name for file body text. */  private static final String FILE_BODY_TEXT_FIELDNAME = "f_bodytext";    /** Constructor.
    */
-  public AmazonCloudSearchConnector(){  }    @Override  public void install(IThreadContext threadContext)       throws ManifoldCFException  {    IDBInterface mainDatabase = DBInterfaceFactory.make(threadContext,      ManifoldCF.getMasterDatabaseName(),      ManifoldCF.getMasterDatabaseUsername(),      ManifoldCF.getMasterDatabasePassword());        DocumentChunkManager dcmanager = new DocumentChunkManager(threadContext,mainDatabase);    dcmanager.install();  }  @Override  public void deinstall(IThreadContext threadContext)      throws ManifoldCFException  {    IDBInterface mainDatabase = DBInterfaceFactory.make(threadContext,        ManifoldCF.getMasterDatabaseName(),        ManifoldCF.getMasterDatabaseUsername(),        ManifoldCF.getMasterDatabasePassword());          DocumentChunkManager dcmanager = new DocumentChunkManager(threadContext,mainDatabase);    dcmanager.deinstall();  }  /** Return the list of activities that this connector supports (i.e. writes into the log).  *@return the list.  */  @Override
+  public AmazonCloudSearchConnector(){  }  
+  /** Clear out any state information specific to a given thread.
+  * This method is called when this object is returned to the connection pool.
+  */
+  @Override
+  public void clearThreadContext()
+  {
+    super.clearThreadContext();
+    documentChunkManager = null;
+  }
+  @Override  public void install(IThreadContext threadContext)       throws ManifoldCFException  {    IDBInterface mainDatabase = DBInterfaceFactory.make(threadContext,      ManifoldCF.getMasterDatabaseName(),      ManifoldCF.getMasterDatabaseUsername(),      ManifoldCF.getMasterDatabasePassword());        DocumentChunkManager dcmanager = new DocumentChunkManager(threadContext,mainDatabase);    dcmanager.install();  }  @Override  public void deinstall(IThreadContext threadContext)      throws ManifoldCFException  {    IDBInterface mainDatabase = DBInterfaceFactory.make(threadContext,        ManifoldCF.getMasterDatabaseName(),        ManifoldCF.getMasterDatabaseUsername(),        ManifoldCF.getMasterDatabasePassword());          DocumentChunkManager dcmanager = new DocumentChunkManager(threadContext,mainDatabase);    dcmanager.deinstall();  }  /** Return the list of activities that this connector supports (i.e. writes into the log).  *@return the list.  */  @Override
   public String[] getActivitiesList()
   {
     return new String[]{INGEST_ACTIVITY,REMOVE_ACTIVITY};
   }
+
+    if (documentChunkManager == null)
+    {
+      IDBInterface databaseHandle = DBInterfaceFactory.make(currentContext,
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
+      documentChunkManager = new DocumentChunkManager(currentContext,databaseHandle);
+    }
 
   /** Connect.
   *@param configParameters is the set of configuration parameters, which
@@ -140,7 +159,15 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   }
 
   /** Set up a session */
-  protected void getSession()    throws ManifoldCFException  {    if (documentChunkManager == null)    {      IDBInterface databaseHandle = DBInterfaceFactory.make(currentContext,        ManifoldCF.getMasterDatabaseName(),        ManifoldCF.getMasterDatabaseUsername(),        ManifoldCF.getMasterDatabasePassword());      documentChunkManager = new DocumentChunkManager(currentContext,databaseHandle);    }        String serverHost = params.getParameter(AmazonCloudSearchConfig.SERVER_HOST);    if (serverHost == null)      throw new ManifoldCFException("Server host parameter required");    String serverPath = params.getParameter(AmazonCloudSearchConfig.SERVER_PATH);
+  protected void getSession()    throws ManifoldCFException  {    if (documentChunkManager == null)
+    {
+      IDBInterface databaseHandle = DBInterfaceFactory.make(currentContext,
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
+      documentChunkManager = new DocumentChunkManager(currentContext,databaseHandle);
+    }
+    String serverHost = params.getParameter(AmazonCloudSearchConfig.SERVER_HOST);    if (serverHost == null)      throw new ManifoldCFException("Server host parameter required");    String serverPath = params.getParameter(AmazonCloudSearchConfig.SERVER_PATH);
     if (serverPath == null)
       throw new ManifoldCFException("Server path parameter required");
     String proxyProtocol = params.getParameter(AmazonCloudSearchConfig.PROXY_PROTOCOL);
