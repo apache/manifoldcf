@@ -39,7 +39,7 @@ function s${SEQNUM}_deleteFieldMapping(i)
   // Set the operation
   eval("editjob.s${SEQNUM}_fieldmapping_op_"+i+".value=\"Delete\"");
   // Submit
-  if (editjob.s${SEQNUM}_cloudsearch_fieldmapping_count.value==i)
+  if (editjob.s${SEQNUM}_fieldmapping_count.value==i)
     postFormSetAnchor("s${SEQNUM}_fieldmapping");
   else
     postFormSetAnchor("s${SEQNUM}_fieldmapping_"+i)
