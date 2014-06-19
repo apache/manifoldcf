@@ -102,6 +102,16 @@ public class RepositoryDocument
     return rval;
   }
   
+  /** Clear all fields.
+  */
+  public void clearFields()
+  {
+    fields.clear();
+    stringFields.clear();
+    dateFields.clear();
+    readerFields.clear();
+  }
+  
   /** Set the document's created date.  Use null to indicate that the date is unknown.
   *@param date is the date.
   */

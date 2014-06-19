@@ -32,7 +32,7 @@
 
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-transformation-connector">
-            <param name="connector-label" value="Forced metadata"/>
+            <param name="connector-label" value="Metadata adjuster"/>
             <param name="connector-class" value="org.apache.manifoldcf.agents.transformation.forcedmetadata.ForcedMetadataConnector"/>
         </antcall>
     </target>
