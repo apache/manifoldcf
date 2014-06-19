@@ -176,7 +176,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public final static String lastTimeField = "lasttime";
   /** If active, paused, activewait, or pausedwait, the start time of the current session, else null. */
   public final static String startTimeField = "starttime";
-  //public final static String lastCheckTimeField = "lastchecktime";
   /** This text data represents the seeding version string, which for many connectors is simply the last time seeding was done */
   public final static String seedingVersionField = "seedingversion";
   /** If inactive, the end time of the LAST session, if any. */
@@ -378,6 +377,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       // These are fields we want to get rid of.
       String oldOutputSpecField = "outputspec";
       String oldOutputNameField = "outputname";
+      String oldLastCheckTimeField = "lastchecktime";
 
       // A place to keep the outputs we find, so we can add them into the pipeline at the end.
       IResultSet outputSet = null;
@@ -462,6 +462,33 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           map.put(statusField,statusToString(STATUS_ACTIVESEEDING_UNINSTALLED));
           performUpdate(map,"WHERE "+query,list,null);
         }
+        if (existing.get(seedingVersionField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(seedingVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+          // Populate it with data from the old last check version field
+          IResultSet set = performQuery("SELECT "+idField+","+oldLastCheckTimeField+" FROM "+getTableName(),null,null,null);
+          for (int i = 0; i < set.getRowCount(); i++)
+          {
+            IResultRow row = set.getRow(i);
+            Long jobID = (Long)row.getValue(idField);
+            Long oldTime = (Long)row.getValue(oldLastCheckTimeField);
+            if (oldTime != null)
+            {
+              HashMap map = new HashMap();
+              map.put(seedingVersionField,oldTime.toString());
+              ArrayList list = new ArrayList();
+              String query = buildConjunctionClause(list,new ClauseDescription[]{
+                new UnitaryClause(idField,jobID)});
+              performUpdate(map,"WHERE "+query,list,null);
+            }
+          }
+          List<String> deleteList = new ArrayList<String>();
+          deleteList.add(oldLastCheckTimeField);
+          performAlter(null,null,deleteList,null);
+        }
+        
         if (existing.get(oldOutputNameField) != null)
         {
           // Remove output name and spec fields, but first read them so we can put them into the pipeline manager
