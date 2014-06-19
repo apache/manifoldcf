@@ -41,6 +41,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
+  private static final String EDIT_SPECIFICATION_FIELDMAPPING_HTML = "editSpecification_FieldMapping.html";
+  private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
+
   protected static final String ACTIVITY_EXTRACT = "extract";
 
   protected static final String[] activitiesList = new String[]{ACTIVITY_EXTRACT};
@@ -56,6 +60,25 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   public String[] getActivitiesList()
   {
     return activitiesList;
+  }
+
+  /** Get an output version string, given an output specification.  The output version string is used to uniquely describe the pertinent details of
+  * the output specification and the configuration, to allow the Connector Framework to determine whether a document will need to be output again.
+  * Note that the contents of the document cannot be considered by this method, and that a different version string (defined in IRepositoryConnector)
+  * is used to describe the version of the actual document.
+  *
+  * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
+  * necessary.
+  *@param os is the current output specification for the job that is doing the crawling.
+  *@return a string, of unlimited length, which uniquely describes output configuration and specification in such a way that if two such strings are equal,
+  * the document will not need to be sent again to the output data store.
+  */
+  @Override
+  public String getPipelineDescription(Specification os)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    SpecPacker sp = new SpecPacker(os);
+    return sp.toPackedString();
   }
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -199,6 +222,221 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       ds.close();
     }
 
+  }
+
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  @Override
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+  }
+
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a pipeline connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this connection.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, List<String> tabsArray)
+    throws ManifoldCFException, IOException
+  {
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SEQNUM",Integer.toString(connectionSequenceNumber));
+
+    tabsArray.add(Messages.getString(locale, "TikaExtractor.FieldMappingTabName"));
+
+    // Fill in the specification header map, using data from all tabs.
+    fillInFieldMappingSpecificationMap(paramMap, os);
+
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_JS,paramMap);
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a pipeline connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
+  *@param tabName is the current tab name.
+  */
+  @Override
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
+    throws ManifoldCFException, IOException
+  {
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+
+    // Set the tab name
+    paramMap.put("TABNAME", tabName);
+    paramMap.put("SEQNUM",Integer.toString(connectionSequenceNumber));
+    paramMap.put("SELECTEDNUM",Integer.toString(actualSequenceNumber));
+
+    // Fill in the field mapping tab data
+    fillInFieldMappingSpecificationMap(paramMap, os);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_FIELDMAPPING_HTML,paramMap);
+  }
+
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the transformation specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  @Override
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String x;
+        
+    x = variableContext.getParameter(seqPrefix+"fieldmapping_count");
+    if (x != null && x.length() > 0)
+    {
+      // About to gather the fieldmapping nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(TikaConfig.NODE_FIELDMAP) || node.getType().equals(TikaConfig.NODE_KEEPMETADATA))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      int count = Integer.parseInt(x);
+      i = 0;
+      while (i < count)
+      {
+        String prefix = seqPrefix+"fieldmapping_";
+        String suffix = "_"+Integer.toString(i);
+        String op = variableContext.getParameter(prefix+"op"+suffix);
+        if (op == null || !op.equals("Delete"))
+        {
+          // Gather the fieldmap etc.
+          String source = variableContext.getParameter(prefix+"source"+suffix);
+          String target = variableContext.getParameter(prefix+"target"+suffix);
+          if (target == null)
+            target = "";
+          SpecificationNode node = new SpecificationNode(TikaConfig.NODE_FIELDMAP);
+          node.setAttribute(TikaConfig.ATTRIBUTE_SOURCE,source);
+          node.setAttribute(TikaConfig.ATTRIBUTE_TARGET,target);
+          os.addChild(os.getChildCount(),node);
+        }
+        i++;
+      }
+      
+      String addop = variableContext.getParameter(seqPrefix+"fieldmapping_op");
+      if (addop != null && addop.equals("Add"))
+      {
+        String source = variableContext.getParameter(seqPrefix+"fieldmapping_source");
+        String target = variableContext.getParameter(seqPrefix+"fieldmapping_target");
+        if (target == null)
+          target = "";
+        SpecificationNode node = new SpecificationNode(TikaConfig.NODE_FIELDMAP);
+        node.setAttribute(TikaConfig.ATTRIBUTE_SOURCE,source);
+        node.setAttribute(TikaConfig.ATTRIBUTE_TARGET,target);
+        os.addChild(os.getChildCount(),node);
+      }
+      
+      // Gather the keep all metadata parameter to be the last one
+      SpecificationNode node = new SpecificationNode(TikaConfig.NODE_KEEPMETADATA);
+      String keepAll = variableContext.getParameter(seqPrefix+"keepallmetadata");
+      if (keepAll != null)
+      {
+        node.setAttribute(TikaConfig.ATTRIBUTE_VALUE, keepAll);
+      }
+      else
+      {
+        node.setAttribute(TikaConfig.ATTRIBUTE_VALUE, "false");
+      }
+      // Add the new keepallmetadata config parameter 
+      os.addChild(os.getChildCount(), node);
+    }
+    
+    return null;
+  }
+  
+
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the pipeline specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the preferred local of the output.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param os is the current pipeline specification for this job.
+  */
+  @Override
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber)
+    throws ManifoldCFException, IOException
+  {
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SEQNUM",Integer.toString(connectionSequenceNumber));
+
+    // Fill in the map with data from all tabs
+    fillInFieldMappingSpecificationMap(paramMap, os);
+
+    Messages.outputResourceWithVelocity(out,locale,VIEW_SPECIFICATION_HTML,paramMap);
+    
+  }
+
+  protected static void fillInFieldMappingSpecificationMap(Map<String,Object> paramMap, Specification os)
+  {
+    // Prep for field mappings
+    List<Map<String,String>> fieldMappings = new ArrayList<Map<String,String>>();
+    String keepAllMetadataValue = "true";
+    for (int i = 0; i < os.getChildCount(); i++)
+    {
+      SpecificationNode sn = os.getChild(i);
+      if (sn.getType().equals(TikaConfig.NODE_FIELDMAP)) {
+        String source = sn.getAttributeValue(TikaConfig.ATTRIBUTE_SOURCE);
+        String target = sn.getAttributeValue(TikaConfig.ATTRIBUTE_TARGET);
+        String targetDisplay;
+        if (target == null)
+        {
+          target = "";
+          targetDisplay = "(remove)";
+        }
+        else
+          targetDisplay = target;
+        Map<String,String> fieldMapping = new HashMap<String,String>();
+        fieldMapping.put("SOURCE",source);
+        fieldMapping.put("TARGET",target);
+        fieldMapping.put("TARGETDISPLAY",targetDisplay);
+        fieldMappings.add(fieldMapping);
+      }
+      else if (sn.getType().equals(TikaConfig.NODE_KEEPMETADATA))
+      {
+        keepAllMetadataValue = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+      }
+    }
+    paramMap.put("FIELDMAPPINGS",fieldMappings);
+    paramMap.put("KEEPALLMETADATA",keepAllMetadataValue);
   }
 
   protected static int handleTikaException(TikaException e)
