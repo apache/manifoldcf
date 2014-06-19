@@ -115,15 +115,6 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     return new String[]{INGEST_ACTIVITY,REMOVE_ACTIVITY};
   }
 
-    if (documentChunkManager == null)
-    {
-      IDBInterface databaseHandle = DBInterfaceFactory.make(currentContext,
-        ManifoldCF.getMasterDatabaseName(),
-        ManifoldCF.getMasterDatabaseUsername(),
-        ManifoldCF.getMasterDatabasePassword());
-      documentChunkManager = new DocumentChunkManager(currentContext,databaseHandle);
-    }
-
   /** Connect.
   *@param configParameters is the set of configuration parameters, which
   * in this case describe the target appliance, basic auth configuration, etc.  (This formerly came
