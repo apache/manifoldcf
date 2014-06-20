@@ -22,30 +22,5 @@ function s${SEQNUM}_checkSpecification()
   return true;
 }
 
-function s${SEQNUM}_addFieldMapping()
-{
-  if (editjob.s${SEQNUM}_cloudsearch_fieldmapping_source.value == "")
-  {
-    alert("$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.NoFieldMappingSpecified'))");
-    editjob.s${SEQNUM}_cloudsearch_fieldmapping_source.focus();
-    return;
-  }
-  editjob.s${SEQNUM}_cloudsearch_fieldmapping_op.value="Add";
-  postFormSetAnchor("s${SEQNUM}_cloudsearch_fieldmapping");
-}
-
-function s${SEQNUM}_deleteFieldMapping(i)
-{
-  // Set the operation
-  eval("editjob.s${SEQNUM}_cloudsearch_fieldmapping_op_"+i+".value=\"Delete\"");
-  // Submit
-  if (editjob.s${SEQNUM}_cloudsearch_fieldmapping_count.value==i)
-    postFormSetAnchor("s${SEQNUM}_cloudsearch_fieldmapping");
-  else
-    postFormSetAnchor("s${SEQNUM}_cloudsearch_fieldmapping_"+i)
-  // Undo, so we won't get two deletes next time
-  eval("editjob.s${SEQNUM}_cloudsearch_fieldmapping_op_"+i+".value=\"Continue\"");
-}
-
 //-->
 </script>
