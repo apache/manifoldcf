@@ -3,6 +3,13 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-954: Revamp AmazonCloudSearch output connector completely.
+(1) Remove Tika and field mapping, since that would be done upstream in the
+pipeline.
+(2) Revamped the document lifecycle so they are batched together (which isn't
+perfect; see CONNECTORS-980).
+(Karl Wright, Takumi Yoshida)
+
 CONNECTORS-971: Use a generic "seeding version string" to track the last
 seeding event for every job.  This abstracts away from time intervals and
 permits seeding based on things like transaction IDs.
