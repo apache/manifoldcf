@@ -32,6 +32,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.apache.commons.io.input.ReaderInputStream;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
@@ -64,14 +66,6 @@ import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.Parser;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.sax.BodyContentHandler;
-import org.xml.sax.ContentHandler;
-import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -81,6 +75,8 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import org.apache.manifoldcf.core.jsongen.*;
 
 public class AmazonCloudSearchConnector extends BaseOutputConnector {
 
@@ -109,8 +105,12 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   /** Local connection */
   protected HttpPost poster = null;
   
+  // What we need for database keys
+  protected String serverHost = null;
+  protected String serverPath = null;
+  
   /** Document Chunk Manager */
-  private DocumentChunkManager documentChunkManager;
+  private DocumentChunkManager documentChunkManager = null;
   
   /** cloudsearch field name for file body text. */
   private static final String FILE_BODY_TEXT_FIELDNAME = "f_bodytext";
@@ -139,7 +139,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       ManifoldCF.getMasterDatabaseUsername(),
       ManifoldCF.getMasterDatabasePassword());
     
-    DocumentChunkManager dcmanager = new DocumentChunkManager(threadContext,mainDatabase);
+    DocumentChunkManager dcmanager = new DocumentChunkManager(mainDatabase);
     dcmanager.install();
   }
 
@@ -192,10 +192,9 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   public void disconnect()
     throws ManifoldCFException
   {
-    if (poster != null)
-    {
-      poster = null;
-    }
+    serverHost = null;
+    serverPath = null;
+    poster = null;
     super.disconnect();
   }
 
@@ -212,10 +211,10 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       documentChunkManager = new DocumentChunkManager(currentContext,databaseHandle);
     }
 
-    String serverHost = params.getParameter(AmazonCloudSearchConfig.SERVER_HOST);
+    serverHost = params.getParameter(AmazonCloudSearchConfig.SERVER_HOST);
     if (serverHost == null)
       throw new ManifoldCFException("Server host parameter required");
-    String serverPath = params.getParameter(AmazonCloudSearchConfig.SERVER_PATH);
+    serverPath = params.getParameter(AmazonCloudSearchConfig.SERVER_PATH);
     if (serverPath == null)
       throw new ManifoldCFException("Server path parameter required");
     String proxyProtocol = params.getParameter(AmazonCloudSearchConfig.PROXY_PROTOCOL);
@@ -252,7 +251,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   public String check() throws ManifoldCFException {
     try {
       getSession();
-      String responsbody = postData("[]");
+      String responsbody = postData(new InputStreamReader(new StringReader("[]"),Consts.UTF_8));
       String status = "";
       try
       {
@@ -401,98 +400,60 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     
     SpecPacker sp = new SpecPacker(outputDescription);
     
-    String jsondata = "";
-    try {
-      //build json..
-      SDFModel model = new SDFModel();
-      Document doc = model.new Document();
-      doc.setType("add");
-      doc.setId(ManifoldCF.hash(documentURI));
-      
-      HashMap fields = new HashMap();
-      Metadata metadata = extractBinaryFile(document, fields);
-      
-      Iterator<String> itr = document.getFields();
-      while(itr.hasNext())
+    String uid = ManifoldCF.hash(documentURI);
+
+    // Build a JSON generator
+    JSONObjectReader objectReader = new JSONObjectReader();
+    // Build the metadata field part
+    JSONObjectReader fieldReader = new JSONObjectReader();
+    // Add the type and ID
+    objectReader.addNameValuePair(new JSONNameValueReader(new JSONStringValue("id"),new JSONStringValue(uid)))
+      .addNameValuePair(new JSONNameValueReader(new JSONStringValue("type"),new JSONStringValue("add")))
+      .addNameValuePair(new JSONNameValueReader(new JSONStringValue("fields"),fieldReader));
+    
+    // Populate the fields...
+    Iterator<String> itr = document.getFields();
+    while (itr.hasNext())
+    {
+      String fieldName = itr.next();
+      Object[] fieldValues = document.getField(fieldName);
+      JSONReader[] elements = new JSONReader[fieldValues.length];
+      if (fieldValues instanceof Reader[])
       {
-        String fName = itr.next();
-        Object[] value = document.getField(fName);
-        String target = sp.getMapping(fName);
-        if(target!=null)
+        for (int i = 0; i < elements.length; i++)
         {
-          fields.put(target, value);
-        }
-        else
-        {
-          if(sp.keepAllMetadata())
-          {
-            fields.put(fName, value);
-          }
+          elements[i] = new JSONStringReader((Reader)fieldValues[i]);
         }
       }
-      
-      //metadata of binary files.
-      String[] metaNames = metadata.names();
-      for(String mName : metaNames){
-        String value = metadata.get(mName);
-        String target = sp.getMapping(mName);
-        if(target!=null)
+      else if (fieldValues instanceof Date[])
+      {
+        for (int i = 0; i < elements.length; i++)
         {
-          fields.put(target, value);
-        }
-        else
-        {
-          if(sp.keepAllMetadata())
-          {
-            fields.put(mName, value);
-          }
+          elements[i] = new JSONStringReader(((Date)fieldValues[i]).toString());
         }
       }
-      doc.setFields(fields);
-      model.addDocument(doc);
+      else if (fieldValues instanceof String[])
+      {
+        for (int i = 0; i < elements.length; i++)
+        {
+          elements[i] = new JSONStringReader((String)fieldValues[i]);
+        }
+      }
+      else
+        throw IllegalStateException("Unexpected metadata type: "+fieldValues.getClass().getName());
       
-      //generate json data.
-      jsondata = model.toJSON();
-      
-      documentChunkManager.addDocument(doc.getId(), false, jsondata);
-      return DOCUMENTSTATUS_ACCEPTED;
-    } 
-    catch (SAXException e) {
-      // if document data could not be converted to JSON by jackson.
-      Logging.connectors.debug(e);
-      throw new ManifoldCFException(e);
-    } catch (JsonProcessingException e) {
-      // if document data could not be converted to JSON by jackson.
-      Logging.connectors.debug(e);
-      throw new ManifoldCFException(e);
-    } catch (TikaException e) {
-      // if document could not be parsed by tika.
-      Logging.connectors.debug(e);
-      return DOCUMENTSTATUS_REJECTED;
-    } catch (IOException e) {
-      // if document data could not be read when the document parsing by tika.
-      Logging.connectors.debug(e);
-      throw new ManifoldCFException(e);
+      fieldReader.addNameValuePair(new JSONNameValueReader(new JSONStringReader(fieldName),new JSONArrayReader(elements)));
     }
+    
+    // Add the primary content data in.
+    fieldReader.addNameValuePair(new JSONNameValueReader(new JSONStringReader(FILE_BODY_TEXT_FIELDNAME),
+      new JSONStringReader(new InputStreamReader(document.getBinaryStream(),Consts.UTF_8))));
+    
+    documentChunkManager.addOrReplaceDocument(uid, serverHost, serverPath, new ReaderInputStream(objectReader, Consts.UTF_8));
+    
+    return DOCUMENTSTATUS_ACCEPTED;
   }
   
-  private Metadata extractBinaryFile(RepositoryDocument document, HashMap fields)
-      throws IOException, SAXException, TikaException {
-    
-    //extract body text and metadata fields from binary file.
-    InputStream is = document.getBinaryStream();
-    Parser parser = new AutoDetectParser();
-    ContentHandler handler = new BodyContentHandler();
-    Metadata metadata = new Metadata();
-    parser.parse(is, handler, metadata, new ParseContext());
-    String bodyStr = handler.toString();
-    if(bodyStr != null){
-      bodyStr = handler.toString().replaceAll("\\n", "").replaceAll("\\t", "");
-      fields.put(FILE_BODY_TEXT_FIELDNAME, bodyStr);
-    }
-    return metadata;
-  }
-
   /** Remove a document using the connector.
   * Note that the last outputDescription is included, since it may be necessary for the connector to use such information to know how to properly remove the document.
   *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
@@ -507,20 +468,15 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     // Establish a session
     getSession();
     
-    String jsonData = "";
-    try {
-      SDFModel model = new SDFModel();
-      SDFModel.Document doc = model.new Document();
-      doc.setType("delete");
-      doc.setId(ManifoldCF.hash(documentURI));
-      model.addDocument(doc);
-      jsonData = model.toJSON();
-      
-      documentChunkManager.addDocument(doc.getId(), false, jsonData);
-      
-    } catch (JsonProcessingException e) {
-      throw new ManifoldCFException(e);
-    }
+    String uid = ManifoldCF.hash(documentURI);
+
+    // Build a JSON generator
+    JSONObjectReader objectReader = new JSONObjectReader();
+    // Add the type and ID
+    objectReader.addNameValuePair(new JSONNameValueReader(new JSONStringValue("id"),new JSONStringValue(uid)))
+      .addNameValuePair(new JSONNameValueReader(new JSONStringValue("type"),new JSONStringValue("delete")))
+
+    documentChunkManager.removeDocument(uid, serverHost, serverPath, new ReaderInputStream(objectReader, Consts.UTF_8));
   }
   
   @Override
@@ -528,32 +484,83 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       throws ManifoldCFException, ServiceInterruption {
     getSession();
     
-    final int chunkNum = documentChunkManager.getDocumentChunkNum();
-    
-    for(int i = 0;i<chunkNum;i++)
+    // Repeat until we are empty of cached stuff
+    int chunkNumber = 0;
+    while (true)
     {
-      String chunk = documentChunkManager.buildDocumentChunk(String.valueOf(i), i);
-      
-      //post data..
-      String responsbody = postData(chunk);
-      // check status
-      String status = getStatusFromJsonResponse(responsbody);
-      if("success".equals(status))
+      DocumentRecord[] records = documentChunkManager.readChunk(serverHost, serverPath, 1000);
+      try
       {
-        int n = i + 1;
-        Logging.connectors.info("successfully send document chunk " + n + " of " + chunkNum);
+        if (records.length == 0)
+          break;
+        // The records consist of up to 1000 individual input streams, which must be all concatenated together into the post
+        // To do that, we've got a composite input stream object we glue all these together with.
+        CompositeInputStream cis = new CompositeInputStream();
+        for (DocumentRecord dr : records)
+        {
+          cis.addStream(dr.getDataStream());
+        }
         
-        //remove documents from table..
-        documentChunkManager.removeDocumentsInChunk(String.valueOf(i));
+        //post data..
+        String responsbody = postData(cis);
+        // check status
+        String status = getStatusFromJsonResponse(responsbody);
+        if("success".equals(status))
+        {
+          Logging.connectors.info("AmazonCloudSearch: Successfully sent document chunk " + chunkNumber);
+          //remove documents from table..
+          documentChunkManager.deleteChunk(records);
+        }
+        else
+        {
+          Logging.connectors.error("AmazonCloudSearch: Error sending document chunk "+ chunkNumber+": "+ responseBody);
+          throw new ManifoldCFException("recieved error status from service after feeding document. response body : " + responsbody);
+        }
       }
-      else
+      finally
       {
-        throw new ManifoldCFException("recieved error status from service after feeding document. response body : " + responsbody);
+        Throwable exception = null;
+        for (DocumentRecord dr : records)
+        {
+          try
+          {
+            dr.close();
+          }
+          catch (Throwable e)
+          {
+            exception = e;
+          }
+        }
+        if (exception != null)
+        {
+          if (exception instanceof ManifoldCFException)
+            throw (ManifoldCFException)exception;
+          else if (exception instanceof Error)
+            throw (Error)exception;
+          else if (exception instanceof RuntimeException)
+            throw (RuntimeException)exception;
+          else
+            throw new RuntimeException("Unknown exception class thrown: "+exception.getClass().getName()+": "+exception.getMessage(),e);
+        }
       }
-      
     }
   }
 
+  protected static class CompositeInputStream extends InputStream
+  {
+    
+    public CompositeInputStream()
+    {
+    }
+    
+    public void addStream(InputStream stream)
+    {
+      // MHL
+    }
+    
+    // MHL
+  }
+  
   /**
    * Fill in a Server tab configuration parameter map for calling a Velocity
    * template.
@@ -699,10 +706,10 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     return null;
   }
 
-  private String postData(String jsonData) throws ServiceInterruption, ManifoldCFException {
+  private String postData(InputStream jsonData) throws ServiceInterruption, ManifoldCFException {
     CloseableHttpClient httpclient = HttpClients.createDefault();
     try {
-      poster.setEntity(new StringEntity(jsonData, Consts.UTF_8));
+      poster.setEntity(new InputStreamEntity(jsonData));
       HttpResponse res = httpclient.execute(poster);
       
       HttpEntity resEntity = res.getEntity();

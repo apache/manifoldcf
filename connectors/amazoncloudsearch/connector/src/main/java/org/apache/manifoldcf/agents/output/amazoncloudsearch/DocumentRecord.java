@@ -27,15 +27,13 @@ public class DocumentRecord {
   protected final String host;
   protected final String path;
   protected final String uid;
-  protected final boolean delete;
   protected final BinaryInput data;
   
-  public DocumentRecord(String host, String path, String uid, boolean delete, BinaryInput data)
+  public DocumentRecord(String host, String path, String uid, BinaryInput data)
   {
     this.host = host;
     this.path = path;
     this.uid = uid;
-    this.delete = delete;
     this.data = data;
   }
 
@@ -52,11 +50,6 @@ public class DocumentRecord {
   public String getUid()
   {
     return uid;
-  }
-  
-  public boolean getDelete()
-  {
-    return delete;
   }
   
   public long getStreamLength()
