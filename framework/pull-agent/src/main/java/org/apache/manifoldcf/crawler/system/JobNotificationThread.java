@@ -249,6 +249,184 @@ public class JobNotificationThread extends Thread
               throw exception;
           }
 
+          // ???
+          JobNotifyRecord[] jobsNeedingDeleteNotification = jobManager.getJobsReadyForDelete(processID);
+          try
+          {
+            Set<OutputAndRepositoryConnection> connectionNames = new HashSet<OutputAndRepositoryConnection>();
+            
+            int k = 0;
+            while (k < jobsNeedingDeleteNotification.length)
+            {
+              JobNotifyRecord jsr = jobsNeedingDeleteNotification[k++];
+              Long jobID = jsr.getJobID();
+              IJobDescription job = jobManager.load(jobID,true);
+              if (job != null)
+              {
+                // Get the connection name
+                String repositoryConnectionName = job.getConnectionName();
+                IPipelineSpecificationBasic basicSpec = new PipelineSpecificationBasic(job);
+                for (int i = 0; i < basicSpec.getOutputCount(); i++)
+                {
+                  String outputConnectionName = basicSpec.getStageConnectionName(basicSpec.getOutputStage(i));
+                  OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
+                  connectionNames.add(c);
+                }
+              }
+            }
+            
+            // Attempt to notify the specified connections
+            Map<OutputAndRepositoryConnection,Disposition> notifiedConnections = new HashMap<OutputAndRepositoryConnection,Disposition>();
+            
+            for (OutputAndRepositoryConnection connections : connectionNames)
+            {
+              String outputConnectionName = connections.getOutputConnectionName();
+              String repositoryConnectionName = connections.getRepositoryConnectionName();
+              
+              OutputNotifyActivity activity = new OutputNotifyActivity(repositoryConnectionName,repositoryConnectionManager,outputConnectionName);
+              
+              IOutputConnection connection = connectionManager.load(outputConnectionName);
+              if (connection != null)
+              {
+                // Grab an appropriate connection instance
+                IOutputConnector connector = outputConnectorPool.grab(connection);
+                if (connector != null)
+                {
+                  try
+                  {
+                    // Do the notification itself
+                    try
+                    {
+                      connector.noteJobComplete(activity);
+                      notifiedConnections.put(connections,new Disposition());
+                    }
+                    catch (ServiceInterruption e)
+                    {
+                      notifiedConnections.put(connections,new Disposition(e));
+                    }
+                    catch (ManifoldCFException e)
+                    {
+                      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                        throw e;
+                      if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
+                        throw e;
+                      if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
+                        throw e;
+                      // Nothing special; report the error and keep going.
+                      Logging.threads.error(e.getMessage(),e);
+                    }
+                  }
+                  finally
+                  {
+                    outputConnectorPool.release(connection,connector);
+                  }
+                }
+              }
+            }
+            
+            // Go through jobs again, and put the notified ones into the inactive state.
+            k = 0;
+            while (k < jobsNeedingDeleteNotification.length)
+            {
+              JobNotifyRecord jsr = jobsNeedingDeleteNotification[k++];
+              Long jobID = jsr.getJobID();
+              IJobDescription job = jobManager.load(jobID,true);
+              if (job != null)
+              {
+                // Get the connection name
+                String repositoryConnectionName = job.getConnectionName();
+                IPipelineSpecificationBasic basicSpec = new PipelineSpecificationBasic(job);
+                boolean allOK = true;
+                for (int i = 0; i < basicSpec.getOutputCount(); i++)
+                {
+                  String outputConnectionName = basicSpec.getStageConnectionName(basicSpec.getOutputStage(i));
+
+                  OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
+                  
+                  Disposition d = notifiedConnections.get(c);
+                  if (d != null)
+                  {
+                    ServiceInterruption e = d.getServiceInterruption();
+                    if (e == null)
+                    {
+                      break;
+                    }
+                    else
+                    {
+                      if (!e.jobInactiveAbort())
+                      {
+                        Logging.jobs.warn("Delete notification service interruption reported for job "+
+                          jobID+" output connection '"+outputConnectionName+"': "+
+                          e.getMessage(),e);
+                      }
+
+                      // If either we are going to be requeuing beyond the fail time, OR
+                      // the number of retries available has hit 0, THEN we treat this
+                      // as either an "ignore" or a hard error.
+                      if (!e.jobInactiveAbort() && (jsr.getFailTime() != -1L && jsr.getFailTime() < e.getRetryTime() ||
+                        jsr.getFailRetryCount() == 0))
+                      {
+                        // Treat this as a hard failure.
+                        if (e.isAbortOnFail())
+                        {
+                          // Note the error in the job, and transition to inactive state
+                          String message = e.jobInactiveAbort()?"":"Repeated service interruptions during notification"+((e.getCause()!=null)?": "+e.getCause().getMessage():"");
+                          if (jobManager.errorAbort(jobID,message) && message.length() > 0)
+                            Logging.jobs.error(message,e.getCause());
+                          jsr.noteStarted();
+                        }
+                        else
+                        {
+                          // Not sure this can happen -- but just transition silently to inactive state
+                          jobManager.removeJob(jobID);
+                          jsr.noteStarted();
+                        }
+                      }
+                      else
+                      {
+                        // Reset the job to the READYFORDELETENOTIFY state, updating the failtime and failcount fields
+                        jobManager.retryDeleteNotification(jsr,e.getFailTime(),e.getFailRetryCount());
+                        jsr.noteStarted();
+                      }
+                      allOK = false;
+                      break;
+                    }
+                  }
+                }
+                if (allOK)
+                {
+                  jobManager.removeJob(jobID);
+                  jsr.noteStarted();
+                }
+
+              }
+            }
+          }
+          finally
+          {
+            // Clean up all jobs that did not start
+            ManifoldCFException exception = null;
+            int i = 0;
+            while (i < jobsNeedingDeleteNotification.length)
+            {
+              JobNotifyRecord jsr = jobsNeedingDeleteNotification[i++];
+              if (!jsr.wasStarted())
+              {
+                // Clean up from failed start.
+                try
+                {
+                  jobManager.resetDeleteNotifyJob(jsr.getJobID());
+                }
+                catch (ManifoldCFException e)
+                {
+                  exception = e;
+                }
+              }
+            }
+            if (exception != null)
+              throw exception;
+          }
+
           ManifoldCF.sleep(10000L);
         }
         catch (ManifoldCFException e)

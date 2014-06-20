@@ -548,7 +548,15 @@ public interface IJobManager
   */
   public void retryNotification(JobNotifyRecord jobNotifyRecord, long failTime, int failRetryCount)
     throws ManifoldCFException;
-  
+
+  /** Retry delete notification.
+  *@param jnr is the current job notification record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failCount is the new fail retry count (-1 if none).
+  */
+  public void retryDeleteNotification(JobNotifyRecord jnr, long failTime, int failCount)
+    throws ManifoldCFException;
+
   /** Add an initial set of documents to the queue.
   * This method is called during job startup, when the queue is being loaded.
   * A set of document references is passed to this method, which updates the status of the document
@@ -825,11 +833,11 @@ public interface IJobManager
   public void resetSeedJob(Long jobID)
     throws ManifoldCFException;
 
-  /** Get the list of jobs that are ready for deletion.
+  /** Get the list of jobs that are ready for delete cleanup.
   *@param processID is the current process ID.
   *@return jobs that were in the "readyfordelete" state.
   */
-  public JobDeleteRecord[] getJobsReadyForDelete(String processID)
+  public JobDeleteRecord[] getJobsReadyForDeleteCleanup(String processID)
     throws ManifoldCFException;
     
   /** Get the list of jobs that are ready for startup.
@@ -846,10 +854,23 @@ public interface IJobManager
   public JobNotifyRecord[] getJobsReadyForInactivity(String processID)
     throws ManifoldCFException;
 
+  /** Find the list of jobs that need to have their connectors notified of job deletion.
+  *@param processID is the process ID.
+  *@return the ID's of jobs that need their output connectors notified in order to be removed.
+  */
+  public JobNotifyRecord[] getJobsReadyForDelete(String processID)
+    throws ManifoldCFException;
+
   /** Inactivate a job, from the notification state.
   *@param jobID is the ID of the job to inactivate.
   */
   public void inactivateJob(Long jobID)
+    throws ManifoldCFException;
+
+  /** Remove a job, from the notification state.
+  *@param jobID is the ID of the job to remove.
+  */
+  public void removeJob(Long jobID)
     throws ManifoldCFException;
 
   /** Reset a job starting for delete back to "ready for delete"
@@ -864,6 +885,13 @@ public interface IJobManager
   *@param jobID is the job id.
   */
   public void resetNotifyJob(Long jobID)
+    throws ManifoldCFException;
+
+  /** Reset a job that is delete notifying back to "ready for delete notify"
+  * state.
+  *@param jobID is the job id.
+  */
+  public void resetDeleteNotifyJob(Long jobID)
     throws ManifoldCFException;
 
   /** Reset a starting job back to "ready for startup" state.

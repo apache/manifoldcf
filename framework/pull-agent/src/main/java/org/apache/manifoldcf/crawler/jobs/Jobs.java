@@ -124,9 +124,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   // But, since there is no indication in the jobs table of an uninstalled connector for such jobs, the code which starts
   // jobs up (or otherwise would enter any state that has a corresponding special state) must check to see if the underlying
   // connector exists before deciding what state to put the job into.
-  public static final int STATUS_ACTIVE_UNINSTALLED = 38;               // Active, but repository connector not installed
-  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 39;   // Active and seeding, but repository connector not installed
-  public static final int STATUS_DELETING_NOOUTPUT = 40;                // Job is being deleted but there's no output connector installed
+  public static final int STATUS_ACTIVE_UNINSTALLED = 40;               // Active, but repository connector not installed
+  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 41;   // Active and seeding, but repository connector not installed
+  public static final int STATUS_DELETING_NOOUTPUT = 42;                // Job is being deleted but there's no output connector installed
 
   // Deprecated states.  These states should never be used; they're defined only for upgrade purposes
   public static final int STATUS_ACTIVE_NOOUTPUT = 100;                  // Active, but output connector not installed
@@ -1694,9 +1694,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     map.put(failCountField,null);
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
 
-    ArrayList list = new ArrayList();
-    HashMap map = new HashMap();
-    String query = buildConjunctionClause(list,new ClauseDescription[]{
+    list.clear();
+    map.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_NOTIFYINGOFDELETION)),
       new UnitaryClause(processIDField,processID)});
     map.put(statusField,statusToString(STATUS_READYFORDELETENOTIFY));
