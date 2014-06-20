@@ -56,7 +56,6 @@ import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
-import org.apache.manifoldcf.agents.output.amazoncloudsearch.SDFModel.Document;
 import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
