@@ -68,8 +68,8 @@ import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
-import org.apache.manifoldcf.core.system.ManifoldCF;
-import org.apache.manifoldcf.crawler.system.Logging;
+import org.apache.manifoldcf.agents.system.ManifoldCF;
+import org.apache.manifoldcf.agents.system.Logging;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -261,7 +261,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
         status = getStatusFromJsonResponse(responsbody);
       } catch (ManifoldCFException e)
       {
-        Logging.connectors.debug(e);
+        Logging.ingest.debug(e);
         return "Could not get status from response body. Check Access Policy setting of your domain of Amazon CloudSearch.: " + e.getMessage();
       }
           
@@ -284,13 +284,13 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       return "Connection NOT working.";
       
     } catch (ClientProtocolException e) {
-      Logging.connectors.debug(e);
+      Logging.ingest.debug(e);
       return "Protocol exception: "+e.getMessage();
     } catch (IOException e) {
-      Logging.connectors.debug(e);
+      Logging.ingest.debug(e);
       return "IO exception: "+e.getMessage();
     } catch (ServiceInterruption e) {
-      Logging.connectors.debug(e);
+      Logging.ingest.debug(e);
       return "Transient exception: "+e.getMessage();
     }
   }
@@ -453,7 +453,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       new JSONStringReader(new InputStreamReader(document.getBinaryStream(),Consts.UTF_8))));
     
     documentChunkManager.recordDocument(uid, serverHost, serverPath, new ReaderInputStream(objectReader, Consts.UTF_8));
-    
+    conditionallyFlushDocuments();
     return DOCUMENTSTATUS_ACCEPTED;
   }
   
@@ -487,18 +487,35 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     {
       handleIOException(e);
     }
+    conditionallyFlushDocuments();
   }
   
   @Override
   public void noteJobComplete(IOutputNotifyActivity activities)
       throws ManifoldCFException, ServiceInterruption {
     getSession();
-    
+    flushDocuments();
+  }
+  
+  protected static final int CHUNK_SIZE = 1000;
+
+  protected void conditionallyFlushDocuments()
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (documentChunkManager.equalOrMoreThan(serverHost, serverPath, CHUNK_SIZE))
+      flushDocuments();
+  }
+  
+  protected void flushDocuments()
+    throws ManifoldCFException, ServiceInterruption
+  {
+    Logging.ingest.info("AmazonCloudSearch: Starting flush to Amazon");
+
     // Repeat until we are empty of cached stuff
     int chunkNumber = 0;
     while (true)
     {
-      DocumentRecord[] records = documentChunkManager.readChunk(serverHost, serverPath, 1000);
+      DocumentRecord[] records = documentChunkManager.readChunk(serverHost, serverPath, CHUNK_SIZE);
       try
       {
         if (records.length == 0)
@@ -517,13 +534,13 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
         String status = getStatusFromJsonResponse(responsbody);
         if("success".equals(status))
         {
-          Logging.connectors.info("AmazonCloudSearch: Successfully sent document chunk " + chunkNumber);
+          Logging.ingest.info("AmazonCloudSearch: Successfully sent document chunk " + chunkNumber);
           //remove documents from table..
           documentChunkManager.deleteChunk(records);
         }
         else
         {
-          Logging.connectors.error("AmazonCloudSearch: Error sending document chunk "+ chunkNumber+": "+ responsbody);
+          Logging.ingest.error("AmazonCloudSearch: Error sending document chunk "+ chunkNumber+": "+ responsbody);
           throw new ManifoldCFException("recieved error status from service after feeding document. response body : " + responsbody);
         }
       }
@@ -730,7 +747,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
           ManifoldCFException.INTERRUPTED);
     }
-    Logging.connectors.warn(
+    Logging.ingest.warn(
         "Amazon CloudSearch: IO exception: " + e.getMessage(), e);
     long currentTime = System.currentTimeMillis();
     throw new ServiceInterruption("IO exception: " + e.getMessage(), e,
