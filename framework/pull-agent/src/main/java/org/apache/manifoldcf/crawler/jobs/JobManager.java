@@ -8539,6 +8539,8 @@ public class JobManager implements IJobManager
         break;
       case Jobs.STATUS_READYFORNOTIFY:
       case Jobs.STATUS_NOTIFYINGOFCOMPLETION:
+      case Jobs.STATUS_READYFORDELETENOTIFY:
+      case Jobs.STATUS_NOTIFYINGOFDELETION:
         rstatus = JobStatus.JOBSTATUS_JOBENDNOTIFICATION;
         break;
       case Jobs.STATUS_ABORTING:
