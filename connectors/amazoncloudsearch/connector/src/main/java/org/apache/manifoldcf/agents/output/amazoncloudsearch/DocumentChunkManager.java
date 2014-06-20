@@ -210,6 +210,29 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
     }
   }
   
+  /** Determine if there are N documents or more.
+  */
+  public boolean equalOrMoreThan(String host, String path, int maximumNumber)
+    throws ManifoldCFException
+  {
+    ArrayList params = new ArrayList();
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(HOST_FIELD,host),
+      new UnitaryClause(PATH_FIELD,path)});
+    IResultSet set = performQuery("SELECT "+constructCountClause(UID_FIELD)+" AS countval FROM "+getTableName()+" WHERE "+query+" "+constructOffsetLimitClause(0,maximumNumber),params,null,null);
+    long count;
+    if (set.getRowCount() > 0)
+    {
+      IResultRow row = set.getRow(0);
+      Long countVal = (Long)row.getValue("countval");
+      count = countVal.longValue();
+    }
+    else
+      count = 0L;
+    
+    return count >= maximumNumber;
+  }
+  
   /** Read a chunk of documents.
   */
   public DocumentRecord[] readChunk(String host, String path, int maximumNumber)
