@@ -44,7 +44,6 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
   private final static String UID_FIELD = "uid";                        // This is the document key, which is a dochash value
   private final static String HOST_FIELD = "serverhost";            // The host and path are there to make sure we don't collide between connections
   private final static String PATH_FIELD = "serverpath";
-  private final static String ON_DELETE_FIELD = "ondelete";
   private final static String SDF_DATA_FIELD = "sdfdata";
   
   public DocumentChunkManager(
@@ -69,7 +68,6 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
         map.put(UID_FIELD,new ColumnDescription("VARCHAR(40)",false,false,null,null,false));
         map.put(HOST_FIELD,new ColumnDescription("VARCHAR(255)",false,false,null,null,false));
         map.put(PATH_FIELD,new ColumnDescription("VARCHAR(255)",false,false,null,null,false));
-        map.put(ON_DELETE_FIELD,new ColumnDescription("CHAR(1)",false,false,null,null,false));
         map.put(SDF_DATA_FIELD,new ColumnDescription("BLOB",false,true,null,null,false));
         performCreate(map,null);
       }
@@ -113,89 +111,12 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
   }
   
   /**
-  * Remove document information in table (and make a delete marker).
-  * @param uid document uid
-  */
-  public void removeDocument(String uid, String host, String path)
-    throws ManifoldCFException
-  {
-    while (true)
-    {
-      long sleepAmt = 0L;
-      try
-      {
-        beginTransaction();
-        try
-        {
-
-          ArrayList params = new ArrayList();
-          String query = buildConjunctionClause(params,new ClauseDescription[]{
-            new UnitaryClause(HOST_FIELD,host),
-            new UnitaryClause(PATH_FIELD,path),
-            new UnitaryClause(UID_FIELD,uid)});
-
-          IResultSet set = performQuery("SELECT "+UID_FIELD+" FROM "+getTableName()+" WHERE "+
-            query+" FOR UPDATE",params,null,null);
-            
-          Map<String,String> parameterMap = new HashMap<String,String>();
-          parameterMap.put(ON_DELETE_FIELD, "1");
-          parameterMap.put(SDF_DATA_FIELD, null);
-            
-          //if record exists on table, update record.
-          if(set.getRowCount() > 0)
-          {
-            performUpdate(parameterMap, " WHERE "+query, whereParameters, null);
-          }
-          else
-          {
-            parameterMap.put(UID_FIELD, uid);
-            parameterMap.put(HOST_FIELD, host);
-            parameterMap.put(PATH_FIELD, path);
-            performInsert(parameterMap, null);
-          }
-
-          break;
-        }
-        catch (ManifoldCFException e)
-        {
-          signalRollback();
-          throw e;
-        }
-        catch (RuntimeException e)
-        {
-          signalRollback();
-          throw e;
-        }
-        catch (Error e)
-        {
-          signalRollback();
-          throw e;
-        }
-        finally
-        {
-          endTransaction();
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        // Look for deadlock and retry if so
-        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
-        {
-          sleepAmt = getSleepAmt();
-          continue;
-        }
-        throw e;
-      }
-    }
-  }
-  
-  /**
-   * Add/replace document information in table.
+   * Record document information for later trasmission to Amazon.
    * @param uid documentuid
    * @param sdfData document SDF data.
    * @throws ManifoldCFException
    */
-  public void addOrReplaceDocument(String uid, String host, String path, InputStream sdfData) 
+  public void recordDocument(String uid, String host, String path, InputStream sdfData) 
       throws ManifoldCFException, IOException
   {
     TempFileInput tfi = null;
@@ -232,7 +153,6 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
               query+" FOR UPDATE",params,null,null);
             
             Map<String,String> parameterMap = new HashMap<String,String>();
-            parameterMap.put(ON_DELETE_FIELD, "0");
             parameterMap.put(SDF_DATA_FIELD, tfi);
             
             //if record exists on table, update record.
@@ -307,7 +227,6 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
       IResultRow row = set.getRow(i);
       rval[i] = new DocumentRecord(host,path,
         (String)row.getValue(UID_FIELD),
-        ((String)row.getValue(ON_DELETE_FIELD)).equals("1"),
         (BinaryInput)row.getValue(SDF_DATA_FIELD));
     }
     return rval;
