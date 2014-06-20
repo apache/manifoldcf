@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-980: Output connector gets notified now when job is deleted.
+(Karl Wright)
+
 CONNECTORS-954: Revamp AmazonCloudSearch output connector completely.
 (1) Remove Tika and field mapping, since that would be done upstream in the
 pipeline.
