@@ -26,7 +26,7 @@ public class JSONValueReader extends JSONReader
   /** Wrapped reader */
   protected final Reader value;
   
-  protected JSONValueReader(Reader value)
+  public JSONValueReader(Reader value)
   {
     this.value = value;
   }

@@ -37,6 +37,14 @@ public class JSONArrayReader extends JSONReader
   {
   }
   
+  public JSONArrayReader(JSONReader[] elements)
+  {
+    for (JSONReader element : elements)
+    {
+      addArrayElement(element);
+    }
+  }
+  
   public JSONArrayReader addArrayElement(JSONReader element)
   {
     elements.add(element);

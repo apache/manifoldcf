@@ -152,13 +152,13 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
             IResultSet set = performQuery("SELECT "+UID_FIELD+" FROM "+getTableName()+" WHERE "+
               query+" FOR UPDATE",params,null,null);
             
-            Map<String,String> parameterMap = new HashMap<String,String>();
+            Map<String,Object> parameterMap = new HashMap<String,Object>();
             parameterMap.put(SDF_DATA_FIELD, tfi);
             
             //if record exists on table, update record.
             if(set.getRowCount() > 0)
             {
-              performUpdate(parameterMap, " WHERE "+query, whereParameters, null);
+              performUpdate(parameterMap, " WHERE "+query, params, null);
             }
             else
             {
@@ -258,7 +258,7 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
               new UnitaryClause(HOST_FIELD,host),
               new UnitaryClause(PATH_FIELD,path),
               new UnitaryClause(UID_FIELD,uid)});
-            performDelete("WHERE "+query,params,null,null);
+            performDelete("WHERE "+query,params,null);
           }
           
           break;
