@@ -21,7 +21,7 @@ package org.apache.manifoldcf.core.jsongen;
 import java.io.*;
 
 /** This class describes a JSON name/value object reader. */
-public class JSONNameValueReader extends JSONObjectReader
+public class JSONNameValueReader extends JSONReader
 {
   protected final static int STATE_NAME = 0;
   protected final static int STATE_VALUE = 1;
@@ -32,7 +32,7 @@ public class JSONNameValueReader extends JSONObjectReader
   
   protected int state = STATE_NAME;
   
-  public JSONNameValueReader(JSONStringReader name, JSONObjectReader value)
+  public JSONNameValueReader(JSONStringReader name, JSONReader value)
   {
     this.name = name;
     this.value = value;

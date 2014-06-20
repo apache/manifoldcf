@@ -18,7 +18,7 @@
 */
 package org.apache.manifoldcf.agents.output.amazoncloudsearch;
 
-import org.apache.manifoldcf.core.*;
+import org.apache.manifoldcf.core.interfaces.*;
 
 import java.io.*;
 
