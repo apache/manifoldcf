@@ -4299,7 +4299,68 @@ public class JobManager implements IJobManager
     }
 
   }
-  
+
+  /** Retry delete notification.
+  *@param jnr is the current job notification record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failCount is the new fail retry count (-1 if none).
+  */
+  @Override
+  public void retryDeleteNotification(JobNotifyRecord jnr, long failTime, int failCount)
+    throws ManifoldCFException
+  {
+    Long jobID = jnr.getJobID();
+    long oldFailTime = jnr.getFailTime();
+    if (oldFailTime == -1L)
+      oldFailTime = failTime;
+    failTime = oldFailTime;
+    int oldFailCount = jnr.getFailRetryCount();
+    if (oldFailCount == -1)
+      oldFailCount = failCount;
+    else
+    {
+      oldFailCount--;
+      if (failCount != -1 && oldFailCount > failCount)
+        oldFailCount = failCount;
+    }
+    failCount = oldFailCount;
+
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.retryDeleteNotification(jobID,failTime,failCount);
+        database.performCommit();
+        break;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting job notification: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
+  }
+
   // Add documents methods
   
   /** Add an initial set of documents to the queue.
@@ -6862,12 +6923,12 @@ public class JobManager implements IJobManager
     }
   }
 
-  /** Get the list of jobs that are ready for deletion.
+  /** Get the list of jobs that are ready for delete cleanup.
   *@param processID is the current process ID.
   *@return jobs that were in the "readyfordelete" state.
   */
   @Override
-  public JobDeleteRecord[] getJobsReadyForDelete(String processID)
+  public JobDeleteRecord[] getJobsReadyForDeleteCleanup(String processID)
     throws ManifoldCFException
   {
     while (true)
@@ -7091,6 +7152,84 @@ public class JobManager implements IJobManager
     }
   }
 
+  /** Remove a job, from the notification state.
+  *@param jobID is the ID of the job to remove.
+  */
+  @Override
+  public void removeJob(Long jobID)
+    throws ManifoldCFException
+  {
+    // While there is no flow that can cause a job to be in the wrong state when this gets called, as a precaution
+    // it might be a good idea to put this in a transaction and have the state get checked first.
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Check job status
+        StringBuilder sb = new StringBuilder("SELECT ");
+        ArrayList list = new ArrayList();
+        
+        sb.append(jobs.statusField).append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobs.idField,jobID)}))
+          .append(" FOR UPDATE");
+            
+        IResultSet set = database.performQuery(sb.toString(),list,null,null);
+        if (set.getRowCount() == 0)
+          // Presume already removed!
+          return;
+        IResultRow row = set.getRow(0);
+        int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+
+        switch (status)
+        {
+        case Jobs.STATUS_NOTIFYINGOFDELETION:
+          ManifoldCF.noteConfigurationChange();
+          // Remove documents from job queue
+          jobQueue.deleteAllJobRecords(jobID);
+          // Remove carrydowns for the job
+          carryDown.deleteOwner(jobID);
+          // Nothing is in a critical section - so this should be OK.
+          hopCount.deleteOwner(jobID);
+          jobs.delete(jobID);
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Removed job "+jobID);
+          }
+          break;
+        default:
+          throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
+        }
+        database.performCommit();
+        return;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted clearing delete notification state for job: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
   /** Reset a job starting for delete back to "ready for delete"
   * state.
   *@param jobID is the job id.
@@ -7211,6 +7350,75 @@ public class JobManager implements IJobManager
         {
           if (Logging.perf.isDebugEnabled())
             Logging.perf.debug("Aborted resetting notify job: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
+  /** Reset a job that is delete notifying back to "ready for delete notify"
+  * state.
+  *@param jobID is the job id.
+  */
+  @Override
+  public void resetDeleteNotifyJob(Long jobID)
+    throws ManifoldCFException
+  {
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Check job status
+        StringBuilder sb = new StringBuilder("SELECT ");
+        ArrayList list = new ArrayList();
+        
+        sb.append(jobs.statusField).append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobs.idField,jobID)}))
+          .append(" FOR UPDATE");
+            
+        IResultSet set = database.performQuery(sb.toString(),list,null,null);
+        if (set.getRowCount() == 0)
+          throw new ManifoldCFException("No such job: "+jobID);
+        IResultRow row = set.getRow(0);
+        int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+
+        switch (status)
+        {
+        case Jobs.STATUS_NOTIFYINGOFDELETION:
+          if (Logging.jobs.isDebugEnabled())
+            Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForDeleteNotify' state");
+
+          // Set the state of the job back to "ReadyForNotify"
+          jobs.writePermanentStatus(jobID,jobs.STATUS_READYFORDELETENOTIFY,true);
+          break;
+        default:
+          throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
+        }
+        database.performCommit();
+        return;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted resetting delete notify job: "+e.getMessage());
           sleepAmt = getRandomAmount();
           continue;
         }
@@ -7508,18 +7716,12 @@ public class JobManager implements IJobManager
           if (confirmSet.getRowCount() > 0)
             continue;
 
-          ManifoldCF.noteConfigurationChange();
-          // Remove documents from job queue
-          jobQueue.deleteAllJobRecords(jobID);
-          // Remove carrydowns for the job
-          carryDown.deleteOwner(jobID);
-          // Nothing is in a critical section - so this should be OK.
-          hopCount.deleteOwner(jobID);
-          jobs.delete(jobID);
+          jobs.finishJobCleanup(jobID);
           if (Logging.jobs.isDebugEnabled())
           {
-            Logging.jobs.debug("Removed job "+jobID);
+            Logging.jobs.debug("Job "+jobID+" cleanup is now completed");
           }
+
         }
         database.performCommit();
         return;
@@ -7732,7 +7934,88 @@ public class JobManager implements IJobManager
       }
     }
   }
-  
+
+  /** Find the list of jobs that need to have their connectors notified of job deletion.
+  *@param processID is the process ID.
+  *@return the ID's of jobs that need their output connectors notified in order to be removed.
+  */
+  @Override
+  public JobNotifyRecord[] getJobsReadyForDelete(String processID)
+    throws ManifoldCFException
+  {
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Do the query
+        StringBuilder sb = new StringBuilder("SELECT ");
+        ArrayList list = new ArrayList();
+        
+        sb.append(jobs.idField).append(",").append(jobs.failTimeField).append(",").append(jobs.failCountField)
+          .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobs.statusField,jobs.statusToString(jobs.STATUS_READYFORDELETENOTIFY))}))
+          .append(" FOR UPDATE");
+            
+        IResultSet set = database.performQuery(sb.toString(),list,null,null);
+        // Return them all
+        JobNotifyRecord[] rval = new JobNotifyRecord[set.getRowCount()];
+        int i = 0;
+        while (i < rval.length)
+        {
+          IResultRow row = set.getRow(i);
+          Long jobID = (Long)row.getValue(jobs.idField);
+          Long failTimeLong = (Long)row.getValue(jobs.failTimeField);
+          Long failRetryCountLong = (Long)row.getValue(jobs.failCountField);
+          long failTime;
+          if (failTimeLong == null)
+            failTime = -1L;
+          else
+            failTime = failTimeLong.longValue();
+          int failRetryCount;
+          if (failRetryCountLong == null)
+            failRetryCount = -1;
+          else
+            failRetryCount = (int)failRetryCountLong.longValue();
+      
+          // Mark status of job as "starting delete"
+          jobs.writeTransientStatus(jobID,jobs.STATUS_NOTIFYINGOFDELETION,processID);
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Found job "+jobID+" in need of delete notification");
+          }
+          rval[i++] = new JobNotifyRecord(jobID,failTime,failRetryCount);
+        }
+        database.performCommit();
+        return rval;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted getting jobs ready for notify: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
   /** Complete the sequence that resumes jobs, either from a pause or from a scheduling window
   * wait.  The logic will restore the job to an active state (many possibilities depending on
   * connector status), and will record the jobs that have been so modified.
@@ -8256,6 +8539,8 @@ public class JobManager implements IJobManager
         break;
       case Jobs.STATUS_READYFORNOTIFY:
       case Jobs.STATUS_NOTIFYINGOFCOMPLETION:
+      case Jobs.STATUS_READYFORDELETENOTIFY:
+      case Jobs.STATUS_NOTIFYINGOFDELETION:
         rstatus = JobStatus.JOBSTATUS_JOBENDNOTIFICATION;
         break;
       case Jobs.STATUS_ABORTING:
