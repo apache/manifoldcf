@@ -738,21 +738,27 @@
         </copy>
     </target>
 
-    <target name="general-connector-proprietary-runnable-check" depends="lib-proprietary-instructions">
+    <target name="general-connector-proprietary-runnable-check" depends="lib-proprietary-instructions,has-RMI-check">
         <available file="dist/lib-proprietary-only/${ant.project.name}-PLACEHOLDER.txt" property="has-placeholder"/>
         <condition property="is-proprietary-runnable">
-            <not>
-                <isset property="has-placeholder"/>
-            </not>
+            <or>
+                <not>
+                    <isset property="has-placeholder"/>
+                </not>
+                <isset property="hasRMI"/>
+            </or>
         </condition>
     </target>
 
-    <target name="general-connector-runnable-check" depends="general-connector-proprietary-runnable-check">
+    <target name="general-connector-runnable-check" depends="general-connector-proprietary-runnable-check,has-RMI-check">
         <available file="lib-proprietary" type="dir" property="has-lib-proprietary"/>
         <condition property="is-runnable">
-            <not>
-                <isset property="has-lib-proprietary"/>
-            </not>
+            <or>
+                <not>
+                    <isset property="has-lib-proprietary"/>
+                </not>
+                <isset property="hasRMI"/>
+            </or>
         </condition>
     </target>
     
