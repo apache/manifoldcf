@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-979: Fix ant build so that documentum and filenet show
+up.
+(Karl Wright)
+
 CONNECTORS-980: Output connector gets notified now when job is deleted.
 (Karl Wright)
 
