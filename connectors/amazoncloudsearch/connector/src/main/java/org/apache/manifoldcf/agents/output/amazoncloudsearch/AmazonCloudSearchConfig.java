@@ -37,16 +37,5 @@ public class AmazonCloudSearchConfig {
   public static final String PROXY_PORT_DEFAULT = "";
   
   // Specification nodes and values
-  public static final String NODE_MAXLENGTH = "maxlength";
-  public static final String MAXLENGTH_DEFAULT = "";
-  public static final String NODE_MIMETYPES = "mimetypes";
-  public static final String MIMETYPES_DEFAULT = "";
-  public static final String NODE_EXTENSIONS = "extensions";
-  public static final String EXTENSIONS_DEFAULT = "";
-  public static final String NODE_FIELDMAP = "fieldmap";
-  public static final String NODE_KEEPMETADATA = "keepAllMetadata";
-  public static final String ATTRIBUTE_SOURCE = "source";
-  public static final String ATTRIBUTE_TARGET = "target";
-  public static final String ATTRIBUTE_VALUE = "value";
   
 }

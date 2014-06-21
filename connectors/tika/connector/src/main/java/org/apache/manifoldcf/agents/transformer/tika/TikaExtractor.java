@@ -49,8 +49,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
   protected static final String[] activitiesList = new String[]{ACTIVITY_EXTRACT};
   
-  /** We handle up to a megabyte in memory; after that we go to disk. */
-  protected static final long inMemoryMaximumFile = 1000000;
+  /** We handle up to 64K in memory; after that we go to disk. */
+  protected static final long inMemoryMaximumFile = 65536;
   
   /** Return a list of activities that this connector generates.
   * The connector does NOT need to be connected before this method is called.
@@ -81,6 +81,56 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     return sp.toPackedString();
   }
 
+  // We intercept checks pertaining to the document format and send modified checks further down
+  
+  /** Detect if a mime type is acceptable or not.  This method is used to determine whether it makes sense to fetch a document
+  * in the first place.
+  *@param pipelineDescription is the document's pipeline version string, for this connection.
+  *@param mimeType is the mime type of the document.
+  *@param checkActivity is an object including the activities that can be performed by this method.
+  *@return true if the mime type can be accepted by this connector.
+  */
+  public boolean checkMimeTypeIndexable(String pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // We should see what Tika will transform
+    // MHL
+    // Do a downstream check
+    return checkActivity.checkMimeTypeIndexable("text/plain;charset=utf-8");
+  }
+
+  /** Pre-determine whether a document (passed here as a File object) is acceptable or not.  This method is
+  * used to determine whether a document needs to be actually transferred.  This hook is provided mainly to support
+  * search engines that only handle a small set of accepted file types.
+  *@param pipelineDescription is the document's pipeline version string, for this connection.
+  *@param localFile is the local file to check.
+  *@param checkActivity is an object including the activities that can be done by this method.
+  *@return true if the file is acceptable, false if not.
+  */
+  @Override
+  public boolean checkDocumentIndexable(String pipelineDescription, File localFile, IOutputCheckActivity checkActivity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // Document contents are not germane anymore, unless it looks like Tika won't accept them.
+    // Not sure how to check that...
+    return true;
+  }
+
+  /** Pre-determine whether a document's length is acceptable.  This method is used
+  * to determine whether to fetch a document in the first place.
+  *@param pipelineDescription is the document's pipeline version string, for this connection.
+  *@param length is the length of the document.
+  *@param checkActivity is an object including the activities that can be done by this method.
+  *@return true if the file is acceptable, false if not.
+  */
+  @Override
+  public boolean checkLengthIndexable(String pipelineDescription, long length, IOutputCheckActivity checkActivity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // Always true
+    return true;
+  }
+
   /** Add (or replace) a document in the output data store using the connector.
   * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
   * necessary.
@@ -101,6 +151,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   public int addOrReplaceDocumentWithException(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
+    // First, make sure downstream pipeline will now accept text/plain;charset=utf-8
+    if (!activities.checkMimeTypeIndexable("text/plain;charset=utf-8"))
+      return DOCUMENTSTATUS_REJECTED;
+
     SpecPacker sp = new SpecPacker(pipelineDescription);
 
     // Tika's API reads from an input stream and writes to an output Writer.
@@ -188,6 +242,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         activities.recordActivity(new Long(startTime), ACTIVITY_EXTRACT, length, documentURI,
           resultCode, description);
       }
+      
+      // Check to be sure downstream pipeline will accept document of specified length
+      if (!activities.checkLengthIndexable(ds.getBinaryLength()))
+        return DOCUMENTSTATUS_REJECTED;
         
       // Parsing complete!
       // Create a copy of Repository Document

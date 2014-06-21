@@ -15,26 +15,26 @@
  limitations under the License.
 -->
 
-#if($TABNAME == $ResourceBundle.getString('AmazonCloudSearchOutputConnector.ContentsTabName') && ${SEQNUM} == ${SELECTEDNUM})
+#if($TABNAME == $ResourceBundle.getString('DocumentFilter.ContentsTabName') && ${SEQNUM} == ${SELECTEDNUM})
 
 <table class="displaytable">
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.MaxFileSizeBytesColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DocumentFilter.MaxFileSizeBytesColon'))</nobr>
     </td>
     <td class="value"><input name="s${SEQNUM}_maxfilesize" type="text"
       value="$Encoder.attributeEscape($MAXFILESIZE)" size="24" /></td>
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.AllowedMIMETypesColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DocumentFilter.AllowedMIMETypesColon'))</nobr>
     </td>
     <td class="value">
       <textarea rows="10" cols="64" name="s${SEQNUM}_mimetypes">$Encoder.bodyEscape($MIMETYPES)</textarea>
     </td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('AmazonCloudSearchOutputConnector.AllowedFileExtensionsColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('DocumentFilter.AllowedFileExtensionsColon'))</nobr></td>
     <td class="value">
       <textarea rows="10" cols="12" name="s${SEQNUM}_extensions">$Encoder.bodyEscape($EXTENSIONS)</textarea>
     </td>
