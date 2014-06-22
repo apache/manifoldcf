@@ -696,11 +696,28 @@
         <section id="outputconnectiontypes">
             <title>Output Connection Types</title>
 
+            <section id="amazoncloudsearchoutputconnector">
+                <title>Amazon Cloud Search Output Connection</title>
+                <p>The Amazon Cloud Search Output Connection type send documents to a specific path within a specified Amazon Cloud Search instance.  The
+                      connection type furthermore "batches" documents to reduce cost as much as is reasonable.  As a result, some specified documents may be sent at the
+                      end of a job run, rather than at the time they would typically be indexed.</p>
+                <p>The connection configuration information for the Amazon Cloud Search Output Connection type includes one additional tab: the "Server" tab.
+                      This tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/amazon-configure-server.PNG" alt="Amazon Output Configuration, Server tab" width="80%"/>
+                <br/><br/>
+                <p>You must supply the "Server host" field in order for the connection to work.</p>
+                <p>The Amazon Cloud Search Output Connection type does not contribute any tabs to a job definition.</p>
+                <p>The Amazon Cloud Search Output Connection type can only accept text content that is encoded in a UTF-8-compatible manner.  It is highly
+                      recommended to use the Tika Content Extractor in the pipeline prior to the Amazon Cloud Search Output Connection type in order to
+                      convert documents to an indexable form.</p>
+            </section>
+            
             <section id="elasticsearchoutputconnector">
                 <title>ElasticSearch Output Connection</title>
-                <p>The ElasticSearch Output Connection allow ManifoldCF to submit documents to an ElasticSearch instance, via the XML over HTTP API. The connector has been designed
+                <p>The ElasticSearch Output Connection type allows ManifoldCF to submit documents to an ElasticSearch instance, via the XML over HTTP API. The connector has been designed
             	to be as easy to use as possible.</p>
-                <p>After creating an ElasticSearch ouput connection, you have to populate the parameters tab. Fill in the fields according your ElasticSearch configuration. Each
+                <p>After creating an ElasticSearch output connection, you have to populate the parameters tab. Fill in the fields according your ElasticSearch configuration. Each
             	ElasticSearch output connector instance works with one index. To work with multiple indexes, just create one output connector for each index.</p>
                 <figure src="images/en_US/elasticsearch-connection-parameters.png" alt="ElasticSearch, parameters tab" width="80%"/>
                 <br />
@@ -908,6 +925,76 @@ curl -XGET http://localhost:9200/index/_mapping
 
         </section>
 
+        <section id="transformationconnectiontypes">
+            <title>Transformation Connection Types</title>
+
+            <section id="alloweddocuments">
+                <title>Allowed Documents</title>
+                <p>The Allowed Documents transformation filter is used to limit the documents that will be fetched and passed down the pipeline for indexing.  The
+                      filter allows documents to be restricted by mime type, by extension, and by length.</p>
+                <p>It is important to note that these various methods of filtering rely on the upstream repository connection type to implement.  Some repository connection
+                      types do not implement all of the available methods of filtering.  For example, filtering by URL (and hence file extension) makes little sense in the
+                      context of a repository connection type whose URLs do not include a full file name.</p>
+                <p>As with all document transformers,  more than one Allowed Documents transformation filter can be used in a single pipeline.  This may be useful
+                      if other document transformers (such as the Tika Content Extractor, below) change the characteristics of the document being processed.</p>
+                <p>The Allowed Documents transformation connection type does not require anything other than standard configuration information.</p>
+                <p>The Allowed Documents transformation connection type contributes a single tab to a job definition.  This is the "Allowed Contents" tab, which looks
+                      like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/alloweddocuments-job-allowed-contents.PNG" alt="Allowed Documents specification, Allowed Contents tab" width="80%"/>
+                <br/><br/>
+                <p>Fill in the maximum desired document length, the set of extensions that are allowed, and the set of mime types that are allowed.  All extensions and
+                      mime types are case insensitive.  For extensions, the special value "." matches a missing or empty extension.</p>
+            </section>
+
+            <section id="metadataadjuster">
+                <title>Metadata Adjuster</title>
+                <p>The Metadata Adjuster transformation filter optionally changes the name of incoming metadata, and then optionally adds additional metadata values.
+                      This can be very helpful in many contexts.  For example, you might use the Metadata Adjuster to label all documents from a particular job with a
+                      particular tag in an index.  Or, you might need to map metadata from (say) SharePoint's schema to your final output connection type's schema.
+                      The Metadata Adjuster permits you to handle both of the scenarios.</p>
+                <p>As with all document transformers,  more than one Metadata Adjuster transformation filter can be used in a single pipeline.  This may be useful
+                      if other document transformers (such as the Tika Content Extractor, below) change the metadata of the document being processed.</p>
+                <p>The Metadata Adjuster transformation connection type does not require anything other than standard configuration information.</p>
+                <p>The Metadata Adjuster transformation connection type contributes two tabs to a job definition.  These are "Move metadata" and "Add metadata"
+                      tabs.  The "Move metadata" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/metadataadjuster-job-move-metadata.PNG" alt="Metadata Adjuster specification, Move Metadata tab" width="80%"/>
+                <br/><br/>
+                <p>Enter a input metadata name, and a target metadata name, and click the "Add" button to add the mapping to the list.  Uncheck the "Keep all metadata"
+                      checkbox in order to prevent unspecified metadata fields from being passed through.</p>
+                <p>The "Add metadata" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/metadataadjuster-job-add-metadata.PNG" alt="Metadata Adjuster specification, Add Metadata tab" width="80%"/>
+                <br/><br/>
+                <p>Enter a parameter name and a value, and then click the "Add" button to add the new metadata field and value to the list.  You may add more than
+                      one value with the same field name.</p>
+            </section>
+
+            <section id="nulltransformer">
+                <title>Null Transformer</title>
+            </section>
+
+            <section id="tikaextractor">
+                <title>Tika Content Extractor</title>
+                <p>The Tika Content Extractor transformation filter converts a binary document into a UTF-8 text stream, plus metadata.  This transformation filter
+                      is used primarily when incoming binary content is a possibility, or content that is not binary but has a non-standard encoding such as Shift-JIS.
+                      The Tika Content Extractor extracts metadata from the incoming stream as well.  This metadata can be mapped within the Tika Content Extractor
+                      to metadata field names appropriate for further use downstream in the pipeline.</p>
+                <p>As with all document transformers,  more than one Tika Content Extractor transformation filter can be used in a single pipeline.  In the case
+                      of the Tika Content Extractor, this does not seem to be of much utility.</p>
+                <p>The Tika Content Extractor transformation connection type does not require anything other than standard configuration information.</p>
+                <p>The Tika Content Extractor transformation connection type contributes a single tab to a job definition.  This the "Field mapping" tab, which
+                      looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/tika-job-field-mapping.PNG" alt="Tika Content Extractor specification, Field Mapping tab" width="80%"/>
+                <br/><br/>
+                <p>Enter a Tika-generated metadata field name, and a final field name, and click the "Add" button to add the mapping to the list.  Uncheck the
+                      "Keep all metadata" checkbox if you want unspecified Tika metadata to be excluded from the final document.</p>
+            </section>
+
+        </section>
+        
         <section id="mappingconnectiontypes">
             <title>User Mapping Connection Types</title>
             

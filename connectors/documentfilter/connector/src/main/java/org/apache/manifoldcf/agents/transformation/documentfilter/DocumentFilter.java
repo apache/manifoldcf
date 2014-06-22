@@ -319,7 +319,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       {
         line = line.trim();
         if (line.length() > 0)
-          set.add(line);
+          set.add(line.toLowerCase(Locale.ROOT));
       }
     }
     catch (IOException e)
@@ -428,14 +428,14 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     public boolean checkMimeType(String mimeType) {
       if (mimeType == null)
         mimeType = "application/unknown";
-      return mimeTypes.contains(mimeType);
+      return mimeTypes.contains(mimeType.toLowerCase(Locale.ROOT));
     }
     
     public boolean checkURLIndexable(String url) {
       String extension = FilenameUtils.getExtension(url);
       if (extension == null || extension.length() == 0)
         extension = ".";
-      return extensions.contains(extension);
+      return extensions.contains(extension.toLowerCase(Locale.ROOT));
     }
     
   }

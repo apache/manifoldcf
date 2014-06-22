@@ -32,7 +32,7 @@
 
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-transformation-connector">
-            <param name="connector-label" value="Allowed Documents"/>
+            <param name="connector-label" value="Allowed documents"/>
             <param name="connector-class" value="org.apache.manifoldcf.agents.transformation.documentfilter.DocumentFilter"/>
         </antcall>
     </target>
