@@ -66,6 +66,8 @@ import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.interfaces.BinaryInput;
+import org.apache.manifoldcf.core.interfaces.TempFileInput;
 import org.apache.manifoldcf.agents.system.ManifoldCF;
 import org.apache.manifoldcf.agents.system.Logging;
 
@@ -245,6 +247,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   public String check() throws ManifoldCFException {
     try {
       getSession();
+      String responseBody;
       String responsbody = postData(new ReaderInputStream(new StringReader("[]"),Consts.UTF_8));
       String status = "";
       try
@@ -316,6 +319,15 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
     return null;
   }
 
+  private final static Set<String> acceptableMimeTypes = new HashSet<String>();
+  static
+  {
+    acceptableMimeTypes.add("text/plain;charset=utf-8");
+    acceptableMimeTypes.add("text/plain;charset=ascii");
+    acceptableMimeTypes.add("text/plain;charset=us-ascii");
+    acceptableMimeTypes.add("text/plain");
+  }
+  
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.
   *@param outputDescription is the document's output version.
@@ -326,7 +338,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption
   {
-    return mimeType.toLowerCase(Locale.ROOT).equals("text/plain;charset=utf-8");
+    return acceptableMimeTypes.contains(mimeType.toLowerCase(Locale.ROOT));
   }
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -668,11 +680,19 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   private String postData(InputStream jsonData) throws ServiceInterruption, ManifoldCFException {
     CloseableHttpClient httpclient = HttpClients.createDefault();
     try {
-      poster.setEntity(new InputStreamEntity(jsonData));
-      HttpResponse res = httpclient.execute(poster);
-      
-      HttpEntity resEntity = res.getEntity();
-      return EntityUtils.toString(resEntity);
+      BinaryInput bi = new TempFileInput(jsonData);
+      try
+      {
+        poster.setEntity(new InputStreamEntity(bi.getStream(),bi.getLength()));
+        HttpResponse res = httpclient.execute(poster);
+        
+        HttpEntity resEntity = res.getEntity();
+        return EntityUtils.toString(resEntity);
+      }
+      finally
+      {
+        bi.discard();
+      }
     } catch (ClientProtocolException e) {
       throw new ManifoldCFException(e);
     } catch (IOException e) {
