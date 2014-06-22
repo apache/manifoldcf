@@ -126,7 +126,7 @@
 	
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-transformation-connector">
-            <param name="connector-label" value="TikaExtractor"/>
+            <param name="connector-label" value="Tika content extractor"/>
             <param name="connector-class" value="org.apache.manifoldcf.agents.transformation.tika.TikaExtractor"/>
         </antcall>
     </target>
