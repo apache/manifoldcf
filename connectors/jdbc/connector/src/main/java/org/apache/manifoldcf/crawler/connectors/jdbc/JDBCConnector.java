@@ -634,7 +634,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                         try
                         {
                           rd.setBinary(is,ci.getUtf8StreamLength());
-                          activities.ingestDocument(id, version, url, rd);
+                          activities.ingestDocumentWithException(id, version, url, rd);
                         }
                         finally
                         {
@@ -676,7 +676,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                         try
                         {
                           rd.setBinary(is,bytes.length);
-                          activities.ingestDocument(id, version, url, rd);
+                          activities.ingestDocumentWithException(id, version, url, rd);
                         }
                         finally
                         {
