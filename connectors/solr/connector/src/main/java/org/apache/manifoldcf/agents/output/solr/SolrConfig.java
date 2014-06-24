@@ -132,4 +132,9 @@ public class SolrConfig
    */
   public static final String NODE_KEEPMETADATA = "keepAllMetadata";
 
+    /**
+     * Node describing the use of Extract Update handler
+     */
+    public static final String NODE_EXTRACTUPDATE = "useExtractUpdateHandler";
+
 }
