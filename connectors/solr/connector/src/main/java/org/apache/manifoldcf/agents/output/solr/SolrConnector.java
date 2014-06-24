@@ -710,7 +710,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     getSession();
 
     // Now, go off and call the ingest API.
-    if (poster.indexPost(documentURI,document,args,sourceTargets,keepAllMetadata,authorityNameString,activities))
+    if (poster.indexPost(documentURI,document,args,sourceTargets,keepAllMetadata,true,authorityNameString,activities))
       return DOCUMENTSTATUS_ACCEPTED;
     return DOCUMENTSTATUS_REJECTED;
   }
