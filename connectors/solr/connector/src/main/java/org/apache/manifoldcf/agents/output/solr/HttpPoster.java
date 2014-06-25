@@ -521,7 +521,7 @@ public class HttpPoster
   * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
-    RepositoryDocument document, Map arguments, Map<String, List<String>> sourceTargets,
+    RepositoryDocument document, Map<String,List<String>> arguments, Map<String, List<String>> sourceTargets,
     boolean keepAllMetadata, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {

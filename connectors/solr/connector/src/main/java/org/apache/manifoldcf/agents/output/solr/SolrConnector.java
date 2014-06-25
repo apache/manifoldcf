@@ -463,152 +463,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    
-    StringBuilder sb = new StringBuilder();
-
-    // All the arguments need to go into this string, since they affect ingestion.
-    Map args = new HashMap();
-    int i = 0;
-    while (i < params.getChildCount())
-    {
-      ConfigNode node = params.getChild(i++);
-      if (node.getType().equals(SolrConfig.NODE_ARGUMENT))
-      {
-        String attrName = node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME);
-        ArrayList list = (ArrayList)args.get(attrName);
-        if (list == null)
-        {
-          list = new ArrayList();
-          args.put(attrName,list);
-        }
-        list.add(node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
-      }
-    }
-    
-    String[] sortArray = new String[args.size()];
-    Iterator iter = args.keySet().iterator();
-    i = 0;
-    while (iter.hasNext())
-    {
-      sortArray[i++] = (String)iter.next();
-    }
-    
-    // Always use sorted order, because we need this to be comparable.
-    java.util.Arrays.sort(sortArray);
-    
-    String[] fixedList = new String[2];
-    ArrayList nameValues = new ArrayList();
-    i = 0;
-    while (i < sortArray.length)
-    {
-      String name = sortArray[i++];
-      ArrayList values = (ArrayList)args.get(name);
-      java.util.Collections.sort(values);
-      int j = 0;
-      while (j < values.size())
-      {
-        String value = (String)values.get(j++);
-        fixedList[0] = name;
-        fixedList[1] = value;
-        StringBuilder pairBuffer = new StringBuilder();
-        packFixedList(pairBuffer,fixedList,'=');
-        nameValues.add(pairBuffer.toString());
-      }
-    }
-    
-    packList(sb,nameValues,'+');
-    
-    // Do the source/target pairs
-    i = 0;
-    Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-    boolean keepAllMetadata = true;
-    while (i < spec.getChildCount()) {
-      SpecificationNode sn = spec.getChild(i++);
-      
-      if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
-        String value = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
-        keepAllMetadata = Boolean.parseBoolean(value);
-      } else if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
-        String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
-        String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
-        
-        if (target == null) {
-          target = "";
-        }
-        List<String> list = (List<String>)sourceTargets.get(source);
-        if (list == null) {
-          list = new ArrayList<String>();
-          sourceTargets.put(source, list);
-        }
-        list.add(target);
-      }
-    }
-    
-    sortArray = new String[sourceTargets.size()];
-    iter = sourceTargets.keySet().iterator();
-    i = 0;
-    while (iter.hasNext()) {
-      sortArray[i++] = (String)iter.next();
-    }
-    java.util.Arrays.sort(sortArray);
-    
-    ArrayList sourceTargetsList = new ArrayList();
-    i = 0;
-    while (i < sortArray.length) {
-      String source = sortArray[i++];
-      List<String> values = (List<String>)sourceTargets.get(source);
-      java.util.Collections.sort(values);
-      int j = 0;
-      while (j < values.size()) {
-        String target = (String)values.get(j++);
-        fixedList[0] = source;
-        fixedList[1] = target;
-        StringBuilder pairBuffer = new StringBuilder();
-        packFixedList(pairBuffer,fixedList,'=');
-        sourceTargetsList.add(pairBuffer.toString());
-      }
-    }
-    
-    packList(sb,sourceTargetsList,'+');
-
-    // Keep all metadata flag
-    if (keepAllMetadata)
-      sb.append('+');
-    else
-      sb.append('-');
-
-    // Here, append things which we have no intention of unpacking.  This includes stuff that comes from
-    // the configuration information, for instance.
-    
-    if (maxDocumentLength != null || includedMimeTypesString != null || excludedMimeTypesString != null)
-    {
-      // Length limitation.  We pack this because when it is changed we want to be sure we get any previously excluded documents.
-      if (maxDocumentLength != null)
-      {
-        sb.append('+');
-        pack(sb,maxDocumentLength.toString(),'+');
-      }
-      else
-        sb.append('-');
-      // Included mime types
-      if (includedMimeTypesString != null)
-      {
-        sb.append('+');
-        pack(sb,includedMimeTypesString,'+');
-      }
-      else
-        sb.append('-');
-      // Excluded mime types
-      if (excludedMimeTypesString != null)
-      {
-        sb.append('+');
-        pack(sb,excludedMimeTypesString,'+');
-      }
-      else
-        sb.append('-');
-    }
-    
-    return sb.toString();
+    SpecPacker sp = new SpecPacker(spec);
+    return sp.toPackedString();
   }
 
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
@@ -661,59 +517,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    // Build the argument map we'll send.
-    Map args = new HashMap();
-    Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-    int index = 0;
-    ArrayList nameValues = new ArrayList();
-    index = unpackList(nameValues,outputDescription,index,'+');
-    ArrayList sts = new ArrayList();
-    index = unpackList(sts,outputDescription,index,'+');
-    // extract keep all metadata Flag
-    boolean keepAllMetadata = true;
-    if (index < outputDescription.length())
-    {
-      keepAllMetadata = (outputDescription.charAt(index++) == '+');
-    }
-    String[] fixedBuffer = new String[2];
-    
-    // Do the name/value pairs
-    int i = 0;
-    while (i < nameValues.size())
-    {
-      String x = (String)nameValues.get(i++);
-      unpackFixedList(fixedBuffer,x,0,'=');
-      String attrName = fixedBuffer[0];
-      ArrayList list = (ArrayList)args.get(attrName);
-      if (list == null)
-      {
-        list = new ArrayList();
-        args.put(attrName,list);
-      }
-      list.add(fixedBuffer[1]);
-    }
-    
-    // Do the source/target pairs
-    i = 0;
-    while (i < sts.size()) {
-      String x = (String)sts.get(i++);
-      unpackFixedList(fixedBuffer,x,0,'=');
-      String source = fixedBuffer[0];
-      String target = fixedBuffer[1];
-      List<String> list = (List<String>)sourceTargets.get(source);
-      if (list == null) {
-        list = new ArrayList<String>();
-        sourceTargets.put(source, list);
-      }
-      list.add(target);
-    }
-
+    SpecPacker sp = new SpecPacker(outputDescription);
 
     // Establish a session
     getSession();
 
     // Now, go off and call the ingest API.
-    if (poster.indexPost(documentURI,document,args,sourceTargets,keepAllMetadata,authorityNameString,activities))
+    if (poster.indexPost(documentURI,document,sp.getArgs(),sp.getMappings(),sp.keepAllMetadata(),authorityNameString,activities))
       return DOCUMENTSTATUS_ACCEPTED;
     return DOCUMENTSTATUS_REJECTED;
   }
@@ -2647,6 +2457,229 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "</table>\n"
     );
 
+  }
+
+  /** This class handles Solr connector version string packing/unpacking/interpretation.
+  */
+  protected class SpecPacker {
+    
+    /** Arguments, from configuration */
+    private final Map<String,List<String>> args = new HashMap<String,List<String>>();
+    /** Source/targets from specification */
+    private final Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
+    /** Keep all metadata flag, from specification */
+    private final boolean keepAllMetadata;
+    
+    public SpecPacker(Specification spec) {
+
+      // Process arguments
+      for (int i = 0; i < params.getChildCount(); i++)
+      {
+        ConfigNode node = params.getChild(i);
+        if (node.getType().equals(SolrConfig.NODE_ARGUMENT))
+        {
+          String attrName = node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME);
+          List<String> list = args.get(attrName);
+          if (list == null)
+          {
+            list = new ArrayList<String>();
+            args.put(attrName,list);
+          }
+          list.add(node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
+        }
+      }
+    
+      // Do the source/target pairs
+      boolean keepAllMetadata = true;
+      for (int i = 0; i < spec.getChildCount(); i++)
+      {
+        SpecificationNode sn = spec.getChild(i);
+        
+        if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
+          String value = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
+          keepAllMetadata = Boolean.parseBoolean(value);
+        } else if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
+          String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
+          String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
+          
+          if (target == null) {
+            target = "";
+          }
+          List<String> list = sourceTargets.get(source);
+          if (list == null) {
+            list = new ArrayList<String>();
+            sourceTargets.put(source, list);
+          }
+          list.add(target);
+        }
+      }
+      this.keepAllMetadata = keepAllMetadata;
+    
+    }
+    
+    /** Packed string parser.
+    * This method unpacks a packed version string, and makes the formerly packed data available for use.
+    * Note that it is actually *not* a requirement for this method to do the unpacking; that can happen "on demand"
+    * for performance, if deemed helpful.
+    */
+    public SpecPacker(String packedString) {
+      // Build the argument map we'll send.
+      int index = 0;
+      List<String> nameValues = new ArrayList<String>();
+      index = unpackList(nameValues,packedString,index,'+');
+      List<String> sts = new ArrayList<String>();
+      index = unpackList(sts,packedString,index,'+');
+      // extract keep all metadata Flag
+      boolean keepAllMetadata = true;
+      if (index < packedString.length())
+      {
+        keepAllMetadata = (packedString.charAt(index++) == '+');
+      }
+      this.keepAllMetadata = keepAllMetadata;
+      
+      
+      String[] fixedBuffer = new String[2];
+      
+      // Do the name/value pairs
+      for (String x : nameValues)
+      {
+        unpackFixedList(fixedBuffer,x,0,'=');
+        String attrName = fixedBuffer[0];
+        List<String> list = args.get(attrName);
+        if (list == null)
+        {
+          list = new ArrayList<String>();
+          args.put(attrName,list);
+        }
+        list.add(fixedBuffer[1]);
+      }
+      
+      // Do the source/target pairs
+      for (String x : sts)
+      {
+        unpackFixedList(fixedBuffer,x,0,'=');
+        String source = fixedBuffer[0];
+        String target = fixedBuffer[1];
+        List<String> list = sourceTargets.get(source);
+        if (list == null) {
+          list = new ArrayList<String>();
+          sourceTargets.put(source, list);
+        }
+        list.add(target);
+      }
+
+    }
+    
+    public String toPackedString() {
+      StringBuilder sb = new StringBuilder();
+      String[] sortArray = new String[args.size()];
+      Iterator<String> iter = args.keySet().iterator();
+      int i = 0;
+      while (iter.hasNext())
+      {
+        sortArray[i++] = iter.next();
+      }
+      
+      // Always use sorted order, because we need this to be comparable.
+      java.util.Arrays.sort(sortArray);
+      
+      String[] fixedList = new String[2];
+      List<String> nameValues = new ArrayList<String>();
+      for (int k = 0; k < sortArray.length; k++)
+      {
+        String name = sortArray[k];
+        List<String> values = args.get(name);
+        java.util.Collections.sort(values);
+        for (String value : values)
+        {
+          fixedList[0] = name;
+          fixedList[1] = value;
+          StringBuilder pairBuffer = new StringBuilder();
+          packFixedList(pairBuffer,fixedList,'=');
+          nameValues.add(pairBuffer.toString());
+        }
+      }
+      
+      packList(sb,nameValues,'+');
+      
+      // Do the source/target pairs
+      sortArray = new String[sourceTargets.size()];
+      iter = sourceTargets.keySet().iterator();
+      i = 0;
+      while (iter.hasNext()) {
+        sortArray[i++] = iter.next();
+      }
+      java.util.Arrays.sort(sortArray);
+      
+      List<String> sourceTargetsList = new ArrayList<String>();
+      for (int k = 0; k < sortArray.length; k++)
+      {
+        String source = sortArray[k];
+        List<String> values = sourceTargets.get(source);
+        java.util.Collections.sort(values);
+        for (String target : values)
+        {
+          fixedList[0] = source;
+          fixedList[1] = target;
+          StringBuilder pairBuffer = new StringBuilder();
+          packFixedList(pairBuffer,fixedList,'=');
+          sourceTargetsList.add(pairBuffer.toString());
+        }
+      }
+      
+      packList(sb,sourceTargetsList,'+');
+
+      // Keep all metadata flag
+      if (keepAllMetadata)
+        sb.append('+');
+      else
+        sb.append('-');
+
+      // Here, append things which we have no intention of unpacking.  This includes stuff that comes from
+      // the configuration information, for instance.
+      
+      if (maxDocumentLength != null || includedMimeTypesString != null || excludedMimeTypesString != null)
+      {
+        // Length limitation.  We pack this because when it is changed we want to be sure we get any previously excluded documents.
+        if (maxDocumentLength != null)
+        {
+          sb.append('+');
+          pack(sb,maxDocumentLength.toString(),'+');
+        }
+        else
+          sb.append('-');
+        // Included mime types
+        if (includedMimeTypesString != null)
+        {
+          sb.append('+');
+          pack(sb,includedMimeTypesString,'+');
+        }
+        else
+          sb.append('-');
+        // Excluded mime types
+        if (excludedMimeTypesString != null)
+        {
+          sb.append('+');
+          pack(sb,excludedMimeTypesString,'+');
+        }
+        else
+          sb.append('-');
+      }
+      
+      return sb.toString();
+    }
+    
+    public Map<String,List<String>> getArgs() {
+      return args;
+    }
+    
+    public Map<String,List<String>> getMappings() {
+      return sourceTargets;
+    }
+    
+    public boolean keepAllMetadata() {
+      return keepAllMetadata;
+    }
   }
 
 }
