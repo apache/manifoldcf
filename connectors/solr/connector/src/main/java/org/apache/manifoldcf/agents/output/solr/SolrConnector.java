@@ -824,17 +824,17 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.maxdocumentlength.value == \"\" && editconnection.extractupdate.value != \"true\")\n"+
+"  if (editconnection.maxdocumentlength.value == \"\" && (editconnection.extractupdate.value != \"true\" || (editconnection.extractupdate.checked == false)))\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.MaximumDocumentLengthRequiredUnlessExtractingUpdateHandler")+"\");\n"+
 "    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Documents")+"\");\n"+
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.contentfield.value == \"\" && editconnection.extractupdate.value != \"true\")\n"+
+"  if (editconnection.contentfield.value == \"\" && (editconnection.extractupdate.value != \"true\" || (editconnection.extractupdate.checked == false)))\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ContentFieldNameRequiredUnlessExtractingUpdateHandler")+"\");\n"+
-"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Documents")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Schema")+"\");\n"+
 "    editconnection.contentfield.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1484,7 +1484,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.UseExtractUpdateHandler") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
+"    <td class=\"value\">\n"+
+"      <input name=\"extractupdatepresent\" type=\"hidden\" value=\"true\"/>\n"
       );
       if (!useExtractUpdate.equals("false"))
       {
@@ -1520,7 +1521,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input type=\"hidden\" name=\"filenamefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fileNameField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"mimetypefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"contentfield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(contentField)+"\"/>\n"+
-"<input type=\"hidden\" name=\"extractupdate\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(useExtractUpdate)+"\"/>\n"
+"<input type=\"hidden\" name=\"extractupdate\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(useExtractUpdate)+"\"/>\n"+
+"<input name=\"extractupdatepresent\" type=\"hidden\" value=\"true\"/>\n"
       );
     }
     
@@ -1824,10 +1826,15 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (contentField != null)
       parameters.setParameter(SolrConfig.PARAM_CONTENTFIELD,contentField);
 
-    String extractUpdate = variableContext.getParameter("extractupdate");
-    if (extractUpdate != null)
+    String extractUpdatePresent = variableContext.getParameter("extractupdatepresent");
+    if (extractUpdatePresent != null)
+    {
+      String extractUpdate = variableContext.getParameter("extractupdate");
+      if (extractUpdate == null || extractUpdate.length() == 0)
+        extractUpdate = "false";
       parameters.setParameter(SolrConfig.PARAM_EXTRACTUPDATE,extractUpdate);
-    
+    }
+
     String realm = variableContext.getParameter("realm");
     if (realm != null)
       parameters.setParameter(SolrConfig.PARAM_REALM,realm);
