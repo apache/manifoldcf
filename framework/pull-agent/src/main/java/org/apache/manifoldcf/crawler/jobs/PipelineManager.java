@@ -263,15 +263,18 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
     {
       IResultRow row = set.getRow(i);
       String outputConnectionName = (String)row.getValue(outputNameField);
-      if (!outputSet.contains(outputConnectionName))
-        throw new ManifoldCFException("Output name '"+outputConnectionName+"' removed from job; not allowed");
+      boolean isOutputConnection = outputConnectionName != null && outputConnectionName.length() > 0;
+      if (isOutputConnection)
+      {
+        if (!outputSet.contains(outputConnectionName))
+          throw new ManifoldCFException("Output name '"+outputConnectionName+"' removed from job; not allowed");
+      }
       String transformationConnectionName = (String)row.getValue(transformationNameField);
       Long prerequisite = (Long)row.getValue(prerequisiteField);
       String spec = (String)row.getValue(connectionSpecField);
       if (spec == null)
         spec = "";
       int prerequisiteValue = (prerequisite==null)?-1:(int)prerequisite.longValue();
-      boolean isOutputConnection = outputConnectionName != null && outputConnectionName.length() > 0;
       if (job.getPipelineStagePrerequisite(i) != prerequisiteValue)
         return false;
       if (job.getPipelineStageIsOutputConnection(i) != isOutputConnection)
