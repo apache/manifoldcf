@@ -207,6 +207,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (mimeTypeAttributeName == null || mimeTypeAttributeName.length() == 0)
         mimeTypeAttributeName = null;
 
+      String contentAttributeName = "content";	// ??? -- should be settable
+      boolean useExtractUpdateHandler = true;   // ???
+      
       String commits = params.getParameter(SolrConfig.PARAM_COMMITS);
       if (commits == null || commits.length() == 0)
         commits = "true";
@@ -313,8 +316,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             updatePath,removePath,statusPath,realm,userID,password,
             allowAttributeName,denyAttributeName,idAttributeName,
             modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
-            fileNameAttributeName,mimeTypeAttributeName,
-            keystoreManager,maxDocumentLength,commitWithin);
+            fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
+            keystoreManager,maxDocumentLength,commitWithin,useExtractUpdateHandler);
           
         }
         catch (NumberFormatException e)
@@ -368,8 +371,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             updatePath,removePath,statusPath,
             allowAttributeName,denyAttributeName,idAttributeName,
             modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
-            fileNameAttributeName,mimeTypeAttributeName,
-            maxDocumentLength,commitWithin);
+            fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
+            maxDocumentLength,commitWithin,useExtractUpdateHandler);
           
         }
         catch (NumberFormatException e)
@@ -710,7 +713,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     getSession();
 
     // Now, go off and call the ingest API.
-    if (poster.indexPost(documentURI,document,args,sourceTargets,keepAllMetadata,true,authorityNameString,activities))
+    if (poster.indexPost(documentURI,document,args,sourceTargets,keepAllMetadata,authorityNameString,activities))
       return DOCUMENTSTATUS_ACCEPTED;
     return DOCUMENTSTATUS_REJECTED;
   }

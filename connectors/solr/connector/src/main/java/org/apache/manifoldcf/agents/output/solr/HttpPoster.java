@@ -36,6 +36,7 @@ import java.net.MalformedURLException;
 import java.util.*;
 import java.util.regex.*;
 
+import org.apache.http.Consts;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -83,25 +84,29 @@ public class HttpPoster
   protected SolrServer solrServer = null;
   
   // Action URI pieces
-  private String postUpdateAction;
-  private String postRemoveAction;
-  private String postStatusAction;
+  private final String postUpdateAction;
+  private final String postRemoveAction;
+  private final String postStatusAction;
   
   // Attribute names
-  private String allowAttributeName;
-  private String denyAttributeName;
-  private String idAttributeName;
-  private String modifiedDateAttributeName;
-  private String createdDateAttributeName;
-  private String indexedDateAttributeName;
-  private String fileNameAttributeName;
-  private String mimeTypeAttributeName;
+  private final String allowAttributeName;
+  private final String denyAttributeName;
+  private final String idAttributeName;
+  private final String modifiedDateAttributeName;
+  private final String createdDateAttributeName;
+  private final String indexedDateAttributeName;
+  private final String fileNameAttributeName;
+  private final String mimeTypeAttributeName;
+  private final String contentAttributeName;
+  
+  // Whether we use extract/update handler or not
+  private final boolean useExtractUpdateHandler;
   
   // Document max length
-  private Long maxDocumentLength;
+  private final Long maxDocumentLength;
 
   // Commit-within flag
-  private String commitWithin;
+  private final String commitWithin;
 
   // Constants we need
   private static final String LITERAL = "literal.";
@@ -119,9 +124,9 @@ public class HttpPoster
     String updatePath, String removePath, String statusPath,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
     String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
-    String fileNameAttributeName, String mimeTypeAttributeName,
+    String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     Long maxDocumentLength,
-    String commitWithin)
+    String commitWithin, boolean useExtractUpdateHandler)
     throws ManifoldCFException
   {
     // These are the paths to the handlers in Solr that deal with the actions we need to do
@@ -139,6 +144,8 @@ public class HttpPoster
     this.indexedDateAttributeName = indexedDateAttributeName;
     this.fileNameAttributeName = fileNameAttributeName;
     this.mimeTypeAttributeName = mimeTypeAttributeName;
+    this.contentAttributeName = contentAttributeName;
+    this.useExtractUpdateHandler = useExtractUpdateHandler;
     
     this.maxDocumentLength = maxDocumentLength;
     
@@ -165,9 +172,9 @@ public class HttpPoster
     String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
     String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
-    String fileNameAttributeName, String mimeTypeAttributeName,
+    String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     IKeystoreManager keystoreManager, Long maxDocumentLength,
-    String commitWithin)
+    String commitWithin, boolean useExtractUpdateHandler)
     throws ManifoldCFException
   {
     // These are the paths to the handlers in Solr that deal with the actions we need to do
@@ -185,6 +192,8 @@ public class HttpPoster
     this.indexedDateAttributeName = indexedDateAttributeName;
     this.fileNameAttributeName = fileNameAttributeName;
     this.mimeTypeAttributeName = mimeTypeAttributeName;
+    this.contentAttributeName = contentAttributeName;
+    this.useExtractUpdateHandler = useExtractUpdateHandler;
     
     this.maxDocumentLength = maxDocumentLength;
 
@@ -507,14 +516,13 @@ public class HttpPoster
    * @param document is the document structure to ingest.
    * @param arguments are the configuration arguments to pass in the post.  Key is argument name, value is a list of the argument values.
    * @param keepAllMetadata
-   * @param useExtractUpdateHandler is true if the extract update handler should be used.
    * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
    * @param activities is the activities object, so we can report what's happening.   @return true if the ingestion was successful, or false if the ingestion is illegal.
   * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
     RepositoryDocument document, Map arguments, Map<String, List<String>> sourceTargets,
-    boolean keepAllMetadata, boolean useExtractUpdateHandler, String authorityNameString, IOutputAddActivity activities)
+    boolean keepAllMetadata, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
@@ -546,7 +554,7 @@ public class HttpPoster
     try
     {
       IngestThread t = new IngestThread(documentURI,document,arguments,keepAllMetadata,sourceTargets,
-                                        aclsMap,denyAclsMap,commitWithin,useExtractUpdateHandler);
+                                        aclsMap,denyAclsMap);
       try
       {
         t.start();
@@ -831,9 +839,7 @@ public class HttpPoster
     protected final Map<String,List<String>> sourceTargets;
     protected final Map<String,String[]> aclsMap;
     protected final Map<String,String[]> denyAclsMap;
-    protected final String commitWithin;
     protected final boolean keepAllMetadata;
-    protected final boolean useExtractUpdateHandler;
     
     protected Long activityStart = null;
     protected Long activityBytes = null;
@@ -845,8 +851,7 @@ public class HttpPoster
 
     public IngestThread(String documentURI, RepositoryDocument document,
       Map<String, List<String>> arguments, boolean keepAllMetadata, Map<String, List<String>> sourceTargets,
-      Map<String,String[]> aclsMap, Map<String,String[]> denyAclsMap,
-      String commitWithin, boolean useExtractUpdateHandler)
+      Map<String,String[]> aclsMap, Map<String,String[]> denyAclsMap)
     {
       super();
       setDaemon(true);
@@ -856,9 +861,7 @@ public class HttpPoster
       this.aclsMap = aclsMap;
       this.denyAclsMap = denyAclsMap;
       this.sourceTargets = sourceTargets;
-      this.commitWithin = commitWithin;
       this.keepAllMetadata=keepAllMetadata;
-      this.useExtractUpdateHandler=useExtractUpdateHandler;
     }
 
     public void run()
@@ -885,7 +888,7 @@ public class HttpPoster
           }
           else
           {
-            currentSolrDoc = buildSolrDocument();
+            currentSolrDoc = buildSolrDocument( length, is );
           }
 
           // Fire off the request.
@@ -968,13 +971,31 @@ public class HttpPoster
       }
     }
 
-    private SolrInputDocument buildSolrDocument( )
+    private SolrInputDocument buildSolrDocument( long length, InputStream is )
       throws IOException
     {
       SolrInputDocument outputDoc = new SolrInputDocument();
 
       // Write the id field
       outputDoc.addField( idAttributeName, documentURI );
+      
+      if (contentAttributeName != null)
+      {
+        // Copy the content into a string.  This is a bad thing to do, but we have no choice given SolrJ architecture at this time.
+        // We enforce a size limit upstream.
+        Reader r = new InputStreamReader(is, Consts.UTF_8);
+        StringBuilder sb = new StringBuilder((int)length);
+        char[] buffer = new char[65536];
+        while (true)
+        {
+          int amt = r.read(buffer,0,buffer.length);
+          if (amt == -1)
+            break;
+          sb.append(buffer,0,amt);
+        }
+        outputDoc.addField( contentAttributeName, sb.toString() );
+      }
+      
       // Write the rest of the attributes
       if ( modifiedDateAttributeName != null )
       {
