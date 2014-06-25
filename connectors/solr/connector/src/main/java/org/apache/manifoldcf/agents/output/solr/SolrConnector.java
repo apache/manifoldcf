@@ -80,6 +80,15 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   protected String excludedMimeTypesString = null;
   /** Excluded mime types */
   protected Map<String,String> excludedMimeTypes = null;
+  
+  // Attributes going into Solr
+  protected String idAttributeName = null;
+  protected String modifiedDateAttributeName = null;
+  protected String createdDateAttributeName = null;
+  protected String indexedDateAttributeName = null;
+  protected String fileNameAttributeName = null;
+  protected String mimeTypeAttributeName = null;
+  protected String contentAttributeName = null;
   /** Use extractiing update handler? */
   protected boolean useExtractUpdateHandler = true;
   
@@ -166,6 +175,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     includedMimeTypes = null;
     excludedMimeTypesString = null;
     excludedMimeTypes = null;
+    idAttributeName = null;
+    modifiedDateAttributeName = null;
+    createdDateAttributeName = null;
+    indexedDateAttributeName = null;
+    fileNameAttributeName = null;
+    mimeTypeAttributeName = null;
+    contentAttributeName = null;
     useExtractUpdateHandler = true;
     super.disconnect();
   }
@@ -188,33 +204,42 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (statusPath == null || statusPath.length() == 0)
         statusPath = "";
 
-      String idAttributeName = params.getParameter(SolrConfig.PARAM_IDFIELD);
+      idAttributeName = params.getParameter(SolrConfig.PARAM_IDFIELD);
       if (idAttributeName == null || idAttributeName.length() == 0)
         idAttributeName = "id";
 
-      String modifiedDateAttributeName = params.getParameter(SolrConfig.PARAM_MODIFIEDDATEFIELD);
+      modifiedDateAttributeName = params.getParameter(SolrConfig.PARAM_MODIFIEDDATEFIELD);
       if (modifiedDateAttributeName == null || modifiedDateAttributeName.length() == 0)
         modifiedDateAttributeName = null;
 
-      String createdDateAttributeName = params.getParameter(SolrConfig.PARAM_CREATEDDATEFIELD);
+      createdDateAttributeName = params.getParameter(SolrConfig.PARAM_CREATEDDATEFIELD);
       if (createdDateAttributeName == null || createdDateAttributeName.length() == 0)
         createdDateAttributeName = null;
   
-      String indexedDateAttributeName = params.getParameter(SolrConfig.PARAM_INDEXEDDATEFIELD);
+      indexedDateAttributeName = params.getParameter(SolrConfig.PARAM_INDEXEDDATEFIELD);
       if (indexedDateAttributeName == null || indexedDateAttributeName.length() == 0)
         indexedDateAttributeName = null;
 
-      String fileNameAttributeName = params.getParameter(SolrConfig.PARAM_FILENAMEFIELD);
+      fileNameAttributeName = params.getParameter(SolrConfig.PARAM_FILENAMEFIELD);
       if (fileNameAttributeName == null || fileNameAttributeName.length() == 0)
         fileNameAttributeName = null;
 
-      String mimeTypeAttributeName = params.getParameter(SolrConfig.PARAM_MIMETYPEFIELD);
+      mimeTypeAttributeName = params.getParameter(SolrConfig.PARAM_MIMETYPEFIELD);
       if (mimeTypeAttributeName == null || mimeTypeAttributeName.length() == 0)
         mimeTypeAttributeName = null;
 
-      String contentAttributeName = "content";	// ??? -- should be settable
-      useExtractUpdateHandler = true;   // ???
+      contentAttributeName = params.getParameter(SolrConfig.PARAM_CONTENTFIELD);
+      if (contentAttributeName == null || contentAttributeName.length() == 0)
+        contentAttributeName = null;
       
+      String useExtractUpdateHandlerValue = params.getParameter(SolrConfig.PARAM_EXTRACTUPDATE);
+      if (useExtractUpdateHandlerValue == null || useExtractUpdateHandlerValue.length() == 0)
+        useExtractUpdateHandler = true;
+      else
+        useExtractUpdateHandler = !useExtractUpdateHandlerValue.equals("false");
+      if (contentAttributeName == null && !useExtractUpdateHandler)
+        throw new ManifoldCFException("Content attribute name required for non-extract-update indexing");
+
       String commits = params.getParameter(SolrConfig.PARAM_COMMITS);
       if (commits == null || commits.length() == 0)
         commits = "true";
@@ -230,6 +255,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         maxDocumentLength = null;
       else
         maxDocumentLength = new Long(docMax);
+      if (maxDocumentLength == null && !useExtractUpdateHandler)
+        throw new ManifoldCFException("Maximum document length required for non-extract-update indexing");
       
       includedMimeTypesString = params.getParameter(SolrConfig.PARAM_INCLUDEDMIMETYPES);
       if (includedMimeTypesString == null || includedMimeTypesString.length() == 0)
@@ -2655,35 +2682,93 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 
       // Here, append things which we have no intention of unpacking.  This includes stuff that comes from
       // the configuration information, for instance.
-      
-      if (maxDocumentLength != null || includedMimeTypesString != null || excludedMimeTypesString != null)
+
+      if (idAttributeName != null)
       {
-        // Length limitation.  We pack this because when it is changed we want to be sure we get any previously excluded documents.
-        if (maxDocumentLength != null)
-        {
           sb.append('+');
-          pack(sb,maxDocumentLength.toString(),'+');
-        }
-        else
-          sb.append('-');
-        // Included mime types
-        if (includedMimeTypesString != null)
-        {
-          sb.append('+');
-          pack(sb,includedMimeTypesString,'+');
-        }
-        else
-          sb.append('-');
-        // Excluded mime types
-        if (excludedMimeTypesString != null)
-        {
-          sb.append('+');
-          pack(sb,excludedMimeTypesString,'+');
-        }
-        else
-          sb.append('-');
+          pack(sb,idAttributeName,'+');
       }
+      else
+        sb.append('-');
+
+      if (modifiedDateAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,modifiedDateAttributeName,'+');
+      }
+      else
+        sb.append('-');
       
+      if (createdDateAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,createdDateAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (indexedDateAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,indexedDateAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (fileNameAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,fileNameAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (mimeTypeAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,mimeTypeAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (contentAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,contentAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (useExtractUpdateHandler)
+        sb.append('+');
+      else
+        sb.append('-');
+
+      // Length limitation.  We pack this because when it is changed we want to be sure we get any previously excluded documents.
+      if (maxDocumentLength != null)
+      {
+        sb.append('+');
+        pack(sb,maxDocumentLength.toString(),'+');
+      }
+      else
+        sb.append('-');
+      // Included mime types
+      if (includedMimeTypesString != null)
+      {
+        sb.append('+');
+        pack(sb,includedMimeTypesString,'+');
+      }
+      else
+        sb.append('-');
+      // Excluded mime types
+      if (excludedMimeTypesString != null)
+      {
+        sb.append('+');
+        pack(sb,excludedMimeTypesString,'+');
+      }
+      else
+        sb.append('-');
+
       return sb.toString();
     }
     
