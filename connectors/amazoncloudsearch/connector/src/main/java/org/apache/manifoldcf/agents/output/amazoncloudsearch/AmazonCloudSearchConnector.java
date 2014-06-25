@@ -247,9 +247,9 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   public String check() throws ManifoldCFException {
     try {
       getSession();
-      String responseBody;
       String responsbody = postData(new ReaderInputStream(new StringReader("[]"),Consts.UTF_8));
       String status = "";
+      
       try
       {
         status = getStatusFromJsonResponse(responsbody);
@@ -258,31 +258,12 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
         Logging.ingest.debug(e);
         return "Could not get status from response body. Check Access Policy setting of your domain of Amazon CloudSearch.: " + e.getMessage();
       }
-          
-      // check status message
-      String message = "";
-      if ("error".equals(status)) {
-        JsonParser parser = new JsonFactory().createJsonParser(responsbody);
-        while (parser.nextToken() != JsonToken.END_OBJECT) {
-          String name = parser.getCurrentName();
-          if ("errors".equalsIgnoreCase(name)) {
-            message = parseMessage(parser);
-            break;
-          }
-        }
-      }
-      if ("error".equalsIgnoreCase(status)
-          && "batch must contain at least one operation".equals(message)) {
-        return "Connection working.";
-      }
-      return "Connection NOT working.";
       
-    } catch (ClientProtocolException e) {
-      Logging.ingest.debug(e);
-      return "Protocol exception: "+e.getMessage();
-    } catch (IOException e) {
-      Logging.ingest.debug(e);
-      return "IO exception: "+e.getMessage();
+      if ("error".equalsIgnoreCase(status)) {
+        return "Connection working. responsbody : " + responsbody;
+      }
+      return "Connection NOT working. responsbody : " + responsbody;
+      
     } catch (ServiceInterruption e) {
       Logging.ingest.debug(e);
       return "Transient exception: "+e.getMessage();
