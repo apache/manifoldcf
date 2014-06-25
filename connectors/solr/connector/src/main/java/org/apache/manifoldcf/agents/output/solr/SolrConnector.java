@@ -1005,7 +1005,15 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String mimeTypeField = parameters.getParameter(SolrConfig.PARAM_MIMETYPEFIELD);
     if (mimeTypeField == null)
       mimeTypeField = "";
+
+    String contentField = parameters.getParameter(SolrConfig.PARAM_CONTENTFIELD);
+    if (contentField == null)
+      contentField = "";
     
+    String useExtractUpdate = parameters.getParameter(SolrConfig.PARAM_EXTRACTUPDATE);
+    if (useExtractUpdate == null || useExtractUpdate.length() == 0)
+      useExtractUpdate = "true";
+
     String realm = parameters.getParameter(SolrConfig.PARAM_REALM);
     if (realm == null)
       realm = "";
@@ -1460,6 +1468,31 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "      <input name=\"mimetypefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.UseExtractUpdateHandler") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"
+      );
+      if (!useExtractUpdate.equals("false"))
+      {
+        out.print(
+"      <input name=\"extractupdate\" type=\"checkbox\" value=\"true\" checked=\"true\"/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <input name=\"extractupdate\" type=\"checkbox\" value=\"true\"/>\n"
+        );
+      }
+      out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.ContentFieldName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"contentfield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(contentField)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -1471,7 +1504,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input type=\"hidden\" name=\"createddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(createdDateField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"indexeddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(indexedDateField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"filenamefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fileNameField)+"\"/>\n"+
-"<input type=\"hidden\" name=\"mimetypefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"
+"<input type=\"hidden\" name=\"mimetypefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"+
+"<input type=\"hidden\" name=\"contentfield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(contentField)+"\"/>\n"+
+"<input type=\"hidden\" name=\"extractupdate\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(useExtractUpdate)+"\"/>\n"
       );
     }
     
@@ -1771,6 +1806,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (mimeTypeField != null)
       parameters.setParameter(SolrConfig.PARAM_MIMETYPEFIELD,mimeTypeField);
 
+    String contentField = variableContext.getParameter("contentfield");
+    if (contentField != null)
+      parameters.setParameter(SolrConfig.PARAM_CONTENTFIELD,contentField);
+
+    String extractUpdate = variableContext.getParameter("extractupdate");
+    if (extractUpdate != null)
+      parameters.setParameter(SolrConfig.PARAM_EXTRACTUPDATE,extractUpdate);
+    
     String realm = variableContext.getParameter("realm");
     if (realm != null)
       parameters.setParameter(SolrConfig.PARAM_REALM,realm);
