@@ -25,6 +25,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
@@ -78,6 +80,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   protected String excludedMimeTypesString = null;
   /** Excluded mime types */
   protected Map<String,String> excludedMimeTypes = null;
+  /** Use extractiing update handler? */
+  protected boolean useExtractUpdateHandler = true;
   
   /** Whether or not to commit */
   protected boolean doCommits = false;
@@ -162,6 +166,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     includedMimeTypes = null;
     excludedMimeTypesString = null;
     excludedMimeTypes = null;
+    useExtractUpdateHandler = true;
     super.disconnect();
   }
 
@@ -208,7 +213,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         mimeTypeAttributeName = null;
 
       String contentAttributeName = "content";	// ??? -- should be settable
-      boolean useExtractUpdateHandler = true;   // ???
+      useExtractUpdateHandler = true;   // ???
       
       String commits = params.getParameter(SolrConfig.PARAM_COMMITS);
       if (commits == null || commits.length() == 0)
@@ -467,6 +472,15 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     return sp.toPackedString();
   }
 
+  private final static Set<String> acceptableMimeTypes = new HashSet<String>();
+  static
+  {
+    acceptableMimeTypes.add("text/plain;charset=utf-8");
+    acceptableMimeTypes.add("text/plain;charset=ascii");
+    acceptableMimeTypes.add("text/plain;charset=us-ascii");
+    acceptableMimeTypes.add("text/plain");
+  }
+
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.
   *@param outputDescription is the document's output version.
@@ -477,11 +491,15 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    if (includedMimeTypes != null && includedMimeTypes.get(mimeType) == null)
-      return false;
-    if (excludedMimeTypes != null && excludedMimeTypes.get(mimeType) != null)
-      return false;
-    return super.checkMimeTypeIndexable(outputDescription,mimeType);
+    if (useExtractUpdateHandler)
+    {
+      if (includedMimeTypes != null && includedMimeTypes.get(mimeType) == null)
+        return false;
+      if (excludedMimeTypes != null && excludedMimeTypes.get(mimeType) != null)
+        return false;
+      return super.checkMimeTypeIndexable(outputDescription,mimeType);
+    }
+    return acceptableMimeTypes.contains(mimeType.toLowerCase(Locale.ROOT));
   }
 
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
