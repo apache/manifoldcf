@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-981: Add support for SolrInputDocument indexing in
+Solr connector.
+(Alessandro Benedetti, Karl Wright)
+
 CONNECTORS-979: Fix ant build so that documentum and filenet show
 up.
 (Karl Wright)
