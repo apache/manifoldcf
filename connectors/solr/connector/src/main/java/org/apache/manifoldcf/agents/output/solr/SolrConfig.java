@@ -111,6 +111,10 @@ public class SolrConfig
   public static final String PARAM_INCLUDEDMIMETYPES = "Included mime types";
   /** Excluded mime types */
   public static final String PARAM_EXCLUDEDMIMETYPES="Excluded mime types";
+  /** Parameter describing the use of Extract Update handler */
+  public static final String PARAM_EXTRACTUPDATE = "Use extract update handler";
+  /** Optional content field (if not using extract update handler) */
+  public static final String PARAM_CONTENTFIELD = "Solr content field name";
   /** Node describing an argument */
   public static final String NODE_ARGUMENT = "argument";
   /** Attribute with the argument name */
@@ -131,5 +135,6 @@ public class SolrConfig
    * Node describing the keep metadata 
    */
   public static final String NODE_KEEPMETADATA = "keepAllMetadata";
+
 
 }
