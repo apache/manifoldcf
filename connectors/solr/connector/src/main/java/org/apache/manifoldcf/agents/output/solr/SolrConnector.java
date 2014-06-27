@@ -824,14 +824,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.maxdocumentlength.value == \"\" && (editconnection.extractupdate.value != \"true\" || (editconnection.extractupdate.checked == false)))\n"+
+"  if (editconnection.maxdocumentlength.value == \"\" && (editconnection.extractupdate.value != \"true\" || (typeof editconnection.extractupdate.checked != \"undefined\" && editconnection.extractupdate.checked == false)))\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.MaximumDocumentLengthRequiredUnlessExtractingUpdateHandler")+"\");\n"+
 "    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Documents")+"\");\n"+
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.contentfield.value == \"\" && (editconnection.extractupdate.value != \"true\" || (editconnection.extractupdate.checked == false)))\n"+
+"  if (editconnection.contentfield.value == \"\" && (editconnection.extractupdate.value != \"true\" || (typeof editconnection.extractupdate.checked != \"undefined\" && editconnection.extractupdate.checked == false)))\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ContentFieldNameRequiredUnlessExtractingUpdateHandler")+"\");\n"+
 "    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Schema")+"\");\n"+
