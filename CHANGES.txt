@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-985: Get UI tests working again.
+(Karl Wright)
+
 CONNECTORS-981: Add support for SolrInputDocument indexing in
 Solr connector.
 (Alessandro Benedetti, Karl Wright)
