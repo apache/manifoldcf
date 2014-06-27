@@ -363,6 +363,7 @@ public class JobNotificationThread extends Thread
                       // If either we are going to be requeuing beyond the fail time, OR
                       // the number of retries available has hit 0, THEN we treat this
                       // as either an "ignore" or a hard error.
+                      ///System.out.println("jsr.getFailTime()="+jsr.getFailTime()+"; e.getRetryTime()="+e.getRetryTime()+"; jsr.getFailRetryCount()="+jsr.getFailRetryCount());
                       if (!e.jobInactiveAbort() && (jsr.getFailTime() != -1L && jsr.getFailTime() < e.getRetryTime() ||
                         jsr.getFailRetryCount() == 0))
                       {
@@ -370,9 +371,11 @@ public class JobNotificationThread extends Thread
                         if (e.isAbortOnFail())
                         {
                           // Note the error in the job, and transition to inactive state
-                          String message = e.jobInactiveAbort()?"":"Repeated service interruptions during notification"+((e.getCause()!=null)?": "+e.getCause().getMessage():"");
-                          if (jobManager.errorAbort(jobID,message) && message.length() > 0)
+                          String message = e.jobInactiveAbort()?"":"Repeated service interruptions during delete notification"+((e.getCause()!=null)?": "+e.getCause().getMessage():"");
+                          if (message.length() > 0)
                             Logging.jobs.error(message,e.getCause());
+                          // Can't abort a delete!!
+                          jobManager.removeJob(jobID);
                           jsr.noteStarted();
                         }
                         else
@@ -385,6 +388,7 @@ public class JobNotificationThread extends Thread
                       else
                       {
                         // Reset the job to the READYFORDELETENOTIFY state, updating the failtime and failcount fields
+                        //System.out.println("Retrying... e.getFailTime()="+e.getFailTime()+"; e.getFailRetryCount()="+e.getFailRetryCount());
                         jobManager.retryDeleteNotification(jsr,e.getFailTime(),e.getFailRetryCount());
                         jsr.noteStarted();
                       }
