@@ -53,11 +53,17 @@ class JSObject:
         # an error
         raise Exception("Attempt to construct a non-class object: %s" % unicode(self))
 
+    def get_type( self, member_name ):
+        return JSString( "undefined" )
+
     def get_value( self, member_name ):
         raise Exception("Object %s has no such property '%s'" % (unicode(self), member_name) )
 
     def set_value( self, member_name, value ):
         raise Exception("Object %s has no such property '%s'" % (unicode(self), member_name) )
+
+    def type_value( self ):
+        raise Exception("Object %s has no type value" % unicode(self) )
 
     def str_value( self ):
         raise Exception("Object %s has no string value" % unicode(self) )
@@ -78,6 +84,11 @@ class JSObject:
         # return self.
         return self
 
+    def dereference_type( self ):
+        # For objects that are references, this operation dereferences them.  All others
+        # return self.
+        return self.type_value( )
+
 # Array object.
 class JSArray( JSObject ):
 
@@ -86,6 +97,15 @@ class JSArray( JSObject ):
         JSObject.__init__( self )
         self.array_size = array_size
         self.array = { }
+
+    def get_type( self, member_name ):
+        if member_name == "length":
+            return "number"
+        index = int(member_name)
+        assert index >=0 and index < self.array_size
+        if index >= len(self.array):
+            return JSObject.get_type( member_name )
+        return self.array[ index ].type_value( )
 
     def get_value( self, member_name ):
         if member_name == "length":
@@ -274,6 +294,9 @@ class JSNumber( JSObject ):
         JSObject.__init__( self )
         self.value = value
 
+    def type_value( self ):
+        return unicode( "number" )
+
     def num_value( self ):
         return self.value
 
@@ -325,6 +348,9 @@ class JSRegexp( JSObject ):
         self.value = value
         self.is_global = is_global
         self.is_insensitive = is_insensitive
+
+    def type_value( self ):
+        return unicode( "regexp" )
 
     def get_value( self, member_name ):
         # A regexp has a method property for the test method (which is the only one
@@ -511,6 +537,9 @@ class JSString( JSObject ):
             return JSSubstring( self )
         return JSObject.get_value( self, member_name )
 
+    def type_value( self ):
+        return unicode( "string" )
+
     def str_value( self ):
         return unicode( self.value )
 
@@ -552,11 +581,17 @@ class JSReference( JSObject ):
     def call( self, argset, context ):
         return self.dereference().call(argset,context)
 
+    def get_type( self, member_name ):
+        return self.dereference().get_type(member_name)
+
     def get_value( self, member_name ):
         return self.dereference().get_value(member_name)
 
     def set_value( self, member_name, value ):
         self.dereference().set_value(member_name,value)
+
+    def type_value( self ):
+        return self.dereference_type()
 
     def str_value( self ):
         return self.dereference().str_value()
@@ -581,6 +616,9 @@ class JSObjMemberReference( JSReference ):
 
     def dereference( self ):
         return self.object.get_value( self.member )
+
+    def dereference_type( self ):
+        return self.object.get_type( self.member )
 
     def set_reference( self, newobject ):
         self.object.set_value( self.member, newobject )
@@ -1508,6 +1546,15 @@ class JSTokenStream:
             if parse_only:
                 return JSNull()
             return self.pre_plusplus ( nextvalue )
+        elif token != None and token.get_symbol( ) == "typeof":
+            # typeof operator
+            self.advance( )
+            nextvalue = self.evaluate_expr9( context, place, parse_only )
+            if nextvalue == None:
+                raise Exception("Missing expression after 'typeof' in %s" % place)
+            if parse_only:
+                return JSNull()
+            return self.typeof( nextvalue ) 
         elif token != None and token.get_symbol( ) == "new":
             self.advance( )
             token = self.peek( )
@@ -1575,6 +1622,9 @@ class JSTokenStream:
 
     def positive( self, value1 ):
         return JSNumber( +value1.num_value( ) )
+
+    def typeof( self, value1 ):
+        return JSString( value1.type_value( ) )
 
     def post_minusminus( self, value1 ):
         rval = value1.dereference( )
