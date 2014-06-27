@@ -88,6 +88,9 @@ class VirtualFormDataElement( VirtualFormElement ):
     def get_property( self, property_name ):
         raise Exception("Form element '%s' has no such property '%s'" % (self.element_name, property_name))
 
+    # Get the type of a property (via javascript)
+    def get_property_type( self, property_name ):
+        return "undefined"
 
 # Button base class
 class VirtualButton( VirtualFormElement ):
@@ -217,6 +220,14 @@ class VirtualHiddenField( VirtualFormDataElement ):
         else:
             return VirtualFormDataElement.get_property( self, property_name )
 
+    def get_property_type( self, property_name ):
+        if property_name == "type":
+            return "string"
+        if property_name == "value":
+            return "string"
+        else:
+            return VirtualFormDataElement.get_property_type( self, property_name )
+
 # File
 class VirtualFileBrowser( VirtualFormDataElement ):
 
@@ -249,6 +260,12 @@ class VirtualFileBrowser( VirtualFormDataElement ):
         else:
             return VirtualFormDataElement.get_property( self, property_name )
 
+    # Get a property type (via javascript)
+    def get_property_type( self, property_name ):
+        if property_name == "value":
+            return "string"
+        else:
+            return VirtualFormDataElement.get_property_type( self, property_name )
 
 # Read a specified file entirely into a "string"
 def read_file( filename ):
@@ -300,6 +317,11 @@ class VirtualCheckbox( VirtualFormDataElement ):
         if property_name == "checked":
             return Javascript.JSBoolean(self.selected)
         return VirtualFormDataElement.get_property( self, property_name )
+
+    def get_property_type( self, property_name ):
+        if property_name == "checked":
+            return "boolean"
+        return VirtualFormDataElement.get_property_type( self, property_name )
 
 # Radio
 class VirtualRadiobutton( VirtualFormDataElement ):
@@ -512,6 +534,23 @@ class VirtualSelectbox( VirtualFormDataElement ):
         else:
             return VirtualFormDataElement.get_property( self, property_name )
 
+    # Get a property type (via javascript)
+    def get_property_type( self, property_name ):
+        if property_name == "type":
+            return "string"
+        elif property_name == "value":
+            return "string"
+        elif property_name == "options":
+            # Return a JSArray describing the options objects underlying this selectbox
+            return "array"
+        elif property_name == "length":
+            # Return as JSNumber describing the length of the array
+            return "number"
+        elif property_name == "selectedIndex":
+            return "number"
+        else:
+            return VirtualFormDataElement.get_property_type( self, property_name )
+
     # Get an option object
     def get_option_object( self, index ):
         assert index < len(self.option_value_list)
@@ -574,6 +613,13 @@ class VirtualTextarea( VirtualFormDataElement ):
             return JSFocusMethod( self )
         else:
             return VirtualFormDataElement.get_property( self, property_name )
+
+    # Get a property type (via javascript)
+    def get_property_type( self, property_name ):
+        if property_name == "value":
+            return "string"
+        else:
+            return VirtualFormDataElement.get_property_type( self, property_name )
 
 # Class that describes a virtual form.  Each form has an identifier (the form name), plus form elements
 # that live in the form.
@@ -1489,6 +1535,12 @@ class JSElementObject( Javascript.JSObject ):
         assert isinstance( element_object, VirtualFormDataElement )
         self.element_object = element_object
 
+    def get_type( self, member_name ):
+        # We need to return the proper types of the javascript object
+        # properties
+        value = self.element_object.get_property_type( member_name )
+        return value
+        
     def get_value( self, member_name ):
         # The object itself knows what its javascript properties are, so call the right
         # method inside.  All properties are currently strings.
@@ -1501,6 +1553,9 @@ class JSElementObject( Javascript.JSObject ):
         # The object itself knows what its javascript properties are.  Pass them
         # as strings, though.
         self.element_object.set_property( member_name, value )
+
+    def type_value( self ):
+        return "formelement"
 
     def bool_value( self ):
         # Return true because the object clearly exists
