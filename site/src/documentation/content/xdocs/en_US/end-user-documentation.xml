@@ -2830,14 +2830,17 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <figure src="images/en_US/web-job-inclusions.PNG" alt="Web Job, Inclusions tab" width="80%"/>
                 <br/><br/>
-                <p>You will need to provide a series of zero or more regular expressions, separated by newlines.</p>
+                <p>You will need to provide a series of zero or more regular expressions, separated by newlines.  The regular expressions are considered to match if they are
+                      found anywhere within the URL.  They do not need to match the entire URL.</p>
                 <p>Remember that, by default, a web job includes <b>all</b> documents in the world that are linked to your seeds in any way that the web connection type can determine.</p>
                 <p>If you wish to restrict which documents are actually processed within your overall set of included documents, you may want to supply some regular expressions on the
                        "Exclusions" tab, which looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/web-job-exclusions.PNG" alt="Web Job, Exclusions tab" width="80%"/>
                 <br/><br/>
-                <p>Once again you will need to provide a series of zero or more regular expressions, separated by newlines.  It is typical to use the "Exclusions" tab to remove documents from
+                <p>Once again you will need to provide a series of zero or more regular expressions, separated by newlines.  The regular expressions are considered to match if they are
+                      found anywhere within the URL.  They do not need to match the entire URL.</p>
+                <p>It is typical to use the "Exclusions" tab to remove documents from
                        consideration which are suspected to contain content that both has no extractable links, and is not useful to the index you are trying to build, e.g. movie files.</p>
                 <p>The "Security" tab allows you to specify the access tokens that the documents in the web job get indexed with, and looks like this:</p>
                 <br/><br/>
