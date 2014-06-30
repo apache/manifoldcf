@@ -34,8 +34,10 @@ public class TempFileInput extends BinaryInput
   public static final String _rcsid = "@(#)$Id: TempFileInput.java 988245 2010-08-23 18:39:35Z kwright $";
 
   protected File file;
+  protected byte[] inMemoryBuffer;
 
   protected final static int CHUNK_SIZE = 65536;
+  protected final static int DEFAULT_MAX_MEM_SIZE = 8192;
 
   /** Construct from an input stream.
   * This will also create a temporary, backing file.
@@ -54,74 +56,145 @@ public class TempFileInput extends BinaryInput
   public TempFileInput(InputStream is, long length)
     throws ManifoldCFException
   {
+    this(is,length,DEFAULT_MAX_MEM_SIZE);
+  }
+  
+  /** Construct from a length-delimited input stream.
+  *@param is is the input stream.
+  *@param length is the maximum number of bytes to transfer, or -1 if no limit.
+  *@param maxMemSize is the maximum bytes we keep in memory in lieu of using a file.
+  */
+  public TempFileInput(InputStream is, long length, int maxMemSize)
+    throws ManifoldCFException
+  {
     super();
+    
+    // Before we do anything else, we read the first chunk.  This will allow
+    // us to determine if we're going to buffer the data in memory or not.  However,
+    // it may need to be read in chunks, since there's no guarantee it will come in
+    // in the size requested.
+    int chunkSize = CHUNK_SIZE;
+
+    byte[] buffer = new byte[chunkSize];
+    int chunkTotal = 0;
+    boolean eofSeen = false;
     try
     {
-      // Create a temporary file to put the stuff in
-      File outfile = File.createTempFile("_MC_","");
-      try
+      while (true)
       {
-        // Register the file for autodeletion, using our infrastructure.
-        ManifoldCF.addFile(outfile);
-        // deleteOnExit() causes memory leakage!
-        // outfile.deleteOnExit();
-        FileOutputStream outStream = new FileOutputStream(outfile);
-        try
+        int chunkAmount;
+        if (length == -1L || length > chunkSize)
+          chunkAmount = chunkSize-chunkTotal;
+        else
         {
-          byte[] buffer = new byte[CHUNK_SIZE];
-          long totalMoved = 0;
-          while (true)
-          {
-            int moveAmount;
-            if (length == -1L || length-totalMoved > CHUNK_SIZE)
-              moveAmount = CHUNK_SIZE;
-            else
-              moveAmount = (int)(length-totalMoved);
-            if (moveAmount == 0)
-              break;
-            // Read binary data in 64K chunks
-            int readsize = is.read(buffer,0,moveAmount);
-            if (readsize == -1)
-              break;
-            outStream.write(buffer,0,readsize);
-            totalMoved += readsize;
-          }
-          // System.out.println(" Moved "+Long.toString(totalMoved));
+          chunkAmount = (int)(length-chunkTotal);
+          eofSeen = true;
         }
-        finally
+        if (chunkAmount == 0)
+          break;
+        int readsize = is.read(buffer,chunkTotal,chunkAmount);
+        if (readsize == -1)
         {
-          outStream.close();
+          eofSeen = true;
+          break;
         }
-
-        // Now, create the input stream.
-        // Save the file name
-        file = outfile;
-        this.length = file.length();
-
-      }
-      catch (Throwable e)
-      {
-        // Delete the temp file we created on any error condition
-        // outfile.delete();
-        ManifoldCF.deleteFile(outfile);
-        if (e instanceof Error)
-          throw (Error)e;
-        if (e instanceof RuntimeException)
-          throw (RuntimeException)e;
-        if (e instanceof Exception)
-          throw (Exception)e;
-        throw new Exception("Unexpected throwable: "+e.getMessage(),e);
+        chunkTotal += readsize;
       }
     }
     catch (InterruptedIOException e)
     {
       throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
-    catch (Exception e)
+    catch (IOException e)
     {
-      throw new ManifoldCFException("Cannot write temporary file",e,ManifoldCFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Cannot read byte stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
 
+    if (eofSeen && chunkTotal < maxMemSize)
+    {
+      // In memory!!
+      file = null;
+      inMemoryBuffer = new byte[chunkTotal];
+      for (int i = 0; i < inMemoryBuffer.length; i++)
+      {
+        inMemoryBuffer[i] = buffer[i];
+      }
+      this.length = chunkTotal;
+    }
+    else
+    {
+      inMemoryBuffer = null;
+      try
+      {
+        // Create a temporary file to put the stuff in
+        File outfile = File.createTempFile("_MC_","");
+        try
+        {
+          // Register the file for autodeletion, using our infrastructure.
+          ManifoldCF.addFile(outfile);
+          // deleteOnExit() causes memory leakage!
+          // outfile.deleteOnExit();
+          FileOutputStream outStream = new FileOutputStream(outfile);
+          try
+          {
+            long totalMoved = 0;
+            
+            //  Transfor what we've already read.
+            outStream.write(buffer,0,chunkTotal);
+            totalMoved += chunkTotal;
+
+            while (true)
+            {
+              int moveAmount;
+              if (length == -1L || length-totalMoved > chunkSize)
+                moveAmount = chunkSize;
+              else
+                moveAmount = (int)(length-totalMoved);
+              if (moveAmount == 0)
+                break;
+              // Read binary data in 64K chunks
+              int readsize = is.read(buffer,0,moveAmount);
+              if (readsize == -1)
+                break;
+              outStream.write(buffer,0,readsize);
+              totalMoved += readsize;
+            }
+            // System.out.println(" Moved "+Long.toString(totalMoved));
+          }
+          finally
+          {
+            outStream.close();
+          }
+
+          // Now, create the input stream.
+          // Save the file name
+          file = outfile;
+          this.length = file.length();
+
+        }
+        catch (Throwable e)
+        {
+          // Delete the temp file we created on any error condition
+          // outfile.delete();
+          ManifoldCF.deleteFile(outfile);
+          if (e instanceof Error)
+            throw (Error)e;
+          if (e instanceof RuntimeException)
+            throw (RuntimeException)e;
+          if (e instanceof Exception)
+            throw (Exception)e;
+          throw new Exception("Unexpected throwable: "+e.getMessage(),e);
+        }
+      }
+      catch (InterruptedIOException e)
+      {
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+      catch (Exception e)
+      {
+        throw new ManifoldCFException("Cannot write temporary file",e,ManifoldCFException.GENERAL_ERROR);
+      }
+    }
   }
 
   /** Construct from an existing temporary fle.
@@ -130,6 +203,7 @@ public class TempFileInput extends BinaryInput
   public TempFileInput(File tempFile)
   {
     super();
+    inMemoryBuffer = null;
     file = tempFile;
     ManifoldCF.addFile(file);
     // deleteOnExit() causes memory leakage; better to leak files on hard shutdown than memory.
@@ -146,9 +220,11 @@ public class TempFileInput extends BinaryInput
   {
     TempFileInput rval = new TempFileInput();
     rval.file = file;
+    rval.inMemoryBuffer = inMemoryBuffer;
     rval.stream = stream;
     rval.length = length;
     file = null;
+    inMemoryBuffer = null;
     stream = null;
     length = -1L;
     return rval;
@@ -168,21 +244,31 @@ public class TempFileInput extends BinaryInput
   protected void openStream()
     throws ManifoldCFException
   {
-    try
+    if (file != null)
     {
-      // Open the file and create a stream.
-      stream = new FileInputStream(file);
+      try
+      {
+        // Open the file and create a stream.
+        stream = new FileInputStream(file);
+      }
+      catch (FileNotFoundException e)
+      {
+        throw new ManifoldCFException("Can't create stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
+      }
     }
-    catch (FileNotFoundException e)
+    else if (inMemoryBuffer != null)
     {
-      throw new ManifoldCFException("Can't create stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
+      stream = new ByteArrayInputStream(inMemoryBuffer);
     }
   }
 
   protected void calculateLength()
     throws ManifoldCFException
   {
-    this.length = file.length();
+    if (file != null)
+      this.length = file.length();
+    else if (inMemoryBuffer != null)
+      this.length = inMemoryBuffer.length;
   }
 
 }
