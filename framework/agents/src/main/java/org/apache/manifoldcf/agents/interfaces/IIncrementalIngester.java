@@ -72,7 +72,16 @@ public interface IIncrementalIngester
   *@param spec is the output specification.
   *@return the description string.
   */
+  @Deprecated
   public String getOutputDescription(String outputConnectionName, OutputSpecification spec)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Get an output version string for a document.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param spec is the output specification.
+  *@return the description string.
+  */
+  public String getOutputDescription(String outputConnectionName, Specification spec)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Get transformation version string for a document.
@@ -80,7 +89,7 @@ public interface IIncrementalIngester
   *@param spec is the transformation specification.
   *@return the description string.
   */
-  public String getTransformationDescription(String transformationConnectionName, OutputSpecification spec)
+  public String getTransformationDescription(String transformationConnectionName, Specification spec)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Check if a mime type is indexable.
