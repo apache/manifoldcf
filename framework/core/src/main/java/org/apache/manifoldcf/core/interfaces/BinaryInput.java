@@ -95,14 +95,18 @@ public abstract class BinaryInput extends PersistentDatabaseObject
       stream.close();
       stream = null;
     }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
     catch (IOException e)
     {
-      throw new ManifoldCFException("IO exception closing stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
+      handleIOException(e,"closing stream");
     }
+  }
+
+  protected static void handleIOException(IOException e, String context)
+    throws ManifoldCFException
+  {
+    if (e instanceof InterruptedIOException)
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    throw new ManifoldCFException("IO exception while "+context+": "+e.getMessage(),e);
   }
 
 }

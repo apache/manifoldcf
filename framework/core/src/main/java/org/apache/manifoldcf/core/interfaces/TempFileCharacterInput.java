@@ -109,13 +109,9 @@ public class TempFileCharacterInput extends CharacterInput
         chunkTotal += readsize;
       }
     }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
     catch (IOException e)
     {
-      throw new ManifoldCFException("Cannot read character stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
+      handleIOException(e,"reading character stream");
     }
     
     // Set up hash digest, and calculate the initial hash.
@@ -205,18 +201,16 @@ public class TempFileCharacterInput extends CharacterInput
             throw (Error)e;
           if (e instanceof RuntimeException)
             throw (RuntimeException)e;
-          if (e instanceof Exception)
-            throw (Exception)e;
-          throw new Exception("Unexpected throwable: "+e.getMessage(),e);
+          if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          if (e instanceof IOException)
+            throw (IOException)e;
+          throw new RuntimeException("Unexpected throwable of type "+e.getClass().getName()+": "+e.getMessage(),e);
         }
       }
-      catch (InterruptedIOException e)
+      catch (IOException e)
       {
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (Exception e)
-      {
-        throw new ManifoldCFException("Cannot write temporary file: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
+        handleIOException(e,"writing temporary file");
       }
     }
     
@@ -387,13 +381,9 @@ public class TempFileCharacterInput extends CharacterInput
         reader.close();
       }
     }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
     catch (IOException e)
     {
-      throw new ManifoldCFException("Can't scan file: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
+      handleIOException(e,"scanning file");
     }
   }
 

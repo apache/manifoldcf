@@ -101,13 +101,9 @@ public class TempFileInput extends BinaryInput
         chunkTotal += readsize;
       }
     }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
     catch (IOException e)
     {
-      throw new ManifoldCFException("Cannot read byte stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
+      handleIOException(e,"reading byte stream");
     }
 
     if (eofSeen && chunkTotal < maxMemSize)
@@ -181,18 +177,16 @@ public class TempFileInput extends BinaryInput
             throw (Error)e;
           if (e instanceof RuntimeException)
             throw (RuntimeException)e;
-          if (e instanceof Exception)
-            throw (Exception)e;
-          throw new Exception("Unexpected throwable: "+e.getMessage(),e);
+          if (e instanceof ManifoldCFException)
+            throw (ManifoldCFException)e;
+          if (e instanceof IOException)
+            throw (IOException)e;
+          throw new RuntimeException("Unexpected throwable of type "+e.getClass().getName()+": "+e.getMessage(),e);
         }
       }
-      catch (InterruptedIOException e)
+      catch (IOException e)
       {
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (Exception e)
-      {
-        throw new ManifoldCFException("Cannot write temporary file",e,ManifoldCFException.GENERAL_ERROR);
+        handleIOException(e,"writing temporary file");
       }
     }
   }
