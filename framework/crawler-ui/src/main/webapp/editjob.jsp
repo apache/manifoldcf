@@ -87,7 +87,7 @@
 	String[] pipelineDescriptions = new String[0];
 	boolean[] pipelineIsOutputs = new boolean[0];
 	int[] pipelinePrerequisites = new int[0];
-	OutputSpecification[] pipelineSpecifications = new OutputSpecification[0];
+	Specification[] pipelineSpecifications = new Specification[0];
 	
 	ArrayList scheduleRecords = new ArrayList();
 
@@ -132,7 +132,7 @@
 		pipelineDescriptions = new String[job.countPipelineStages()];
 		pipelineIsOutputs = new boolean[job.countPipelineStages()];
 		pipelinePrerequisites = new int[job.countPipelineStages()];
-		pipelineSpecifications = new OutputSpecification[job.countPipelineStages()];
+		pipelineSpecifications = new Specification[job.countPipelineStages()];
 		for (int j = 0; j < job.countPipelineStages(); j++)
 		{
 			pipelineConnectionNames[j] = job.getPipelineStageConnectionName(j);

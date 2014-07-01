@@ -317,7 +317,7 @@ public class PipelineManager extends org.apache.manifoldcf.core.database.BaseTab
         int prerequisite = job.getPipelineStagePrerequisite(i);
         String pipelineConnectionName = job.getPipelineStageConnectionName(i);
         String pipelineStageDescription = job.getPipelineStageDescription(i);
-        OutputSpecification os = job.getPipelineStageSpecification(i);
+        Specification os = job.getPipelineStageSpecification(i);
         map.clear();
         map.put(ownerIDField,ownerID);
         map.put(ordinalField,new Long((long)i));
