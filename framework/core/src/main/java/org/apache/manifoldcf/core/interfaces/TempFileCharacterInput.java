@@ -48,7 +48,7 @@ public class TempFileCharacterInput extends CharacterInput
   *          and hash value for the data.
   */
   public TempFileCharacterInput(Reader is)
-    throws ManifoldCFException
+    throws ManifoldCFException, IOException
   {
     this(is,-1L);
   }
@@ -59,7 +59,7 @@ public class TempFileCharacterInput extends CharacterInput
   *@param length is the length limit to transfer, or -1 if no limit
   */
   public TempFileCharacterInput(Reader is, long length)
-    throws ManifoldCFException
+    throws ManifoldCFException, IOException
   {
     this(is,length,DEFAULT_MAX_MEM_SIZE);
   }
@@ -72,7 +72,7 @@ public class TempFileCharacterInput extends CharacterInput
   *        saved in memory will be guaranteed less than this size.
   */
   public TempFileCharacterInput(Reader is, long length, int maxInMemoryLength)
-    throws ManifoldCFException
+    throws ManifoldCFException, IOException
   {
     super();
     
@@ -86,32 +86,25 @@ public class TempFileCharacterInput extends CharacterInput
     char[] buffer = new char[chunkSize];
     int chunkTotal = 0;
     boolean eofSeen = false;
-    try
+    while (true)
     {
-      while (true)
+      int chunkAmount;
+      if (length == -1L || length > chunkSize)
+        chunkAmount = chunkSize-chunkTotal;
+      else
       {
-        int chunkAmount;
-        if (length == -1L || length > chunkSize)
-          chunkAmount = chunkSize-chunkTotal;
-        else
-        {
-          chunkAmount = (int)(length-chunkTotal);
-          eofSeen = true;
-        }
-        if (chunkAmount == 0)
-          break;
-        int readsize = is.read(buffer,chunkTotal,chunkAmount);
-        if (readsize == -1)
-        {
-          eofSeen = true;
-          break;
-        }
-        chunkTotal += readsize;
+        chunkAmount = (int)(length-chunkTotal);
+        eofSeen = true;
       }
-    }
-    catch (IOException e)
-    {
-      handleIOException(e,"reading character stream");
+      if (chunkAmount == 0)
+        break;
+      int readsize = is.read(buffer,chunkTotal,chunkAmount);
+      if (readsize == -1)
+      {
+        eofSeen = true;
+        break;
+      }
+      chunkTotal += readsize;
     }
     
     // Set up hash digest, and calculate the initial hash.
@@ -141,80 +134,114 @@ public class TempFileCharacterInput extends CharacterInput
       inMemoryBuffer = null;
       // Create a temporary file!
       long totalMoved = 0;
+      
+      // Create a temporary file to put the stuff in
+      File outfile;
       try
       {
-        // Create a temporary file to put the stuff in
-        File outfile = File.createTempFile("_MC_","");
-        try
-        {
-          // Register the file for autodeletion, using our infrastructure.
-          ManifoldCF.addFile(outfile);
-          // deleteOnExit() causes memory leakage!
-          // outfile.deleteOnExit();
-
-          FileOutputStream outStream = new FileOutputStream(outfile);
-          // Create a Writer corresponding to the file output stream, and encode using utf-8
-          OutputStreamWriter outWriter = new OutputStreamWriter(outStream,StandardCharsets.UTF_8);
-          try
-          {
-            //  Transfor what we've already read.
-            outWriter.write(buffer,0,chunkTotal);
-            totalMoved += chunkTotal;
-            // Now, transfer the remainder
-            while (true)
-            {
-              int moveAmount;
-              if (length == -1L || length-totalMoved > chunkSize)
-                moveAmount = chunkSize;
-              else
-                moveAmount = (int)(length-totalMoved);
-              if (moveAmount == 0)
-                break;
-              // Read character data in 64K chunks
-              int readsize = is.read(buffer,0,moveAmount);
-              if (readsize == -1)
-                break;
-              outWriter.write(buffer,0,readsize);
-              ManifoldCF.addToHash(md,new String(buffer,0,readsize));
-              totalMoved += readsize;
-            }
-
-          }
-          finally
-          {
-            outWriter.close();
-          }
-
-          // Now, create the input stream.
-          // Save the file name
-          file = outfile;
-          charLength = totalMoved;
-          hashValue = ManifoldCF.getHashValue(md);
-
-        }
-        catch (Throwable e)
-        {
-          // Delete the temp file we created on any error condition
-          // outfile.delete();
-          ManifoldCF.deleteFile(outfile);
-          if (e instanceof Error)
-            throw (Error)e;
-          if (e instanceof RuntimeException)
-            throw (RuntimeException)e;
-          if (e instanceof ManifoldCFException)
-            throw (ManifoldCFException)e;
-          if (e instanceof IOException)
-            throw (IOException)e;
-          throw new RuntimeException("Unexpected throwable of type "+e.getClass().getName()+": "+e.getMessage(),e);
-        }
+        outfile = File.createTempFile("_MC_","");
       }
       catch (IOException e)
       {
-        handleIOException(e,"writing temporary file");
+        handleIOException(e,"creating backing file");
+        outfile = null;
+      }
+      try
+      {
+        // Register the file for autodeletion, using our infrastructure.
+        ManifoldCF.addFile(outfile);
+        // deleteOnExit() causes memory leakage!
+        // outfile.deleteOnExit();
+
+        FileOutputStream outStream;
+        OutputStreamWriter outWriter;
+        try
+        {
+          outStream = new FileOutputStream(outfile);
+          // Create a Writer corresponding to the file output stream, and encode using utf-8
+          outWriter = new OutputStreamWriter(outStream,StandardCharsets.UTF_8);
+        }
+        catch (IOException e)
+        {
+          handleIOException(e,"opening backing file");
+          outStream = null;
+          outWriter = null;
+        }
+        try
+        {
+          //  Transfor what we've already read.
+          try
+          {
+            outWriter.write(buffer,0,chunkTotal);
+          }
+          catch (IOException e)
+          {
+            handleIOException(e,"writing backing file");
+          }
+          totalMoved += chunkTotal;
+          // Now, transfer the remainder
+          while (true)
+          {
+            int moveAmount;
+            if (length == -1L || length-totalMoved > chunkSize)
+              moveAmount = chunkSize;
+            else
+              moveAmount = (int)(length-totalMoved);
+            if (moveAmount == 0)
+              break;
+            // Read character data in 64K chunks
+            int readsize = is.read(buffer,0,moveAmount);
+            if (readsize == -1)
+              break;
+            try
+            {
+              outWriter.write(buffer,0,readsize);
+            }
+            catch (IOException e)
+            {
+              handleIOException(e,"writing backing file");
+            }
+            ManifoldCF.addToHash(md,new String(buffer,0,readsize));
+            totalMoved += readsize;
+          }
+
+        }
+        finally
+        {
+          try
+          {
+            outWriter.close();
+          }
+          catch (IOException e)
+          {
+            handleIOException(e,"closing backing file");
+          }
+        }
+
+        // Now, create the input stream.
+        // Save the file name
+        file = outfile;
+        charLength = totalMoved;
+        hashValue = ManifoldCF.getHashValue(md);
+
+      }
+      catch (Throwable e)
+      {
+        // Delete the temp file we created on any error condition
+        // outfile.delete();
+        ManifoldCF.deleteFile(outfile);
+        if (e instanceof Error)
+          throw (Error)e;
+        if (e instanceof RuntimeException)
+          throw (RuntimeException)e;
+        if (e instanceof ManifoldCFException)
+          throw (ManifoldCFException)e;
+        if (e instanceof IOException)
+          throw (IOException)e;
+        throw new RuntimeException("Unexpected throwable of type "+e.getClass().getName()+": "+e.getMessage(),e);
       }
     }
     
-
   }
 
   /** Construct from an existing temporary fle.
