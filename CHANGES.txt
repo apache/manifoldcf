@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-988: Performance improvements for split pipeline crawls.
+(Karl Wright)
+
 CONNECTORS-985: Get UI tests working again.
 (Karl Wright)
 
