@@ -512,7 +512,16 @@ public class JDBCConnection
           {
             InputStream bis = rs.getBinaryStream(colnum);
             if (bis != null)
-              value = new TempFileInput(bis);
+            {
+              try
+              {
+                value = new TempFileInput(bis);
+              }
+              catch (IOException e)
+              {
+                handleIOException(e,"reading binary data");
+              }
+            }
           }
           else if (isBLOB(rsmd,colnum))
           {
@@ -522,13 +531,31 @@ public class JDBCConnection
             // Cleanup should happen by the user of the resultset.
             // System.out.println(" Blob length = "+Long.toString(blob.length()));
             if (blob != null)
-              value = new TempFileInput(blob.getBinaryStream(),blob.length());
+            {
+              try
+              {
+                value = new TempFileInput(blob.getBinaryStream(),blob.length());
+              }
+              catch (IOException e)
+              {
+                handleIOException(e,"reading blob");
+              }
+            }
           }
           else if (isCLOB(rsmd,colnum))
           {
             Clob clob = getCLOB(rs,colnum);
             if (clob != null)
-              value = new TempFileCharacterInput(clob.getCharacterStream(),clob.length());
+            {
+              try
+              {
+                value = new TempFileCharacterInput(clob.getCharacterStream(),clob.length());
+              }
+              catch (IOException e)
+              {
+                handleIOException(e,"reading clob");
+              }
+            }
           }
           else
           {
@@ -548,6 +575,14 @@ public class JDBCConnection
     }
   }
 
+  protected static void handleIOException(IOException e, String context)
+    throws ManifoldCFException
+  {
+    if (e instanceof InterruptedIOException)
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    throw new ManifoldCFException("IO exception while "+context+": "+e.getMessage(),e);
+  }
+  
   protected static String[] readColumnNames(ResultSetMetaData rsmd, boolean useName)
     throws ManifoldCFException, ServiceInterruption
   {

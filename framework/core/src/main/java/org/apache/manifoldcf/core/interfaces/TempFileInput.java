@@ -44,7 +44,7 @@ public class TempFileInput extends BinaryInput
   *@param is is the input stream to use to construct the temporary file.
   */
   public TempFileInput(InputStream is)
-    throws ManifoldCFException
+    throws ManifoldCFException, IOException
   {
     this(is,-1L);
   }
@@ -54,7 +54,7 @@ public class TempFileInput extends BinaryInput
   *@param length is the maximum number of bytes to transfer, or -1 if no limit.
   */
   public TempFileInput(InputStream is, long length)
-    throws ManifoldCFException
+    throws ManifoldCFException, IOException
   {
     this(is,length,DEFAULT_MAX_MEM_SIZE);
   }
@@ -65,7 +65,7 @@ public class TempFileInput extends BinaryInput
   *@param maxMemSize is the maximum bytes we keep in memory in lieu of using a file.
   */
   public TempFileInput(InputStream is, long length, int maxMemSize)
-    throws ManifoldCFException
+    throws ManifoldCFException, IOException
   {
     super();
     
@@ -78,32 +78,25 @@ public class TempFileInput extends BinaryInput
     byte[] buffer = new byte[chunkSize];
     int chunkTotal = 0;
     boolean eofSeen = false;
-    try
+    while (true)
     {
-      while (true)
+      int chunkAmount;
+      if (length == -1L || length > chunkSize)
+        chunkAmount = chunkSize-chunkTotal;
+      else
       {
-        int chunkAmount;
-        if (length == -1L || length > chunkSize)
-          chunkAmount = chunkSize-chunkTotal;
-        else
-        {
-          chunkAmount = (int)(length-chunkTotal);
-          eofSeen = true;
-        }
-        if (chunkAmount == 0)
-          break;
-        int readsize = is.read(buffer,chunkTotal,chunkAmount);
-        if (readsize == -1)
-        {
-          eofSeen = true;
-          break;
-        }
-        chunkTotal += readsize;
+        chunkAmount = (int)(length-chunkTotal);
+        eofSeen = true;
       }
-    }
-    catch (IOException e)
-    {
-      handleIOException(e,"reading byte stream");
+      if (chunkAmount == 0)
+        break;
+      int readsize = is.read(buffer,chunkTotal,chunkAmount);
+      if (readsize == -1)
+      {
+        eofSeen = true;
+        break;
+      }
+      chunkTotal += readsize;
     }
 
     if (eofSeen && chunkTotal < maxMemSize)
@@ -120,73 +113,105 @@ public class TempFileInput extends BinaryInput
     else
     {
       inMemoryBuffer = null;
+      // Create a temporary file to put the stuff in
+      File outfile;
       try
       {
-        // Create a temporary file to put the stuff in
-        File outfile = File.createTempFile("_MC_","");
-        try
-        {
-          // Register the file for autodeletion, using our infrastructure.
-          ManifoldCF.addFile(outfile);
-          // deleteOnExit() causes memory leakage!
-          // outfile.deleteOnExit();
-          FileOutputStream outStream = new FileOutputStream(outfile);
-          try
-          {
-            long totalMoved = 0;
-            
-            //  Transfor what we've already read.
-            outStream.write(buffer,0,chunkTotal);
-            totalMoved += chunkTotal;
-
-            while (true)
-            {
-              int moveAmount;
-              if (length == -1L || length-totalMoved > chunkSize)
-                moveAmount = chunkSize;
-              else
-                moveAmount = (int)(length-totalMoved);
-              if (moveAmount == 0)
-                break;
-              // Read binary data in 64K chunks
-              int readsize = is.read(buffer,0,moveAmount);
-              if (readsize == -1)
-                break;
-              outStream.write(buffer,0,readsize);
-              totalMoved += readsize;
-            }
-            // System.out.println(" Moved "+Long.toString(totalMoved));
-          }
-          finally
-          {
-            outStream.close();
-          }
-
-          // Now, create the input stream.
-          // Save the file name
-          file = outfile;
-          this.length = file.length();
-
-        }
-        catch (Throwable e)
-        {
-          // Delete the temp file we created on any error condition
-          // outfile.delete();
-          ManifoldCF.deleteFile(outfile);
-          if (e instanceof Error)
-            throw (Error)e;
-          if (e instanceof RuntimeException)
-            throw (RuntimeException)e;
-          if (e instanceof ManifoldCFException)
-            throw (ManifoldCFException)e;
-          if (e instanceof IOException)
-            throw (IOException)e;
-          throw new RuntimeException("Unexpected throwable of type "+e.getClass().getName()+": "+e.getMessage(),e);
-        }
+        outfile = File.createTempFile("_MC_","");
       }
       catch (IOException e)
       {
-        handleIOException(e,"writing temporary file");
+        handleIOException(e,"creating backing file");
+        outfile = null;
+      }
+      try
+      {
+        // Register the file for autodeletion, using our infrastructure.
+        ManifoldCF.addFile(outfile);
+        // deleteOnExit() causes memory leakage!
+        // outfile.deleteOnExit();
+        FileOutputStream outStream;
+        try
+        {
+          outStream = new FileOutputStream(outfile);
+        }
+        catch (IOException e)
+        {
+          handleIOException(e,"opening backing file");
+          outStream = null;
+        }
+        try
+        {
+          long totalMoved = 0;
+            
+          //  Transfor what we've already read.
+          try
+          {
+            outStream.write(buffer,0,chunkTotal);
+          }
+          catch (IOException e)
+          {
+            handleIOException(e,"writing backing file");
+          }
+          totalMoved += chunkTotal;
+
+          while (true)
+          {
+            int moveAmount;
+            if (length == -1L || length-totalMoved > chunkSize)
+              moveAmount = chunkSize;
+            else
+              moveAmount = (int)(length-totalMoved);
+            if (moveAmount == 0)
+              break;
+            // Read binary data in 64K chunks
+            int readsize = is.read(buffer,0,moveAmount);
+            if (readsize == -1)
+              break;
+            try
+            {
+              outStream.write(buffer,0,readsize);
+            }
+            catch (IOException e)
+            {
+              handleIOException(e,"writing backing file");
+            }
+            totalMoved += readsize;
+          }
+          // System.out.println(" Moved "+Long.toString(totalMoved));
+        }
+        finally
+        {
+          try
+          {
+            outStream.close();
+          }
+          catch (IOException e)
+          {
+            handleIOException(e,"closing backing file");
+          }
+        }
+
+        // Now, create the input stream.
+        // Save the file name
+        file = outfile;
+        this.length = file.length();
+
+      }
+      catch (Throwable e)
+      {
+        // Delete the temp file we created on any error condition
+        // outfile.delete();
+        ManifoldCF.deleteFile(outfile);
+        if (e instanceof Error)
+          throw (Error)e;
+        if (e instanceof RuntimeException)
+          throw (RuntimeException)e;
+        if (e instanceof ManifoldCFException)
+          throw (ManifoldCFException)e;
+        if (e instanceof IOException)
+          throw (IOException)e;
+        throw new RuntimeException("Unexpected throwable of type "+e.getClass().getName()+": "+e.getMessage(),e);
       }
     }
   }
