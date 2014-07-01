@@ -517,8 +517,21 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param spec is the output specification.
   *@return the description string.
   */
+  @Deprecated
   @Override
   public String getOutputDescription(String outputConnectionName, OutputSpecification spec)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return getOutputDescription(outputConnectionName,(Specification)spec);
+  }
+
+  /** Get an output version string for a document.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param spec is the output specification.
+  *@return the description string.
+  */
+  @Override
+  public String getOutputDescription(String outputConnectionName, Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
@@ -542,7 +555,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param spec is the transformation specification.
   *@return the description string.
   */
-  public String getTransformationDescription(String transformationConnectionName, OutputSpecification spec)
+  public String getTransformationDescription(String transformationConnectionName, Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     ITransformationConnection connection = transformationConnectionManager.load(transformationConnectionName);
