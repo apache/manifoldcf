@@ -32,14 +32,16 @@ public class OutputKey
 
   protected final String documentClass;
   protected final String documentIDHash;
+  protected final String childIDHash;
   protected final String outputConnectionName;
   
   /** Constructor */
-  public OutputKey(String documentClass, String documentIDHash, String outputConnectionName)
+  public OutputKey(String documentClass, String documentIDHash, String childIDHash, String outputConnectionName)
   {
     // Identifying information
     this.documentClass = documentClass;
     this.documentIDHash = documentIDHash;
+    this.childIDHash = childIDHash;
     this.outputConnectionName = outputConnectionName;
   }
 
@@ -55,6 +57,12 @@ public class OutputKey
     return documentIDHash;
   }
   
+  /** Get the child ID hash */
+  public String getChildIDHash()
+  {
+    return childIDHash;
+  }
+  
   /** Get the output connection name */
   public String getOutputConnectionName()
   {
@@ -63,7 +71,9 @@ public class OutputKey
   
   public int hashCode()
   {
-    return documentClass.hashCode() + documentIDHash.hashCode() + outputConnectionName.hashCode();
+    return documentClass.hashCode() + documentIDHash.hashCode() + 
+      ((childIDHash==null)?0:childIDHash.hashCode()) +
+      outputConnectionName.hashCode();
   }
   
   public boolean equals(Object o)
@@ -73,6 +83,7 @@ public class OutputKey
     OutputKey dis = (OutputKey)o;
     return dis.documentClass.equals(documentClass) &&
       dis.documentIDHash.equals(documentIDHash) &&
+      (((dis.childIDHash == null || childIDHash == null) && dis.childIDHash == childIDHash) || (dis.childIDHash != null && childIDHash != null && dis.childIDHash.equals(childIDHash))) &&
       dis.outputConnectionName.equals(outputConnectionName);
   }
       

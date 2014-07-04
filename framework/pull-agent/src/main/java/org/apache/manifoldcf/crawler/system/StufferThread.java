@@ -250,18 +250,36 @@ public class StufferThread extends Thread
 
           Map<OutputKey,DocumentIngestStatus> statuses = new HashMap<OutputKey,DocumentIngestStatus>();
           ingester.getPipelineDocumentIngestDataMultiple(statuses,pipelineSpecifications,documentClasses,documentIDHashes);
-          // Break apart the result.
+          
+          // Process the results.  Ideally, we'd just use a get operation to find the right document status, but the child id messes
+          // that up, so we need to create a way of finding the right map to put things into.
+          Map<String,Integer> indexMap = new HashMap<String,Integer>();
           for (int i = 0; i < descs.length; i++)
           {
-            versions[i] = new HashMap<String,DocumentIngestStatus>();
-            for (int j = 0; j < pipelineSpecifications[i].getOutputCount(); j++)
+            indexMap.put(documentClasses[i] + documentIDHashes[i],new Integer(i));
+            versions[i] = null;
+          }
+          
+          // Populate each map in the way we need it.
+          for (OutputKey key : statuses.keySet())
+          {
+            int index = indexMap.get(key.getDocumentClass() + key.getDocumentIDHash()).intValue();
+            Map<String,Map<String,DocumentIngestStatus>> entry = versions[index];
+            if (entry == null)
             {
-              String outputName = pipelineSpecifications[i].getStageConnectionName(pipelineSpecifications[i].getOutputStage(j));
-              OutputKey key = new OutputKey(documentClasses[i],documentIDHashes[i],outputName);
-              DocumentIngestStatus status = statuses.get(key);
-              if (status != null)
-                versions[i].put(outputName,status);
+              entry = new HashMap<String,Map<String,DocumentIngestStatus>>();
+              versions[index] = entry;
             }
+            Map<String,DocumentIngestStatus> childAndStatus = entry.get(key.getOutputConnectionName());
+            if (childAndStatus == null)
+            {
+              childAndStatus = new HashMap<String,DocumentIngestStatus>();
+              entry.put(key.getOutputConnectionName(),childAndStatus);
+            }
+            String childIDHash = key.getChildIDHash();
+            if (childIDHash == null)
+              childIDHash = "";
+            childAndStatus.put(childIDHash,statuses.get(key));
           }
 
           // We need to go through the list, and segregate them by job, so the individual
@@ -335,7 +353,7 @@ public class StufferThread extends Thread
               binNames = new String[]{""};
             }
 
-            QueuedDocument qd = new QueuedDocument(descs[i],(Map<String,DocumentIngestStatus>)versions[i],binNames);
+            QueuedDocument qd = new QueuedDocument(descs[i],(Map<String,Map<String,DocumentIngestStatus>>)versions[i],binNames);
 
             // Grab the arraylist that's there, or create it.
             List<QueuedDocument> set = documentSets.get(jobID);
