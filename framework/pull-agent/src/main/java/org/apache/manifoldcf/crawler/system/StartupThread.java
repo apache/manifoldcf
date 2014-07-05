@@ -150,7 +150,7 @@ public class StartupThread extends Thread
                     if (Logging.threads.isDebugEnabled())
                       Logging.threads.debug("Adding initial seed documents for job "+jobID.toString()+"...");
                     // Get the initial seed documents, and make sure those are added
-                    newSeedingVersion = connector.addSeedDocumentsWithVersion(activity,jobDescription.getSpecification(),lastSeedingVersion,currentTime,jobType);
+                    newSeedingVersion = connector.addSeedDocuments(activity,jobDescription.getSpecification(),lastSeedingVersion,currentTime,jobType);
                     // Flush anything left
                     activity.doneSeeding(model==connector.MODEL_PARTIAL);
                     if (Logging.threads.isDebugEnabled())

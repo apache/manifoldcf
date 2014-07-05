@@ -81,7 +81,6 @@ public class WorkerThread extends Thread
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
       
       List<DocumentToProcess> fetchList = new ArrayList<DocumentToProcess>();
-      Map<String,String> versionMap = new HashMap<String,String>();
       List<QueuedDocument> finishList = new ArrayList<QueuedDocument>();
       Map<String,Integer> idHashIndexMap = new HashMap<String,Integer>();
 
@@ -175,7 +174,6 @@ public class WorkerThread extends Thread
             // Clear out all of our disposition lists
             fetchList.clear();
             finishList.clear();
-            versionMap.clear();
             deleteList.clear();
             ingesterCheckList.clear();
             hopcountremoveList.clear();
@@ -334,12 +332,14 @@ public class WorkerThread extends Thread
 
                     // === Fetch documents ===
                     // We start by getting the document version string.
-                    String[] newVersionStringArray = null;
+                    DocumentVersions documentVersions = new DocumentVersions();
+                    boolean successfulVersions = false;
                     try
                     {
-                      newVersionStringArray = connector.getDocumentVersions(currentDocIDArray,oldVersionStringArray,
+                      connector.getDocumentVersions(documentVersions,currentDocIDArray,oldVersionStringArray,
                         versionActivity,spec,jobType,isDefaultAuthority);
-
+                      successfulVersions = true;
+                      
                       if (Logging.threads.isDebugEnabled())
                         Logging.threads.debug("Worker thread done getting versions for "+Integer.toString(currentDocIDArray.length)+" documents");
 
@@ -398,7 +398,7 @@ public class WorkerThread extends Thread
                     }
 
                     // If version fetch was successful, the go on to processing phase
-                    if (newVersionStringArray != null)
+                    if (successfulVersions)
                     {
                       // This try{ } is for releasing document versions at the connector level.
                       try
@@ -429,10 +429,9 @@ public class WorkerThread extends Thread
                             // We call the incremental ingester to make the decision for us as to whether we refetch a document or not.
                             
                             String documentIDHash = dd.getDocumentIdentifierHash();
-                            String newDocVersion = newVersionStringArray[i];
-                            versionMap.put(documentIDHash,newDocVersion);
+                            VersionContext newDocContext = documentVersions.getDocumentVersion(dd.getDocumentIdentifier());
 
-                            if (newDocVersion == null)
+                            if (newDocContext == null)
                             {
                               deleteList.add(qd);
                             }
@@ -444,7 +443,7 @@ public class WorkerThread extends Thread
                               // See if we need to add, or update.
                               IPipelineSpecificationWithVersions specWithVersions = new PipelineSpecificationWithVersions(pipelineSpecification,qd);
                               boolean allowIngest = ingester.checkFetchDocument(specWithVersions,
-                                newDocVersion,
+                                newDocContext.getVersionString(),
                                 newParameterVersion,
                                 aclAuthority);
 
@@ -507,7 +506,6 @@ public class WorkerThread extends Thread
                             // Build a list of id's and flags
                             String[] processIDs = new String[fetchList.size()];
                             String[] processIDHashes = new String[fetchList.size()];
-                            String[] versions = new String[fetchList.size()];
                             boolean[] scanOnly = new boolean[fetchList.size()];
 
                             for (int i = 0; i < fetchList.size(); i++)
@@ -516,7 +514,6 @@ public class WorkerThread extends Thread
                               DocumentDescription dd = dToP.getDocument().getDocumentDescription();
                               processIDs[i] = dd.getDocumentIdentifier();
                               processIDHashes[i] = dd.getDocumentIdentifierHash();
-                              versions[i] = versionMap.get(dd.getDocumentIdentifierHash());
                               scanOnly[i] = dToP.getScanOnly();
                             }
 
@@ -530,7 +527,7 @@ public class WorkerThread extends Thread
                             try
                             {
 
-                              connector.processDocuments(processIDs,versions,activity,job.getSpecification(),scanOnly,jobType);
+                              connector.processDocuments(processIDs,documentVersions,activity,scanOnly,jobType);
 
                               // Flush remaining references into the database!
                               activity.flush();
@@ -780,7 +777,7 @@ public class WorkerThread extends Thread
                       finally
                       {
                         // Release any document temporary storage held by the connector
-                        connector.releaseDocumentVersions(currentDocIDArray,newVersionStringArray);
+                        connector.releaseDocumentVersions(currentDocIDArray,documentVersions);
                       }
                     
                     }
