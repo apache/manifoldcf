@@ -178,7 +178,7 @@ public interface IRepositoryConnector extends IConnector
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@return an updated seeding version string, to be stored with the job.
   */
-  public String addSeedDocumentsWithVersion(ISeedingActivity activities, Specification spec,
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
     String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption;
 
@@ -186,6 +186,7 @@ public interface IRepositoryConnector extends IConnector
   * This method is called for EVERY document that is considered. It is therefore important to perform
   * as little work as possible here.
   * The connector will be connected before this method can be called.
+  *@param documentVersions is the versions object, to be filled in by this method.
   *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
   *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
   *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
@@ -196,11 +197,11 @@ public interface IRepositoryConnector extends IConnector
   * when the specification changes.  This is primarily useful for metadata.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
   */
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
+  public void getDocumentVersions(
+    DocumentVersions documentVersions,
+    String[] documentIdentifiers, String[] oldVersions,
+    IVersionActivity activities,
     Specification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption;
 
@@ -210,17 +211,15 @@ public interface IRepositoryConnector extends IConnector
   * The document specification allows this class to filter what is done based on the job.
   * The connector will be connected before this method can be called.
   *@param documentIdentifiers is the set of document identifiers to process.
-  *@param versions is the corresponding document versions to process, as returned by getDocumentVersions() above.
-  *       The implementation may choose to ignore this parameter and always process the current version.
+  *@param versions are the version strings returned by getDocumentVersions() above.
   *@param activities is the interface this method should use to queue up new document references
   * and ingest documents.
-  *@param spec is the document specification.
   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
   * should only find other references, and should not actually call the ingestion methods.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    Specification spec, boolean[] scanOnly, int jobMode)
+  public void processDocuments(String[] documentIdentifiers, DocumentVersions versions, IProcessActivity activities,
+    boolean[] scanOnly, int jobMode)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
@@ -229,9 +228,9 @@ public interface IRepositoryConnector extends IConnector
   * processDocuments() for the documents in question.
   * The connector will be connected before this method can be called.
   *@param documentIdentifiers is the set of document identifiers.
-  *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
+  *@param versions is the corresponding set of version strings (individual identifiers may have no version).
   */
-  public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
+  public void releaseDocumentVersions(String[] documentIdentifiers, DocumentVersions versions)
     throws ManifoldCFException;
 
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.

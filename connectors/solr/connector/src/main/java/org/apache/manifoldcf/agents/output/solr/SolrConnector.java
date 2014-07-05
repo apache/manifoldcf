@@ -45,6 +45,7 @@ import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.interfaces.VersionContext;
 
 
 /** This is the output connector for SOLR.  Currently, no frills.
@@ -491,12 +492,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   * the document will not need to be sent again to the output data store.
   */
   @Override
-  public String getPipelineDescription(Specification spec)
+  public VersionContext getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
     SpecPacker sp = new SpecPacker(spec);
-    return sp.toPackedString();
+    return new VersionContext(sp.toPackedString(),params,spec);
   }
 
   private final static Set<String> acceptableMimeTypes = new HashSet<String>();
@@ -514,6 +515,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param mimeType is the mime type of the document.
   *@return true if the mime type is indexable by this connector.
   */
+  @Override
   public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -535,6 +537,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param length is the length of the document.
   *@return true if the file is indexable.
   */
+  @Override
   public boolean checkLengthIndexable(String outputDescription, long length)
     throws ManifoldCFException, ServiceInterruption
   {

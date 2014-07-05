@@ -52,6 +52,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
+import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
@@ -68,6 +69,7 @@ import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.BinaryInput;
 import org.apache.manifoldcf.core.interfaces.TempFileInput;
+import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.apache.manifoldcf.agents.system.ManifoldCF;
 import org.apache.manifoldcf.agents.system.Logging;
 
@@ -316,7 +318,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   *@return true if the mime type is indexable by this connector.
   */
   @Override
-  public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
+  public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     return acceptableMimeTypes.contains(mimeType.toLowerCase(Locale.ROOT));
@@ -337,7 +339,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   *@return the document status (accepted or permanently rejected).
   */
   @Override
-  public int addOrReplaceDocumentWithException(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
     // Establish a session

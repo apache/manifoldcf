@@ -55,11 +55,11 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   * the document will not need to be sent again to the output data store.
   */
   @Override
-  public String getPipelineDescription(Specification os)
+  public VersionContext getPipelineDescription(Specification os)
     throws ManifoldCFException, ServiceInterruption
   {
     SpecPacker sp = new SpecPacker(os);
-    return sp.toPackedString();
+    return new VersionContext(sp.toPackedString(),params,os);
   }
 
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
@@ -69,10 +69,10 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   *@return true if the mime type is indexable by this connector.
   */
   @Override
-  public boolean checkMimeTypeIndexable(String outputDescription, String mimeType, IOutputCheckActivity activities)
+  public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    SpecPacker sp = new SpecPacker(outputDescription);
+    SpecPacker sp = new SpecPacker(outputDescription.getVersionString());
     if (sp.checkMimeType(mimeType))
       return super.checkMimeTypeIndexable(outputDescription, mimeType, activities);
     else
@@ -80,9 +80,9 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   }
 
   @Override
-  public boolean checkLengthIndexable(String outputDescription, long length, IOutputCheckActivity activities)
+  public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption {
-    SpecPacker sp = new SpecPacker(outputDescription);
+    SpecPacker sp = new SpecPacker(outputDescription.getVersionString());
     if (sp.checkLengthIndexable(length))
       return super.checkLengthIndexable(outputDescription, length, activities);
     else
@@ -90,9 +90,9 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   }
 
   @Override
-  public boolean checkURLIndexable(String outputDescription, String url, IOutputCheckActivity activities)
+  public boolean checkURLIndexable(VersionContext outputDescription, String url, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption {
-    SpecPacker sp = new SpecPacker(outputDescription);
+    SpecPacker sp = new SpecPacker(outputDescription.getVersionString());
     if (sp.checkURLIndexable(url))
       return super.checkURLIndexable(outputDescription, url, activities);
     else
@@ -114,7 +114,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   *@return the document status (accepted or permanently rejected).
   */
   @Override
-  public int addOrReplaceDocumentWithException(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
     return activities.sendDocument(documentURI, document, authorityNameString);

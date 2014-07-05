@@ -51,6 +51,7 @@ import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.json.JSONException;
 
 public class FileOutputConnector extends BaseOutputConnector {
@@ -144,9 +145,9 @@ public class FileOutputConnector extends BaseOutputConnector {
    * the document will not need to be sent again to the output data store.
    */
   @Override
-  public String getPipelineDescription(Specification spec) throws ManifoldCFException, ServiceInterruption {
+  public VersionContext getPipelineDescription(Specification spec) throws ManifoldCFException, ServiceInterruption {
     FileOutputSpecs specs = new FileOutputSpecs(getSpecNode(spec));
-    return specs.toJson().toString();
+    return new VersionContext(specs.toJson().toString(),params,spec);
   }
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -164,7 +165,7 @@ public class FileOutputConnector extends BaseOutputConnector {
    *@return the document status (accepted or permanently rejected).
    */
   @Override
-  public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities) throws ManifoldCFException, ServiceInterruption {
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities) throws ManifoldCFException, ServiceInterruption, IOException {
     // Establish a session
     getSession();
 
@@ -173,7 +174,7 @@ public class FileOutputConnector extends BaseOutputConnector {
     FileOutputSpecs specs = null;
     StringBuffer path = new StringBuffer();
     try {
-      specs = new FileOutputSpecs(outputDescription);
+      specs = new FileOutputSpecs(outputDescription.getVersionString());
 
       /*
        * make file path

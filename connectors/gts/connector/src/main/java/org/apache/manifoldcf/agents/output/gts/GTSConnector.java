@@ -238,7 +238,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   * the document will not need to be sent again to the output data store.
   */
   @Override
-  public String getPipelineDescription(Specification spec)
+  public VersionContext getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     // The information we want in this string is:
@@ -282,7 +282,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
     // From here on down, unpacking is unnecessary.
     sb.append(ingestURI);
 
-    return sb.toString();
+    return new VersionContext(sb.toString(),params,spec);
   }
 
   /** Add (or replace) a document in the output data store using the connector.
