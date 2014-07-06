@@ -264,7 +264,7 @@ public interface IIncrementalIngester
   *@param identifierHashes is the array of document identifier hashes to look up.
   */
   public void getPipelineDocumentIngestDataMultiple(
-    Map<OutputKey,DocumentIngestStatus> rval,
+    IngestStatuses rval,
     IPipelineSpecificationBasic[] pipelineSpecificationBasics,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException;
@@ -276,7 +276,7 @@ public interface IIncrementalIngester
   *@param identifierHashes is the array of document identifier hashes to look up.
   */
   public void getPipelineDocumentIngestDataMultiple(
-    Map<OutputKey,DocumentIngestStatus> rval,
+    IngestStatuses rval,
     IPipelineSpecificationBasic pipelineSpecificationBasic,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException;
@@ -288,7 +288,7 @@ public interface IIncrementalIngester
   *@param identifierHash is the hash of the id of the document.
   */
   public void getPipelineDocumentIngestData(
-    Map<OutputKey,DocumentIngestStatus> rval,
+    IngestStatuses rval,
     IPipelineSpecificationBasic pipelineSpecificationBasic,
     String identifierClass, String identifierHash)
     throws ManifoldCFException;
