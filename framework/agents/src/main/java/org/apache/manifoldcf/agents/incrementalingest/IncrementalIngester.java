@@ -1377,7 +1377,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   @Override
   public void getPipelineDocumentIngestDataMultiple(
-    Map<OutputKey,DocumentIngestStatus> rval,
+    IngestStatuses rval,
     IPipelineSpecificationBasic[] pipelineSpecificationBasics,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException
@@ -1422,7 +1422,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   @Override
   public void getPipelineDocumentIngestDataMultiple(
-    Map<OutputKey,DocumentIngestStatus> rval,
+    IngestStatuses rval,
     IPipelineSpecificationBasic pipelineSpecificationBasic,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException
@@ -1480,7 +1480,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param clause is the in clause for the query.
   *@param list is the parameter list for the query.
   */
-  protected void getPipelineDocumentIngestDataChunk(Map<OutputKey,DocumentIngestStatus> rval, Map<String,Integer> map, String[] outputConnectionNames, List<String> list,
+  protected void getPipelineDocumentIngestDataChunk(IngestStatuses rval, Map<String,Integer> map, String[] outputConnectionNames, List<String> list,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException
   {
@@ -1519,7 +1519,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         if (authorityName == null)
           authorityName = "";
         int indexValue = position.intValue();
-        rval.put(new OutputKey(identifierClasses[indexValue],identifierHashes[indexValue],outputConnectionName),
+        rval.addStatus(identifierClasses[indexValue],identifierHashes[indexValue],outputConnectionName,
           new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName));
       }
     }
@@ -1533,7 +1533,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   @Override
   public void getPipelineDocumentIngestData(
-    Map<OutputKey,DocumentIngestStatus> rval,
+    IngestStatuses rval,
     IPipelineSpecificationBasic pipelineSpecificationBasic,
     String identifierClass, String identifierHash)
     throws ManifoldCFException
@@ -1949,54 +1949,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       new MultiClause(outputConnNameField,outputConnectionNames)});
   }
   
-  /** Get a chunk of document ingest data records.
-  *@param rval is the document ingest status array where the data should be put.
-  *@param map is the map from id to index.
-  *@param clause is the in clause for the query.
-  *@param list is the parameter list for the query.
-  */
-  protected void getDocumentIngestDataChunk(DocumentIngestStatus[] rval, Map<String,Integer> map, String outputConnectionName, List<String> list)
-    throws ManifoldCFException
-  {
-    ArrayList newList = new ArrayList();
-    String query = buildConjunctionClause(newList,new ClauseDescription[]{
-      new MultiClause(docKeyField,list),
-      new UnitaryClause(outputConnNameField,outputConnectionName)});
-      
-    // Get the primary records associated with this hash value
-    IResultSet set = performQuery("SELECT "+idField+","+docKeyField+","+lastVersionField+","+lastOutputVersionField+","+authorityNameField+","+forcedParamsField+
-      " FROM "+getTableName()+" WHERE "+query,newList,null,null);
-
-    // Now, go through the original request once more, this time building the result
-    for (int i = 0; i < set.getRowCount(); i++)
-    {
-      IResultRow row = set.getRow(i);
-      String docHash = row.getValue(docKeyField).toString();
-      Integer position = map.get(docHash);
-      if (position != null)
-      {
-        Long id = (Long)row.getValue(idField);
-        String lastVersion = (String)row.getValue(lastVersionField);
-        if (lastVersion == null)
-          lastVersion = "";
-        String lastTransformationVersion = (String)row.getValue(lastTransformationVersionField);
-        if (lastTransformationVersion == null)
-          lastTransformationVersion = "";
-        String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
-        if (lastOutputVersion == null)
-          lastOutputVersion = "";
-        String paramVersion = (String)row.getValue(forcedParamsField);
-        if (paramVersion == null)
-          paramVersion = "";
-        String authorityName = (String)row.getValue(authorityNameField);
-        if (authorityName == null)
-          authorityName = "";
-        int indexValue = position.intValue();
-        rval[indexValue] = new DocumentIngestStatus(
-          lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName);
-      }
-    }
-  }
 
   // Protected methods
 

@@ -248,7 +248,7 @@ public class StufferThread extends Thread
 
           }
 
-          Map<OutputKey,DocumentIngestStatus> statuses = new HashMap<OutputKey,DocumentIngestStatus>();
+          IngestStatuses statuses = new IngestStatuses();
           ingester.getPipelineDocumentIngestDataMultiple(statuses,pipelineSpecifications,documentClasses,documentIDHashes);
           // Break apart the result.
           for (int i = 0; i < descs.length; i++)
@@ -257,8 +257,7 @@ public class StufferThread extends Thread
             for (int j = 0; j < pipelineSpecifications[i].getOutputCount(); j++)
             {
               String outputName = pipelineSpecifications[i].getStageConnectionName(pipelineSpecifications[i].getOutputStage(j));
-              OutputKey key = new OutputKey(documentClasses[i],documentIDHashes[i],outputName);
-              DocumentIngestStatus status = statuses.get(key);
+              DocumentIngestStatus status = statuses.getStatus(documentClasses[i],documentIDHashes[i],outputName);
               if (status != null)
                 versions[i].put(outputName,status);
             }
