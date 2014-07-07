@@ -334,6 +334,7 @@ public class StufferThread extends Thread
               binNames = new String[]{""};
             }
 
+            // ??? 
             QueuedDocument qd = new QueuedDocument(descs[i],(Map<String,DocumentIngestStatus>)versions[i],binNames);
 
             // Grab the arraylist that's there, or create it.

@@ -305,7 +305,8 @@ public class WorkerThread extends Thread
                       QueuedDocument qd = activeDocuments.get(i);
                       currentDocIDHashArray[i] = qd.getDocumentDescription().getDocumentIdentifierHash();
                       currentDocIDArray[i] = qd.getDocumentDescription().getDocumentIdentifier();
-                      DocumentIngestStatus dis = qd.getLastIngestedStatus(lastIndexedOutputConnectionName);
+                      // MHL
+                      DocumentIngestStatus dis = qd.getLastIngestedStatus(lastIndexedOutputConnectionName,"");
                       if (dis == null)
                         oldVersionStringArray[i] = null;
                       else
@@ -993,6 +994,7 @@ public class WorkerThread extends Thread
     {
       QueuedDocument qd = deleteList.get(i);
       // See if we need to delete from index
+      // MHL
       if (qd.anyLastIngestedRecords())
       {
         // Queue up to issue deletion
@@ -1743,9 +1745,10 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
+      // MHL
       ingester.documentRecord(
         pipelineSpecification.getBasicPipelineSpecification(),
-        connectionName,documentIdentifierHash,
+        connectionName,documentIdentifierHash,null,
         version,currentTime,ingestLogger);
     }
 
@@ -1813,9 +1816,10 @@ public class WorkerThread extends Thread
       }
         
       // First, we need to add into the metadata the stuff from the job description.
+      // MHL
       ingester.documentIngest(
         fetchPipelineSpecifications.get(documentIdentifierHash),
-        connectionName,documentIdentifierHash,
+        connectionName,documentIdentifierHash,null,
         version,parameterVersion,
         connection.getACLAuthority(),
         data,currentTime,

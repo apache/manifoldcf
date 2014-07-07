@@ -608,12 +608,47 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     sb.append(delim);
   }
 
+  /** Note the start of processing of a set of documents.  This method does whatever is needed to handle the
+  * bookkeeping for the documents' indexing records, and the indexing records for multiple virtual child documents.
+  * The documents must all have the same identifier class.
+  *@param pipelineSpecificationBasic is the basic pipeline specification for the set of documents.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHashes are the document identifier hashes that are about to be processed.
+  */
+  @Override
+  public void beginDocumentProcessing(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String identifierClass, String[] identifierHashes)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
+  /** Note the end of processing of a set of documents.  This method completes bookkeeping for the documents'
+  * indexing records, and the indexing records for multiple virtual child documents.  This method may cause
+  * documents to be removed from the specified output connections, should that be indicated.
+  *@param pipelineSpecificationBasic is the basic pipeline specification for the set of documents.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHashes are the document identifier hashes that are about to be processed.
+  *@param activities is the object to use to log the details of any removals.  May be null.
+  */
+  @Override
+  public void endDocumentProcessing(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String identifierClass, String[] identifierHashes,
+    IOutputRemoveActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // MHL
+  }
+
   /** Record a document version, but don't ingest it.
   * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
   * ServiceInterruption is thrown if this action must be rescheduled.
   *@param pipelineSpecificationBasic is the basic pipeline specification needed.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param childIdentifierHash is the hashed virtual child document identifier.  Pass null if this is a primary record.
   *@param documentVersion is the document version.
   *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
   *@param activities is the object used in case a document needs to be removed from the output index as the result of this operation.
@@ -621,11 +656,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   @Override
   public void documentRecord(
     IPipelineSpecificationBasic pipelineSpecificationBasic,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String childIdentifierHash,
     String documentVersion, long recordTime,
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    // MHL
     String docKey = makeKey(identifierClass,identifierHash);
 
     String[] outputConnectionNames = extractOutputConnectionNames(pipelineSpecificationBasic);
@@ -743,6 +779,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param childIdentifierHash is the hashed virtual child document identifier.  Pass null if this is a primary record.
   *@param documentVersion is the document version.
   *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
@@ -756,15 +793,16 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   @Override
   public boolean documentIngest(
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String childIdentifierHash,
     String documentVersion,
     String parameterVersion,
     String authorityName,
-    RepositoryDocument document,
+    RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
+    // MHL
     PipelineConnectionsWithVersions pipelineConnectionsWithVersions = new PipelineConnectionsWithVersions(pipelineSpecificationWithVersions);
     
     String docKey = makeKey(identifierClass,identifierHash);
@@ -775,7 +813,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
 
     // Set indexing date
-    document.setIndexingDate(new Date());
+    data.setIndexingDate(new Date());
     
     // Set up a pipeline
     PipelineObjectWithVersions pipeline = pipelineGrabWithVersions(pipelineConnectionsWithVersions);
@@ -784,7 +822,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Pipeline connector not installed",0L);
     try
     {
-      return pipeline.addOrReplaceDocumentWithException(docKey,documentURI,document,documentVersion,parameterVersion,authorityName,activities,ingestTime) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
+      return pipeline.addOrReplaceDocumentWithException(docKey,documentURI,data,documentVersion,parameterVersion,authorityName,activities,ingestTime) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
     }
     finally
     {
