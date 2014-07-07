@@ -28,7 +28,7 @@ public class IngestStatuses
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  protected final Map<OutputKey,DocumentIngestStatus> statuses = new HashMap<OutputKey,DocumentIngestStatus>();
+  protected final Map<OutputKey,Map<String,Map<String,DocumentIngestStatus>>> statuses = new HashMap<OutputKey,Map<String,Map<String,DocumentIngestStatus>>>();
   
   public IngestStatuses()
   {
@@ -37,14 +37,28 @@ public class IngestStatuses
   /** Add a status record.
   *@param documentClass is the document class.
   *@param documentIDHash is the document id's hash value.
-  *@param childIDHash is the child ID hash value, or null if primary.
+  *@param childIDHash is the child ID hash value, or empty string if primary.
   *@param outputConnectionName is the output connection name.
   *@param status is the status record.
   */
   public void addStatus(String documentClass, String documentIDHash, String childIDHash, String outputConnectionName, DocumentIngestStatus status)
   {
-    // MHL
-    statuses.put(new OutputKey(documentClass,documentIDHash,outputConnectionName),status);
+    OutputKey ok = new OutputKey(documentClass,documentIDHash);
+    Map<String,Map<String,DocumentIngestStatus>> map = statuses.get(ok);
+    if (map == null)
+    {
+      map = new HashMap<String,Map<String,DocumentIngestStatus>>();
+      statuses.put(ok,map);
+    }
+    Map<String,DocumentIngestStatus> on = map.get(outputConnectionName);
+    if (on == null)
+    {
+      on = new HashMap<String,DocumentIngestStatus>();
+      map.put(outputConnectionName,on);
+    }
+    if (childIDHash == null)
+      childIDHash = "";
+    on.put(childIDHash,status);
   }
   
   /** Get all statuses for a document class and ID hash.
@@ -54,23 +68,21 @@ public class IngestStatuses
   */
   public Map<String,Map<String,DocumentIngestStatus>> getStatuses(String documentClass, String documentIDHash)
   {
-    // MHL
-    return null;
+    OutputKey ok = new OutputKey(documentClass,documentIDHash);
+    return statuses.get(ok);
   }
   
   protected static class OutputKey
   {
     protected final String documentClass;
     protected final String documentIDHash;
-    protected final String outputConnectionName;
     
     /** Constructor */
-    public OutputKey(String documentClass, String documentIDHash, String outputConnectionName)
+    public OutputKey(String documentClass, String documentIDHash)
     {
       // Identifying information
       this.documentClass = documentClass;
       this.documentIDHash = documentIDHash;
-      this.outputConnectionName = outputConnectionName;
     }
 
     /** Get the document class */
@@ -85,15 +97,9 @@ public class IngestStatuses
       return documentIDHash;
     }
     
-    /** Get the output connection name */
-    public String getOutputConnectionName()
-    {
-      return outputConnectionName;
-    }
-    
     public int hashCode()
     {
-      return documentClass.hashCode() + documentIDHash.hashCode() + outputConnectionName.hashCode();
+      return documentClass.hashCode() + documentIDHash.hashCode();
     }
     
     public boolean equals(Object o)
@@ -102,8 +108,7 @@ public class IngestStatuses
         return false;
       OutputKey dis = (OutputKey)o;
       return dis.documentClass.equals(documentClass) &&
-        dis.documentIDHash.equals(documentIDHash) &&
-        dis.outputConnectionName.equals(outputConnectionName);
+        dis.documentIDHash.equals(documentIDHash);
     }
   }
 }
