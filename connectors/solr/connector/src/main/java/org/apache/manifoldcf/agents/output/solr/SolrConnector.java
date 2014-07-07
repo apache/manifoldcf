@@ -827,14 +827,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.maxdocumentlength.value == \"\" && (editconnection.extractupdate.value != \"true\" || (typeof editconnection.extractupdate.checked != \"undefined\" && editconnection.extractupdate.checked == false)))\n"+
+"  if (editconnection.maxdocumentlength.value == \"\" && ((editconnection.extractupdatecheckbox.value == \"true\" && editconnection.extractupdate.checked == false) || (editconnection.extractupdatecheckbox.value != \"true\" && editconnection.extractupdate.value != \"true\")))\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.MaximumDocumentLengthRequiredUnlessExtractingUpdateHandler")+"\");\n"+
 "    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Documents")+"\");\n"+
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.contentfield.value == \"\" && (editconnection.extractupdate.value != \"true\" || (typeof editconnection.extractupdate.checked != \"undefined\" && editconnection.extractupdate.checked == false)))\n"+
+"  if (editconnection.contentfield.value == \"\" && ((editconnection.extractupdatecheckbox.value == \"true\" && editconnection.extractupdate.checked == false) || (editconnection.extractupdatecheckbox.value != \"true\" && editconnection.extractupdate.value != \"true\")))\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ContentFieldNameRequiredUnlessExtractingUpdateHandler")+"\");\n"+
 "    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Schema")+"\");\n"+
@@ -1488,6 +1488,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.UseExtractUpdateHandler") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
+"      <input name=\"extractupdatecheckbox\" type=\"hidden\" value=\"true\"/>\n"+
 "      <input name=\"extractupdatepresent\" type=\"hidden\" value=\"true\"/>\n"
       );
       if (!useExtractUpdate.equals("false"))
@@ -1524,6 +1525,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input type=\"hidden\" name=\"filenamefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fileNameField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"mimetypefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"contentfield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(contentField)+"\"/>\n"+
+"<input name=\"extractupdatecheckbox\" type=\"hidden\" value=\"false\"/>\n"+
 "<input type=\"hidden\" name=\"extractupdate\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(useExtractUpdate)+"\"/>\n"+
 "<input name=\"extractupdatepresent\" type=\"hidden\" value=\"true\"/>\n"
       );
