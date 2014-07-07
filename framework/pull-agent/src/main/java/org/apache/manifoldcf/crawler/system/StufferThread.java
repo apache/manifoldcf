@@ -218,7 +218,6 @@ public class StufferThread extends Thread
 
           IJobDescription[] jobs = new IJobDescription[descs.length];
           IRepositoryConnection[] connections = new IRepositoryConnection[descs.length];
-          Map[] versions = new HashMap[descs.length];
           IPipelineSpecificationBasic[] pipelineSpecifications = new IPipelineSpecificationBasic[descs.length];
           String[] documentClasses = new String[descs.length];
           String[] documentIDHashes = new String[descs.length];
@@ -250,18 +249,6 @@ public class StufferThread extends Thread
 
           IngestStatuses statuses = new IngestStatuses();
           ingester.getPipelineDocumentIngestDataMultiple(statuses,pipelineSpecifications,documentClasses,documentIDHashes);
-          // Break apart the result.
-          for (int i = 0; i < descs.length; i++)
-          {
-            versions[i] = new HashMap<String,DocumentIngestStatus>();
-            for (int j = 0; j < pipelineSpecifications[i].getOutputCount(); j++)
-            {
-              String outputName = pipelineSpecifications[i].getStageConnectionName(pipelineSpecifications[i].getOutputStage(j));
-              DocumentIngestStatus status = statuses.getStatus(documentClasses[i],documentIDHashes[i],outputName);
-              if (status != null)
-                versions[i].put(outputName,status);
-            }
-          }
 
           // We need to go through the list, and segregate them by job, so the individual
           // connectors can work in batch.
@@ -334,8 +321,7 @@ public class StufferThread extends Thread
               binNames = new String[]{""};
             }
 
-            // ??? 
-            QueuedDocument qd = new QueuedDocument(descs[i],(Map<String,DocumentIngestStatus>)versions[i],binNames);
+            QueuedDocument qd = new QueuedDocument(descs[i],statuses.getStatuses(documentClasses[i],documentIDHashes[i]),binNames);
 
             // Grab the arraylist that's there, or create it.
             List<QueuedDocument> set = documentSets.get(jobID);

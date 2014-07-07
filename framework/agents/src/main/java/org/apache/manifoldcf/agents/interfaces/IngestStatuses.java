@@ -37,25 +37,27 @@ public class IngestStatuses
   /** Add a status record.
   *@param documentClass is the document class.
   *@param documentIDHash is the document id's hash value.
+  *@param childIDHash is the child ID hash value, or null if primary.
   *@param outputConnectionName is the output connection name.
   *@param status is the status record.
   */
-  public void addStatus(String documentClass, String documentIDHash, String outputConnectionName, DocumentIngestStatus status)
+  public void addStatus(String documentClass, String documentIDHash, String childIDHash, String outputConnectionName, DocumentIngestStatus status)
   {
+    // MHL
     statuses.put(new OutputKey(documentClass,documentIDHash,outputConnectionName),status);
   }
   
-  /** Retrieve a status record.
+  /** Get all statuses for a document class and ID hash.
   *@param documentClass is the document class.
   *@param documentIDHash is the document id's hash value.
-  *@param outputConnectionName is the output connection name.
-  *@return the status record, if record.
+  *@return the statuses in a map keyed by output connection name, with a secondary map keyed by child ID
   */
-  public DocumentIngestStatus getStatus(String documentClass, String documentIDHash, String outputConnectionName)
+  public Map<String,Map<String,DocumentIngestStatus>> getStatuses(String documentClass, String documentIDHash)
   {
-    return statuses.get(new OutputKey(documentClass,documentIDHash,outputConnectionName));
+    // MHL
+    return null;
   }
-
+  
   protected static class OutputKey
   {
     protected final String documentClass;
