@@ -48,16 +48,13 @@ import java.util.*;
 * It therefore establishes a space of document identifiers.  Each connector will only ever be
 * asked to deal with identifiers that have in some way originated from the connector.
 *
-* Documents are fetched by ManifoldCF in three stages.  First, the addSeedDocuments() method is called in the connector
+* Documents are fetched by ManifoldCF in two stages.  First, the addSeedDocuments() method is called in the connector
 * implementation.  This method is meant to add a set of document identifiers to the queue.  When ManifoldCF is ready
-* to process a document, the document identifier is used to obtain a current document version string, using the
-* getDocumentVersions() method (the second stage).  This version string is used to decide whether or not the
-* third stage need be called for the document or not.  The third stage is responsible for sending document content
-* to the output, and for extracting any references to additional documents, and consists of the processDocuments() method.
+* to process a document, the document identifier is used to build a version string for the document and check whether
+* the document needs to be indexed, and index it if needed (the second stage).  The second stage
+* consists of the processDocuments() method.
 *
-* All of these methods interact with ManifoldCF by means of an "activity" interface.  For example, an IVersionActivity object
-* is passed to the getDocumentVersions() method, and that object contains methods that are necessary for getDocumentVersions()
-* to do its job.  A similar architecture is used throughout the connector framework.
+* All of these methods interact with ManifoldCF by means of an "activity" interface.
 */
 public interface IRepositoryConnector extends IConnector
 {
@@ -182,56 +179,22 @@ public interface IRepositoryConnector extends IConnector
     String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is therefore important to perform
-  * as little work as possible here.
-  * The connector will be connected before this method can be called.
-  *@param documentVersions is the versions object, to be filled in by this method.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
-  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
-  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  */
-  public void getDocumentVersions(
-    DocumentVersions documentVersions,
-    String[] documentIdentifiers, String[] oldVersions,
-    IVersionActivity activities,
-    Specification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ManifoldCFException, ServiceInterruption;
-
   /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
   * The document specification allows this class to filter what is done based on the job.
   * The connector will be connected before this method can be called.
   *@param documentIdentifiers is the set of document identifiers to process.
-  *@param versions are the version strings returned by getDocumentVersions() above.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
   *@param activities is the interface this method should use to queue up new document references
   * and ingest documents.
-  *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-  * should only find other references, and should not actually call the ingestion methods.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
   */
-  public void processDocuments(String[] documentIdentifiers, DocumentVersions versions, IProcessActivity activities,
-    boolean[] scanOnly, int jobMode)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption;
-
-  /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
-  * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
-  * committed during the getDocumentVersions() method.  It is guaranteed to be called AFTER any calls to
-  * processDocuments() for the documents in question.
-  * The connector will be connected before this method can be called.
-  *@param documentIdentifiers is the set of document identifiers.
-  *@param versions is the corresponding set of version strings (individual identifiers may have no version).
-  */
-  public void releaseDocumentVersions(String[] documentIdentifiers, DocumentVersions versions)
-    throws ManifoldCFException;
 
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   * The connector does not need to be connected for this method to be called.

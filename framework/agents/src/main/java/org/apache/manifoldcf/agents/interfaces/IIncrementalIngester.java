@@ -150,21 +150,18 @@ public interface IIncrementalIngester
     String newAuthorityNameString);
 
   /** Record a document version, but don't ingest it.
-  * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
-  * ServiceInterruption is thrown if this action must be rescheduled.
+  * The purpose of this method is to update document version information without reindexing the document.
   *@param pipelineSpecificationBasic is the basic pipeline specification needed.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
   *@param documentVersion is the document version.
   *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
-  *@param activities is the object used in case a document needs to be removed from the output index as the result of this operation.
   */
   public void documentRecord(
     IPipelineSpecificationBasic pipelineSpecificationBasic,
     String identifierClass, String identifierHash,
-    String documentVersion, long recordTime,
-    IOutputActivity activities)
-    throws ManifoldCFException, ServiceInterruption;
+    String documentVersion, long recordTime)
+    throws ManifoldCFException;
 
   /** Ingest a document.
   * This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
