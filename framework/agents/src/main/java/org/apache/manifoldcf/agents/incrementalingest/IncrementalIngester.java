@@ -531,7 +531,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       if (!oldDocumentVersion.equals(newDocumentVersion) ||
         !oldParameterVersion.equals(newParameterVersion) ||
         !oldAuthorityName.equals(newAuthorityNameString) ||
-        !oldOutputVersion.equals(pipelineSpecification.getStageDescriptionString(stage)))
+        !oldOutputVersion.equals(pipelineSpecification.getStageDescriptionString(stage).getVersionString()))
         return true;
       
       // Everything matches so far.  Next step is to compute a transformation path an corresponding version string.
