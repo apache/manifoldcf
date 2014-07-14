@@ -171,7 +171,6 @@ public class WorkerThread extends Thread
             }
 
             // Clear out all of our disposition lists
-            fetchList.clear();
             finishList.clear();
             deleteList.clear();
             ingesterCheckList.clear();
@@ -283,6 +282,59 @@ public class WorkerThread extends Thread
                   // Check for interruption before we start fetching
                   if (Thread.currentThread().isInterrupted())
                     throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+                  
+                  // We need first to assemble an IPipelineSpecificationWithVersions object for each document we're going to process.
+                  // We put this in a map so it can be looked up by document identifier.
+                  // Create a full PipelineSpecification, including description strings.  (This is per-job still, but can throw ServiceInterruptions, so we do it in here.)
+                  IPipelineSpecification pipelineSpecification;
+                  try
+                  {
+                    pipelineSpecification = new PipelineSpecification(pipelineSpecificationBasic,job,ingester);
+                  }
+                  catch (ServiceInterruption e)
+                  {
+                    // Handle service interruption from pipeline
+                    if (!e.jobInactiveAbort())
+                      Logging.jobs.warn("Service interruption reported for job "+
+                      job.getID()+" connection '"+job.getConnectionName()+"': "+
+                      e.getMessage());
+
+                    if (!e.jobInactiveAbort() && e.isAbortOnFail())
+                      abortOnFail = new ManifoldCFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+
+                    // All documents get requeued, because we never got far enough to make distinctions.  All we have to decide
+                    // is whether to requeue or abort.
+                    List<QueuedDocument> requeueList = new ArrayList<QueuedDocument>();
+
+                    for (QueuedDocument qd : activeDocuments)
+                    {
+                      DocumentDescription dd = qd.getDocumentDescription();
+                      // Check for hard failure.  But no hard failure possible of it's a job inactive abort.
+                      if (!e.jobInactiveAbort() && (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
+                        dd.getFailRetryCount() == 0))
+                      {
+                        // Treat this as a hard failure.
+                        if (e.isAbortOnFail())
+                        {
+                          rescanList.add(qd);
+                        }
+                        else
+                        {
+                          requeueList.add(qd);
+                        }
+                      }
+                      else
+                      {
+                        requeueList.add(qd);
+                      }
+                    }
+                      
+                    requeueDocuments(jobManager,requeueList,e.getRetryTime(),e.getFailTime(),
+                      e.getFailRetryCount());
+                      
+                    activeDocuments.clear();
+                    pipelineSpecification = null;
+                  }
 
                   if (activeDocuments.size() > 0)
                   {
@@ -297,8 +349,7 @@ public class WorkerThread extends Thread
 
                     // Build the processActivity object
                     
-                    // We need first to assemble an IPipelineSpecificationWithVersions object for each document we're going to process.
-                    // We put this in a map so it can be looked up by document identifier.
+                    
                     Map<String,IPipelineSpecificationWithVersions> fetchPipelineSpecifications = new HashMap<String,IPipelineSpecificationWithVersions>();
                     String[] documentIDs = new String[activeDocuments.size()];
                     String[] documentIDHashes = new String[activeDocuments.size()];
@@ -331,7 +382,7 @@ public class WorkerThread extends Thread
                       // Now, process in bulk -- catching and handling ServiceInterruptions
                       try
                       {
-                        connector.processDocuments(documentIDs,existingVersions,activity,jobType,isDefaultAuthority);
+                        connector.processDocuments(documentIDs,existingVersions,job.getSpecification(),activity,jobType,isDefaultAuthority);
 
                         for (QueuedDocument qd : activeDocuments)
                         {
@@ -394,12 +445,12 @@ public class WorkerThread extends Thread
                         // will abort the current job.
 
                         deleteList.clear();
-                        ArrayList requeueList = new ArrayList();
+                        List<QueuedDocument> requeueList = new ArrayList<QueuedDocument>();
 
                         Set<String> fetchDocuments = new HashSet<String>();
                         for (QueuedDocument qd : activeDocuments)
                         {
-                          fetchDocuments.add(qd.getDocument().getDocumentDescription().getDocumentIdentifierHash());
+                          fetchDocuments.add(qd.getDocumentDescription().getDocumentIdentifierHash());
                         }
                         List<QueuedDocument> newFinishList = new ArrayList<QueuedDocument>();
                         for (int i = 0; i < finishList.size(); i++)
