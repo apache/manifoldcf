@@ -368,8 +368,23 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
         if (vc != null)
         {
           if (dv.isAlwaysRefetch(documentIdentifier) || activities.checkDocumentNeedsReindexing(documentIdentifier,vc.getVersionString()))
+          {
+            System.out.println("Reprocessing "+documentIdentifier+"; computed version string = '"+vc.getVersionString()+"'; old version string= '"+oldVersions[i]+"'; alwaysRefetch="+dv.isAlwaysRefetch(documentIdentifier));
+            // These documents need reprocessing
             fetchDocuments.add(documentIdentifier);
+          }
+          else
+          {
+            // These documents have been checked and found NOT to need reprocessing
+            activities.noteUnchangedDocument(documentIdentifier);
+          }
           scanDocuments.add(documentIdentifier);
+        }
+        else
+        {
+          // These documents must go away permanently
+          // MHL to collect these and do them as a group
+          activities.deleteDocument(documentIdentifier);
         }
       }
 
@@ -388,6 +403,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
         }
       }
       processDocuments(processIDs,dv,activities,scanOnly,jobMode);
+      
     }
     finally
     {
