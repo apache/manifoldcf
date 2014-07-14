@@ -369,7 +369,6 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
         {
           if (dv.isAlwaysRefetch(documentIdentifier) || activities.checkDocumentNeedsReindexing(documentIdentifier,vc.getVersionString()))
           {
-            System.out.println("Reprocessing "+documentIdentifier+"; computed version string = '"+vc.getVersionString()+"'; old version string= '"+oldVersions[i]+"'; alwaysRefetch="+dv.isAlwaysRefetch(documentIdentifier));
             // These documents need reprocessing
             fetchDocuments.add(documentIdentifier);
           }
