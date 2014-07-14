@@ -1324,7 +1324,8 @@ public class WorkerThread extends Thread
       String newVersionString)
       throws ManifoldCFException
     {
-      IPipelineSpecificationWithVersions spec = fetchPipelineSpecifications.get(documentIdentifier);
+      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
+      IPipelineSpecificationWithVersions spec = fetchPipelineSpecifications.get(documentIdentifierHash);
       return ingester.checkFetchDocument(spec,newVersionString,parameterVersion,connection.getACLAuthority());
     }
 
