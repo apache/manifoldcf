@@ -1642,6 +1642,22 @@ public class WorkerThread extends Thread
       existingDr.addPrerequisiteEvents(prereqEventNames);
     }
 
+    /** Check if a document needs to be reindexed, based on a computed version string.
+    * Call this method to determine whether reindexing is necessary.  Pass in a newly-computed version
+    * string.  This method will return "true" if the document needs to be re-indexed.
+    *@param documentIdentifier is the document identifier.
+    *@param newVersionString is the newly-computed version string.
+    *@return true if the document needs to be reindexed.
+    */
+    @Override
+    public boolean checkDocumentNeedsReindexing(String documentIdentifier,
+      String newVersionString)
+      throws ManifoldCFException
+    {
+      IPipelineSpecificationWithVersions spec = fetchPipelineSpecifications.get(documentIdentifier);
+      return ingester.checkFetchDocument(spec,newVersionString,parameterVersion,connection.getACLAuthority());
+    }
+
     /** Add a document description to the current job's queue.
     *@param localIdentifier is the local document identifier to add (for the connector that
     * fetched the document).
@@ -1733,20 +1749,32 @@ public class WorkerThread extends Thread
       return jobManager.retrieveParentDataAsFiles(jobID,ManifoldCF.hash(localIdentifier),dataName);
     }
 
+    /** Note the fact that a document exists but is unchanged, and nothing further
+    * needs to be done to it.
+    * Call this method if it is determined that the document in question is identical to
+    * the formerly indexed document, AND when the version string for the document
+    * has not changed either.
+    */
+    @Override
+    public void noteUnchangedDocument(String documentIdentifier)
+      throws ManifoldCFException
+    {
+      // MHL ???
+    }
+
     /** Record a document version, but don't ingest it.
-    * ServiceInterruption is thrown if this action must be rescheduled.
     *@param documentIdentifier is the document identifier.
     *@param version is the document version.
     */
     @Override
     public void recordDocument(String documentIdentifier, String version)
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
       ingester.documentRecord(
         pipelineSpecification.getBasicPipelineSpecification(),
         connectionName,documentIdentifierHash,
-        version,currentTime,ingestLogger);
+        version,currentTime);
     }
 
     /** Ingest the current document.
@@ -1823,16 +1851,15 @@ public class WorkerThread extends Thread
         ingestLogger);
     }
 
-    /** Delete the current document from the search engine index, while keeping track of the version information
+    /** Remove the specified document from the search engine index, while keeping track of the version information
     * for it (to reduce churn).
     *@param documentIdentifier is the document's local identifier.
-    *@param version is the version of the document, as reported by the getDocumentVersions() method of the
-    *       corresponding repository connector.
+    *@param version is the version string to be recorded for the document.
     */
-    @Override
-    public void deleteDocument(String documentIdentifier, String version)
+    public void noDocument(String documentIdentifier, String version)
       throws ManifoldCFException, ServiceInterruption
     {
+      // Special interpretation for empty version string
       if (version.length() == 0)
         deleteDocument(documentIdentifier);
       else
@@ -1847,15 +1874,32 @@ public class WorkerThread extends Thread
           throw new IllegalStateException("IngestDocumentWithException threw an illegal IOException: "+e.getMessage(),e);
         }
       }
+
     }
 
-    /** Delete the current document from the search engine index.  This method does NOT keep track of version
-    * information for the document and thus can lead to "churn", whereby the same document is queued, versioned,
-    * and removed on subsequent crawls.  It therefore should be considered to be deprecated, in favor of
-    * deleteDocument(String localIdentifier, String version).
+    /** Delete the current document from the search engine index, while keeping track of the version information
+    * for it (to reduce churn).
+    * Use noDocument() above instead.
     *@param documentIdentifier is the document's local identifier.
+    *@param version is the version string to be recorded for the document.
     */
     @Override
+    @Deprecated
+    public void deleteDocument(String documentIdentifier, String version)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      noDocument(documentIdentifier,version);
+    }
+
+    /** Delete the specified document from the search engine index, and from the status table.  This
+    *  method does NOT keep track of version
+    * information for the document and thus can lead to "churn", whereby the same document is queued, processed,
+    * and removed on subsequent crawls.  It is therefore preferable to use noDocument() instead,
+    * in any case where the same decision will need to be made over and over.
+    *@param documentIdentifier is the document's identifier.
+    */
+    @Override
+    @Deprecated
     public void deleteDocument(String documentIdentifier)
       throws ManifoldCFException, ServiceInterruption
     {
