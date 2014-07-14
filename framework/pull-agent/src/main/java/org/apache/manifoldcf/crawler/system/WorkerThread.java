@@ -662,6 +662,11 @@ public class WorkerThread extends Thread
                       activity.discard();
                     }
                     
+                    // Successful processing of the set
+                    // We count 'get version' time in the average, so even if we decide not to process a doc
+                    // it still counts.
+                    queueTracker.noteConnectionPerformance(qds.getCount(),connectionName,System.currentTimeMillis() - processingStartTime);
+
                   }
                   
                   // Now, handle the delete list
