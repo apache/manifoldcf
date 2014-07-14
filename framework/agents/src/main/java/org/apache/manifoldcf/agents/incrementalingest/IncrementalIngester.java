@@ -511,12 +511,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     String newParameterVersion,
     String newAuthorityNameString)
   {
+    if (newAuthorityNameString == null)
+      newAuthorityNameString = "";
     IPipelineSpecification pipelineSpecification = pipelineSpecificationWithVersions.getPipelineSpecification();
     IPipelineSpecificationBasic basicSpecification = pipelineSpecification.getBasicPipelineSpecification();
-    // Empty document version has a special meaning....
-    if (newDocumentVersion.length() == 0)
-      return true;
-    // Otherwise, cycle through the outputs
+    // Cycle through the outputs
     for (int i = 0; i < basicSpecification.getOutputCount(); i++)
     {
       int stage = basicSpecification.getOutputStage(i);
@@ -531,7 +530,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       if (!oldDocumentVersion.equals(newDocumentVersion) ||
         !oldParameterVersion.equals(newParameterVersion) ||
         !oldAuthorityName.equals(newAuthorityNameString) ||
-        !oldOutputVersion.equals(pipelineSpecification.getStageDescriptionString(stage)))
+        !oldOutputVersion.equals(pipelineSpecification.getStageDescriptionString(stage).getVersionString()))
         return true;
       
       // Everything matches so far.  Next step is to compute a transformation path an corresponding version string.
