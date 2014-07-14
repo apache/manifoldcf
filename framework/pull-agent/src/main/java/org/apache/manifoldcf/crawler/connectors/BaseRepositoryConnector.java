@@ -364,7 +364,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
       for (int i = 0; i < documentIdentifiers.length; i++)
       {
         String documentIdentifier = documentIdentifiers[i];
-        VersionContent vc = dv.getDocumentVersion(documentIdentifier);
+        VersionContext vc = dv.getDocumentVersion(documentIdentifier);
         if (vc != null)
         {
           if (dv.isAlwaysRefetch(documentIdentifier) || activities.checkDocumentNeedsReindexing(documentIdentifier,vc.getVersionString()))
