@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-991: Make Jira connector perform pre-emptive basic auth
+since Jira supports guest users.
+(Daniel Aschauer, Karl Wright)
+
 CONNECTORS-988: Performance improvements for split pipeline crawls.
 (Karl Wright)
 
