@@ -717,6 +717,18 @@ public interface IJobManager
     String[] parentIdentifierHashes, int hopcountMethod)
     throws ManifoldCFException;
 
+  /** Undo the addition of child documents to the queue, for a set of documents.
+  * This method is called at the end of document processing, to back out any incomplete additions to the queue, and restore
+  * the status quo ante prior to the incomplete additions.  Call this method instead of finishDocuments() if the
+  * addition of documents was not completed.
+  *@param jobID is the job identifier.
+  *@param legalLinkTypes is the set of legal link types that this connector generates.
+  *@param parentIdentifierHashes are the hashes of the document identifiers for whom child link extraction just took place.
+  */
+  public void revertDocuments(Long jobID, String[] legalLinkTypes,
+    String[] parentIdentifierHashes)
+    throws ManifoldCFException;
+
   /** Retrieve specific parent data for a given document.
   *@param jobID is the job identifier.
   *@param docIDHash is the hash of the document identifier.
