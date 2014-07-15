@@ -722,7 +722,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           if (map.get(documentIdentifier) != null)
           {
             // This means we did not see it (or data for it) in the result set.  Delete it!
-            activities.deleteDocument(documentIdentifier,versions[i]);
+            activities.deleteDocument(documentIdentifier);
           }
         }
         i++;
