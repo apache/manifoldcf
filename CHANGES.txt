@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-992: Add a test to exercise ServiceInterruption within
+a connector.
+(Karl Wright)
+
 CONNECTORS-990: Revamp IRepositoryConnector API to no longer separate
 getDocumentVersions() and processDocuments().  This modification basically
 pushes responsibility to determine changes to the repository connector.
