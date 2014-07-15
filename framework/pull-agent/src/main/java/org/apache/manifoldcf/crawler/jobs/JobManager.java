@@ -5188,6 +5188,85 @@ public class JobManager implements IJobManager
       new Object[][][]{dataValues},currentTime,new IPriorityCalculator[]{priority},new String[][]{prereqEventNames});
   }
 
+  /** Undo the addition of child documents to the queue, for a set of documents.
+  * This method is called at the end of document processing, to back out any incomplete additions to the queue, and restore
+  * the status quo ante prior to the incomplete additions.  Call this method instead of finishDocuments() if the
+  * addition of documents was not completed.
+  *@param jobID is the job identifier.
+  *@param legalLinkTypes is the set of legal link types that this connector generates.
+  *@param parentIdentifierHashes are the hashes of the document identifiers for whom child link extraction just took place.
+  */
+  @Override
+  public void revertDocuments(Long jobID, String[] legalLinkTypes,
+    String[] parentIdentifierHashes)
+    throws ManifoldCFException
+  {
+    if (parentIdentifierHashes.length == 0)
+      return;
+    
+    if (legalLinkTypes.length == 0)
+    {
+      while (true)
+      {
+        long sleepAmt = 0L;
+        database.beginTransaction(database.TRANSACTION_SERIALIZED);
+        try
+        {
+          // Revert carrydown records
+          carryDown.revertRecords(jobID,parentIdentifierHashes);
+          database.performCommit();
+          break;
+        }
+        catch (Error e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        catch (RuntimeException e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        finally
+        {
+          database.endTransaction();
+          sleepFor(sleepAmt);
+        }
+      }
+    }
+    else
+    {
+      // Revert both hopcount and carrydown
+      while (true)
+      {
+        long sleepAmt = 0L;
+        database.beginTransaction(database.TRANSACTION_SERIALIZED);
+        try
+        {
+          carryDown.revertRecords(jobID,parentIdentifierHashes);
+          hopCount.revertParents(jobID,parentIdentifierHashes);
+          database.performCommit();
+          break;
+        }
+        catch (Error e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        catch (RuntimeException e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        finally
+        {
+          database.endTransaction();
+          sleepFor(sleepAmt);
+        }
+      }
+    }
+  }
+
   /** Complete adding child documents to the queue, for a set of documents.
   * This method is called at the end of document processing, to help the hopcount tracking engine do its bookkeeping.
   *@param jobID is the job identifier.
@@ -5236,6 +5315,11 @@ public class JobManager implements IJobManager
           throw e;
         }
         catch (Error e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        catch (RuntimeException e)
         {
           database.signalRollback();
           throw e;
@@ -5295,6 +5379,11 @@ public class JobManager implements IJobManager
           throw e;
         }
         catch (Error e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        catch (RuntimeException e)
         {
           database.signalRollback();
           throw e;
