@@ -385,11 +385,10 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     int hopcountMethod, String processID)
     throws ManifoldCFException
   {
-    // NOTE: This needs to be revised to not process any additions until the finishParents() call above.
-    // It is now possible to revert before finishParents() is ever called.
-    // We have to both add the reference, AND invalidate appropriate cached hopcounts (if it is a NEW
-    // link.)
-    // ???
+    // NOTE: In order for the revertParents() call above to be correct in its current form,
+    // this method would need to be revised to not process any additions until the finishParents() call
+    // is made.  At the moment, revertParents() is not used by any thread.
+    // TBD, MHL
     boolean[] rval = new boolean[targetDocumentIDHashes.length];
     for (int i = 0; i < rval.length; i++)
     {
