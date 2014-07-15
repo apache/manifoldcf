@@ -29,7 +29,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 * (2) The connector computes a version string for each document in the set as part of determining
 *    whether the document indeed needs to be refetched.
 * (3) For each document processed, there can be one of several dispositions:
-*   (a) There is no such document (anymore): nothing is called for the document (the framework will delete it).
+*   (a) There is no such document (anymore): deleteDocument() called for the document.
 *   (b) The document is (re)indexed: ingestDocumentWithException() is called for the document.
 *   (c) The document is determined to be unchanged and no updates are needed: noteUnchangedDocument() is called
 *     for the document.
@@ -38,6 +38,8 @@ import org.apache.manifoldcf.agents.interfaces.*;
 *   (e) The document is determined to be unindexable BUT it still exists in the repository: noDocument()
 *    is called for the document.
 *   (f) There was a service interruption: ServiceInterruption is thrown.
+*   (g) Nothing is called describing the document's disposition.  In that case, for backwards compatibility,
+*    the framework marks the document as having been processed.
 * (4) In order to determine whether a document needs to be reindexed, the method checkDocumentNeedsReindexing()
 *    is available to return an opinion on that matter.
 */
@@ -173,6 +175,16 @@ public interface IProcessActivity extends IVersionActivity
   public void noDocument(String documentIdentifier, String version)
     throws ManifoldCFException, ServiceInterruption;
 
+  /** Delete the specified document permanently from the search engine index, and from the status table.
+  * This method does NOT keep track of any document version information for the document and thus can
+  * lead to "churn", whereby the same document is queued, processed,
+  * and removed on subsequent crawls.  It is therefore preferable to use noDocument() instead,
+  * in any case where the same decision will need to be made over and over.
+  *@param documentIdentifier is the document's identifier.
+  */
+  public void deleteDocument(String documentIdentifier)
+    throws ManifoldCFException;
+
   /** Record a document version, WITHOUT reindexing it, or removing it.  (Other
   * documents with the same URL, however, will still be removed.)  This is
   * useful if the version string changes but the document contents are known not
@@ -193,16 +205,6 @@ public interface IProcessActivity extends IVersionActivity
   public void deleteDocument(String documentIdentifier, String version)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Delete the specified document permanently from the search engine index, and from the status table.
-  * This method does NOT keep track of any document version information for the document and thus can
-  * lead to "churn", whereby the same document is queued, processed,
-  * and removed on subsequent crawls.  It is therefore preferable to use noDocument() instead,
-  * in any case where the same decision will need to be made over and over.
-  *@param documentIdentifier is the document's identifier.
-  */
-  @Deprecated
-  public void deleteDocument(String documentIdentifier)
-    throws ManifoldCFException, ServiceInterruption;
 
   /** Override the schedule for the next time a document is crawled.
   * Calling this method allows you to set an upper recrawl bound, lower recrawl bound, upper expire bound, lower expire bound,

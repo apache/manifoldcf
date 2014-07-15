@@ -396,28 +396,19 @@ public class WorkerThread extends Thread
                             // unconditional requeue.
                             finishList.add(qd);
                           }
+                          else if (activity.wasDocumentDeleted(qd.getDocumentDescription().getDocumentIdentifier()))
+                          {
+                            deleteList.add(qd);
+                          }
+                          else if (activity.wasDocumentUnchanged(qd.getDocumentDescription().getDocumentIdentifier()))
+                          {
+                            finishList.add(qd);
+                            ingesterCheckList.add(qd.getDocumentDescription().getDocumentIdentifierHash());
+                          }
                           else
                           {
-                            // If the document is not being deleted, add it to the finish set.
-                            if (activity.wasDocumentProcessed(qd.getDocumentDescription().getDocumentIdentifier()))
-                            {
-                              finishList.add(qd);
-                            }
-                            else if (activity.wasDocumentUnchanged(qd.getDocumentDescription().getDocumentIdentifier()))
-                            {
-                              finishList.add(qd);
-                              ingesterCheckList.add(qd.getDocumentDescription().getDocumentIdentifierHash());
-                            }
-                            else
-                            {
-                              // Anything else means that the document was not found and should be deleted, eventually.
-                              // We can't just delete because of connector backwards compatibility.  The case in question
-                              // is handling documents that are not indexed, such as file system directories.  To prevent
-                              // the job from not terminating, we have to add this document to the finish list so that it gets
-                              // marked as being done.
-                              //deleteList.add(qd);
-                              finishList.add(qd);
-                            }
+                            // All documents not specifically called out above are simply finished, since we know they haven't been deleted.
+                            finishList.add(qd);
                           }
                         }
                         
@@ -1147,8 +1138,8 @@ public class WorkerThread extends Thread
     // Whether the document was checked or not
     protected final Set<String> documentCheckedSet = new HashSet<String>();
     
-    // Whether document was processed or not
-    protected final Set<String> documentProcessedSet = new HashSet<String>();
+    // Whether document was deleted
+    protected final Set<String> documentDeletedSet = new HashSet<String>();
     
     /** Constructor.
     *@param jobManager is the job manager
@@ -1212,11 +1203,11 @@ public class WorkerThread extends Thread
       return documentCheckedSet.contains(documentIdentifier);
     }
     
-    /** Check whether a document was processed or not.
+    /** Check whether document was deleted or not.
     */
-    public boolean wasDocumentProcessed(String documentIdentifier)
+    public boolean wasDocumentDeleted(String documentIdentifier)
     {
-      return documentProcessedSet.contains(documentIdentifier);
+      return documentDeletedSet.contains(documentIdentifier);
     }
     
     /** Check whether a document was aborted or not.
@@ -1445,7 +1436,6 @@ public class WorkerThread extends Thread
     public void noteUnchangedDocument(String documentIdentifier)
       throws ManifoldCFException
     {
-      documentProcessedSet.add(documentIdentifier);
       documentCheckedSet.add(documentIdentifier);
     }
 
@@ -1462,7 +1452,6 @@ public class WorkerThread extends Thread
         pipelineSpecification.getBasicPipelineSpecification(),
         connectionName,documentIdentifierHash,
         version,currentTime);
-      documentProcessedSet.add(documentIdentifier);
     }
 
     /** Ingest the current document.
@@ -1538,7 +1527,6 @@ public class WorkerThread extends Thread
         documentURI,
         ingestLogger);
       
-      documentProcessedSet.add(documentIdentifier);
     }
 
     /** Remove the specified document from the search engine index, while keeping track of the version information
@@ -1588,14 +1576,10 @@ public class WorkerThread extends Thread
     *@param documentIdentifier is the document's identifier.
     */
     @Override
-    @Deprecated
     public void deleteDocument(String documentIdentifier)
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      ingester.documentDelete(pipelineSpecification.getBasicPipelineSpecification(),
-        connectionName,documentIdentifierHash,
-        ingestLogger);
+      documentDeletedSet.add(documentIdentifier);
     }
 
     /** Override the schedule for the next time a document is crawled.
