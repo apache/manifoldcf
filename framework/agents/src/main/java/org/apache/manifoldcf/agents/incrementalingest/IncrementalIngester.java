@@ -511,12 +511,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     String newParameterVersion,
     String newAuthorityNameString)
   {
+    if (newAuthorityNameString == null)
+      newAuthorityNameString = "";
     IPipelineSpecification pipelineSpecification = pipelineSpecificationWithVersions.getPipelineSpecification();
     IPipelineSpecificationBasic basicSpecification = pipelineSpecification.getBasicPipelineSpecification();
-    // Empty document version has a special meaning....
-    if (newDocumentVersion.length() == 0)
-      return true;
-    // Otherwise, cycle through the outputs
+    // Cycle through the outputs
     for (int i = 0; i < basicSpecification.getOutputCount(); i++)
     {
       int stage = basicSpecification.getOutputStage(i);
@@ -609,27 +608,35 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Record a document version, but don't ingest it.
-  * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
-  * ServiceInterruption is thrown if this action must be rescheduled.
+  * The purpose of this method is to update document version information without reindexing the document.
   *@param pipelineSpecificationBasic is the basic pipeline specification needed.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
   *@param documentVersion is the document version.
   *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
-  *@param activities is the object used in case a document needs to be removed from the output index as the result of this operation.
   */
   @Override
   public void documentRecord(
     IPipelineSpecificationBasic pipelineSpecificationBasic,
     String identifierClass, String identifierHash,
-    String documentVersion, long recordTime,
-    IOutputActivity activities)
-    throws ManifoldCFException, ServiceInterruption
+    String documentVersion, long recordTime)
+    throws ManifoldCFException
   {
+    // This method is called when a connector decides that the last indexed version of the document is in fact just fine,
+    // but the document version information should be updated.
+    // The code pathway is therefore similar to that of document indexing, EXCEPT that no indexing will ever
+    // take place.  This has some interesting side effects.  For example:
+    // (1) In the case of a document collision with another job using the same repository connection, the last document
+    //    indexed cannot be changed.  Updating the version string for the document would therefore be misleading.  This
+    //    case should be detected and prevented from occurring, by refusing to perform the update.
+    //    On the other hand, only one thread at a time can be processing the document at a given time, and therefore
+    //    since the connector detected "no change", we are safe to presume we can just update the version info.
+    // (2) In the case of a URL conflict with another job, since nothing changes and no new URL is recorded, no cleanup
+    //    of conflicting records sharing the same URL should be needed.
+    
     String docKey = makeKey(identifierClass,identifierHash);
 
     String[] outputConnectionNames = extractOutputConnectionNames(pipelineSpecificationBasic);
-    IOutputConnection[] outputConnections = connectionManager.loadMultiple(outputConnectionNames);
 
     if (Logging.ingest.isDebugEnabled())
     {
@@ -639,99 +646,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     for (int k = 0; k < outputConnectionNames.length; k++)
     {
       String outputConnectionName = outputConnectionNames[k];
-      IOutputConnection connection = outputConnections[k];
 
-      String oldURI = null;
-      String oldURIHash = null;
-      String oldOutputVersion = null;
-
-      // Repeat if needed
-      while (true)
-      {
-        long sleepAmt = 0L;
-        try
-        {
-          // See what uri was used before for this doc, if any
-          ArrayList list = new ArrayList();
-          String query = buildConjunctionClause(list,new ClauseDescription[]{
-            new UnitaryClause(docKeyField,docKey),
-            new UnitaryClause(outputConnNameField,outputConnectionName)});
-            
-          IResultSet set = performQuery("SELECT "+docURIField+","+uriHashField+","+lastOutputVersionField+" FROM "+getTableName()+
-            " WHERE "+query,list,null,null);
-
-          if (set.getRowCount() > 0)
-          {
-            IResultRow row = set.getRow(0);
-            oldURI = (String)row.getValue(docURIField);
-            oldURIHash = (String)row.getValue(uriHashField);
-            oldOutputVersion = (String)row.getValue(lastOutputVersionField);
-          }
-          
-          break;
-        }
-        catch (ManifoldCFException e)
-        {
-          // Look for deadlock and retry if so
-          if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
-          {
-            if (Logging.perf.isDebugEnabled())
-              Logging.perf.debug("Aborted select looking for status: "+e.getMessage());
-            sleepAmt = getSleepAmt();
-            continue;
-          }
-          throw e;
-        }
-        finally
-        {
-          sleepFor(sleepAmt);
-        }
-      }
-
-      // If uri hashes collide, then we must be sure to eliminate only the *correct* records from the table, or we will leave
-      // dangling documents around.  So, all uri searches and comparisons MUST compare the actual uri as well.
-
-      // But, since we need to insure that any given URI is only worked on by one thread at a time, use critical sections
-      // to block the rare case that multiple threads try to work on the same URI.
-      
-      String[] lockArray = computeLockArray(null,oldURI,outputConnectionName);
-      lockManager.enterLocks(null,null,lockArray);
-      try
-      {
-
-        ArrayList list = new ArrayList();
-        
-        if (oldURI != null)
-        {
-          IOutputConnector connector = outputConnectorPool.grab(connection);
-          if (connector == null)
-            // The connector is not installed; treat this as a service interruption.
-            throw new ServiceInterruption("Output connector not installed",0L);
-          try
-          {
-            connector.removeDocument(oldURI,oldOutputVersion,new OutputRemoveActivitiesWrapper(activities,outputConnectionName));
-          }
-          finally
-          {
-            outputConnectorPool.release(connection,connector);
-          }
-          // Delete all records from the database that match the old URI, except for THIS record.
-          list.clear();
-          String query = buildConjunctionClause(list,new ClauseDescription[]{
-            new UnitaryClause(uriHashField,"=",oldURIHash),
-            new UnitaryClause(outputConnNameField,outputConnectionName)});
-          list.add(docKey);
-          performDelete("WHERE "+query+" AND "+docKeyField+"!=?",list,null);
-        }
-
-        // If we get here, it means we are noting that the document was examined, but that no change was required.  This is signaled
-        // to noteDocumentIngest by having the null documentURI.
-        noteDocumentIngest(outputConnectionName,docKey,documentVersion,null,null,null,null,recordTime,null,null);
-      }
-      finally
-      {
-        lockManager.leaveLocks(null,null,lockArray);
-      }
+      // If we get here, it means we are noting that the document was examined, but that no change was required.  This is signaled
+      // to noteDocumentIngest by having the null documentURI.
+      noteDocumentIngest(outputConnectionName,docKey,documentVersion,null,null,null,null,recordTime,null,null);
     }
   }
 

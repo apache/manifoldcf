@@ -1239,7 +1239,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         // Leave document in jobqueue, but do NOT get rid of it, or we will wind up seeing it queued again by
         // somebody else.  We *do* have to signal the document to be removed from the index, however, or it will
         // stick around until the job is deleted.
-        activities.deleteDocument(urlValue,version);
+        activities.noDocument(urlValue,version);
         continue;
       }
 
@@ -1528,7 +1528,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
         else
         {
-          activities.deleteDocument(urlValue,version);
+          activities.noDocument(urlValue,version);
 
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("RSS: Skipping document '"+urlValue+"' because it cannot be indexed");

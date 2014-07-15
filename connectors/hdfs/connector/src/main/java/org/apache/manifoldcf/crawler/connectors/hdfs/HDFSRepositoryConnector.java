@@ -409,7 +409,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         
       if (fileStatus == null) {
         // It is no longer there , so delete right away
-        activities.deleteDocument(documentIdentifier,version);
+        activities.deleteDocument(documentIdentifier);
         continue;
       }
         
@@ -421,7 +421,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         FileStatus[] fileStatuses = getChildren(fileStatus.getPath());
         if (fileStatuses == null) {
           // Directory was deleted, so remove
-          activities.deleteDocument(documentIdentifier,version);
+          activities.deleteDocument(documentIdentifier);
           continue;
         }
         for (int j = 0; j < fileStatuses.length; j++) {

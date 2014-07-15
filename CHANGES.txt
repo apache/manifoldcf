@@ -3,6 +3,14 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-990: Revamp IRepositoryConnector API to no longer separate
+getDocumentVersions() and processDocuments().  This modification basically
+pushes responsibility to determine changes to the repository connector.
+Backwards compatibility is maintained via code in BaseRepositoryConnector,
+and new methods have been added to IProcessActivity.
+WorkerThread has been largely rewritten as a result.
+(Karl Wright)
+
 CONNECTORS-991: Make Jira connector perform pre-emptive basic auth
 since Jira supports guest users.
 (Daniel Aschauer, Karl Wright)

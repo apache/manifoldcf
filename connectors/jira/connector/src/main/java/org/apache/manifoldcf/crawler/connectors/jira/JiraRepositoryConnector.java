@@ -962,7 +962,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
             String issueKey = nodeId.substring(2);
             JiraIssue jiraFile = getIssue(issueKey);
             if (jiraFile == null) {
-              activities.deleteDocument(nodeId, version);
+              activities.deleteDocument(nodeId);
               continue;
             }
             
