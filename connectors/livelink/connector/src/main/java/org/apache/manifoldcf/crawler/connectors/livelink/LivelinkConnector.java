@@ -4440,7 +4440,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                     // Since we logged in, we should fail here if the ingestion user doesn't have access to the
                     // the document, but if we do, don't fail hard.
                     resultCode = "UNAUTHORIZED";
-                    activities.deleteDocument(documentIdentifier,version);
+                    activities.noDocument(documentIdentifier,version);
                     return;
 
                   case HttpStatus.SC_OK:
@@ -4533,7 +4533,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                     else
                     {
                       resultCode = "SESSIONLOGINFAILED";
-                      activities.deleteDocument(documentIdentifier,version);
+                      activities.noDocument(documentIdentifier,version);
                     }
                     break;
                   case HttpStatus.SC_BAD_REQUEST:
@@ -4731,7 +4731,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its length ("+dataSize+") was rejected by output connector");
             resultCode = "DOCUMENTTOOLONG";
-            activities.deleteDocument(documentIdentifier,version);
+            activities.noDocument(documentIdentifier,version);
           }
         }
         else
@@ -4741,7 +4741,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its mime type ("+mimeType+") was rejected by output connector");
           resultCode = "MIMETYPEEXCLUSION";
-          activities.deleteDocument(documentIdentifier,version);
+          activities.noDocument(documentIdentifier,version);
         }
       }
       else
@@ -4751,7 +4751,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its URL ("+viewHttpAddress+") was rejected by output connector");
         resultCode = "URLEXCLUSION";
-        activities.deleteDocument(documentIdentifier,version);
+        activities.noDocument(documentIdentifier,version);
       }
     }
     finally
