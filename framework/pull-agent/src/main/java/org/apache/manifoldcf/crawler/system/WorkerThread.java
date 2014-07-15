@@ -350,14 +350,12 @@ public class WorkerThread extends Thread
                     
                     Map<String,IPipelineSpecificationWithVersions> fetchPipelineSpecifications = new HashMap<String,IPipelineSpecificationWithVersions>();
                     String[] documentIDs = new String[activeDocuments.size()];
-                    String[] documentIDHashes = new String[activeDocuments.size()];
-                    for (int i = 0; i < activeDocuments.size(); i++)
+                    int k = 0;
+                    for (QueuedDocument qd : activeDocuments)
                     {
-                      QueuedDocument qd = activeDocuments.get(i);
                       fetchPipelineSpecifications.put(qd.getDocumentDescription().getDocumentIdentifierHash(),
                         new PipelineSpecificationWithVersions(pipelineSpecification,qd));
-                      documentIDs[i] = qd.getDocumentDescription().getDocumentIdentifier();
-                      documentIDHashes[i] = qd.getDocumentDescription().getDocumentIdentifierHash();
+                      documentIDs[k++] = qd.getDocumentDescription().getDocumentIdentifier();
                     }
                     
                     ProcessActivity activity = new ProcessActivity(job.getID(),processID,
@@ -395,18 +393,9 @@ public class WorkerThread extends Thread
                       // Flush remaining references into the database!
                       activity.flush();
 
-                      // "Finish" the documents (removing unneeded carrydown info, etc.)
-                      // ??? documentIDHashes is ALL documents; shouldn't we just be doing the ones successfully processed?
-                      // Old code basically only called this on successful completion of ALL documents in the set, but is this
-                      // right?  Does carrydown and hopcount handling recover from being incomplete?
-                      DocumentDescription[] requeueCandidates = jobManager.finishDocuments(job.getID(),legalLinkTypes,documentIDHashes,job.getHopcountMode());
-
-                      ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,
-                        requeueCandidates,connector,connection,rt,currentTime);
-                      
                       if (Logging.threads.isDebugEnabled())
                         Logging.threads.debug("Worker thread done processing "+Integer.toString(documentIDs.length)+" documents");
-                      
+
                       // Either way, handle the documents we were supposed to process.  But if there was a service interruption,
                       // and the disposition of the document was unclear, then the document will need to be requeued instead of handled normally.
                       List<QueuedDocument> requeueList = new ArrayList<QueuedDocument>();
@@ -469,7 +458,7 @@ public class WorkerThread extends Thread
                           finishList.add(qd);
                         }
                       }
-                        
+
                       if (serviceInterruption != null)
                       {
                         // Requeue the documents we've identified as needing to be repeated
@@ -494,6 +483,18 @@ public class WorkerThread extends Thread
                       // Process the finish list!
                       if (finishList.size() > 0)
                       {
+                        // "Finish" the documents (removing unneeded carrydown info, and compute hopcounts).
+                        // This can ONLY be done on fully-completed documents; everything else should be left in a dangling
+                        // state (which we know is OK because it will be fixed the next time the document is attempted).
+                        String[] documentIDHashes = new String[finishList.size()];
+                        k = 0;
+                        for (QueuedDocument qd : finishList)
+                        {
+                          documentIDHashes[k++] = qd.getDocumentDescription().getDocumentIdentifierHash();
+                        }
+                        DocumentDescription[] requeueCandidates = jobManager.finishDocuments(job.getID(),legalLinkTypes,documentIDHashes,job.getHopcountMode());
+                        ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,rt,currentTime);
+
                         // In both job types, we have to go through the finishList to figure out what to do with the documents.
                         // In the case of a document that was aborted, we must requeue it for immediate reprocessing in BOTH job types.
                         switch (job.getType())
