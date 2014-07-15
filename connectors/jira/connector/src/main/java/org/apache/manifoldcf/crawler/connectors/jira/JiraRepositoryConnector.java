@@ -290,9 +290,44 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         Logging.connectors.debug("JIRA: Clientsecret = '" + clientsecret + "'");
       }
 
-      String jiraurl = jiraprotocol + "://" + jirahost + (StringUtils.isEmpty(jiraport)?"":":"+jiraport) + jirapath;
-      session = new JiraSession(clientid, clientsecret, jiraurl,
-        jiraproxyhost, jiraproxyport, jiraproxydomain, jiraproxyusername, jiraproxypassword);
+      int portInt;
+      if (jiraport != null && jiraport.length() > 0)
+      {
+        try
+        {
+          portInt = Integer.parseInt(jiraport);
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException("Bad number: "+e.getMessage(),e);
+        }
+      }
+      else
+      {
+        if (jiraprotocol.toLowerCase(Locale.ROOT).equals("http"))
+          portInt = 80;
+        else
+          portInt = 443;
+      }
+
+      int proxyPortInt;
+      if (jiraproxyport != null && jiraproxyport.length() > 0)
+      {
+        try
+        {
+          proxyPortInt = Integer.parseInt(jiraproxyport);
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException("Bad number: "+e.getMessage(),e);
+        }
+      }
+      else
+        proxyPortInt = 8080;
+
+      session = new JiraSession(clientid, clientsecret,
+        jiraprotocol, jirahost, portInt, jirapath,
+        jiraproxyhost, proxyPortInt, jiraproxydomain, jiraproxyusername, jiraproxypassword);
 
     }
     lastSessionFetch = System.currentTimeMillis();
