@@ -418,6 +418,7 @@ public class WorkerThread extends Thread
                         }
                         else if (serviceInterruption != null)
                         {
+
                           // Service interruption has precedence over unchanged, because we might have been interrupted while scanning the document
                           // for references
                           DocumentDescription dd = qd.getDocumentDescription();
@@ -449,6 +450,7 @@ public class WorkerThread extends Thread
                         }
                         else if (activity.wasDocumentUnchanged(qd.getDocumentDescription().getDocumentIdentifier()))
                         {
+
                           finishList.add(qd);
                           ingesterCheckList.add(qd.getDocumentDescription().getDocumentIdentifierHash());
                         }
@@ -494,7 +496,7 @@ public class WorkerThread extends Thread
                         }
                         DocumentDescription[] requeueCandidates = jobManager.finishDocuments(job.getID(),legalLinkTypes,documentIDHashes,job.getHopcountMode());
                         ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,rt,currentTime);
-
+                        
                         // In both job types, we have to go through the finishList to figure out what to do with the documents.
                         // In the case of a document that was aborted, we must requeue it for immediate reprocessing in BOTH job types.
                         switch (job.getType())
@@ -584,9 +586,8 @@ public class WorkerThread extends Thread
                             // Separate the ones we actually finished from the ones we need to requeue because they were aborted
                             List<DocumentDescription> completedList = new ArrayList<DocumentDescription>();
                             List<DocumentDescription> abortedList = new ArrayList<DocumentDescription>();
-                            for (int i = 0; i < finishList.size(); i++)
+                            for (QueuedDocument qd : finishList)
                             {
-                              QueuedDocument qd = finishList.get(i);
                               DocumentDescription dd = qd.getDocumentDescription();
                               if (activity.wasDocumentAborted(dd.getDocumentIdentifier()))
                               {
@@ -622,7 +623,7 @@ public class WorkerThread extends Thread
                               DocumentDescription[] docDescriptions = new DocumentDescription[completedList.size()];
                               for (int i = 0; i < docDescriptions.length; i++)
                               {
-                                docDescriptions[i] = (DocumentDescription)completedList.get(i);
+                                docDescriptions[i] = completedList.get(i);
                               }
 
                               jobManager.markDocumentCompletedMultiple(docDescriptions);
@@ -672,9 +673,8 @@ public class WorkerThread extends Thread
               }
               
               // Handle rescanning
-              for (int i = 0; i < rescanList.size(); i++)
+              for (QueuedDocument qd : rescanList)
               {
-                QueuedDocument qd = rescanList.get(i);
                 jobManager.resetDocument(qd.getDocumentDescription(),0L,IJobManager.ACTION_RESCAN,-1L,-1);
                 qd.setProcessed();
               }
@@ -711,10 +711,9 @@ public class WorkerThread extends Thread
           {
             // Go through qds and requeue any that aren't closed out in one way or another.  This allows the job
             // to be aborted; no dangling entries are left around.
-            int i = 0;
-            while (i < qds.getCount())
+            for (int i = 0; i < qds.getCount(); i++)
             {
-              QueuedDocument qd = qds.getDocument(i++);
+              QueuedDocument qd = qds.getDocument(i);
               if (!qd.wasProcessed())
               {
                 jobManager.resetDocument(qd.getDocumentDescription(),0L,IJobManager.ACTION_RESCAN,-1L,-1);
