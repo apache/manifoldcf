@@ -3117,7 +3117,6 @@ public class JobManager implements IJobManager
         }
         TrackerClass.notePrecommit();
         database.performCommit();
-        System.out.println("Committed updated status");
         TrackerClass.noteCommit();
         break;
       }
@@ -5113,7 +5112,6 @@ public class JobManager implements IJobManager
 
         TrackerClass.notePrecommit();
         database.performCommit();
-        System.out.println("Committed carrydown updates");
         TrackerClass.noteCommit();
         
         if (Logging.perf.isDebugEnabled())
