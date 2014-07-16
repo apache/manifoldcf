@@ -163,6 +163,30 @@ public interface IIncrementalIngester
     String documentVersion, long recordTime)
     throws ManifoldCFException;
 
+  /** Remove a document from specified indexes, just as if an empty document
+  * was indexed, and record the necessary version information.
+  * This method is conceptually similar to documentIngest(), but does not actually take
+  * a document or allow it to be transformed.  If there is a document already
+  * indexed, it is removed from the index.
+  *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hashed document identifier.
+  *@param documentVersion is the document version.
+  *@param parameterVersion is the version string for the forced parameters.
+  *@param authorityName is the name of the authority associated with the document, if any.
+  *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
+  *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
+  */
+  public void documentNoData(
+    IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
+    String identifierClass, String identifierHash,
+    String documentVersion,
+    String parameterVersion,
+    String authorityName,
+    long recordTime,
+    IOutputActivity activities)
+    throws ManifoldCFException, ServiceInterruption;
+
   /** Ingest a document.
   * This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
   * method also REMOVES ALL OLD METADATA.  When complete, the index will contain only the metadata

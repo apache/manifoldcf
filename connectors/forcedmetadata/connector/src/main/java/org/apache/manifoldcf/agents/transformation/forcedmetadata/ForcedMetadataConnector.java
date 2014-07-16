@@ -132,7 +132,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     // Finally, send the modified repository document onward to the next pipeline stage.
     // If we'd done anything to the stream, we'd have needed to create a new RepositoryDocument object and copied the
     // data into it, and closed the new stream after sendDocument() was called.
-    return activities.sendDocument(documentURI,docCopy,authorityNameString);
+    return activities.sendDocument(documentURI,docCopy);
   }
 
   // UI support methods.

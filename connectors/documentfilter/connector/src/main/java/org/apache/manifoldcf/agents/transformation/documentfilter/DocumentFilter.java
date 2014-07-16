@@ -117,7 +117,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
-    return activities.sendDocument(documentURI, document, authorityNameString);
+    return activities.sendDocument(documentURI, document);
   }
   
   protected static void fillInContentsSpecificationMap(Map<String,Object> paramMap, Specification os)

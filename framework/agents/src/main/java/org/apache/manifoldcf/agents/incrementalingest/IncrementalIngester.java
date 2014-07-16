@@ -653,6 +653,55 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
+  /** Remove a document from specified indexes, just as if an empty document
+  * was indexed, and record the necessary version information.
+  * This method is conceptually similar to documentIngest(), but does not actually take
+  * a document or allow it to be transformed.  If there is a document already
+  * indexed, it is removed from the index.
+  *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hashed document identifier.
+  *@param documentVersion is the document version.
+  *@param parameterVersion is the version string for the forced parameters.
+  *@param authorityName is the name of the authority associated with the document, if any.
+  *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
+  *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
+  */
+  @Override
+  public void documentNoData(
+    IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
+    String identifierClass, String identifierHash,
+    String documentVersion,
+    String parameterVersion,
+    String authorityName,
+    long recordTime,
+    IOutputActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    PipelineConnectionsWithVersions pipelineConnectionsWithVersions = new PipelineConnectionsWithVersions(pipelineSpecificationWithVersions);
+    
+    String docKey = makeKey(identifierClass,identifierHash);
+
+    if (Logging.ingest.isDebugEnabled())
+    {
+      Logging.ingest.debug("Logging empty document '"+docKey+"' into output connections '"+extractOutputConnectionNames(pipelineSpecificationWithVersions.getPipelineSpecification().getBasicPipelineSpecification())+"'");
+    }
+
+    // Set up a pipeline
+    PipelineObjectWithVersions pipeline = pipelineGrabWithVersions(pipelineConnectionsWithVersions);
+    if (pipeline == null)
+      // A connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("Pipeline connector not installed",0L);
+    try
+    {
+      pipeline.noDocument(docKey,documentVersion,parameterVersion,authorityName,activities,recordTime);
+    }
+    finally
+    {
+      pipeline.release();
+    }
+  }
+
   /** Ingest a document.
   * This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
   * method also REMOVES ALL OLD METADATA.  When complete, the index will contain only the metadata
@@ -2034,14 +2083,24 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     /** Send a document via the pipeline to the next output connection.
     *@param documentURI is the document's URI.
     *@param document is the document data to be processed (handed to the output data store).
-    *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
     *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
     *@throws IOException only if there's an IO error reading the data from the document.
     */
-    public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
+    @Override
+    public int sendDocument(String documentURI, RepositoryDocument document)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
-      return addActivities.sendDocument(documentURI,document,authorityNameString);
+      return addActivities.sendDocument(documentURI,document);
+    }
+
+    /** Send NO document via the pipeline to the next output connection.  This is equivalent
+    * to sending an empty document placeholder.
+    */
+    @Override
+    public void noDocument()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      addActivities.noDocument();
     }
 
     /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
@@ -2247,9 +2306,16 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throws ManifoldCFException, ServiceInterruption, IOException
     {
       PipelineAddFanout entryPoint = buildAddPipeline(finalActivity,newDocumentVersion,newParameterVersion,authorityNameString,ingestTime,docKey);
-      return entryPoint.sendDocument(documentURI,document,authorityNameString);
+      return entryPoint.sendDocument(documentURI,document);
     }
-    
+
+    public void noDocument(String docKey, String newDocumentVersion, String newParameterVersion, String authorityNameString, IOutputActivity finalActivity, long ingestTime)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      PipelineAddFanout entryPoint = buildAddPipeline(finalActivity,newDocumentVersion,newParameterVersion,authorityNameString,ingestTime,docKey);
+      entryPoint.noDocument();
+    }
+
     protected PipelineAddFanout buildAddPipeline(IOutputActivity finalActivity,
       String newDocumentVersion, String newParameterVersion, String newAuthorityNameString,
       long ingestTime, String docKey)
@@ -2307,7 +2373,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           ingestTime,
           newDocumentVersion,
           newParameterVersion,
-          docKey);
+          docKey,
+          newAuthorityNameString);
         currentSet.put(new Integer(outputStage), outputStageEntryPoint);
       }
       // Cycle through the "current set"
@@ -2357,7 +2424,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           return pcf;
         PipelineAddEntryPoint newEntry = new PipelineAddEntryPoint(
           transformationConnectors[pipelineConnections.getTransformationConnectionIndex(parent).intValue()],
-          pipelineSpec.getStageDescriptionString(parent),pcf,pcf.checkNeedToReindex());
+          pipelineSpec.getStageDescriptionString(parent),newAuthorityNameString,pcf,pcf.checkNeedToReindex());
         currentSet.put(new Integer(parent), newEntry);
       }
 
@@ -2555,11 +2622,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     /** Send a document via the pipeline to the next output connection.
     *@param documentURI is the document's URI.
     *@param document is the document data to be processed (handed to the output data store).
-    *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
     *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
     *@throws IOException only if there's an IO error reading the data from the document.
     */
-    public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
+    @Override
+    public int sendDocument(String documentURI, RepositoryDocument document)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
       // First, count the number of active entry points.
@@ -2577,7 +2644,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         {
           if (!p.isActive())
             continue;
-          if (p.addOrReplaceDocumentWithException(documentURI,document,authorityNameString) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED)
+          if (p.addOrReplaceDocumentWithException(documentURI,document) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED)
             rval = IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
         }
         return rval;
@@ -2594,7 +2661,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           {
             if (!p.isActive())
               continue;
-            if (p.addOrReplaceDocumentWithException(documentURI,factory.createDocument(),authorityNameString) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED)
+            if (p.addOrReplaceDocumentWithException(documentURI,factory.createDocument()) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED)
               rval = IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
           }
           return rval;
@@ -2602,6 +2669,23 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         finally
         {
           factory.close();
+        }
+      }
+    }
+
+    /** Send NO document via the pipeline to the next output connection.  This is equivalent
+    * to sending an empty document placeholder.
+    */
+    @Override
+    public void noDocument()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      for (PipelineAddEntryPoint p : entryPoints)
+      {
+        if (p.isActive())
+        {
+          // Invoke the addEntryPoint method for handling "noDocument"
+          p.noDocument();
         }
       }
     }
@@ -2652,16 +2736,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   {
     protected final IPipelineConnector pipelineConnector;
     protected final VersionContext pipelineDescriptionString;
+    protected final String authorityNameString;
     protected final IOutputAddActivity addActivity;
     protected final boolean isActive;
     
     public PipelineAddEntryPoint(IPipelineConnector pipelineConnector,
       VersionContext pipelineDescriptionString,
+      String authorityNameString,
       IOutputAddActivity addActivity,
       boolean isActive)
     {
       this.pipelineConnector = pipelineConnector;
       this.pipelineDescriptionString = pipelineDescriptionString;
+      this.authorityNameString = authorityNameString;
       this.addActivity = addActivity;
       this.isActive = isActive;
     }
@@ -2695,12 +2782,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       return pipelineConnector.checkURLIndexable(pipelineDescriptionString,uri,addActivity);
     }
 
-    public int addOrReplaceDocumentWithException(String documentURI, RepositoryDocument document, String authorityNameString)
+    public int addOrReplaceDocumentWithException(String documentURI, RepositoryDocument document)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
       return pipelineConnector.addOrReplaceDocumentWithException(
         documentURI,pipelineDescriptionString,
         document,authorityNameString,addActivity);
+    }
+    
+    public void noDocument()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      // Call the addActivity method for handling no document
+      addActivity.noDocument();
     }
   }
   
@@ -2724,9 +2818,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       long ingestTime,
       String documentVersion,
       String parameterVersion,
-      String docKey)
+      String docKey,
+      String authorityNameString)
     {
-      super(outputConnector,outputDescriptionString,activity,isActive);
+      super(outputConnector,outputDescriptionString,authorityNameString,activity,isActive);
       this.outputConnector = outputConnector;
       this.outputConnectionName = outputConnectionName;
       this.transformationVersion = transformationVersion;
@@ -2738,7 +2833,21 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     
     @Override
-    public int addOrReplaceDocumentWithException(String documentURI, RepositoryDocument document, String authorityNameString)
+    public void noDocument()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      try
+      {
+        addOrReplaceDocumentWithException(null,null);
+      }
+      catch (IOException e)
+      {
+        throw new RuntimeException("Unexpected IOException: "+e.getMessage(),e);
+      }
+    }
+    
+    @Override
+    public int addOrReplaceDocumentWithException(String documentURI, RepositoryDocument document)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
       // No transactions; not safe because post may take too much time
@@ -2850,7 +2959,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           // that we don't know anything about it.  That means it will be reingested when the
           // next version comes along, and will be deleted if called for also.
           noteDocumentIngest(outputConnectionName,docKey,null,null,null,null,null,ingestTime,documentURI,documentURIHash);
-          int result = super.addOrReplaceDocumentWithException(documentURI, document, authorityNameString);
+          int result = super.addOrReplaceDocumentWithException(documentURI, document);
           noteDocumentIngest(outputConnectionName,docKey,documentVersion,transformationVersion,pipelineDescriptionString.getVersionString(),parameterVersion,authorityNameString,ingestTime,documentURI,documentURIHash);
           return result;
         }
