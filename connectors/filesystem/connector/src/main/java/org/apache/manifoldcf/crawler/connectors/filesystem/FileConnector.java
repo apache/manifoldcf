@@ -289,6 +289,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         if (file.isDirectory())
         {
+          activities.noDocument(documentIdentifier,version);
           // Queue up stuff for directory
           long startTime = System.currentTimeMillis();
           String errorCode = "OK";

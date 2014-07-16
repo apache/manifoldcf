@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-995: Connectors dealing with non-indexable documents
+such as directories should call noDocument() on those documents if they
+want incremental behavior.
+(Karl Wright)
+
 CONNECTORS-993: Pipeline code not handling "no document" case properly.
 This problem was an oversight of the new pipeline code.  Essentially,
 transformation connectors could choose not to send a document onward

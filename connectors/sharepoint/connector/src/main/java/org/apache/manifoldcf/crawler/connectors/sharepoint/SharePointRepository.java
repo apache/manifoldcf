@@ -1266,6 +1266,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           // === List style identifier ===
           if (dListSeparatorIndex == documentIdentifier.length() - 3)
           {
+            activities.noDocument(documentIdentifier,version);
+
             String siteListPath = documentIdentifier.substring(0,documentIdentifier.length()-3);
             int listCutoff = siteListPath.lastIndexOf( "/" );
             String site = siteListPath.substring(0,listCutoff);
@@ -1608,6 +1610,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           if (dLibSeparatorIndex == documentIdentifier.length() - 2)
           {
             // It's a library.
+            activities.noDocument(documentIdentifier,version);
+
             String siteLibPath = documentIdentifier.substring(0,documentIdentifier.length()-2);
             int libCutoff = siteLibPath.lastIndexOf( "/" );
             String site = siteLibPath.substring(0,libCutoff);
@@ -1784,6 +1788,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         else
         {
           // === Site-style identifier ===
+          activities.noDocument(documentIdentifier,version);
+
           // Strip off the trailing "/" to get the site name.
           String decodedSitePath = documentIdentifier.substring(0,documentIdentifier.length()-1);
 
