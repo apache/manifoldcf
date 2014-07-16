@@ -1473,100 +1473,103 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
       if (isFolder)
       {
-        activities.noDocument(documentIdentifier,version);
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
-
-        // Since the identifier indicates it is a directory, then queue up all the current children which pass the filter.
-        String filterString = buildFilterString(spec);
-
-        int sanityRetryCount = FAILURE_RETRY_COUNT;
-        while (true)
+        if (doScanOnly == false)
         {
-          ListObjectsThread t = new ListObjectsThread(vol,objID,filterString);
-          try
+          activities.noDocument(documentIdentifier,version);
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("Livelink: Processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
+
+          // Since the identifier indicates it is a directory, then queue up all the current children which pass the filter.
+          String filterString = buildFilterString(spec);
+
+          int sanityRetryCount = FAILURE_RETRY_COUNT;
+          while (true)
           {
-            t.start();
-	    LLValue childrenDocs;
-	    try
-	    {
-	      childrenDocs = t.finishUp();
-	    }
-	    catch (ManifoldCFException e)
-	    {
-	      sanityRetryCount = assessRetry(sanityRetryCount,e);
-	      continue;
-	    }
-
-            int size = 0;
-
-            if (childrenDocs.isRecord())
-              size = 1;
-            if (childrenDocs.isTable())
-              size = childrenDocs.size();
-
-            // System.out.println("Total child count = "+Integer.toString(size));
-
-            // Do the scan
-            int j = 0;
-            while (j < size)
+            ListObjectsThread t = new ListObjectsThread(vol,objID,filterString);
+            try
             {
-              int childID = childrenDocs.toInteger(j, "ID");
-
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Livelink: Found a child of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : ID="+Integer.toString(childID));
-
-              int subtype = childrenDocs.toInteger(j, "SubType");
-              boolean childIsFolder = (subtype == LAPI_DOCUMENTS.FOLDERSUBTYPE || subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE ||
-                subtype == LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE);
-
-              // If it's a folder, we just let it through for now
-              if (!childIsFolder && checkInclude(childrenDocs.toString(j,"Name") + "." + childrenDocs.toString(j,"FileType"), spec) == false)
+              t.start();
+              LLValue childrenDocs;
+              try
               {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" was excluded by inclusion criteria");
-                j++;
+                childrenDocs = t.finishUp();
+              }
+              catch (ManifoldCFException e)
+              {
+                sanityRetryCount = assessRetry(sanityRetryCount,e);
                 continue;
               }
 
-              if (childIsFolder)
+              int size = 0;
+
+              if (childrenDocs.isRecord())
+                size = 1;
+              if (childrenDocs.isTable())
+                size = childrenDocs.size();
+
+              // System.out.println("Total child count = "+Integer.toString(size));
+
+              // Do the scan
+              int j = 0;
+              while (j < size)
               {
+                int childID = childrenDocs.toInteger(j, "ID");
+
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a folder, project, or compound document; adding a reference");
-                if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
+                  Logging.connectors.debug("Livelink: Found a child of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : ID="+Integer.toString(childID));
+
+                int subtype = childrenDocs.toInteger(j, "SubType");
+                boolean childIsFolder = (subtype == LAPI_DOCUMENTS.FOLDERSUBTYPE || subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE ||
+                  subtype == LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE);
+
+                // If it's a folder, we just let it through for now
+                if (!childIsFolder && checkInclude(childrenDocs.toString(j,"Name") + "." + childrenDocs.toString(j,"FileType"), spec) == false)
                 {
-                  // If we pick up a project object, we need to describe the volume object (which
-                  // will be the root of all documents beneath)
-                  activities.addDocumentReference("F"+new Integer(childID).toString()+":"+new Integer(-childID).toString());
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" was excluded by inclusion criteria");
+                  j++;
+                  continue;
+                }
+
+                if (childIsFolder)
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a folder, project, or compound document; adding a reference");
+                  if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
+                  {
+                    // If we pick up a project object, we need to describe the volume object (which
+                    // will be the root of all documents beneath)
+                    activities.addDocumentReference("F"+new Integer(childID).toString()+":"+new Integer(-childID).toString());
+                  }
+                  else
+                    activities.addDocumentReference("F"+new Integer(vol).toString()+":"+new Integer(childID).toString());
                 }
                 else
-                  activities.addDocumentReference("F"+new Integer(vol).toString()+":"+new Integer(childID).toString());
-              }
-              else
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a simple document; adding a reference");
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a simple document; adding a reference");
 
-                activities.addDocumentReference("D"+new Integer(vol).toString()+":"+new Integer(childID).toString());
-              }
+                  activities.addDocumentReference("D"+new Integer(vol).toString()+":"+new Integer(childID).toString());
+                }
 
-              j++;
+                j++;
+              }
+              break;
             }
-            break;
+            catch (InterruptedException e)
+            {
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            }
+            catch (RuntimeException e)
+            {
+              sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+              continue;
+            }
           }
-          catch (InterruptedException e)
-          {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (RuntimeException e)
-          {
-            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
-            continue;
-          }
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("Livelink: Done processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
         }
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Done processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
       }
       else
       {
