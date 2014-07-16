@@ -153,7 +153,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   {
     // First, make sure downstream pipeline will now accept text/plain;charset=utf-8
     if (!activities.checkMimeTypeIndexable("text/plain;charset=utf-8"))
+    {
+      activities.noDocument();
       return DOCUMENTSTATUS_REJECTED;
+    }
 
     SpecPacker sp = new SpecPacker(pipelineDescription.getVersionString());
 
@@ -245,7 +248,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       
       // Check to be sure downstream pipeline will accept document of specified length
       if (!activities.checkLengthIndexable(ds.getBinaryLength()))
+      {
+        activities.noDocument();
         return DOCUMENTSTATUS_REJECTED;
+      }
         
       // Parsing complete!
       // Create a copy of Repository Document
@@ -278,7 +284,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         }
 
         // Send new document downstream
-        int rval = activities.sendDocument(documentURI,docCopy,authorityNameString);
+        int rval = activities.sendDocument(documentURI,docCopy);
         length =  new Long(newBinaryLength);
         resultCode = (rval == DOCUMENTSTATUS_ACCEPTED)?"ACCEPTED":"REJECTED";
         return rval;

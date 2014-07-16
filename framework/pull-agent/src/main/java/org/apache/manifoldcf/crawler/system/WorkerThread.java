@@ -1522,19 +1522,14 @@ public class WorkerThread extends Thread
     {
       // Special interpretation for empty version string; treat as if the document doesn't exist
       // (by ignoring it and allowing it to be deleted later)
-      if (version.length() > 0)
-      {
-        try
-        {
-          ingestDocumentWithException(documentIdentifier,version,null,null);
-        }
-        catch (IOException e)
-        {
-          // Should never occur, since we passed in no data
-          throw new IllegalStateException("IngestDocumentWithException threw an illegal IOException: "+e.getMessage(),e);
-        }
-      }
-
+      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
+      ingester.documentNoData(
+        fetchPipelineSpecifications.get(documentIdentifierHash),
+        connectionName,documentIdentifierHash,
+        version,parameterVersion,
+        connection.getACLAuthority(),
+        currentTime,
+        ingestLogger);
     }
 
     /** Delete the current document from the search engine index, while keeping track of the version information
@@ -2365,15 +2360,24 @@ public class WorkerThread extends Thread
     /** Send a document via the pipeline to the next output connection.
     *@param documentURI is the document's URI.
     *@param document is the document data to be processed (handed to the output data store).
-    *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
     *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
     *@throws IOException only if there's an IO error reading the data from the document.
     */
-    public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
+    @Override
+    public int sendDocument(String documentURI, RepositoryDocument document)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
       // No downstream connection at output connection level.
       return IPipelineConnector.DOCUMENTSTATUS_REJECTED;
+    }
+
+    /** Send NO document via the pipeline to the next output connection.  This is equivalent
+    * to sending an empty document placeholder.
+    */
+    @Override
+    public void noDocument()
+      throws ManifoldCFException, ServiceInterruption
+    {
     }
 
   }
