@@ -220,13 +220,14 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         if (file.isDirectory())
         {
-          // It's a directory.  The version ID will be the
-          // last modified date.
-          long lastModified = file.lastModified();
-          rval[i] = new Long(lastModified).toString();
+          // It's a directory.  The version ID would be the
+          // last modified date, except that doesn't work on Windows
+          // because modified dates are not transitive.
+          //long lastModified = file.lastModified();
+          //rval[i] = new Long(lastModified).toString();
 
-          // Signal that we don't have any versioning.
-          // rval[i] = "";
+          // Signal that we don't have any versioning and that we should recheck always.
+          rval[i] = "";
         }
         else
         {
