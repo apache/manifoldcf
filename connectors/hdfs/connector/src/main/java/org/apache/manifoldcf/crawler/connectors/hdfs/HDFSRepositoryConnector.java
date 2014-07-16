@@ -414,6 +414,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       }
         
       if (fileStatus.isDirectory()) {
+        activities.noDocument(documentIdentifier,version);
         /*
           * Queue up stuff for directory
           */

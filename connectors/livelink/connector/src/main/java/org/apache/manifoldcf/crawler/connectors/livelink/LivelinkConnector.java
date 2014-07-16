@@ -1450,7 +1450,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     {
       // Since each livelink access is time-consuming, be sure that we abort if the job has gone inactive
       activities.checkJobStillActive();
+      
       String documentIdentifier = documentIdentifiers[i];
+      String version = versions[i];
+      
       boolean doScanOnly = scanOnly[i];
 
       boolean isFolder = documentIdentifier.startsWith("F");
@@ -1470,6 +1473,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
       if (isFolder)
       {
+        activities.noDocument(documentIdentifier,version);
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
 
@@ -1579,7 +1583,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               Logging.connectors.debug("Livelink: Decided to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID));
 
             // Grab the access tokens for this file from the version string, inside ingest method.
-            ingestFromLiveLink(llc,documentIdentifiers[i],versions[i],activities,desc,sDesc);
+            ingestFromLiveLink(llc,documentIdentifiers[i],version,activities,desc,sDesc);
           }
           else
           {
