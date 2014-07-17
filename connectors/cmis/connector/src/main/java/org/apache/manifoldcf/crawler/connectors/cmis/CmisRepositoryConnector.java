@@ -50,6 +50,8 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.Constants;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -1055,9 +1057,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
     getSession();
     Logging.connectors.debug("CMIS: Inside processDocuments");
-    int i = 0;
-
-    while (i < documentIdentifiers.length) {
+        
+    for (int i = 0; i < documentIdentifiers.length; i++) {
       long startTime = System.currentTimeMillis();
       String nodeId = documentIdentifiers[i];
 
@@ -1065,7 +1066,14 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         Logging.connectors.debug("CMIS: Processing document identifier '"
             + nodeId + "'");
 
-      CmisObject cmisObject = session.getObject(nodeId);
+      CmisObject cmisObject;
+      try {
+        cmisObject = session.getObject(nodeId);
+      } catch (CmisObjectNotFoundException e) {
+        // Delete it
+        activities.deleteDocument(nodeId);
+        continue;
+      }
       
       String errorCode = "OK";
       String errorDesc = StringUtils.EMPTY;
@@ -1240,7 +1248,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           }
         }
       }
-      i++;
     }
   }
   
@@ -1276,9 +1283,15 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     getSession();
     
     String[] rval = new String[documentIdentifiers.length];
-    int i = 0;
-    while (i < rval.length){
-      CmisObject cmisObject = session.getObject(documentIdentifiers[i]);
+    for (int i = 0; i < rval.length; i++) {
+      CmisObject cmisObject;
+      try {
+        cmisObject = session.getObject(documentIdentifiers[i]);
+      } catch (CmisObjectNotFoundException e) {
+        rval[i] = null;
+        continue;
+      }
+
       if (cmisObject.getBaseType().getId().equals(CMIS_DOCUMENT_BASE_TYPE)) {
         Document document = (Document) cmisObject;
         
@@ -1294,7 +1307,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         //a CMIS folder will always be processed
         rval[i] = StringUtils.EMPTY;
       }
-      i++;
     }
     return rval;
   }

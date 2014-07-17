@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-996: Catch CMIS object not found exception, and
+also enable CMIS derby IT test.
+(Prasad Perera, Karl Wright)
+
 CONNECTORS-995: Connectors dealing with non-indexable documents
 such as directories should call noDocument() on those documents if they
 want incremental behavior.
