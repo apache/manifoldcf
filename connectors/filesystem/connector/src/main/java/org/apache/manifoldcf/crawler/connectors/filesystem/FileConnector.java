@@ -290,42 +290,39 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         if (file.isDirectory())
         {
-          if (!scanOnly[i])
+          // Chained connectors scan parent nodes always
+          // Queue up stuff for directory
+          long startTime = System.currentTimeMillis();
+          String errorCode = "OK";
+          String errorDesc = null;
+          String entityReference = documentIdentifier;
+          try
           {
-            activities.noDocument(documentIdentifier,version);
-            // Queue up stuff for directory
-            long startTime = System.currentTimeMillis();
-            String errorCode = "OK";
-            String errorDesc = null;
-            String entityReference = documentIdentifier;
             try
             {
-              try
+              File[] files = file.listFiles();
+              if (files != null)
               {
-                File[] files = file.listFiles();
-                if (files != null)
+                int j = 0;
+                while (j < files.length)
                 {
-                  int j = 0;
-                  while (j < files.length)
-                  {
-                    File f = files[j++];
-                    String canonicalPath = f.getCanonicalPath();
-                    if (checkInclude(f,canonicalPath,spec))
-                      activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
-                  }
+                  File f = files[j++];
+                  String canonicalPath = f.getCanonicalPath();
+                  if (checkInclude(f,canonicalPath,spec))
+                    activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
                 }
               }
-              catch (IOException e)
-              {
-                errorCode = "IO ERROR";
-                errorDesc = e.getMessage();
-                throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
-              }
             }
-            finally
+            catch (IOException e)
             {
-              activities.recordActivity(new Long(startTime),ACTIVITY_READ,null,entityReference,errorCode,errorDesc,null);
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
             }
+          }
+          finally
+          {
+            activities.recordActivity(new Long(startTime),ACTIVITY_READ,null,entityReference,errorCode,errorDesc,null);
           }
         }
         else
