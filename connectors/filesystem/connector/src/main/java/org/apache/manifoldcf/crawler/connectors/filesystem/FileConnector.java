@@ -223,11 +223,11 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
           // It's a directory.  The version ID would be the
           // last modified date, except that doesn't work on Windows
           // because modified dates are not transitive.
-          //long lastModified = file.lastModified();
-          //rval[i] = new Long(lastModified).toString();
+          long lastModified = file.lastModified();
+          rval[i] = new Long(lastModified).toString();
 
           // Signal that we don't have any versioning and that we should recheck always.
-          rval[i] = "";
+          //rval[i] = "";
         }
         else
         {
@@ -290,39 +290,41 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         if (file.isDirectory())
         {
-          // Chained connectors scan parent nodes always
-          // Queue up stuff for directory
-          long startTime = System.currentTimeMillis();
-          String errorCode = "OK";
-          String errorDesc = null;
-          String entityReference = documentIdentifier;
-          try
+          if (!scanOnly[i])
           {
+            activities.noDocument(documentIdentifier,version);
+            long startTime = System.currentTimeMillis();
+            String errorCode = "OK";
+            String errorDesc = null;
+            String entityReference = documentIdentifier;
             try
             {
-              File[] files = file.listFiles();
-              if (files != null)
+              try
               {
-                int j = 0;
-                while (j < files.length)
+                File[] files = file.listFiles();
+                if (files != null)
                 {
-                  File f = files[j++];
-                  String canonicalPath = f.getCanonicalPath();
-                  if (checkInclude(f,canonicalPath,spec))
-                    activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
+                  int j = 0;
+                  while (j < files.length)
+                  {
+                    File f = files[j++];
+                    String canonicalPath = f.getCanonicalPath();
+                    if (checkInclude(f,canonicalPath,spec))
+                      activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
+                  }
                 }
               }
+              catch (IOException e)
+              {
+                errorCode = "IO ERROR";
+                errorDesc = e.getMessage();
+                throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
+              }
             }
-            catch (IOException e)
+            finally
             {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
+              activities.recordActivity(new Long(startTime),ACTIVITY_READ,null,entityReference,errorCode,errorDesc,null);
             }
-          }
-          finally
-          {
-            activities.recordActivity(new Long(startTime),ACTIVITY_READ,null,entityReference,errorCode,errorDesc,null);
           }
         }
         else
