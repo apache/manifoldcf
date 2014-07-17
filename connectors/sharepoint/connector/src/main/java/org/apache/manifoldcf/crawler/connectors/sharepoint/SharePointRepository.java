@@ -1266,89 +1266,85 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           // === List style identifier ===
           if (dListSeparatorIndex == documentIdentifier.length() - 3)
           {
-            if (!scanOnly[i])
+            // Chained connectors always scan parent nodes, so they don't bother setting a version
+            String siteListPath = documentIdentifier.substring(0,documentIdentifier.length()-3);
+            int listCutoff = siteListPath.lastIndexOf( "/" );
+            String site = siteListPath.substring(0,listCutoff);
+            String listName = siteListPath.substring( listCutoff + 1 );
+
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug( "SharePoint: Document identifier is a list: '" + siteListPath + "'" );
+
+            String listID = proxy.getListID( encodePath(site), site, listName );
+            if (listID != null)
             {
-              activities.noDocument(documentIdentifier,version);
-
-              String siteListPath = documentIdentifier.substring(0,documentIdentifier.length()-3);
-              int listCutoff = siteListPath.lastIndexOf( "/" );
-              String site = siteListPath.substring(0,listCutoff);
-              String listName = siteListPath.substring( listCutoff + 1 );
-
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug( "SharePoint: Document identifier is a list: '" + siteListPath + "'" );
-
-              String listID = proxy.getListID( encodePath(site), site, listName );
-              if (listID != null)
-              {
-                String encodedSitePath = encodePath(site);
+              String encodedSitePath = encodePath(site);
                 
-                // Get the list's fields
-                Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, listID );
-                if (fieldNames != null)
+              // Get the list's fields
+              Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, listID );
+              if (fieldNames != null)
+              {
+                String[] fields = new String[fieldNames.size()];
+                int j = 0;
+                for (String field : fieldNames.keySet())
                 {
-                  String[] fields = new String[fieldNames.size()];
-                  int j = 0;
-                  for (String field : fieldNames.keySet())
-                  {
-                    fields[j++] = field;
-                  }
+                  fields[j++] = field;
+                }
                   
-                  String[] accessTokens;
-                  String[] denyTokens;
+                String[] accessTokens;
+                String[] denyTokens;
                   
-                  if (forcedAcls == null)
-                  {
-                    // Security is off
-                    accessTokens = new String[0];
-                    denyTokens = new String[0];
-                  }
-                  else if (forcedAcls.length != 0)
-                  {
-                    // Forced security
-                    accessTokens = forcedAcls;
-                    denyTokens = new String[0];
-                  }
-                  else
-                  {
-                    // Security enabled, native security
-                    accessTokens = proxy.getACLs( encodedSitePath, listID, activeDirectoryAuthority );
-                    denyTokens = new String[]{defaultAuthorityDenyToken};
-                  }
+                if (forcedAcls == null)
+                {
+                  // Security is off
+                  accessTokens = new String[0];
+                  denyTokens = new String[0];
+                }
+                else if (forcedAcls.length != 0)
+                {
+                  // Forced security
+                  accessTokens = forcedAcls;
+                  denyTokens = new String[0];
+                }
+                else
+                {
+                  // Security enabled, native security
+                  accessTokens = proxy.getACLs( encodedSitePath, listID, activeDirectoryAuthority );
+                  denyTokens = new String[]{defaultAuthorityDenyToken};
+                }
 
-                  if (accessTokens != null)
+                if (accessTokens != null)
+                {
+                  ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, siteListPath, spec,
+                    documentIdentifier, accessTokens, denyTokens, listID, fields );
+                  boolean success = proxy.getChildren( fs, encodedSitePath , listID, dspStsWorks );
+                  if (!success)
                   {
-                    ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, siteListPath, spec,
-                      documentIdentifier, accessTokens, denyTokens, listID, fields );
-                    boolean success = proxy.getChildren( fs, encodedSitePath , listID, dspStsWorks );
-                    if (!success)
-                    {
-                      // Site/list no longer exists, so delete entry
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: No list found for list '"+siteListPath+"' - deleting");
-                      activities.deleteDocument(documentIdentifier);
-                    }
-                  }
-                  else
-                  {
+                    // Site/list no longer exists, so delete entry
                     if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Access token lookup failed for list '"+siteListPath+"' - deleting");
-                    activities.noDocument(documentIdentifier,version);
+                      Logging.connectors.debug("SharePoint: No list found for list '"+siteListPath+"' - deleting");
+                    activities.deleteDocument(documentIdentifier);
                   }
                 }
                 else
                 {
                   if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Field list lookup failed for list '"+siteListPath+"' - deleting");
-                  activities.noDocument(documentIdentifier,version);
+                    Logging.connectors.debug("SharePoint: Access token lookup failed for list '"+siteListPath+"' - deleting");
+                  activities.deleteDocument(documentIdentifier);
                 }
               }
               else
               {
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: GUID lookup failed for list '"+siteListPath+"' - deleting");
-                activities.noDocument(documentIdentifier,version);
+                  Logging.connectors.debug("SharePoint: Field list lookup failed for list '"+siteListPath+"' - deleting");
+                activities.deleteDocument(documentIdentifier);
               }
+            }
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: GUID lookup failed for list '"+siteListPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier);
             }
           }
           else
@@ -1612,90 +1608,85 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           // === Library style identifier ===
           if (dLibSeparatorIndex == documentIdentifier.length() - 2)
           {
-            if (!scanOnly[i])
+            // Chained document parents are always rescanned
+            String siteLibPath = documentIdentifier.substring(0,documentIdentifier.length()-2);
+            int libCutoff = siteLibPath.lastIndexOf( "/" );
+            String site = siteLibPath.substring(0,libCutoff);
+            String libName = siteLibPath.substring( libCutoff + 1 );
+
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug( "SharePoint: Document identifier is a library: '" + siteLibPath + "'" );
+
+            String libID = proxy.getDocLibID( encodePath(site), site, libName );
+            if (libID != null)
             {
-              // It's a library.
-              activities.noDocument(documentIdentifier,version);
-
-              String siteLibPath = documentIdentifier.substring(0,documentIdentifier.length()-2);
-              int libCutoff = siteLibPath.lastIndexOf( "/" );
-              String site = siteLibPath.substring(0,libCutoff);
-              String libName = siteLibPath.substring( libCutoff + 1 );
-
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug( "SharePoint: Document identifier is a library: '" + siteLibPath + "'" );
-
-              String libID = proxy.getDocLibID( encodePath(site), site, libName );
-              if (libID != null)
+              String encodedSitePath = encodePath(site);
+              
+              // Get the lib's fields
+              Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, libID );
+              if (fieldNames != null)
               {
-                String encodedSitePath = encodePath(site);
-                
-                // Get the lib's fields
-                Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, libID );
-                if (fieldNames != null)
+                String[] fields = new String[fieldNames.size()];
+                int j = 0;
+                for (String field : fieldNames.keySet())
                 {
-                  String[] fields = new String[fieldNames.size()];
-                  int j = 0;
-                  for (String field : fieldNames.keySet())
-                  {
-                    fields[j++] = field;
-                  }
+                  fields[j++] = field;
+                }
                   
-                  String[] accessTokens;
-                  String[] denyTokens;
+                String[] accessTokens;
+                String[] denyTokens;
                   
-                  if (forcedAcls == null)
-                  {
-                    // Security is off
-                    accessTokens = new String[0];
-                    denyTokens = new String[0];
-                  }
-                  else if (forcedAcls.length != 0)
-                  {
-                    // Forced security
-                    accessTokens = forcedAcls;
-                    denyTokens = new String[0];
-                  }
-                  else
-                  {
-                    // Security enabled, native security
-                    accessTokens = proxy.getACLs( encodedSitePath, libID, activeDirectoryAuthority );
-                    denyTokens = new String[]{defaultAuthorityDenyToken};
-                  }
+                if (forcedAcls == null)
+                {
+                  // Security is off
+                  accessTokens = new String[0];
+                  denyTokens = new String[0];
+                }
+                else if (forcedAcls.length != 0)
+                {
+                  // Forced security
+                  accessTokens = forcedAcls;
+                  denyTokens = new String[0];
+                }
+                else
+                {
+                  // Security enabled, native security
+                  accessTokens = proxy.getACLs( encodedSitePath, libID, activeDirectoryAuthority );
+                  denyTokens = new String[]{defaultAuthorityDenyToken};
+                }
 
-                  if (accessTokens != null)
+                if (accessTokens != null)
+                {
+                  FileStream fs = new FileStream( activities, encodedServerLocation, site, siteLibPath, spec,
+                    documentIdentifier, accessTokens, denyTokens, libID, fields );
+                  boolean success = proxy.getChildren( fs, encodedSitePath , libID, dspStsWorks );
+                  if (!success)
                   {
-                    FileStream fs = new FileStream( activities, encodedServerLocation, site, siteLibPath, spec,
-                      documentIdentifier, accessTokens, denyTokens, libID, fields );
-                    boolean success = proxy.getChildren( fs, encodedSitePath , libID, dspStsWorks );
-                    if (!success)
-                    {
-                      // Site/library no longer exists, so delete entry
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
-                      activities.deleteDocument(documentIdentifier);
-                    }
-                  }
-                  else
-                  {
+                    // Site/library no longer exists, so delete entry
                     if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Access token lookup failed for library '"+siteLibPath+"' - deleting");
-                    activities.noDocument(documentIdentifier,version);
+                      Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
+                    activities.deleteDocument(documentIdentifier);
                   }
                 }
                 else
                 {
                   if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Field list lookup failed for library '"+siteLibPath+"' - deleting");
-                  activities.noDocument(documentIdentifier,version);
+                    Logging.connectors.debug("SharePoint: Access token lookup failed for library '"+siteLibPath+"' - deleting");
+                  activities.deleteDocument(documentIdentifier);
                 }
               }
               else
               {
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: GUID lookup failed for library '"+siteLibPath+"' - deleting");
-                activities.noDocument(documentIdentifier,version);
+                  Logging.connectors.debug("SharePoint: Field list lookup failed for library '"+siteLibPath+"' - deleting");
+                activities.deleteDocument(documentIdentifier);
               }
+            }
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: GUID lookup failed for library '"+siteLibPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier);
             }
           }
           else
