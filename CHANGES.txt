@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-997: Get CMIS connector working again.
+(Karl Wright)
+
 CONNECTORS-996: Catch CMIS object not found exception, and
 also enable CMIS derby IT test.
 (Prasad Perera, Karl Wright)
