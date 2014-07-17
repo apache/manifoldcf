@@ -31,7 +31,16 @@ public class APISanityDerbyIT extends BaseITDerby
   {
     tester = new APISanityTester(mcfInstance);
   }
-  
+
+  protected void writeProperties(StringBuilder output)
+    throws Exception
+  {
+    super.writeProperties(output);
+    output.append(
+      "  <property name=\"org.apache.manifoldcf.db\" value=\"DEBUG\"/>\n"
+    );
+  }
+
   @Before
   public void setupTester()
     throws Exception

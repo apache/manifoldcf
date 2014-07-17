@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.apache.manifoldcf.crawler.system.Logging;
 
 import java.io.*;
 import java.util.*;
@@ -54,6 +55,8 @@ public class APISanityTester
   public void executeTest()
     throws Exception
   {
+    Logging.db.debug("STARTING BAD TEST");
+    
     // Hey, we were able to install the file system connector etc.
     // Now, create a local test job and run it.
     int i;
@@ -234,12 +237,23 @@ public class APISanityTester
     if (count != 6)
       throw new ManifoldCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(count).toString());
 
+    Logging.db.debug("STARTING FAILING PART OF BAD TEST");
+
     // Change a file, and recrawl
     FileHelper.changeFile(new File("testdata/test1.txt"),"Modified contents");
       
     // Now, start the job, and wait until it completes.
     instance.startJobAPI(jobIDString);
-    instance.waitJobInactiveAPI(jobIDString, 120000L);
+    try
+    {
+      instance.waitJobInactiveAPI(jobIDString, 240000L);
+    }
+    catch (Exception e)
+    {
+      Logging.db.debug("TEST FAILED");
+      Thread.sleep(100000L);
+      throw e;
+    }
 
     // The test data area has 4 documents and one directory, and we have to count the root directory too.
     count = instance.getJobDocumentsProcessedAPI(jobIDString);
