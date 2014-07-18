@@ -3,6 +3,48 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-994: Make Alfresco connector pay attention to the
+scanOnly flag.
+(Prasad Perera, Karl Wright)
+
+CONNECTORS-997: Get CMIS connector working again.
+(Karl Wright)
+
+CONNECTORS-996: Catch CMIS object not found exception, and
+also enable CMIS derby IT test.
+(Prasad Perera, Karl Wright)
+
+CONNECTORS-995: Connectors dealing with non-indexable documents
+such as directories should call noDocument() on those documents if they
+want incremental behavior.
+(Karl Wright)
+
+CONNECTORS-993: Pipeline code not handling "no document" case properly.
+This problem was an oversight of the new pipeline code.  Essentially,
+transformation connectors could choose not to send a document onward
+to the next stage.  If this happened, then the document version information
+for the corresponding output connection would never get written, and
+no incremental-ness would be possible.
+I fixed this by introducing a "noDocument()" IOutputAddActivity method,
+which transformation connectors should call when they reject a document.
+(Karl Wright)
+
+CONNECTORS-992: Add a test to exercise ServiceInterruption within
+a connector.
+(Karl Wright)
+
+CONNECTORS-990: Revamp IRepositoryConnector API to no longer separate
+getDocumentVersions() and processDocuments().  This modification basically
+pushes responsibility to determine changes to the repository connector.
+Backwards compatibility is maintained via code in BaseRepositoryConnector,
+and new methods have been added to IProcessActivity.
+WorkerThread has been largely rewritten as a result.
+(Karl Wright)
+
+CONNECTORS-991: Make Jira connector perform pre-emptive basic auth
+since Jira supports guest users.
+(Daniel Aschauer, Karl Wright)
+
 CONNECTORS-988: Performance improvements for split pipeline crawls.
 (Karl Wright)
 

@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 
 import java.util.*;
+import java.io.*;
 
 /** This is a null output connector.  It eats all output and simply logs the events.
 */
@@ -109,10 +110,10 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   * the document will not need to be sent again to the output data store.
   */
   @Override
-  public String getPipelineDescription(Specification spec)
+  public VersionContext getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
-    return "";
+    return new VersionContext("",params,spec);
   }
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -130,8 +131,8 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@return the document status (accepted or permanently rejected).
   */
   @Override
-  public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws ManifoldCFException, ServiceInterruption
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+    throws ManifoldCFException, ServiceInterruption, IOException
   {
     // Establish a session
     getSession();

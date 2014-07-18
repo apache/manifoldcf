@@ -1657,6 +1657,7 @@
             <formatter type="brief" usefile="false"/>
 
             <test name="org.apache.manifoldcf.crawler.tests.SchedulerHSQLDBTest" todir="test-output"/>
+            <test name="org.apache.manifoldcf.crawler.tests.InterruptionHSQLDBTest" todir="test-output"/>
 
         </junit>
     </target>

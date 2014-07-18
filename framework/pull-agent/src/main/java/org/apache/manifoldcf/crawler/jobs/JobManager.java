@@ -3071,16 +3071,14 @@ public class JobManager implements IJobManager
     // order the "select for update" operations appropriately.
     //
 
-    HashMap indexMap = new HashMap();
+    Map<String,Integer> indexMap = new HashMap<String,Integer>();
     String[] docIDHashes = new String[documentDescriptions.length];
 
-    int i = 0;
-    while (i < documentDescriptions.length)
+    for (int i = 0; i < documentDescriptions.length; i++)
     {
       String documentIDHash = documentDescriptions[i].getDocumentIdentifierHash() + ":" + documentDescriptions[i].getJobID();
       docIDHashes[i] = documentIDHash;
       indexMap.put(documentIDHash,new Integer(i));
-      i++;
     }
 
     java.util.Arrays.sort(docIDHashes);
@@ -3095,13 +3093,10 @@ public class JobManager implements IJobManager
       try
       {
         // Do one row at a time, to avoid deadlocking things
-        i = 0;
-        while (i < docIDHashes.length)
+        for (String docIDHash : docIDHashes)
         {
-          String docIDHash = docIDHashes[i];
-
           // Get the DocumentDescription object
-          DocumentDescription dd = documentDescriptions[((Integer)indexMap.get(docIDHash)).intValue()];
+          DocumentDescription dd = documentDescriptions[indexMap.get(docIDHash).intValue()];
 
           // Query for the status
           ArrayList list = new ArrayList();
@@ -3119,7 +3114,6 @@ public class JobManager implements IJobManager
             // Update the jobqueue table
             jobQueue.updateCompletedRecord(dd.getID(),status);
           }
-          i++;
         }
         TrackerClass.notePrecommit();
         database.performCommit();
@@ -3141,6 +3135,12 @@ public class JobManager implements IJobManager
         throw e;
       }
       catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      catch (RuntimeException e)
       {
         database.signalRollback();
         TrackerClass.noteRollback();
@@ -5037,7 +5037,7 @@ public class JobManager implements IJobManager
           " docs and hopcounts for job "+jobID.toString()+" parent identifier hash "+parentIdentifierHash);
 
         // Go through document id's one at a time, in order - mainly to prevent deadlock as much as possible.  Search for any existing row in jobqueue first (for update)
-        HashMap existingRows = new HashMap();
+        Map<String,JobqueueRecord> existingRows = new HashMap<String,JobqueueRecord>();
 
         for (int z = 0; z < reorderedDocIDHashes.length; z++)
         {
@@ -5091,7 +5091,7 @@ public class JobManager implements IJobManager
         for (int z = 0; z < reorderedDocIDHashes.length; z++)
         {
           String docIDHash = reorderedDocIDHashes[z];
-          JobqueueRecord jr = (JobqueueRecord)existingRows.get(docIDHash);
+          JobqueueRecord jr = existingRows.get(docIDHash);
           if (jr != null)
           {
             // It was an existing row; do the update logic
@@ -5188,6 +5188,85 @@ public class JobManager implements IJobManager
       new Object[][][]{dataValues},currentTime,new IPriorityCalculator[]{priority},new String[][]{prereqEventNames});
   }
 
+  /** Undo the addition of child documents to the queue, for a set of documents.
+  * This method is called at the end of document processing, to back out any incomplete additions to the queue, and restore
+  * the status quo ante prior to the incomplete additions.  Call this method instead of finishDocuments() if the
+  * addition of documents was not completed.
+  *@param jobID is the job identifier.
+  *@param legalLinkTypes is the set of legal link types that this connector generates.
+  *@param parentIdentifierHashes are the hashes of the document identifiers for whom child link extraction just took place.
+  */
+  @Override
+  public void revertDocuments(Long jobID, String[] legalLinkTypes,
+    String[] parentIdentifierHashes)
+    throws ManifoldCFException
+  {
+    if (parentIdentifierHashes.length == 0)
+      return;
+    
+    if (legalLinkTypes.length == 0)
+    {
+      while (true)
+      {
+        long sleepAmt = 0L;
+        database.beginTransaction(database.TRANSACTION_SERIALIZED);
+        try
+        {
+          // Revert carrydown records
+          carryDown.revertRecords(jobID,parentIdentifierHashes);
+          database.performCommit();
+          break;
+        }
+        catch (Error e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        catch (RuntimeException e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        finally
+        {
+          database.endTransaction();
+          sleepFor(sleepAmt);
+        }
+      }
+    }
+    else
+    {
+      // Revert both hopcount and carrydown
+      while (true)
+      {
+        long sleepAmt = 0L;
+        database.beginTransaction(database.TRANSACTION_SERIALIZED);
+        try
+        {
+          carryDown.revertRecords(jobID,parentIdentifierHashes);
+          hopCount.revertParents(jobID,parentIdentifierHashes);
+          database.performCommit();
+          break;
+        }
+        catch (Error e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        catch (RuntimeException e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        finally
+        {
+          database.endTransaction();
+          sleepFor(sleepAmt);
+        }
+      }
+    }
+  }
+
   /** Complete adding child documents to the queue, for a set of documents.
   * This method is called at the end of document processing, to help the hopcount tracking engine do its bookkeeping.
   *@param jobID is the job identifier.
@@ -5236,6 +5315,11 @@ public class JobManager implements IJobManager
           throw e;
         }
         catch (Error e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        catch (RuntimeException e)
         {
           database.signalRollback();
           throw e;
@@ -5295,6 +5379,11 @@ public class JobManager implements IJobManager
           throw e;
         }
         catch (Error e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        catch (RuntimeException e)
         {
           database.signalRollback();
           throw e;

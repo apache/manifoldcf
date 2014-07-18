@@ -38,8 +38,8 @@ public class QueuedDocument
 
   /** The document description. */
   protected final DocumentDescription documentDescription;
-  /** The last ingested status for all child records, arranged by output connection name. null means "never ingested". */
-  protected final Map<String,Map<String,DocumentIngestStatus>> lastIngestedStatus;
+  /** The last ingested status, null meaning "never ingested". */
+  protected final Map<String,DocumentIngestStatus> lastIngestedStatus;
   /** The binnames for the document, according to the connector */
   protected final String[] binNames;
   /** This flag indicates whether the document has been processed or not. */
@@ -47,11 +47,10 @@ public class QueuedDocument
 
   /** Constructor.
   *@param documentDescription is the document description.
-  *@param lastIngestedStatus is the document's last ingested status.  Map is keyed by output connection name, and child map is
-  *   keyed by child document id hash value, or a blank value for a primary row.
+  *@param lastIngestedStatus is the document's last ingested status.
   *@param binNames are the bins associated with the document.
   */
-  public QueuedDocument(DocumentDescription documentDescription, Map<String,Map<String,DocumentIngestStatus>> lastIngestedStatus, String[] binNames)
+  public QueuedDocument(DocumentDescription documentDescription, Map<String,DocumentIngestStatus> lastIngestedStatus, String[] binNames)
   {
     this.documentDescription = documentDescription;
     this.lastIngestedStatus = lastIngestedStatus;
@@ -66,34 +65,15 @@ public class QueuedDocument
     return documentDescription;
   }
 
-  /** Get an iterator over the child document IDs available for this document identifier and a specified
-  * output connection name.
-  *@param outputConnectionName is the name of the output connection.
-  *@return an iterator over child document IDs.  For the primary ID, an empty value will be returned by this iterator.
-  */
-  public Iterator<String> getLastIngestedChildIDs(String outputConnectionName)
-  {
-    if (lastIngestedStatus == null)
-      return new HashSet<String>().iterator();
-    Map<String,DocumentIngestStatus> rval = lastIngestedStatus.get(outputConnectionName);
-    if (rval == null)
-      return new HashSet<String>().iterator();
-    return rval.keySet().iterator();
-  }
-  
   /** Get the last ingested status.
   *@param outputConnectionName is the name of the output connection.
-  *@param childIDHash is the child identifier hash, using an empty value for the primary.
   *@return the last ingested status for that output, or null if not found.
   */
-  public DocumentIngestStatus getLastIngestedStatus(String outputConnectionName, String childIDHash)
+  public DocumentIngestStatus getLastIngestedStatus(String outputConnectionName)
   {
     if (lastIngestedStatus == null)
       return null;
-    Map<String,DocumentIngestStatus> rval = lastIngestedStatus.get(outputConnectionName);
-    if (rval == null)
-      return null;
-    return rval.get(childIDHash);
+    return lastIngestedStatus.get(outputConnectionName);
   }
 
   /** Return true if there are *any* last ingested records.

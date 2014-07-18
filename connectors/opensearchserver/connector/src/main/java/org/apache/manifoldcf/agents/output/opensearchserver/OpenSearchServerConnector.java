@@ -59,6 +59,7 @@ import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.apache.manifoldcf.core.system.Logging;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -387,10 +388,10 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   }
 
   @Override
-  public String getPipelineDescription(Specification os)
+  public VersionContext getPipelineDescription(Specification os)
       throws ManifoldCFException {
     OpenSearchServerSpecs specs = new OpenSearchServerSpecs(getSpecNode(os));
-    return specs.toJson().toString();
+    return new VersionContext(specs.toJson().toString(),params,os);
   }
 
   @Override

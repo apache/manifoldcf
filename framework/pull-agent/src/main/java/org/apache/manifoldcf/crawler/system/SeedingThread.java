@@ -147,7 +147,7 @@ public class SeedingThread extends Thread
                     if (Logging.threads.isDebugEnabled())
                       Logging.threads.debug("Seeding thread: Getting seeds for job "+jobID.toString());
 
-                    newSeedingVersion = connector.addSeedDocumentsWithVersion(activity,jobDescription.getSpecification(),lastSeedingVersion,currentTime,jobType);
+                    newSeedingVersion = connector.addSeedDocuments(activity,jobDescription.getSpecification(),lastSeedingVersion,currentTime,jobType);
 
                     activity.doneSeeding(model==connector.MODEL_PARTIAL);
 

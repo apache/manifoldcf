@@ -49,8 +49,7 @@ public class PipelineSpecificationWithVersions implements IPipelineSpecification
   protected DocumentIngestStatus getStatus(int index)
   {
     IPipelineSpecificationBasic basic = pipelineSpecification.getBasicPipelineSpecification();
-    // MHL
-    return queuedDocument.getLastIngestedStatus(basic.getStageConnectionName(basic.getOutputStage(index)),"");
+    return queuedDocument.getLastIngestedStatus(basic.getStageConnectionName(basic.getOutputStage(index)));
   }
   
   /** For a given output index, return a document version string.

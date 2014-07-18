@@ -60,11 +60,12 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   *@return a string, of unlimited length, which uniquely describes configuration and specification in such a way that
   * if two such strings are equal, nothing that affects how or whether the document is indexed will be different.
   */
-  public String getPipelineDescription(Specification spec)
+  @Override
+  public VersionContext getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     SpecPacker sp = new SpecPacker(spec);
-    return sp.toPackedString();
+    return new VersionContext(sp.toPackedString(),params,spec);
   }
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -83,11 +84,12 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   *@return the document status (accepted or permanently rejected).
   *@throws IOException only if there's a stream error reading the document data.
   */
-  public int addOrReplaceDocumentWithException(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+  @Override
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
     // Unpack the forced metadata
-    SpecPacker sp = new SpecPacker(pipelineDescription);
+    SpecPacker sp = new SpecPacker(pipelineDescription.getVersionString());
     // We have to create a copy of the Repository Document, since we might be rearranging things
     RepositoryDocument docCopy = document.duplicate();
     docCopy.clearFields();
@@ -130,7 +132,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     // Finally, send the modified repository document onward to the next pipeline stage.
     // If we'd done anything to the stream, we'd have needed to create a new RepositoryDocument object and copied the
     // data into it, and closed the new stream after sendDocument() was called.
-    return activities.sendDocument(documentURI,docCopy,authorityNameString);
+    return activities.sendDocument(documentURI,docCopy);
   }
 
   // UI support methods.

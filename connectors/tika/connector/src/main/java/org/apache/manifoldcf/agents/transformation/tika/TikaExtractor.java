@@ -74,11 +74,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   * the document will not need to be sent again to the output data store.
   */
   @Override
-  public String getPipelineDescription(Specification os)
+  public VersionContext getPipelineDescription(Specification os)
     throws ManifoldCFException, ServiceInterruption
   {
     SpecPacker sp = new SpecPacker(os);
-    return sp.toPackedString();
+    return new VersionContext(sp.toPackedString(),params,os);
   }
 
   // We intercept checks pertaining to the document format and send modified checks further down
@@ -90,7 +90,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   *@param checkActivity is an object including the activities that can be performed by this method.
   *@return true if the mime type can be accepted by this connector.
   */
-  public boolean checkMimeTypeIndexable(String pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
+  public boolean checkMimeTypeIndexable(VersionContext pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
     // We should see what Tika will transform
@@ -108,7 +108,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   *@return true if the file is acceptable, false if not.
   */
   @Override
-  public boolean checkDocumentIndexable(String pipelineDescription, File localFile, IOutputCheckActivity checkActivity)
+  public boolean checkDocumentIndexable(VersionContext pipelineDescription, File localFile, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
     // Document contents are not germane anymore, unless it looks like Tika won't accept them.
@@ -124,7 +124,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   *@return true if the file is acceptable, false if not.
   */
   @Override
-  public boolean checkLengthIndexable(String pipelineDescription, long length, IOutputCheckActivity checkActivity)
+  public boolean checkLengthIndexable(VersionContext pipelineDescription, long length, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
     // Always true
@@ -148,14 +148,17 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   *@throws IOException only if there's a stream error reading the document data.
   */
   @Override
-  public int addOrReplaceDocumentWithException(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
     // First, make sure downstream pipeline will now accept text/plain;charset=utf-8
     if (!activities.checkMimeTypeIndexable("text/plain;charset=utf-8"))
+    {
+      activities.noDocument();
       return DOCUMENTSTATUS_REJECTED;
+    }
 
-    SpecPacker sp = new SpecPacker(pipelineDescription);
+    SpecPacker sp = new SpecPacker(pipelineDescription.getVersionString());
 
     // Tika's API reads from an input stream and writes to an output Writer.
     // Since a RepositoryDocument includes readers and inputstreams exclusively, AND all downstream
@@ -245,7 +248,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       
       // Check to be sure downstream pipeline will accept document of specified length
       if (!activities.checkLengthIndexable(ds.getBinaryLength()))
+      {
+        activities.noDocument();
         return DOCUMENTSTATUS_REJECTED;
+      }
         
       // Parsing complete!
       // Create a copy of Repository Document
@@ -278,7 +284,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         }
 
         // Send new document downstream
-        int rval = activities.sendDocument(documentURI,docCopy,authorityNameString);
+        int rval = activities.sendDocument(documentURI,docCopy);
         length =  new Long(newBinaryLength);
         resultCode = (rval == DOCUMENTSTATUS_ACCEPTED)?"ACCEPTED":"REJECTED";
         return rval;

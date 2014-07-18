@@ -898,81 +898,82 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       
       //a generic node in Alfresco could also have binaries content
       if (isDocument) {
-        // this is a content to ingest
-        InputStream is = null;
-        long fileLength = 0;
-        try {
-          //properties ingestion
-          RepositoryDocument rd = new RepositoryDocument();      
-          List<NamedValue> contentProperties = PropertiesUtils.getContentProperties(properties);
-          PropertiesUtils.ingestProperties(rd, properties, contentProperties);
-
-          // binaries ingestion - in Alfresco we could have more than one binary for each node (custom content models)
-          for (NamedValue contentProperty : contentProperties) {
-            //we are ingesting all the binaries defined as d:content property in the Alfresco content model
-            Content binary = ContentReader.read(endpoint, username, password, socketTimeout, session, predicate, contentProperty.getName());
-            fileLength = binary.getLength();
-            is = ContentReader.getBinary(endpoint, binary, username, password, socketTimeout, session);
-            rd.setBinary(is, fileLength);
-            
-            //id is the node reference only if the node has an unique content stream
-            //For a node with a single d:content property: id = node reference
-            String id = PropertiesUtils.getNodeReference(properties);
-            
-            //For a node with multiple d:content properties: id = node reference;QName
-            //The QName of a property of type d:content will be appended to the node reference
-            if(contentProperties.size()>1){
-              id = id + INGESTION_SEPARATOR_FOR_MULTI_BINARY + contentProperty.getName();
-            }
-            
-            //version label
-            String version = PropertiesUtils.getVersionLabel(properties);
-            
-            //the document uri is related to the specific d:content property available in the node
-            //we want to ingest each content stream that are nested in a single node
-            String documentURI = binary.getUrl();
-            activities.ingestDocumentWithException(id, version, documentURI, rd);
-          }
-          
-          AuthenticationUtils.endSession();
-          
-        } catch (ParseException e) {
-          errorCode = "IO ERROR";
-          errorDesc = e.getMessage();
-          Logging.connectors.warn(
-              "Alfresco: Error during the reading process of dates: "
-                  + e.getMessage(), e);
-          handleParseException(e);
-        } catch (IOException e) {
-          Logging.connectors.warn(
-              "Alfresco: IOException: "
-                  + e.getMessage(), e);
-          handleIOException(e);
-        } finally {
+        if (!scanOnly[i]) {
+          // this is a content to ingest
+          InputStream is = null;
+          long fileLength = 0;
           try {
-            if(is!=null){
-              is.close();
+            //properties ingestion
+            RepositoryDocument rd = new RepositoryDocument();      
+            List<NamedValue> contentProperties = PropertiesUtils.getContentProperties(properties);
+            PropertiesUtils.ingestProperties(rd, properties, contentProperties);
+
+            // binaries ingestion - in Alfresco we could have more than one binary for each node (custom content models)
+            for (NamedValue contentProperty : contentProperties) {
+              //we are ingesting all the binaries defined as d:content property in the Alfresco content model
+              Content binary = ContentReader.read(endpoint, username, password, socketTimeout, session, predicate, contentProperty.getName());
+              fileLength = binary.getLength();
+              is = ContentReader.getBinary(endpoint, binary, username, password, socketTimeout, session);
+              rd.setBinary(is, fileLength);
+              
+              //id is the node reference only if the node has an unique content stream
+              //For a node with a single d:content property: id = node reference
+              String id = PropertiesUtils.getNodeReference(properties);
+              
+              //For a node with multiple d:content properties: id = node reference;QName
+              //The QName of a property of type d:content will be appended to the node reference
+              if(contentProperties.size()>1){
+                id = id + INGESTION_SEPARATOR_FOR_MULTI_BINARY + contentProperty.getName();
+              }
+              
+              //version label
+              String version = PropertiesUtils.getVersionLabel(properties);
+              
+              //the document uri is related to the specific d:content property available in the node
+              //we want to ingest each content stream that are nested in a single node
+              String documentURI = binary.getUrl();
+              activities.ingestDocumentWithException(id, version, documentURI, rd);
             }
-          } catch (InterruptedIOException e) {
-            errorCode = "Interrupted error";
-            errorDesc = e.getMessage();
-            throw new ManifoldCFException(e.getMessage(), e,
-                ManifoldCFException.INTERRUPTED);
-          } catch (IOException e) {
+            
+            AuthenticationUtils.endSession();
+            
+          } catch (ParseException e) {
             errorCode = "IO ERROR";
             errorDesc = e.getMessage();
             Logging.connectors.warn(
-                "Alfresco: IOException closing file input stream: "
+                "Alfresco: Error during the reading process of dates: "
+                    + e.getMessage(), e);
+            handleParseException(e);
+          } catch (IOException e) {
+            Logging.connectors.warn(
+                "Alfresco: IOException: "
                     + e.getMessage(), e);
             handleIOException(e);
+          } finally {
+            try {
+              if(is!=null){
+                is.close();
+              }
+            } catch (InterruptedIOException e) {
+              errorCode = "Interrupted error";
+              errorDesc = e.getMessage();
+              throw new ManifoldCFException(e.getMessage(), e,
+                  ManifoldCFException.INTERRUPTED);
+            } catch (IOException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              Logging.connectors.warn(
+                  "Alfresco: IOException closing file input stream: "
+                      + e.getMessage(), e);
+              handleIOException(e);
+            }
+                      
+            session = null;
+            
+            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+                fileLength, nodeReference, errorCode, errorDesc, null);
           }
-                    
-          session = null;
-          
-          activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-              fileLength, nodeReference, errorCode, errorDesc, null);
         }
-        
       }
       i++;
     }
