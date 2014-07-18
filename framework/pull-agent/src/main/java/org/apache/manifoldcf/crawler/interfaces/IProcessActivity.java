@@ -56,6 +56,19 @@ public interface IProcessActivity extends IVersionActivity
     String newVersionString)
     throws ManifoldCFException;
 
+  /** Check if a document needs to be reindexed, based on a computed version string.
+  * Call this method to determine whether reindexing is necessary.  Pass in a newly-computed version
+  * string.  This method will return "true" if the document needs to be re-indexed.
+  *@param documentIdentifier is the document identifier.
+  *@param componentIdentifier is the component document identifier, if any.
+  *@param newVersionString is the newly-computed version string.
+  *@return true if the document needs to be reindexed.
+  */
+  public boolean checkDocumentNeedsReindexing(String documentIdentifier,
+    String componentIdentifier,
+    String newVersionString)
+    throws ManifoldCFException;
+
   /** Add a document description to the current job's queue.
   *@param documentIdentifier is the local document identifier to add (for the connector that
   * fetched the document).
@@ -139,7 +152,23 @@ public interface IProcessActivity extends IVersionActivity
   *@param data is the document data.  The data is closed after ingestion is complete.
   *@throws IOException only when data stream reading fails.
   */
-  public void ingestDocumentWithException(String documentIdentifier, String version, String documentURI, RepositoryDocument data)
+  public void ingestDocumentWithException(String documentIdentifier,
+    String version, String documentURI, RepositoryDocument data)
+    throws ManifoldCFException, ServiceInterruption, IOException;
+
+  /** Ingest the current document.
+  *@param documentIdentifier is the document's identifier.
+  *@param componentIdentifier is the component document identifier, if any.
+  *@param version is the version of the document, as reported by the getDocumentVersions() method of the
+  *       corresponding repository connector.
+  *@param documentURI is the URI to use to retrieve this document from the search interface (and is
+  *       also the unique key in the index).
+  *@param data is the document data.  The data is closed after ingestion is complete.
+  *@throws IOException only when data stream reading fails.
+  */
+  public void ingestDocumentWithException(String documentIdentifier,
+    String componentIdentifier,
+    String version, String documentURI, RepositoryDocument data)
     throws ManifoldCFException, ServiceInterruption, IOException;
 
   /** Ingest the current document.
@@ -161,18 +190,43 @@ public interface IProcessActivity extends IVersionActivity
   *@param documentIdentifier is the document's local identifier.
   *@param version is the version string to be recorded for the document.
   */
-  public void noDocument(String documentIdentifier, String version)
+  public void noDocument(String documentIdentifier,
+    String version)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Delete the specified document permanently from the search engine index, and from the status table.
+  /** Remove the specified document from the search engine index, and update the
+  * recorded version information for the document.
+  *@param documentIdentifier is the document's local identifier.
+  *@param componentIdentifier is the component document identifier, if any.
+  *@param version is the version string to be recorded for the document.
+  */
+  public void noDocument(String documentIdentifier,
+    String componentIdentifier,
+    String version)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Remove the specified document component permanently from the search engine index, and from the status table.
   * This method does NOT keep track of any document version information for the document and thus can
   * lead to "churn", whereby the same document is queued, processed,
   * and removed on subsequent crawls.  It is therefore preferable to use noDocument() instead,
   * in any case where the same decision will need to be made over and over.
   *@param documentIdentifier is the document's identifier.
+  *@param componentIdentifier is the component document identifier, if any.
   */
-  public void deleteDocument(String documentIdentifier)
-    throws ManifoldCFException;
+  public void removeDocument(String documentIdentifier)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Remove the specified document component permanently from the search engine index, and from the status table.
+  * This method does NOT keep track of any document version information for the document and thus can
+  * lead to "churn", whereby the same document is queued, processed,
+  * and removed on subsequent crawls.  It is therefore preferable to use noDocument() instead,
+  * in any case where the same decision will need to be made over and over.
+  *@param documentIdentifier is the document's identifier.
+  *@param componentIdentifier is the component document identifier, if any.
+  */
+  public void removeDocument(String documentIdentifier,
+    String componentIdentifier)
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Record a document version, WITHOUT reindexing it, or removing it.  (Other
   * documents with the same URL, however, will still be removed.)  This is
@@ -181,7 +235,32 @@ public interface IProcessActivity extends IVersionActivity
   *@param documentIdentifier is the document identifier.
   *@param version is the document version.
   */
-  public void recordDocument(String documentIdentifier, String version)
+  public void recordDocument(String documentIdentifier,
+    String version)
+    throws ManifoldCFException;
+
+  /** Record a document version, WITHOUT reindexing it, or removing it.  (Other
+  * documents with the same URL, however, will still be removed.)  This is
+  * useful if the version string changes but the document contents are known not
+  * to have changed.
+  *@param documentIdentifier is the document identifier.
+  *@param componentIdentifier is the component document identifier, if any.
+  *@param version is the document version.
+  */
+  public void recordDocument(String documentIdentifier,
+    String componentIdentifier,
+    String version)
+    throws ManifoldCFException;
+
+  /** Delete the specified document permanently from the search engine index, and from the status table,
+  * along with all its components.
+  * This method does NOT keep track of any document version information for the document and thus can
+  * lead to "churn", whereby the same document is queued, processed,
+  * and removed on subsequent crawls.  It is therefore preferable to use noDocument() instead,
+  * in any case where the same decision will need to be made over and over.
+  *@param documentIdentifier is the document's identifier.
+  */
+  public void deleteDocument(String documentIdentifier)
     throws ManifoldCFException;
 
   /** Delete the current document from the search engine index, while keeping track of the version information
@@ -193,7 +272,6 @@ public interface IProcessActivity extends IVersionActivity
   @Deprecated
   public void deleteDocument(String documentIdentifier, String version)
     throws ManifoldCFException, ServiceInterruption;
-
 
   /** Override the schedule for the next time a document is crawled.
   * Calling this method allows you to set an upper recrawl bound, lower recrawl bound, upper expire bound, lower expire bound,
