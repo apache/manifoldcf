@@ -257,10 +257,9 @@ public class StufferThread extends Thread
             for (int j = 0; j < pipelineSpecifications[i].getOutputCount(); j++)
             {
               String outputName = pipelineSpecifications[i].getStageConnectionName(pipelineSpecifications[i].getOutputStage(j));
-              // MHL
-              DocumentIngestStatus status = statuses.getStatus(documentClasses[i],documentIDHashes[i],null,outputName);
-              if (status != null)
-                versions[i].put(outputName,status);
+              DocumentIngestStatusSet statusSet = statuses.getStatus(documentClasses[i],documentIDHashes[i],outputName);
+              if (statusSet != null)
+                versions[i].put(outputName,statusSet);
             }
           }
 
@@ -335,7 +334,7 @@ public class StufferThread extends Thread
               binNames = new String[]{""};
             }
 
-            QueuedDocument qd = new QueuedDocument(descs[i],(Map<String,DocumentIngestStatus>)versions[i],binNames);
+            QueuedDocument qd = new QueuedDocument(descs[i],(Map<String,DocumentIngestStatusSet>)versions[i],binNames);
 
             // Grab the arraylist that's there, or create it.
             List<QueuedDocument> set = documentSets.get(jobID);

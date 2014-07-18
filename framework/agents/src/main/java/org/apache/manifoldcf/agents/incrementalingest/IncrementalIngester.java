@@ -1512,8 +1512,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           authorityName = "";
         int indexValue = position.intValue();
         // MHL
-        rval.addStatus(identifierClasses[indexValue],identifierHashes[indexValue],null,outputConnectionName,
-          new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName));
+        rval.addStatus(identifierClasses[indexValue],identifierHashes[indexValue],outputConnectionName,
+          null,new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName));
       }
     }
   }
