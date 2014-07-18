@@ -1866,7 +1866,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                 }
                 
                 if (rd == null)
-                  activities.deleteDocument(documentIdentifier,versionString);
+                  activities.noDocument(documentIdentifier,versionString);
                 
                 // Abort the retry loop and go on to the next document
                 break;

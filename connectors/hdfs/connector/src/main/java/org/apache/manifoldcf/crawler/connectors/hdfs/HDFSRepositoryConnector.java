@@ -409,26 +409,29 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         
       if (fileStatus == null) {
         // It is no longer there , so delete right away
-        activities.deleteDocument(documentIdentifier,version);
+        activities.deleteDocument(documentIdentifier);
         continue;
       }
         
       if (fileStatus.isDirectory()) {
-        /*
-          * Queue up stuff for directory
-          */
-        String entityReference = documentIdentifier;
-        FileStatus[] fileStatuses = getChildren(fileStatus.getPath());
-        if (fileStatuses == null) {
-          // Directory was deleted, so remove
-          activities.deleteDocument(documentIdentifier,version);
-          continue;
-        }
-        for (int j = 0; j < fileStatuses.length; j++) {
-          FileStatus fs = fileStatuses[j++];
-          String canonicalPath = fs.getPath().toString();
-          if (checkInclude(session.getUri().toString(),fs,canonicalPath,spec)) {
-            activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
+        if (!scanOnly[i]) {
+          activities.noDocument(documentIdentifier,version);
+          /*
+            * Queue up stuff for directory
+            */
+          String entityReference = documentIdentifier;
+          FileStatus[] fileStatuses = getChildren(fileStatus.getPath());
+          if (fileStatuses == null) {
+            // Directory was deleted, so remove
+            activities.deleteDocument(documentIdentifier);
+            continue;
+          }
+          for (int j = 0; j < fileStatuses.length; j++) {
+            FileStatus fs = fileStatuses[j++];
+            String canonicalPath = fs.getPath().toString();
+            if (checkInclude(session.getUri().toString(),fs,canonicalPath,spec)) {
+              activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
+            }
           }
         }
       } else {

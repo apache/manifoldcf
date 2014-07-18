@@ -33,11 +33,16 @@ public interface IOutputAddActivity extends IOutputQualifyActivity,IOutputHistor
   /** Send a document via the pipeline to the next output connection.
   *@param documentURI is the document's URI.
   *@param document is the document data to be processed (handed to the output data store).
-  *@param authorityNameString is the authority name string that should be used to qualify the document's access tokens.
   *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
   *@throws IOException only if there's an IO error reading the data from the document.
   */
-  public int sendDocument(String documentURI, RepositoryDocument document, String authorityNameString)
+  public int sendDocument(String documentURI, RepositoryDocument document)
     throws ManifoldCFException, ServiceInterruption, IOException;
+
+  /** Send NO document via the pipeline to the next output connection.  This is equivalent
+  * to sending an empty document placeholder.
+  */
+  public void noDocument()
+    throws ManifoldCFException, ServiceInterruption;
 
 }

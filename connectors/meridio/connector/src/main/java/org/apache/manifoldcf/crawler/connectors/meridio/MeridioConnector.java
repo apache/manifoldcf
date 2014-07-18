@@ -1164,7 +1164,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("Meridio: Could not retrieve document data for document id '" +
               new Long(docId).toString() + "' in processDocuments method - deleting document.");
-            activities.deleteDocument(documentIdentifier,docVersion);
+            activities.noDocument(documentIdentifier,docVersion);
             i++;
             continue;
           }
@@ -1176,7 +1176,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
               Logging.connectors.debug("Meridio: Could not retrieve document owner for document id '" +
               new Long(docId).toString() + "' in processDocuments method. No information or incorrect amount " +
               "of information was returned");
-            activities.deleteDocument(documentIdentifier,docVersion);
+            activities.noDocument(documentIdentifier,docVersion);
             i++;
             continue;
           }
@@ -1336,7 +1336,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("Meridio: Failed to get content for document '" + new Long(docId).toString() + "'");
               // No document.  Delete what's there
-              activities.deleteDocument(documentIdentifier,docVersion);
+              activities.noDocument(documentIdentifier,docVersion);
               i++;
               continue;
             }
@@ -1370,13 +1370,13 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
                   }
                 }
                 else
-                  activities.deleteDocument(documentIdentifier, docVersion);
+                  activities.noDocument(documentIdentifier, docVersion);
               }
               else
               {
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("Meridio: Expected temporary file was not present - skipping document '"+new Long(docId).toString() + "'");
-                activities.deleteDocument(documentIdentifier, docVersion);
+                activities.deleteDocument(documentIdentifier);
               }
             }
             finally

@@ -46,6 +46,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
+import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
@@ -59,6 +60,7 @@ import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -412,26 +414,26 @@ public class ElasticSearchConnector extends BaseOutputConnector
   }
 
   @Override
-  public String getPipelineDescription(Specification os)
+  public VersionContext getPipelineDescription(Specification os)
       throws ManifoldCFException
   {
     ElasticSearchSpecs specs = new ElasticSearchSpecs(getSpecNode(os));
-    return specs.toJson().toString();
+    return new VersionContext(specs.toJson().toString(),params,os);
   }
 
   @Override
-  public boolean checkLengthIndexable(String outputDescription, long length)
+  public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
       throws ManifoldCFException, ServiceInterruption
   {
-    ElasticSearchSpecs specs = getSpecsCache(outputDescription);
+    ElasticSearchSpecs specs = getSpecsCache(outputDescription.getVersionString());
     long maxFileSize = specs.getMaxFileSize();
     if (length > maxFileSize)
       return false;
-    return super.checkLengthIndexable(outputDescription, length);
+    return super.checkLengthIndexable(outputDescription, length, activities);
   }
 
   @Override
-  public boolean checkDocumentIndexable(String outputDescription, File localFile)
+  public boolean checkDocumentIndexable(VersionContext outputDescription, File localFile, IOutputCheckActivity activities)
       throws ManifoldCFException, ServiceInterruption
   {
     // No filtering here; we don't look inside the file and don't know its extension.  That's done via the url
@@ -446,10 +448,10 @@ public class ElasticSearchConnector extends BaseOutputConnector
   *@return true if the file is indexable.
   */
   @Override
-  public boolean checkURLIndexable(String outputDescription, String url)
+  public boolean checkURLIndexable(VersionContext outputDescription, String url, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    ElasticSearchSpecs specs = getSpecsCache(outputDescription);
+    ElasticSearchSpecs specs = getSpecsCache(outputDescription.getVersionString());
     return specs.checkExtension(FilenameUtils.getExtension(url));
   }
 

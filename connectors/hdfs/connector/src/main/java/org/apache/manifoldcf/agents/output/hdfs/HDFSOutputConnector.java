@@ -49,6 +49,7 @@ import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.json.JSONException;
 
 public class HDFSOutputConnector extends BaseOutputConnector {
@@ -249,9 +250,9 @@ public class HDFSOutputConnector extends BaseOutputConnector {
    * the document will not need to be sent again to the output data store.
    */
   @Override
-  public String getPipelineDescription(Specification spec) throws ManifoldCFException, ServiceInterruption {
+  public VersionContext getPipelineDescription(Specification spec) throws ManifoldCFException, ServiceInterruption {
     HDFSOutputSpecs specs = new HDFSOutputSpecs(getSpecNode(spec));
-    return specs.toJson().toString();
+    return new VersionContext(specs.toJson().toString(),params,spec);
   }
 
   /** Add (or replace) a document in the output data store using the connector.

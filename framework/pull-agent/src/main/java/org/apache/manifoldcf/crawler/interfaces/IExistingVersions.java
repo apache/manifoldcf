@@ -16,26 +16,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.agents.interfaces;
+package org.apache.manifoldcf.crawler.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import java.util.*;
 
-/** This interface describes a multi-output pipeline, where each stage has an already-computed
-* description string.
+/** This interface describes functionality designed to allow retrieval of existing
+* version information from previous crawls.  It is part of the IRepositoryConnector API.
 */
-public interface IPipelineSpecification
+public interface IExistingVersions
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** Get the basic pipeline specification.
-  *@return the specification.
+  /** Retrieve an existing version string given a document identifier.
+  *@param documentIdentifier is the document identifier.
+  *@return the document version string, or null if the document was never previously indexed.
   */
-  public IPipelineSpecificationBasic getBasicPipelineSpecification();
-  
-  /** Get the description string for a pipeline stage.
-  *@param stage is the stage to get the connection name for.
-  *@return the description string that stage.
-  */
-  public VersionContext getStageDescriptionString(int stage);
-  
+  public String getIndexedVersionString(String documentIdentifier);
+
 }

@@ -78,7 +78,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   *@return true if the mime type can be accepted by this connector.
   */
   @Override
-  public boolean checkMimeTypeIndexable(String pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
+  public boolean checkMimeTypeIndexable(VersionContext pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
     return checkActivity.checkMimeTypeIndexable(mimeType);
@@ -93,7 +93,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   *@return true if the file is acceptable, false if not.
   */
   @Override
-  public boolean checkDocumentIndexable(String pipelineDescription, File localFile, IOutputCheckActivity checkActivity)
+  public boolean checkDocumentIndexable(VersionContext pipelineDescription, File localFile, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
     return checkActivity.checkDocumentIndexable(localFile);
@@ -107,7 +107,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   *@return true if the file is acceptable, false if not.
   */
   @Override
-  public boolean checkLengthIndexable(String pipelineDescription, long length, IOutputCheckActivity checkActivity)
+  public boolean checkLengthIndexable(VersionContext pipelineDescription, long length, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
     return checkActivity.checkLengthIndexable(length);
@@ -121,7 +121,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   *@return true if the file is acceptable, false if not.
   */
   @Override
-  public boolean checkURLIndexable(String pipelineDescription, String url, IOutputCheckActivity checkActivity)
+  public boolean checkURLIndexable(VersionContext pipelineDescription, String url, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
     return checkActivity.checkURLIndexable(url);
@@ -139,10 +139,10 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   * if two such strings are equal, nothing that affects how or whether the document is indexed will be different.
   */
   @Override
-  public String getPipelineDescription(Specification spec)
+  public VersionContext getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
-    return "";
+    return new VersionContext("",params,spec);
   }
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -162,7 +162,7 @@ public abstract class BaseTransformationConnector extends org.apache.manifoldcf.
   *@throws IOException only if there's a stream error reading the document data.
   */
   @Override
-  public int addOrReplaceDocumentWithException(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
     return DOCUMENTSTATUS_REJECTED;
