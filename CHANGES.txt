@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-994: Make Alfresco connector pay attention to the
+scanOnly flag.
+(Prasad Perera, Karl Wright)
+
 CONNECTORS-997: Get CMIS connector working again.
 (Karl Wright)
 
