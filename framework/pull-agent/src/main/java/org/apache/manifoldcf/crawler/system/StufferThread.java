@@ -257,7 +257,8 @@ public class StufferThread extends Thread
             for (int j = 0; j < pipelineSpecifications[i].getOutputCount(); j++)
             {
               String outputName = pipelineSpecifications[i].getStageConnectionName(pipelineSpecifications[i].getOutputStage(j));
-              DocumentIngestStatus status = statuses.getStatus(documentClasses[i],documentIDHashes[i],outputName);
+              // MHL
+              DocumentIngestStatus status = statuses.getStatus(documentClasses[i],documentIDHashes[i],null,outputName);
               if (status != null)
                 versions[i].put(outputName,status);
             }
