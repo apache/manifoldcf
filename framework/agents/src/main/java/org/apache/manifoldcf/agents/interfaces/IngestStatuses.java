@@ -28,7 +28,7 @@ public class IngestStatuses
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  protected final Map<OutputKey,DocumentIngestStatus> statuses = new HashMap<OutputKey,DocumentIngestStatus>();
+  protected final Map<OutputKey,Map<String,DocumentIngestStatus>> statuses = new HashMap<OutputKey,Map<String,DocumentIngestStatus>>();
   
   public IngestStatuses()
   {
@@ -37,23 +37,50 @@ public class IngestStatuses
   /** Add a status record.
   *@param documentClass is the document class.
   *@param documentIDHash is the document id's hash value.
+  *@param componentIDHash is the component id hash value, if any.
   *@param outputConnectionName is the output connection name.
   *@param status is the status record.
   */
-  public void addStatus(String documentClass, String documentIDHash, String outputConnectionName, DocumentIngestStatus status)
+  public void addStatus(String documentClass, String documentIDHash, String componentIDHash, String outputConnectionName, DocumentIngestStatus status)
   {
-    statuses.put(new OutputKey(documentClass,documentIDHash,outputConnectionName),status);
+    if (componentIDHash == null)
+      componentIDHash = "";
+    OutputKey ok = new OutputKey(documentClass,documentIDHash,outputConnectionName);
+    Map<String,DocumentIngestStatus> map = statuses.get(ok);
+    if (map == null)
+    {
+      map = new HashMap<String,DocumentIngestStatus>();
+      statuses.put(ok,map);
+    }
+    map.put(componentIDHash,status);
+  }
+  
+  /** Get the set of component hashes for a given output.
+  *@param documentClass is the document class.
+  *@param documentIDHash is the document id's hash value.
+  *@param outputConnectionName is the output connection name.
+  *@return the set of component hashes (empty string meaning no component).
+  */
+  public Set<String> componentIterator(String documentClass, String documentIDHash, String outputConnectionName)
+  {
+    Map<String,DocumentIngestStatus> map = statuses.get(new OutputKey(documentClass,documentIDHash,outputConnectionName));
+    if (map == null)
+      return new HashSet<String>();
+    return map.keySet();
   }
   
   /** Retrieve a status record.
   *@param documentClass is the document class.
   *@param documentIDHash is the document id's hash value.
+  *@param componentIDHash is the component id hash value, if any.
   *@param outputConnectionName is the output connection name.
   *@return the status record, if record.
   */
-  public DocumentIngestStatus getStatus(String documentClass, String documentIDHash, String outputConnectionName)
+  public DocumentIngestStatus getStatus(String documentClass, String documentIDHash, String componentIDHash, String outputConnectionName)
   {
-    return statuses.get(new OutputKey(documentClass,documentIDHash,outputConnectionName));
+    if (componentIDHash == null)
+      componentIDHash = "";
+    return statuses.get(new OutputKey(documentClass,documentIDHash,outputConnectionName)).get(componentIDHash);
   }
 
   protected static class OutputKey
