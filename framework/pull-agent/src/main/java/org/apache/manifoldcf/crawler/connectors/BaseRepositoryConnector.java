@@ -374,8 +374,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
           }
           else
           {
-            // These documents have been checked and found NOT to need reprocessing
-            activities.noteUnchangedDocument(documentIdentifier);
+            // Document is unchanged.  We leave it up to the framework to decide what that means.
           }
           scanDocuments.add(documentIdentifier);
         }

@@ -448,16 +448,13 @@ public class WorkerThread extends Thread
                             requeueList.add(qd);
                           }
                         }
-                        else if (activity.wasDocumentUnchanged(qd.getDocumentDescription().getDocumentIdentifier()))
-                        {
-
-                          finishList.add(qd);
-                          ingesterCheckList.add(qd.getDocumentDescription().getDocumentIdentifierHash());
-                        }
                         else
-                        {
-                          // All documents not specifically called out above are simply finished, since we know they haven't been deleted.
                           finishList.add(qd);
+                        
+                        // Note whether the document was untouched; if so, update it
+                        if (!activity.wasDocumentTouched(qd.getDocumentDescription().getDocumentIdentifier()))
+                        {
+                          ingesterCheckList.add(qd.getDocumentDescription().getDocumentIdentifierHash());
                         }
                       }
 
@@ -479,6 +476,8 @@ public class WorkerThread extends Thread
                           checkClasses[i] = connectionName;
                           checkIDs[i] = ingesterCheckList.get(i);
                         }
+                        // This method should exercise reasonable intelligence.  If the document has never been indexed, it should detect that
+                        // and stop.  Otherwise, it should update the statistics accordingly.
                         ingester.documentCheckMultiple(pipelineSpecificationBasic,checkClasses,checkIDs,currentTime);
                       }
 
@@ -1117,8 +1116,8 @@ public class WorkerThread extends Thread
     // Whether the document was aborted or not
     protected final Set<String> abortSet = new HashSet<String>();
 
-    // Whether the document was checked or not
-    protected final Set<String> documentCheckedSet = new HashSet<String>();
+    // Whether the document was touched or not
+    protected final Set<String> touchedSet = new HashSet<String>();
     
     // Whether document was deleted
     protected final Set<String> documentDeletedSet = new HashSet<String>();
@@ -1178,11 +1177,11 @@ public class WorkerThread extends Thread
       referenceList.clear();
     }
 
-    /** Check whether a document (and its version string) was unchanged or not.
+    /** Check whether a document (and its version string) was touched or not.
     */
-    public boolean wasDocumentUnchanged(String documentIdentifier)
+    public boolean wasDocumentTouched(String documentIdentifier)
     {
-      return documentCheckedSet.contains(documentIdentifier);
+      return touchedSet.contains(documentIdentifier);
     }
     
     /** Check whether document was deleted or not.
@@ -1408,19 +1407,6 @@ public class WorkerThread extends Thread
       return jobManager.retrieveParentDataAsFiles(jobID,ManifoldCF.hash(localIdentifier),dataName);
     }
 
-    /** Note the fact that a document exists but is unchanged, and nothing further
-    * needs to be done to it.
-    * Call this method if it is determined that the document in question is identical to
-    * the formerly indexed document, AND when the version string for the document
-    * has not changed either.
-    */
-    @Override
-    public void noteUnchangedDocument(String documentIdentifier)
-      throws ManifoldCFException
-    {
-      documentCheckedSet.add(documentIdentifier);
-    }
-
     /** Record a document version, but don't ingest it.
     *@param documentIdentifier is the document identifier.
     *@param version is the document version.
@@ -1434,6 +1420,7 @@ public class WorkerThread extends Thread
         pipelineSpecification.getBasicPipelineSpecification(),
         connectionName,documentIdentifierHash,
         version,currentTime);
+      touchedSet.add(documentIdentifier);
     }
 
     /** Ingest the current document.
@@ -1509,6 +1496,7 @@ public class WorkerThread extends Thread
         documentURI,
         ingestLogger);
       
+      touchedSet.add(documentIdentifier);
     }
 
     /** Remove the specified document from the search engine index, while keeping track of the version information
@@ -1529,6 +1517,8 @@ public class WorkerThread extends Thread
         connection.getACLAuthority(),
         currentTime,
         ingestLogger);
+      
+      touchedSet.add(documentIdentifier);
     }
 
     /** Delete the current document from the search engine index, while keeping track of the version information

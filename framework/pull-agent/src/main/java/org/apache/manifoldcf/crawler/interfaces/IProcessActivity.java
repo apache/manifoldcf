@@ -31,15 +31,13 @@ import org.apache.manifoldcf.agents.interfaces.*;
 * (3) For each document processed, there can be one of several dispositions:
 *   (a) There is no such document (anymore): deleteDocument() called for the document.
 *   (b) The document is (re)indexed: ingestDocumentWithException() is called for the document.
-*   (c) The document is determined to be unchanged and no updates are needed: noteUnchangedDocument() is called
+*   (c) The document is determined to be unchanged and no updates are needed: nothing needs to be called
 *     for the document.
 *   (d) The document is determined to be unchanged BUT the version string needs to be updated: recordDocument()
 *     is called for the document.
 *   (e) The document is determined to be unindexable BUT it still exists in the repository: noDocument()
 *    is called for the document.
 *   (f) There was a service interruption: ServiceInterruption is thrown.
-*   (g) Nothing is called describing the document's disposition.  In that case, for backwards compatibility,
-*    the framework marks the document as having been processed.
 * (4) In order to determine whether a document needs to be reindexed, the method checkDocumentNeedsReindexing()
 *    is available to return an opinion on that matter.
 */
@@ -157,15 +155,6 @@ public interface IProcessActivity extends IVersionActivity
   @Deprecated
   public void ingestDocument(String documentIdentifier, String version, String documentURI, RepositoryDocument data)
     throws ManifoldCFException, ServiceInterruption;
-
-  /** Note the fact that a document exists but is unchanged, and nothing further
-  * needs to be done to it.
-  * Call this method if it is determined that the document in question is identical to
-  * the formerly indexed document, AND when the version string for the document
-  * has not changed either.
-  */
-  public void noteUnchangedDocument(String documentIdentifier)
-    throws ManifoldCFException;
 
   /** Remove the specified document from the search engine index, and update the
   * recorded version information for the document.
