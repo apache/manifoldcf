@@ -1433,12 +1433,7 @@ public class WorkerThread extends Thread
     public void recordDocument(String documentIdentifier, String version)
       throws ManifoldCFException
     {
-      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      ingester.documentRecord(
-        pipelineSpecification.getBasicPipelineSpecification(),
-        connectionName,documentIdentifierHash,
-        version,currentTime);
-      touchedSet.add(documentIdentifier);
+      recordDocument(documentIdentifier,null,version);
     }
 
     /** Record a document version, WITHOUT reindexing it, or removing it.  (Other
@@ -1455,7 +1450,17 @@ public class WorkerThread extends Thread
       String version)
       throws ManifoldCFException
     {
-      // MHL
+      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
+      String componentIdentifierHash;
+      if (componentIdentifier != null)
+        componentIdentifierHash = ManifoldCF.hash(componentIdentifier);
+      else
+        componentIdentifierHash = null;
+      ingester.documentRecord(
+        pipelineSpecification.getBasicPipelineSpecification(),
+        connectionName,documentIdentifierHash,componentIdentifierHash,
+        version,currentTime);
+      touchedSet.add(documentIdentifier);
     }
 
     /** Ingest the current document.
@@ -1497,11 +1502,34 @@ public class WorkerThread extends Thread
     public void ingestDocumentWithException(String documentIdentifier, String version, String documentURI, RepositoryDocument data)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
+    }
+
+    /** Ingest the current document.
+    *@param documentIdentifier is the document's identifier.
+    *@param componentIdentifier is the component document identifier, if any.
+    *@param version is the version of the document, as reported by the getDocumentVersions() method of the
+    *       corresponding repository connector.
+    *@param documentURI is the URI to use to retrieve this document from the search interface (and is
+    *       also the unique key in the index).
+    *@param data is the document data.  The data is closed after ingestion is complete.
+    *@throws IOException only when data stream reading fails.
+    */
+    @Override
+    public void ingestDocumentWithException(String documentIdentifier,
+      String componentIdentifier,
+      String version, String documentURI, RepositoryDocument data)
+      throws ManifoldCFException, ServiceInterruption, IOException
+    {
       // We should not get called here if versions agree, unless the repository
       // connector cannot distinguish between versions - in which case it must
       // always ingest (essentially)
 
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
+      String componentIdentifierHash;
+      if (componentIdentifier != null)
+        componentIdentifierHash = ManifoldCF.hash(componentIdentifier);
+      else
+        componentIdentifierHash = null;
 
       if (data != null)
       {
@@ -1524,7 +1552,7 @@ public class WorkerThread extends Thread
       // First, we need to add into the metadata the stuff from the job description.
       ingester.documentIngest(
         fetchPipelineSpecifications.get(documentIdentifierHash),
-        connectionName,documentIdentifierHash,
+        connectionName,documentIdentifierHash,componentIdentifierHash,
         version,parameterVersion,
         connection.getACLAuthority(),
         data,currentTime,
@@ -1534,45 +1562,16 @@ public class WorkerThread extends Thread
       touchedSet.add(documentIdentifier);
     }
 
-    /** Ingest the current document.
-    *@param documentIdentifier is the document's identifier.
-    *@param componentIdentifier is the component document identifier, if any.
-    *@param version is the version of the document, as reported by the getDocumentVersions() method of the
-    *       corresponding repository connector.
-    *@param documentURI is the URI to use to retrieve this document from the search interface (and is
-    *       also the unique key in the index).
-    *@param data is the document data.  The data is closed after ingestion is complete.
-    *@throws IOException only when data stream reading fails.
-    */
-    @Override
-    public void ingestDocumentWithException(String documentIdentifier,
-      String componentIdentifier,
-      String version, String documentURI, RepositoryDocument data)
-      throws ManifoldCFException, ServiceInterruption, IOException
-    {
-      // MHL
-    }
-
     /** Remove the specified document from the search engine index, while keeping track of the version information
     * for it (to reduce churn).
     *@param documentIdentifier is the document's local identifier.
     *@param version is the version string to be recorded for the document.
     */
+    @Override
     public void noDocument(String documentIdentifier, String version)
       throws ManifoldCFException, ServiceInterruption
     {
-      // Special interpretation for empty version string; treat as if the document doesn't exist
-      // (by ignoring it and allowing it to be deleted later)
-      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      ingester.documentNoData(
-        fetchPipelineSpecifications.get(documentIdentifierHash),
-        connectionName,documentIdentifierHash,
-        version,parameterVersion,
-        connection.getACLAuthority(),
-        currentTime,
-        ingestLogger);
-      
-      touchedSet.add(documentIdentifier);
+      noDocument(documentIdentifier,null,version);
     }
 
     /** Remove the specified document from the search engine index, and update the
@@ -1587,7 +1586,23 @@ public class WorkerThread extends Thread
       String version)
       throws ManifoldCFException, ServiceInterruption
     {
-      // MHL
+      // Special interpretation for empty version string; treat as if the document doesn't exist
+      // (by ignoring it and allowing it to be deleted later)
+      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
+      String componentIdentifierHash;
+      if (componentIdentifier != null)
+        componentIdentifierHash = ManifoldCF.hash(componentIdentifier);
+      else
+        componentIdentifierHash = null;
+      ingester.documentNoData(
+        fetchPipelineSpecifications.get(documentIdentifierHash),
+        connectionName,documentIdentifierHash,componentIdentifierHash,
+        version,parameterVersion,
+        connection.getACLAuthority(),
+        currentTime,
+        ingestLogger);
+      
+      touchedSet.add(documentIdentifier);
     }
 
     /** Remove the specified document component permanently from the search engine index, and from the status table.
@@ -1602,15 +1617,7 @@ public class WorkerThread extends Thread
     public void removeDocument(String documentIdentifier)
       throws ManifoldCFException, ServiceInterruption
     {
-      // Remove from incremental ingester ONLY.
-      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      ingester.documentDelete(
-        pipelineSpecification.getBasicPipelineSpecification(),
-        connectionName,documentIdentifierHash,
-        ingestLogger);
-      
-      // Note that we touched it, so it won't get checked
-      touchedSet.add(documentIdentifier);
+      removeDocument(documentIdentifier,null);
     }
 
     /** Remove the specified document component permanently from the search engine index, and from the status table.
@@ -1626,7 +1633,21 @@ public class WorkerThread extends Thread
       String componentIdentifier)
       throws ManifoldCFException, ServiceInterruption
     {
-      // MHL
+      // Remove from incremental ingester ONLY.
+      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
+      String componentIdentifierHash;
+      if (componentIdentifier != null)
+        componentIdentifierHash = ManifoldCF.hash(componentIdentifier);
+      else
+        componentIdentifierHash = null;
+
+      ingester.documentRemove(
+        pipelineSpecification.getBasicPipelineSpecification(),
+        connectionName,documentIdentifierHash,componentIdentifierHash,
+        ingestLogger);
+      
+      // Note that we touched it, so it won't get checked
+      touchedSet.add(documentIdentifier);
     }
 
 

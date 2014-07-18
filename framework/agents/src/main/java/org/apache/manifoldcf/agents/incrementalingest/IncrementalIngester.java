@@ -612,16 +612,18 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param pipelineSpecificationBasic is the basic pipeline specification needed.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
   */
   @Override
   public void documentRecord(
     IPipelineSpecificationBasic pipelineSpecificationBasic,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion, long recordTime)
     throws ManifoldCFException
   {
+    // MHL
     // This method is called when a connector decides that the last indexed version of the document is in fact just fine,
     // but the document version information should be updated.
     // The code pathway is therefore similar to that of document indexing, EXCEPT that no indexing will ever
@@ -661,6 +663,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
@@ -670,7 +673,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   @Override
   public void documentNoData(
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String parameterVersion,
     String authorityName,
@@ -678,6 +681,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    // MHL
     PipelineConnectionsWithVersions pipelineConnectionsWithVersions = new PipelineConnectionsWithVersions(pipelineSpecificationWithVersions);
     
     String docKey = makeKey(identifierClass,identifierHash);
@@ -710,6 +714,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
@@ -723,15 +728,16 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   @Override
   public boolean documentIngest(
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String parameterVersion,
     String authorityName,
-    RepositoryDocument document,
+    RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
+    // MHL
     PipelineConnectionsWithVersions pipelineConnectionsWithVersions = new PipelineConnectionsWithVersions(pipelineSpecificationWithVersions);
     
     String docKey = makeKey(identifierClass,identifierHash);
@@ -742,7 +748,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
 
     // Set indexing date
-    document.setIndexingDate(new Date());
+    data.setIndexingDate(new Date());
     
     // Set up a pipeline
     PipelineObjectWithVersions pipeline = pipelineGrabWithVersions(pipelineConnectionsWithVersions);
@@ -751,12 +757,31 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Pipeline connector not installed",0L);
     try
     {
-      return pipeline.addOrReplaceDocumentWithException(docKey,documentURI,document,documentVersion,parameterVersion,authorityName,activities,ingestTime) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
+      return pipeline.addOrReplaceDocumentWithException(docKey,documentURI,data,documentVersion,parameterVersion,authorityName,activities,ingestTime) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
     }
     finally
     {
       pipeline.release();
     }
+  }
+
+  /** Remove a document component from the search engine index.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hash of the id of the document.
+  *@param componentHash is the hashed component identifier, if any.
+  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
+  */
+  @Override
+  public void documentRemove(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String identifierClass, String identifierHash, String componentHash,
+    IOutputRemoveActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // MHL
+    documentDelete(pipelineSpecificationBasic,
+      identifierClass,identifierHash,activities);
   }
 
   protected static String[] extractOutputConnectionNames(IPipelineSpecificationBasic pipelineSpecificationBasic)
