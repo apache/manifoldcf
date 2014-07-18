@@ -2409,13 +2409,16 @@ public class WorkerThread extends Thread
     *@param documentIdentifier is the document identifier.
     *@return the document version string, or null if the document was never previously indexed.
     */
+    @Override
     public String getIndexedVersionString(String documentIdentifier)
     {
       QueuedDocument qd = map.get(documentIdentifier);
-      DocumentIngestStatus status = qd.getLastIngestedStatus(lastOutputConnectionName);
-      if (status == null)
+      DocumentIngestStatusSet status = qd.getLastIngestedStatus(lastOutputConnectionName);
+      // MHL
+      if (status == null || status.getPrimary() == null)
         return null;
-      return status.getDocumentVersion();
+      // MHL
+      return status.getPrimary().getDocumentVersion();
     }
 
   }
