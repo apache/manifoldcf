@@ -55,23 +55,29 @@ import java.util.*;
 * consists of the processDocuments() method.
 *
 * All of these methods interact with ManifoldCF by means of an "activity" interface.
+*
+* A note on connector models:
+*
+* These values describe what the connector returns for the addSeedDocuments() method.  The framework
+* uses these to figure out how to most efficiently use the connector.  It is desirable to pick a model that
+* is the most restrictive that is still accurate.  For example, if MODEL_ADD_CHANGE_DELETE applies, you would
+* return that value rather than MODEL_ADD.
+*
+* For the CHAINED models, what the connector is describing are the documents that will be processed IF the seeded
+* documents are followed to their leaves.  For instance, imagine a hierarchy where the root document is the only one ever
+* seeded, but if that document is processed, and its discovered changed children are processed as well, then all documents
+* that have been added, changed, or deleted will eventually be discovered.  In that case, model
+* MODEL_CHAINED_ADD_CHANGE_DELETE would be appropriate.  But, if a changed node can only discover child
+* additions and changes, then MODEL_CHAINED_ADD_CHANGE would be the right choice.
+*	
+* A CHAINED model also requires cooperation on the part of the connector for processing.  Specifically,
+* a document may be unchanged but its references are expected to still be extracted in order for a CHAINED
+* model to do the right thing.  For non-CHAINED models, re-extraction of references if there are no reference changes
+* for a document is NOT required.
 */
 public interface IRepositoryConnector extends IConnector
 {
   public static final String _rcsid = "@(#)$Id: IRepositoryConnector.java 996524 2010-09-13 13:38:01Z kwright $";
-
-  // Connector models.
-  // These values describe what the connector returns for the getDocumentIdentifiers() method.  The framework
-  // uses these to figure out how to most efficiently use the connector.  It is desirable to pick a model that
-  // is the most restrictive that is still accurate.  For example, if MODEL_ADD_CHANGE_DELETE applies, you would
-  // return that value rather than MODEL_ADD.
-
-  // For the CHAINED models, what the connector is describing are the documents that will be processed IF the seeded
-  // documents are followed to their leaves.  For instance, imagine a hierarchy where the root document is the only one ever
-  // seeded, but if that document is processed, and its discovered changed children are processed as well, then all documents
-  // that have been added, changed, or deleted will eventually be discovered.  In that case, model
-  // MODEL_CHAINED_ADD_CHANGE_DELETE would be appropriate.  But, if a changed node can only discover child
-  // additions and changes, then MODEL_CHAINED_ADD_CHANGE would be the right choice.
 
   /** This is the legacy ManifoldCF catch-all crawling model.  All existing documents will be rechecked when a crawl
   * is done, every time.  This model was typically used for models where seeds were essentially fixed and all
