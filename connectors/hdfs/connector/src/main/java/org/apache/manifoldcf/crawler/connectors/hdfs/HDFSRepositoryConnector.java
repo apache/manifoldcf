@@ -350,6 +350,10 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       FileStatus fileStatus = getObject(new Path(documentIdentifier));
       if (fileStatus != null) {
         if (fileStatus.isDirectory()) {
+          // If HDFS directory modify dates are transitive, as they are on Unix,
+          // then getting the modify date of the current version is sufficient
+          // to detect any downstream changes we need to be aware of.
+          // (If this turns out to be a bad assumption, this should simply set rval[i] ="").
           long lastModified = fileStatus.getModificationTime();
           rval[i] = new Long(lastModified).toString();
         } else {
@@ -414,6 +418,8 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       }
         
       if (fileStatus.isDirectory()) {
+        // Since we believe that downstream changes affect the current node's version string,
+        // then we only have to add references when there are detected changes.
         if (!scanOnly[i]) {
           activities.noDocument(documentIdentifier,version);
           /*
