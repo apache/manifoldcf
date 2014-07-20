@@ -95,7 +95,7 @@ public class SchedulerTester
     // Wait for the job to become inactive.  The time should be at least long enough to handle
     // 100 documents per bin, but not significantly greater than that.  Let's say 120 seconds.
     long startTime = System.currentTimeMillis();
-    instance2.waitJobInactiveNative(jobManager,job.getID(),150000L);
+    instance2.waitJobInactiveNative(jobManager,job.getID(),160000L);
     long endTime = System.currentTimeMillis();
     if (jobManager.getStatus(job.getID()).getDocumentsProcessed() != 10+10*200)
       throw new Exception("Expected 2010 documents, saw "+jobManager.getStatus(job.getID()).getDocumentsProcessed());
