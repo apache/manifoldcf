@@ -28,7 +28,7 @@ public class IngestStatuses
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  protected final Map<OutputKey,DocumentIngestStatus> statuses = new HashMap<OutputKey,DocumentIngestStatus>();
+  protected final Map<OutputKey,DocumentIngestStatusSet> statuses = new HashMap<OutputKey,DocumentIngestStatusSet>();
   
   public IngestStatuses()
   {
@@ -38,20 +38,29 @@ public class IngestStatuses
   *@param documentClass is the document class.
   *@param documentIDHash is the document id's hash value.
   *@param outputConnectionName is the output connection name.
-  *@param status is the status record.
+  *@param componentIDHash is the component ID hash value.
+  *@param status is the status.
   */
-  public void addStatus(String documentClass, String documentIDHash, String outputConnectionName, DocumentIngestStatus status)
+  public void addStatus(String documentClass, String documentIDHash, String outputConnectionName,
+    String componentIDHash, DocumentIngestStatus status)
   {
-    statuses.put(new OutputKey(documentClass,documentIDHash,outputConnectionName),status);
+    OutputKey ok = new OutputKey(documentClass,documentIDHash,outputConnectionName);
+    DocumentIngestStatusSet set = statuses.get(ok);
+    if (set == null)
+    {
+      set = new DocumentIngestStatusSet();
+      statuses.put(ok,set);
+    }
+    set.addDocumentStatus(componentIDHash,status);
   }
   
   /** Retrieve a status record.
   *@param documentClass is the document class.
   *@param documentIDHash is the document id's hash value.
   *@param outputConnectionName is the output connection name.
-  *@return the status record, if record.
+  *@return the status record, if exists.
   */
-  public DocumentIngestStatus getStatus(String documentClass, String documentIDHash, String outputConnectionName)
+  public DocumentIngestStatusSet getStatus(String documentClass, String documentIDHash, String outputConnectionName)
   {
     return statuses.get(new OutputKey(documentClass,documentIDHash,outputConnectionName));
   }
