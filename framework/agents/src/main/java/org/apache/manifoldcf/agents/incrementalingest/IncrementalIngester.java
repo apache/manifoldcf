@@ -64,6 +64,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected final static String idField = "id";
   protected final static String outputConnNameField = "connectionname";
   protected final static String docKeyField = "dockey";
+  protected final static String componentHashField = "componenthash";
   protected final static String docURIField = "docuri";
   protected final static String uriHashField = "urihash";
   protected final static String lastVersionField = "lastversion";
@@ -122,6 +123,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         map.put(idField,new ColumnDescription("BIGINT",true,false,null,null,false));
         map.put(outputConnNameField,new ColumnDescription("VARCHAR(32)",false,false,outputConnectionTableName,outputConnectionNameField,false));
         map.put(docKeyField,new ColumnDescription("VARCHAR(73)",false,false,null,null,false));
+        map.put(componentHashField,new ColumnDescription("VARCHAR(40)",false,true,null,null,false));
         // The document URI field, if null, indicates that the document was not actually ingested!
         // This happens when a connector wishes to keep track of a version string, but not actually ingest the doc.
         map.put(docURIField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
@@ -156,10 +158,18 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           performAlter(addMap,null,null,null);
         }
 
+        cd = (ColumnDescription)existing.get(componentHashField);
+        if (cd == null)
+        {
+          Map<String,ColumnDescription> addMap = new HashMap<String,ColumnDescription>();
+          addMap.put(componentHashField,new ColumnDescription("VARCHAR(40)",false,true,null,null,false));
+          performAlter(addMap,null,null,null);
+        }
+
       }
 
       // Now, do indexes
-      IndexDescription keyIndex = new IndexDescription(true,new String[]{docKeyField,outputConnNameField});
+      IndexDescription keyIndex = new IndexDescription(true,new String[]{docKeyField,outputConnNameField,componentHashField});
       IndexDescription uriHashIndex = new IndexDescription(false,new String[]{uriHashField,outputConnNameField});
       IndexDescription outputConnIndex = new IndexDescription(false,new String[]{outputConnNameField});
 
@@ -228,7 +238,20 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     int count = pipelineSpecificationBasic.getOutputCount();
     if (count == 0)
       return null;
-    return pipelineSpecificationBasic.getStageConnectionName(count-1);
+    return pipelineSpecificationBasic.getStageConnectionName(pipelineSpecificationBasic.getOutputStage(count-1));
+  }
+
+  /** From a pipeline specification, get the name of the output connection that will be indexed first
+  * in the pipeline.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@return the first indexed output connection name.
+  */
+  @Override
+  public String getFirstIndexedOutputConnectionName(IPipelineSpecificationBasic pipelineSpecificationBasic)
+  {
+    if (pipelineSpecificationBasic.getOutputCount() == 0)
+      return null;
+    return pipelineSpecificationBasic.getStageConnectionName(pipelineSpecificationBasic.getOutputStage(0));
   }
 
   /** Check if a mime type is indexable.
@@ -612,13 +635,14 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param pipelineSpecificationBasic is the basic pipeline specification needed.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
   */
   @Override
   public void documentRecord(
     IPipelineSpecificationBasic pipelineSpecificationBasic,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion, long recordTime)
     throws ManifoldCFException
   {
@@ -640,7 +664,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
     if (Logging.ingest.isDebugEnabled())
     {
-      Logging.ingest.debug("Recording document '"+docKey+"' for output connections '"+outputConnectionNames+"'");
+      Logging.ingest.debug("Recording document '"+docKey+"' component hash "+((componentHash==null)?"(None)":("'"+componentHash+"'"))+" for output connections '"+outputConnectionNames+"'");
     }
 
     for (int k = 0; k < outputConnectionNames.length; k++)
@@ -649,7 +673,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
       // If we get here, it means we are noting that the document was examined, but that no change was required.  This is signaled
       // to noteDocumentIngest by having the null documentURI.
-      noteDocumentIngest(outputConnectionName,docKey,documentVersion,null,null,null,null,recordTime,null,null);
+      noteDocumentIngest(outputConnectionName,docKey,componentHash,documentVersion,null,null,null,null,recordTime,null,null);
     }
   }
 
@@ -661,6 +685,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
@@ -670,7 +695,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   @Override
   public void documentNoData(
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String parameterVersion,
     String authorityName,
@@ -684,7 +709,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
     if (Logging.ingest.isDebugEnabled())
     {
-      Logging.ingest.debug("Logging empty document '"+docKey+"' into output connections '"+extractOutputConnectionNames(pipelineSpecificationWithVersions.getPipelineSpecification().getBasicPipelineSpecification())+"'");
+      Logging.ingest.debug("Logging empty document '"+docKey+"' component hash "+((componentHash==null)?"(None)":("'"+componentHash+"'"))+" into output connections '"+extractOutputConnectionNames(pipelineSpecificationWithVersions.getPipelineSpecification().getBasicPipelineSpecification())+"'");
     }
 
     // Set up a pipeline
@@ -694,7 +719,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Pipeline connector not installed",0L);
     try
     {
-      pipeline.noDocument(docKey,documentVersion,parameterVersion,authorityName,activities,recordTime);
+      pipeline.noDocument(docKey,componentHash,documentVersion,parameterVersion,authorityName,activities,recordTime);
     }
     finally
     {
@@ -710,6 +735,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
@@ -723,11 +749,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   @Override
   public boolean documentIngest(
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String parameterVersion,
     String authorityName,
-    RepositoryDocument document,
+    RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
@@ -738,11 +764,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
     if (Logging.ingest.isDebugEnabled())
     {
-      Logging.ingest.debug("Ingesting document '"+docKey+"' into output connections '"+extractOutputConnectionNames(pipelineSpecificationWithVersions.getPipelineSpecification().getBasicPipelineSpecification())+"'");
+      Logging.ingest.debug("Ingesting document '"+docKey+"' component hash "+((componentHash==null)?"(None)":("'"+componentHash+"'"))+" into output connections '"+extractOutputConnectionNames(pipelineSpecificationWithVersions.getPipelineSpecification().getBasicPipelineSpecification())+"'");
     }
 
     // Set indexing date
-    document.setIndexingDate(new Date());
+    data.setIndexingDate(new Date());
     
     // Set up a pipeline
     PipelineObjectWithVersions pipeline = pipelineGrabWithVersions(pipelineConnectionsWithVersions);
@@ -751,12 +777,33 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Pipeline connector not installed",0L);
     try
     {
-      return pipeline.addOrReplaceDocumentWithException(docKey,documentURI,document,documentVersion,parameterVersion,authorityName,activities,ingestTime) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
+      return pipeline.addOrReplaceDocumentWithException(docKey,componentHash,documentURI,data,documentVersion,parameterVersion,authorityName,activities,ingestTime) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
     }
     finally
     {
       pipeline.release();
     }
+  }
+
+  /** Remove a document component from the search engine index.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hash of the id of the document.
+  *@param componentHash is the hashed component identifier, if any.
+  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
+  */
+  @Override
+  public void documentRemove(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String identifierClass, String identifierHash, String componentHash,
+    IOutputRemoveActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    documentRemoveMultiple(pipelineSpecificationBasic,
+      new String[]{identifierClass},
+      new String[]{identifierHash},
+      componentHash,
+      activities);
   }
 
   protected static String[] extractOutputConnectionNames(IPipelineSpecificationBasic pipelineSpecificationBasic)
@@ -1151,6 +1198,218 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
+  /** Remove multiple document components from the search engine index.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClasses are the names of the spaces in which the identifier hash should be interpreted.
+  *@param identifierHashes are the hashes of the ids of the documents.
+  *@param componentHash is the hashed component identifier, if any.
+  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
+  */
+  @Override
+  public void documentRemoveMultiple(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String[] identifierClasses, String[] identifierHashes, String componentHash,
+    IOutputRemoveActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    String[] outputConnectionNames = extractOutputConnectionNames(pipelineSpecificationBasic);
+    // Load connection managers up front to save time
+    IOutputConnection[] outputConnections = connectionManager.loadMultiple(outputConnectionNames);
+    
+    // No transactions here, so we can cycle through the connection names one at a time
+    for (int z = 0; z < outputConnectionNames.length; z++)
+    {
+      String outputConnectionName = outputConnectionNames[z];
+      IOutputConnection connection = outputConnections[z];
+
+      activities = new OutputRemoveActivitiesWrapper(activities,outputConnectionName);
+
+      if (Logging.ingest.isDebugEnabled())
+      {
+        for (int i = 0; i < identifierHashes.length; i++)
+        {
+          Logging.ingest.debug("Request to remove document '"+makeKey(identifierClasses[i],identifierHashes[i])+"' component hash "+((componentHash==null)?"(None)":("'"+componentHash+"'"))+" from output connection '"+outputConnectionName+"'");
+        }
+      }
+
+      // No transactions.  Time for the operation may exceed transaction timeout.
+
+      // Obtain the current URIs of all of these.
+      DeleteInfo[] uris = getDocumentURIMultiple(outputConnectionName,identifierClasses,identifierHashes,componentHash);
+
+      // Grab critical section locks so that we can't attempt to ingest at the same time we are deleting.
+      // (This guarantees that when this operation is complete the database reflects reality.)
+      int validURIcount = 0;
+      for (int i = 0; i < uris.length; i++)
+      {
+        if (uris[i] != null && uris[i].getURI() != null)
+          validURIcount++;
+      }
+      String[] lockArray = new String[validURIcount];
+      String[] validURIArray = new String[validURIcount];
+      validURIcount = 0;
+      for (int i = 0; i < uris.length; i++)
+      {
+        if (uris[i] != null && uris[i].getURI() != null)
+        {
+          validURIArray[validURIcount] = uris[i].getURI();
+          lockArray[validURIcount] = outputConnectionName+":"+validURIArray[validURIcount];
+          validURIcount++;
+        }
+      }
+
+      lockManager.enterLocks(null,null,lockArray);
+      try
+      {
+        // Fetch the document URIs for the listed documents
+        for (int i = 0; i < uris.length; i++)
+        {
+          if (uris[i] != null && uris[i].getURI() != null)
+            removeDocument(connection,uris[i].getURI(),uris[i].getOutputVersion(),activities);
+        }
+
+        // Now, get rid of all rows that match the given uris.
+        // Do the queries together, then the deletes
+        beginTransaction();
+        try
+        {
+          // The basic process is this:
+          // 1) Come up with a set of urihash values
+          // 2) Find the matching, corresponding id values
+          // 3) Delete the rows corresponding to the id values, in sequence
+
+          // Process (1 & 2) has to be broken down into chunks that contain the maximum
+          // number of doc hash values each.  We need to avoid repeating doc hash values,
+          // so the first step is to come up with ALL the doc hash values before looping
+          // over them.
+
+          int maxClauses;
+          
+          // Find all the documents that match this set of URIs
+          Set<String> docURIHashValues = new HashSet<String>();
+          Set<String> docURIValues = new HashSet<String>();
+          for (String docDBString : validURIArray)
+          {
+            String docDBHashString = ManifoldCF.hash(docDBString);
+            docURIValues.add(docDBString);
+            docURIHashValues.add(docDBHashString);
+          }
+
+          // Now, perform n queries, each of them no larger the maxInClause in length.
+          // Create a list of row id's from this.
+          Set<Long> rowIDSet = new HashSet<Long>();
+          Iterator<String> iter = docURIHashValues.iterator();
+          int j = 0;
+          List<String> hashList = new ArrayList<String>();
+          maxClauses = maxClausesRowIdsForURIs(outputConnectionName);
+          while (iter.hasNext())
+          {
+            if (j == maxClauses)
+            {
+              findRowIdsForURIs(outputConnectionName,rowIDSet,docURIValues,hashList);
+              hashList.clear();
+              j = 0;
+            }
+            hashList.add(iter.next());
+            j++;
+          }
+
+          if (j > 0)
+            findRowIdsForURIs(outputConnectionName,rowIDSet,docURIValues,hashList);
+
+          // Next, go through the list of row IDs, and delete them in chunks
+          j = 0;
+          List<Long> list = new ArrayList<Long>();
+          Iterator<Long> iter2 = rowIDSet.iterator();
+          maxClauses = maxClausesDeleteRowIds();
+          while (iter2.hasNext())
+          {
+            if (j == maxClauses)
+            {
+              deleteRowIds(list);
+              list.clear();
+              j = 0;
+            }
+            list.add(iter2.next());
+            j++;
+          }
+
+          if (j > 0)
+            deleteRowIds(list);
+
+          // Now, find the set of documents that remain that match the document identifiers.
+          Set<String> docIdValues = new HashSet<String>();
+          for (int i = 0; i < identifierHashes.length; i++)
+          {
+            String docDBString = makeKey(identifierClasses[i],identifierHashes[i]);
+            docIdValues.add(docDBString);
+          }
+
+          // Now, perform n queries, each of them no larger the maxInClause in length.
+          // Create a list of row id's from this.
+          rowIDSet.clear();
+          iter = docIdValues.iterator();
+          j = 0;
+          List<String> list2 = new ArrayList<String>();
+          maxClauses = maxClausesRowIdsForDocIds(outputConnectionName);
+          while (iter.hasNext())
+          {
+            if (j == maxClauses)
+            {
+              findRowIdsForDocIds(outputConnectionName,rowIDSet,list2);
+              list2.clear();
+              j = 0;
+            }
+            list2.add(iter.next());
+            j++;
+          }
+
+          if (j > 0)
+            findRowIdsForDocIds(outputConnectionName,rowIDSet,list2);
+
+          // Next, go through the list of row IDs, and delete them in chunks
+          j = 0;
+          list.clear();
+          iter2 = rowIDSet.iterator();
+          maxClauses = maxClausesDeleteRowIds();
+          while (iter2.hasNext())
+          {
+            if (j == maxClauses)
+            {
+              deleteRowIds(list);
+              list.clear();
+              j = 0;
+            }
+            list.add(iter2.next());
+            j++;
+          }
+
+          if (j > 0)
+            deleteRowIds(list);
+
+        }
+        catch (ManifoldCFException e)
+        {
+          signalRollback();
+          throw e;
+        }
+        catch (Error e)
+        {
+          signalRollback();
+          throw e;
+        }
+        finally
+        {
+          endTransaction();
+        }
+      }
+      finally
+      {
+        lockManager.leaveLocks(null,null,lockArray);
+      }
+    }
+  }
+
   /** Calculate the clauses.
   */
   protected int maxClausesRowIdsForURIs(String outputConnectionName)
@@ -1336,6 +1595,63 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
+  /** Find out what URIs a SET of document URIs are currently ingested.
+  *@param outputConnectionName is the output connection name.
+  *@param identifierClasses is the array of identifier classes.
+  *@param identifierHashes is the array of document id's to check.
+  *@param componentHash is the component hash to check.
+  *@return the array of current document uri's.  Null returned for identifiers
+  * that don't exist in the index.
+  */
+  protected DeleteInfo[] getDocumentURIMultiple(String outputConnectionName, String[] identifierClasses, String[] identifierHashes, String componentHash)
+    throws ManifoldCFException
+  {
+    DeleteInfo[] rval = new DeleteInfo[identifierHashes.length];
+    Map<String,Integer> map = new HashMap<String,Integer>();
+    for (int i = 0; i < identifierHashes.length; i++)
+    {
+      map.put(makeKey(identifierClasses[i],identifierHashes[i]),new Integer(i));
+      rval[i] = null;
+    }
+
+    beginTransaction();
+    try
+    {
+      List<String> list = new ArrayList<String>();
+      int maxCount = maxClauseDocumentURIChunk(outputConnectionName,componentHash);
+      int j = 0;
+      Iterator<String> iter = map.keySet().iterator();
+      while (iter.hasNext())
+      {
+        if (j == maxCount)
+        {
+          getDocumentURIChunk(rval,map,outputConnectionName,list,componentHash);
+          j = 0;
+          list.clear();
+        }
+        list.add(iter.next());
+        j++;
+      }
+      if (j > 0)
+        getDocumentURIChunk(rval,map,outputConnectionName,list,componentHash);
+      return rval;
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
+  }
+
   /** Look up ingestion data for a set of documents.
   *@param rval is a map of output key to document data, in no particular order, which will be loaded with all matching results.
   *@param pipelineSpecificationBasics are the pipeline specifications corresponding to the identifier classes and hashes.
@@ -1457,7 +1773,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       new MultiClause(outputConnNameField,outputConnectionNames)});
       
     // Get the primary records associated with this hash value
-    IResultSet set = performQuery("SELECT "+idField+","+outputConnNameField+","+docKeyField+","+lastVersionField+","+lastOutputVersionField+","+authorityNameField+","+forcedParamsField+","+lastTransformationVersionField+
+    IResultSet set = performQuery("SELECT "+idField+","+outputConnNameField+","+docKeyField+","+componentHashField+","+lastVersionField+","+lastOutputVersionField+","+authorityNameField+","+forcedParamsField+","+lastTransformationVersionField+
       " FROM "+getTableName()+" WHERE "+query,newList,null,null);
 
     // Now, go through the original request once more, this time building the result
@@ -1470,6 +1786,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       {
         Long id = (Long)row.getValue(idField);
         String outputConnectionName = (String)row.getValue(outputConnNameField);
+        String componentHash = (String)row.getValue(componentHashField);
         String lastVersion = (String)row.getValue(lastVersionField);
         if (lastVersion == null)
           lastVersion = "";
@@ -1487,7 +1804,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           authorityName = "";
         int indexValue = position.intValue();
         rval.addStatus(identifierClasses[indexValue],identifierHashes[indexValue],outputConnectionName,
-          new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName));
+          componentHash,new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName));
       }
     }
   }
@@ -1688,6 +2005,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Note the ingestion of a document, or the "update" of a document.
   *@param outputConnectionName is the name of the output connection.
   *@param docKey is the key string describing the document.
+  *@param componentHash is the component identifier hash for this document.
   *@param documentVersion is a string describing the new version of the document.
   *@param transformationVersion is a string describing all current transformations for the document.
   *@param outputVersion is the version string calculated for the output connection.
@@ -1699,7 +2017,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param documentURIHash is the hash of the document uri.
   */
   protected void noteDocumentIngest(String outputConnectionName,
-    String docKey, String documentVersion, String transformationVersion,
+    String docKey, String componentHash, String documentVersion, String transformationVersion,
     String outputVersion, String packedForcedParameters,
     String authorityNameString,
     long ingestTime, String documentURI, String documentURIHash)
@@ -1728,6 +2046,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
       // Try the update first.  Typically this succeeds except in the case where a doc is indexed for the first time.
       map.clear();
+      if (componentHash != null)
+        map.put(componentHashField,componentHash);
       map.put(lastVersionField,documentVersion);
       map.put(lastTransformationVersionField,transformationVersion);
       map.put(lastOutputVersionField,outputVersion);
@@ -1755,7 +2075,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           ArrayList list = new ArrayList();
           String query = buildConjunctionClause(list,new ClauseDescription[]{
             new UnitaryClause(docKeyField,docKey),
-            new UnitaryClause(outputConnNameField,outputConnectionName)});
+            new UnitaryClause(outputConnNameField,outputConnectionName),
+            ((componentHash==null)?new NullCheckClause(componentHashField,true):new UnitaryClause(componentHashField,componentHash))});
           IResultSet set = performQuery("SELECT "+idField+","+changeCountField+" FROM "+getTableName()+" WHERE "+
             query+" FOR UPDATE",list,null,null);
           IResultRow row = null;
@@ -1807,6 +2128,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
       // Set up for insert
       map.clear();
+      if (componentHash != null)
+        map.put(componentHashField,componentHash);
       map.put(lastVersionField,documentVersion);
       map.put(lastTransformationVersionField,transformationVersion);
       map.put(lastOutputVersionField,outputVersion);
@@ -1870,15 +2193,62 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param rval is the string array where the uris should be put.
   *@param map is the map from id to index.
   *@param clause is the in clause for the query.
-  *@param list is the parameter list for the query.
+  *@param list are the doc keys for the query.
   */
-  protected void getDocumentURIChunk(DeleteInfo[] rval, Map<String,Integer> map, String outputConnectionName, List<String> list)
+  protected void getDocumentURIChunk(DeleteInfo[] rval, Map<String,Integer> map, String outputConnectionName,
+    List<String> list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
     String query = buildConjunctionClause(newList,new ClauseDescription[]{
       new MultiClause(docKeyField,list),
       new UnitaryClause(outputConnNameField,outputConnectionName)});
+      
+    IResultSet set = performQuery("SELECT "+docKeyField+","+docURIField+","+lastOutputVersionField+" FROM "+getTableName()+" WHERE "+
+      query,newList,null,null);
+
+    // Go through list and put into buckets.
+    for (int i = 0; i < set.getRowCount(); i++)
+    {
+      IResultRow row = set.getRow(i);
+      String docHash = row.getValue(docKeyField).toString();
+      Integer position = (Integer)map.get(docHash);
+      if (position != null)
+      {
+        String lastURI = (String)row.getValue(docURIField);
+        if (lastURI != null && lastURI.length() == 0)
+          lastURI = null;
+        String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
+        rval[position.intValue()] = new DeleteInfo(lastURI,lastOutputVersion);
+      }
+    }
+  }
+
+  /** Calculate how many clauses at a time
+  */
+  protected int maxClauseDocumentURIChunk(String outputConnectionName, String componentHash)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(outputConnNameField,outputConnectionName),
+      ((componentHash==null)?new NullCheckClause(componentHashField,true):new UnitaryClause(componentHashField,componentHash))});
+  }
+
+  /** Get a chunk of document uris.
+  *@param rval is the string array where the uris should be put.
+  *@param map is the map from id to index.
+  *@param clause is the in clause for the query.
+  *@param list are the doc keys for the query.
+  *@param componentHash is the component hash, if any, for the query.
+  */
+  protected void getDocumentURIChunk(DeleteInfo[] rval, Map<String,Integer> map, String outputConnectionName,
+    List<String> list, String componentHash)
+    throws ManifoldCFException
+  {
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(docKeyField,list),
+      new UnitaryClause(outputConnNameField,outputConnectionName),
+      ((componentHash==null)?new NullCheckClause(componentHashField,true):new UnitaryClause(componentHashField,componentHash))});
       
     IResultSet set = performQuery("SELECT "+docKeyField+","+docURIField+","+lastOutputVersionField+" FROM "+getTableName()+" WHERE "+
       query,newList,null,null);
@@ -2302,23 +2672,23 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       this.pipelineConnectionsWithVersions = pipelineConnectionsWithVersions;
     }
 
-    public int addOrReplaceDocumentWithException(String docKey, String documentURI, RepositoryDocument document, String newDocumentVersion, String newParameterVersion, String authorityNameString, IOutputActivity finalActivity, long ingestTime)
+    public int addOrReplaceDocumentWithException(String docKey, String componentHash, String documentURI, RepositoryDocument document, String newDocumentVersion, String newParameterVersion, String authorityNameString, IOutputActivity finalActivity, long ingestTime)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
-      PipelineAddFanout entryPoint = buildAddPipeline(finalActivity,newDocumentVersion,newParameterVersion,authorityNameString,ingestTime,docKey);
+      PipelineAddFanout entryPoint = buildAddPipeline(finalActivity,newDocumentVersion,newParameterVersion,authorityNameString,ingestTime,docKey,componentHash);
       return entryPoint.sendDocument(documentURI,document);
     }
 
-    public void noDocument(String docKey, String newDocumentVersion, String newParameterVersion, String authorityNameString, IOutputActivity finalActivity, long ingestTime)
+    public void noDocument(String docKey, String componentHash, String newDocumentVersion, String newParameterVersion, String authorityNameString, IOutputActivity finalActivity, long ingestTime)
       throws ManifoldCFException, ServiceInterruption
     {
-      PipelineAddFanout entryPoint = buildAddPipeline(finalActivity,newDocumentVersion,newParameterVersion,authorityNameString,ingestTime,docKey);
+      PipelineAddFanout entryPoint = buildAddPipeline(finalActivity,newDocumentVersion,newParameterVersion,authorityNameString,ingestTime,docKey,componentHash);
       entryPoint.noDocument();
     }
 
     protected PipelineAddFanout buildAddPipeline(IOutputActivity finalActivity,
       String newDocumentVersion, String newParameterVersion, String newAuthorityNameString,
-      long ingestTime, String docKey)
+      long ingestTime, String docKey, String componentHash)
     {
       // Algorithm for building a pipeline:
       // (1) We start with the set of final output connection stages, and build an entry point for each one.  That's our "current set".
@@ -2374,6 +2744,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           newDocumentVersion,
           newParameterVersion,
           docKey,
+          componentHash,
           newAuthorityNameString);
         currentSet.put(new Integer(outputStage), outputStageEntryPoint);
       }
@@ -2807,6 +3178,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     protected final String documentVersion;
     protected final String parameterVersion;
     protected final String docKey;
+    protected final String componentHash;
     protected final IOutputActivity activity;
     
     public OutputAddEntryPoint(IOutputConnector outputConnector,
@@ -2819,6 +3191,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       String documentVersion,
       String parameterVersion,
       String docKey,
+      String componentHash,
       String authorityNameString)
     {
       super(outputConnector,outputDescriptionString,authorityNameString,activity,isActive);
@@ -2829,6 +3202,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       this.documentVersion = documentVersion;
       this.parameterVersion = parameterVersion;
       this.docKey = docKey;
+      this.componentHash = componentHash;
       this.activity = activity;
     }
     
@@ -2958,15 +3332,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           // This is a marker that says "something is there"; it has an empty version, which indicates
           // that we don't know anything about it.  That means it will be reingested when the
           // next version comes along, and will be deleted if called for also.
-          noteDocumentIngest(outputConnectionName,docKey,null,null,null,null,null,ingestTime,documentURI,documentURIHash);
+          noteDocumentIngest(outputConnectionName,docKey,componentHash,null,null,null,null,null,ingestTime,documentURI,documentURIHash);
           int result = super.addOrReplaceDocumentWithException(documentURI, document);
-          noteDocumentIngest(outputConnectionName,docKey,documentVersion,transformationVersion,pipelineDescriptionString.getVersionString(),parameterVersion,authorityNameString,ingestTime,documentURI,documentURIHash);
+          noteDocumentIngest(outputConnectionName,docKey,componentHash,documentVersion,transformationVersion,pipelineDescriptionString.getVersionString(),parameterVersion,authorityNameString,ingestTime,documentURI,documentURIHash);
           return result;
         }
 
         // If we get here, it means we are noting that the document was examined, but that no change was required.  This is signaled
         // to noteDocumentIngest by having the null documentURI.
-        noteDocumentIngest(outputConnectionName,docKey,documentVersion,transformationVersion,pipelineDescriptionString.getVersionString(),parameterVersion,authorityNameString,ingestTime,null,null);
+        noteDocumentIngest(outputConnectionName,docKey,componentHash,documentVersion,transformationVersion,pipelineDescriptionString.getVersionString(),parameterVersion,authorityNameString,ingestTime,null,null);
         return IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
       }
       finally

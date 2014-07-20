@@ -28,10 +28,19 @@ public interface IExistingVersions
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** Retrieve an existing version string given a document identifier.
+  /** Retrieve the primary existing version string given a document identifier.
   *@param documentIdentifier is the document identifier.
   *@return the document version string, or null if the document was never previously indexed.
   */
-  public String getIndexedVersionString(String documentIdentifier);
+  public String getIndexedVersionString(String documentIdentifier)
+    throws ManifoldCFException;
 
+  /** Retrieve a component existing version string given a document identifier.
+  *@param documentIdentifier is the document identifier.
+  *@param componentIdentifier is the component identifier, if any.
+  *@return the document version string, or null of the document component was never previously indexed.
+  */
+  public String getIndexedVersionString(String documentIdentifier, String componentIdentifier)
+    throws ManifoldCFException;
+  
 }

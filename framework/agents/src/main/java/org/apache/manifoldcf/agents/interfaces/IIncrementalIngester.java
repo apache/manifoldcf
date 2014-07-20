@@ -66,7 +66,14 @@ public interface IIncrementalIngester
   *@return the last indexed output connection name.
   */
   public String getLastIndexedOutputConnectionName(IPipelineSpecificationBasic pipelineSpecificationBasic);
-  
+
+  /** From a pipeline specification, get the name of the output connection that will be indexed first
+  * in the pipeline.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@return the first indexed output connection name.
+  */
+  public String getFirstIndexedOutputConnectionName(IPipelineSpecificationBasic pipelineSpecificationBasic);
+
   /** Get an output version string for a document.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param spec is the output specification.
@@ -154,12 +161,13 @@ public interface IIncrementalIngester
   *@param pipelineSpecificationBasic is the basic pipeline specification needed.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
   */
   public void documentRecord(
     IPipelineSpecificationBasic pipelineSpecificationBasic,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion, long recordTime)
     throws ManifoldCFException;
 
@@ -171,6 +179,7 @@ public interface IIncrementalIngester
   *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
@@ -179,7 +188,7 @@ public interface IIncrementalIngester
   */
   public void documentNoData(
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String parameterVersion,
     String authorityName,
@@ -195,6 +204,7 @@ public interface IIncrementalIngester
   *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
@@ -207,7 +217,7 @@ public interface IIncrementalIngester
   */
   public boolean documentIngest(
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String parameterVersion,
     String authorityName,
@@ -215,6 +225,32 @@ public interface IIncrementalIngester
     long ingestTime, String documentURI,
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException;
+
+  /** Remove a document component from the search engine index.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hash of the id of the document.
+  *@param componentHash is the hashed component identifier, if any.
+  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
+  */
+  public void documentRemove(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String identifierClass, String identifierHash, String componentHash,
+    IOutputRemoveActivity activities)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Remove multiple document components from the search engine index.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClasses are the names of the spaces in which the identifier hash should be interpreted.
+  *@param identifierHashes are the hashes of the ids of the documents.
+  *@param componentHash is the hashed component identifier, if any.
+  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
+  */
+  public void documentRemoveMultiple(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String[] identifierClasses, String[] identifierHashes, String componentHash,
+    IOutputRemoveActivity activities)
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Note the fact that we checked a document (and found that it did not need to be ingested, because the
   * versions agreed).
@@ -242,7 +278,7 @@ public interface IIncrementalIngester
     long checkTime)
     throws ManifoldCFException;
 
-  /** Delete multiple documents from the search engine index.
+  /** Delete multiple documents, and their components, from the search engine index.
   *@param pipelineSpecificationBasics are the pipeline specifications associated with the documents.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
   *@param identifierHashes is tha array of document identifier hashes if the documents.
@@ -254,7 +290,7 @@ public interface IIncrementalIngester
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Delete multiple documents from the search engine index.
+  /** Delete multiple documents, and their components, from the search engine index.
   *@param pipelineSpecificationBasic is the basic pipeline specification.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
   *@param identifierHashes is tha array of document identifier hashes if the documents.
@@ -266,7 +302,7 @@ public interface IIncrementalIngester
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Delete a document from the search engine index.
+  /** Delete a document, and all its components, from the search engine index.
   *@param pipelineSpecificationBasic is the basic pipeline specification.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hash of the id of the document.
