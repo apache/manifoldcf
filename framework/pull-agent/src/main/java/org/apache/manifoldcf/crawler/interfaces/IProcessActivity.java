@@ -205,28 +205,24 @@ public interface IProcessActivity extends IVersionActivity
     String version)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Remove the specified document component permanently from the search engine index, and from the status table.
-  * This method does NOT keep track of any document version information for the document and thus can
-  * lead to "churn", whereby the same document is queued, processed,
-  * and removed on subsequent crawls.  It is therefore preferable to use noDocument() instead,
-  * in any case where the same decision will need to be made over and over.
+  /** Remove the specified document primary component permanently from the search engine index,
+  * and from the status table.  Use this method when your document has components and
+  * now also has a primary document, but will not have a primary document again for the foreseeable
+  * future.  This is a rare situation.
   *@param documentIdentifier is the document's identifier.
-  *@param componentIdentifier is the component document identifier, if any.
   */
   public void removeDocument(String documentIdentifier)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Remove the specified document component permanently from the search engine index, and from the status table.
-  * This method does NOT keep track of any document version information for the document and thus can
-  * lead to "churn", whereby the same document is queued, processed,
-  * and removed on subsequent crawls.  It is therefore preferable to use noDocument() instead,
-  * in any case where the same decision will need to be made over and over.
+  /** Retain existing document component.  Use this method to signal that an already-existing
+  * document component does not need to be reindexed.  The default behavior is to remove
+  * components that are not mentioned during processing.
   *@param documentIdentifier is the document's identifier.
-  *@param componentIdentifier is the component document identifier, if any.
+  *@param componentIdentifier is the component document identifier, which cannot be null.
   */
-  public void removeDocument(String documentIdentifier,
+  public void retainDocument(String documentIdentifier,
     String componentIdentifier)
-    throws ManifoldCFException, ServiceInterruption;
+    throws ManifoldCFException;
 
   /** Record a document version, WITHOUT reindexing it, or removing it.  (Other
   * documents with the same URL, however, will still be removed.)  This is

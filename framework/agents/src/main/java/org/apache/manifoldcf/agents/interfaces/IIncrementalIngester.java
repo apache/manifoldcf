@@ -66,7 +66,14 @@ public interface IIncrementalIngester
   *@return the last indexed output connection name.
   */
   public String getLastIndexedOutputConnectionName(IPipelineSpecificationBasic pipelineSpecificationBasic);
-  
+
+  /** From a pipeline specification, get the name of the output connection that will be indexed first
+  * in the pipeline.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@return the first indexed output connection name.
+  */
+  public String getFirstIndexedOutputConnectionName(IPipelineSpecificationBasic pipelineSpecificationBasic);
+
   /** Get an output version string for a document.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param spec is the output specification.
@@ -229,6 +236,19 @@ public interface IIncrementalIngester
   public void documentRemove(
     IPipelineSpecificationBasic pipelineSpecificationBasic,
     String identifierClass, String identifierHash, String componentHash,
+    IOutputRemoveActivity activities)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Remove multiple document components from the search engine index.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClasses are the names of the spaces in which the identifier hash should be interpreted.
+  *@param identifierHashes are the hashes of the ids of the documents.
+  *@param componentHash is the hashed component identifier, if any.
+  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
+  */
+  public void documentRemoveMultiple(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String[] identifierClasses, String[] identifierHashes, String componentHash,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
