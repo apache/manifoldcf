@@ -346,22 +346,20 @@ public class WorkerThread extends Thread
                     boolean isDefaultAuthority = (aclAuthority.length() == 0);
 
                     // Build the processActivity object
+                    Map<String,QueuedDocument> previousDocuments = new HashMap<String,QueuedDocument>();
                     
-                    
-                    Map<String,IPipelineSpecificationWithVersions> fetchPipelineSpecifications = new HashMap<String,IPipelineSpecificationWithVersions>();
                     String[] documentIDs = new String[activeDocuments.size()];
                     int k = 0;
                     for (QueuedDocument qd : activeDocuments)
                     {
-                      fetchPipelineSpecifications.put(qd.getDocumentDescription().getDocumentIdentifierHash(),
-                        new PipelineSpecificationWithVersions(pipelineSpecification,qd));
+                      previousDocuments.put(qd.getDocumentDescription().getDocumentIdentifierHash(),qd);
                       documentIDs[k++] = qd.getDocumentDescription().getDocumentIdentifier();
                     }
                     
                     ProcessActivity activity = new ProcessActivity(job.getID(),processID,
                       threadContext,rt,jobManager,ingester,
                       connectionName,pipelineSpecification,
-                      fetchPipelineSpecifications,
+                      previousDocuments,
                       currentTime,
                       job.getExpiration(),
                       job.getForcedMetadata(),
@@ -380,6 +378,41 @@ public class WorkerThread extends Thread
                       try
                       {
                         connector.processDocuments(documentIDs,existingVersions,job.getSpecification(),activity,jobType,isDefaultAuthority);
+                        
+                        // Now do everything that the connector might have done if we were not doing it for it.
+
+                        // Right now, that's just getting rid of untouched components.
+                        for (QueuedDocument qd : activeDocuments)
+                        {
+                          String documentIdentifier = qd.getDocumentDescription().getDocumentIdentifier();
+                          if (!activity.wasDocumentAborted(documentIdentifier) && !activity.wasDocumentDeleted(documentIdentifier))
+                          {
+                            String documentIdentifierHash = qd.getDocumentDescription().getDocumentIdentifierHash();
+                            // In order to be able to loop over all the components that the incremental ingester knows about, we need to know
+                            // what the FIRST output is.
+                            DocumentIngestStatusSet set = qd.getLastIngestedStatus(ingester.getFirstIndexedOutputConnectionName(pipelineSpecificationBasic));
+                            if (set != null)
+                            {
+                              Iterator<String> componentHashes = set.componentIterator();
+                              while (componentHashes.hasNext())
+                              {
+                                String componentHash = componentHashes.next();
+                                // Check whether we've indexed or not
+                                if (!activity.wasDocumentComponentTouched(documentIdentifier,
+                                  componentHash))
+                                {
+                                  // This component must be removed.
+                                  ingester.documentRemove(
+                                    pipelineSpecificationBasic,
+                                    connectionName,documentIdentifierHash,componentHash,
+                                    ingestLogger);
+                                }
+                              }
+                            }
+                          }
+                        }
+
+                        // Done with connector functionality!
                       }
                       catch (ServiceInterruption e)
                       {
@@ -457,6 +490,7 @@ public class WorkerThread extends Thread
                           ingesterCheckList.add(qd.getDocumentDescription().getDocumentIdentifierHash());
                         }
                       }
+                      
 
                       if (serviceInterruption != null)
                       {
@@ -1086,7 +1120,7 @@ public class WorkerThread extends Thread
     protected final IIncrementalIngester ingester;
     protected final String connectionName;
     protected final IPipelineSpecification pipelineSpecification;
-    protected final Map<String,IPipelineSpecificationWithVersions> fetchPipelineSpecifications;
+    protected final Map<String,QueuedDocument> previousDocuments;
     protected final long currentTime;
     protected final Long expireInterval;
     protected final Map<String,Set<String>> forcedMetadata;
@@ -1122,6 +1156,10 @@ public class WorkerThread extends Thread
     // Whether document was deleted
     protected final Set<String> documentDeletedSet = new HashSet<String>();
     
+    // Whether a component was touched or not, keyed by document identifier.
+    // This does not include primary document.  The set is keyed by component id hash.
+    protected final Map<String,Set<String>> touchedComponentSet = new HashMap<String,Set<String>>();
+    
     /** Constructor.
     *@param jobManager is the job manager
     *@param ingester is the ingester
@@ -1132,7 +1170,7 @@ public class WorkerThread extends Thread
       IIncrementalIngester ingester,
       String connectionName,
       IPipelineSpecification pipelineSpecification,
-      Map<String,IPipelineSpecificationWithVersions> fetchPipelineSpecifications,
+      Map<String,QueuedDocument> previousDocuments,
       long currentTime,
       Long expireInterval,
       Map<String,Set<String>> forcedMetadata,
@@ -1151,7 +1189,7 @@ public class WorkerThread extends Thread
       this.ingester = ingester;
       this.connectionName = connectionName;
       this.pipelineSpecification = pipelineSpecification;
-      this.fetchPipelineSpecifications = fetchPipelineSpecifications;
+      this.previousDocuments = previousDocuments;
       this.currentTime = currentTime;
       this.expireInterval = expireInterval;
       this.forcedMetadata = forcedMetadata;
@@ -1183,6 +1221,17 @@ public class WorkerThread extends Thread
     {
       return touchedSet.contains(documentIdentifier);
     }
+
+    /** Check whether a document component was touched or not.
+    */
+    public boolean wasDocumentComponentTouched(String documentIdentifier,
+      String componentIdentifierHash)
+    {
+      Set<String> components = touchedComponentSet.get(documentIdentifier);
+      if (components == null)
+        return false;
+      return components.contains(componentIdentifierHash);
+    }
     
     /** Check whether document was deleted or not.
     */
@@ -1198,6 +1247,41 @@ public class WorkerThread extends Thread
       return abortSet.contains(documentIdentifier);
     }
     
+    /** Check if a document needs to be reindexed, based on a computed version string.
+    * Call this method to determine whether reindexing is necessary.  Pass in a newly-computed version
+    * string.  This method will return "true" if the document needs to be re-indexed.
+    *@param documentIdentifier is the document identifier.
+    *@param newVersionString is the newly-computed version string.
+    *@return true if the document needs to be reindexed.
+    */
+    @Override
+    public boolean checkDocumentNeedsReindexing(String documentIdentifier,
+      String newVersionString)
+      throws ManifoldCFException
+    {
+      return checkDocumentNeedsReindexing(documentIdentifier,null,newVersionString);
+    }
+
+    /** Check if a document needs to be reindexed, based on a computed version string.
+    * Call this method to determine whether reindexing is necessary.  Pass in a newly-computed version
+    * string.  This method will return "true" if the document needs to be re-indexed.
+    *@param documentIdentifier is the document identifier.
+    *@param componentIdentifier is the component document identifier, if any.
+    *@param newVersionString is the newly-computed version string.
+    *@return true if the document needs to be reindexed.
+    */
+    @Override
+    public boolean checkDocumentNeedsReindexing(String documentIdentifier,
+      String componentIdentifier,
+      String newVersionString)
+      throws ManifoldCFException
+    {
+      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
+      String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
+      IPipelineSpecificationWithVersions spec = computePipelineSpecification(documentIdentifierHash,componentIdentifierHash);
+      return ingester.checkFetchDocument(spec,newVersionString,parameterVersion,connection.getACLAuthority());
+    }
+
     /** Add a document description to the current job's queue.
     *@param localIdentifier is the local document identifier to add (for the connector that
     * fetched the document).
@@ -1297,41 +1381,6 @@ public class WorkerThread extends Thread
 
       existingDr.addData(dataNames,savedDataValues);
       existingDr.addPrerequisiteEvents(prereqEventNames);
-    }
-
-    /** Check if a document needs to be reindexed, based on a computed version string.
-    * Call this method to determine whether reindexing is necessary.  Pass in a newly-computed version
-    * string.  This method will return "true" if the document needs to be re-indexed.
-    *@param documentIdentifier is the document identifier.
-    *@param newVersionString is the newly-computed version string.
-    *@return true if the document needs to be reindexed.
-    */
-    @Override
-    public boolean checkDocumentNeedsReindexing(String documentIdentifier,
-      String newVersionString)
-      throws ManifoldCFException
-    {
-      String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      IPipelineSpecificationWithVersions spec = fetchPipelineSpecifications.get(documentIdentifierHash);
-      return ingester.checkFetchDocument(spec,newVersionString,parameterVersion,connection.getACLAuthority());
-    }
-
-    /** Check if a document needs to be reindexed, based on a computed version string.
-    * Call this method to determine whether reindexing is necessary.  Pass in a newly-computed version
-    * string.  This method will return "true" if the document needs to be re-indexed.
-    *@param documentIdentifier is the document identifier.
-    *@param componentIdentifier is the component document identifier, if any.
-    *@param newVersionString is the newly-computed version string.
-    *@return true if the document needs to be reindexed.
-    */
-    @Override
-    public boolean checkDocumentNeedsReindexing(String documentIdentifier,
-      String componentIdentifier,
-      String newVersionString)
-      throws ManifoldCFException
-    {
-      // MHL
-      return false;
     }
 
     /** Add a document description to the current job's queue.
@@ -1451,16 +1500,13 @@ public class WorkerThread extends Thread
       throws ManifoldCFException
     {
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      String componentIdentifierHash;
-      if (componentIdentifier != null)
-        componentIdentifierHash = ManifoldCF.hash(componentIdentifier);
-      else
-        componentIdentifierHash = null;
+      String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
       ingester.documentRecord(
         pipelineSpecification.getBasicPipelineSpecification(),
         connectionName,documentIdentifierHash,componentIdentifierHash,
         version,currentTime);
       touchedSet.add(documentIdentifier);
+      touchComponentSet(documentIdentifier,componentIdentifierHash);
     }
 
     /** Ingest the current document.
@@ -1502,6 +1548,7 @@ public class WorkerThread extends Thread
     public void ingestDocumentWithException(String documentIdentifier, String version, String documentURI, RepositoryDocument data)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
+      ingestDocumentWithException(documentIdentifier,null,version,documentURI,data);
     }
 
     /** Ingest the current document.
@@ -1525,11 +1572,7 @@ public class WorkerThread extends Thread
       // always ingest (essentially)
 
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      String componentIdentifierHash;
-      if (componentIdentifier != null)
-        componentIdentifierHash = ManifoldCF.hash(componentIdentifier);
-      else
-        componentIdentifierHash = null;
+      String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
 
       if (data != null)
       {
@@ -1551,7 +1594,7 @@ public class WorkerThread extends Thread
         
       // First, we need to add into the metadata the stuff from the job description.
       ingester.documentIngest(
-        fetchPipelineSpecifications.get(documentIdentifierHash),
+        computePipelineSpecification(documentIdentifierHash,componentIdentifierHash),
         connectionName,documentIdentifierHash,componentIdentifierHash,
         version,parameterVersion,
         connection.getACLAuthority(),
@@ -1560,6 +1603,7 @@ public class WorkerThread extends Thread
         ingestLogger);
       
       touchedSet.add(documentIdentifier);
+      touchComponentSet(documentIdentifier,componentIdentifierHash);
     }
 
     /** Remove the specified document from the search engine index, while keeping track of the version information
@@ -1589,13 +1633,10 @@ public class WorkerThread extends Thread
       // Special interpretation for empty version string; treat as if the document doesn't exist
       // (by ignoring it and allowing it to be deleted later)
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      String componentIdentifierHash;
-      if (componentIdentifier != null)
-        componentIdentifierHash = ManifoldCF.hash(componentIdentifier);
-      else
-        componentIdentifierHash = null;
+      String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
+
       ingester.documentNoData(
-        fetchPipelineSpecifications.get(documentIdentifierHash),
+        computePipelineSpecification(documentIdentifierHash,componentIdentifierHash),
         connectionName,documentIdentifierHash,componentIdentifierHash,
         version,parameterVersion,
         connection.getACLAuthority(),
@@ -1603,54 +1644,44 @@ public class WorkerThread extends Thread
         ingestLogger);
       
       touchedSet.add(documentIdentifier);
+      touchComponentSet(documentIdentifier,componentIdentifierHash);
     }
 
-    /** Remove the specified document component permanently from the search engine index, and from the status table.
-    * This method does NOT keep track of any document version information for the document and thus can
-    * lead to "churn", whereby the same document is queued, processed,
-    * and removed on subsequent crawls.  It is therefore preferable to use noDocument() instead,
-    * in any case where the same decision will need to be made over and over.
+    /** Remove the specified document primary component permanently from the search engine index,
+    * and from the status table.  Use this method when your document has components and
+    * now also has a primary document, but will not have a primary document again for the foreseeable
+    * future.  This is a rare situation.
     *@param documentIdentifier is the document's identifier.
-    *@param componentIdentifier is the component document identifier, if any.
     */
     @Override
     public void removeDocument(String documentIdentifier)
       throws ManifoldCFException, ServiceInterruption
     {
-      removeDocument(documentIdentifier,null);
-    }
-
-    /** Remove the specified document component permanently from the search engine index, and from the status table.
-    * This method does NOT keep track of any document version information for the document and thus can
-    * lead to "churn", whereby the same document is queued, processed,
-    * and removed on subsequent crawls.  It is therefore preferable to use noDocument() instead,
-    * in any case where the same decision will need to be made over and over.
-    *@param documentIdentifier is the document's identifier.
-    *@param componentIdentifier is the component document identifier, if any.
-    */
-    @Override
-    public void removeDocument(String documentIdentifier,
-      String componentIdentifier)
-      throws ManifoldCFException, ServiceInterruption
-    {
-      // Remove from incremental ingester ONLY.
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
-      String componentIdentifierHash;
-      if (componentIdentifier != null)
-        componentIdentifierHash = ManifoldCF.hash(componentIdentifier);
-      else
-        componentIdentifierHash = null;
-
       ingester.documentRemove(
         pipelineSpecification.getBasicPipelineSpecification(),
-        connectionName,documentIdentifierHash,componentIdentifierHash,
+        connectionName,documentIdentifierHash,null,
         ingestLogger);
-      
+        
       // Note that we touched it, so it won't get checked
       touchedSet.add(documentIdentifier);
     }
 
+    /** Retain existing document component.  Use this method to signal that an already-existing
+    * document component does not need to be reindexed.  The default behavior is to remove
+    * components that are not mentioned during processing.
+    *@param documentIdentifier is the document's identifier.
+    *@param componentIdentifier is the component document identifier, which cannot be null.
+    */
+    @Override
+    public void retainDocument(String documentIdentifier,
+      String componentIdentifier)
+      throws ManifoldCFException
+    {
+      touchComponentSet(documentIdentifier,computeComponentIDHash(componentIdentifier));
+    }
 
+    
     /** Delete the current document from the search engine index, while keeping track of the version information
     * for it (to reduce churn).
     * Use noDocument() above instead.
@@ -2065,8 +2096,36 @@ public class WorkerThread extends Thread
       return ManifoldCF.createJobSpecificString(jobID,simpleString);
     }
 
+    protected void touchComponentSet(String documentIdentifier, String componentIdentifierHash)
+    {
+      if (componentIdentifierHash == null)
+        return;
+      Set<String> components = touchedComponentSet.get(documentIdentifier);
+      if (components == null)
+      {
+        components = new HashSet<String>();
+        touchedComponentSet.put(documentIdentifier,components);
+      }
+      components.add(componentIdentifierHash);
+    }
+    
+    protected IPipelineSpecificationWithVersions computePipelineSpecification(String documentIdentifierHash,
+      String componentIdentifierHash)
+    {
+      return new PipelineSpecificationWithVersions(pipelineSpecification,previousDocuments.get(documentIdentifierHash),componentIdentifierHash);
+    }
+
   }
 
+  protected static String computeComponentIDHash(String componentIdentifier)
+    throws ManifoldCFException
+  {
+    if (componentIdentifier != null)
+      return ManifoldCF.hash(componentIdentifier);
+    else
+      return null;
+  }
+    
   /** DocumentBin class */
   protected static class DocumentBin
   {
@@ -2121,6 +2180,7 @@ public class WorkerThread extends Thread
       }
       return true;
     }
+    
   }
 
   /** Class describing document reference.
@@ -2411,14 +2471,33 @@ public class WorkerThread extends Thread
     */
     @Override
     public String getIndexedVersionString(String documentIdentifier)
+      throws ManifoldCFException
+    {
+      return getIndexedVersionString(documentIdentifier,null);
+    }
+
+    /** Retrieve a component existing version string given a document identifier.
+    *@param documentIdentifier is the document identifier.
+    *@param componentIdentifier is the component identifier, if any.
+    *@return the document version string, or null of the document component was never previously indexed.
+    */
+    @Override
+    public String getIndexedVersionString(String documentIdentifier, String componentIdentifier)
+      throws ManifoldCFException
     {
       QueuedDocument qd = map.get(documentIdentifier);
       DocumentIngestStatusSet status = qd.getLastIngestedStatus(lastOutputConnectionName);
-      // MHL
-      if (status == null || status.getPrimary() == null)
+      if (status == null)
         return null;
-      // MHL
-      return status.getPrimary().getDocumentVersion();
+      String componentIdentifierHash;
+      if (componentIdentifier == null)
+        componentIdentifierHash = null;
+      else
+        componentIdentifierHash = ManifoldCF.hash(componentIdentifier);
+      DocumentIngestStatus s = status.getComponent(componentIdentifierHash);
+      if (s == null)
+        return null;
+      return s.getDocumentVersion();
     }
 
   }

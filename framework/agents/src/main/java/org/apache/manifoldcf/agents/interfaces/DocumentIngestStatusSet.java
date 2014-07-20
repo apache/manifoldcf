@@ -65,4 +65,12 @@ public class DocumentIngestStatusSet
       return primary;
     return components.get(componentHash);
   }
+  
+  /** Iterate over components.
+  *@return an iterator over component hashes.
+  */
+  public Iterator<String> componentIterator()
+  {
+    return components.keySet().iterator();
+  }
 }
