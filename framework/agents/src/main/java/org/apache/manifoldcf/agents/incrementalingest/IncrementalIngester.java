@@ -42,6 +42,7 @@ import java.io.*;
 * <tr><td>id</td><td>BIGINT</td><td>Primary Key</td></tr>
 * <tr><td>connectionname</td><td>VARCHAR(32)</td><td>Reference:outputconnections.connectionname</td></tr>
 * <tr><td>dockey</td><td>VARCHAR(73)</td><td></td></tr>
+* <tr><td>componenthash</td><td>VARCHAR(40)</td><td></td></tr>
 * <tr><td>docuri</td><td>LONGTEXT</td><td></td></tr>
 * <tr><td>urihash</td><td>VARCHAR(40)</td><td></td></tr>
 * <tr><td>lastversion</td><td>LONGTEXT</td><td></td></tr>
@@ -1351,12 +1352,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           iter = docIdValues.iterator();
           j = 0;
           List<String> list2 = new ArrayList<String>();
-          maxClauses = maxClausesRowIdsForDocIds(outputConnectionName);
+          maxClauses = maxClausesRowIdsForDocIds(outputConnectionName,componentHash);
           while (iter.hasNext())
           {
             if (j == maxClauses)
             {
-              findRowIdsForDocIds(outputConnectionName,rowIDSet,list2);
+              findRowIdsForDocIds(outputConnectionName,rowIDSet,list2,componentHash);
               list2.clear();
               j = 0;
             }
@@ -1365,7 +1366,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           }
 
           if (j > 0)
-            findRowIdsForDocIds(outputConnectionName,rowIDSet,list2);
+            findRowIdsForDocIds(outputConnectionName,rowIDSet,list2,componentHash);
 
           // Next, go through the list of row IDs, and delete them in chunks
           j = 0;
@@ -1455,6 +1456,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       new UnitaryClause(outputConnNameField,outputConnectionName)});
   }
 
+    /** Calculate the maximum number of doc ids we should use.
+  */
+  protected int maxClausesRowIdsForDocIds(String outputConnectionName, String componentHash)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(outputConnNameField,outputConnectionName),
+      new UnitaryClause(componentHashField,componentHash)});
+  }
+
   /** Calculate the maximum number of doc ids we should use.
   */
   protected int maxClausesRowIdsForDocIds(String[] outputConnectionNames)
@@ -1473,6 +1483,29 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(docKeyField,paramValues),
       new UnitaryClause(outputConnNameField,outputConnectionName)});
+      
+    IResultSet set = performQuery("SELECT "+idField+" FROM "+
+      getTableName()+" WHERE "+query,list,null,null);
+    
+    for (int i = 0; i < set.getRowCount(); i++)
+    {
+      IResultRow row = set.getRow(i);
+      Long rowID = (Long)row.getValue(idField);
+      rowIDSet.add(rowID);
+    }
+  }
+
+  /** Given values and parameters corresponding to a set of hash values, add corresponding
+  * table row id's to the output map.
+  */
+  protected void findRowIdsForDocIds(String outputConnectionName, Set<Long> rowIDSet, List<String> paramValues, String componentHash)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(docKeyField,paramValues),
+      new UnitaryClause(outputConnNameField,outputConnectionName),
+      new UnitaryClause(componentHashField,componentHash)});
       
     IResultSet set = performQuery("SELECT "+idField+" FROM "+
       getTableName()+" WHERE "+query,list,null,null);
