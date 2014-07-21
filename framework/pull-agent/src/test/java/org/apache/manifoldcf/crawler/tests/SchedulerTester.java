@@ -95,13 +95,15 @@ public class SchedulerTester
     // Wait for the job to become inactive.  The time should be at least long enough to handle
     // 100 documents per bin, but not significantly greater than that.  Let's say 120 seconds.
     long startTime = System.currentTimeMillis();
-    instance2.waitJobInactiveNative(jobManager,job.getID(),160000L);
+    instance2.waitJobInactiveNative(jobManager,job.getID(),1200000L);
     long endTime = System.currentTimeMillis();
+    System.out.println("Crawl took "+(endTime-startTime)+" milliseconds");
     if (jobManager.getStatus(job.getID()).getDocumentsProcessed() != 10+10*200)
       throw new Exception("Expected 2010 documents, saw "+jobManager.getStatus(job.getID()).getDocumentsProcessed());
+    if (endTime - startTime > 150000L)
+      throw new Exception("Expected crawl to complete in less than 150 seconds; took "+(endTime-startTime)+" ms");
     if (endTime-startTime < 96000L)
       throw new Exception("Job finished too quickly; throttling clearly failed");
-    System.out.println("Crawl took "+(endTime-startTime)+" milliseconds");
     
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
