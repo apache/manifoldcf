@@ -1316,7 +1316,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         rval[i] = StringUtils.EMPTY;
       }
     }
-    System.out.println("getDocumentVersions() returned");
     return rval;
   }
 }
