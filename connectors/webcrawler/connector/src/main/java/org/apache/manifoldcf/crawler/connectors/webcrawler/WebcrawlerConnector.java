@@ -34,6 +34,7 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.net.*;
 import java.util.regex.*;
@@ -788,7 +789,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         String contentType = extractContentType(connection.getResponseHeader("Content-Type"));
                         String encoding = extractEncoding(contentType);
                         if (encoding == null)
-                          encoding = "utf-8";
+                          encoding = StandardCharsets.UTF_8.name();
                         String decodedResponse = "undecodable";
                         try
                         {
@@ -6993,7 +6994,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       String contentType = extractContentType(cache.getContentType(documentURI));
       String encoding = extractEncoding(contentType);
       if (encoding == null)
-        encoding = "utf-8";
+        encoding = StandardCharsets.UTF_8.name();
       
       // Search for A HREF tags in the document stream.  This is brain-dead link location
       InputStream is = cache.getData(documentURI);
@@ -7149,9 +7150,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             String nextString = is.readLine();
             if (nextString == null)
               break;
+            nextString = nextString.trim();
             if (nextString.length() == 0)
               continue;
-            nextString.trim();
             if (nextString.startsWith("#"))
               continue;
             list.add(nextString);
