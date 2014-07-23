@@ -48,6 +48,7 @@
           <tr><td>Configuration parameters</td><td>A hierarchical structure, internally represented as an XML document, which describes a specific configuration of a specific repository connector, i.e. <strong>how</strong> the connector should do its job; see <em>org.apache.manifoldcf.core.interfaces.ConfigParams</em></td></tr>
           <tr><td>Repository connection</td><td>A repository connector instance that has been furnished with configuration data</td></tr>
           <tr><td>Document identifier</td><td>An arbitrary identifier, whose meaning determined only within the context of a specific repository connector, which the connector uses to describe a document within a repository</td></tr>
+          <tr><td>Component identifier</td><td>An arbitrary identifier, whose meaning determined only within the context of a specific document, which the connector uses to describe a component of a document within a repository</td></tr>
           <tr><td>Document URI</td><td>The unique URI (or, in some cases, file IRI) of a document, which is meant to be displayed in search engine results as the link to the document</td></tr>
           <tr><td>Repository document</td><td>An object that describes a document's contents, including raw document data (as a stream), metadata (as either strings or streams), and access tokens; see <em>org.apache.manifoldcf.agents.interfaces.RepositoryDocument</em></td></tr>
           <tr><td>Access token</td><td>A string, which is only meaningful in the context of a specific authority, that describes a quantum of authorization for a user</td></tr>
@@ -70,6 +71,7 @@
           <li>Documentum (uses RMI to segregate native code, etc.)</li>
           <li>FileNet (also uses RMI, but because it is picky about its open-source jar versions)</li>
           <li>File system (a good, but simple, example)</li>
+          <li>Jira (demonstrates good use of session management)</li>
           <li>LiveLink (demonstrates use of local keystore infrastructure)</li>
           <li>Meridio (local keystore, web services, result sets)</li>
           <li>SharePoint (local keystore, web services)</li>
@@ -88,8 +90,7 @@
           <table>
             <tr><th>Method</th><th>What it should do</th></tr>
             <tr><td><strong>addSeedDocuments()</strong></td><td>Use the supplied document specification to come up with an initial set of document identifiers</td></tr>
-            <tr><td><strong>getDocumentVersions()</strong></td><td>Come up with a version string for each of the documents described by the supplied set of document identifiers, or signal if the document is no longer present</td></tr>
-            <tr><td><strong>processDocuments()</strong></td><td>Take the appropriate action (e.g. ingest, or extract references from, or whatever) for a given set of documents described by document identifier and version string</td></tr>
+            <tr><td><strong>processDocuments()</strong></td><td>For a set of documents, compute a version string, and take the appropriate action (e.g. ingest, or extract references from, or whatever)</td></tr>
             <tr><td><strong>outputConfigurationHeader()</strong></td><td>Output the head-section part of a repository connection <em>ConfigParams</em> editing page</td></tr>
             <tr><td><strong>outputConfigurationBody()</strong></td><td>Output the body-section part of a repository connection <em>ConfigParams</em> editing page</td></tr>
             <tr><td><strong>processConfigurationPost()</strong></td><td>Receive and process form data from a repository connection <em>ConfigParams</em> editing page</td></tr>
@@ -140,7 +141,7 @@
           <ul>
             <li>Calculate a version string for the document</li>
             <li>Find child references for the document</li>
-            <li>Get the document's content, metadata, and access tokens</li>
+            <li>Get the document's content, metadata, and access tokens, and/or component content, metadata, and access tokens</li>
           </ul>
           <p></p>
           <p>We highly recommend that no additional information be included in the document identifier, other than what is needed for the above, as that will almost certainly cause problems.</p>
@@ -150,21 +151,22 @@
           <title>Choosing the form of the document version string</title>
           <p></p>
           <p>The document version string is used by ManifoldCF to determine whether or not the document or configuration changed in such a way as to require that the document
-            be reprocessed.  ManifoldCF therefore requests the version string for any document that is ready for processing, and usually does not process the document again if the
+            be reprocessed.  ManifoldCF therefore requires a version string for any document that is to be indexed, and connectors usually do not process the document again if the
             returned version string agrees with the version string it has stored.</p>
           <p></p>
-          <p>Thinking about it more carefully, it is clear that what a connector writer needs to do is include everything in the version string that could potentially affect how the
+          <p>Thinking about this carefully, it is clear that what a connector writer needs to do is include everything in the version string that could potentially affect how the
             document gets processed.  That may include the version of the document in the repository, bits of configuration information, metadata, and even access tokens (if the
             underlying repository versions these things independently from the document itself).  Storing all of that information in the version string seems like a lot - but the string
-            is unlimited in length, and it actually serves another useful purpose to do it that way.  Specifically, when it comes time to do the actual processing, it's often the correct
-            thing to do to obtain the necessary data out of the version string, rather than calculating it or fetching it anew.  That way of working guarantees that the document
-            processing was done in a manner that agrees with its recorded version string, thus eliminating any chance of ManifoldCF getting confused.</p>
-          <p></p>
-          <p>For longer data that needs to persist between the <strong>getDocumentVersions()</strong> method call and the <strong>processDocuments()</strong> method
-            call, the connector is welcome to save this information in a temporary disk file.  To help make sure nothing leaks which this approach is used, the IRepositoryConnector
-            interface has a method that will be called to clean up any temporary files that might have been created in the handling of a given document identifier.</p>
+            is unlimited in length, and it is the only way ManifoldCF knows to determine if something has changed in the repository.</p>
           <p></p>
         </section>
+        <section>
+          <title>Document components</title>
+          <p></p>
+          <p>ManifoldCF considers all documents to consist of zero or more components.  A component is what is actually indexed, which means that each component has its own
+            identifier, data, metadata, access tokens, and URI.  It is up to your repository connector to break documents into components, if needed.  Most of the time, a repository document
+            consists of a single component.</p>
+          <p></p>
         <section>
           <title>Notes on connector UI methods</title>
           <p></p>
