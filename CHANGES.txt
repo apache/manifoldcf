@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-984: Add Tika extraction metadata, and also add
+ability to ignore tika exceptions.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-989: Introduce document sub-components, which
 is a way of having multiple indexed documents corresponding to a
 single repository document.

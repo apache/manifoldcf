@@ -31,6 +31,7 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
+import org.apache.tika.metadata.TikaMetadataKeys;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -43,6 +44,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
   private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
   private static final String EDIT_SPECIFICATION_FIELDMAPPING_HTML = "editSpecification_FieldMapping.html";
+  private static final String EDIT_SPECIFICATION_EXCEPTIONS_HTML = "editSpecification_Exceptions.html";
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 
   protected static final String ACTIVITY_EXTRACT = "extract";
@@ -188,6 +190,15 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     try
     {
       Metadata metadata = new Metadata();
+      if (document.getFileName() != null)
+      {
+        metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, document.getFileName());
+        metadata.add("stream_name", document.getFileName());
+      }
+      if (document.getMimeType() != null)
+        metadata.add("Content-Type", document.getMimeType());
+      metadata.add("stream_size", new Long(document.getBinaryLength()).toString());
+
       // We only log the extraction
       long startTime = System.currentTimeMillis();
       String resultCode = "OK";
@@ -211,15 +222,29 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             }
             catch (TikaException e)
             {
-              resultCode = "TIKAEXCEPTION";
-              description = e.getMessage();
-              return handleTikaException(e);
+              if (sp.ignoreTikaException())
+              {
+                resultCode = "TIKAEXCEPTION";
+                description = e.getMessage();
+              }
+              else
+              {
+                resultCode = "TIKAREJECTION";
+                description = e.getMessage();
+                int rval = handleTikaException(e);
+                if (rval == DOCUMENTSTATUS_REJECTED)
+                  activities.noDocument();
+                return rval;
+              }
             }
             catch (SAXException e)
             {
               resultCode = "SAXEXCEPTION";
               description = e.getMessage();
-              return handleSaxException(e);
+              int rval = handleSaxException(e);
+              if (rval == DOCUMENTSTATUS_REJECTED)
+                activities.noDocument();
+              return rval;
             }
             catch (IOException e)
             {
@@ -284,10 +309,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         }
 
         // Send new document downstream
-        int rval = activities.sendDocument(documentURI,docCopy);
-        length =  new Long(newBinaryLength);
-        resultCode = (rval == DOCUMENTSTATUS_ACCEPTED)?"ACCEPTED":"REJECTED";
-        return rval;
+        return activities.sendDocument(documentURI,docCopy);
       }
       finally
       {
@@ -339,10 +361,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     paramMap.put("SEQNUM",Integer.toString(connectionSequenceNumber));
 
     tabsArray.add(Messages.getString(locale, "TikaExtractor.FieldMappingTabName"));
+    tabsArray.add(Messages.getString(locale, "TikaExtractor.ExceptionsTabName"));
 
     // Fill in the specification header map, using data from all tabs.
     fillInFieldMappingSpecificationMap(paramMap, os);
-
+    fillInExceptionsSpecificationMap(paramMap, os);
+    
     Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_JS,paramMap);
   }
   
@@ -371,7 +395,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     // Fill in the field mapping tab data
     fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInExceptionsSpecificationMap(paramMap, os);
+
     Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_FIELDMAPPING_HTML,paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_EXCEPTIONS_HTML,paramMap);
   }
 
   /** Process a specification post.
@@ -455,6 +482,27 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       os.addChild(os.getChildCount(), node);
     }
     
+    if (variableContext.getParameter(seqPrefix+"ignoretikaexceptions_present") != null)
+    {
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION))
+          os.removeChild(i);
+        else
+          i++;
+      }
+
+      String value = variableContext.getParameter(seqPrefix+"ignoretikaexceptions");
+      if (value == null)
+        value = "false";
+
+      SpecificationNode node = new SpecificationNode(TikaConfig.NODE_IGNORETIKAEXCEPTION);
+      node.setAttribute(TikaConfig.ATTRIBUTE_VALUE, value);
+      os.addChild(os.getChildCount(), node);
+    }
+    
     return null;
   }
   
@@ -477,6 +525,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     // Fill in the map with data from all tabs
     fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInExceptionsSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out,locale,VIEW_SPECIFICATION_HTML,paramMap);
     
@@ -514,6 +563,20 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     }
     paramMap.put("FIELDMAPPINGS",fieldMappings);
     paramMap.put("KEEPALLMETADATA",keepAllMetadataValue);
+  }
+
+  protected static void fillInExceptionsSpecificationMap(Map<String,Object> paramMap, Specification os)
+  {
+    String ignoreTikaExceptions = "true";
+    for (int i = 0; i < os.getChildCount(); i++)
+    {
+      SpecificationNode sn = os.getChild(i);
+      if (sn.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION))
+      {
+        ignoreTikaExceptions = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+      }
+    }
+    paramMap.put("IGNORETIKAEXCEPTIONS",ignoreTikaExceptions);
   }
 
   protected static int handleTikaException(TikaException e)
@@ -683,9 +746,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     
     private final Map<String,String> sourceTargets = new HashMap<String,String>();
     private final boolean keepAllMetadata;
+    private final boolean ignoreTikaException;
     
     public SpecPacker(Specification os) {
       boolean keepAllMetadata = true;
+      boolean ignoreTikaException = true;
       for (int i = 0; i < os.getChildCount(); i++) {
         SpecificationNode sn = os.getChild(i);
         
@@ -700,9 +765,13 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             target = "";
           }
           sourceTargets.put(source, target);
+        } else if (sn.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION)) {
+          String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+          ignoreTikaException = Boolean.parseBoolean(value);
         }
       }
       this.keepAllMetadata = keepAllMetadata;
+      this.ignoreTikaException = ignoreTikaException;
     }
     
     public SpecPacker(String packedString) {
@@ -723,6 +792,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         keepAllMetadata = (packedString.charAt(index++) == '+');
       else
         keepAllMetadata = true;
+
+      // Ignore tika exception
+      if (packedString.length() > index)
+        ignoreTikaException = (packedString.charAt(index++) == '+');
+      else
+        ignoreTikaException = true;
       
     }
     
@@ -756,6 +831,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       else
         sb.append('-');
       
+      if (ignoreTikaException)
+        sb.append('+');
+      else
+        sb.append('-');
+
       return sb.toString();
     }
     
@@ -765,6 +845,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     
     public boolean keepAllMetadata() {
       return keepAllMetadata;
+    }
+    
+    public boolean ignoreTikaException() {
+      return ignoreTikaException;
     }
   }
 
