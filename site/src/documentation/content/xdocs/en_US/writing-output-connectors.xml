@@ -79,6 +79,7 @@
             <tr><td><strong>getPipelineDescription()</strong></td><td>Use the supplied output specification to come up with an output version string</td></tr>
             <tr><td><strong>addOrReplaceDocument()</strong></td><td>Add or replace the specified document within the target repository, or signal if the document cannot be handled</td></tr>
             <tr><td><strong>removeDocument()</strong></td><td>Remove the specified document from the target repository</td></tr>
+            <tr><td><strong>noteJobComplete()</strong></td><td>Called at the end of a job run or job deletion, so that the index can be updated in batch</td></tr>
             <tr><td><strong>outputConfigurationHeader()</strong></td><td>Output the head-section part of an output connection <em>ConfigParams</em> editing page</td></tr>
             <tr><td><strong>outputConfigurationBody()</strong></td><td>Output the body-section part of an output connection <em>ConfigParams</em> editing page</td></tr>
             <tr><td><strong>processConfigurationPost()</strong></td><td>Receive and process form data from an output connection <em>ConfigParams</em> editing page</td></tr>

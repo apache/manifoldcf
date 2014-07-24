@@ -36,6 +36,7 @@ import java.net.MalformedURLException;
 import java.util.*;
 import java.util.regex.*;
 
+import org.apache.http.Consts;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -55,6 +56,7 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
+import org.apache.solr.common.SolrInputDocument;
 
 
 /**
@@ -82,25 +84,29 @@ public class HttpPoster
   protected SolrServer solrServer = null;
   
   // Action URI pieces
-  private String postUpdateAction;
-  private String postRemoveAction;
-  private String postStatusAction;
+  private final String postUpdateAction;
+  private final String postRemoveAction;
+  private final String postStatusAction;
   
   // Attribute names
-  private String allowAttributeName;
-  private String denyAttributeName;
-  private String idAttributeName;
-  private String modifiedDateAttributeName;
-  private String createdDateAttributeName;
-  private String indexedDateAttributeName;
-  private String fileNameAttributeName;
-  private String mimeTypeAttributeName;
+  private final String allowAttributeName;
+  private final String denyAttributeName;
+  private final String idAttributeName;
+  private final String modifiedDateAttributeName;
+  private final String createdDateAttributeName;
+  private final String indexedDateAttributeName;
+  private final String fileNameAttributeName;
+  private final String mimeTypeAttributeName;
+  private final String contentAttributeName;
+  
+  // Whether we use extract/update handler or not
+  private final boolean useExtractUpdateHandler;
   
   // Document max length
-  private Long maxDocumentLength;
+  private final Long maxDocumentLength;
 
   // Commit-within flag
-  private String commitWithin;
+  private final String commitWithin;
 
   // Constants we need
   private static final String LITERAL = "literal.";
@@ -118,9 +124,9 @@ public class HttpPoster
     String updatePath, String removePath, String statusPath,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
     String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
-    String fileNameAttributeName, String mimeTypeAttributeName,
+    String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     Long maxDocumentLength,
-    String commitWithin)
+    String commitWithin, boolean useExtractUpdateHandler)
     throws ManifoldCFException
   {
     // These are the paths to the handlers in Solr that deal with the actions we need to do
@@ -138,6 +144,8 @@ public class HttpPoster
     this.indexedDateAttributeName = indexedDateAttributeName;
     this.fileNameAttributeName = fileNameAttributeName;
     this.mimeTypeAttributeName = mimeTypeAttributeName;
+    this.contentAttributeName = contentAttributeName;
+    this.useExtractUpdateHandler = useExtractUpdateHandler;
     
     this.maxDocumentLength = maxDocumentLength;
     
@@ -164,9 +172,9 @@ public class HttpPoster
     String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
     String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
-    String fileNameAttributeName, String mimeTypeAttributeName,
+    String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     IKeystoreManager keystoreManager, Long maxDocumentLength,
-    String commitWithin)
+    String commitWithin, boolean useExtractUpdateHandler)
     throws ManifoldCFException
   {
     // These are the paths to the handlers in Solr that deal with the actions we need to do
@@ -184,6 +192,8 @@ public class HttpPoster
     this.indexedDateAttributeName = indexedDateAttributeName;
     this.fileNameAttributeName = fileNameAttributeName;
     this.mimeTypeAttributeName = mimeTypeAttributeName;
+    this.contentAttributeName = contentAttributeName;
+    this.useExtractUpdateHandler = useExtractUpdateHandler;
     
     this.maxDocumentLength = maxDocumentLength;
 
@@ -506,12 +516,12 @@ public class HttpPoster
    * @param document is the document structure to ingest.
    * @param arguments are the configuration arguments to pass in the post.  Key is argument name, value is a list of the argument values.
    * @param keepAllMetadata
-   *@param authorityNameString is the name of the governing authority for this document's acls, or null if none.
+   * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
    * @param activities is the activities object, so we can report what's happening.   @return true if the ingestion was successful, or false if the ingestion is illegal.
   * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
-    RepositoryDocument document, Map arguments, Map<String, List<String>> sourceTargets,
+    RepositoryDocument document, Map<String,List<String>> arguments, Map<String, List<String>> sourceTargets,
     boolean keepAllMetadata, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -544,7 +554,7 @@ public class HttpPoster
     try
     {
       IngestThread t = new IngestThread(documentURI,document,arguments,keepAllMetadata,sourceTargets,
-                                        aclsMap,denyAclsMap,commitWithin);
+                                        aclsMap,denyAclsMap);
       try
       {
         t.start();
@@ -803,6 +813,18 @@ public class HttpPoster
     }
   }
   
+  /**
+    * Output an acl level in a SolrInputDocument
+    */
+  protected void writeACLsInSolrDoc( SolrInputDocument inputDoc, String aclType, String[] acl, String[] denyAcl )
+  {
+    String metadataACLName = allowAttributeName + aclType;
+    inputDoc.addField( metadataACLName, acl );
+
+    String metadataDenyACLName = denyAttributeName + aclType;
+    inputDoc.addField( metadataDenyACLName, denyAcl );
+  }
+
   /** Killable thread that does ingestions.
   * Java 1.5 stopped permitting thread interruptions to abort socket waits.  As a result, it is impossible to get threads to shutdown cleanly that are doing
   * such waits.  So, the places where this happens are segregated in their own threads so that they can be just abandoned.
@@ -817,7 +839,6 @@ public class HttpPoster
     protected final Map<String,List<String>> sourceTargets;
     protected final Map<String,String[]> aclsMap;
     protected final Map<String,String[]> denyAclsMap;
-    protected final String commitWithin;
     protected final boolean keepAllMetadata;
     
     protected Long activityStart = null;
@@ -830,8 +851,7 @@ public class HttpPoster
 
     public IngestThread(String documentURI, RepositoryDocument document,
       Map<String, List<String>> arguments, boolean keepAllMetadata, Map<String, List<String>> sourceTargets,
-      Map<String,String[]> aclsMap, Map<String,String[]> denyAclsMap,
-      String commitWithin)
+      Map<String,String[]> aclsMap, Map<String,String[]> denyAclsMap)
     {
       super();
       setDaemon(true);
@@ -841,7 +861,6 @@ public class HttpPoster
       this.aclsMap = aclsMap;
       this.denyAclsMap = denyAclsMap;
       this.sourceTargets = sourceTargets;
-      this.commitWithin = commitWithin;
       this.keepAllMetadata=keepAllMetadata;
     }
 
@@ -860,81 +879,17 @@ public class HttpPoster
         // Open a socket to ingest, and to the response stream to get the post result
         try
         {
+          SolrInputDocument currentSolrDoc = new SolrInputDocument();
           ContentStreamUpdateRequest contentStreamUpdateRequest = new ContentStreamUpdateRequest(postUpdateAction);
-          
-          ModifiableSolrParams out = new ModifiableSolrParams();
-          
-          // Write the id field
-          writeField(out,LITERAL+idAttributeName,documentURI);
-          // Write the rest of the attributes
-          if (modifiedDateAttributeName != null)
+          if ( useExtractUpdateHandler )
           {
-            Date date = document.getModifiedDate();
-            if (date != null)
-              // Write value
-              writeField(out,LITERAL+modifiedDateAttributeName,DateParser.formatISO8601Date(date));
+            buildExtractUpdateHandlerRequest( length, is, contentType, contentName,
+              contentStreamUpdateRequest );
           }
-          if (createdDateAttributeName != null)
+          else
           {
-            Date date = document.getCreatedDate();
-            if (date != null)
-              // Write value
-              writeField(out,LITERAL+createdDateAttributeName,DateParser.formatISO8601Date(date));
+            currentSolrDoc = buildSolrDocument( length, is );
           }
-          if (indexedDateAttributeName != null)
-          {
-            Date date = document.getIndexingDate();
-            if (date != null)
-              // Write value
-              writeField(out,LITERAL+indexedDateAttributeName,DateParser.formatISO8601Date(date));
-          }
-          if (fileNameAttributeName != null)
-          {
-            String fileName = document.getFileName();
-            if (fileName != null)
-              writeField(out,LITERAL+fileNameAttributeName,fileName);
-          }
-          if (mimeTypeAttributeName != null)
-          {
-            String mimeType = document.getMimeType();
-            if (mimeType != null)
-              writeField(out,LITERAL+mimeTypeAttributeName,mimeType);
-          }
-          
-          // Write the access token information
-          // Both maps have the same keys.
-          Iterator<String> typeIterator = aclsMap.keySet().iterator();
-          while (typeIterator.hasNext())
-          {
-            String aclType = typeIterator.next();
-            writeACLs(out,aclType,aclsMap.get(aclType),denyAclsMap.get(aclType));
-          }
-
-          // Write the arguments
-          for (String name : arguments.keySet())
-          {
-            List<String> values = arguments.get(name);
-            writeField(out,name,values);
-          }
-
-          // Write the metadata, each in a field by itself
-           buildSolrParamsFromMetadata(out);
-             
-          // These are unnecessary now in the case of non-solrcloud setups, because we overrode the SolrJ posting method to use multipart.
-          //writeField(out,LITERAL+"stream_size",String.valueOf(length));
-          //writeField(out,LITERAL+"stream_name",document.getFileName());
-          
-          // General hint for Tika
-          if (document.getFileName() != null)
-            writeField(out,"resource.name",document.getFileName());
-          
-          // Write the commitWithin parameter
-          if (commitWithin != null)
-            writeField(out,COMMITWITHIN_METADATA,commitWithin);
-
-          contentStreamUpdateRequest.setParams(out);
-          
-          contentStreamUpdateRequest.addContentStream(new RepositoryDocumentStream(is,length,contentType,contentName));
 
           // Fire off the request.
           // Note: I need to know whether the document has been permanently rejected or not, but we currently have
@@ -942,8 +897,16 @@ public class HttpPoster
           try
           {
             readFromDocumentStreamYet = true;
-            UpdateResponse response = contentStreamUpdateRequest.process(solrServer);
-            
+            UpdateResponse response;
+            if ( useExtractUpdateHandler )
+            {
+              response = contentStreamUpdateRequest.process( solrServer );
+            }
+            else
+            {
+              response = solrServer.add( currentSolrDoc );
+            }
+
             // Successful completion
             activityStart = new Long(fullStartTime);
             activityBytes = new Long(length);
@@ -1008,6 +971,174 @@ public class HttpPoster
       }
     }
 
+    private SolrInputDocument buildSolrDocument( long length, InputStream is )
+      throws IOException
+    {
+      SolrInputDocument outputDoc = new SolrInputDocument();
+
+      // Write the id field
+      outputDoc.addField( idAttributeName, documentURI );
+      
+      if (contentAttributeName != null)
+      {
+        // Copy the content into a string.  This is a bad thing to do, but we have no choice given SolrJ architecture at this time.
+        // We enforce a size limit upstream.
+        Reader r = new InputStreamReader(is, Consts.UTF_8);
+        StringBuilder sb = new StringBuilder((int)length);
+        char[] buffer = new char[65536];
+        while (true)
+        {
+          int amt = r.read(buffer,0,buffer.length);
+          if (amt == -1)
+            break;
+          sb.append(buffer,0,amt);
+        }
+        outputDoc.addField( contentAttributeName, sb.toString() );
+      }
+      
+      // Write the rest of the attributes
+      if ( modifiedDateAttributeName != null )
+      {
+        Date date = document.getModifiedDate();
+        if ( date != null )
+        {
+          outputDoc.addField( modifiedDateAttributeName, DateParser.formatISO8601Date( date ) );
+        }
+      }
+      if ( createdDateAttributeName != null )
+      {
+        Date date = document.getCreatedDate();
+        if ( date != null )
+        {
+          outputDoc.addField( createdDateAttributeName, DateParser.formatISO8601Date( date ) );
+        }
+
+      }
+      if ( indexedDateAttributeName != null )
+      {
+        Date date = document.getIndexingDate();
+        if ( date != null )
+        {
+          outputDoc.addField( indexedDateAttributeName, DateParser.formatISO8601Date( date ) );
+        }
+      }
+      if ( fileNameAttributeName != null )
+      {
+        String fileName = document.getFileName();
+        if ( fileName != null )
+        {
+          outputDoc.addField( fileNameAttributeName, fileName );
+        }
+      }
+      if ( mimeTypeAttributeName != null )
+      {
+        String mimeType = document.getMimeType();
+        if ( mimeType != null )
+        {
+          outputDoc.addField( mimeTypeAttributeName, mimeType );
+        }
+      }
+
+      Iterator<String> typeIterator = aclsMap.keySet().iterator();
+      while (typeIterator.hasNext())
+      {
+        String aclType = typeIterator.next();
+        writeACLsInSolrDoc(outputDoc,aclType,aclsMap.get(aclType),denyAclsMap.get(aclType));
+      }
+
+      // Write the arguments
+      for ( String name : arguments.keySet() )
+      {
+        List<String> values = arguments.get( name );
+        outputDoc.addField( name, values );
+      }
+
+      // Write the metadata, each in a field by itself
+      buildSolrParamsFromMetadata( outputDoc );
+
+      return outputDoc;
+    }
+
+    private void buildExtractUpdateHandlerRequest( long length, InputStream is, String contentType,
+      String contentName,
+      ContentStreamUpdateRequest contentStreamUpdateRequest )
+      throws IOException
+    {
+      ModifiableSolrParams out = new ModifiableSolrParams();
+          
+      // Write the id field
+      writeField(out,LITERAL+idAttributeName,documentURI);
+      // Write the rest of the attributes
+      if (modifiedDateAttributeName != null)
+      {
+        Date date = document.getModifiedDate();
+        if (date != null)
+          // Write value
+          writeField(out,LITERAL+modifiedDateAttributeName,DateParser.formatISO8601Date(date));
+      }
+      if (createdDateAttributeName != null)
+      {
+        Date date = document.getCreatedDate();
+        if (date != null)
+          // Write value
+          writeField(out,LITERAL+createdDateAttributeName,DateParser.formatISO8601Date(date));
+      }
+      if (indexedDateAttributeName != null)
+      {
+        Date date = document.getIndexingDate();
+        if (date != null)
+          // Write value
+          writeField(out,LITERAL+indexedDateAttributeName,DateParser.formatISO8601Date(date));
+      }
+      if (fileNameAttributeName != null)
+      {
+        String fileName = document.getFileName();
+        if (fileName != null)
+          writeField(out,LITERAL+fileNameAttributeName,fileName);
+      }
+      if (mimeTypeAttributeName != null)
+      {
+        String mimeType = document.getMimeType();
+        if (mimeType != null)
+          writeField(out,LITERAL+mimeTypeAttributeName,mimeType);
+      }
+          
+      // Write the access token information
+      // Both maps have the same keys.
+      Iterator<String> typeIterator = aclsMap.keySet().iterator();
+      while (typeIterator.hasNext())
+      {
+        String aclType = typeIterator.next();
+        writeACLs(out,aclType,aclsMap.get(aclType),denyAclsMap.get(aclType));
+      }
+
+      // Write the arguments
+      for (String name : arguments.keySet())
+      {
+        List<String> values = arguments.get(name);
+        writeField(out,name,values);
+      }
+
+      // Write the metadata, each in a field by itself
+      buildSolrParamsFromMetadata(out);
+             
+      // These are unnecessary now in the case of non-solrcloud setups, because we overrode the SolrJ posting method to use multipart.
+      //writeField(out,LITERAL+"stream_size",String.valueOf(length));
+      //writeField(out,LITERAL+"stream_name",document.getFileName());
+          
+      // General hint for Tika
+      if (document.getFileName() != null)
+        writeField(out,"resource.name",document.getFileName());
+          
+      // Write the commitWithin parameter
+      if (commitWithin != null)
+        writeField(out,COMMITWITHIN_METADATA,commitWithin);
+
+      contentStreamUpdateRequest.setParams(out);
+          
+      contentStreamUpdateRequest.addContentStream(new RepositoryDocumentStream(is,length,contentType,contentName));
+    }
+
     /**
       * builds the solr parameter maps for the update request.
       * For each mapping expressed is applied the renaming for the metadata field name.
@@ -1044,6 +1175,34 @@ public class HttpPoster
       }
     }
 
+    private void buildSolrParamsFromMetadata(SolrInputDocument outputDocument) throws IOException
+    {
+      if (this.keepAllMetadata)
+      {
+        Iterator<String> iter = document.getFields();
+        while (iter.hasNext())
+        {
+          String fieldName = iter.next();
+          List<String> mappings = sourceTargets.get(fieldName);
+          if (mappings != null)
+            for (String newFieldName : mappings)
+              applySingleMapping(fieldName, outputDocument, newFieldName);
+          else // the fields not mentioned in the mapping are added only if we have set the keep all metadata=true.
+            applySingleMapping(fieldName, outputDocument, fieldName);
+        }
+      }
+      else
+      {
+        //don't keep all the metadata but only the ones in sourceTargets
+        for (String originalFieldName : sourceTargets.keySet())
+        {
+          List<String> mapping = sourceTargets.get(originalFieldName);
+          for (String newFieldName : mapping)
+            applySingleMapping(originalFieldName, outputDocument, newFieldName);
+        }
+      }
+    }
+
     private void applySingleMapping(String originalFieldName, ModifiableSolrParams out, String newFieldName) throws IOException {
       if(newFieldName != null && !newFieldName.isEmpty()) {
         if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
@@ -1051,6 +1210,16 @@ public class HttpPoster
         }
         String[] values = document.getFieldAsStrings(originalFieldName);
         writeField(out,LITERAL+newFieldName,values);
+      }
+    }
+
+    private void applySingleMapping(String originalFieldName, SolrInputDocument outputDocument, String newFieldName) throws IOException {
+      if(newFieldName != null && !newFieldName.isEmpty()) {
+        if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
+          newFieldName = ID_METADATA;
+        }
+        String[] values = document.getFieldAsStrings(originalFieldName);
+        outputDocument.addField( newFieldName, values );
       }
     }
 
