@@ -984,13 +984,18 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>As with all document transformers,  more than one Tika Content Extractor transformation filter can be used in a single pipeline.  In the case
                       of the Tika Content Extractor, this does not seem to be of much utility.</p>
                 <p>The Tika Content Extractor transformation connection type does not require anything other than standard configuration information.</p>
-                <p>The Tika Content Extractor transformation connection type contributes a single tab to a job definition.  This the "Field mapping" tab, which
-                      looks like this:</p>
+                <p>The Tika Content Extractor transformation connection type contributes two tabs to a job definition.  These are the "Field mapping" tab, and the "Exceptions" tab.
+                      The "Field mapping" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/tika-job-field-mapping.PNG" alt="Tika Content Extractor specification, Field Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>Enter a Tika-generated metadata field name, and a final field name, and click the "Add" button to add the mapping to the list.  Uncheck the
                       "Keep all metadata" checkbox if you want unspecified Tika metadata to be excluded from the final document.</p>
+                <p>The "Exceptions" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/tika-job-exceptions.PNG" alt="Tika Content Extractor specification, Exceptions tab" width="80%"/>
+                <br/><br/>
+                <p>Uncheck the checkbox to allow indexing of document metadata even when Tika fails to extract content from the document.</p>
             </section>
 
         </section>
