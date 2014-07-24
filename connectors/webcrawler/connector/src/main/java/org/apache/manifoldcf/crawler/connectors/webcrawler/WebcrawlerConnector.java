@@ -34,6 +34,7 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.net.*;
 import java.util.regex.*;
@@ -788,7 +789,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         String contentType = extractContentType(connection.getResponseHeader("Content-Type"));
                         String encoding = extractEncoding(contentType);
                         if (encoding == null)
-                          encoding = "utf-8";
+                          encoding = StandardCharsets.UTF_8.name();
                         String decodedResponse = "undecodable";
                         try
                         {
@@ -1331,7 +1332,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         // Leave document in jobqueue, but do NOT get rid of it, or we will wind up seeing it queued again by
         // somebody else.  We *do* have to signal the document to be removed from the index, however, or it will
         // stick around until the job is deleted.
-        activities.deleteDocument(documentIdentifier,version);
+        activities.noDocument(documentIdentifier,version);
         continue;
       }
 
@@ -1465,7 +1466,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           // We do this by using a null url and a null repository document.  If a document with this identifier was
           // previously indexed, it will be removed.
           
-          activities.deleteDocument(documentIdentifier,version);
+          activities.noDocument(documentIdentifier,version);
           
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("WEB: Decided not to ingest '"+documentIdentifier+"' because it did not match ingestability criteria");
@@ -6993,7 +6994,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       String contentType = extractContentType(cache.getContentType(documentURI));
       String encoding = extractEncoding(contentType);
       if (encoding == null)
-        encoding = "utf-8";
+        encoding = StandardCharsets.UTF_8.name();
       
       // Search for A HREF tags in the document stream.  This is brain-dead link location
       InputStream is = cache.getData(documentURI);
@@ -7149,9 +7150,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             String nextString = is.readLine();
             if (nextString == null)
               break;
+            nextString = nextString.trim();
             if (nextString.length() == 0)
               continue;
-            nextString.trim();
             if (nextString.startsWith("#"))
               continue;
             list.add(nextString);

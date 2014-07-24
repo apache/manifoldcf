@@ -37,42 +37,6 @@
             <include name="jackson-core*.jar"/>
             <include name="jackson-databind*.jar"/>
             <include name="jackson-annotations*.jar"/>
-            <include name="tika-core*.jar"/>
-            <include name="tika-parsers*.jar"/>
-            <include name="tagsoup*.jar"/>
-            <include name="poi*.jar"/>
-            <include name="vorbis-java-tika*.jar"/>
-            <include name="vorbis-java-core*.jar"/>
-            <include name="netcdf*.jar"/>
-            <include name="apache-mime4j-core*.jar"/>
-            <include name="apache-mime4j-dom*.jar"/>
-            <include name="commons-compress*.jar"/>
-            <include name="commons-codec*.jar"/>
-            <include name="pdfbox*.jar"/>
-            <include name="fontbox*.jar"/>
-            <include name="jempbox*.jar"/>
-            <include name="commons-logging*.jar"/>
-            <include name="bcmail-jdk15*.jar"/>
-            <include name="bcprov-jdk15*.jar"/>
-            <include name="poi-scratchpad*.jar"/>
-            <include name="poi-ooxml*.jar"/>
-            <include name="poi-ooxml-schemas*.jar"/>
-            <include name="xmlbeans*.jar"/>
-            <include name="dom4j*.jar"/>
-            <include name="geronimo-stax-api_1.0_spec*.jar"/>
-            <include name="asm-debug-all*.jar"/>
-            <include name="isoparser*.jar"/>
-            <include name="aspectjrt*.jar"/>
-            <include name="metadata-extractor*.jar"/>
-            <include name="xmpcore*.jar"/>
-            <include name="xml-apis*.jar"/>
-            <include name="boilerpipe*.jar"/>
-            <include name="rome*.jar"/>
-            <include name="jdom*.jar"/>
-            <include name="xercesImpl*.jar"/>
-            <include name="vorbis-java-core*.jar"/>
-            <include name="juniversalchardet*.jar"/>
-            <include name="jhighlight*.jar"/>
         </fileset>
     </path>
 
@@ -84,42 +48,6 @@
                 <include name="jackson-core*.jar"/>
                 <include name="jackson-databind*.jar"/>
                 <include name="jackson-annotations*.jar"/>
-                <include name="tika-core*.jar"/>
-                <include name="tika-parsers*.jar"/>
-                <include name="tagsoup*.jar"/>
-                <include name="poi*.jar"/>
-                <include name="vorbis-java-tika*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="netcdf*.jar"/>
-                <include name="apache-mime4j-core*.jar"/>
-                <include name="apache-mime4j-dom*.jar"/>
-                <include name="commons-compress*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="pdfbox*.jar"/>
-                <include name="fontbox*.jar"/>
-                <include name="jempbox*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="bcmail-jdk15*.jar"/>
-                <include name="bcprov-jdk15*.jar"/>
-                <include name="poi-scratchpad*.jar"/>
-                <include name="poi-ooxml*.jar"/>
-                <include name="poi-ooxml-schemas*.jar"/>
-                <include name="xmlbeans*.jar"/>
-                <include name="dom4j*.jar"/>
-                <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm-debug-all*.jar"/>
-                <include name="isoparser*.jar"/>
-                <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
-                <include name="xmpcore*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="boilerpipe*.jar"/>
-                <include name="rome*.jar"/>
-                <include name="jdom*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="juniversalchardet*.jar"/>
-                <include name="jhighlight*.jar"/>
             </fileset>
         </copy>
     </target>

@@ -156,7 +156,7 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
       String resourcePath = localizeResourceName(pathName, resourceKey, locale);
           
       Writer outputWriter = new OutputWriter(output);
-      engine.mergeTemplate(resourcePath, "UTF-8", context, outputWriter);
+      engine.mergeTemplate(resourcePath, StandardCharsets.UTF_8.name(), context, outputWriter);
       outputWriter.flush();
     } catch (IOException e) {
       throw new ManifoldCFException(e.getMessage(),e);

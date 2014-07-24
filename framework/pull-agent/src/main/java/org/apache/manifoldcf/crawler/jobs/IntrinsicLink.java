@@ -232,19 +232,17 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     String[] targetDocumentIDHashes, String linkType, String processID)
     throws ManifoldCFException
   {
-    HashMap duplicateRemoval = new HashMap();
+    Set<String> duplicateRemoval = new HashSet<String>();
     int maxClause = maxClausePerformExistsCheck(jobID,linkType,sourceDocumentIDHash);
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     int i = 0;
-    int k = 0;
     // Keep track of the document identifiers that have been seen vs. those that were unseen.
-    HashMap presentMap = new HashMap();
-    while (k < targetDocumentIDHashes.length)
+    Set<String> presentMap = new HashSet<String>();
+    for (String targetDocumentIDHash : targetDocumentIDHashes)
     {
-      String targetDocumentIDHash = targetDocumentIDHashes[k++];
-      if (duplicateRemoval.get(targetDocumentIDHash) != null)
+      if (duplicateRemoval.contains(targetDocumentIDHash))
         continue;
-      duplicateRemoval.put(targetDocumentIDHash,targetDocumentIDHash);
+      duplicateRemoval.add(targetDocumentIDHash);
       if (i == maxClause)
       {
         // Do the query and record the results
@@ -262,22 +260,22 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     // an update.
     // We have to count these by hand, in case there are duplicates in the array.
     int count = 0;
-    Iterator iter = duplicateRemoval.keySet().iterator();
+    Iterator<String> iter = duplicateRemoval.iterator();
     while (iter.hasNext())
     {
-      String targetDocumentIDHash = (String)iter.next();
-      if (presentMap.get(targetDocumentIDHash) == null)
+      String targetDocumentIDHash = iter.next();
+      if (!presentMap.contains(targetDocumentIDHash))
         count++;
     }
     String[] newReferences = new String[count];
     int j = 0;
     // Note: May be able to make this more efficient if we update things in batches...
-    iter = duplicateRemoval.keySet().iterator();
+    iter = duplicateRemoval.iterator();
     while (iter.hasNext())
     {
-      String targetDocumentIDHash = (String)iter.next();
+      String targetDocumentIDHash = iter.next();
 
-      if (presentMap.get(targetDocumentIDHash) == null)
+      if (!presentMap.contains(targetDocumentIDHash))
       {
         newReferences[j++] = targetDocumentIDHash;
         HashMap map = new HashMap();
@@ -319,7 +317,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   }
     
   /** Do the exists check, in batch. */
-  protected void performExistsCheck(Map presentMap, Long jobID, String linkType, String childIDHash, ArrayList list)
+  protected void performExistsCheck(Set<String> presentMap, Long jobID, String linkType, String childIDHash, List<String> list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -330,12 +328,11 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(childIDHashField,childIDHash)});
 
     IResultSet result = performQuery("SELECT "+parentIDHashField+" FROM "+getTableName()+" WHERE "+query+" FOR UPDATE",newList,null,null);
-    int i = 0;
-    while (i < result.getRowCount())
+    for (int i = 0; i < result.getRowCount(); i++)
     {
-      IResultRow row = result.getRow(i++);
+      IResultRow row = result.getRow(i);
       String parentIDHash = (String)row.getValue(parentIDHashField);
-      presentMap.put(parentIDHash,parentIDHash);
+      presentMap.add(parentIDHash);
     }
   }
 
@@ -375,10 +372,9 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     int maxClause = maxClausePerformRemoveDocumentLinks(jobID);
-    ArrayList list = new ArrayList();
-    int i = 0;
+    List<String> list = new ArrayList<String>();
     int k = 0;
-    while (i < documentIDHashes.length)
+    for (String documentIDHash : documentIDHashes)
     {
       if (k == maxClause)
       {
@@ -386,7 +382,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         list.clear();
         k = 0;
       }
-      list.add(documentIDHashes[i++]);
+      list.add(documentIDHash);
       k++;
     }
 
@@ -401,7 +397,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID)});
   }
     
-  protected void performRemoveDocumentLinks(ArrayList list, Long jobID)
+  protected void performRemoveDocumentLinks(List<String> list, Long jobID)
     throws ManifoldCFException
   {
     StringBuilder sb = new StringBuilder("WHERE ");
@@ -424,10 +420,9 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     int maxClause = maxClausePerformRemoveLinks(jobID);
-    ArrayList list = new ArrayList();
-    int i = 0;
+    List<String> list = new ArrayList<String>();
     int k = 0;
-    while (i < sourceDocumentIDHashes.length)
+    for (String sourceDocumentIDHash : sourceDocumentIDHashes)
     {
       if (k == maxClause)
       {
@@ -435,7 +430,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         list.clear();
         k = 0;
       }
-      list.add(sourceDocumentIDHashes[i++]);
+      list.add(sourceDocumentIDHash);
       k++;
     }
 
@@ -450,7 +445,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID)});
   }
     
-  protected void performRemoveLinks(ArrayList list, Long jobID, String commonNewExpression,
+  protected void performRemoveLinks(List<String> list, Long jobID, String commonNewExpression,
     ArrayList commonNewParams)
     throws ManifoldCFException
   {
@@ -474,10 +469,9 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     int maxClause = maxClausesPerformRestoreLinks(jobID);
-    ArrayList list = new ArrayList();
-    int i = 0;
+    List<String> list = new ArrayList<String>();
     int k = 0;
-    while (i < sourceDocumentIDHashes.length)
+    for (String sourceDocumentIDHash : sourceDocumentIDHashes)
     {
       if (k == maxClause)
       {
@@ -485,7 +479,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         list.clear();
         k = 0;
       }
-      list.add(sourceDocumentIDHashes[i++]);
+      list.add(sourceDocumentIDHash);
       k++;
     }
 
@@ -500,7 +494,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID)});
   }
   
-  protected void performRestoreLinks(Long jobID, ArrayList list)
+  protected void performRestoreLinks(Long jobID, List<String> list)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
@@ -516,6 +510,67 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       .append(newField).append(" IN (?,?)");
     newList.add(statusToString(LINKSTATUS_EXISTING));
     newList.add(statusToString(LINKSTATUS_NEW));
+    performUpdate(map,sb.toString(),newList,null);
+  }
+
+  /** Throw away links added during (aborted) processing.
+  */
+  public void revertLinks(Long jobID, String[] sourceDocumentIDHashes)
+    throws ManifoldCFException
+  {
+    int maxClause = maxClausesPerformRevertLinks(jobID);
+    List<String> list = new ArrayList<String>();
+    int k = 0;
+    for (String sourceDocumentIDHash : sourceDocumentIDHashes)
+    {
+      if (k == maxClause)
+      {
+        performRevertLinks(jobID,list);
+        list.clear();
+        k = 0;
+      }
+      list.add(sourceDocumentIDHash);
+      k++;
+    }
+
+    if (k > 0)
+      performRevertLinks(jobID,list);
+    noteModifications(0,sourceDocumentIDHashes.length,0);
+  }
+
+  protected int maxClausesPerformRevertLinks(Long jobID)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+  }
+  
+  protected void performRevertLinks(Long jobID, List<String> list)
+    throws ManifoldCFException
+  {
+    // First, delete everything marked as "new"
+    StringBuilder sb = new StringBuilder("WHERE ");
+    ArrayList newList = new ArrayList();
+
+    sb.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(childIDHashField,list)})).append(" AND ")
+      .append(newField).append("=?");
+    newList.add(statusToString(LINKSTATUS_NEW));
+    performDelete(sb.toString(),newList,null);
+
+    // Now map everything marked as "EXISTING" back to "BASE".
+    HashMap map = new HashMap();
+    map.put(newField,statusToString(LINKSTATUS_BASE));
+    map.put(processIDField,null);
+    
+    sb = new StringBuilder();
+    newList.clear();
+    
+    sb.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(childIDHashField,list)})).append(" AND ")
+      .append(newField).append("=?");
+    newList.add(statusToString(LINKSTATUS_EXISTING));
     performUpdate(map,sb.toString(),newList,null);
   }
 
@@ -547,11 +602,10 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     IResultSet set = performQuery("SELECT DISTINCT "+parentIDHashField+" FROM "+
       getTableName()+" WHERE "+query,list,null,null);
     String[] rval = new String[set.getRowCount()];
-    int i = 0;
-    while (i < rval.length)
+    for (int i = 0; i < rval.length; i++)
     {
       IResultRow row = set.getRow(i);
-      rval[i++] = (String)row.getValue(parentIDHashField);
+      rval[i] = (String)row.getValue(parentIDHashField);
     }
     return rval;
   }

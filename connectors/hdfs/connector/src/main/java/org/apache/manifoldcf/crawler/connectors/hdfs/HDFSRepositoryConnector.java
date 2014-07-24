@@ -350,6 +350,10 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       FileStatus fileStatus = getObject(new Path(documentIdentifier));
       if (fileStatus != null) {
         if (fileStatus.isDirectory()) {
+          // If HDFS directory modify dates are transitive, as they are on Unix,
+          // then getting the modify date of the current version is sufficient
+          // to detect any downstream changes we need to be aware of.
+          // (If this turns out to be a bad assumption, this should simply set rval[i] ="").
           long lastModified = fileStatus.getModificationTime();
           rval[i] = new Long(lastModified).toString();
         } else {
@@ -409,26 +413,31 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         
       if (fileStatus == null) {
         // It is no longer there , so delete right away
-        activities.deleteDocument(documentIdentifier,version);
+        activities.deleteDocument(documentIdentifier);
         continue;
       }
         
       if (fileStatus.isDirectory()) {
-        /*
-          * Queue up stuff for directory
-          */
-        String entityReference = documentIdentifier;
-        FileStatus[] fileStatuses = getChildren(fileStatus.getPath());
-        if (fileStatuses == null) {
-          // Directory was deleted, so remove
-          activities.deleteDocument(documentIdentifier,version);
-          continue;
-        }
-        for (int j = 0; j < fileStatuses.length; j++) {
-          FileStatus fs = fileStatuses[j++];
-          String canonicalPath = fs.getPath().toString();
-          if (checkInclude(session.getUri().toString(),fs,canonicalPath,spec)) {
-            activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
+        // Since we believe that downstream changes affect the current node's version string,
+        // then we only have to add references when there are detected changes.
+        if (!scanOnly[i]) {
+          activities.noDocument(documentIdentifier,version);
+          /*
+            * Queue up stuff for directory
+            */
+          String entityReference = documentIdentifier;
+          FileStatus[] fileStatuses = getChildren(fileStatus.getPath());
+          if (fileStatuses == null) {
+            // Directory was deleted, so remove
+            activities.deleteDocument(documentIdentifier);
+            continue;
+          }
+          for (int j = 0; j < fileStatuses.length; j++) {
+            FileStatus fs = fileStatuses[j++];
+            String canonicalPath = fs.getPath().toString();
+            if (checkInclude(session.getUri().toString(),fs,canonicalPath,spec)) {
+              activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
+            }
           }
         }
       } else {

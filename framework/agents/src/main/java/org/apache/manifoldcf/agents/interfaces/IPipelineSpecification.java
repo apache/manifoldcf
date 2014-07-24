@@ -36,6 +36,6 @@ public interface IPipelineSpecification
   *@param stage is the stage to get the connection name for.
   *@return the description string that stage.
   */
-  public String getStageDescriptionString(int stage);
+  public VersionContext getStageDescriptionString(int stage);
   
 }

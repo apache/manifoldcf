@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('ForcedMetadata.ForcedMetadata') && $SeqNum == $SelectedNum)
+#if($TABNAME == $ResourceBundle.getString('ForcedMetadata.ForcedMetadata') && $SEQNUM == $SELECTEDNUM)
 
 <table class="displaytable">
   <tr>
@@ -31,18 +31,18 @@
           <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.ParameterValue'))</nobr></td>
         </tr>
   #set($paramcounter = 0)
-  #foreach($paramrecord in $Parameters)
+  #foreach($paramrecord in $PARAMETERS)
     #if(($paramcounter % 2) == 0)
         <tr class="evenformrow">
     #else
         <tr class="oddformrow">
     #end
           <td class="formcolumncell">
-            <a name="s${SeqNum}_forcedmetadata_${paramcounter}_tag"/>
-            <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('ForcedMetadata.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('ForcedMetadata.Deleteforcedmetadatanumber'))${paramcounter}" onclick='javascript:s${SeqNum}_DeleteForcedMetadata(${paramcounter});'/>
-            <input type="hidden" name="s${SeqNum}_forcedmetadata_${paramcounter}_op" value="Continue"/>
-            <input type="hidden" name="s${SeqNum}_forcedmetadata_${paramcounter}_name" value="$Encoder.attributeEscape($paramrecord.get('parameter'))"/>
-            <input type="hidden" name="s${SeqNum}_forcedmetadata_${paramcounter}_value" value="$Encoder.attributeEscape($paramrecord.get('value'))"/>
+            <a name="s${SEQNUM}_forcedmetadata_${paramcounter}_tag"/>
+            <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('ForcedMetadata.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('ForcedMetadata.Deleteforcedmetadatanumber'))${paramcounter}" onclick='javascript:s${SEQNUM}_DeleteForcedMetadata(${paramcounter});'/>
+            <input type="hidden" name="s${SEQNUM}_forcedmetadata_${paramcounter}_op" value="Continue"/>
+            <input type="hidden" name="s${SEQNUM}_forcedmetadata_${paramcounter}_name" value="$Encoder.attributeEscape($paramrecord.get('parameter'))"/>
+            <input type="hidden" name="s${SEQNUM}_forcedmetadata_${paramcounter}_value" value="$Encoder.attributeEscape($paramrecord.get('value'))"/>
           </td>
           <td class="formcolumncell">
             <nobr>$Encoder.bodyEscape($paramrecord.get('parameter'))</nobr>
@@ -59,16 +59,16 @@
         <tr class="formrow"><td colspan="3" class="formseparator"><hr/></td></tr>
         <tr class="formrow">
           <td class="formcolumncell">
-            <a name="s${SeqNum}_forcedmetadata_tag"/>
-            <input type="hidden" name="s${SeqNum}_forcedmetadata_op" value="Continue"/>
-            <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('ForcedMetadata.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('ForcedMetadata.Addforcedmetadata'))" onclick="javascript:s${SeqNum}_AddForcedMetadata();"/>
-            <input type="hidden" name="s${SeqNum}_forcedmetadata_count" value="${paramcounter}"/>
+            <a name="s${SEQNUM}_forcedmetadata_tag"/>
+            <input type="hidden" name="s${SEQNUM}_forcedmetadata_op" value="Continue"/>
+            <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('ForcedMetadata.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('ForcedMetadata.Addforcedmetadata'))" onclick="javascript:s${SEQNUM}_AddForcedMetadata();"/>
+            <input type="hidden" name="s${SEQNUM}_forcedmetadata_count" value="${paramcounter}"/>
           </td>
           <td class="formcolumncell">
-            <input type="text" name="s${SeqNum}_forcedmetadata_name" size="30" value=""/>
+            <input type="text" name="s${SEQNUM}_forcedmetadata_name" size="30" value=""/>
           </td>
           <td class="formcolumncell">
-            <input type="text" name="s${SeqNum}_forcedmetadata_value" size="30" value=""/>
+            <input type="text" name="s${SEQNUM}_forcedmetadata_value" size="30" value=""/>
           </td>
         </tr>
       </table>
@@ -79,11 +79,11 @@
 #else
 
   #set($paramcounter = 0)
-  #foreach($paramrecord in $Parameters)
-<input type="hidden" name="s${SeqNum}_forcedmetadata_${paramcounter}_name" value="$Encoder.attributeEscape($paramrecord.get('parameter'))" />
-<input type="hidden" name="s${SeqNum}_forcedmetadata_${paramcounter}_value" value="$Encoder.attributeEscape($paramrecord.get('value'))" />
+  #foreach($paramrecord in $PARAMETERS)
+<input type="hidden" name="s${SEQNUM}_forcedmetadata_${paramcounter}_name" value="$Encoder.attributeEscape($paramrecord.get('parameter'))" />
+<input type="hidden" name="s${SEQNUM}_forcedmetadata_${paramcounter}_value" value="$Encoder.attributeEscape($paramrecord.get('value'))" />
     #set($paramcounter = $paramcounter + 1)
   #end
-<input type="hidden" name="s${SeqNum}_forcedmetadata_count" value="${paramcounter}"/>
+<input type="hidden" name="s${SEQNUM}_forcedmetadata_count" value="${paramcounter}"/>
 
 #end
