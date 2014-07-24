@@ -442,7 +442,7 @@ public class ManifoldCFInstance
     HttpPut method = new HttpPut(apiURL);
     try
     {
-      method.setEntity(new StringEntity(input,ContentType.create("text/plain","UTF-8")));
+      method.setEntity(new StringEntity(input,ContentType.create("text/plain",StandardCharsets.UTF_8)));
       HttpResponse response = client.execute(method);
       int responseCode = response.getStatusLine().getStatusCode();
       String responseString = convertToString(response);
@@ -470,7 +470,7 @@ public class ManifoldCFInstance
     HttpPost method = new HttpPost(apiURL);
     try
     {
-      method.setEntity(new StringEntity(input,ContentType.create("text/plain","UTF-8")));
+      method.setEntity(new StringEntity(input,ContentType.create("text/plain",StandardCharsets.UTF_8)));
       HttpResponse response = client.execute(method);
       int responseCode = response.getStatusLine().getStatusCode();
       String responseString = convertToString(response);

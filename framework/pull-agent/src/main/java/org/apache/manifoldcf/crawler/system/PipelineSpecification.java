@@ -27,17 +27,17 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 public class PipelineSpecification implements IPipelineSpecification
 {
   protected final IPipelineSpecificationBasic basicSpecification;
-  protected final String[] pipelineDescriptionStrings;
+  protected final VersionContext[] pipelineDescriptionStrings;
     
   public PipelineSpecification(IPipelineSpecificationBasic basicSpecification, IJobDescription job, IIncrementalIngester ingester)
     throws ManifoldCFException, ServiceInterruption
   {
     this.basicSpecification = basicSpecification;
-    this.pipelineDescriptionStrings = new String[basicSpecification.getStageCount()];
+    this.pipelineDescriptionStrings = new VersionContext[basicSpecification.getStageCount()];
     for (int i = 0; i < pipelineDescriptionStrings.length; i++)
     {
       // Note: this needs to change when output connections become part of the pipeline
-      String descriptionString;
+      VersionContext descriptionString;
       if (basicSpecification.checkStageOutputConnection(i))
       {
         descriptionString = ingester.getOutputDescription(basicSpecification.getStageConnectionName(i),job.getPipelineStageSpecification(i));
@@ -64,7 +64,7 @@ public class PipelineSpecification implements IPipelineSpecification
   *@return the description string that stage.
   */
   @Override
-  public String getStageDescriptionString(int stage)
+  public VersionContext getStageDescriptionString(int stage)
   {
     return pipelineDescriptionStrings[stage];
   }

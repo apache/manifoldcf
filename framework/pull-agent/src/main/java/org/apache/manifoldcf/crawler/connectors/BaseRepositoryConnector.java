@@ -132,6 +132,50 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   * It is not a big problem if the connector chooses to create more seeds than are
   * strictly necessary; it is merely a question of overall work required.
   *
+  * The end time and seeding version string passed to this method may be interpreted for greatest efficiency.
+  * For continuous crawling jobs, this method will
+  * be called once, when the job starts, and at various periodic intervals as the job executes.
+  *
+  * When a job's specification is changed, the framework automatically resets the seeding version string to null.  The
+  * seeding version string may also be set to null on each job run, depending on the connector model returned by
+  * getConnectorModel().
+  *
+  * Note that it is always ok to send MORE documents rather than less to this method.
+  * The connector will be connected before this method can be called.
+  *@param activities is the interface this method should use to perform whatever framework actions are desired.
+  *@param spec is a document specification (that comes from the job).
+  *@param seedTime is the end of the time range of documents to consider, exclusive.
+  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@return an updated seeding version string, to be stored with the job.
+  */
+  @Override
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
+    String lastSeedVersion, long seedTime, int jobMode)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    long startTime;
+    if (lastSeedVersion == null)
+      startTime = 0L;
+    else
+    {
+      // Unpack seed time from seed version string
+      startTime = new Long(lastSeedVersion).longValue();
+    }
+    addSeedDocuments(activities,spec,startTime,seedTime,jobMode);
+    return new Long(seedTime).toString();
+  }
+
+  /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
+  * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
+  *
+  * This method can choose to find repository changes that happen only during the specified time interval.
+  * The seeds recorded by this method will be viewed by the framework based on what the
+  * getConnectorModel() method returns.
+  *
+  * It is not a big problem if the connector chooses to create more seeds than are
+  * strictly necessary; it is merely a question of overall work required.
+  *
   * The times passed to this method may be interpreted for greatest efficiency.  The time ranges
   * any given job uses with this connector will not overlap, but will proceed starting at 0 and going
   * to the "current time", each time the job is run.  For continuous crawling jobs, this method will
@@ -148,7 +192,6 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param endTime is the end of the time range to consider, exclusive.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
-  @Override
   public void addSeedDocuments(ISeedingActivity activities, Specification spec,
     long startTime, long endTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
@@ -281,6 +324,128 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
     return null;
   }
 
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+  */
+  @Override
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // The backwards-compatible base implementation does the following:
+    // (1) Uses the deprecated methods to obtain a set of version information
+    // (2) Based on the provided version information, determines whether processing is required
+    // (3) Uses deprecated methods to process documents
+    // (4) Releases document versions
+
+    // We need to get the old version strings together in order to use the deprecated methods
+    String[] oldVersions = new String[documentIdentifiers.length];
+    for (int i = 0; i < oldVersions.length; i++)
+    {
+      oldVersions[i] = statuses.getIndexedVersionString(documentIdentifiers[i]);
+    }
+    DocumentVersions dv = new DocumentVersions();
+    getDocumentVersions(dv,documentIdentifiers,oldVersions,activities,spec,jobMode,usesDefaultAuthority);
+    try
+    {
+      // Next, we determine what part of the set of documents were unchanged, and what part we need to refetch.
+      Set<String> fetchDocuments = new HashSet<String>();
+      Set<String> scanDocuments = new HashSet<String>();
+      for (int i = 0; i < documentIdentifiers.length; i++)
+      {
+        String documentIdentifier = documentIdentifiers[i];
+        VersionContext vc = dv.getDocumentVersion(documentIdentifier);
+        if (vc != null)
+        {
+          if (dv.isAlwaysRefetch(documentIdentifier) || activities.checkDocumentNeedsReindexing(documentIdentifier,vc.getVersionString()))
+          {
+            // These documents need reprocessing
+            fetchDocuments.add(documentIdentifier);
+          }
+          else
+          {
+            // Document is unchanged.  We leave it up to the framework to decide what that means.
+          }
+          scanDocuments.add(documentIdentifier);
+        }
+        else
+        {
+          // These documents must go away permanently
+          // MHL to collect these and do them as a group
+          activities.deleteDocument(documentIdentifier);
+        }
+      }
+
+      // Construct the appropriate data to call processDocuments() with
+      String[] processIDs = new String[scanDocuments.size()];
+      boolean[] scanOnly = new boolean[scanDocuments.size()];
+      int index = 0;
+      for (int i = 0; i < documentIdentifiers.length; i++)
+      {
+        String documentIdentifier = documentIdentifiers[i];
+        if (scanDocuments.contains(documentIdentifier))
+        {
+          processIDs[index] = documentIdentifier;
+          scanOnly[index] = !fetchDocuments.contains(documentIdentifier);
+          index++;
+        }
+      }
+      processDocuments(processIDs,dv,activities,scanOnly,jobMode);
+      
+    }
+    finally
+    {
+      // Release document versions
+      releaseDocumentVersions(documentIdentifiers,dv);
+    }
+  }
+
+  /** Get document versions given an array of document identifiers.
+  * This method is called for EVERY document that is considered. It is therefore important to perform
+  * as little work as possible here.
+  * The connector will be connected before this method can be called.
+  *@param documentVersions is the versions object, to be filled in by this method.
+  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
+  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
+  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
+  *   had an empty version string.
+  *@param activities is the interface this method should use to perform whatever framework actions are desired.
+  *@param spec is the current document specification for the current job.  If there is a dependency on this
+  * specification, then the version string should include the pertinent data, so that reingestion will occur
+  * when the specification changes.  This is primarily useful for metadata.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+  */
+  public void getDocumentVersions(
+    DocumentVersions documentVersions,
+    String[] documentIdentifiers, String[] oldVersions,
+    IVersionActivity activities,
+    Specification spec, int jobMode, boolean usesDefaultAuthority)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    String[] rval = getDocumentVersions(documentIdentifiers,oldVersions,activities,
+      spec,jobMode,usesDefaultAuthority);
+    for (int i = 0; i < rval.length; i++)
+    {
+      if (rval[i] != null)
+      {
+        documentVersions.setDocumentVersion(documentIdentifiers[i],new VersionContext(rval[i],params,spec));
+        if (rval[i].length() == 0)
+          documentVersions.alwaysRefetch(documentIdentifiers[i]);
+      }
+    }
+  }
+
   /** Get document versions given an array of document identifiers.
   * This method is called for EVERY document that is considered. It is
   * therefore important to perform as little work as possible here.
@@ -298,7 +463,6 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
   * will always be processed.
   */
-  @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     Specification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
@@ -405,10 +569,35 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
   * committed during the getDocumentVersions() method.  It is guaranteed to be called AFTER any calls to
   * processDocuments() for the documents in question.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers.
+  *@param versions is the corresponding set of version strings (individual identifiers may have no version).
+  */
+  public void releaseDocumentVersions(String[] documentIdentifiers, DocumentVersions versions)
+    throws ManifoldCFException
+  {
+    String[] versionStrings = new String[documentIdentifiers.length];
+    for (int i = 0; i < versionStrings.length; i++)
+    {
+      VersionContext vc = versions.getDocumentVersion(documentIdentifiers[i]);
+      boolean alwaysFetch = versions.isAlwaysRefetch(documentIdentifiers[i]);
+      if (alwaysFetch)
+        versionStrings[i] = "";
+      else if (vc == null)
+        versionStrings[i] = null;
+      else
+        versionStrings[i] = vc.getVersionString();
+    }
+    releaseDocumentVersions(documentIdentifiers,versionStrings);
+  }
+
+  /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
+  * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
+  * committed during the getDocumentVersions() method.  It is guaranteed to be called AFTER any calls to
+  * processDocuments() for the documents in question.
   *@param documentIdentifiers is the set of document identifiers.
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
-  @Override
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
     throws ManifoldCFException
   {
@@ -429,6 +618,41 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   * This is the method that should cause each document to be fetched, processed, and the results either added
   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
   * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param versions are the version strings returned by getDocumentVersions() above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
+  * should only find other references, and should not actually call the ingestion methods.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  */
+  public void processDocuments(String[] documentIdentifiers, DocumentVersions versions, IProcessActivity activities,
+    boolean[] scanOnly, int jobMode)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    Specification spec = null;
+    String[] versionStrings = new String[documentIdentifiers.length];
+    for (int i = 0; i < versionStrings.length; i++)
+    {
+      VersionContext vc = versions.getDocumentVersion(documentIdentifiers[i]);
+      if (vc != null)
+        spec = vc.getSpecification();
+      boolean alwaysFetch = versions.isAlwaysRefetch(documentIdentifiers[i]);
+      if (alwaysFetch)
+        versionStrings[i] = "";
+      else if (vc == null)
+        versionStrings[i] = null;
+      else
+        versionStrings[i] = vc.getVersionString();
+    }
+    processDocuments(documentIdentifiers,versionStrings,activities,spec,scanOnly,jobMode);
+  }
+
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
   *@param documentIdentifiers is the set of document identifiers to process.
   *@param versions is the corresponding document versions to process, as returned by getDocumentVersions() above.
   *       The implementation may choose to ignore this parameter and always process the current version.
@@ -439,7 +663,6 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   * should only find other references, and should not actually call the ingestion methods.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
-  @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     Specification spec, boolean[] scanOnly, int jobMode)
     throws ManifoldCFException, ServiceInterruption

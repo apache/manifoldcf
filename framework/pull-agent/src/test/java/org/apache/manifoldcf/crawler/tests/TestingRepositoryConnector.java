@@ -81,7 +81,14 @@ public class TestingRepositoryConnector extends org.apache.manifoldcf.crawler.co
         RepositoryDocument rd = new RepositoryDocument();
         byte[] bytes = documentIdentifier.getBytes(StandardCharsets.UTF_8);
         rd.setBinary(new ByteArrayInputStream(bytes),bytes.length);
-        activities.ingestDocument(documentIdentifier,version,"http://"+documentIdentifier,rd);
+        try
+        {
+          activities.ingestDocumentWithException(documentIdentifier,version,"http://"+documentIdentifier,rd);
+        }
+        catch (IOException e)
+        {
+          throw new RuntimeException("Shouldn't be seeing IOException from binary array input stream: "+e.getMessage(),e);
+        }
       }
     }
   }

@@ -101,7 +101,7 @@ public class JobDescription implements IJobDescription
         pipelineStage.getIsOutput(),
         pipelineStage.getConnectionName(),
         pipelineStage.getDescription(),
-        pipelineStage.getSpecification().duplicate(readOnly)));
+        ((OutputSpecification)pipelineStage.getSpecification()).duplicate(readOnly)));
     }
     rval.description = description;
     rval.type = type;
@@ -244,7 +244,7 @@ public class JobDescription implements IJobDescription
   *@return the empty output specification for this pipeline stage.
   */
   @Override
-  public OutputSpecification addPipelineStage(int prerequisiteStage, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription)
+  public Specification addPipelineStage(int prerequisiteStage, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription)
   {
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
@@ -267,7 +267,7 @@ public class JobDescription implements IJobDescription
   *@return the newly-created output specification.
   */
   @Override
-  public OutputSpecification insertPipelineStage(int index, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription)
+  public Specification insertPipelineStage(int index, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription)
   {
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
@@ -333,7 +333,7 @@ public class JobDescription implements IJobDescription
   *@return the specification for the connection.
   */
   @Override
-  public OutputSpecification getPipelineStageSpecification(int index)
+  public Specification getPipelineStageSpecification(int index)
   {
     return pipelineStages.get(index).getSpecification();
   }
@@ -652,7 +652,7 @@ public class JobDescription implements IJobDescription
     protected final boolean isOutput;
     protected final String connectionName;
     protected final String description;
-    protected final OutputSpecification specification;
+    protected final Specification specification;
     
     public PipelineStage(int prerequisiteStage, boolean isOutput, String connectionName, String description)
     {
@@ -663,7 +663,7 @@ public class JobDescription implements IJobDescription
       this.specification = new OutputSpecification();
     }
 
-    public PipelineStage(int prerequisiteStage, boolean isOutput, String connectionName, String description, OutputSpecification spec)
+    public PipelineStage(int prerequisiteStage, boolean isOutput, String connectionName, String description, Specification spec)
     {
       this.prerequisiteStage = prerequisiteStage;
       this.isOutput = isOutput;
@@ -696,7 +696,7 @@ public class JobDescription implements IJobDescription
         prerequisiteStage = prerequisite;
     }
     
-    public OutputSpecification getSpecification()
+    public Specification getSpecification()
     {
       return specification;
     }

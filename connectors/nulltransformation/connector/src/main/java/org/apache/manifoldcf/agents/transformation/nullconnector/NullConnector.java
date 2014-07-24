@@ -62,7 +62,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.transformation.B
   *@throws IOException only if there's a stream error reading the document data.
   */
   @Override
-  public int addOrReplaceDocumentWithException(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
     long startTime = System.currentTimeMillis();
@@ -72,7 +72,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.transformation.B
     try
     {
       long binaryLength = document.getBinaryLength();
-      int rval = activities.sendDocument(documentURI,document,authorityNameString);
+      int rval = activities.sendDocument(documentURI,document);
       length =  new Long(binaryLength);
       resultCode = (rval == DOCUMENTSTATUS_ACCEPTED)?"ACCEPTED":"REJECTED";
       return rval;
