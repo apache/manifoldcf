@@ -3189,9 +3189,17 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     public int addOrReplaceDocumentWithException(String documentURI, RepositoryDocument document)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
-      return pipelineConnector.addOrReplaceDocumentWithException(
+      // If the transformation connector doesn't do what it should, compensate!
+      MonitoredAddActivityWrapper wrapper = new MonitoredAddActivityWrapper(addActivity);
+      int rval = pipelineConnector.addOrReplaceDocumentWithException(
         documentURI,pipelineDescriptionString,
-        document,authorityNameString,addActivity);
+        document,authorityNameString,wrapper);
+      // The wrapper detects activity by the connector, so if we don't see either sendDocument() or
+      // noDocument(), we issue noDocument() ourselves.  If the connector was an output connector,
+      // this will wind up being a no-op, but otherwise it will guarantee that recording takes place.
+      if (!wrapper.wasDocumentActedUpon())
+        addActivity.noDocument();
+      return rval;
     }
     
     public void noDocument()
@@ -3729,4 +3737,137 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     
   }
+  
+  /** This class passes everything through, and monitors what happens so that the
+  * framework can compensate for any transformation connector coding errors.
+  */
+  protected static class MonitoredAddActivityWrapper implements IOutputAddActivity
+  {
+    protected final IOutputAddActivity activities;
+    
+    protected boolean documentProcessed = false;
+    
+    public MonitoredAddActivityWrapper(IOutputAddActivity activities)
+    {
+      this.activities = activities;
+    }
+    
+    public boolean wasDocumentActedUpon()
+    {
+      return documentProcessed;
+    }
+
+    /** Send a document via the pipeline to the next output connection.
+    *@param documentURI is the document's URI.
+    *@param document is the document data to be processed (handed to the output data store).
+    *@return the document status (accepted or permanently rejected); return codes are listed in IPipelineConnector.
+    *@throws IOException only if there's an IO error reading the data from the document.
+    */
+    @Override
+    public int sendDocument(String documentURI, RepositoryDocument document)
+      throws ManifoldCFException, ServiceInterruption, IOException
+    {
+      int rval = activities.sendDocument(documentURI,document);
+      documentProcessed = true;
+      return rval;
+    }
+
+    /** Send NO document via the pipeline to the next output connection.  This is equivalent
+    * to sending an empty document placeholder.
+    */
+    @Override
+    public void noDocument()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      activities.noDocument();
+      documentProcessed = true;
+    }
+
+    /** Qualify an access token appropriately, to match access tokens as returned by mod_aa.  This method
+    * includes the authority name with the access token, if any, so that each authority may establish its own token space.
+    *@param authorityNameString is the name of the authority to use to qualify the access token.
+    *@param accessToken is the raw, repository access token.
+    *@return the properly qualified access token.
+    */
+    @Override
+    public String qualifyAccessToken(String authorityNameString, String accessToken)
+      throws ManifoldCFException
+    {
+      return activities.qualifyAccessToken(authorityNameString,accessToken);
+    }
+
+    /** Record time-stamped information about the activity of the output connector.
+    *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
+    *       activity has an associated time; the startTime field records when the activity began.  A null value
+    *       indicates that the start time and the finishing time are the same.
+    *@param activityType is a string which is fully interpretable only in the context of the connector involved, which is
+    *       used to categorize what kind of activity is being recorded.  For example, a web connector might record a
+    *       "fetch document" activity.  Cannot be null.
+    *@param dataSize is the number of bytes of data involved in the activity, or null if not applicable.
+    *@param entityURI is a (possibly long) string which identifies the object involved in the history record.
+    *       The interpretation of this field will differ from connector to connector.  May be null.
+    *@param resultCode contains a terse description of the result of the activity.  The description is limited in
+    *       size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
+    *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
+    *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
+    */
+    @Override
+    public void recordActivity(Long startTime, String activityType, Long dataSize,
+      String entityURI, String resultCode, String resultDescription)
+      throws ManifoldCFException
+    {
+      activities.recordActivity(startTime,activityType,dataSize,entityURI,resultCode,resultDescription);
+    }
+
+    /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param mimeType is the mime type of the document.
+    *@return true if the mime type can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkMimeTypeIndexable(String mimeType)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkMimeTypeIndexable(mimeType);
+    }
+
+    /** Pre-determine whether a document (passed here as a File object) is acceptable downstream.  This method is
+    * used to determine whether a document needs to be actually transferred.  This hook is provided mainly to support
+    * search engines that only handle a small set of accepted file types.
+    *@param localFile is the local file to check.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkDocumentIndexable(File localFile)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkDocumentIndexable(localFile);
+    }
+
+    /** Pre-determine whether a document's length is acceptable downstream.  This method is used
+    * to determine whether to fetch a document in the first place.
+    *@param length is the length of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkLengthIndexable(long length)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkLengthIndexable(length);
+    }
+
+    /** Pre-determine whether a document's URL is acceptable downstream.  This method is used
+    * to help filter out documents that cannot be indexed in advance.
+    *@param url is the URL of the document.
+    *@return true if the file is acceptable by the downstream connection.
+    */
+    @Override
+    public boolean checkURLIndexable(String url)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkURLIndexable(url);
+    }
+
+  }
+  
 }
