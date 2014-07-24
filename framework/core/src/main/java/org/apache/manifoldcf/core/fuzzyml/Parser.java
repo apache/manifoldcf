@@ -20,6 +20,7 @@ package org.apache.manifoldcf.core.fuzzyml;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /** This is the main parser class.
 * This class has an entry point for both parsing XML and HTML.  The way the
@@ -61,7 +62,7 @@ public class Parser
     // Update our notion of what the character set is
     startingCharset = bomEncodingDetector.getEncoding();
     if (startingCharset == null)
-      startingCharset = "utf-8";
+      startingCharset = StandardCharsets.UTF_8.name();
     // Reset the stream
     replayableInputStream.restart(false);
     // Set up a detection chain that includes the XML detector.
@@ -92,7 +93,7 @@ public class Parser
     throws IOException, ManifoldCFException
   {
     if (startingCharset == null)
-      startingCharset = "utf-8";
+      startingCharset = StandardCharsets.UTF_8.name();
     ByteReceiver byteReceiver = new DecodingByteReceiver(65536, startingCharset, characterReceiver);
     // Process to completion
     if (byteReceiver.dealWithBytes(inputStream) == false)

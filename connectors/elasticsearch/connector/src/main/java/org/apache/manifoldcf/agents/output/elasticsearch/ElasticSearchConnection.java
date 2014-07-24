@@ -149,6 +149,26 @@ public class ElasticSearchConnection
         exception = e;
       }
     }
+
+    public void finishUp()
+      throws HttpException, IOException, InterruptedException
+    {
+      join();
+      Throwable t = exception;
+      if (t != null)
+      {
+        if (t instanceof HttpException)
+          throw (HttpException)t;
+        else if (t instanceof IOException)
+          throw (IOException)t;
+        else if (t instanceof RuntimeException)
+          throw (RuntimeException)t;
+        else if (t instanceof Error)
+          throw (Error)t;
+        else
+          throw new RuntimeException("Unexpected exception thrown: "+t.getMessage(),t);
+      }
+    }
     
     public int getResultCode()
     {
@@ -178,22 +198,7 @@ public class ElasticSearchConnection
       ct.start();
       try
       {
-        ct.join();
-        Throwable t = ct.getException();
-        if (t != null)
-        {
-          if (t instanceof HttpException)
-            throw (HttpException)t;
-          else if (t instanceof IOException)
-            throw (IOException)t;
-          else if (t instanceof RuntimeException)
-            throw (RuntimeException)t;
-          else if (t instanceof Error)
-            throw (Error)t;
-          else
-            throw new RuntimeException("Unexpected exception thrown: "+t.getMessage(),t);
-        }
-        
+        ct.finishUp();
         response = ct.getResponse();
         return handleResultCode(ct.getResultCode(), response);
       }
@@ -248,14 +253,16 @@ public class ElasticSearchConnection
     throw new ManifoldCFException("Unexpected HTTP result code: "+code+": "+response);
   }
 
-  private void handleHttpException(HttpException e)
+  protected void handleHttpException(HttpException e)
     throws ManifoldCFException, ServiceInterruption {
     setResult(Result.ERROR, e.getMessage());
     throw new ManifoldCFException(e);
   }
   
-  private void handleIOException(IOException e)
+  protected void handleIOException(IOException e)
     throws ManifoldCFException, ServiceInterruption {
+    if (e instanceof java.io.InterruptedIOException && !(e instanceof java.net.SocketTimeoutException))
+      throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
     setResult(Result.ERROR, e.getMessage());
     long currentTime = System.currentTimeMillis();
     // All IO exceptions are treated as service interruptions, retried for an hour

@@ -238,7 +238,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   * the document will not need to be sent again to the output data store.
   */
   @Override
-  public String getOutputDescription(OutputSpecification spec)
+  public VersionContext getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     // The information we want in this string is:
@@ -282,7 +282,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
     // From here on down, unpacking is unnecessary.
     sb.append(ingestURI);
 
-    return sb.toString();
+    return new VersionContext(sb.toString(),params,spec);
   }
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -557,17 +557,41 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
     );
   }
   
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  @Override
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+  }
+
   /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected an output connection of the current type.  Its purpose is to add the required tabs
+  * This method is called in the head section of a job page which has selected a pipeline connection of the current type.  Its purpose is to add the required tabs
   * to the list, and to output any javascript methods that might be needed by the job editing HTML.
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this connection.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
     tabsArray.add(Messages.getString(locale,"GTSConnector.GTSCollections"));
     tabsArray.add(Messages.getString(locale,"GTSConnector.GTSTemplate"));
     out.print(
@@ -575,12 +599,12 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
 "\n"+
-"function checkOutputSpecification()\n"+
+"function "+seqPrefix+"checkSpecification()\n"+
 "{\n"+
-"  if (editjob.gts_collectionname.value.length > 230)\n"+
+"  if (editjob."+seqPrefix+"gts_collectionname.value.length > 230)\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"GTSConnector.CollectionNameMustBeLessThanOrEqualToCharacters") + "\");\n"+
-"    editjob.gts_collectionname.focus();\n"+
+"    editjob."+seqPrefix+"gts_collectionname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
@@ -592,17 +616,23 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   }
   
   /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
+  * This method is called in the body section of a job page which has selected a pipeline connection of the current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
   * form is "editjob".
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     int i = 0;
     String collectionName = null;
     String documentTemplate = null;
@@ -624,7 +654,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
       documentTemplate = "";
 
     // Collections tab
-    if (tabName.equals(Messages.getString(locale,"GTSConnector.GTSCollections")))
+    if (tabName.equals(Messages.getString(locale,"GTSConnector.GTSCollections")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -632,7 +662,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"GTSConnector.CollectionName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input name=\"gts_collectionname\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(collectionName)+"\"/>\n"+
+"      <input name=\""+seqPrefix+"gts_collectionname\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(collectionName)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -642,12 +672,12 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
     {
       // Hiddens for collections
       out.print(
-"<input type=\"hidden\" name=\"gts_collectionname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(collectionName)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"gts_collectionname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(collectionName)+"\"/>\n"
       );
     }
 
     // Template tab
-    if (tabName.equals(Messages.getString(locale,"GTSConnector.GTSTemplate")))
+    if (tabName.equals(Messages.getString(locale,"GTSConnector.GTSTemplate")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -655,7 +685,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"GTSConnector.DocumentTemplate") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <textarea rows=\"10\" cols=\"96\" name=\"gts_documenttemplate\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(documentTemplate)+"</textarea>\n"+
+"      <textarea rows=\"10\" cols=\"96\" name=\""+seqPrefix+"gts_documenttemplate\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(documentTemplate)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -665,25 +695,30 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
     {
       // Hiddens for document template
       out.print(
-"<input type=\"hidden\" name=\"gts_documenttemplate\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentTemplate)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"gts_documenttemplate\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentTemplate)+"\"/>\n"
       );
     }
   }
   
   /** Process a specification post.
   * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the output specification accordingly.
+  * posted.  Its purpose is to gather form information and modify the transformation specification accordingly.
   * The name of the posted form is "editjob".
   *@param variableContext contains the post data, including binary file-upload information.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
+    int connectionSequenceNumber)
     throws ManifoldCFException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     // Collection name
-    String collectionName = variableContext.getParameter("gts_collectionname");
+    String collectionName = variableContext.getParameter(seqPrefix+"gts_collectionname");
     if (collectionName != null)
     {
       int i = 0;
@@ -704,7 +739,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
     }
 
     // Document template
-    String documentTemplate = variableContext.getParameter("gts_documenttemplate");
+    String documentTemplate = variableContext.getParameter(seqPrefix+"gts_documenttemplate");
     if (documentTemplate != null)
     {
       int i = 0;
@@ -725,13 +760,16 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   }
   
   /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the pipeline specification information to the user.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param os is the current pipeline specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
     int i = 0;

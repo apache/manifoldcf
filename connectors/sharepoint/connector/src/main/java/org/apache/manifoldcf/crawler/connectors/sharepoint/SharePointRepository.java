@@ -162,7 +162,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (serverVersion == null)
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
-      dspStsWorks = serverVersion.equals("2.0") || serverVersion.equals("3.0");
+      dspStsWorks = !serverVersion.equals("4.0");
       attachmentsSupported = !serverVersion.equals("2.0");
       
       String authorityType = params.getParameter( SharePointConfig.PARAM_AUTHORITYTYPE );
@@ -1266,6 +1266,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           // === List style identifier ===
           if (dListSeparatorIndex == documentIdentifier.length() - 3)
           {
+            // Chained connectors always scan parent nodes, so they don't bother setting a version
             String siteListPath = documentIdentifier.substring(0,documentIdentifier.length()-3);
             int listCutoff = siteListPath.lastIndexOf( "/" );
             String site = siteListPath.substring(0,listCutoff);
@@ -1278,7 +1279,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             if (listID != null)
             {
               String encodedSitePath = encodePath(site);
-              
+                
               // Get the list's fields
               Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, listID );
               if (fieldNames != null)
@@ -1289,10 +1290,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 {
                   fields[j++] = field;
                 }
-                
+                  
                 String[] accessTokens;
                 String[] denyTokens;
-                
+                  
                 if (forcedAcls == null)
                 {
                   // Security is off
@@ -1322,28 +1323,28 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     // Site/list no longer exists, so delete entry
                     if (Logging.connectors.isDebugEnabled())
                       Logging.connectors.debug("SharePoint: No list found for list '"+siteListPath+"' - deleting");
-                    activities.deleteDocument(documentIdentifier,version);
+                    activities.deleteDocument(documentIdentifier);
                   }
                 }
                 else
                 {
                   if (Logging.connectors.isDebugEnabled())
                     Logging.connectors.debug("SharePoint: Access token lookup failed for list '"+siteListPath+"' - deleting");
-                  activities.deleteDocument(documentIdentifier,version);
+                  activities.deleteDocument(documentIdentifier);
                 }
               }
               else
               {
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("SharePoint: Field list lookup failed for list '"+siteListPath+"' - deleting");
-                activities.deleteDocument(documentIdentifier,version);
+                activities.deleteDocument(documentIdentifier);
               }
             }
             else
             {
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("SharePoint: GUID lookup failed for list '"+siteListPath+"' - deleting");
-              activities.deleteDocument(documentIdentifier,version);
+              activities.deleteDocument(documentIdentifier);
             }
           }
           else
@@ -1413,7 +1414,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               {
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("SharePoint: List '"+decodedListPath+"' no longer exists - deleting item '"+documentIdentifier+"'");
-                activities.deleteDocument(documentIdentifier,version);
+                activities.deleteDocument(documentIdentifier);
                 i++;
                 continue;
               }
@@ -1479,7 +1480,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     // Item has vanished
                     if (Logging.connectors.isDebugEnabled())
                       Logging.connectors.debug("SharePoint: Item metadata fetch failure indicated that item is gone: '"+documentIdentifier+"' - removing");
-                    activities.deleteDocument(documentIdentifier,version);
+                    activities.noDocument(documentIdentifier,version);
                     i++;
                     continue;
                   }
@@ -1536,7 +1537,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 }
                 else
                   // Document too long (should never happen; length is 0)
-                  activities.deleteDocument( documentIdentifier, version );
+                  activities.noDocument( documentIdentifier, version );
               }
             }
             else
@@ -1584,7 +1585,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     accessTokens, denyTokens, createdDate, modifiedDate, null, guid, sDesc))
                   {
                     // Document not indexed for whatever reason
-                    activities.deleteDocument(documentIdentifier,version);
+                    activities.noDocument(documentIdentifier,version);
                     i++;
                     continue;
                   }
@@ -1593,7 +1594,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 {
                   if (Logging.connectors.isDebugEnabled())
                     Logging.connectors.debug("SharePoint: Skipping attachment '"+documentIdentifier+"' because no parent guid found");
-                  activities.deleteDocument(documentIdentifier,version);
+                  activities.noDocument(documentIdentifier,version);
                   i++;
                   continue;
                 }
@@ -1607,7 +1608,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           // === Library style identifier ===
           if (dLibSeparatorIndex == documentIdentifier.length() - 2)
           {
-            // It's a library.
+            // Chained document parents are always rescanned
             String siteLibPath = documentIdentifier.substring(0,documentIdentifier.length()-2);
             int libCutoff = siteLibPath.lastIndexOf( "/" );
             String site = siteLibPath.substring(0,libCutoff);
@@ -1631,10 +1632,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 {
                   fields[j++] = field;
                 }
-                
+                  
                 String[] accessTokens;
                 String[] denyTokens;
-                
+                  
                 if (forcedAcls == null)
                 {
                   // Security is off
@@ -1664,28 +1665,28 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     // Site/library no longer exists, so delete entry
                     if (Logging.connectors.isDebugEnabled())
                       Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
-                    activities.deleteDocument(documentIdentifier,version);
+                    activities.deleteDocument(documentIdentifier);
                   }
                 }
                 else
                 {
                   if (Logging.connectors.isDebugEnabled())
                     Logging.connectors.debug("SharePoint: Access token lookup failed for library '"+siteLibPath+"' - deleting");
-                  activities.deleteDocument(documentIdentifier,version);
+                  activities.deleteDocument(documentIdentifier);
                 }
               }
               else
               {
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("SharePoint: Field list lookup failed for library '"+siteLibPath+"' - deleting");
-                activities.deleteDocument(documentIdentifier,version);
+                activities.deleteDocument(documentIdentifier);
               }
             }
             else
             {
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("SharePoint: GUID lookup failed for library '"+siteLibPath+"' - deleting");
-              activities.deleteDocument(documentIdentifier,version);
+              activities.deleteDocument(documentIdentifier);
             }
           }
           else
@@ -1751,7 +1752,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 {
                   if (Logging.connectors.isDebugEnabled())
                     Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
-                  activities.deleteDocument(documentIdentifier,version);
+                  activities.deleteDocument(documentIdentifier);
                   i++;
                   continue;
                 }
@@ -1763,7 +1764,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   // Document has vanished
                   if (Logging.connectors.isDebugEnabled())
                     Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
-                  activities.deleteDocument(documentIdentifier,version);
+                  activities.noDocument(documentIdentifier,version);
                   i++;
                   continue;
                 }
@@ -1774,7 +1775,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 acls, denyAcls, createdDate, modifiedDate, metadataValues, guid, sDesc))
               {
                 // Document not indexed for whatever reason
-                activities.deleteDocument(documentIdentifier,version);
+                activities.noDocument(documentIdentifier,version);
                 i++;
                 continue;
               }
@@ -1784,6 +1785,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         else
         {
           // === Site-style identifier ===
+          activities.noDocument(documentIdentifier,version);
+
           // Strip off the trailing "/" to get the site name.
           String decodedSitePath = documentIdentifier.substring(0,documentIdentifier.length()-1);
 

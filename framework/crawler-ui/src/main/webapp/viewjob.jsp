@@ -719,7 +719,7 @@
 			<tr>
 				<td colspan="4">
 <%
-			OutputSpecification os = job.getPipelineStageSpecification(j);
+			Specification os = job.getPipelineStageSpecification(j);
 			if (job.getPipelineStageIsOutputConnection(j))
 			{
 				IOutputConnection thisConnection = outputManager.load(job.getPipelineStageConnectionName(j));
