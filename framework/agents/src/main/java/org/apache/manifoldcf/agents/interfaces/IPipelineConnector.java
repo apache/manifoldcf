@@ -43,7 +43,7 @@ public interface IPipelineConnector extends IConnector
   /** Document permanently rejected */
   public final static int DOCUMENTSTATUS_REJECTED = 1;
 
-  /** Get a pipeline version string, given a pipeline specification object.  The version string is used to
+  /** Get a pipeline version object, given a pipeline specification object.  The version string is used to
   * uniquely describe the pertinent details of the specification and the configuration, to allow the Connector 
   * Framework to determine whether a document will need to be processed again.
   * Note that the contents of any document cannot be considered by this method; only configuration and specification information
@@ -51,10 +51,10 @@ public interface IPipelineConnector extends IConnector
   *
   * This method presumes that the underlying connector object has been configured.
   *@param spec is the current pipeline specification object for this connection for the job that is doing the crawling.
-  *@return a string, of unlimited length, which uniquely describes configuration and specification in such a way that
+  *@return a version object, including a string of unlimited length, which uniquely describes configuration and specification in such a way that
   * if two such strings are equal, nothing that affects how or whether the document is indexed will be different.
   */
-  public String getPipelineDescription(Specification spec)
+  public VersionContext getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Detect if a mime type is acceptable or not.  This method is used to determine whether it makes sense to fetch a document
@@ -64,7 +64,7 @@ public interface IPipelineConnector extends IConnector
   *@param checkActivity is an object including the activities that can be performed by this method.
   *@return true if the mime type can be accepted by this connector.
   */
-  public boolean checkMimeTypeIndexable(String pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
+  public boolean checkMimeTypeIndexable(VersionContext pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Pre-determine whether a document (passed here as a File object) is acceptable or not.  This method is
@@ -75,7 +75,7 @@ public interface IPipelineConnector extends IConnector
   *@param checkActivity is an object including the activities that can be done by this method.
   *@return true if the file is acceptable, false if not.
   */
-  public boolean checkDocumentIndexable(String pipelineDescription, File localFile, IOutputCheckActivity checkActivity)
+  public boolean checkDocumentIndexable(VersionContext pipelineDescription, File localFile, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Pre-determine whether a document's length is acceptable.  This method is used
@@ -85,7 +85,7 @@ public interface IPipelineConnector extends IConnector
   *@param checkActivity is an object including the activities that can be done by this method.
   *@return true if the file is acceptable, false if not.
   */
-  public boolean checkLengthIndexable(String pipelineDescription, long length, IOutputCheckActivity checkActivity)
+  public boolean checkLengthIndexable(VersionContext pipelineDescription, long length, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Pre-determine whether a document's URL is acceptable.  This method is used
@@ -95,7 +95,7 @@ public interface IPipelineConnector extends IConnector
   *@param checkActivity is an object including the activities that can be done by this method.
   *@return true if the file is acceptable, false if not.
   */
-  public boolean checkURLIndexable(String pipelineDescription, String url, IOutputCheckActivity checkActivity)
+  public boolean checkURLIndexable(VersionContext pipelineDescription, String url, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -114,7 +114,7 @@ public interface IPipelineConnector extends IConnector
   *@return the document status (accepted or permanently rejected).
   *@throws IOException only if there's a stream error reading the document data.
   */
-  public int addOrReplaceDocumentWithException(String documentURI, String pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException;
 
   // UI support methods.

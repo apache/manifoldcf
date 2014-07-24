@@ -597,7 +597,7 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
 
     @Override
     public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
-      request.addHeader(BasicScheme.authenticate(credentials, "US-ASCII", false));
+      request.addHeader(new BasicScheme(StandardCharsets.US_ASCII).authenticate(credentials, request, context));
     }
   }
 

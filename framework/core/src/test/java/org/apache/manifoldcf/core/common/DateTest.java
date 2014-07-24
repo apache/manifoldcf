@@ -43,6 +43,9 @@ public class DateTest
     assertNotNull(d);
     d = DateParser.parseISO8601Date("2012-11-15T01:32:33.001-04:00");
     assertNotNull(d);
+    // Microsoft variation
+    d = DateParser.parseISO8601Date("2014-06-03 11:21:37");
+    assertNotNull(d);
   }
 
 

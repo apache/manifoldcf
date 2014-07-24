@@ -62,6 +62,10 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
+import org.apache.http.client.AuthCache;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.client.protocol.HttpClientContext;
 
 import org.apache.http.ParseException;
 
@@ -75,7 +79,8 @@ import org.json.simple.JSONArray;
  */
 public class JiraSession {
 
-  private final String URLbase;
+  private final HttpHost host;
+  private final String path;
   private final String clientId;
   private final String clientSecret;
   
@@ -102,10 +107,12 @@ public class JiraSession {
   /**
    * Constructor. Create a session.
    */
-  public JiraSession(String clientId, String clientSecret, String URLbase,
-    String proxyHost, String proxyPort, String proxyDomain, String proxyUsername, String proxyPassword)
+  public JiraSession(String clientId, String clientSecret,
+    String protocol, String host, int port, String path,
+    String proxyHost, int proxyPort, String proxyDomain, String proxyUsername, String proxyPassword)
     throws ManifoldCFException {
-    this.URLbase = URLbase;
+    this.host = new HttpHost(host,port,protocol);
+    this.path = path;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
 
@@ -140,20 +147,6 @@ public class JiraSession {
     if (proxyHost != null && proxyHost.length() > 0)
     {
 
-      int proxyPortInt;
-      if (proxyPort != null && proxyPort.length() > 0)
-      {
-        try
-        {
-          proxyPortInt = Integer.parseInt(proxyPort);
-        }
-        catch (NumberFormatException e)
-        {
-          throw new ManifoldCFException("Bad number: "+e.getMessage(),e);
-        }
-      }
-      else
-        proxyPortInt = 8080;
 
       // Configure proxy authentication
       if (proxyUsername != null && proxyUsername.length() > 0)
@@ -164,11 +157,11 @@ public class JiraSession {
           proxyDomain = "";
 
         credentialsProvider.setCredentials(
-          new AuthScope(proxyHost, proxyPortInt),
+          new AuthScope(proxyHost, proxyPort),
           new NTCredentials(proxyUsername, proxyPassword, currentHost, proxyDomain));
       }
 
-      HttpHost proxy = new HttpHost(proxyHost, proxyPortInt);
+      HttpHost proxy = new HttpHost(proxyHost, proxyPort);
       requestBuilder.setProxy(proxy);
     }
 
@@ -262,11 +255,22 @@ public class JiraSession {
   private void getRest(String rightside, JiraJSONResponse response) 
     throws IOException, ResponseException {
 
-    final HttpRequestBase method = new HttpGet(URLbase + rightside);
+    // Create AuthCache instance
+    AuthCache authCache = new BasicAuthCache();
+    // Generate BASIC scheme object and add it to the local
+    // auth cache
+    BasicScheme basicAuth = new BasicScheme();
+    authCache.put(host, basicAuth);
+
+    // Add AuthCache to the execution context
+    HttpClientContext localContext = HttpClientContext.create();
+    localContext.setAuthCache(authCache);
+
+    final HttpRequestBase method = new HttpGet(host.toURI() + path + rightside);
     method.addHeader("Accept", "application/json");
 
     try {
-      HttpResponse httpResponse = httpClient.execute(method);
+      HttpResponse httpResponse = httpClient.execute(method,localContext);
       int resultCode = httpResponse.getStatusLine().getStatusCode();
       if (resultCode != 200)
         throw new IOException("Unexpected result code "+resultCode+": "+convertToString(httpResponse));

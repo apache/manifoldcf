@@ -17,13 +17,13 @@
 
 <script type="text/javascript">
 <!--
-function checkOutputSpecificationForSave()
+function s${SEQNUM}_checkSpecificationForSave()
 {
-  if (editjob.rootpath.value == "")
+  if (editjob.s${SEQNUM}_rootpath.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('FileConnector.RootPathCannotBeNull'))");
-    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('FileConnector.PathTabName'))");
-    editjob.rootpath.focus();
+    SelectSequencedTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('FileConnector.PathTabName'))",${SEQNUM});
+    editjob.s${SEQNUM}_rootpath.focus();
     return false;
   }
   return true;
