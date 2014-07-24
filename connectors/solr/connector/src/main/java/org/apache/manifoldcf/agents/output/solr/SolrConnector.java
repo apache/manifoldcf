@@ -25,13 +25,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
-import org.apache.manifoldcf.agents.interfaces.OutputSpecification;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.ConfigNode;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
@@ -43,6 +45,7 @@ import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.interfaces.VersionContext;
 
 
 /** This is the output connector for SOLR.  Currently, no frills.
@@ -78,6 +81,17 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   protected String excludedMimeTypesString = null;
   /** Excluded mime types */
   protected Map<String,String> excludedMimeTypes = null;
+  
+  // Attributes going into Solr
+  protected String idAttributeName = null;
+  protected String modifiedDateAttributeName = null;
+  protected String createdDateAttributeName = null;
+  protected String indexedDateAttributeName = null;
+  protected String fileNameAttributeName = null;
+  protected String mimeTypeAttributeName = null;
+  protected String contentAttributeName = null;
+  /** Use extractiing update handler? */
+  protected boolean useExtractUpdateHandler = true;
   
   /** Whether or not to commit */
   protected boolean doCommits = false;
@@ -162,6 +176,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     includedMimeTypes = null;
     excludedMimeTypesString = null;
     excludedMimeTypes = null;
+    idAttributeName = null;
+    modifiedDateAttributeName = null;
+    createdDateAttributeName = null;
+    indexedDateAttributeName = null;
+    fileNameAttributeName = null;
+    mimeTypeAttributeName = null;
+    contentAttributeName = null;
+    useExtractUpdateHandler = true;
     super.disconnect();
   }
 
@@ -183,29 +205,41 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (statusPath == null || statusPath.length() == 0)
         statusPath = "";
 
-      String idAttributeName = params.getParameter(SolrConfig.PARAM_IDFIELD);
+      idAttributeName = params.getParameter(SolrConfig.PARAM_IDFIELD);
       if (idAttributeName == null || idAttributeName.length() == 0)
         idAttributeName = "id";
 
-      String modifiedDateAttributeName = params.getParameter(SolrConfig.PARAM_MODIFIEDDATEFIELD);
+      modifiedDateAttributeName = params.getParameter(SolrConfig.PARAM_MODIFIEDDATEFIELD);
       if (modifiedDateAttributeName == null || modifiedDateAttributeName.length() == 0)
         modifiedDateAttributeName = null;
 
-      String createdDateAttributeName = params.getParameter(SolrConfig.PARAM_CREATEDDATEFIELD);
+      createdDateAttributeName = params.getParameter(SolrConfig.PARAM_CREATEDDATEFIELD);
       if (createdDateAttributeName == null || createdDateAttributeName.length() == 0)
         createdDateAttributeName = null;
   
-      String indexedDateAttributeName = params.getParameter(SolrConfig.PARAM_INDEXEDDATEFIELD);
+      indexedDateAttributeName = params.getParameter(SolrConfig.PARAM_INDEXEDDATEFIELD);
       if (indexedDateAttributeName == null || indexedDateAttributeName.length() == 0)
         indexedDateAttributeName = null;
 
-      String fileNameAttributeName = params.getParameter(SolrConfig.PARAM_FILENAMEFIELD);
+      fileNameAttributeName = params.getParameter(SolrConfig.PARAM_FILENAMEFIELD);
       if (fileNameAttributeName == null || fileNameAttributeName.length() == 0)
         fileNameAttributeName = null;
 
-      String mimeTypeAttributeName = params.getParameter(SolrConfig.PARAM_MIMETYPEFIELD);
+      mimeTypeAttributeName = params.getParameter(SolrConfig.PARAM_MIMETYPEFIELD);
       if (mimeTypeAttributeName == null || mimeTypeAttributeName.length() == 0)
         mimeTypeAttributeName = null;
+
+      contentAttributeName = params.getParameter(SolrConfig.PARAM_CONTENTFIELD);
+      if (contentAttributeName == null || contentAttributeName.length() == 0)
+        contentAttributeName = null;
+      
+      String useExtractUpdateHandlerValue = params.getParameter(SolrConfig.PARAM_EXTRACTUPDATE);
+      if (useExtractUpdateHandlerValue == null || useExtractUpdateHandlerValue.length() == 0)
+        useExtractUpdateHandler = true;
+      else
+        useExtractUpdateHandler = !useExtractUpdateHandlerValue.equals("false");
+      if (contentAttributeName == null && !useExtractUpdateHandler)
+        throw new ManifoldCFException("Content attribute name required for non-extract-update indexing");
 
       String commits = params.getParameter(SolrConfig.PARAM_COMMITS);
       if (commits == null || commits.length() == 0)
@@ -222,6 +256,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         maxDocumentLength = null;
       else
         maxDocumentLength = new Long(docMax);
+      if (maxDocumentLength == null && !useExtractUpdateHandler)
+        throw new ManifoldCFException("Maximum document length required for non-extract-update indexing");
       
       includedMimeTypesString = params.getParameter(SolrConfig.PARAM_INCLUDEDMIMETYPES);
       if (includedMimeTypesString == null || includedMimeTypesString.length() == 0)
@@ -313,8 +349,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             updatePath,removePath,statusPath,realm,userID,password,
             allowAttributeName,denyAttributeName,idAttributeName,
             modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
-            fileNameAttributeName,mimeTypeAttributeName,
-            keystoreManager,maxDocumentLength,commitWithin);
+            fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
+            keystoreManager,maxDocumentLength,commitWithin,useExtractUpdateHandler);
           
         }
         catch (NumberFormatException e)
@@ -368,8 +404,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             updatePath,removePath,statusPath,
             allowAttributeName,denyAttributeName,idAttributeName,
             modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
-            fileNameAttributeName,mimeTypeAttributeName,
-            maxDocumentLength,commitWithin);
+            fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
+            maxDocumentLength,commitWithin,useExtractUpdateHandler);
           
         }
         catch (NumberFormatException e)
@@ -456,156 +492,21 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   * the document will not need to be sent again to the output data store.
   */
   @Override
-  public String getOutputDescription(OutputSpecification spec)
+  public VersionContext getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    
-    StringBuilder sb = new StringBuilder();
+    SpecPacker sp = new SpecPacker(spec);
+    return new VersionContext(sp.toPackedString(),params,spec);
+  }
 
-    // All the arguments need to go into this string, since they affect ingestion.
-    Map args = new HashMap();
-    int i = 0;
-    while (i < params.getChildCount())
-    {
-      ConfigNode node = params.getChild(i++);
-      if (node.getType().equals(SolrConfig.NODE_ARGUMENT))
-      {
-        String attrName = node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME);
-        ArrayList list = (ArrayList)args.get(attrName);
-        if (list == null)
-        {
-          list = new ArrayList();
-          args.put(attrName,list);
-        }
-        list.add(node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
-      }
-    }
-    
-    String[] sortArray = new String[args.size()];
-    Iterator iter = args.keySet().iterator();
-    i = 0;
-    while (iter.hasNext())
-    {
-      sortArray[i++] = (String)iter.next();
-    }
-    
-    // Always use sorted order, because we need this to be comparable.
-    java.util.Arrays.sort(sortArray);
-    
-    String[] fixedList = new String[2];
-    ArrayList nameValues = new ArrayList();
-    i = 0;
-    while (i < sortArray.length)
-    {
-      String name = sortArray[i++];
-      ArrayList values = (ArrayList)args.get(name);
-      java.util.Collections.sort(values);
-      int j = 0;
-      while (j < values.size())
-      {
-        String value = (String)values.get(j++);
-        fixedList[0] = name;
-        fixedList[1] = value;
-        StringBuilder pairBuffer = new StringBuilder();
-        packFixedList(pairBuffer,fixedList,'=');
-        nameValues.add(pairBuffer.toString());
-      }
-    }
-    
-    packList(sb,nameValues,'+');
-    
-    // Do the source/target pairs
-    i = 0;
-    Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-    boolean keepAllMetadata = true;
-    while (i < spec.getChildCount()) {
-      SpecificationNode sn = spec.getChild(i++);
-      
-      if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
-        String value = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
-        keepAllMetadata = Boolean.parseBoolean(value);
-      } else if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
-        String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
-        String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
-        
-        if (target == null) {
-          target = "";
-        }
-        List<String> list = (List<String>)sourceTargets.get(source);
-        if (list == null) {
-          list = new ArrayList<String>();
-          sourceTargets.put(source, list);
-        }
-        list.add(target);
-      }
-    }
-    
-    sortArray = new String[sourceTargets.size()];
-    iter = sourceTargets.keySet().iterator();
-    i = 0;
-    while (iter.hasNext()) {
-      sortArray[i++] = (String)iter.next();
-    }
-    java.util.Arrays.sort(sortArray);
-    
-    ArrayList sourceTargetsList = new ArrayList();
-    i = 0;
-    while (i < sortArray.length) {
-      String source = sortArray[i++];
-      List<String> values = (List<String>)sourceTargets.get(source);
-      java.util.Collections.sort(values);
-      int j = 0;
-      while (j < values.size()) {
-        String target = (String)values.get(j++);
-        fixedList[0] = source;
-        fixedList[1] = target;
-        StringBuilder pairBuffer = new StringBuilder();
-        packFixedList(pairBuffer,fixedList,'=');
-        sourceTargetsList.add(pairBuffer.toString());
-      }
-    }
-    
-    packList(sb,sourceTargetsList,'+');
-
-    // Keep all metadata flag
-    if (keepAllMetadata)
-      sb.append('+');
-    else
-      sb.append('-');
-
-    // Here, append things which we have no intention of unpacking.  This includes stuff that comes from
-    // the configuration information, for instance.
-    
-    if (maxDocumentLength != null || includedMimeTypesString != null || excludedMimeTypesString != null)
-    {
-      // Length limitation.  We pack this because when it is changed we want to be sure we get any previously excluded documents.
-      if (maxDocumentLength != null)
-      {
-        sb.append('+');
-        pack(sb,maxDocumentLength.toString(),'+');
-      }
-      else
-        sb.append('-');
-      // Included mime types
-      if (includedMimeTypesString != null)
-      {
-        sb.append('+');
-        pack(sb,includedMimeTypesString,'+');
-      }
-      else
-        sb.append('-');
-      // Excluded mime types
-      if (excludedMimeTypesString != null)
-      {
-        sb.append('+');
-        pack(sb,excludedMimeTypesString,'+');
-      }
-      else
-        sb.append('-');
-    }
-    
-    return sb.toString();
+  private final static Set<String> acceptableMimeTypes = new HashSet<String>();
+  static
+  {
+    acceptableMimeTypes.add("text/plain;charset=utf-8");
+    acceptableMimeTypes.add("text/plain;charset=ascii");
+    acceptableMimeTypes.add("text/plain;charset=us-ascii");
+    acceptableMimeTypes.add("text/plain");
   }
 
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
@@ -614,15 +515,20 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param mimeType is the mime type of the document.
   *@return true if the mime type is indexable by this connector.
   */
+  @Override
   public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    if (includedMimeTypes != null && includedMimeTypes.get(mimeType) == null)
-      return false;
-    if (excludedMimeTypes != null && excludedMimeTypes.get(mimeType) != null)
-      return false;
-    return super.checkMimeTypeIndexable(outputDescription,mimeType);
+    if (useExtractUpdateHandler)
+    {
+      if (includedMimeTypes != null && includedMimeTypes.get(mimeType) == null)
+        return false;
+      if (excludedMimeTypes != null && excludedMimeTypes.get(mimeType) != null)
+        return false;
+      return super.checkMimeTypeIndexable(outputDescription,mimeType);
+    }
+    return acceptableMimeTypes.contains(mimeType.toLowerCase(Locale.ROOT));
   }
 
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
@@ -631,6 +537,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param length is the length of the document.
   *@return true if the file is indexable.
   */
+  @Override
   public boolean checkLengthIndexable(String outputDescription, long length)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -658,59 +565,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    // Build the argument map we'll send.
-    Map args = new HashMap();
-    Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-    int index = 0;
-    ArrayList nameValues = new ArrayList();
-    index = unpackList(nameValues,outputDescription,index,'+');
-    ArrayList sts = new ArrayList();
-    index = unpackList(sts,outputDescription,index,'+');
-    // extract keep all metadata Flag
-    boolean keepAllMetadata = true;
-    if (index < outputDescription.length())
-    {
-      keepAllMetadata = (outputDescription.charAt(index++) == '+');
-    }
-    String[] fixedBuffer = new String[2];
-    
-    // Do the name/value pairs
-    int i = 0;
-    while (i < nameValues.size())
-    {
-      String x = (String)nameValues.get(i++);
-      unpackFixedList(fixedBuffer,x,0,'=');
-      String attrName = fixedBuffer[0];
-      ArrayList list = (ArrayList)args.get(attrName);
-      if (list == null)
-      {
-        list = new ArrayList();
-        args.put(attrName,list);
-      }
-      list.add(fixedBuffer[1]);
-    }
-    
-    // Do the source/target pairs
-    i = 0;
-    while (i < sts.size()) {
-      String x = (String)sts.get(i++);
-      unpackFixedList(fixedBuffer,x,0,'=');
-      String source = fixedBuffer[0];
-      String target = fixedBuffer[1];
-      List<String> list = (List<String>)sourceTargets.get(source);
-      if (list == null) {
-        list = new ArrayList<String>();
-        sourceTargets.put(source, list);
-      }
-      list.add(target);
-    }
-
+    SpecPacker sp = new SpecPacker(outputDescription);
 
     // Establish a session
     getSession();
 
     // Now, go off and call the ingest API.
-    if (poster.indexPost(documentURI,document,args,sourceTargets,keepAllMetadata,authorityNameString,activities))
+    if (poster.indexPost(documentURI,document,sp.getArgs(),sp.getMappings(),sp.keepAllMetadata(),authorityNameString,activities))
       return DOCUMENTSTATUS_ACCEPTED;
     return DOCUMENTSTATUS_REJECTED;
   }
@@ -966,6 +827,20 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (editconnection.maxdocumentlength.value == \"\" && ((editconnection.extractupdatecheckbox.value == \"true\" && editconnection.extractupdate.checked == false) || (editconnection.extractupdatecheckbox.value != \"true\" && editconnection.extractupdate.value != \"true\")))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.MaximumDocumentLengthRequiredUnlessExtractingUpdateHandler")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Documents")+"\");\n"+
+"    editconnection.maxdocumentlength.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.contentfield.value == \"\" && ((editconnection.extractupdatecheckbox.value == \"true\" && editconnection.extractupdate.checked == false) || (editconnection.extractupdatecheckbox.value != \"true\" && editconnection.extractupdate.value != \"true\")))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ContentFieldNameRequiredUnlessExtractingUpdateHandler")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Schema")+"\");\n"+
+"    editconnection.contentfield.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  if (editconnection.commitwithin.value != \"\" && !isInteger(editconnection.commitwithin.value))\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.CommitWithinValueMustBeAnInteger")+"\");\n"+
@@ -1147,7 +1022,15 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String mimeTypeField = parameters.getParameter(SolrConfig.PARAM_MIMETYPEFIELD);
     if (mimeTypeField == null)
       mimeTypeField = "";
+
+    String contentField = parameters.getParameter(SolrConfig.PARAM_CONTENTFIELD);
+    if (contentField == null)
+      contentField = "";
     
+    String useExtractUpdate = parameters.getParameter(SolrConfig.PARAM_EXTRACTUPDATE);
+    if (useExtractUpdate == null || useExtractUpdate.length() == 0)
+      useExtractUpdate = "true";
+
     String realm = parameters.getParameter(SolrConfig.PARAM_REALM);
     if (realm == null)
       realm = "";
@@ -1602,6 +1485,33 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "      <input name=\"mimetypefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.UseExtractUpdateHandler") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"extractupdatecheckbox\" type=\"hidden\" value=\"true\"/>\n"+
+"      <input name=\"extractupdatepresent\" type=\"hidden\" value=\"true\"/>\n"
+      );
+      if (!useExtractUpdate.equals("false"))
+      {
+        out.print(
+"      <input name=\"extractupdate\" type=\"checkbox\" value=\"true\" checked=\"true\"/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <input name=\"extractupdate\" type=\"checkbox\" value=\"true\"/>\n"
+        );
+      }
+      out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.ContentFieldName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"contentfield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(contentField)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -1613,7 +1523,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input type=\"hidden\" name=\"createddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(createdDateField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"indexeddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(indexedDateField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"filenamefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fileNameField)+"\"/>\n"+
-"<input type=\"hidden\" name=\"mimetypefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"
+"<input type=\"hidden\" name=\"mimetypefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"+
+"<input type=\"hidden\" name=\"contentfield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(contentField)+"\"/>\n"+
+"<input name=\"extractupdatecheckbox\" type=\"hidden\" value=\"false\"/>\n"+
+"<input type=\"hidden\" name=\"extractupdate\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(useExtractUpdate)+"\"/>\n"+
+"<input name=\"extractupdatepresent\" type=\"hidden\" value=\"true\"/>\n"
       );
     }
     
@@ -1912,6 +1826,19 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String mimeTypeField = variableContext.getParameter("mimetypefield");
     if (mimeTypeField != null)
       parameters.setParameter(SolrConfig.PARAM_MIMETYPEFIELD,mimeTypeField);
+
+    String contentField = variableContext.getParameter("contentfield");
+    if (contentField != null)
+      parameters.setParameter(SolrConfig.PARAM_CONTENTFIELD,contentField);
+
+    String extractUpdatePresent = variableContext.getParameter("extractupdatepresent");
+    if (extractUpdatePresent != null)
+    {
+      String extractUpdate = variableContext.getParameter("extractupdate");
+      if (extractUpdate == null || extractUpdate.length() == 0)
+        extractUpdate = "false";
+      parameters.setParameter(SolrConfig.PARAM_EXTRACTUPDATE,extractUpdate);
+    }
 
     String realm = variableContext.getParameter("realm");
     if (realm != null)
@@ -2250,49 +2177,73 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     );
   }
   
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  @Override
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+  }
+
   /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected an output connection of the current type.  Its purpose is to add the required tabs
+  * This method is called in the head section of a job page which has selected a pipeline connection of the current type.  Its purpose is to add the required tabs
   * to the list, and to output any javascript methods that might be needed by the job editing HTML.
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this connection.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
     tabsArray.add(Messages.getString(locale,"SolrConnector.SolrFieldMapping"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
-"function checkOutputSpecification()\n"+
+"function "+seqPrefix+"checkSpecification()\n"+
 "{\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
-"function addFieldMapping()\n"+
+"function "+seqPrefix+"addFieldMapping()\n"+
 "{\n"+
-"  if (editjob.solr_fieldmapping_source.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"solr_fieldmapping_source.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.FieldMapMustHaveNonNullSource")+"\");\n"+
-"    editjob.solr_fieldmapping_source.focus();\n"+
+"    editjob."+seqPrefix+"solr_fieldmapping_source.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  editjob.solr_fieldmapping_op.value=\"Add\";\n"+
-"  postFormSetAnchor(\"solr_fieldmapping\");\n"+
+"  editjob."+seqPrefix+"solr_fieldmapping_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\""+seqPrefix+"+solr_fieldmapping\");\n"+
 "}\n"+
 "\n"+
-"function deleteFieldMapping(i)\n"+
+"function "+seqPrefix+"deleteFieldMapping(i)\n"+
 "{\n"+
 "  // Set the operation\n"+
-"  eval(\"editjob.solr_fieldmapping_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
+"  eval(\"editjob."+seqPrefix+"solr_fieldmapping_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
 "  // Submit\n"+
-"  if (editjob.solr_fieldmapping_count.value==i)\n"+
-"    postFormSetAnchor(\"solr_fieldmapping\");\n"+
+"  if (editjob."+seqPrefix+"solr_fieldmapping_count.value==i)\n"+
+"    postFormSetAnchor(\""+seqPrefix+"solr_fieldmapping\");\n"+
 "  else\n"+
-"    postFormSetAnchor(\"solr_fieldmapping_\"+i)\n"+
+"    postFormSetAnchor(\""+seqPrefix+"solr_fieldmapping_\"+i)\n"+
 "  // Undo, so we won't get two deletes next time\n"+
-"  eval(\"editjob.solr_fieldmapping_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
+"  eval(\"editjob."+seqPrefix+"solr_fieldmapping_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
 "}\n"+
 "\n"+
 "//-->\n"+
@@ -2301,21 +2252,27 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   }
   
   /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
+  * This method is called in the body section of a job page which has selected a pipeline connection of the current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
   * form is "editjob".
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+    
     int i = 0;
     
     // Field Mapping tab
-    if (tabName.equals(Messages.getString(locale,"SolrConnector.SolrFieldMapping")))
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.SolrFieldMapping")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2349,12 +2306,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             targetDisplay = "(remove)";
           }
           // It's prefix will be...
-          String prefix = "solr_fieldmapping_" + Integer.toString(fieldCounter);
+          String prefix = seqPrefix+"solr_fieldmapping_" + Integer.toString(fieldCounter);
           out.print(
 "        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"SolrConnector.DeleteFieldMapping")+Integer.toString(fieldCounter+1)+"\" onclick='javascript:deleteFieldMapping("+Integer.toString(fieldCounter)+");'/>\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"SolrConnector.DeleteFieldMapping")+Integer.toString(fieldCounter+1)+"\" onclick='javascript:"+seqPrefix+"deleteFieldMapping("+Integer.toString(fieldCounter)+");'/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_op\" value=\"Continue\"/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"+
@@ -2392,17 +2349,17 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
 "        <tr class=\"formrow\">\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <a name=\"solr_fieldmapping\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SolrConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"SolrConnector.AddFieldMapping") + "\" onclick=\"javascript:addFieldMapping();\"/>\n"+
+"            <a name=\""+seqPrefix+"solr_fieldmapping\">\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SolrConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"SolrConnector.AddFieldMapping") + "\" onclick=\"javascript:"+seqPrefix+"addFieldMapping();\"/>\n"+
 "            </a>\n"+
-"            <input type=\"hidden\" name=\"solr_fieldmapping_count\" value=\""+fieldCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"solr_fieldmapping_op\" value=\"Continue\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"solr_fieldmapping_count\" value=\""+fieldCounter+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"solr_fieldmapping_op\" value=\"Continue\"/>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"15\" name=\"solr_fieldmapping_source\" value=\"\"/></nobr>\n"+
+"            <nobr><input type=\"text\" size=\"15\" name=\""+seqPrefix+"solr_fieldmapping_source\" value=\"\"/></nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"15\" name=\"solr_fieldmapping_target\" value=\"\"/></nobr>\n"+
+"            <nobr><input type=\"text\" size=\"15\" name=\""+seqPrefix+"solr_fieldmapping_target\" value=\"\"/></nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"+
 "      </table>\n"+
@@ -2412,7 +2369,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"SolrConnector.KeepAllMetadata")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"       <input type=\"checkbox\""+keepMetadataValue+" name=\"solr_keepallmetadata\" value=\"true\"/>\n"+
+"       <input type=\"checkbox\""+keepMetadataValue+" name=\""+seqPrefix+"solr_keepallmetadata\" value=\"true\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -2432,7 +2389,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
           if (target == null)
             target = "";
         // It's prefix will be...
-          String prefix = "solr_fieldmapping_" + Integer.toString(fieldCounter);
+          String prefix = seqPrefix+"solr_fieldmapping_" + Integer.toString(fieldCounter);
           out.print(
 "<input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"
@@ -2445,10 +2402,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"solr_keepallmetadata\" value=\""+keepMetadataValue+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"solr_keepallmetadata\" value=\""+keepMetadataValue+"\"/>\n"
       );
       out.print(
-"<input type=\"hidden\" name=\"solr_fieldmapping_count\" value=\""+Integer.toString(fieldCounter)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"solr_fieldmapping_count\" value=\""+Integer.toString(fieldCounter)+"\"/>\n"
       );
     }
 
@@ -2456,17 +2413,21 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   
   /** Process a specification post.
   * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the output specification accordingly.
+  * posted.  Its purpose is to gather form information and modify the transformation specification accordingly.
   * The name of the posted form is "editjob".
   *@param variableContext contains the post data, including binary file-upload information.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param os is the current pipeline specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
+    int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    String x = variableContext.getParameter("solr_fieldmapping_count");
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+    String x = variableContext.getParameter(seqPrefix+"solr_fieldmapping_count");
     if (x != null && x.length() > 0)
     {
       // About to gather the fieldmapping nodes, so get rid of the old ones.
@@ -2483,7 +2444,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       i = 0;
       while (i < count)
       {
-        String prefix = "solr_fieldmapping_"+Integer.toString(i);
+        String prefix = seqPrefix+"solr_fieldmapping_"+Integer.toString(i);
         String op = variableContext.getParameter(prefix+"_op");
         if (op == null || !op.equals("Delete"))
         {
@@ -2500,11 +2461,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         i++;
       }
       
-      String addop = variableContext.getParameter("solr_fieldmapping_op");
+      String addop = variableContext.getParameter(seqPrefix+"solr_fieldmapping_op");
       if (addop != null && addop.equals("Add"))
       {
-        String source = variableContext.getParameter("solr_fieldmapping_source");
-        String target = variableContext.getParameter("solr_fieldmapping_target");
+        String source = variableContext.getParameter(seqPrefix+"solr_fieldmapping_source");
+        String target = variableContext.getParameter(seqPrefix+"solr_fieldmapping_target");
         if (target == null)
           target = "";
         SpecificationNode node = new SpecificationNode(SolrConfig.NODE_FIELDMAP);
@@ -2515,7 +2476,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       
       // Gather the keep all metadata parameter to be the last one
       SpecificationNode node = new SpecificationNode(SolrConfig.NODE_KEEPMETADATA);
-      String keepAll = variableContext.getParameter("solr_keepallmetadata");
+      String keepAll = variableContext.getParameter(seqPrefix+"solr_keepallmetadata");
       if (keepAll != null) {
         node.setAttribute(SolrConfig.ATTRIBUTE_VALUE, keepAll);
       }
@@ -2530,13 +2491,16 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   }
   
   /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the pipeline specification information to the user.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
   *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
+  *@param locale is the preferred local of the output.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param os is the current pipeline specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
     // Prep for field mappings
@@ -2607,6 +2571,287 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "</table>\n"
     );
 
+  }
+
+  /** This class handles Solr connector version string packing/unpacking/interpretation.
+  */
+  protected class SpecPacker {
+    
+    /** Arguments, from configuration */
+    private final Map<String,List<String>> args = new HashMap<String,List<String>>();
+    /** Source/targets from specification */
+    private final Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
+    /** Keep all metadata flag, from specification */
+    private final boolean keepAllMetadata;
+    
+    public SpecPacker(Specification spec) {
+
+      // Process arguments
+      for (int i = 0; i < params.getChildCount(); i++)
+      {
+        ConfigNode node = params.getChild(i);
+        if (node.getType().equals(SolrConfig.NODE_ARGUMENT))
+        {
+          String attrName = node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME);
+          List<String> list = args.get(attrName);
+          if (list == null)
+          {
+            list = new ArrayList<String>();
+            args.put(attrName,list);
+          }
+          list.add(node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
+        }
+      }
+    
+      // Do the source/target pairs
+      boolean keepAllMetadata = true;
+      for (int i = 0; i < spec.getChildCount(); i++)
+      {
+        SpecificationNode sn = spec.getChild(i);
+        
+        if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
+          String value = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
+          keepAllMetadata = Boolean.parseBoolean(value);
+        } else if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
+          String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
+          String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
+          
+          if (target == null) {
+            target = "";
+          }
+          List<String> list = sourceTargets.get(source);
+          if (list == null) {
+            list = new ArrayList<String>();
+            sourceTargets.put(source, list);
+          }
+          list.add(target);
+        }
+      }
+      this.keepAllMetadata = keepAllMetadata;
+    
+    }
+    
+    /** Packed string parser.
+    * This method unpacks a packed version string, and makes the formerly packed data available for use.
+    * Note that it is actually *not* a requirement for this method to do the unpacking; that can happen "on demand"
+    * for performance, if deemed helpful.
+    */
+    public SpecPacker(String packedString) {
+      // Build the argument map we'll send.
+      int index = 0;
+      List<String> nameValues = new ArrayList<String>();
+      index = unpackList(nameValues,packedString,index,'+');
+      List<String> sts = new ArrayList<String>();
+      index = unpackList(sts,packedString,index,'+');
+      // extract keep all metadata Flag
+      boolean keepAllMetadata = true;
+      if (index < packedString.length())
+      {
+        keepAllMetadata = (packedString.charAt(index++) == '+');
+      }
+      this.keepAllMetadata = keepAllMetadata;
+      
+      
+      String[] fixedBuffer = new String[2];
+      
+      // Do the name/value pairs
+      for (String x : nameValues)
+      {
+        unpackFixedList(fixedBuffer,x,0,'=');
+        String attrName = fixedBuffer[0];
+        List<String> list = args.get(attrName);
+        if (list == null)
+        {
+          list = new ArrayList<String>();
+          args.put(attrName,list);
+        }
+        list.add(fixedBuffer[1]);
+      }
+      
+      // Do the source/target pairs
+      for (String x : sts)
+      {
+        unpackFixedList(fixedBuffer,x,0,'=');
+        String source = fixedBuffer[0];
+        String target = fixedBuffer[1];
+        List<String> list = sourceTargets.get(source);
+        if (list == null) {
+          list = new ArrayList<String>();
+          sourceTargets.put(source, list);
+        }
+        list.add(target);
+      }
+
+    }
+    
+    public String toPackedString() {
+      StringBuilder sb = new StringBuilder();
+      String[] sortArray = new String[args.size()];
+      Iterator<String> iter = args.keySet().iterator();
+      int i = 0;
+      while (iter.hasNext())
+      {
+        sortArray[i++] = iter.next();
+      }
+      
+      // Always use sorted order, because we need this to be comparable.
+      java.util.Arrays.sort(sortArray);
+      
+      String[] fixedList = new String[2];
+      List<String> nameValues = new ArrayList<String>();
+      for (int k = 0; k < sortArray.length; k++)
+      {
+        String name = sortArray[k];
+        List<String> values = args.get(name);
+        java.util.Collections.sort(values);
+        for (String value : values)
+        {
+          fixedList[0] = name;
+          fixedList[1] = value;
+          StringBuilder pairBuffer = new StringBuilder();
+          packFixedList(pairBuffer,fixedList,'=');
+          nameValues.add(pairBuffer.toString());
+        }
+      }
+      
+      packList(sb,nameValues,'+');
+      
+      // Do the source/target pairs
+      sortArray = new String[sourceTargets.size()];
+      iter = sourceTargets.keySet().iterator();
+      i = 0;
+      while (iter.hasNext()) {
+        sortArray[i++] = iter.next();
+      }
+      java.util.Arrays.sort(sortArray);
+      
+      List<String> sourceTargetsList = new ArrayList<String>();
+      for (int k = 0; k < sortArray.length; k++)
+      {
+        String source = sortArray[k];
+        List<String> values = sourceTargets.get(source);
+        java.util.Collections.sort(values);
+        for (String target : values)
+        {
+          fixedList[0] = source;
+          fixedList[1] = target;
+          StringBuilder pairBuffer = new StringBuilder();
+          packFixedList(pairBuffer,fixedList,'=');
+          sourceTargetsList.add(pairBuffer.toString());
+        }
+      }
+      
+      packList(sb,sourceTargetsList,'+');
+
+      // Keep all metadata flag
+      if (keepAllMetadata)
+        sb.append('+');
+      else
+        sb.append('-');
+
+      // Here, append things which we have no intention of unpacking.  This includes stuff that comes from
+      // the configuration information, for instance.
+
+      if (idAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,idAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (modifiedDateAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,modifiedDateAttributeName,'+');
+      }
+      else
+        sb.append('-');
+      
+      if (createdDateAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,createdDateAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (indexedDateAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,indexedDateAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (fileNameAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,fileNameAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (mimeTypeAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,mimeTypeAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (contentAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,contentAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (useExtractUpdateHandler)
+        sb.append('+');
+      else
+        sb.append('-');
+
+      // Length limitation.  We pack this because when it is changed we want to be sure we get any previously excluded documents.
+      if (maxDocumentLength != null)
+      {
+        sb.append('+');
+        pack(sb,maxDocumentLength.toString(),'+');
+      }
+      else
+        sb.append('-');
+      // Included mime types
+      if (includedMimeTypesString != null)
+      {
+        sb.append('+');
+        pack(sb,includedMimeTypesString,'+');
+      }
+      else
+        sb.append('-');
+      // Excluded mime types
+      if (excludedMimeTypesString != null)
+      {
+        sb.append('+');
+        pack(sb,excludedMimeTypesString,'+');
+      }
+      else
+        sb.append('-');
+
+      return sb.toString();
+    }
+    
+    public Map<String,List<String>> getArgs() {
+      return args;
+    }
+    
+    public Map<String,List<String>> getMappings() {
+      return sourceTargets;
+    }
+    
+    public boolean keepAllMetadata() {
+      return keepAllMetadata;
+    }
   }
 
 }

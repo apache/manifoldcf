@@ -100,9 +100,9 @@ public class FileOutputSpecs extends FileOutputParam {
    * @param variableContext
    * @param specNode
    */
-  public static void contextToSpecNode(IPostParameters variableContext, ConfigurationNode specNode) {
+  public static void contextToSpecNode(IPostParameters variableContext, ConfigurationNode specNode, int sequenceNumber) {
     for (ParameterEnum param : SPECIFICATIONLIST) {
-      String p = variableContext.getParameter(param.name().toLowerCase());
+      String p = variableContext.getParameter("s"+sequenceNumber+"_"+param.name().toLowerCase());
       if (p != null) {
         specNode.setAttribute(param.name(), p);
       }

@@ -85,7 +85,9 @@
     
     <target name="doc">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" maxmemory="256M" source="1.7" useexternalfile="true">
+        <javadoc destdir="dist/doc" maxmemory="256M" source="1.7" useexternalfile="true" use="true" locale="en_US">
+            <link href="http://docs.oracle.com/javase/7/docs/api/"/>
+            <link href="http://manifoldcf.apache.org/release/trunk/api/framework/"/>
             <classpath>
                 <path refid="framework-classpath"/>
             </classpath>
@@ -1633,6 +1635,7 @@
 
             <test name="org.apache.manifoldcf.core.common.DateTest" todir="test-output"/>
             <test name="org.apache.manifoldcf.core.fuzzyml.TestFuzzyML" todir="test-output"/>
+            <test name="org.apache.manifoldcf.core.jsongen.TestJsonGen" todir="test-output"/>
             <test name="org.apache.manifoldcf.core.lockmanager.TestZooKeeperLocks" todir="test-output"/>
             <test name="org.apache.manifoldcf.core.throttler.TestThrottler" todir="test-output"/>
 
@@ -1654,6 +1657,7 @@
             <formatter type="brief" usefile="false"/>
 
             <test name="org.apache.manifoldcf.crawler.tests.SchedulerHSQLDBTest" todir="test-output"/>
+            <test name="org.apache.manifoldcf.crawler.tests.InterruptionHSQLDBTest" todir="test-output"/>
 
         </junit>
     </target>

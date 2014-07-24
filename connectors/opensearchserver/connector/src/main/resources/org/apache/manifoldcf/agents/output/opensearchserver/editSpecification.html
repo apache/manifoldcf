@@ -15,14 +15,14 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('OpenSearchServerConnector.OpenSearchServer'))
+#if($TabName == $ResourceBundle.getString('OpenSearchServerConnector.OpenSearchServer') && ${SEQNUM} == ${SELECTEDNUM})
 
 <table class="displaytable">
   <tr>
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenSearchServerConnector.MaxFileSizeBytesColon'))</nobr>
     </td>
-    <td class="value"><input name="maxfilesize" type="text"
+    <td class="value"><input name="s${SEQNUM}_maxfilesize" type="text"
       value="$Encoder.attributeEscape($MAXFILESIZE)" size="24" /></td>
   </tr>
   <tr>
@@ -30,21 +30,21 @@
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenSearchServerConnector.AllowedMIMETypesColon'))</nobr>
     </td>
     <td class="value">
-      <textarea rows="10" cols="64" name="mimetypes">$Encoder.bodyEscape($MIMETYPES)</textarea>
+      <textarea rows="10" cols="64" name="s${SEQNUM}_mimetypes">$Encoder.bodyEscape($MIMETYPES)</textarea>
     </td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenSearchServerConnector.AllowedFileExtensionsColon'))</nobr></td>
     <td class="value">
-      <textarea rows="10" cols="12" name="extensions">$Encoder.bodyEscape($EXTENSIONS)</textarea>
+      <textarea rows="10" cols="12" name="s${SEQNUM}_extensions">$Encoder.bodyEscape($EXTENSIONS)</textarea>
     </td>
   </tr>
 </table>
 
 #else
 
-<input type="hidden" name="maxfilesize" value="$Encoder.attributeEscape($MAXFILESIZE)" />
-<input type="hidden" name="mimetypes" value="$Encoder.attributeEscape($MIMETYPES)" />
-<input type="hidden" name="extensions" value="$Encoder.attributeEscape($EXTENSIONS)" />
+<input type="hidden" name="s${SEQNUM}_maxfilesize" value="$Encoder.attributeEscape($MAXFILESIZE)" />
+<input type="hidden" name="s${SEQNUM}_mimetypes" value="$Encoder.attributeEscape($MIMETYPES)" />
+<input type="hidden" name="s${SEQNUM}_extensions" value="$Encoder.attributeEscape($EXTENSIONS)" />
 
 #end
