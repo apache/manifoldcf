@@ -130,6 +130,7 @@
             <include name="slf4j*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
+            <include name="junit*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
             <include name="servlet-api*.jar"/>
@@ -428,7 +429,9 @@
 
     <target name="doc-rmi" depends="compile-wsdls,compile-xsds,has-RMI-check" if="hasRMI">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.7">
+        <javadoc destdir="dist/doc" source="1.7" use="true" locale="en_US">
+            <link href="http://docs.oracle.com/javase/7/docs/api/"/>
+            <link href="http://manifoldcf.apache.org/release/trunk/api/framework/"/>
             <classpath>
                 <path refid="connector-classpath"/>
             </classpath>
@@ -439,7 +442,9 @@
 
     <target name="doc" depends="compile-stubs,doc-rmi,compile-wsdls,compile-xsds,has-RMI-check,precompile-check" if="canBuild" unless="hasRMI">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.7">
+        <javadoc destdir="dist/doc" source="1.7" use="true" locale="en_US">
+            <link href="http://docs.oracle.com/javase/7/docs/api/"/>
+            <link href="http://manifoldcf.apache.org/release/trunk/api/framework/"/>
             <classpath>
                 <path refid="connector-classpath"/>
             </classpath>
@@ -733,21 +738,27 @@
         </copy>
     </target>
 
-    <target name="general-connector-proprietary-runnable-check" depends="lib-proprietary-instructions">
+    <target name="general-connector-proprietary-runnable-check" depends="lib-proprietary-instructions,has-RMI-check">
         <available file="dist/lib-proprietary-only/${ant.project.name}-PLACEHOLDER.txt" property="has-placeholder"/>
         <condition property="is-proprietary-runnable">
-            <not>
-                <isset property="has-placeholder"/>
-            </not>
+            <or>
+                <not>
+                    <isset property="has-placeholder"/>
+                </not>
+                <isset property="hasRMI"/>
+            </or>
         </condition>
     </target>
 
-    <target name="general-connector-runnable-check" depends="general-connector-proprietary-runnable-check">
+    <target name="general-connector-runnable-check" depends="general-connector-proprietary-runnable-check,has-RMI-check">
         <available file="lib-proprietary" type="dir" property="has-lib-proprietary"/>
         <condition property="is-runnable">
-            <not>
-                <isset property="has-lib-proprietary"/>
-            </not>
+            <or>
+                <not>
+                    <isset property="has-lib-proprietary"/>
+                </not>
+                <isset property="hasRMI"/>
+            </or>
         </condition>
     </target>
     

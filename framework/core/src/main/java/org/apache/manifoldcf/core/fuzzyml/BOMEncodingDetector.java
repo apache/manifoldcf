@@ -19,6 +19,8 @@
 package org.apache.manifoldcf.core.fuzzyml;
 
 import org.apache.manifoldcf.core.interfaces.*;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
 
@@ -139,7 +141,7 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
       {
         // Encoding detected as utf-8
         mark();
-        return establishEncoding("UTF-8");
+        return establishEncoding(StandardCharsets.UTF_8.name());
       }
       else
         return replay();
@@ -153,7 +155,7 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
       {
         // Encoding detected as UTF-16LE.  Do NOT re-mark, we need this
         // character for later.
-        return establishEncoding("UTF-16LE");
+        return establishEncoding(StandardCharsets.UTF_16LE.name());
       }
       break;
 
@@ -173,7 +175,7 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
       else
       {
         // Leave mark alone.
-        return establishEncoding("UTF-16LE");
+        return establishEncoding(StandardCharsets.UTF_16LE.name());
       }
 
     case BOM_SEEN_0000FE:

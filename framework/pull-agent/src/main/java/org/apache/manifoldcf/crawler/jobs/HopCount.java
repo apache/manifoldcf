@@ -370,14 +370,25 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     doFinish(jobID,legalLinkTypes,sourceDocumentHashes,hopcountMethod);
   }
 
+  /** Revert newly-added links, because of a possibly incomplete document processing phase.
+  * All child links marked as "new" will be removed, and all links marked as "existing" will be
+  * reset to be "base".
+  */
+  public void revertParents(Long jobID, String[] sourceDocumentHashes)
+    throws ManifoldCFException
+  {
+    intrinsicLinkManager.revertLinks(jobID,sourceDocumentHashes);
+  }
+  
   /** Do the work of recording source-target references. */
   protected boolean[] doRecord(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType,
     int hopcountMethod, String processID)
     throws ManifoldCFException
   {
-
-    // We have to both add the reference, AND invalidate appropriate cached hopcounts (if it is a NEW
-    // link.)
+    // NOTE: In order for the revertParents() call above to be correct in its current form,
+    // this method would need to be revised to not process any additions until the finishParents() call
+    // is made.  At the moment, revertParents() is not used by any thread.
+    // TBD, MHL
     boolean[] rval = new boolean[targetDocumentIDHashes.length];
     for (int i = 0; i < rval.length; i++)
     {

@@ -4119,7 +4119,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       PipelineStage ps = pipelineStages.get(stageName);
       ps.ordinal = k++;
       int prerequisite = (ps.prerequisite == null)?-1:pipelineStages.get(ps.prerequisite).ordinal;
-      OutputSpecification os = jobDescription.addPipelineStage(prerequisite,ps.isOutput,ps.connectionName,ps.description);
+      Specification os = jobDescription.addPipelineStage(prerequisite,ps.isOutput,ps.connectionName,ps.description);
       os.clearChildren();
       if (ps.specification != null)
       {
@@ -4238,7 +4238,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         stage.setValue(description);
         child.addChild(child.getChildCount(),stage);
       }
-      OutputSpecification spec = job.getPipelineStageSpecification(j);
+      Specification spec = job.getPipelineStageSpecification(j);
       stage = new ConfigurationNode(JOBNODE_STAGESPECIFICATION);
       for (int k = 0; k < spec.getChildCount(); k++)
       {

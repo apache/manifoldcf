@@ -48,33 +48,36 @@ import java.util.*;
 * It therefore establishes a space of document identifiers.  Each connector will only ever be
 * asked to deal with identifiers that have in some way originated from the connector.
 *
-* Documents are fetched by ManifoldCF in three stages.  First, the addSeedDocuments() method is called in the connector
+* Documents are fetched by ManifoldCF in two stages.  First, the addSeedDocuments() method is called in the connector
 * implementation.  This method is meant to add a set of document identifiers to the queue.  When ManifoldCF is ready
-* to process a document, the document identifier is used to obtain a current document version string, using the
-* getDocumentVersions() method (the second stage).  This version string is used to decide whether or not the
-* third stage need be called for the document or not.  The third stage is responsible for sending document content
-* to the output, and for extracting any references to additional documents, and consists of the processDocuments() method.
+* to process a document, the document identifier is used to build a version string for the document and check whether
+* the document needs to be indexed, and index it if needed (the second stage).  The second stage
+* consists of the processDocuments() method.
 *
-* All of these methods interact with ManifoldCF by means of an "activity" interface.  For example, an IVersionActivity object
-* is passed to the getDocumentVersions() method, and that object contains methods that are necessary for getDocumentVersions()
-* to do its job.  A similar architecture is used throughout the connector framework.
+* All of these methods interact with ManifoldCF by means of an "activity" interface.
+*
+* A note on connector models:
+*
+* These values describe what the connector returns for the addSeedDocuments() method.  The framework
+* uses these to figure out how to most efficiently use the connector.  It is desirable to pick a model that
+* is the most restrictive that is still accurate.  For example, if MODEL_ADD_CHANGE_DELETE applies, you would
+* return that value rather than MODEL_ADD.
+*
+* For the CHAINED models, what the connector is describing are the documents that will be processed IF the seeded
+* documents are followed to their leaves.  For instance, imagine a hierarchy where the root document is the only one ever
+* seeded, but if that document is processed, and its discovered changed children are processed as well, then all documents
+* that have been added, changed, or deleted will eventually be discovered.  In that case, model
+* MODEL_CHAINED_ADD_CHANGE_DELETE would be appropriate.  But, if a changed node can only discover child
+* additions and changes, then MODEL_CHAINED_ADD_CHANGE would be the right choice.
+*	
+* A CHAINED model also requires cooperation on the part of the connector for processing.  Specifically,
+* a document may be unchanged but its references are expected to still be extracted in order for a CHAINED
+* model to do the right thing.  For non-CHAINED models, re-extraction of references if there are no reference changes
+* for a document is NOT required.
 */
 public interface IRepositoryConnector extends IConnector
 {
   public static final String _rcsid = "@(#)$Id: IRepositoryConnector.java 996524 2010-09-13 13:38:01Z kwright $";
-
-  // Connector models.
-  // These values describe what the connector returns for the getDocumentIdentifiers() method.  The framework
-  // uses these to figure out how to most efficiently use the connector.  It is desirable to pick a model that
-  // is the most restrictive that is still accurate.  For example, if MODEL_ADD_CHANGE_DELETE applies, you would
-  // return that value rather than MODEL_ADD.
-
-  // For the CHAINED models, what the connector is describing are the documents that will be processed IF the seeded
-  // documents are followed to their leaves.  For instance, imagine a hierarchy where the root document is the only one ever
-  // seeded, but if that document is processed, and its discovered changed children are processed as well, then all documents
-  // that have been added, changed, or deleted will eventually be discovered.  In that case, model
-  // MODEL_CHAINED_ADD_CHANGE_DELETE would be appropriate.  But, if a changed node can only discover child
-  // additions and changes, then MODEL_CHAINED_ADD_CHANGE would be the right choice.
 
   /** This is the legacy ManifoldCF catch-all crawling model.  All existing documents will be rechecked when a crawl
   * is done, every time.  This model was typically used for models where seeds were essentially fixed and all
@@ -161,47 +164,25 @@ public interface IRepositoryConnector extends IConnector
   * It is not a big problem if the connector chooses to create more seeds than are
   * strictly necessary; it is merely a question of overall work required.
   *
-  * The times passed to this method may be interpreted for greatest efficiency.  The time ranges
-  * any given job uses with this connector will not overlap, but will proceed starting at 0 and going
-  * to the "current time", each time the job is run.  For continuous crawling jobs, this method will
+  * The end time and seeding version string passed to this method may be interpreted for greatest efficiency.
+  * For continuous crawling jobs, this method will
   * be called once, when the job starts, and at various periodic intervals as the job executes.
   *
-  * When a job's specification is changed, the framework automatically resets the seeding start time to 0.  The
-  * seeding start time may also be set to 0 on each job run, depending on the connector model returned by
+  * When a job's specification is changed, the framework automatically resets the seeding version string to null.  The
+  * seeding version string may also be set to null on each job run, depending on the connector model returned by
   * getConnectorModel().
   *
   * Note that it is always ok to send MORE documents rather than less to this method.
   * The connector will be connected before this method can be called.
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
-  *@param startTime is the beginning of the time range to consider, inclusive.
-  *@param endTime is the end of the time range to consider, exclusive.
+  *@param seedTime is the end of the time range of documents to consider, exclusive.
+  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@return an updated seeding version string, to be stored with the job.
   */
-  public void addSeedDocuments(ISeedingActivity activities, Specification spec,
-    long startTime, long endTime, int jobMode)
-    throws ManifoldCFException, ServiceInterruption;
-
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is therefore important to perform
-  * as little work as possible here.
-  * The connector will be connected before this method can be called.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
-  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
-  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
-  */
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    Specification spec, int jobMode, boolean usesDefaultAuthority)
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
+    String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Process a set of documents.
@@ -210,29 +191,16 @@ public interface IRepositoryConnector extends IConnector
   * The document specification allows this class to filter what is done based on the job.
   * The connector will be connected before this method can be called.
   *@param documentIdentifiers is the set of document identifiers to process.
-  *@param versions is the corresponding document versions to process, as returned by getDocumentVersions() above.
-  *       The implementation may choose to ignore this parameter and always process the current version.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
   *@param activities is the interface this method should use to queue up new document references
   * and ingest documents.
-  *@param spec is the document specification.
-  *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-  * should only find other references, and should not actually call the ingestion methods.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
   */
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    Specification spec, boolean[] scanOnly, int jobMode)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption;
-
-  /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
-  * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
-  * committed during the getDocumentVersions() method.  It is guaranteed to be called AFTER any calls to
-  * processDocuments() for the documents in question.
-  * The connector will be connected before this method can be called.
-  *@param documentIdentifiers is the set of document identifiers.
-  *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
-  */
-  public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws ManifoldCFException;
 
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   * The connector does not need to be connected for this method to be called.

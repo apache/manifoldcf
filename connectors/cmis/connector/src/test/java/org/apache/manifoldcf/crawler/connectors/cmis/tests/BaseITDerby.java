@@ -58,7 +58,7 @@ public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
   public void setUpCMIS()
     throws Exception
   {
-    String openCmisServerWarPath = "../../lib/chemistry-opencmis-server-inmemory.war";
+    String openCmisServerWarPath = "../../../lib/chemistry-opencmis-server-inmemory.war";
 
     if (System.getProperty("openCmisServerWarPath") != null)
       openCmisServerWarPath = System.getProperty("openCmisServerWarPath");

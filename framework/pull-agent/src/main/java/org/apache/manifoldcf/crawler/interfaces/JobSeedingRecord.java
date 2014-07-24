@@ -25,8 +25,8 @@ public class JobSeedingRecord extends JobRecord
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** The last synch time */
-  protected final long synchTime;
+  /** The last seeding version */
+  protected final String seedingVersionString;
   /** The fail time, or -1L if none */
   protected final long failTime;
   /** The fail count, or -1 if none */
@@ -34,20 +34,20 @@ public class JobSeedingRecord extends JobRecord
 
   /** Constructor.
   */
-  public JobSeedingRecord(Long jobID, long synchTime, long failTime, int failRetryCount)
+  public JobSeedingRecord(Long jobID, String seedingVersionString, long failTime, int failRetryCount)
   {
     super(jobID);
-    this.synchTime = synchTime;
+    this.seedingVersionString = seedingVersionString;
     this.failTime = failTime;
     this.failRetryCount = failRetryCount;
   }
 
-  /** Get the synch time.
-  *@return the time.
+  /** Get the seeding version string.
+  *@return the string.
   */
-  public long getSynchTime()
+  public String getSeedingVersionString()
   {
-    return synchTime;
+    return seedingVersionString;
   }
 
   /** Get the hard fail time.
