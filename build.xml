@@ -699,7 +699,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-derby">
         <mkdir dir="lib"/>
-        <property name="derby-version" value="10.10.1.1"/>
+        <property name="derby-version" value="10.10.2.0"/>
         <property name="derby-package" value="org/apache/derby"/>
         <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="derby"/>

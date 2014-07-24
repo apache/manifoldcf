@@ -25,8 +25,8 @@ public class JobStartRecord extends JobRecord
 {
   public static final String _rcsid = "@(#)$Id: JobStartRecord.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  /** The last synch time */
-  protected final long synchTime;
+  /** The last seeding version */
+  protected final String seedingVersionString;
   /** The requestMinimum flag */
   protected final boolean requestMinimum;
   /** The fail time, or -1L if none */
@@ -36,21 +36,21 @@ public class JobStartRecord extends JobRecord
 
   /** Constructor.
   */
-  public JobStartRecord(Long jobID, long synchTime, boolean requestMinimum, long failTime, int failRetryCount)
+  public JobStartRecord(Long jobID, String seedingVersionString, boolean requestMinimum, long failTime, int failRetryCount)
   {
     super(jobID);
-    this.synchTime = synchTime;
+    this.seedingVersionString = seedingVersionString;
     this.requestMinimum = requestMinimum;
     this.failTime = failTime;
     this.failRetryCount = failRetryCount;
   }
 
-  /** Get the synch time.
-  *@return the time.
+  /** Get the seeding version string.
+  *@return the string.
   */
-  public long getSynchTime()
+  public String getSeedingVersionString()
   {
-    return synchTime;
+    return seedingVersionString;
   }
 
   /** Get the requestMinimum flag.

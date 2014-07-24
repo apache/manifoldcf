@@ -107,13 +107,9 @@ public abstract class CharacterInput extends PersistentDatabaseObject
       stream.close();
       stream = null;
     }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
     catch (IOException e)
     {
-      throw new ManifoldCFException("Error closing stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
+      handleIOException(e, "closing stream");
     }
   }
 
@@ -124,5 +120,13 @@ public abstract class CharacterInput extends PersistentDatabaseObject
   /** Calculate the datum's hash value */
   protected abstract void calculateHashValue()
     throws ManifoldCFException;
+
+  protected static void handleIOException(IOException e, String context)
+    throws ManifoldCFException
+  {
+    if (e instanceof InterruptedIOException)
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    throw new ManifoldCFException("IO exception while "+context+": "+e.getMessage(),e);
+  }
 
 }

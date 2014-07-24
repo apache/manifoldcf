@@ -28,13 +28,14 @@ public class PipelineSpecificationWithVersions implements IPipelineSpecification
 {
   protected final IPipelineSpecification pipelineSpecification;
   protected final QueuedDocument queuedDocument;
+  protected final String componentIDHash;
     
   public PipelineSpecificationWithVersions(IPipelineSpecification pipelineSpecification,
-    QueuedDocument queuedDocument)
-    throws ManifoldCFException, ServiceInterruption
+    QueuedDocument queuedDocument, String componentIDHash)
   {
     this.pipelineSpecification = pipelineSpecification;
     this.queuedDocument = queuedDocument;
+    this.componentIDHash = componentIDHash;
   }
   
   /** Get pipeline specification.
@@ -49,7 +50,10 @@ public class PipelineSpecificationWithVersions implements IPipelineSpecification
   protected DocumentIngestStatus getStatus(int index)
   {
     IPipelineSpecificationBasic basic = pipelineSpecification.getBasicPipelineSpecification();
-    return queuedDocument.getLastIngestedStatus(basic.getStageConnectionName(basic.getOutputStage(index)));
+    DocumentIngestStatusSet set = queuedDocument.getLastIngestedStatus(basic.getStageConnectionName(basic.getOutputStage(index)));
+    if (set == null)
+      return null;
+    return set.getComponent(componentIDHash);
   }
   
   /** For a given output index, return a document version string.

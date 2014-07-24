@@ -457,57 +457,102 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       presentMap.put(vr,vr);
     }
   }
+  
+  /** Revert all records belonging to the specified parent documents to their original,
+  * pre-modified, state.
+  */
+  public void revertRecords(Long jobID, String[] parentDocumentIDHashes)
+    throws ManifoldCFException
+  {
+    int maxClause = getMaxInClause();
+    StringBuilder sb = new StringBuilder();
+    List<String> list = new ArrayList<String>();
+    int k = 0;
+    for (String parentDocumentIDHash : parentDocumentIDHashes)
+    {
+      if (k == maxClause)
+      {
+        performRevertRecords(sb.toString(),jobID,list);
+        sb.setLength(0);
+        list.clear();
+        k = 0;
+      }
+      if (k > 0)
+        sb.append(",");
+      sb.append("?");
+      list.add(parentDocumentIDHash);
+      k++;
+    }
+
+    if (k > 0)
+      performRevertRecords(sb.toString(),jobID,list);
+  }
+  
+  protected void performRevertRecords(String query, Long jobID, List<String> list)
+    throws ManifoldCFException
+  {
+    // Delete new records
+    StringBuilder sb = new StringBuilder("WHERE ");
+    ArrayList newList = new ArrayList();
+    
+    sb.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(parentIDHashField,list)})).append(" AND ");
+      
+    sb.append(newField).append("=?");
+    newList.add(statusToString(ISNEW_NEW));
+    performDelete(sb.toString(),newList,null);
+
+    // Restore old values
+    sb = new StringBuilder("WHERE ");
+    newList.clear();
+
+    sb.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(parentIDHashField,list)})).append(" AND ");
+
+    sb.append(newField).append("=?");
+    newList.add(statusToString(ISNEW_EXISTING));
+    
+    HashMap map = new HashMap();
+    map.put(newField,statusToString(ISNEW_BASE));
+    map.put(processIDField,null);
+    performUpdate(map,sb.toString(),newList,null);
+    
+    noteModifications(0,list.size(),0);
+  }
+
   /** Return all records belonging to the specified parent documents to the base state,
   * and delete the old (eliminated) child records.
   */
   public void restoreRecords(Long jobID, String[] parentDocumentIDHashes)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
+    int maxClause = getMaxInClause();
+    StringBuilder sb = new StringBuilder();
+    List<String> list = new ArrayList<String>();
+    int k = 0;
+    for (String parentDocumentIDHash : parentDocumentIDHashes)
     {
-      int maxClause = getMaxInClause();
-      StringBuilder sb = new StringBuilder();
-      ArrayList list = new ArrayList();
-      int i = 0;
-      int k = 0;
-      while (i < parentDocumentIDHashes.length)
+      if (k == maxClause)
       {
-        if (k == maxClause)
-        {
-          performRestoreRecords(sb.toString(),jobID,list);
-          sb.setLength(0);
-          list.clear();
-          k = 0;
-        }
-        if (k > 0)
-          sb.append(",");
-        sb.append("?");
-        String parentDocumentIDHash = parentDocumentIDHashes[i++];
-        list.add(parentDocumentIDHash);
-        k++;
-      }
-
-      if (k > 0)
         performRestoreRecords(sb.toString(),jobID,list);
+        sb.setLength(0);
+        list.clear();
+        k = 0;
+      }
+      if (k > 0)
+        sb.append(",");
+      sb.append("?");
+      list.add(parentDocumentIDHash);
+      k++;
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+
+    if (k > 0)
+      performRestoreRecords(sb.toString(),jobID,list);
   }
 
-  protected void performRestoreRecords(String query, Long jobID, ArrayList list)
+  protected void performRestoreRecords(String query, Long jobID, List<String> list)
     throws ManifoldCFException
   {
     // Delete
@@ -547,45 +592,23 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
   public void deleteRecords(Long jobID, String[] documentIDHashes)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
+    int maxClause = maxClausePerformDeleteRecords(jobID);
+    List<String> list = new ArrayList<String>();
+    int k = 0;
+    for (String documentIDHash : documentIDHashes)
     {
-      int maxClause = maxClausePerformDeleteRecords(jobID);
-      ArrayList list = new ArrayList();
-      int i = 0;
-      int k = 0;
-      while (i < documentIDHashes.length)
+      if (k == maxClause)
       {
-        if (k == maxClause)
-        {
-          performDeleteRecords(jobID,list);
-          list.clear();
-          k = 0;
-        }
-        list.add(documentIDHashes[i++]);
-        k++;
-      }
-
-      if (k > 0)
         performDeleteRecords(jobID,list);
-
-
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
+        list.clear();
+        k = 0;
+      }
+      list.add(documentIDHash);
+      k++;
     }
 
+    if (k > 0)
+      performDeleteRecords(jobID,list);
   }
 
   protected int maxClausePerformDeleteRecords(Long jobID)
@@ -594,7 +617,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID)});
   }
     
-  protected void performDeleteRecords(Long jobID, ArrayList list)
+  protected void performDeleteRecords(Long jobID, List<String> list)
     throws ManifoldCFException
   {
     StringBuilder sb = new StringBuilder("WHERE ");

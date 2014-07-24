@@ -548,7 +548,15 @@ public interface IJobManager
   */
   public void retryNotification(JobNotifyRecord jobNotifyRecord, long failTime, int failRetryCount)
     throws ManifoldCFException;
-  
+
+  /** Retry delete notification.
+  *@param jnr is the current job notification record.
+  *@param failTime is the new fail time (-1L if none).
+  *@param failCount is the new fail retry count (-1 if none).
+  */
+  public void retryDeleteNotification(JobNotifyRecord jnr, long failTime, int failCount)
+    throws ManifoldCFException;
+
   /** Add an initial set of documents to the queue.
   * This method is called during job startup, when the queue is being loaded.
   * A set of document references is passed to this method, which updates the status of the document
@@ -709,6 +717,18 @@ public interface IJobManager
     String[] parentIdentifierHashes, int hopcountMethod)
     throws ManifoldCFException;
 
+  /** Undo the addition of child documents to the queue, for a set of documents.
+  * This method is called at the end of document processing, to back out any incomplete additions to the queue, and restore
+  * the status quo ante prior to the incomplete additions.  Call this method instead of finishDocuments() if the
+  * addition of documents was not completed.
+  *@param jobID is the job identifier.
+  *@param legalLinkTypes is the set of legal link types that this connector generates.
+  *@param parentIdentifierHashes are the hashes of the document identifiers for whom child link extraction just took place.
+  */
+  public void revertDocuments(Long jobID, String[] legalLinkTypes,
+    String[] parentIdentifierHashes)
+    throws ManifoldCFException;
+
   /** Retrieve specific parent data for a given document.
   *@param jobID is the job identifier.
   *@param docIDHash is the hash of the document identifier.
@@ -825,11 +845,11 @@ public interface IJobManager
   public void resetSeedJob(Long jobID)
     throws ManifoldCFException;
 
-  /** Get the list of jobs that are ready for deletion.
+  /** Get the list of jobs that are ready for delete cleanup.
   *@param processID is the current process ID.
   *@return jobs that were in the "readyfordelete" state.
   */
-  public JobDeleteRecord[] getJobsReadyForDelete(String processID)
+  public JobDeleteRecord[] getJobsReadyForDeleteCleanup(String processID)
     throws ManifoldCFException;
     
   /** Get the list of jobs that are ready for startup.
@@ -846,10 +866,23 @@ public interface IJobManager
   public JobNotifyRecord[] getJobsReadyForInactivity(String processID)
     throws ManifoldCFException;
 
+  /** Find the list of jobs that need to have their connectors notified of job deletion.
+  *@param processID is the process ID.
+  *@return the ID's of jobs that need their output connectors notified in order to be removed.
+  */
+  public JobNotifyRecord[] getJobsReadyForDelete(String processID)
+    throws ManifoldCFException;
+
   /** Inactivate a job, from the notification state.
   *@param jobID is the ID of the job to inactivate.
   */
   public void inactivateJob(Long jobID)
+    throws ManifoldCFException;
+
+  /** Remove a job, from the notification state.
+  *@param jobID is the ID of the job to remove.
+  */
+  public void removeJob(Long jobID)
     throws ManifoldCFException;
 
   /** Reset a job starting for delete back to "ready for delete"
@@ -864,6 +897,13 @@ public interface IJobManager
   *@param jobID is the job id.
   */
   public void resetNotifyJob(Long jobID)
+    throws ManifoldCFException;
+
+  /** Reset a job that is delete notifying back to "ready for delete notify"
+  * state.
+  *@param jobID is the job id.
+  */
+  public void resetDeleteNotifyJob(Long jobID)
     throws ManifoldCFException;
 
   /** Reset a starting job back to "ready for startup" state.
@@ -905,15 +945,16 @@ public interface IJobManager
   /** Note job started.
   *@param jobID is the job id.
   *@param startTime is the job start time.
+  *@param seedingVersion is the seeding version to record with the job start.
   */
-  public void noteJobStarted(Long jobID, long startTime)
+  public void noteJobStarted(Long jobID, long startTime, String seedingVersion)
     throws ManifoldCFException;
 
   /** Note job seeded.
   *@param jobID is the job id.
-  *@param startTime is the job seed time.
+  *@param seedingVersion is the seeding version string to record.
   */
-  public void noteJobSeeded(Long jobID, long startTime)
+  public void noteJobSeeded(Long jobID, String seedingVersion)
     throws ManifoldCFException;
 
   /**  Note the deregistration of a connector used by the specified connections.

@@ -92,7 +92,7 @@ public interface IJobDescription
   *@param pipelineStageDescription is a description of the pipeline stage being added.
   *@return the empty output specification for this pipeline stage.
   */
-  public OutputSpecification addPipelineStage(int prerequisiteStage, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription);
+  public Specification addPipelineStage(int prerequisiteStage, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription);
   
   /** Get a count of pipeline connections.
   *@return the current number of pipeline connections.
@@ -127,7 +127,7 @@ public interface IJobDescription
   *@param index is the index of the pipeline stage whose specification is needed.
   *@return the specification for the connection.
   */
-  public OutputSpecification getPipelineStageSpecification(int index);
+  public Specification getPipelineStageSpecification(int index);
 
   /** Delete a pipeline stage.
   *@param index is the index of the pipeline stage to delete.
@@ -140,7 +140,7 @@ public interface IJobDescription
   *@param pipelineStageDescription is the description.
   *@return the newly-created output specification.
   */
-  public OutputSpecification insertPipelineStage(int index, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription);
+  public Specification insertPipelineStage(int index, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription);
   
   /** Set the job type.
   *@param type is the type (as an integer).

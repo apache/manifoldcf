@@ -66,13 +66,20 @@ public interface IIncrementalIngester
   *@return the last indexed output connection name.
   */
   public String getLastIndexedOutputConnectionName(IPipelineSpecificationBasic pipelineSpecificationBasic);
-  
+
+  /** From a pipeline specification, get the name of the output connection that will be indexed first
+  * in the pipeline.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@return the first indexed output connection name.
+  */
+  public String getFirstIndexedOutputConnectionName(IPipelineSpecificationBasic pipelineSpecificationBasic);
+
   /** Get an output version string for a document.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param spec is the output specification.
   *@return the description string.
   */
-  public String getOutputDescription(String outputConnectionName, OutputSpecification spec)
+  public VersionContext getOutputDescription(String outputConnectionName, Specification spec)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Get transformation version string for a document.
@@ -80,7 +87,7 @@ public interface IIncrementalIngester
   *@param spec is the transformation specification.
   *@return the description string.
   */
-  public String getTransformationDescription(String transformationConnectionName, OutputSpecification spec)
+  public VersionContext getTransformationDescription(String transformationConnectionName, Specification spec)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Check if a mime type is indexable.
@@ -95,16 +102,6 @@ public interface IIncrementalIngester
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Check if a mime type is indexable.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param outputDescription is the output description string.
-  *@param mimeType is the mime type to check.
-  *@return true if the mimeType is indexable.
-  */
-  @Deprecated
-  public boolean checkMimeTypeIndexable(String outputConnectionName, String outputDescription, String mimeType)
-    throws ManifoldCFException, ServiceInterruption;
-
   /** Check if a file is indexable.
   *@param pipelineSpecification is the pipeline specification.
   *@param localFile is the local file to check.
@@ -115,16 +112,6 @@ public interface IIncrementalIngester
     IPipelineSpecification pipelineSpecification,
     File localFile,
     IOutputCheckActivity activity)
-    throws ManifoldCFException, ServiceInterruption;
-
-  /** Check if a file is indexable.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param outputDescription is the output description string.
-  *@param localFile is the local file to check.
-  *@return true if the local file is indexable.
-  */
-  @Deprecated
-  public boolean checkDocumentIndexable(String outputConnectionName, String outputDescription, File localFile)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
@@ -140,17 +127,6 @@ public interface IIncrementalIngester
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
-  * to help filter out documents that are too long to be indexable.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param outputDescription is the output description string.
-  *@param length is the length of the document.
-  *@return true if the file is indexable.
-  */
-  @Deprecated
-  public boolean checkLengthIndexable(String outputConnectionName, String outputDescription, long length)
-    throws ManifoldCFException, ServiceInterruption;
-
   /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
   * to help filter out documents that not indexable.
   *@param pipelineSpecification is the pipeline specification.
@@ -162,17 +138,6 @@ public interface IIncrementalIngester
     IPipelineSpecification pipelineSpecification,
     String url,
     IOutputCheckActivity activity)
-    throws ManifoldCFException, ServiceInterruption;
-
-  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
-  * to help filter out documents that not indexable.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param outputDescription is the output description string.
-  *@param url is the url of the document.
-  *@return true if the file is indexable.
-  */
-  @Deprecated
-  public boolean checkURLIndexable(String outputConnectionName, String outputDescription, String url)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Determine whether we need to fetch or refetch a document.
@@ -192,94 +157,42 @@ public interface IIncrementalIngester
     String newAuthorityNameString);
 
   /** Record a document version, but don't ingest it.
-  * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
-  * ServiceInterruption is thrown if this action must be rescheduled.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
-  *@param identifierHash is the hashed document identifier.
-  *@param documentVersion is the document version.
-  *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
-  *@param activities is the object used in case a document needs to be removed from the output index as the result of this operation.
-  */
-  @Deprecated
-  public void documentRecord(String outputConnectionName,
-    String identifierClass, String identifierHash,
-    String documentVersion, long recordTime,
-    IOutputActivity activities)
-    throws ManifoldCFException, ServiceInterruption;
-
-  /** Record a document version, but don't ingest it.
-  * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
-  * ServiceInterruption is thrown if this action must be rescheduled.
+  * The purpose of this method is to update document version information without reindexing the document.
   *@param pipelineSpecificationBasic is the basic pipeline specification needed.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
-  *@param activities is the object used in case a document needs to be removed from the output index as the result of this operation.
   */
   public void documentRecord(
     IPipelineSpecificationBasic pipelineSpecificationBasic,
-    String identifierClass, String identifierHash,
-    String documentVersion, long recordTime,
-    IOutputActivity activities)
-    throws ManifoldCFException, ServiceInterruption;
+    String identifierClass, String identifierHash, String componentHash,
+    String documentVersion, long recordTime)
+    throws ManifoldCFException;
 
-  /** Ingest a document.
-  * This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
-  * method also REMOVES ALL OLD METADATA.  When complete, the index will contain only the metadata
-  * described by the RepositoryDocument object passed to this method.
-  * ServiceInterruption is thrown if the document ingestion must be rescheduled.
-  *@param outputConnectionName is the name of the output connection associated with this action.
+  /** Remove a document from specified indexes, just as if an empty document
+  * was indexed, and record the necessary version information.
+  * This method is conceptually similar to documentIngest(), but does not actually take
+  * a document or allow it to be transformed.  If there is a document already
+  * indexed, it is removed from the index.
+  *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
-  *@param outputVersion is the output version string constructed from the output specification by the output connector.
+  *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
-  *@param data is the document data.  The data is closed after ingestion is complete.
-  *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
-  *@param documentURI is the URI of the document, which will be used as the key of the document in the index.
+  *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
   *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
-  *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
   */
-  @Deprecated
-  public boolean documentIngest(String outputConnectionName,
-    String identifierClass, String identifierHash,
+  public void documentNoData(
+    IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
-    String outputVersion,
-    String authorityName,
-    RepositoryDocument data,
-    long ingestTime, String documentURI,
-    IOutputActivity activities)
-    throws ManifoldCFException, ServiceInterruption;
-
-  /** Ingest a document.
-  * This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
-  * method also REMOVES ALL OLD METADATA.  When complete, the index will contain only the metadata
-  * described by the RepositoryDocument object passed to this method.
-  * ServiceInterruption is thrown if the document ingestion must be rescheduled.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
-  *@param identifierHash is the hashed document identifier.
-  *@param documentVersion is the document version.
-  *@param parameterVersion is the forced parameter version.
-  *@param outputVersion is the output version string constructed from the output specification by the output connector.
-  *@param authorityName is the name of the authority associated with the document, if any.
-  *@param data is the document data.  The data is closed after ingestion is complete.
-  *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
-  *@param documentURI is the URI of the document, which will be used as the key of the document in the index.
-  *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
-  *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
-  */
-  @Deprecated
-  public boolean documentIngest(String outputConnectionName,
-    String identifierClass, String identifierHash,
-    String documentVersion,
-    String outputVersion,
     String parameterVersion,
     String authorityName,
-    RepositoryDocument data,
-    long ingestTime, String documentURI,
+    long recordTime,
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
@@ -291,6 +204,7 @@ public interface IIncrementalIngester
   *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
+  *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
   *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
@@ -303,7 +217,7 @@ public interface IIncrementalIngester
   */
   public boolean documentIngest(
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
-    String identifierClass, String identifierHash,
+    String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String parameterVersion,
     String authorityName,
@@ -312,31 +226,31 @@ public interface IIncrementalIngester
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException;
 
-  /** Note the fact that we checked a document (and found that it did not need to be ingested, because the
-  * versions agreed).
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
-  *@param identifierHashes are the set of document identifier hashes.
-  *@param checkTime is the time at which the check took place, in milliseconds since epoch.
-  */
-  @Deprecated
-  public void documentCheckMultiple(String outputConnectionName,
-    String[] identifierClasses, String[] identifierHashes,
-    long checkTime)
-    throws ManifoldCFException;
-
-  /** Note the fact that we checked a document (and found that it did not need to be ingested, because the
-  * versions agreed).
-  *@param outputConnectionName is the name of the output connection associated with this action.
+  /** Remove a document component from the search engine index.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
-  *@param identifierHash is the hashed document identifier.
-  *@param checkTime is the time at which the check took place, in milliseconds since epoch.
+  *@param identifierHash is the hash of the id of the document.
+  *@param componentHash is the hashed component identifier, if any.
+  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
   */
-  @Deprecated
-  public void documentCheck(String outputConnectionName,
-    String identifierClass, String identifierHash,
-    long checkTime)
-    throws ManifoldCFException;
+  public void documentRemove(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String identifierClass, String identifierHash, String componentHash,
+    IOutputRemoveActivity activities)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Remove multiple document components from the search engine index.
+  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param identifierClasses are the names of the spaces in which the identifier hash should be interpreted.
+  *@param identifierHashes are the hashes of the ids of the documents.
+  *@param componentHash is the hashed component identifier, if any.
+  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
+  */
+  public void documentRemoveMultiple(
+    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    String[] identifierClasses, String[] identifierHashes, String componentHash,
+    IOutputRemoveActivity activities)
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Note the fact that we checked a document (and found that it did not need to be ingested, because the
   * versions agreed).
@@ -364,43 +278,7 @@ public interface IIncrementalIngester
     long checkTime)
     throws ManifoldCFException;
 
-  /** Delete multiple documents from the search engine index.
-  *@param outputConnectionNames are the names of the output connections associated with this action.
-  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
-  *@param identifierHashes is tha array of document identifier hashes if the documents.
-  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
-  */
-  @Deprecated
-  public void documentDeleteMultiple(String[] outputConnectionNames,
-    String[] identifierClasses, String[] identifierHashes,
-    IOutputRemoveActivity activities)
-    throws ManifoldCFException, ServiceInterruption;
-
-  /** Delete multiple documents from the search engine index.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
-  *@param identifierHashes is tha array of document identifier hashes if the documents.
-  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
-  */
-  @Deprecated
-  public void documentDeleteMultiple(String outputConnectionName,
-    String[] identifierClasses, String[] identifierHashes,
-    IOutputRemoveActivity activities)
-    throws ManifoldCFException, ServiceInterruption;
-
-  /** Delete a document from the search engine index.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
-  *@param identifierHash is the hash of the id of the document.
-  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
-  */
-  @Deprecated
-  public void documentDelete(String outputConnectionName,
-    String identifierClass, String identifierHash,
-    IOutputRemoveActivity activities)
-    throws ManifoldCFException, ServiceInterruption;
-
-  /** Delete multiple documents from the search engine index.
+  /** Delete multiple documents, and their components, from the search engine index.
   *@param pipelineSpecificationBasics are the pipeline specifications associated with the documents.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
   *@param identifierHashes is tha array of document identifier hashes if the documents.
@@ -412,7 +290,7 @@ public interface IIncrementalIngester
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Delete multiple documents from the search engine index.
+  /** Delete multiple documents, and their components, from the search engine index.
   *@param pipelineSpecificationBasic is the basic pipeline specification.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
   *@param identifierHashes is tha array of document identifier hashes if the documents.
@@ -424,7 +302,7 @@ public interface IIncrementalIngester
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Delete a document from the search engine index.
+  /** Delete a document, and all its components, from the search engine index.
   *@param pipelineSpecificationBasic is the basic pipeline specification.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hash of the id of the document.
@@ -436,41 +314,6 @@ public interface IIncrementalIngester
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Look up ingestion data for a SET of documents.
-  *@param outputConnectionNames are the names of the output connections associated with this action.
-  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
-  *@param identifierHashes is the array of document identifier hashes to look up.
-  *@return the array of document data.  Null will come back for any identifier that doesn't
-  * exist in the index.
-  */
-  @Deprecated
-  public DocumentIngestStatus[] getDocumentIngestDataMultiple(String[] outputConnectionNames,
-    String[] identifierClasses, String[] identifierHashes)
-    throws ManifoldCFException;
-
-  /** Look up ingestion data for a SET of documents.
-  *@param outputConnectionName is the names of the output connection associated with this action.
-  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
-  *@param identifierHashes is the array of document identifier hashes to look up.
-  *@return the array of document data.  Null will come back for any identifier that doesn't
-  * exist in the index.
-  */
-  @Deprecated
-  public DocumentIngestStatus[] getDocumentIngestDataMultiple(String outputConnectionName,
-    String[] identifierClasses, String[] identifierHashes)
-    throws ManifoldCFException;
-
-  /** Look up ingestion data for a documents.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
-  *@param identifierHash is the hash of the id of the document.
-  *@return the current document's ingestion data, or null if the document is not currently ingested.
-  */
-  @Deprecated
-  public DocumentIngestStatus getDocumentIngestData(String outputConnectionName,
-    String identifierClass, String identifierHash)
-    throws ManifoldCFException;
-
   /** Look up ingestion data for a set of documents.
   *@param rval is a map of output key to document data, in no particular order, which will be loaded with all matching results.
   *@param pipelineSpecificationBasics are the pipeline specifications corresponding to the identifier classes and hashes.
@@ -478,7 +321,7 @@ public interface IIncrementalIngester
   *@param identifierHashes is the array of document identifier hashes to look up.
   */
   public void getPipelineDocumentIngestDataMultiple(
-    Map<OutputKey,DocumentIngestStatus> rval,
+    IngestStatuses rval,
     IPipelineSpecificationBasic[] pipelineSpecificationBasics,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException;
@@ -490,7 +333,7 @@ public interface IIncrementalIngester
   *@param identifierHashes is the array of document identifier hashes to look up.
   */
   public void getPipelineDocumentIngestDataMultiple(
-    Map<OutputKey,DocumentIngestStatus> rval,
+    IngestStatuses rval,
     IPipelineSpecificationBasic pipelineSpecificationBasic,
     String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException;
@@ -502,32 +345,8 @@ public interface IIncrementalIngester
   *@param identifierHash is the hash of the id of the document.
   */
   public void getPipelineDocumentIngestData(
-    Map<OutputKey,DocumentIngestStatus> rval,
+    IngestStatuses rval,
     IPipelineSpecificationBasic pipelineSpecificationBasic,
-    String identifierClass, String identifierHash)
-    throws ManifoldCFException;
-
-  /** Calculate the average time interval between changes for a document.
-  * This is based on the data gathered for the document.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
-  *@param identifierHashes is the hashes of the ids of the documents.
-  *@return the number of milliseconds between changes, or 0 if this cannot be calculated.
-  */
-  @Deprecated
-  public long[] getDocumentUpdateIntervalMultiple(String outputConnectionName,
-    String[] identifierClasses, String[] identifierHashes)
-    throws ManifoldCFException;
-
-  /** Calculate the average time interval between changes for a document.
-  * This is based on the data gathered for the document.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
-  *@param identifierHash is the hash of the id of the document.
-  *@return the number of milliseconds between changes, or 0 if this cannot be calculated.
-  */
-  @Deprecated
-  public long getDocumentUpdateInterval(String outputConnectionName,
     String identifierClass, String identifierHash)
     throws ManifoldCFException;
 

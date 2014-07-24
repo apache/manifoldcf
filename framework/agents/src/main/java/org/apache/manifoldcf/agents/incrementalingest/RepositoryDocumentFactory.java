@@ -40,10 +40,10 @@ public class RepositoryDocumentFactory
   protected final RepositoryDocument original;
 
   // The binary stream file and stream (if any)
-  protected BinaryTracker binaryTracker;
+  protected BinaryInput binaryTracker;
   
   // Readers (organized by metadata)
-  protected Map<String,ReaderTracker[]> metadataReaders = new HashMap<String,ReaderTracker[]>();
+  protected Map<String,CharacterInput[]> metadataReaders = new HashMap<String,CharacterInput[]>();
   
   /** Constructor.
   * Pass a RepositoryDocument.  This constructor reads all streams and stores them in
@@ -59,7 +59,7 @@ public class RepositoryDocumentFactory
     
     try
     {
-      this.binaryTracker = new BinaryTracker(document.getBinaryStream());
+      this.binaryTracker = new TempFileInput(document.getBinaryStream());
       // Copy all reader streams
       Iterator<String> iter = document.getFields();
       if (iter.hasNext())
@@ -68,12 +68,12 @@ public class RepositoryDocumentFactory
         Object[] objects = document.getField(fieldName);
         if (objects instanceof Reader[])
         {
-          ReaderTracker[] newValues = new ReaderTracker[objects.length];
+          CharacterInput[] newValues = new CharacterInput[objects.length];
           metadataReaders.put(fieldName,newValues);
           // Populate newValues
           for (int i = 0; i < newValues.length; i++)
           {
-            newValues[i] = new ReaderTracker((Reader)objects[i]);
+            newValues[i] = new TempFileCharacterInput((Reader)objects[i]);
           }
         }
       }
@@ -82,14 +82,14 @@ public class RepositoryDocumentFactory
     {
       // Clean up everything we've done so far.
       if (this.binaryTracker != null)
-        this.binaryTracker.close();
+        this.binaryTracker.discard();
       for (String key : metadataReaders.keySet())
       {
-        ReaderTracker[] rt = metadataReaders.get(key);
-        for (ReaderTracker r : rt)
+        CharacterInput[] rt = metadataReaders.get(key);
+        for (CharacterInput r : rt)
         {
           if (r != null)
-            r.close();
+            r.discard();
         }
       }
       if (e instanceof IOException)
@@ -129,7 +129,8 @@ public class RepositoryDocumentFactory
     }
     
     // Copy binary
-    rd.setBinary(binaryTracker.createNewInputStream(),original.getBinaryLength());
+    binaryTracker.doneWithStream();
+    rd.setBinary(binaryTracker.getStream(),original.getBinaryLength());
     // Copy metadata fields (including minting new Readers where needed)
     Iterator<String> iter = original.getFields();
     if (iter.hasNext())
@@ -138,11 +139,12 @@ public class RepositoryDocumentFactory
       Object[] objects = original.getField(fieldName);
       if (objects instanceof Reader[])
       {
-        ReaderTracker[] rts = metadataReaders.get(fieldName);
+        CharacterInput[] rts = metadataReaders.get(fieldName);
         Reader[] newReaders = new Reader[rts.length];
         for (int i = 0; i < rts.length; i++)
         {
-          newReaders[i] = rts[i].createNewReader();
+          rts[i].doneWithStream();
+          newReaders[i] = rts[i].getStream();
         }
         rd.addField(fieldName,newReaders);
       }
@@ -166,199 +168,15 @@ public class RepositoryDocumentFactory
   public void close()
     throws ManifoldCFException
   {
-    binaryTracker.close();
+    binaryTracker.discard();
     for (String key : metadataReaders.keySet())
     {
-      ReaderTracker[] rt = metadataReaders.get(key);
-      for (ReaderTracker r : rt)
+      CharacterInput[] rt = metadataReaders.get(key);
+      for (CharacterInput r : rt)
       {
-        r.close();
+        r.discard();
       }
     }
-  }
-  
-  protected static class ReaderTracker
-  {
-    protected File readerFile;
-    protected Reader reader = null;
-    
-    public ReaderTracker(Reader r)
-      throws IOException
-    {
-      // Make a local copy
-      readerFile = File.createTempFile("mcfrdr","tmp");
-      try
-      {
-        FileOutputStream os = new FileOutputStream(readerFile);
-        try
-        {
-          OutputStreamWriter ow = new OutputStreamWriter(os,"utf-8");
-          try
-          {
-            char[] byteArray = new char[65536];
-            while (true)
-            {
-              int amt = r.read(byteArray,0,byteArray.length);
-              if (amt == -1)
-                break;
-              ow.write(byteArray,0,amt);
-            }
-          }
-          finally
-          {
-            ow.flush();
-          }
-        }
-        finally
-        {
-          os.close();
-        }
-      }
-      catch (Throwable e)
-      {
-        readerFile.delete();
-        if (e instanceof IOException)
-          throw (IOException)e;
-        else if (e instanceof RuntimeException)
-          throw (RuntimeException)e;
-        else if (e instanceof Error)
-          throw (Error)e;
-        else
-          throw new RuntimeException("Unknown error type: "+e.getClass().getName()+": "+e.getMessage(),e);
-      }
-    }
-    
-    public Reader createNewReader()
-      throws ManifoldCFException
-    {
-      try
-      {
-        // Close existing inputstream and create a new one.
-        if (reader != null)
-        {
-          reader.close();
-          reader = null;
-        }
-        reader = new InputStreamReader(new FileInputStream(readerFile),"utf-8");
-        return reader;
-      }
-      catch (IOException e)
-      {
-        handleIOException(e);
-        return null;
-      }
-    }
-    
-    public void close()
-      throws ManifoldCFException
-    {
-      try
-      {
-        // Close all streams and delete file
-        if (reader != null)
-        {
-          reader.close();
-          reader = null;
-        }
-        readerFile.delete();
-      }
-      catch (IOException e)
-      {
-        handleIOException(e);
-      }
-    }
-  }
-  
-  protected static class BinaryTracker
-  {
-    protected File binaryFile;
-    protected InputStream inputStream = null;
-    
-    public BinaryTracker(InputStream is)
-      throws IOException
-    {
-      // Make a local copy
-      binaryFile = File.createTempFile("mcfbin","tmp");
-      try
-      {
-        FileOutputStream os = new FileOutputStream(binaryFile);
-        try
-        {
-          byte[] byteArray = new byte[65536];
-          while (true)
-          {
-            int amt = is.read(byteArray,0,byteArray.length);
-            if (amt == -1)
-              break;
-            os.write(byteArray,0,amt);
-          }
-        }
-        finally
-        {
-          os.close();
-        }
-      }
-      catch (Throwable e)
-      {
-        binaryFile.delete();
-        if (e instanceof IOException)
-          throw (IOException)e;
-        else if (e instanceof RuntimeException)
-          throw (RuntimeException)e;
-        else if (e instanceof Error)
-          throw (Error)e;
-        else
-          throw new RuntimeException("Unknown error type: "+e.getClass().getName()+": "+e.getMessage(),e);
-      }
-    }
-    
-    public InputStream createNewInputStream()
-      throws ManifoldCFException
-    {
-      try
-      {
-        // Close existing inputstream and create a new one.
-        if (inputStream != null)
-        {
-          inputStream.close();
-          inputStream = null;
-        }
-        inputStream = new FileInputStream(binaryFile);
-        return inputStream;
-      }
-      catch (IOException e)
-      {
-        handleIOException(e);
-        return null;
-      }
-    }
-    
-    public void close()
-      throws ManifoldCFException
-    {
-      try
-      {
-        // Close all streams and delete file
-        if (inputStream != null)
-        {
-          inputStream.close();
-          inputStream = null;
-        }
-        binaryFile.delete();
-      }
-      catch (IOException e)
-      {
-        handleIOException(e);
-      }
-    }
-  }
-
-  protected static void handleIOException(IOException e)
-    throws ManifoldCFException
-  {
-    if (e instanceof InterruptedIOException)
-      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    throw new ManifoldCFException(e.getMessage(),e);
   }
   
 }

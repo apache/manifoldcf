@@ -39,7 +39,7 @@ public class QueuedDocument
   /** The document description. */
   protected final DocumentDescription documentDescription;
   /** The last ingested status, null meaning "never ingested". */
-  protected final Map<String,DocumentIngestStatus> lastIngestedStatus;
+  protected final Map<String,DocumentIngestStatusSet> lastIngestedStatus;
   /** The binnames for the document, according to the connector */
   protected final String[] binNames;
   /** This flag indicates whether the document has been processed or not. */
@@ -50,7 +50,7 @@ public class QueuedDocument
   *@param lastIngestedStatus is the document's last ingested status.
   *@param binNames are the bins associated with the document.
   */
-  public QueuedDocument(DocumentDescription documentDescription, Map<String,DocumentIngestStatus> lastIngestedStatus, String[] binNames)
+  public QueuedDocument(DocumentDescription documentDescription, Map<String,DocumentIngestStatusSet> lastIngestedStatus, String[] binNames)
   {
     this.documentDescription = documentDescription;
     this.lastIngestedStatus = lastIngestedStatus;
@@ -69,7 +69,7 @@ public class QueuedDocument
   *@param outputConnectionName is the name of the output connection.
   *@return the last ingested status for that output, or null if not found.
   */
-  public DocumentIngestStatus getLastIngestedStatus(String outputConnectionName)
+  public DocumentIngestStatusSet getLastIngestedStatus(String outputConnectionName)
   {
     if (lastIngestedStatus == null)
       return null;

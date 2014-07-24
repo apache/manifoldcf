@@ -60,6 +60,8 @@
     <module>email</module>
     <module>amazoncloudsearch</module>
     <module>forcedmetadata</module>
+    <module>tika</module>
+    <module>documentfilter</module>
     <module>rabbitmq</module>
   </modules>
 
