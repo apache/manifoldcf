@@ -95,11 +95,11 @@ public class ElasticSearchSpecs extends ElasticSearchParam
   }
 
   public static void contextToSpecNode(IPostParameters variableContext,
-      ConfigurationNode specNode)
+      ConfigurationNode specNode, int sequenceNumber)
   {
     for (ParameterEnum param : SPECIFICATIONLIST)
     {
-      String p = variableContext.getParameter(param.name().toLowerCase());
+      String p = variableContext.getParameter("s"+sequenceNumber+"_"+param.name().toLowerCase());
       if (p != null)
         specNode.setAttribute(param.name(), p);
     }

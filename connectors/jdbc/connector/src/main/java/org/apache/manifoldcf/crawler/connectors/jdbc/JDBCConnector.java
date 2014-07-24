@@ -634,7 +634,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                         try
                         {
                           rd.setBinary(is,ci.getUtf8StreamLength());
-                          activities.ingestDocument(id, version, url, rd);
+                          activities.ingestDocumentWithException(id, version, url, rd);
                         }
                         finally
                         {
@@ -676,7 +676,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                         try
                         {
                           rd.setBinary(is,bytes.length);
-                          activities.ingestDocument(id, version, url, rd);
+                          activities.ingestDocumentWithException(id, version, url, rd);
                         }
                         finally
                         {
@@ -722,7 +722,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           if (map.get(documentIdentifier) != null)
           {
             // This means we did not see it (or data for it) in the result set.  Delete it!
-            activities.deleteDocument(documentIdentifier,versions[i]);
+            activities.deleteDocument(documentIdentifier);
           }
         }
         i++;

@@ -100,14 +100,13 @@ public class StartupThread extends Thread
 
 
             // Loop through jobs
-            int i = 0;
-            while (i < startupJobs.length)
+            for (int i = 0; i < startupJobs.length; i++)
             {
-              JobStartRecord jsr = startupJobs[i++];
+              JobStartRecord jsr = startupJobs[i];
               Long jobID = jsr.getJobID();
               try
               {
-                long lastJobTime = jsr.getSynchTime();
+                String lastSeedingVersion = jsr.getSeedingVersionString();
                 IJobDescription jobDescription = jobManager.load(jobID,true);
 
                 int jobType = jobDescription.getType();
@@ -120,6 +119,7 @@ public class StartupThread extends Thread
                 if (connector == null)
                   continue;
 
+                String newSeedingVersion = null;
                 try
                 {
                   // Only now record the fact that we are trying to start the job.
@@ -136,7 +136,7 @@ public class StartupThread extends Thread
                   if (Logging.threads.isDebugEnabled())
                     Logging.threads.debug("Preparing job "+jobID.toString()+" for execution...");
                   jobManager.prepareJobScan(jobID,legalLinkTypes,hopcountMethod,
-                    model,jobType == IJobDescription.TYPE_CONTINUOUS,lastJobTime == 0L,
+                    model,jobType == IJobDescription.TYPE_CONTINUOUS,lastSeedingVersion == null,
                     requestMinimum);
                   if (Logging.threads.isDebugEnabled())
                     Logging.threads.debug("Prepared job "+jobID.toString()+" for execution.");
@@ -150,7 +150,7 @@ public class StartupThread extends Thread
                     if (Logging.threads.isDebugEnabled())
                       Logging.threads.debug("Adding initial seed documents for job "+jobID.toString()+"...");
                     // Get the initial seed documents, and make sure those are added
-                    connector.addSeedDocuments(activity,jobDescription.getSpecification(),lastJobTime,currentTime,jobType);
+                    newSeedingVersion = connector.addSeedDocuments(activity,jobDescription.getSpecification(),lastSeedingVersion,currentTime,jobType);
                     // Flush anything left
                     activity.doneSeeding(model==connector.MODEL_PARTIAL);
                     if (Logging.threads.isDebugEnabled())
@@ -183,7 +183,7 @@ public class StartupThread extends Thread
                       else
                       {
                         // Not sure this can happen -- but just transition silently to active state
-                        jobManager.noteJobStarted(jobID,currentTime);
+                        jobManager.noteJobStarted(jobID,currentTime,newSeedingVersion);
                         jsr.noteStarted();
                       }
                     }
@@ -203,7 +203,7 @@ public class StartupThread extends Thread
                 }
 
                 // Start this job!
-                jobManager.noteJobStarted(jobID,currentTime);
+                jobManager.noteJobStarted(jobID,currentTime,newSeedingVersion);
                 jsr.noteStarted();
               }
               catch (ManifoldCFException e)

@@ -20,6 +20,7 @@
 package org.apache.manifoldcf.crawler.connectors.alfresco.tests;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
 
 import org.alfresco.webservice.content.ContentServiceSoapBindingStub;
@@ -114,7 +115,7 @@ public class APISanityIT extends BaseITDerby
       
       //format
       ContentFormat contentFormat = new ContentFormat();
-      contentFormat.setEncoding("UTF-8");
+      contentFormat.setEncoding(StandardCharsets.UTF_8.name());
       contentFormat.setMimetype("text/plain");
       
       //the content
@@ -160,7 +161,7 @@ public class APISanityIT extends BaseITDerby
       reference.setUuid(row.getNode().getId());
       
       ContentFormat contentFormat = new ContentFormat();
-      contentFormat.setEncoding("UTF-8");
+      contentFormat.setEncoding(StandardCharsets.UTF_8.name());
       contentFormat.setMimetype("text/plain");
       
       ContentServiceSoapBindingStub contentService = WebServiceFactory.getContentService();

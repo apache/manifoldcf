@@ -22,6 +22,8 @@ package org.apache.manifoldcf.agents.output.elasticsearch;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.HttpClient;
 
+import java.io.IOException;
+
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.crawler.system.Logging;
@@ -52,4 +54,21 @@ public class ElasticSearchAction extends ElasticSearchConnection
     setResult(Result.ERROR, error);
     Logging.connectors.warn("ES: Commit failed: "+getResponse());
   }
+  
+  @Override
+  protected void handleIOException(IOException e)
+    throws ManifoldCFException, ServiceInterruption {
+    // We want a quicker failure here!!
+    if (e instanceof java.io.InterruptedIOException && !(e instanceof java.net.SocketTimeoutException))
+      throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
+    setResult(Result.ERROR, e.getMessage());
+    long currentTime = System.currentTimeMillis();
+    // One notification attempt, then we're done.
+    throw new ServiceInterruption("IO exception: "+e.getMessage(),e,
+        currentTime + 60000L,
+        currentTime + 1L * 60L * 60000L,
+        1,
+        false);
+  }
+
 }

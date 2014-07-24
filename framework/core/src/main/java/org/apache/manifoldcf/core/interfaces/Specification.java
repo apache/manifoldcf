@@ -68,4 +68,22 @@ public class Specification extends Configuration
     return (SpecificationNode)findChild(index);
   }
 
+  /** Duplicate.
+  *@return an exact duplicate
+  */
+  public Specification duplicate(boolean readOnly)
+  {
+    if (readOnly && this.readOnly)
+      return this;
+    Specification rval = new Specification();
+    int i = 0;
+    while (i < children.size())
+    {
+      SpecificationNode node = (SpecificationNode)children.get(i++);
+      rval.children.add(node.duplicate(readOnly));
+    }
+    rval.readOnly = readOnly;
+    return rval;
+  }
+
 }
