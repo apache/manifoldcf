@@ -3767,6 +3767,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     public int sendDocument(String documentURI, RepositoryDocument document)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
+      if (documentProcessed)
+        throw new IllegalStateException("Document cannot have multiple dispositions");
       int rval = activities.sendDocument(documentURI,document);
       documentProcessed = true;
       return rval;
@@ -3779,6 +3781,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     public void noDocument()
       throws ManifoldCFException, ServiceInterruption
     {
+      if (documentProcessed)
+        throw new IllegalStateException("Document cannot have multiple dispositions");
       activities.noDocument();
       documentProcessed = true;
     }

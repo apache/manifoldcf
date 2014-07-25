@@ -1159,6 +1159,8 @@ public class WorkerThread extends Thread
     // Whether a component was touched or not, keyed by document identifier.
     // This does not include primary document.  The set is keyed by component id hash.
     protected final Map<String,Set<String>> touchedComponentSet = new HashMap<String,Set<String>>();
+    // This represents primary documents.
+    protected final Set<String> touchedPrimarySet = new HashSet<String>();
     
     /** Constructor.
     *@param jobManager is the job manager
@@ -1501,6 +1503,7 @@ public class WorkerThread extends Thread
     {
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
       String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
+      checkMultipleDispositions(documentIdentifier,componentIdentifier,componentIdentifierHash);
       ingester.documentRecord(
         pipelineSpecification.getBasicPipelineSpecification(),
         connectionName,documentIdentifierHash,componentIdentifierHash,
@@ -1573,6 +1576,7 @@ public class WorkerThread extends Thread
 
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
       String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
+      checkMultipleDispositions(documentIdentifier,componentIdentifier,componentIdentifierHash);
 
       if (data != null)
       {
@@ -1634,6 +1638,7 @@ public class WorkerThread extends Thread
       // (by ignoring it and allowing it to be deleted later)
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
       String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
+      checkMultipleDispositions(documentIdentifier,componentIdentifier,componentIdentifierHash);
 
       ingester.documentNoData(
         computePipelineSpecification(documentIdentifierHash,componentIdentifierHash),
@@ -1657,6 +1662,8 @@ public class WorkerThread extends Thread
     public void removeDocument(String documentIdentifier)
       throws ManifoldCFException, ServiceInterruption
     {
+      checkMultipleDispositions(documentIdentifier,null,null);
+
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
       ingester.documentRemove(
         pipelineSpecification.getBasicPipelineSpecification(),
@@ -1665,6 +1672,7 @@ public class WorkerThread extends Thread
         
       // Note that we touched it, so it won't get checked
       touchedSet.add(documentIdentifier);
+      touchComponentSet(documentIdentifier,null);
     }
 
     /** Retain existing document component.  Use this method to signal that an already-existing
@@ -1678,10 +1686,11 @@ public class WorkerThread extends Thread
       String componentIdentifier)
       throws ManifoldCFException
     {
-      touchComponentSet(documentIdentifier,computeComponentIDHash(componentIdentifier));
+      String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
+      checkMultipleDispositions(documentIdentifier,componentIdentifier,componentIdentifierHash);
+      touchComponentSet(documentIdentifier,componentIdentifierHash);
     }
 
-    
     /** Delete the current document from the search engine index, while keeping track of the version information
     * for it (to reduce churn).
     * Use noDocument() above instead.
@@ -2096,10 +2105,33 @@ public class WorkerThread extends Thread
       return ManifoldCF.createJobSpecificString(jobID,simpleString);
     }
 
+    protected void checkMultipleDispositions(String documentIdentifier, String componentIdentifier, String componentIdentifierHash)
+    {
+      if (abortSet.contains(documentIdentifier))
+        throw new IllegalStateException("Multiple document dispositions not allowed: Abort cannot be combiend with component disposition; document '"+documentIdentifier+"'");
+      if (documentDeletedSet.contains(documentIdentifier))
+        throw new IllegalStateException("Multiple document dispositions not allowed: Document delete cannot be combined with component disposition; document '"+documentIdentifier+"'");
+      if (componentIdentifierHash == null)
+      {
+        // Primary
+        if (touchedPrimarySet.contains(documentIdentifier))
+          throw new IllegalStateException("Multiple document primary component dispositions not allowed: document '"+documentIdentifier+"'");
+      }
+      else
+      {
+        Set<String> components = touchedComponentSet.get(documentIdentifier);
+        if (components.contains(componentIdentifierHash))
+          throw new IllegalStateException("Multiple document component dispositions not allowed: document '"+documentIdentifier+"', component '"+componentIdentifier+"'");
+      }
+    }
+    
     protected void touchComponentSet(String documentIdentifier, String componentIdentifierHash)
     {
       if (componentIdentifierHash == null)
+      {
+        touchedPrimarySet.add(documentIdentifier);
         return;
+      }
       Set<String> components = touchedComponentSet.get(documentIdentifier);
       if (components == null)
       {
