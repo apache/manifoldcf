@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-565: Add connector and plugin support for SharePoint
+2013.
+(Will Parkinson, Karl Wright)
+
 CONNECTORS-984: Add Tika extraction metadata, and also add
 ability to ignore tika exceptions.
 (Shinichiro Abe, Karl Wright)

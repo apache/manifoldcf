@@ -86,6 +86,10 @@
         <copy todir="dist/integration/sharepoint-2010">
           <fileset dir="../../lib/sharepoint-2010"/>
         </copy>
+        <mkdir dir="dist/integration/sharepoint-2013"/>
+        <copy todir="dist/integration/sharepoint-2013">
+          <fileset dir="../../lib/sharepoint-2013"/>
+        </copy>
     </target>
 
     <!-- target name="download-dependencies">
