@@ -418,26 +418,19 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       }
         
       if (fileStatus.isDirectory()) {
-        // Since we believe that downstream changes affect the current node's version string,
-        // then we only have to add references when there are detected changes.
-        if (!scanOnly[i]) {
-          activities.noDocument(documentIdentifier,version);
-          /*
-            * Queue up stuff for directory
-            */
-          String entityReference = documentIdentifier;
-          FileStatus[] fileStatuses = getChildren(fileStatus.getPath());
-          if (fileStatuses == null) {
-            // Directory was deleted, so remove
-            activities.deleteDocument(documentIdentifier);
-            continue;
-          }
-          for (int j = 0; j < fileStatuses.length; j++) {
-            FileStatus fs = fileStatuses[j++];
-            String canonicalPath = fs.getPath().toString();
-            if (checkInclude(session.getUri().toString(),fs,canonicalPath,spec)) {
-              activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
-            }
+        /*
+          * Queue up stuff for directory
+          */
+        String entityReference = documentIdentifier;
+        FileStatus[] fileStatuses = getChildren(fileStatus.getPath());
+        if (fileStatuses == null) {
+          continue;
+        }
+        for (int j = 0; j < fileStatuses.length; j++) {
+          FileStatus fs = fileStatuses[j++];
+          String canonicalPath = fs.getPath().toString();
+          if (checkInclude(session.getUri().toString(),fs,canonicalPath,spec)) {
+            activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
           }
         }
       } else {
