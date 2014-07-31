@@ -878,6 +878,8 @@
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <jvmarg value="-Dderby.language.logStatementText=true"/>
+            <jvmarg value="-Dderby.language.logQueryPlan=true"/>
             <classpath>
                 <fileset dir="${env.JAVA_HOME}/lib">
                     <include name="tools.jar"/>
