@@ -21,6 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
@@ -28,9 +33,10 @@ import org.apache.http.HttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.Header;
 import org.apache.http.util.EntityUtils;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
@@ -38,15 +44,15 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
 
   private static class IndexRequestEntity implements HttpEntity {
 
-    private String documentURI;
+    private final String documentURI;
 
-    private InputStream inputStream;
+    private final RepositoryDocument document;
 
-    private String fileName;
+    private final String fileName;
 
-    public IndexRequestEntity(String documentURI, InputStream inputStream) {
+    public IndexRequestEntity(String documentURI, RepositoryDocument document) {
       this.documentURI = documentURI;
-      this.inputStream = inputStream;
+      this.document = document;
       this.fileName = FilenameUtils.getName(documentURI);
     }
 
@@ -54,14 +60,13 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
     public boolean isChunked() {
       return false;
     }
-    
+
     @Override
     @Deprecated
-    public void consumeContent()
-      throws IOException {
+    public void consumeContent() throws IOException {
       EntityUtils.consume(this);
     }
-    
+
     @Override
     public boolean isRepeatable() {
       return false;
@@ -69,35 +74,80 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
 
     @Override
     public boolean isStreaming() {
-      return false;
+      return true;
     }
-    
+
     @Override
-    public InputStream getContent()
-      throws IOException, IllegalStateException {
-      return inputStream;
+    public InputStream getContent() throws IOException, IllegalStateException {
+      return null;
     }
-    
+
     @Override
     public void writeTo(OutputStream out)
       throws IOException {
       PrintWriter pw = new PrintWriter(out);
-      try {
+      boolean bUri = false;
+      try
+      {
         pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
         pw.println("<index>);");
-        pw.print("<document><field name=\"uri\"><value>");
-        pw.print(documentURI);
-        pw.println("</value></field>");
-        pw.print("<binary fileName=\"");
-        pw.print(fileName);
-        pw.println("\">");
-        Base64 base64 = new Base64();
-        base64.encodeStream(inputStream, pw);
-        pw.println("</binary></document>");
+        pw.print("<document>");
+        List<String> values = new ArrayList<>(1);
+        Iterator<String> iter = document.getFields();
+        if (iter != null)
+        {
+          while (iter.hasNext())
+          {
+            String fieldName = iter.next();
+            Object[] fieldValues = document.getField(fieldName);
+            if (fieldValues != null && fieldValues.length > 0)
+            {
+            	values.clear();
+                for (Object fieldValue : fieldValues)
+                  if (fieldValue != null)
+                    values.add(fieldValue.toString());
+                if (!values.isEmpty())
+                {
+                  if ("uri".equals(fieldName))
+                	  bUri = true;
+                  pw.print("<field name=\"");
+                  pw.print(StringEscapeUtils.escapeXml(fieldName));
+                  pw.print("\">");
+                  for (String value : values)
+                  {
+            	    pw.print("<value><![CDATA[");
+            	    pw.print(value);
+                    pw.print("]]></value>");
+                    pw.println("</field>");
+                  }
+               }
+             }
+           }
+        }
+        if (!bUri)
+        {
+            pw.print("<document><field name=\"uri\"><value>");
+            pw.print(documentURI);        	
+            pw.println("</value>");
+        }
+        if (document.getBinaryLength() > 0)
+        {
+          Base64 base64 = new Base64();
+          pw.print("<binary fileName=\"");
+          pw.print(fileName);
+          pw.println("\">");
+          base64.encodeStream(document.getBinaryStream(), pw);
+          pw.println("</binary>");
+        }
+        pw.println("</document>");
         pw.println("</index>");
-      } catch (ManifoldCFException e) {
-        throw new IOException(e.getMessage());
-      } finally {
+      }
+      catch (ManifoldCFException e)
+      {
+        throw new IOException(e.getMessage(), e);
+      }
+      finally
+      {
         IOUtils.closeQuietly(pw);
       }
     }
@@ -110,7 +160,7 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
 
     @Override
     public Header getContentType() {
-      return new BasicHeader("Content-type","text/xml; charset=utf-8");
+      return new BasicHeader("Content-type", "text/xml; charset=utf-8");
     }
 
     @Override
@@ -118,20 +168,21 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
       return null;
     }
 
-  }
+	}
 
-  public OpenSearchServerIndex(HttpClient client, String documentURI, InputStream inputStream,
-      OpenSearchServerConfig config) throws ManifoldCFException {
+  public OpenSearchServerIndex(HttpClient client, String documentURI,
+    OpenSearchServerConfig config, RepositoryDocument document)
+    throws ManifoldCFException {
     super(client, config);
     StringBuffer url = getApiUrl("update");
     HttpPut put = new HttpPut(url.toString());
-    put.setEntity(new IndexRequestEntity(documentURI, inputStream));
+    put.setEntity(new IndexRequestEntity(documentURI, document));
     call(put);
     if ("OK".equals(checkXPath(xPathStatus)))
       return;
     String error = checkXPath(xPathException);
     setResult(Result.ERROR, error);
-    System.err.println(getResponse());
+    throw new ManifoldCFException("Error, unexpected response: " + error);
   }
 
 }

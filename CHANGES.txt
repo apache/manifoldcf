@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-958: Update OpenSearchServer connector to handle
+metadata, and deal with more current versions of OpenSearchServer.
+(Emmanuel Keller)
+
 CONNECTORS-565: Add connector and plugin support for SharePoint
 2013.
 (Will Parkinson, Karl Wright)
