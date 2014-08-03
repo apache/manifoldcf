@@ -35,6 +35,8 @@ public class OpenSearchServerParam extends HashMap<ParameterEnum, String> {
     USERNAME(""),
 
     APIKEY(""),
+    
+    SCHEDULERJOB(""),
 
     FIELDLIST(""),
 

@@ -42,6 +42,11 @@
     <td class="value"><input name="apikey" type="text" value="$Encoder.attributeEscape($APIKEY)"
       size="40" /></td>
   </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenSearchServerConnector.SchedulerJob'))</nobr></td>
+    <td class="value"><input name="schedulerjob" type="text"
+      value="$Encoder.attributeEscape($SCHEDULERJOB)" size="24" /></td>
+   </tr>
 </table>
 
 #else
@@ -50,5 +55,6 @@
 <input type="hidden" name="indexname" value="$Encoder.attributeEscape($INDEXNAME)" />
 <input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)" />
 <input type="hidden" name="apikey" value="$Encoder.attributeEscape($APIKEY)" />
+<input type="hidden" name="schedulerjob" value="$Encoder.attributeEscape($SCHEDULERJOB)" />
 
 #end

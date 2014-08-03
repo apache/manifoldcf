@@ -21,8 +21,6 @@ package org.apache.manifoldcf.agents.output.opensearchserver;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
-
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -41,7 +39,6 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
@@ -66,13 +63,13 @@ import org.json.JSONObject;
 
 public class OpenSearchServerConnector extends BaseOutputConnector {
 
-  private final static String OPENSEARCHSERVER_INDEXATION_ACTIVITY = "Optimize";
+  private final static String OPENSEARCHSERVER_INDEXATION_ACTIVITY = "Indexation";
   private final static String OPENSEARCHSERVER_DELETION_ACTIVITY = "Deletion";
-  private final static String OPENSEARCHSERVER_OPTIMIZE_ACTIVITY = "Indexation";
+  private final static String OPENSEARCHSERVER_SCHEDULER_ACTIVITY = "Scheduler";
 
   private final static String[] OPENSEARCHSERVER_ACTIVITIES = {
       OPENSEARCHSERVER_INDEXATION_ACTIVITY, OPENSEARCHSERVER_DELETION_ACTIVITY,
-      OPENSEARCHSERVER_OPTIMIZE_ACTIVITY };
+      OPENSEARCHSERVER_SCHEDULER_ACTIVITY };
 
   // Tab resources
 
@@ -130,31 +127,30 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
     {
       connectionManager = new PoolingHttpClientConnectionManager();
 
-      int socketTimeout = 900000;
-      int connectionTimeout = 60000;
-      
-      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-
+      final int executorTimeout = 300000;
+      final int socketTimeout = 60000;
+      final int connectionTimeout = 60000;
+ 
       RequestConfig.Builder requestBuilder = RequestConfig.custom()
-          .setCircularRedirectsAllowed(true)
-          .setSocketTimeout(socketTimeout)
-          .setStaleConnectionCheckEnabled(true)
-          .setExpectContinueEnabled(true)
-          .setConnectTimeout(connectionTimeout)
-          .setConnectionRequestTimeout(socketTimeout);
+    	    .setCircularRedirectsAllowed(true)
+    	    .setSocketTimeout(socketTimeout)
+    	    .setStaleConnectionCheckEnabled(true)
+    	    .setExpectContinueEnabled(true)
+    	    .setConnectTimeout(connectionTimeout)
+    	    .setConnectionRequestTimeout(socketTimeout);
+
+      HttpClientBuilder clientBuilder = HttpClients.custom()
+          .setConnectionManager(connectionManager)
+    	    .setMaxConnTotal(1)
+    	    .disableAutomaticRetries()
+    	    .setDefaultRequestConfig(requestBuilder.build())
+    	    .setRequestExecutor(new HttpRequestExecutor(executorTimeout))
+            .setDefaultSocketConfig(SocketConfig.custom()
+  	        .setTcpNoDelay(true)
+    	        .setSoTimeout(socketTimeout)
+    	        .build());
           
-      client = HttpClients.custom()
-        .setConnectionManager(connectionManager)
-        .setMaxConnTotal(1)
-        .disableAutomaticRetries()
-        .setDefaultRequestConfig(requestBuilder.build())
-        .setDefaultSocketConfig(SocketConfig.custom()
-          //.setTcpNoDelay(true)
-          .setSoTimeout(socketTimeout)
-          .build())
-        .setDefaultCredentialsProvider(credentialsProvider)
-        .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-        .build();
+      client = clientBuilder.build();
 
     }
     expirationTime = System.currentTimeMillis() + EXPIRATION_INTERVAL;
@@ -498,13 +494,13 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
     OpenSearchServerConfig config = getConfigParameters(null);
     Integer count = addInstance(config);
     synchronized (count) {
-      InputStream inputStream = document.getBinaryStream();
       try {
         long startTime = System.currentTimeMillis();
         OpenSearchServerIndex oi = new OpenSearchServerIndex(
             client,
             documentURI,
-            inputStream, config);
+            config,
+            document);
         activities.recordActivity(startTime,
             OPENSEARCHSERVER_INDEXATION_ACTIVITY, document.getBinaryLength(),
             documentURI, oi.getResult().name(), oi.getResultDescription());
@@ -545,12 +541,16 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       throws ManifoldCFException, ServiceInterruption {
     HttpClient client = getSession();
     long startTime = System.currentTimeMillis();
-    OpenSearchServerAction oo = new OpenSearchServerAction(
+    OpenSearchServerConfig config = getConfigParameters(null);
+    String schedulerJob = config.getSchedulerJob();
+    if (schedulerJob != null && schedulerJob.trim().length() > 0) {
+      OpenSearchServerAction oo = new OpenSearchServerAction(
         client,
         CommandEnum.optimize, getConfigParameters(null));
-    activities.recordActivity(startTime, OPENSEARCHSERVER_OPTIMIZE_ACTIVITY,
-        null, oo.getCallUrlSnippet(), oo.getResult().name(),
-        oo.getResultDescription());
+        activities.recordActivity(startTime, OPENSEARCHSERVER_SCHEDULER_ACTIVITY,
+          null, oo.getCallUrlSnippet(), oo.getResult().name(),
+          oo.getResultDescription());
+    } 
   }
 
 }

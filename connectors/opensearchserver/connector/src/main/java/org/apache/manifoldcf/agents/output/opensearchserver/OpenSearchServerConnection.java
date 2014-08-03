@@ -140,7 +140,8 @@ public class OpenSearchServerConnection {
         {
           HttpResponse resp = client.execute(method);
           resultCode = resp.getStatusLine().getStatusCode();
-          response = getResponseBodyAsString(resp.getEntity());
+          HttpEntity entity = resp.getEntity();
+          response = EntityUtils.toString(entity, StandardCharsets.UTF_8);
         }
         finally
         {
@@ -171,9 +172,24 @@ public class OpenSearchServerConnection {
       return response;
     }
     
-    public Throwable getException()
+    public void finishUp()
+      throws InterruptedException, HttpException, IOException
     {
-      return exception;
+      join();
+      Throwable t = exception;
+      if (t != null)
+      {
+        if (t instanceof HttpException)
+          throw (HttpException)t;
+        else if (t instanceof IOException)
+          throw (IOException)t;
+        else if (t instanceof RuntimeException)
+          throw (RuntimeException)t;
+        else if (t instanceof Error)
+          throw (Error)t;
+        else
+          throw new RuntimeException("Unexpected exception thrown: "+t.getMessage(),t);
+      }
     }
   }
   
@@ -185,21 +201,7 @@ public class OpenSearchServerConnection {
       ct.start();
       try
       {
-        ct.join();
-        Throwable t = ct.getException();
-        if (t != null)
-        {
-          if (t instanceof HttpException)
-            throw (HttpException)t;
-          else if (t instanceof IOException)
-            throw (IOException)t;
-          else if (t instanceof RuntimeException)
-            throw (RuntimeException)t;
-          else if (t instanceof Error)
-            throw (Error)t;
-          else
-            throw new RuntimeException("Unexpected exception thrown: "+t.getMessage(),t);
-        }
+        ct.finishUp();
         
         if (!checkResultCode(ct.getResultCode()))
           throw new ManifoldCFException(getResultDescription());
@@ -211,63 +213,26 @@ public class OpenSearchServerConnection {
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
     }
+    catch (java.net.SocketTimeoutException e)
+    {
+      setResult(Result.ERROR, e.getMessage());
+      throw new ManifoldCFException("SocketTimeoutException while calling " + method.getURI() +": " + e.getMessage(), e);
+    }
+    catch (InterruptedIOException e)
+    {
+      setResult(Result.ERROR, e.getMessage());
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+    }
     catch (HttpException e)
     {
       setResult(Result.ERROR, e.getMessage());
-      throw new ManifoldCFException(e);
+      throw new ManifoldCFException("HttpException while calling " + method.getURI() +": " + e.getMessage(), e);
     }
     catch (IOException e)
     {
       setResult(Result.ERROR, e.getMessage());
-      throw new ManifoldCFException(e);
+      throw new ManifoldCFException("IOException while calling " + method.getURI() +": " + e.getMessage(), e);
     }
-  }
-
-  private static String getResponseBodyAsString(HttpEntity entity)
-    throws IOException, HttpException {
-    InputStream is = entity.getContent();
-    if (is != null)
-    {
-      try
-      {
-        Charset charSet;
-        try
-        {
-          ContentType ct = ContentType.get(entity);
-          if (ct == null)
-            charSet = StandardCharsets.UTF_8;
-          else
-            charSet = ct.getCharset();
-        }
-        catch (ParseException e)
-        {
-          charSet = StandardCharsets.UTF_8;
-        }
-        char[] buffer = new char[65536];
-        Reader r = new InputStreamReader(is,charSet);
-        Writer w = new StringWriter();
-        try
-        {
-          while (true)
-          {
-            int amt = r.read(buffer);
-            if (amt == -1)
-              break;
-            w.write(buffer,0,amt);
-          }
-        }
-        finally
-        {
-          w.flush();
-        }
-        return w.toString();
-      }
-      finally
-      {
-        is.close();
-      }
-    }
-    return "";
   }
 
   private void readXmlResponse() throws ManifoldCFException {

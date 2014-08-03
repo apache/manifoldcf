@@ -32,7 +32,7 @@ public class OpenSearchServerConfig extends OpenSearchServerParam {
    */
   final private static ParameterEnum[] CONFIGURATIONLIST = {
       ParameterEnum.SERVERLOCATION, ParameterEnum.INDEXNAME,
-      ParameterEnum.USERNAME, ParameterEnum.APIKEY };
+      ParameterEnum.USERNAME, ParameterEnum.APIKEY, ParameterEnum.SCHEDULERJOB };
 
   /**
    * Build a set of OpenSearchServerParameters by reading ConfigParams. If the
@@ -89,4 +89,9 @@ public class OpenSearchServerConfig extends OpenSearchServerParam {
   final public String getApiKey() {
     return get(ParameterEnum.APIKEY);
   }
+  
+ final public String getSchedulerJob() {
+    return get(ParameterEnum.SCHEDULERJOB);
+  }
+  
 }
