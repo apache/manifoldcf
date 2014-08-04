@@ -116,6 +116,22 @@ public class OpenSearchServerConnection {
     return url;
   }
 
+  protected StringBuffer getApiUrlV2(String path) throws ManifoldCFException {
+    StringBuffer url = new StringBuffer(serverLocation);
+    if (!serverLocation.endsWith("/"))
+        url.append('/');
+    url.append(path);
+    callUrlSnippet = url.toString();
+    if (userName != null && apiKey != null && userName.length() > 0
+        && apiKey.length() > 0) {
+      url.append("&login=");
+      url.append(URLEncoder.encode(userName));
+      url.append("&key=");
+      url.append(apiKey);
+    }
+    return url;
+  }
+
   protected static class CallThread extends Thread
   {
     protected final HttpClient client;
