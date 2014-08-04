@@ -86,7 +86,6 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
     public void writeTo(OutputStream out)
       throws IOException {
       PrintWriter pw = new PrintWriter(out);
-      boolean bUri = false;
       try
       {
         pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
@@ -99,6 +98,8 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
           while (iter.hasNext())
           {
             String fieldName = iter.next();
+            if ("uri".equals(fieldName))
+            	continue;
             Object[] fieldValues = document.getField(fieldName);
             if (fieldValues != null && fieldValues.length > 0)
             {
@@ -108,8 +109,6 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
                     values.add(fieldValue.toString());
                 if (!values.isEmpty())
                 {
-                  if ("uri".equals(fieldName))
-                	  bUri = true;
                   pw.print("<field name=\"");
                   pw.print(StringEscapeUtils.escapeXml(fieldName));
                   pw.print("\">");
@@ -124,12 +123,9 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
              }
            }
         }
-        if (!bUri)
-        {
-            pw.print("<document><field name=\"uri\"><value>");
-            pw.print(documentURI);        	
-            pw.println("</value>");
-        }
+        pw.print("<field name=\"uri\"><value>");
+        pw.print(documentURI);        	
+        pw.println("</value></field>");
         if (document.getBinaryLength() > 0)
         {
           Base64 base64 = new Base64();

@@ -544,12 +544,11 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
     OpenSearchServerConfig config = getConfigParameters(null);
     String schedulerJob = config.getSchedulerJob();
     if (schedulerJob != null && schedulerJob.trim().length() > 0) {
-      OpenSearchServerAction oo = new OpenSearchServerAction(
-        client,
-        CommandEnum.optimize, getConfigParameters(null));
-        activities.recordActivity(startTime, OPENSEARCHSERVER_SCHEDULER_ACTIVITY,
-          null, oo.getCallUrlSnippet(), oo.getResult().name(),
-          oo.getResultDescription());
+      OpenSearchServerScheduler oo = new OpenSearchServerScheduler(
+        client, getConfigParameters(null), schedulerJob.trim());
+      activities.recordActivity(startTime, OPENSEARCHSERVER_SCHEDULER_ACTIVITY,
+        null, oo.getCallUrlSnippet(), oo.getResult().name(),
+        oo.getResultDescription());
     } 
   }
 
