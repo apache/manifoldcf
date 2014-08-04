@@ -1280,7 +1280,7 @@ public class WorkerThread extends Thread
     {
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
       String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
-      IPipelineSpecificationWithVersions spec = computePipelineSpecification(documentIdentifierHash,componentIdentifierHash);
+      IPipelineSpecificationWithVersions spec = computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier);
       return ingester.checkFetchDocument(spec,newVersionString,parameterVersion,connection.getACLAuthority());
     }
 
@@ -1598,7 +1598,7 @@ public class WorkerThread extends Thread
         
       // First, we need to add into the metadata the stuff from the job description.
       ingester.documentIngest(
-        computePipelineSpecification(documentIdentifierHash,componentIdentifierHash),
+        computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier),
         connectionName,documentIdentifierHash,componentIdentifierHash,
         version,parameterVersion,
         connection.getACLAuthority(),
@@ -1641,7 +1641,7 @@ public class WorkerThread extends Thread
       checkMultipleDispositions(documentIdentifier,componentIdentifier,componentIdentifierHash);
 
       ingester.documentNoData(
-        computePipelineSpecification(documentIdentifierHash,componentIdentifierHash),
+        computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier),
         connectionName,documentIdentifierHash,componentIdentifierHash,
         version,parameterVersion,
         connection.getACLAuthority(),
@@ -2142,9 +2142,13 @@ public class WorkerThread extends Thread
     }
     
     protected IPipelineSpecificationWithVersions computePipelineSpecification(String documentIdentifierHash,
-      String componentIdentifierHash)
+      String componentIdentifierHash,
+      String documentIdentifier)
     {
-      return new PipelineSpecificationWithVersions(pipelineSpecification,previousDocuments.get(documentIdentifierHash),componentIdentifierHash);
+      QueuedDocument qd = previousDocuments.get(documentIdentifierHash);
+      if (qd == null)
+        throw new IllegalArgumentException("Unrecognized document identifier: '"+documentIdentifier+"'");
+      return new PipelineSpecificationWithVersions(pipelineSpecification,qd,componentIdentifierHash);
     }
 
   }
