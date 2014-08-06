@@ -1112,6 +1112,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           // content ingestion
 
           Document document = (Document) cmisObject;
+          document = document.getObjectOfLatestVersion(false);
           long fileLength = document.getContentStreamLength();
           InputStream is = null;
           
@@ -1306,7 +1307,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     }
 
     getSession();
-    
+
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
       CmisObject cmisObject;
@@ -1319,9 +1320,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
       if (cmisObject.getBaseType().getId().equals(CMIS_DOCUMENT_BASE_TYPE)) {
         Document document = (Document) cmisObject;
-        
+
         //we have to check if this CMIS repository support versioning
         // or if the versioning is disabled for this content
+        document = document.getObjectOfLatestVersion(false);
         if(StringUtils.isNotEmpty(document.getVersionLabel())){
           rval[i] = document.getVersionLabel() + ":" + cmisQuery;
         } else {
