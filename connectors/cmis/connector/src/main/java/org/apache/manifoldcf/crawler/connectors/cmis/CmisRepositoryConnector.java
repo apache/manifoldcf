@@ -144,8 +144,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   protected static final long timeToRelease = 300000L;
   protected long lastSessionFetch = -1L;
   
-  protected String cmisQuery = StringUtils.EMPTY;
-
   /**
    * Constructor
    */
@@ -661,15 +659,14 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
     getSession();
 
-    cmisQuery = StringUtils.EMPTY;
-    int i = 0;
-    while (i < spec.getChildCount()) {
+    String cmisQuery = StringUtils.EMPTY;
+    for (int i = 0; i < spec.getChildCount(); i++)
+    {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
         cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
         break;
       }
-      i++;
     }
 
     if (StringUtils.isEmpty(cmisQuery)) {
@@ -1068,6 +1065,16 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     getSession();
     Logging.connectors.debug("CMIS: Inside processDocuments");
         
+    String cmisQuery = StringUtils.EMPTY;
+    for (int i = 0; i < spec.getChildCount(); i++)
+    {
+      SpecificationNode sn = spec.getChild(i);
+      if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
+        cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
+        break;
+      }
+    }
+
     for (int i = 0; i < documentIdentifiers.length; i++) {
       long startTime = System.currentTimeMillis();
       String nodeId = documentIdentifiers[i];
@@ -1288,6 +1295,16 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       DocumentSpecification spec) throws ManifoldCFException,
       ServiceInterruption {
     
+    String cmisQuery = StringUtils.EMPTY;
+    for (int i = 0; i < spec.getChildCount(); i++)
+    {
+      SpecificationNode sn = spec.getChild(i);
+      if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
+        cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
+        break;
+      }
+    }
+
     getSession();
     
     String[] rval = new String[documentIdentifiers.length];
@@ -1306,7 +1323,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         //we have to check if this CMIS repository support versioning
         // or if the versioning is disabled for this content
         if(StringUtils.isNotEmpty(document.getVersionLabel())){
-          rval[i] = document.getVersionLabel();
+          rval[i] = document.getVersionLabel() + ":" + cmisQuery;
         } else {
         //a CMIS document that doesn't contain versioning information will always be processed
           rval[i] = StringUtils.EMPTY;

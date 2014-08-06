@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-1003: CMIS connector handling of query string was
+incorrect.
+(Karl Wright)
+
 CONNECTORS-958: Update OpenSearchServer connector to handle
 metadata, and deal with more current versions of OpenSearchServer.
 (Emmanuel Keller)
