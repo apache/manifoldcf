@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>概要</title> 
+  </header> 
+
+  <body> 
+    <section>
+      <title>概要</title>
+      <p>ManifoldCF是为下述目的而设计的爬虫框架。</p>
+      <p></p>
+      <ul>
+        <li>可信赖，可从关闭或重启状态迅速恢复</li>
+        <li>增量式，事先在作业中定义所搜集的文档条件，并反复执行作业而获取文档差分</li>
+        <li>可同时连接不同类型的存储库搜集文档</li>
+        <li>定义并完全支持文档安全模型。根据不同的用户权限显示文档的搜索结果</li>
+        <li>保持切合实际的运转效率，并具有高吞吐量</li>
+        <li>可控制和预测内存使用量</li>
+      </ul>
+      <p></p>
+      <p>ManifoldCF使用关系型数据库实现其体系结构。当前版本支持Postgresql，Derby，MySQL。其它数据库的使用也在考虑中。</p>
+      <p></p>
+      <section>
+        <title>ManifoldCF文档模型</title>
+        <p></p>
+        <p>ManifoldCF的各文档由二进制数据和相关元数据构成，并附上唯一的URI。与其组合使用的搜索引擎需支持此规格。</p>
+        <p></p>
+        <p>文档可以和访问令牌联系起来。关于访问令牌将在下一节说明。</p>
+        <p></p>
+      </section>
+      <section>
+        <title>ManifoldCF安全模型</title>
+        <p></p>
+        <p>ManifoldCF安全模型支持微软的Active Directory认证以及层次模型。这是因为许多企业使用Active Directory管理文件和文档的许可／权限。还有，Active Directory由很多第三方软件所利用。</p>
+        <p></p>
+        <p>ManifoldCF使用<em>访问令牌</em>的概念。ManifoldCF里访问令牌为，依赖于连接器的字符串。是否将文档显示给用户由此字符串所控制。利用Active Directory时，访问令牌为Active Directory SID（例：S-1-23-4-1-45）です。在LiveLink里访问令牌为具有其它含义的字符串。</p>
+        <p></p>
+        <p>ManifoldCF安全模型中，由<em>权限连接器</em>为将执行搜索的用户生成访问令牌一览。搜索受多个安全管理的服务器时，权限连接器组合访问令牌。所生成的访问令牌一览伴随搜索结果发送到搜索引擎。搜索引擎通过此信息限制向用户公开的内容。</p>
+        <p></p>
+        <p>生成文档索引后，ManifoldCF将访问令牌传给搜索引擎。访问令牌包括［允许］和［拒绝］两种令牌。另外，访问令牌和Active Directory同样可［共享］,［フォルダ］,［ファイル］に安全を设置することができます。</p>
+        <p></p>
+        <p>搜索引擎根据访问令牌决定所显示的搜索結果。作为搜索引擎使用Solr 1.5时，为使其标准化提供Apache Solr工程的SearchComponent插件和说明书（ <a href="https://issues.apache.org/jira/browse/SOLR-1895">SOLR-1895</a>）。</p>
+        <p></p>
+      </section>
+      <section>
+        <title>ManifoldCF概念性实体</title>
+        <p></p>
+        <section>
+          <title>连接器</title>
+          <p></p>
+          <p>ManifoldCF具有如下三个连接器：</p>
+          <p></p>
+          <ul>
+            <li>权限连接器</li>
+            <li>存储库连接器</li>
+            <li>输出连接器</li>
+          </ul>
+          <p></p>
+          <p>所有连接器具有共同功能。首先，所有连接器被池化。ManifoldCF管理所设连接器的实例。还可设实例数的上限。连接器实现了在ManifoldCF管理的缓冲池内管理自身的方法。连接器可以设置。连接器设置可通过依赖于连接器实现的XML语句实现。在ManifoldCF，所设连接器的实例称为<em>连接</em>。</p>
+          <p></p>
+          <p>连接器具有下述功能：</p>
+          <p></p>
+          <table>
+            <tr><th>连接器类型</th><th>功能</th></tr>
+            <tr><td>权限连接器</td><td>保证存储库做到将用户名和访问令牌联系起来。</td></tr>
+            <tr><td>存储库连接器</td><td>可从指定的存储库（例：SharePoint，Web）搜集文档</td></tr>
+            <tr><td>输出连接器</td><td>将搜集文档和相关处理（添加，删除等）发到后台搜索引擎或象Lucene的实体</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
+          <title>连接</title>
+          <p></p>
+          <p>正如上述说明，<em>连接</em>是指连接的实现及连接器固有的设置信息。可从Web浏览器加以设置。</p>
+          <p></p>
+          <p>连接器设置用来设置“如何搜集”而非“搜集什么”。比如，LiveLink连接设置和LiveLink服务器的连接方法。并不设置搜集哪些文档。</p>
+          <p></p>
+          <p><em>存储库连接</em>和<em>权限连接</em>以及输出连接的设置不尽相同。存储库连接里设置权限连接。这是因为ManifoldCF所搜集的<strong>所有</strong>文档需要适当的访问令牌。</p>
+          <p></p>
+        </section>
+        <section>
+          <title>作业</title>
+          <p></p>
+          <p>ManifoldCF中<em>作业</em>是指定存储库连接和输出连接的同步操作。作业包括：</p>
+          <p></p>
+          <ul>
+            <li>详细说明</li>
+            <li>存储库连接（暗含权限组）</li>
+            <li>输出连接</li>
+            <li>存储库连接指定的作业对象文档和元数据的说明</li>
+            <li>爬取模型：“运行至完成”或“连续执行”</li>
+            <li>作业调度：指定时间段或立即执行</li>
+          </ul>
+          <p></p>
+          <p>多个作业可共享存储库连接器。即，ManifoldCF允许设置可从多个作业搜集同一个文档，但不推荐通过不同作业搜集相同文档。</p>
+        </section>
+        <section>
+          <title>授权域</title>
+          <p></p>
+          <p>ManifoldCF支持用户联合概念。举个例子，假设一个用户针对FaceBook, Windows, Google拥有各自的登录名。
+		    我们可为此用户定义三个不同的授权域："FaceBook", "Windows", "Google".</p>
+          <p>在ManifoldCF, 每一个权限了解来自指定授权域的用户名和ID。这将允许ManifoldCF被设置成
+            可以合并生成自多个独立源的访问令牌，即使每一个源被输入不同的用户名。</p>
+        </section>
+        <section>
+          <title>权限组</title>
+          <p></p>
+          <p>ManifoldCF按权限连接加以分组，故可将多个权限赋予同一个文档。
+            一个权限组只不过是一个名称和描述，它被属于此权限组的权限连接所参照，同时还被希望受此权限组保护的存储库连接所参照。
+            至于最简单的存储库，通常一个权限就是一个权限组。
+            但是，具有联邦安全能力的存储库(如，支持Claim空间的SharePoint)可以使用多个权限为一个文档定义安全。
+            在次情形下，权限组允许设置适当的多对多关系。</p>
+        </section>
+      </section>
+    </section>
+  </body>
+
+</document>

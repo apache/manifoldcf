@@ -1,0 +1,223 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>Writing repository connectors</title> 
+  </header> 
+
+  <body> 
+    <section>
+      <title>Writing repository connectors</title>
+      <p></p>
+      <p>A repository connector furnishes the mechanism for obtaining documents, metadata, and authority tokens from a repository.  The documents are expected to be handed to an output connector (described elsewhere) for ingestion into some other back-end repository.</p>
+      <p></p>
+      <p>As is the case with all connectors under the ManifoldCF umbrella, an output connector consists of only one part:</p>
+      <p></p>
+      <ul>
+        <li>A class implementing an interface (in this case, <em>org.apache.manifoldcf.crawler.interfaces.IRepositoryConnector</em>)</li>
+      </ul>
+      <p></p>
+      <section>
+        <title>Key concepts</title>
+        <p></p>
+        <p>The repository connector abstraction makes use of, or introduces, the following concepts:</p>
+        <p></p>
+        <table>
+          <tr><th>Concept</th><th>What it is</th></tr>
+          <tr><td>Configuration parameters</td><td>A hierarchical structure, internally represented as an XML document, which describes a specific configuration of a specific repository connector, i.e. <strong>how</strong> the connector should do its job; see <em>org.apache.manifoldcf.core.interfaces.ConfigParams</em></td></tr>
+          <tr><td>Repository connection</td><td>A repository connector instance that has been furnished with configuration data</td></tr>
+          <tr><td>Document identifier</td><td>An arbitrary identifier, whose meaning determined only within the context of a specific repository connector, which the connector uses to describe a document within a repository</td></tr>
+          <tr><td>Document URI</td><td>The unique URI (or, in some cases, file IRI) of a document, which is meant to be displayed in search engine results as the link to the document</td></tr>
+          <tr><td>Repository document</td><td>An object that describes a document's contents, including raw document data (as a stream), metadata (as either strings or streams), and access tokens; see <em>org.apache.manifoldcf.agents.interfaces.RepositoryDocument</em></td></tr>
+          <tr><td>Access token</td><td>A string, which is only meaningful in the context of a specific authority, that describes a quantum of authorization for a user</td></tr>
+          <tr><td>Connection management/threading/pooling model</td><td>How an individual repository connector class instance is managed and used</td></tr>
+          <tr><td>Activity infrastructure</td><td>The framework API provided to specific methods allowing those methods to perform specific actions within the framework, e.g. recording the activity history; see <em>org.apache.manifoldcf.crawler.interfaces.IVersionActivity</em>, and <em>org.apache.manifoldcf.crawler.interfaces.IProcessActivity</em>, and <em>org.apache.manifoldcf.crawler.interfaces.ISeedingActivity</em></td></tr>
+          <tr><td>Document specification</td><td>A hierarchical structure, internally represented as an XML document, which describes <strong>what</strong> a specific repository connector should do in the context of a specific job; see <em>org.apache.manifoldcf.crawler.interfaces.DocumentSpecification</em></td></tr>
+          <tr><td>Document version string</td><td>A simple string, used for comparison purposes, that allows ManifoldCF to figure out if a fetch or ingestion operation needs to be repeated as a result of changes to the document specification in effect for a document, or because of changes to the document itself</td></tr>
+          <tr><td>Service interruption</td><td>A specific kind of exception that signals ManifoldCF that the output repository is unavailable, and gives a best estimate of when it might become available again; see <em>org.apache.manifoldcf.agents.interfaces.ServiceInterruption</em></td></tr>
+        </table>
+        <p></p>
+      </section>
+      <section>
+        <title>Implementing the Repository Connector class</title>
+        <p></p>
+        <p>A very good place to start is to read the javadoc for the repository connector interface.  You will note that the javadoc describes the usage and pooling model for a connector class pretty thoroughly.  It is very important to understand the model thoroughly in order to write reliable connectors!  Use of static variables, for one thing, must be done in a very careful way, to avoid issues that would be hard to detect with a cursory test.</p>
+        <p></p>
+        <p>The second thing to do is to examine some of the provided repository connector implementations.  There are a wide variety of connectors include with ManifoldCF that exercise just about every aspect of the repository connector interface.  These are:</p>
+        <p></p>
+        <ul>
+          <li>Documentum (uses RMI to segregate native code, etc.)</li>
+          <li>FileNet (also uses RMI, but because it is picky about its open-source jar versions)</li>
+          <li>File system (a good, but simple, example)</li>
+          <li>LiveLink (demonstrates use of local keystore infrastructure)</li>
+          <li>Meridio (local keystore, web services, result sets)</li>
+          <li>SharePoint (local keystore, web services)</li>
+          <li>RSS (local keystore, binning, fuzzy xml parsing)</li>
+          <li>Web (local database schema, local keystore, binning, events and prerequisites, cache management, fuzzy xml parsing)</li>
+          <li>Wiki (binning, rigorous xml parsing)</li>
+        </ul>
+        <p></p>
+        <p>You will also note that all of these connectors extend a framework-provided repository connector base class, found at <em>org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector</em>.  This base class furnishes some basic bookkeeping logic for managing the connector pool, as well as default implementations of some of the less typical functionality a connector may have.  For example, connectors are allowed to have database tables of their own, which are instantiated when the connector is registered, and are torn down when the connector is removed.  This is, however, not very typical, and the base implementation reflects that.</p>
+        <p></p>
+        <section>
+          <title>Principle methods</title>
+          <p></p>
+          <p>The principle methods an implementer should be concerned with for creating a repository connector are the following:</p>
+          <p></p>
+          <table>
+            <tr><th>Method</th><th>What it should do</th></tr>
+            <tr><td><strong>addSeedDocuments()</strong></td><td>Use the supplied document specification to come up with an initial set of document identifiers</td></tr>
+            <tr><td><strong>getDocumentVersions()</strong></td><td>Come up with a version string for each of the documents described by the supplied set of document identifiers, or signal if the document is no longer present</td></tr>
+            <tr><td><strong>processDocuments()</strong></td><td>Take the appropriate action (e.g. ingest, or extract references from, or whatever) for a given set of documents described by document identifier and version string</td></tr>
+            <tr><td><strong>outputConfigurationHeader()</strong></td><td>Output the head-section part of a repository connection <em>ConfigParams</em> editing page</td></tr>
+            <tr><td><strong>outputConfigurationBody()</strong></td><td>Output the body-section part of a repository connection <em>ConfigParams</em> editing page</td></tr>
+            <tr><td><strong>processConfigurationPost()</strong></td><td>Receive and process form data from a repository connection <em>ConfigParams</em> editing page</td></tr>
+            <tr><td><strong>viewConfiguration()</strong></td><td>Output the viewing HTML for a repository connection <em>ConfigParams</em> object</td></tr>
+            <tr><td><strong>outputSpecificationHeader()</strong></td><td>Output the head-section part of a <em>Specification</em> editing page</td></tr>
+            <tr><td><strong>outputSpecificationBody()</strong></td><td>Output the body-section part of a <em>Specification</em> editing page</td></tr>
+            <tr><td><strong>processSpecificationPost()</strong></td><td>Receive and process form data from a <em>Specification</em> editing page</td></tr>
+            <tr><td><strong>viewSpecification()</strong></td><td>Output the viewing page for a <em>Specification</em> object</td></tr>
+          </table>
+          <p></p>
+          <p>These methods come in three broad classes: (a) functional methods for doing the work of the connector; (b) UI methods for configuring a connection; and (c) UI methods for editing the document specification for a job.  Together they do the heavy lifting of your connector.  But before you can write any code at all, you need to plan things out a bit.</p>
+          <p></p>
+        </section>
+        <section>
+          <title>Model</title>
+          <p></p>
+          <p>Each connector must declare a specific model which it adheres to.  These models basically describe what the <strong>addSeedDocuments()</strong> method actually does, and are described below.</p>
+          <p></p>
+          <table>
+            <tr><th>Model</th><th>Description</th></tr>
+            <tr><td><em>MODEL_ALL</em></td><td>The <strong>addSeedDocuments()</strong> method supplies all specified documents on each call</td></tr>
+            <tr><td><em>MODEL_PARTIAL</em></td><td>The <strong>addSeedDocuments()</strong> does not return a complete list of documents that match the criteria and time interval, because some of those documents are no longer discoverable</td></tr>
+            <tr><td><em>MODEL_ADD</em></td><td>The <strong>addSeedDocuments()</strong> method supplies at least all the matching documents that have been added to the repository, within the specified time interval</td></tr>
+            <tr><td><em>MODEL_ADD_CHANGE</em></td><td>The <strong>addSeedDocuments()</strong> method supplies at least those matching documents that have been added or changed in the repository, within the specified time interval</td></tr>
+            <tr><td><em>MODEL_ADD_CHANGE_DELETE</em></td><td>The <strong>addSeedDocuments()</strong> method supplies at least those matching documents that have been added, changed, or removed in the repository, within the specified time interval</td></tr>
+            <tr><td><em>MODEL_CHAINED_ADD</em></td><td>The <strong>addSeedDocuments()</strong> method, plus documents reachable by discovery from seeds, supplies at least all the matching documents that have been added to the repository, within the specified time interval</td></tr>
+            <tr><td><em>MODEL_CHAINED_ADD_CHANGE</em></td><td>The <strong>addSeedDocuments()</strong> method, plus documents reachable by discovery from seeds, supplies at least those matching documents that have been added or changed in the repository, within the specified time interval</td></tr>
+            <tr><td><em>MODEL_CHAINED_ADD_CHANGE_DELETE</em></td><td>The <strong>addSeedDocuments()</strong> method, plus documents reachable by discovery from seeds, supplies at least those matching documents that have been added, changed, or removed in the repository, within the specified time interval</td></tr>
+          </table>
+          <p></p>
+          <p>Note that the choice of model is actually much more subtle than the above description might indicate.  It may, for one thing, be affected by characteristics of
+            the repository, such as whether the repository considers a document to have been changed if its security information was changed.  This would mean that,
+            even though most document changes are picked up and thus one might be tempted to declare the connector to be <em>MODEL_ADD_CHANGE</em>, the
+            correct choice would in fact be <em>MODEL_ADD</em>.</p>
+          <p></p>
+          <p>Another subtle point is what documents the connector is actually supposed to return by means of the <strong>addSeedDocuments()</strong> method.  The
+            start time and end time parameters handed to the method do not have to be strictly adhered to, for instance; it is always okay to return more documents.  It is never
+            okay for the connector to return fewer documents than were requested, on the other hand.</p>
+          <p></p>
+        </section>
+        <section>
+          <title>Choosing a document identifier format</title>
+          <p></p>
+          <p>In order to decide on the format for a document identifier, you need to understand what this identifier is used for, and what it represents.  A document identifier usually corresponds to some entity within the source repository, such as a document or a folder.  Note that there is <strong>no</strong> requirement that the identifier represent indexable content.</p>
+          <p></p>
+          <p>The document identifier must be capable of furnishing enough information to:</p>
+          <p></p>
+          <ul>
+            <li>Calculate a version string for the document</li>
+            <li>Find child references for the document</li>
+            <li>Get the document's content, metadata, and access tokens</li>
+          </ul>
+          <p></p>
+          <p>We highly recommend that no additional information be included in the document identifier, other than what is needed for the above, as that will almost certainly cause problems.</p>
+          <p></p>
+        </section>
+        <section>
+          <title>Choosing the form of the document version string</title>
+          <p></p>
+          <p>The document version string is used by ManifoldCF to determine whether or not the document or configuration changed in such a way as to require that the document
+            be reprocessed.  ManifoldCF therefore requests the version string for any document that is ready for processing, and usually does not process the document again if the
+            returned version string agrees with the version string it has stored.</p>
+          <p></p>
+          <p>Thinking about it more carefully, it is clear that what a connector writer needs to do is include everything in the version string that could potentially affect how the
+            document gets processed.  That may include the version of the document in the repository, bits of configuration information, metadata, and even access tokens (if the
+            underlying repository versions these things independently from the document itself).  Storing all of that information in the version string seems like a lot - but the string
+            is unlimited in length, and it actually serves another useful purpose to do it that way.  Specifically, when it comes time to do the actual processing, it's often the correct
+            thing to do to obtain the necessary data out of the version string, rather than calculating it or fetching it anew.  That way of working guarantees that the document
+            processing was done in a manner that agrees with its recorded version string, thus eliminating any chance of ManifoldCF getting confused.</p>
+          <p></p>
+          <p>For longer data that needs to persist between the <strong>getDocumentVersions()</strong> method call and the <strong>processDocuments()</strong> method
+            call, the connector is welcome to save this information in a temporary disk file.  To help make sure nothing leaks which this approach is used, the IRepositoryConnector
+            interface has a method that will be called to clean up any temporary files that might have been created in the handling of a given document identifier.</p>
+          <p></p>
+        </section>
+        <section>
+          <title>Notes on connector UI methods</title>
+          <p></p>
+          <p>The crawler UI uses a tabbed layout structure, and thus each of these elements must properly implement the tabbed model.  This means that the "header" methods
+            above must add the desired tab names to a specified array, and the "body" methods must provide appropriate HTML which handles both the case where a tab is
+            displayed, and where it is not displayed.  Also, it makes sense to use the appropriate css definitions, so that the connector UI pages have a similar look-and-feel to the
+            rest of ManifoldCF's crawler ui.  We strongly suggest starting with one of the supplied connector's UI code, both for a description of the arguments to each page, and
+            for some decent ideas of ways to organize your connector's UI code.  </p>
+          <p></p>
+          <p>Please also note that it is good practice to name the form fields in your HTML in such a way that they cannot collide with form fields that may come from the
+            framework's HTML or any specific output connector's HTML.  The <em>DocumentSpecification</em> editing HTML especially may be prone to collisions, because
+            within any given job, this HTML is included in the same page as HTML from the chosen output connector.</p>
+          <p></p>
+          <p></p>
+        </section>
+      </section>
+      <section>
+        <title>Implementation support provided by the framework</title>
+        <p></p>
+        <p>ManifoldCF's framework provides a number of helpful services designed to make the creation of a connector easier.  These services are summarized below.
+          (This is not an exhaustive list, by any means.)</p>
+        <p></p>
+        <ul>
+          <li>Lock management and synchronization (see <em>org.apache.manifoldcf.core.interfaces.LockManagerFactory</em>)</li>
+          <li>Cache management (see <em>org.apache.manifoldcf.core.interfaces.CacheManagerFactory</em>)</li>
+          <li>Local keystore management (see <em>org.apache.manifoldcf.core.KeystoreManagerFactory</em>)</li>
+          <li>Database management (see <em>org.apache.manifoldcf.core.DBInterfaceFactory</em>)</li>
+        </ul>
+        <p></p>
+        <p>For UI method support, these too are very useful:</p>
+        <p></p>
+        <ul>
+          <li>Multipart form processing (see <em>org.apache.manifoldcf.ui.multipart.MultipartWrapper</em>)</li>
+          <li>HTML encoding (see <em>org.apache.manifoldcf.ui.util.Encoder</em>)</li>
+          <li>HTML formatting (see <em>org.apache.manifoldcf.ui.util.Formatter</em>)</li>
+        </ul>
+        <p></p>
+      </section>
+      <section>
+        <title>DO's and DON'T DO's</title>
+        <p></p>
+        <p>It's always a good idea to make use of an existing infrastructure component, if it's meant for that purpose, rather than inventing your own.  There are, however,
+          some limitations we recommend you adhere to.</p>
+        <p></p>
+        <ul>
+          <li>DO make use of infrastructure components described in the section above</li>
+          <li>DON'T make use of infrastructure components that aren't mentioned, without checking first</li>
+          <li>NEVER write connector code that directly uses framework database tables, other than the ones installed and managed by your connector</li>
+        </ul>
+        <p></p>
+        <p>If you are tempted to violate these rules, it may well mean you don't understand something important.  At the very least, we'd like to know why.  Send email
+          to dev@manifoldcf.apache.org with a description of your problem and how you are tempted to solve it.</p>
+      </section>
+    </section>
+  </body>
+</document>

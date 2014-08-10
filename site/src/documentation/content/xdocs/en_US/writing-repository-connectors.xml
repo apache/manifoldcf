@@ -167,6 +167,7 @@
             identifier, data, metadata, access tokens, and URI.  It is up to your repository connector to break documents into components, if needed.  Most of the time, a repository document
             consists of a single component.</p>
           <p></p>
+        </section>
         <section>
           <title>Notes on connector UI methods</title>
           <p></p>
