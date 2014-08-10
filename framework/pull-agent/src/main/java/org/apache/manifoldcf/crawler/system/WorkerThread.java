@@ -1578,10 +1578,9 @@ public class WorkerThread extends Thread
       String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
       checkMultipleDispositions(documentIdentifier,componentIdentifier,componentIdentifierHash);
 
+      // First, we need to add into the metadata the stuff from the job description.
       if (data != null)
       {
-        //Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
-        
         // Modify the repository document with forced parameters.
         for (String paramName : forcedMetadata.keySet())
         {
@@ -1596,7 +1595,14 @@ public class WorkerThread extends Thread
         }
       }
         
-      // First, we need to add into the metadata the stuff from the job description.
+      // This method currently signals whether the document is accepted or rejected permanently.
+      // Permanent rejection should involve leaving the document in the queue (since it probably
+      // will be rediscovered), and noting its version (so that we don't try doing anything with it
+      // again).  But the documentIngest method will already take care of the latter, so we really need to
+      // do nothing different based on the results of the documentIngest invocation.
+      // The only time it would be great to do something different would be if the document's version
+      // indicates that it should always be refetched.  But I have no way to describe this situation
+      // in the database at the moment.
       ingester.documentIngest(
         computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier),
         connectionName,documentIdentifierHash,componentIdentifierHash,
