@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>欢迎来到ManifoldCF！</title> 
+  </header> 
+
+  <body> 
+    <section>
+	<title>什么是ManifoldCF？</title>
+	<p>ManifoldCF由Java程序实现，它可以搜集保存在互联网或企业网上各种服务器里的文档或Web网页，并将其发送到搜索引擎。在搜集文档的同时还在ActiveDirectory等认证系统的协同下搜集文档的权限信息，并利用这些权限信息对其搜索结果加以限制。比如，人事档案仅限由人事部搜索时才加以显示。</p>
+	<p>ManifoldCF现版本可利用下述通用连接器搜集FileNet P8 (IBM)，Documentum (EMC)，LiveLink (OpenText)，Meridio (Autonomy), Windows共享(Microsoft)，SharePoint (Microsoft)等商用系统保存着的各种文档，如:CMIS连接器，File System连接器，JDBC连接器，RSS Feed连接器，Wiki连接器，HTML连接器。而且，还可将搜集到的文档发送到Apache Solr，QBase(旧MetaCarta) GTS，OpenSearchServer，Elasticsearch。所支持的产品及规格一览请参照<a href="included-connectors.html">这里</a>。</p>
+	<p>Apache ManifoldCF由MetaCarta, Inc.开发，为供给多家企业经历5年反反复复的开发，调试之后，2009年12月其源代码赠送到Apache Software Foundation。</p>
+    </section>
+
+    <section>
+	<title>关于第三方存储库</title>
+	<p>为生成ManifoldCF包含的面向商业软件的连接器，有时需第三方软件库，包或软件本身。虽然开发人员需得到这些第三方软件，但可以有条件地编译连接器自身的源代码并作为Apache发布之。我们虽期望并努力做到使一切遵照Apache版权，但现状不会立即发生变化。</p>
+	<p>关于包括第三方软件的生成步骤，请参照Wiki页面。</p>
+    </section>
+
+  </body>
+
+</document>

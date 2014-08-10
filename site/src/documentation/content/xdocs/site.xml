@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   Copyright 2002-2004 The Apache Software Foundation
 
@@ -53,6 +53,20 @@
     </docs>
     
   </japanese>
+
+  <chinese label="中文" href="zh_CN/" tab="zh_CN">
+    <index label="概要" href="index.html" tab="zh_CN"/>
+    
+    <docs label="文档">
+      <dev label="概要" href="concepts.html"/>
+      <dev label="连接器一览" href="included-connectors.html"/>
+      <dev label="Q&amp;A" href="faq.html"/>
+      <dev label="Javadoc" href="javadoc.html"/>
+      <dev label="开发人员资源" href="technical-resources.html"/>
+      <dev label="用户手册(HTML)" href="end-user-documentation.html"/>
+    </docs>
+    
+  </chinese>
 
   <external-refs>
   </external-refs>
