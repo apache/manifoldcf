@@ -381,7 +381,6 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
         else
         {
           // These documents must go away permanently
-          // MHL to collect these and do them as a group
           activities.deleteDocument(documentIdentifier);
         }
       }
