@@ -645,7 +645,8 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
       else
         versionStrings[i] = vc.getVersionString();
     }
-    processDocuments(documentIdentifiers,versionStrings,activities,spec,scanOnly,jobMode);
+    if (spec != null)
+      processDocuments(documentIdentifiers,versionStrings,activities,spec,scanOnly,jobMode);
   }
 
   /** Process a set of documents.
