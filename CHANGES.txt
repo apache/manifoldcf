@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.7-dev =====================
+======================= Release 1.7 =====================
 
 CONNECTORS-1000: Add support for auth to open search server
 connector.
