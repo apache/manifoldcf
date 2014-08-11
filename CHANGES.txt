@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.7 =====================
 
+CONNECTORS-1007: Fix CMIS connector so that tests pass.
+(Karl Wright)
+
 CONNECTORS-1006: Update googledrive API to latest released version.
 (Karl Wright)
 
