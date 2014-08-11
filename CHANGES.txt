@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.7-dev =====================
 
+CONNECTORS-1000: Add support for auth to open search server
+connector.
+(Emmanuel Keller)
+
 CONNECTORS-1004: CMIS connector was not using latest version
 of document, which matters for repositories like Alfresco.
 (Prasad Perera, Karl Wright)
