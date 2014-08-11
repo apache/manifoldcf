@@ -971,19 +971,21 @@ cd example
             <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>The maximum number of documents ManifoldCF will try to count for the job status display.  Defaults to 500000.</td></tr>
             <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.
-                Default is a built-in PostgreSQL implementation.  Supported choices are: org.apache.manifoldcf.core.database.DBInterfaceDerby,
-                org.apache.manifoldcf.core.database.DBInterfacePostgreSQL, org.apache.manifoldcf.core.database.DBInterfaceHSQLDB</td></tr>
+                Default is a built-in Derby implementation.  Supported choices are: org.apache.manifoldcf.core.database.DBInterfaceDerby,
+                org.apache.manifoldcf.core.database.DBInterfacePostgreSQL, 
+                org.apache.manifoldcf.core.database.DBInterfaceMySQL,
+                org.apache.manifoldcf.core.database.DBInterfaceHSQLDB</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.hostname</td><td>No</td><td>PostgreSQL server host name, or localhost if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.port</td><td>No</td><td>PostgreSQL server port, or standard port if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL server name.  Defaults to 'localhost'.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.client</td><td>No</td><td>The MySQL client property.  Defaults to 'localhost'.  You may want to set this to '%' for a multi-machine setup.</td></tr>
             <tr><td>org.apache.manifoldcf.derbydatabasepath</td><td>No</td><td>Absolute or relative path to Derby database; default is '.'.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabasepath</td><td>No</td><td>Absolute or relative path to HSQLDB database; default is '.'.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseprotocol</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB JDBC protocol; choices are 'hsql', 'http', or 'https'. Default is blank (which means an embedded instance)</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseserver</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB remote server name.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseport</td><td>No</td><td>The HSQLDB remote server port.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseinstance</td><td>No</td><td>The HSQLDB remote database instance name.</td></tr>
-            <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL server name.  Defaults to 'localhost'.</td></tr>
-            <tr><td>org.apache.manifoldcf.mysql.client</td><td>No</td><td>The MySQL client property.  Defaults to 'localhost'.  You may want to set this to '%' for a multi-machine setup.</td></tr>
             <tr><td>org.apache.manifoldcf.lockmanagerclass</td><td>No</td><td>Specifies the class to use to implement synchronization.  Default
                 is either file-based synchronization or in-memory synchronization, using the org.apache.manifoldcf.core.lockmanager.LockManager class.
                 Options include org.apache.manifoldcf.core.lockmanager.BaseLockManager, org.apache.manifoldcf.core.FileLockManager, and
@@ -1029,7 +1031,8 @@ cd example
             <tr><th>Property</th><th>Required?</th><th>Default</th><th>Function</th></tr>
             <tr><td>org.apache.manifoldcf.crawler.repository.store_history</td><td>No</td><td>true</td><td>If you do not require reports from within this will disable logging to the repository history (although the reports will still run they will not contain any content). This can increase throughput and reduce the rate of growth of the database.</td></tr>
             <tr><td>org.apache.manifoldcf.db.postgres.analyze.&#60;tablename&#62;</td><td>No</td><td>2000</td><td>For postgresql, specify how many changes should be carried out before carrying out an 'ANALYZE' on the specified table.</td></tr>
-            <tr><td>org.apache.manifoldcf.db.postgres.analyze.&#60;tablename&#62;</td><td>No</td><td>250000</td><td>For postgresql, specify how many changes should be carried out before carrying out an 'REINDEX' on the specified table.</td></tr>
+            <tr><td>org.apache.manifoldcf.db.postgres.reindex.&#60;tablename&#62;</td><td>No</td><td>250000</td><td>For postgresql, specify how many changes should be carried out before carrying out an 'REINDEX' on the specified table.</td></tr>
+            <tr><td>org.apache.manifoldcf.db.mysql.analyze.&#60;tablename&#62;</td><td>No</td><td>2000</td><td>For mysql, specify how many changes should be carried out before carrying out an 'ANALYZE' on the specified table.</td></tr>
             <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>10000</td><td>Set the upper limit for the precise document count to be returned on the 'Status and Job Management' page.</td></tr>
           </table>
           <p></p>
