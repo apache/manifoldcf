@@ -1,9 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.8-dev =====================
+======================= 1.7-dev =====================
 
-CONNECTORS-1003: Update googledrive API to latest released version.
+CONNECTORS-1006: Update googledrive API to latest released version.
 (Karl Wright)
 
 CONNECTORS-1000: Add support for auth to open search server
