@@ -1064,7 +1064,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
     getSession();
     Logging.connectors.debug("CMIS: Inside processDocuments");
-        
+    
     String cmisQuery = StringUtils.EMPTY;
     for (int i = 0; i < spec.getChildCount(); i++)
     {
@@ -1112,7 +1112,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           // content ingestion
 
           Document document = (Document) cmisObject;
-          document = document.getObjectOfLatestVersion(false);
+          try {
+            document = document.getObjectOfLatestVersion(false);
+          } catch (CmisObjectNotFoundException e) {
+            // Document gone
+            activities.deleteDocument(nodeId);
+            continue;
+          }
           long fileLength = document.getContentStreamLength();
           InputStream is = null;
           
@@ -1323,7 +1329,12 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
         //we have to check if this CMIS repository support versioning
         // or if the versioning is disabled for this content
-        document = document.getObjectOfLatestVersion(false);
+        try {
+          document = document.getObjectOfLatestVersion(false);
+        } catch (CmisObjectNotFoundException e) {
+          rval[i] = null;
+          continue;
+        }
         if(StringUtils.isNotEmpty(document.getVersionLabel())){
           rval[i] = document.getVersionLabel() + ":" + cmisQuery;
         } else {
