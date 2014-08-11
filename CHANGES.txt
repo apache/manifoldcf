@@ -1,7 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.7-dev =====================
+======================= 1.8-dev =====================
+
+======================= Release 1.7 =====================
 
 CONNECTORS-1006: Update googledrive API to latest released version.
 (Karl Wright)
