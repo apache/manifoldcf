@@ -1437,28 +1437,28 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/apis"/>
-            <param name="artifact-version" value="v2-rev64-1.14.1-beta"/>
+            <param name="artifact-version" value="v2-rev136-1.19.0"/>
             <param name="artifact-name" value="google-api-services-drive"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/http-client"/>
-            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-version" value="1.19.0"/>
             <param name="artifact-name" value="google-http-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/http-client"/>
-            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-version" value="1.19.0"/>
             <param name="artifact-name" value="google-http-client-jackson2"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/oauth-client"/>
-            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-version" value="1.19.0"/>
             <param name="artifact-name" value="google-oauth-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1472,7 +1472,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/api-client"/>
-            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-version" value="1.19.0"/>
             <param name="artifact-name" value="google-api-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
