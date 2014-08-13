@@ -495,7 +495,6 @@ Useful targets are:
 
 clean    - Clean the build and distribution areas
 build    - Build the site
-           (requires Apache Forrest)
 
 make-core-deps         - Download and build core dependencies
 clean-core-deps        - Clean up core dependencies
