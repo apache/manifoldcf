@@ -1036,13 +1036,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       }
       String[] lockArray = new String[validURIcount];
       String[] validURIArray = new String[validURIcount];
+      String[] validURIHashArray = new String[validURIcount];
       validURIcount = 0;
       for (int i = 0; i < uris.length; i++)
       {
         if (uris[i] != null && uris[i].getURI() != null)
         {
           validURIArray[validURIcount] = uris[i].getURI();
-          lockArray[validURIcount] = outputConnectionName+":"+validURIArray[validURIcount];
+          validURIHashArray[validURIcount] = uris[i].getURIHash();
+          lockArray[validURIcount] = outputConnectionName+":"+validURIHashArray[validURIcount];
           validURIcount++;
         }
       }
@@ -1079,9 +1081,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           Set<String> docURIValues = new HashSet<String>();
           for (String docDBString : validURIArray)
           {
-            String docDBHashString = ManifoldCF.hash(docDBString);
             docURIValues.add(docDBString);
-            docURIHashValues.add(docDBHashString);
+          }
+          for (String docDBString : validURIHashArray)
+          {
+            docURIHashValues.add(docDBString);
           }
 
           // Now, perform n queries, each of them no larger the maxInClause in length.
@@ -1248,13 +1252,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       }
       String[] lockArray = new String[validURIcount];
       String[] validURIArray = new String[validURIcount];
+      String[] validURIHashArray = new String[validURIcount];
       validURIcount = 0;
       for (int i = 0; i < uris.length; i++)
       {
         if (uris[i] != null && uris[i].getURI() != null)
         {
           validURIArray[validURIcount] = uris[i].getURI();
-          lockArray[validURIcount] = outputConnectionName+":"+validURIArray[validURIcount];
+          validURIHashArray[validURIcount] = uris[i].getURIHash();
+          lockArray[validURIcount] = outputConnectionName+":"+validURIHashArray[validURIcount];
           validURIcount++;
         }
       }
@@ -1291,9 +1297,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           Set<String> docURIValues = new HashSet<String>();
           for (String docDBString : validURIArray)
           {
-            String docDBHashString = ManifoldCF.hash(docDBString);
             docURIValues.add(docDBString);
-            docURIHashValues.add(docDBHashString);
+          }
+          for (String docDBString : validURIHashArray)
+          {
+            docURIHashValues.add(docDBString);
           }
 
           // Now, perform n queries, each of them no larger the maxInClause in length.
@@ -2237,7 +2245,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       new MultiClause(docKeyField,list),
       new UnitaryClause(outputConnNameField,outputConnectionName)});
       
-    IResultSet set = performQuery("SELECT "+docKeyField+","+docURIField+","+lastOutputVersionField+" FROM "+getTableName()+" WHERE "+
+    IResultSet set = performQuery("SELECT "+docKeyField+","+docURIField+","+uriHashField+","+lastOutputVersionField+" FROM "+getTableName()+" WHERE "+
       query,newList,null,null);
 
     // Go through list and put into buckets.
@@ -2245,14 +2253,17 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     {
       IResultRow row = set.getRow(i);
       String docHash = row.getValue(docKeyField).toString();
-      Integer position = (Integer)map.get(docHash);
+      Integer position = map.get(docHash);
       if (position != null)
       {
         String lastURI = (String)row.getValue(docURIField);
         if (lastURI != null && lastURI.length() == 0)
           lastURI = null;
+        String lastURIHash = (String)row.getValue(uriHashField);
+        if (lastURIHash != null && lastURIHash.length() == 0)
+          lastURIHash = null;
         String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
-        rval[position.intValue()] = new DeleteInfo(lastURI,lastOutputVersion);
+        rval[position.intValue()] = new DeleteInfo(lastURI,lastURIHash,lastOutputVersion);
       }
     }
   }
@@ -2283,7 +2294,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       new UnitaryClause(outputConnNameField,outputConnectionName),
       ((componentHash==null)?new NullCheckClause(componentHashField,true):new UnitaryClause(componentHashField,componentHash))});
       
-    IResultSet set = performQuery("SELECT "+docKeyField+","+docURIField+","+lastOutputVersionField+" FROM "+getTableName()+" WHERE "+
+    IResultSet set = performQuery("SELECT "+docKeyField+","+docURIField+","+uriHashField+","+lastOutputVersionField+" FROM "+getTableName()+" WHERE "+
       query,newList,null,null);
 
     // Go through list and put into buckets.
@@ -2297,8 +2308,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         String lastURI = (String)row.getValue(docURIField);
         if (lastURI != null && lastURI.length() == 0)
           lastURI = null;
+        String lastURIHash = (String)row.getValue(uriHashField);
+        if (lastURIHash != null && lastURIHash.length() == 0)
+          lastURIHash = null;
         String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
-        rval[position.intValue()] = new DeleteInfo(lastURI,lastOutputVersion);
+        rval[position.intValue()] = new DeleteInfo(lastURI,lastURIHash,lastOutputVersion);
       }
     }
   }
@@ -2351,17 +2365,24 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected static class DeleteInfo
   {
     protected String uriValue;
+    protected String uriHashValue;
     protected String outputVersion;
 
-    public DeleteInfo(String uriValue, String outputVersion)
+    public DeleteInfo(String uriValue, String uriHashValue, String outputVersion)
     {
       this.uriValue = uriValue;
+      this.uriHashValue = uriHashValue;
       this.outputVersion = outputVersion;
     }
 
     public String getURI()
     {
       return uriValue;
+    }
+
+    public String getURIHash()
+    {
+      return uriHashValue;
     }
 
     public String getOutputVersion()
@@ -3325,7 +3346,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // But, since we need to insure that any given URI is only worked on by one thread at a time, use critical sections
       // to block the rare case that multiple threads try to work on the same URI.
       
-      String[] lockArray = computeLockArray(documentURI,oldURI,outputConnectionName);
+      String[] lockArray = computeLockArray(documentURIHash,oldURIHash,outputConnectionName);
       lockManager.enterLocks(null,null,lockArray);
       try
       {
