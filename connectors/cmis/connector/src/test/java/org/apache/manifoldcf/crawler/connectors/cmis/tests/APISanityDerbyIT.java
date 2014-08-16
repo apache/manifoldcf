@@ -417,7 +417,7 @@ public class APISanityDerbyIT extends BaseITDerby
       
       // We also need to make sure the new document was indexed.  Have to think about how to do this though.
       // MHL
-      
+      //System.out.println("Starting delete...");
       // Delete a file, and recrawl
       removeDocument(cmisClientSession, "testdata2.txt");
       

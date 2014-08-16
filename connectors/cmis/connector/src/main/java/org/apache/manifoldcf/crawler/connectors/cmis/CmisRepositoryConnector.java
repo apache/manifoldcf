@@ -1112,15 +1112,19 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           // content ingestion
 
           Document document = (Document) cmisObject;
+          long fileLength;
+          InputStream is;
           try {
-            document = document.getObjectOfLatestVersion(false);
+            fileLength = document.getContentStreamLength();
+            if (fileLength > 0)
+              is = document.getContentStream().getStream();
+            else
+              is = null;
           } catch (CmisObjectNotFoundException e) {
             // Document gone
             activities.deleteDocument(nodeId);
             continue;
           }
-          long fileLength = document.getContentStreamLength();
-          InputStream is = null;
           
           try {
             RepositoryDocument rd = new RepositoryDocument();
@@ -1133,8 +1137,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             rd.setModifiedDate(modifiedDate);
             
             //binary
-            if(fileLength>0 && document.getContentStream()!=null){
-              is = document.getContentStream().getStream();
+            if(is != null) {
               rd.setBinary(is, fileLength);
             } else {
               rd.setBinary(new NullInputStream(0),0);
@@ -1316,33 +1319,42 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
+      //System.out.println("Get document versions: "+documentIdentifiers[i]);
       CmisObject cmisObject;
       try {
         cmisObject = session.getObject(documentIdentifiers[i]);
       } catch (CmisObjectNotFoundException e) {
+        cmisObject = null;
+      }
+
+      if (cmisObject == null) {
+        //System.out.println(" doesn't exist");
         rval[i] = null;
         continue;
       }
-
+      
       if (cmisObject.getBaseType().getId().equals(CMIS_DOCUMENT_BASE_TYPE)) {
         Document document = (Document) cmisObject;
 
-        //we have to check if this CMIS repository support versioning
-        // or if the versioning is disabled for this content
+        // Since documents that are not current have different node id's, we can return a constant version,
+        // EXCEPT when the document is not the current one (in which case we delete)
+        boolean isCurrentVersion;
         try {
-          document = document.getObjectOfLatestVersion(false);
+          Document d = document.getObjectOfLatestVersion(false);
+          isCurrentVersion = d.getId().equals(documentIdentifiers[i]);
         } catch (CmisObjectNotFoundException e) {
-          rval[i] = null;
-          continue;
+          isCurrentVersion = false;
         }
-        if(StringUtils.isNotEmpty(document.getVersionLabel())){
-          rval[i] = document.getVersionLabel() + ":" + cmisQuery;
+        if (isCurrentVersion) {
+          //System.out.println(" is latest version");
+          rval[i] = documentIdentifiers[i] + ":" + cmisQuery;
         } else {
-        //a CMIS document that doesn't contain versioning information will always be processed
-          rval[i] = StringUtils.EMPTY;
+          //System.out.println(" is NOT latest vrersion");
+          rval[i] = null;
         }
       } else {
         //a CMIS folder will always be processed
+        //System.out.println(" is folder");
         rval[i] = StringUtils.EMPTY;
       }
     }

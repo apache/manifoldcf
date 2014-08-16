@@ -5,6 +5,10 @@ $Id$
 
 ======================= Release 1.7 =====================
 
+CONNECTORS-1009: Fix CMIS connector again, to handle typical case
+where a new version is a new node.
+(Karl Wright)
+
 CONNECTORS-1010: Use uri hash instead of full URI as lock key
 to prevent "file name too long" errors on windows.
 (Erlend Garåsen, Shigeki Kobayashi, Karl Wright)
