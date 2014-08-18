@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.7 =====================
 
+CONNECTORS-1011: Upgrade to httpclient 4.3.5.
+(Karl Wright)
+
 CONNECTORS-1009: Fix CMIS connector again, to handle typical case
 where a new version is a new node.
 (Karl Wright)
