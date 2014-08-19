@@ -5,6 +5,9 @@ $Id$
 
 ======================= Release 1.7 =====================
 
+CONNECTORS-1012: Upgrade xmlbeans and POI to fix various CVE's.
+(Karl Wright)
+
 CONNECTORS-1011: Upgrade to httpclient 4.3.5.
 (Karl Wright)
 
