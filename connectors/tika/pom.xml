@@ -221,6 +221,33 @@
 	  <artifactId>tika-parsers</artifactId>
 	  <version>1.5</version>
     </dependency>
+    <!-- Override tika dependencies, to make sure we fix various
+      CVE's -->
+    <dependency>
+	  <groupId>org.apache.xmlbeans</groupId>
+	  <artifactId>xmlbeans</artifactId>
+	  <version>${xmlbeans.version}</version>
+    </dependency>
+    <dependency>
+	  <groupId>org.apache.poi</groupId>
+	  <artifactId>poi</artifactId>
+	  <version>${poi.version}</version>
+    </dependency>
+    <dependency>
+	  <groupId>org.apache.poi</groupId>
+	  <artifactId>poi-ooxml</artifactId>
+	  <version>${poi.version}</version>
+    </dependency>
+    <dependency>
+	  <groupId>org.apache.poi</groupId>
+	  <artifactId>poi-ooxml-schemas</artifactId>
+	  <version>${poi.version}</version>
+    </dependency>
+    <dependency>
+	  <groupId>org.apache.poi</groupId>
+	  <artifactId>poi-scratchpad</artifactId>
+	  <version>${poi.version}</version>
+    </dependency>
     
     <!-- Testing dependencies -->
     

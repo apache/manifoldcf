@@ -1035,7 +1035,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
-            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-version" value="3.10.1"/>
             <param name="artifact-name" value="poi"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1645,7 +1645,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
             <param name="artifact-name" value="poi-scratchpad"/>
-            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-version" value="3.10.1"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -1669,7 +1669,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/xmlbeans"/>
             <param name="artifact-name" value="xmlbeans"/>
-            <param name="artifact-version" value="2.3.0"/>
+            <param name="artifact-version" value="2.6.0"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -1753,13 +1753,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
             <param name="artifact-name" value="poi-ooxml"/>
-            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-version" value="3.10.1"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
             <param name="artifact-name" value="poi-ooxml-schemas"/>
-            <param name="artifact-version" value="3.10-beta2"/>
+            <param name="artifact-version" value="3.10.1"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>

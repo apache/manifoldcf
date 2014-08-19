@@ -174,7 +174,15 @@ public class SPSProxyHelper {
             if ( roleName.length() == 0)
             {
               roleName = doc.getValue(node,"GroupName");
-              roleSids = getSidsForGroup(userCall, roleName, activeDirectoryAuthority);
+              if (roleName != null && roleName.length() > 0)
+              {
+                roleSids = getSidsForGroup(userCall, roleName, activeDirectoryAuthority);
+              }
+              else
+              {
+                Logging.connectors.warn("SharePoint: Unrecognized permission collection entry: no role, no group: "+doc.getXML());
+                roleSids = new ArrayList<String>();
+              }
             }
             else
             {
