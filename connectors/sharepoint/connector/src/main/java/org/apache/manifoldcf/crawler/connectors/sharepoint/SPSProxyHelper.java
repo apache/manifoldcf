@@ -176,7 +176,6 @@ public class SPSProxyHelper {
               roleName = doc.getValue(node,"GroupName");
               if (roleName != null && roleName.length() > 0)
               {
-                System.out.println("Saw group name '"+roleName+"'");
                 roleSids = getSidsForGroup(userCall, roleName, activeDirectoryAuthority);
               }
               else
