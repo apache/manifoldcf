@@ -1994,6 +1994,8 @@ curl -XGET http://localhost:9200/index/_mapping
               <p>Each Google Drive Connection manages access to a single drive repository. This means that if you have multiple Google Drives (i.e. different users),
                 you need to create a specific connection for each drive repository and provide the associated authentication information.</p>
               <p>This connection type has no support for any kind of document security, except for hand-entered access tokens provided on a per-job basis.</p>
+              <p>This connection type can index only those documents whose binary content can be obtained through the pertinent Google APIs.  At the moment,
+                  native Google documents such as Google Spreadsheet do not appear to be supported.</p>
               <br/>
               <p>A Google Drive connection has the following configuration parameters on the repository connection editing screen:</p>
               <br/><br/>
