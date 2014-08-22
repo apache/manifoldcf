@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-946: Upgrade OpenCMIS to latest version to see if it
+fixes join queries.
+(Karl Wright)
+
 CONNECTORS-1013: Handle new kind of XML we see coming back from
 SharePoint on getLists metadata field list requests.
 (Lalit Jangra, Karl Wright)
