@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1013: Handle new kind of XML we see coming back from
+SharePoint on getLists metadata field list requests.
+(Lalit Jangra, Karl Wright)
+
 ======================= Release 1.7 =====================
 
 CONNECTORS-1012: Upgrade xmlbeans and POI to fix various CVE's.

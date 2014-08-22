@@ -1738,28 +1738,27 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Fields>
 
-      Object fields = nodeList.get(0);
-      if ( !doc.getNodeName(fields).equals("ns1:Fields") )
-        throw new ManifoldCFException( "Bad xml - child node 0 '" + doc.getNodeName(fields) + "' is not 'ns1:Fields'");
-
-      nodeList.clear();
-      doc.processPath(nodeList, "*", fields);
-
-      int i = 0;
-      while (i < nodeList.size())
+      for (Object metaField : nodeList)
       {
-        Object o = nodeList.get( i++ );
-        // Logging.connectors.debug( i + ": " + o );
-        String name = doc.getValue( o, "DisplayName" );
-        String fieldName = doc.getValue( o, "Name" );
-        String hidden = doc.getValue( o, "Hidden" );
-        // System.out.println( "Hidden :" + hidden );
-        if ( name.length() != 0 && fieldName.length() != 0 && ( !hidden.equalsIgnoreCase( "true") ) )
+        if ( doc.getNodeName(metaField).equals("ns1:Fields") )
         {
-          // make sure we don't include the same field more than once.
-          // This may happen if the Library has more than one view.
-          if ( result.containsKey( fieldName ) == false)
-            result.put(fieldName, name);
+          ArrayList fieldsList = new ArrayList();
+          doc.processPath(fieldsList, "*", metaField);
+
+          for (Object o : fieldsList)
+          {
+            String name = doc.getValue( o, "DisplayName" );
+            String fieldName = doc.getValue( o, "Name" );
+            String hidden = doc.getValue( o, "Hidden" );
+            // System.out.println( "Hidden :" + hidden );
+            if ( name.length() != 0 && fieldName.length() != 0 && ( !hidden.equalsIgnoreCase( "true") ) )
+            {
+              // make sure we don't include the same field more than once.
+              // This may happen if the Library has more than one view.
+              if ( result.containsKey( fieldName ) == false)
+                result.put(fieldName, name);
+            }
+          }
         }
       }
       // System.out.println(result.size());
