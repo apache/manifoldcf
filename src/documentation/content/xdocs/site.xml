@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   Copyright 2002-2004 The Apache Software Foundation
 
@@ -74,6 +74,18 @@
     </docs>
     
   </japanese>
+
+  <chinese label="中文" href="zh_CN/" tab="zh_CN">
+    <index label="概要" href="index.html" tab="zh_CN"/>
+    
+    <docs label="文档">
+      <dev label="下载" href="download.html" />
+      <dev label="发布文档" href="release-documentation.html"/>
+      <mail label="邮件列表"    href="mail.html" />   
+      <dev label="开发人员资源" href="developer-resources.html"/>
+    </docs>
+    
+  </chinese>
 
   <external-refs>
     <java      href="http://lucene.apache.org/core" />
