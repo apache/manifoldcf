@@ -76,41 +76,41 @@
       <section>
         <title>Apache ManifoldCF 1.6.1, 2014年06月01日</title>
         <p>
-          <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1.KEYS">KEYS</a><br/>
-          <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1.CHANGES.txt">CHANGES.txt</a><br/>
+          <a href="https://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1.KEYS">KEYS</a><br/>
+          <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1.CHANGES.txt">CHANGES.txt</a><br/>
         </p>
 
         <p>源代码：<br/>
-          <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.tar.gz">apache-manifoldcf-1.6.1-src.tar.gz</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.tar.gz.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.tar.gz.md5">MD5</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.tar.gz.sha">SHA</a>]<br/>
-          <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.zip">apache-manifoldcf-1.6.1-src.zip</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.zip.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.zip.md5">MD5</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.zip.sha">SHA</a>]<br/>
+          <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.tar.gz">apache-manifoldcf-1.6.1-src.tar.gz</a>
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.tar.gz.asc">PGP</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.tar.gz.md5">MD5</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.tar.gz.sha">SHA</a>]<br/>
+          <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.zip">apache-manifoldcf-1.6.1-src.zip</a>
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.zip.asc">PGP</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.zip.md5">MD5</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-src.zip.sha">SHA</a>]<br/>
         </p>
 
         <p>二进制执行文件：<br/>
-          <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.tar.gz">apache-manifoldcf-1.6.1-bin.tar.gz</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.tar.gz.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.tar.gz.md5">MD5</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.tar.gz.sha">SHA</a>]<br/>
-          <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.zip">apache-manifoldcf-1.6.1-bin.zip</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.zip.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.zip.md5">MD5</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.zip.sha">SHA</a>]<br/>
+          <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.tar.gz">apache-manifoldcf-1.6.1-bin.tar.gz</a>
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.tar.gz.asc">PGP</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.tar.gz.md5">MD5</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.tar.gz.sha">SHA</a>]<br/>
+          <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.zip">apache-manifoldcf-1.6.1-bin.zip</a>
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.zip.asc">PGP</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.zip.md5">MD5</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-bin.zip.sha">SHA</a>]<br/>
         </p>
 
         <p>库文件：<br/>
-          <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.tar.gz">apache-manifoldcf-1.6.1-lib.tar.gz</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.tar.gz.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.tar.gz.md5">MD5</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.tar.gz.sha">SHA</a>]<br/>
-          <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.zip">apache-manifoldcf-1.6.1-lib.zip</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.zip.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.zip.md5">MD5</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.zip.sha">SHA</a>]<br/>
+          <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.tar.gz">apache-manifoldcf-1.6.1-lib.tar.gz</a>
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.tar.gz.asc">PGP</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.tar.gz.md5">MD5</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.tar.gz.sha">SHA</a>]<br/>
+          <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.zip">apache-manifoldcf-1.6.1-lib.zip</a>
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.zip.asc">PGP</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.zip.md5">MD5</a>]
+            [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.6.1-lib.zip.sha">SHA</a>]<br/>
         </p>
       </section>
 
