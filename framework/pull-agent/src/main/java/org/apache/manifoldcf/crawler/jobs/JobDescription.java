@@ -75,9 +75,6 @@ public class JobDescription implements IJobDescription
   // Hopcount mode
   protected int hopcountMode = HOPCOUNT_ACCURATE;
 
-  // Forced metadata
-  protected Map<String,Set<String>> forcedMetadata = new HashMap<String,Set<String>>();
-  
   // Read-only mode
   protected boolean readOnly = false;
 
@@ -121,14 +118,6 @@ public class JobDescription implements IJobDescription
       String linkType = (String)iter.next();
       Long maxHops = (Long)hopCountFilters.get(linkType);
       rval.hopCountFilters.put(linkType,maxHops);
-    }
-    for (String forcedParamName : forcedMetadata.keySet())
-    {
-      Set<String> values = forcedMetadata.get(forcedParamName);
-      for (String value : values)
-      {
-        rval.addForcedMetadataValue(forcedParamName,value);
-      }
     }
     rval.readOnly = readOnly;
     return rval;
@@ -611,39 +600,6 @@ public class JobDescription implements IJobDescription
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
     hopcountMode = mode;
-  }
-
-  // Forced metadata
-  
-  /** Get the forced metadata.
-  *@return the set as a map, keyed by metadata name, with value a set of strings.
-  */
-  @Override
-  public Map<String,Set<String>> getForcedMetadata()
-  {
-    return forcedMetadata;
-  }
-  
-  /** Clear forced metadata.
-  */
-  @Override
-  public void clearForcedMetadata()
-  {
-    forcedMetadata.clear();
-  }
-  
-  /** Add a forced metadata name/value pair.
-  */
-  @Override
-  public void addForcedMetadataValue(String name, String value)
-  {
-    Set<String> rval = forcedMetadata.get(name);
-    if (rval == null)
-    {
-      rval = new HashSet<String>();
-      forcedMetadata.put(name,rval);
-    }
-    rval.add(value);
   }
 
   protected static class PipelineStage

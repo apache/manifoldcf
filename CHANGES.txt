@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-972: Remove Forced Metadata tab from all jobs.
+THIS IS A NON-BACKWARDS-COMPATIBLE CHANGE.
+(Karl Wright)
+
 CONNECTORS-949: Upgrade OpenCMIS to latest version to see if it
 fixes join queries.
 (Karl Wright)

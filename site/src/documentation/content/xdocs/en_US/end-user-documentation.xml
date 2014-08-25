@@ -506,17 +506,6 @@
                 <p>The rest of the job tabs depend on the types of the connections you selected.  Please refer to the section of the manual
                        describing the appropriate connection types corresponding to your chosen repository and output connections for a description of the job tabs that will appear for
                        those connections.</p>
-                <p>All jobs also have a "Forced Metadata" tab.  This allows you to specify metadata values that are specific to those documents indexed by the job, which can be
-                       very useful in categorizing documents within a search engine.  The "Forced Metadata" tab looks like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/add-new-job-forced-metadata.PNG" alt="Add New Job, forced metadata tab" width="80%"/>
-                <br/><br/>
-                <p>Enter the name of the metadata parameter you want to include in the "Parameter name" column, and the value in the "Parameter value" column, and click the
-                      "Add" button.  For example:</p>
-                <br/><br/>
-                <figure src="images/en_US/add-new-job-forced-metadata-example.PNG" alt="Add New Job, forced metadata tab with example" width="80%"/>
-                <br/><br/>
-                <p>You may add multiple parameter values, or delete values you do not want by clicking the appropriate "Delete" button.</p>
                 
                 <p>After you save your job, a summary screen will be displayed that describes your job's specification.  This looks something like this (although the details will differ
                       somewhat based on what connections you chose):</p>

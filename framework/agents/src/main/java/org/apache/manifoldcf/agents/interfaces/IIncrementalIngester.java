@@ -146,14 +146,12 @@ public interface IIncrementalIngester
   *@param pipelineSpecificationWithVersions is the pipeline specification including new version info for all transformation and output
   *  connections.
   *@param newDocumentVersion is the newly-determined document version.
-  *@param newParameterVersion is the newly-determined parameter version.
   *@param newAuthorityNameString is the newly-determined authority name.
   *@return true if the document needs to be refetched.
   */
   public boolean checkFetchDocument(
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
     String newDocumentVersion,
-    String newParameterVersion,
     String newAuthorityNameString);
 
   /** Record a document version, but don't ingest it.
@@ -181,7 +179,6 @@ public interface IIncrementalIngester
   *@param identifierHash is the hashed document identifier.
   *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
-  *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
   *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
   *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
@@ -190,7 +187,6 @@ public interface IIncrementalIngester
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
     String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
-    String parameterVersion,
     String authorityName,
     long recordTime,
     IOutputActivity activities)
@@ -206,7 +202,6 @@ public interface IIncrementalIngester
   *@param identifierHash is the hashed document identifier.
   *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
-  *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
   *@param data is the document data.  The data is closed after ingestion is complete.
   *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
@@ -219,7 +214,6 @@ public interface IIncrementalIngester
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
     String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
-    String parameterVersion,
     String authorityName,
     RepositoryDocument data,
     long ingestTime, String documentURI,

@@ -451,7 +451,6 @@
             <tr><td>"reseed_interval"</td><td>The time between reseeding operations (if the job is "continuous"), in milliseconds, or "infinite" for infinity</td></tr>
             <tr><td>"hopcount"</td><td>An array of hopcount objects, describing the link types and associated maximum hops permitted for the job</td></tr>
             <tr><td>"schedule"</td><td>An array of schedule objects, describing when the job should be started and run</td></tr>
-            <tr><td>"forcedparam"</td><td>An array of forcedparam objects, describing what forced parameters should be set</td></tr>
             <tr><td>"pipelinestage"</td><td>An array of pipelinestage objects, describing what the transformation pipeline is</td></tr>
           </table>
           <p></p>
@@ -465,14 +464,6 @@
             <tr><td>"stage_connectionname"</td><td>The connection name for the pipeline stage</td></tr>
             <tr><td>"stage_description"</td><td>A description of the pipeline stage</td></tr>
             <tr><td>"stage_specification"</td><td>The specification string for the pipeline stage</td></tr>
-          </table>
-          <p></p>
-          <p>Each forcedparam object has the following fields:</p>
-          <p></p>
-          <table>
-            <tr><th>Field</th><th>Meaning</th></tr>
-            <tr><td>"paramname"</td><td>The name of the parameter</td></tr>
-            <tr><td>"paramvalue"</td><td>The value of the parameter</td></tr>
           </table>
           <p></p>
           <p>Each hopcount object has the following fields:</p>

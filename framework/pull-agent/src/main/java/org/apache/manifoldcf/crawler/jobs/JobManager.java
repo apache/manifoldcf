@@ -170,18 +170,7 @@ public class JobManager implements IJobManager
       }
       
       // Write forced metadata information
-      Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
-      ManifoldCF.writeDword(os,forcedMetadata.size());
-      for (String key : forcedMetadata.keySet())
-      {
-        ManifoldCF.writeString(os,key);
-        Set<String> values = forcedMetadata.get(key);
-        ManifoldCF.writeDword(os,values.size());
-        for (String value : values)
-        {
-          ManifoldCF.writeString(os,value);
-        }
-      }
+      ManifoldCF.writeDword(os,0);
       
       // Write pipeline information
       ManifoldCF.writeDword(os,job.countPipelineStages());
@@ -287,7 +276,7 @@ public class JobManager implements IJobManager
           for (int k = 0; k < valueCount; k++)
           {
             String value = ManifoldCF.readString(is);
-            job.addForcedMetadataValue(key,value);
+            // Discard it; we don't support this anymore
           }
         }
         

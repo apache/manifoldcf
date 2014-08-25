@@ -344,7 +344,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   protected final ICacheManager cacheManager;
   protected final ScheduleManager scheduleManager;
   protected final HopFilterManager hopFilterManager;
-  protected final ForcedParamManager forcedParamManager;
   protected final PipelineManager pipelineManager;
   
   protected final IOutputConnectionManager outputMgr;
@@ -363,7 +362,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     this.threadContext = threadContext;
     scheduleManager = new ScheduleManager(threadContext,database);
     hopFilterManager = new HopFilterManager(threadContext,database);
-    forcedParamManager = new ForcedParamManager(threadContext,database);
     pipelineManager = new PipelineManager(threadContext,database);
     
     cacheManager = CacheManagerFactory.make(threadContext);
@@ -528,7 +526,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       }
       scheduleManager.install(getTableName(),idField);
       hopFilterManager.install(getTableName(),idField);
-      forcedParamManager.install(getTableName(),idField);
 
       // Index management
       IndexDescription statusIndex = new IndexDescription(false,new String[]{statusField,idField,priorityField});
@@ -580,7 +577,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      forcedParamManager.deinstall();
       hopFilterManager.deinstall();
       scheduleManager.deinstall();
       pipelineManager.deinstall();
@@ -869,7 +865,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     {
       scheduleManager.deleteRows(id);
       hopFilterManager.deleteRows(id);
-      forcedParamManager.deleteRows(id);
       pipelineManager.deleteRows(id);
       ArrayList params = new ArrayList();
       String query = buildConjunctionClause(params,new ClauseDescription[]{
@@ -1004,9 +999,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
               if (isSame)
                 isSame = hopFilterManager.compareRows(id,jobDescription);
 
-              if (isSame)
-                isSame = forcedParamManager.compareRows(id,jobDescription);
-
               if (!isSame)
                 values.put(seedingVersionField,null);
 
@@ -1017,7 +1009,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
               pipelineManager.deleteRows(id);
               scheduleManager.deleteRows(id);
               hopFilterManager.deleteRows(id);
-              forcedParamManager.deleteRows(id);
             }
             else
             {
@@ -1037,8 +1028,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
             scheduleManager.writeRows(id,jobDescription);
             // Write hop filter rows
             hopFilterManager.writeRows(id,jobDescription);
-            // Write forced params
-            forcedParamManager.writeRows(id,jobDescription);
             
             cacheManager.invalidateKeys(ch);
             break;
@@ -3594,7 +3583,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       pipelineManager.getRows(returnValues,idList,params);
       scheduleManager.getRows(returnValues,idList,params);
       hopFilterManager.getRows(returnValues,idList,params);
-      forcedParamManager.getRows(returnValues,idList,params);
     }
     catch (NumberFormatException e)
     {

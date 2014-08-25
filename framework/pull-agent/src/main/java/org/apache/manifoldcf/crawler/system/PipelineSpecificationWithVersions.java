@@ -69,19 +69,6 @@ public class PipelineSpecificationWithVersions implements IPipelineSpecification
     return status.getDocumentVersion();
   }
     
-  /** For a given output index, return a parameter version string.
-  *@param index is the output index.
-  *@return the parameter version string.
-  */
-  @Override
-  public String getOutputParameterVersionString(int index)
-  {
-    DocumentIngestStatus status = getStatus(index);
-    if (status == null)
-      return null;
-    return status.getParameterVersion();
-  }
-
 
   /** For a given output index, return a transformation version string.
   *@param index is the output index.

@@ -118,8 +118,6 @@
 	int hopcountMode = IJobDescription.HOPCOUNT_ACCURATE;
 	// Hop filters
 	Map hopFilterMap = new HashMap();
-	// Forced metadata
-	Map<String,Set<String>> forcedMetadata = new HashMap<String,Set<String>>();
 
 	// If the job is not null, prepopulate everything with what comes from it.
 	if (job != null)
@@ -161,7 +159,6 @@
 		value = job.getExpiration();
 		expirationInterval = (value==null)?null:new Long(value.longValue()/60000L);
 		hopFilterMap = job.getHopCountFilters();
-		forcedMetadata = job.getForcedMetadata();
 	}
 
 
@@ -200,7 +197,6 @@
 			tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopFilters"));
 			sequenceArray.add(null);
 		}
-		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.ForcedMetadata"));
 		sequenceArray.add(null);
 	}
 
@@ -440,27 +436,6 @@
 			postFormSetAnchor("remove_schedule_"+(n-1));
 	}
 
-	function AddForcedMetadata()
-	{
-		if (editjob.forcedmetadata_name.value == "")
-		{
-			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.ForcedMetadataNameMustNotBeNull")%>");
-			editjob.forcedmetadata_name.focus();
-			return;
-		}
-		document.editjob.forcedmetadata_op.value="Add";
-		postFormSetAnchor("forcedmetadata_tag");
-	}
-	
-	function DeleteForcedMetadata(n)
-	{
-		eval("document.editjob.forcedmetadata_"+n+"_op.value = 'Delete'");
-		if (n == 0)
-			postFormSetAnchor("forcedmetadata_tag");
-		else
-			postFormSetAnchor("forcedmetadata_"+(n-1)+"_tag");
-	}
-	
 	function checkForm()
 	{
 		if (!checkRecrawl())
@@ -828,115 +803,6 @@
 <%
 	}
 
-	// Forced Metadata tab
-	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.ForcedMetadata")) && tabSequenceInt == -1)
-	{
-%>
-		  <table class="displaytable">
-			<tr>
-				<td class="separator" colspan="4"><hr/></td>
-			</tr>
-			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ForcedMetadataColon")%></nobr></td>
-				<td class="boxcell" colspan="3">
-					<table class="formtable">
-						<tr class="formheaderrow">
-							<td class="formcolumnheader"></td>
-							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ParameterName")%></nobr></td>
-							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ParameterValue")%></nobr></td>
-						</tr>
-<%
-		String[] paramNames = new String[forcedMetadata.size()];
-		int k = 0;
-		int q = 0;
-		for (String paramName : forcedMetadata.keySet())
-		{
-			paramNames[q++] = paramName;
-		}
-		java.util.Arrays.sort(paramNames);
-		for (String paramName : paramNames)
-		{
-			Set<String> values = forcedMetadata.get(paramName);
-			String[] paramValues = new String[values.size()];
-			q = 0;
-			for (String paramValue : values)
-			{
-				paramValues[q++] = paramValue;
-			}
-			java.util.Arrays.sort(paramValues);
-			for (String paramValue : paramValues)
-			{
-				String prefix = "forcedmetadata_"+k;
-%>
-						<tr class='<%=((k % 2)==0)?"evenformrow":"oddformrow"%>'>
-							<td class="formcolumncell">
-								<a name="<%=prefix+"_tag"%>"/>
-								<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Delete")%>" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Deleteforcedmetadatanumber")+Integer.toString(k)%>" onclick='<%="javascript:DeleteForcedMetadata("+Integer.toString(k)+");"%>'/>
-								<input type="hidden" name="<%=prefix+"_op"%>" value="Continue"/>
-								<input type="hidden" name="<%=prefix+"_name"%>" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(paramName)%>"/>
-								<input type="hidden" name="<%=prefix+"_value"%>" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(paramValue)%>"/>
-							</td>
-							<td class="formcolumncell">
-								<nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(paramName)%></nobr>
-							</td>
-							<td class="formcolumncell">
-								<nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(paramValue)%></nobr>
-							</td>
-						</tr>
-<%
-				k++;
-			}
-		}
-		if (k == 0)
-		{
-%>
-						<tr class="formrow"><td colspan="3" class="formcolumnmessage"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoForcedMetadataSpecified")%></nobr></td></tr>
-<%
-		}
-%>
-						<tr class="formrow"><td colspan="3" class="formseparator"><hr/></td></tr>
-						<tr class="formrow">
-							<td class="formcolumncell">
-								<a name="forcedmetadata_tag"/>
-								<input type="hidden" name="forcedmetadata_op" value="Continue"/>
-								<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Add")%>" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Addforcedmetadata")%>" onclick="javascript:AddForcedMetadata();"/>
-								<input type="hidden" name="forcedmetadata_count" value="<%=k%>"/>
-							</td>
-							<td class="formcolumncell">
-								<input type="text" name="forcedmetadata_name" size="30" value=""/>
-							</td>
-							<td class="formcolumncell">
-								<input type="text" name="forcedmetadata_value" size="30" value=""/>
-							</td>
-						</tr>
-
-					</table>
-				</td>
-			</tr>
-		  </table>
-<%
-	}
-	else
-	{
-		int k = 0;
-		for (String paramName : forcedMetadata.keySet())
-		{
-			Set<String> values = forcedMetadata.get(paramName);
-			for (String paramValue : values)
-			{
-				String prefix = "forcedmetadata_"+k;
-%>
-		  <input type="hidden" name="<%=prefix+"_name"%>" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(paramName)%>"/>
-		  <input type="hidden" name="<%=prefix+"_value"%>" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(paramValue)%>"/>
-<%
-				k++;
-			}
-		}
-%>
-		  <input type="hidden" name="forcedmetadata_count" value="<%=k%>"/>
-<%
-	}
-	
 	// Hop Filters tab
 	if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopFilters")) && tabSequenceInt == -1)
 	{

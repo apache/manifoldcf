@@ -143,8 +143,6 @@ public class WorkerThread extends Thread
             // we interact with Incremental Ingester.
             IPipelineSpecificationBasic pipelineSpecificationBasic = new PipelineSpecificationBasic(job);
             String lastIndexedOutputConnectionName = ingester.getLastIndexedOutputConnectionName(pipelineSpecificationBasic);
-            // Compute a parameter version string for all documents in this job
-            String newParameterVersion = packParameters(job.getForcedMetadata());
 
             // Universal job data we'll need later
             String connectionName = job.getConnectionName();
@@ -362,12 +360,10 @@ public class WorkerThread extends Thread
                       previousDocuments,
                       currentTime,
                       job.getExpiration(),
-                      job.getForcedMetadata(),
                       job.getInterval(),
                       job.getMaxInterval(),
                       job.getHopcountMode(),
-                      connection,connector,connMgr,legalLinkTypes,ingestLogger,
-                      newParameterVersion);
+                      connection,connector,connMgr,legalLinkTypes,ingestLogger);
                     try
                     {
                       if (Logging.threads.isDebugEnabled())
@@ -1049,60 +1045,6 @@ public class WorkerThread extends Thread
     }
   }
 
-  /** Another stuffer for packing lists of variable length */
-  protected static void packList(StringBuilder output, String[] values, char delimiter)
-  {
-    pack(output,Integer.toString(values.length),delimiter);
-    int i = 0;
-    while (i < values.length)
-    {
-      pack(output,values[i++],delimiter);
-    }
-  }
-
-  protected static String packParameters(Map<String,Set<String>> forcedParameters)
-  {
-    StringBuilder sb = new StringBuilder();
-    String[] paramNames = new String[forcedParameters.size()];
-    int i = 0;
-    for (String paramName : forcedParameters.keySet())
-    {
-      paramNames[i++] = paramName;
-    }
-    java.util.Arrays.sort(paramNames);
-    for (String paramName : paramNames)
-    {
-      Set<String> values = forcedParameters.get(paramName);
-      String[] paramValues = new String[values.size()];
-      i = 0;
-      for (String paramValue : values)
-      {
-        paramValues[i++] = paramValue;
-      }
-      java.util.Arrays.sort(paramValues);
-      for (String paramValue : paramValues)
-      {
-        pack(sb,paramName,'+');
-        pack(sb,paramValue,'+');
-      }
-    }
-    return sb.toString();
-  }
-  
-  protected static void pack(StringBuilder sb, String value, char delim)
-  {
-    for (int i = 0; i < value.length(); i++)
-    {
-      char x = value.charAt(i);
-      if (x == delim || x == '\\')
-      {
-        sb.append('\\');
-      }
-      sb.append(x);
-    }
-    sb.append(delim);
-  }
-
   /** The maximum number of adds that happen in a single transaction */
   protected static final int MAX_ADDS_IN_TRANSACTION = 20;
 
@@ -1123,7 +1065,6 @@ public class WorkerThread extends Thread
     protected final Map<String,QueuedDocument> previousDocuments;
     protected final long currentTime;
     protected final Long expireInterval;
-    protected final Map<String,Set<String>> forcedMetadata;
     protected final Long recrawlInterval;
     protected final Long maxInterval;
     protected final int hopcountMode;
@@ -1133,7 +1074,6 @@ public class WorkerThread extends Thread
     protected final String[] legalLinkTypes;
     protected final OutputActivity ingestLogger;
     protected final IReprioritizationTracker rt;
-    protected final String parameterVersion;
     
     // We submit references in bulk, because that's way more efficient.
     protected final Map<DocumentReference,DocumentReference> referenceList = new HashMap<DocumentReference,DocumentReference>();
@@ -1175,13 +1115,11 @@ public class WorkerThread extends Thread
       Map<String,QueuedDocument> previousDocuments,
       long currentTime,
       Long expireInterval,
-      Map<String,Set<String>> forcedMetadata,
       Long recrawlInterval,
       Long maxInterval,
       int hopcountMode,
       IRepositoryConnection connection, IRepositoryConnector connector,
-      IRepositoryConnectionManager connMgr, String[] legalLinkTypes, OutputActivity ingestLogger,
-      String parameterVersion)
+      IRepositoryConnectionManager connMgr, String[] legalLinkTypes, OutputActivity ingestLogger)
     {
       this.jobID = jobID;
       this.processID = processID;
@@ -1194,7 +1132,6 @@ public class WorkerThread extends Thread
       this.previousDocuments = previousDocuments;
       this.currentTime = currentTime;
       this.expireInterval = expireInterval;
-      this.forcedMetadata = forcedMetadata;
       this.recrawlInterval = recrawlInterval;
       this.maxInterval = maxInterval;
       this.hopcountMode = hopcountMode;
@@ -1203,7 +1140,6 @@ public class WorkerThread extends Thread
       this.connMgr = connMgr;
       this.legalLinkTypes = legalLinkTypes;
       this.ingestLogger = ingestLogger;
-      this.parameterVersion = parameterVersion;
     }
 
     /** Clean up any dangling information, before abandoning this process activity object */
@@ -1281,7 +1217,7 @@ public class WorkerThread extends Thread
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
       String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
       IPipelineSpecificationWithVersions spec = computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier);
-      return ingester.checkFetchDocument(spec,newVersionString,parameterVersion,connection.getACLAuthority());
+      return ingester.checkFetchDocument(spec,newVersionString,connection.getACLAuthority());
     }
 
     /** Add a document description to the current job's queue.
@@ -1578,23 +1514,6 @@ public class WorkerThread extends Thread
       String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
       checkMultipleDispositions(documentIdentifier,componentIdentifier,componentIdentifierHash);
 
-      // First, we need to add into the metadata the stuff from the job description.
-      if (data != null)
-      {
-        // Modify the repository document with forced parameters.
-        for (String paramName : forcedMetadata.keySet())
-        {
-          Set<String> values = forcedMetadata.get(paramName);
-          String[] paramValues = new String[values.size()];
-          int j = 0;
-          for (String value : values)
-          {
-            paramValues[j++] = value;
-          }
-          data.addField(paramName,paramValues);
-        }
-      }
-        
       // This method currently signals whether the document is accepted or rejected permanently.
       // Permanent rejection should involve leaving the document in the queue (since it probably
       // will be rediscovered), and noting its version (so that we don't try doing anything with it
@@ -1606,7 +1525,7 @@ public class WorkerThread extends Thread
       ingester.documentIngest(
         computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier),
         connectionName,documentIdentifierHash,componentIdentifierHash,
-        version,parameterVersion,
+        version,
         connection.getACLAuthority(),
         data,currentTime,
         documentURI,
@@ -1649,7 +1568,7 @@ public class WorkerThread extends Thread
       ingester.documentNoData(
         computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier),
         connectionName,documentIdentifierHash,componentIdentifierHash,
-        version,parameterVersion,
+        version,
         connection.getACLAuthority(),
         currentTime,
         ingestLogger);
