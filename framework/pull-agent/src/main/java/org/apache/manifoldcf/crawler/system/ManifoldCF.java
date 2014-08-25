@@ -3869,7 +3869,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBNODE_HOUROFDAY = "hourofday";
   protected static final String JOBNODE_MINUTESOFHOUR = "minutesofhour";
   protected static final String JOBNODE_ENUMVALUE = "value";
-  protected static final String JOBNODE_FORCEDPARAM = "forcedparam";
   protected static final String JOBNODE_PARAMNAME = "paramname";
   protected static final String JOBNODE_PARAMVALUE = "paramvalue";
   protected static final String JOBNODE_PIPELINESTAGE = "pipelinestage";
@@ -4012,27 +4011,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         if (hopCount == null)
           throw new ManifoldCFException("Missing required field: '"+JOBNODE_COUNT+"'");
         jobDescription.addHopCountFilter(linkType,new Long(hopCount));
-      }
-      else if (childType.equals(JOBNODE_FORCEDPARAM))
-      {
-        // Read the forced parameter values
-        String paramName = null;
-        String paramValue = null;
-        for (int q = 0; q < child.getChildCount(); q++)
-        {
-          ConfigurationNode cn = child.findChild(q);
-          if (cn.getType().equals(JOBNODE_PARAMNAME))
-            paramName = cn.getValue();
-          else if (cn.getType().equals(JOBNODE_PARAMVALUE))
-            paramValue = cn.getValue();
-          else
-            throw new ManifoldCFException("Found an unexpected node type: '"+cn.getType()+"'");
-        }
-        if (paramName == null)
-          throw new ManifoldCFException("Missing required field: '"+JOBNODE_PARAMNAME+"'");
-        if (paramValue == null)
-          throw new ManifoldCFException("Missing required field: '"+JOBNODE_PARAMVALUE+"'");
-        jobDescription.addForcedMetadataValue(paramName,paramValue);
       }
       else if (childType.equals(JOBNODE_SCHEDULE))
       {
@@ -4298,25 +4276,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       cn.setValue(hopCount.toString());
       child.addChild(child.getChildCount(),cn);
       jobNode.addChild(jobNode.getChildCount(),child);
-    }
-    
-    // Forced metadata records
-    Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
-    for (String paramName : forcedMetadata.keySet())
-    {
-      Set<String> values = forcedMetadata.get(paramName);
-      for (String paramValue : values)
-      {
-        child = new ConfigurationNode(JOBNODE_FORCEDPARAM);
-        ConfigurationNode cn;
-        cn = new ConfigurationNode(JOBNODE_PARAMNAME);
-        cn.setValue(paramName);
-        child.addChild(child.getChildCount(),cn);
-        cn = new ConfigurationNode(JOBNODE_PARAMVALUE);
-        cn.setValue(paramValue);
-        child.addChild(child.getChildCount(),cn);
-        jobNode.addChild(jobNode.getChildCount(),child);
-      }
     }
     
     // Schedule records

@@ -48,7 +48,6 @@ import java.io.*;
 * <tr><td>lastversion</td><td>LONGTEXT</td><td></td></tr>
 * <tr><td>lastoutputversion</td><td>LONGTEXT</td><td></td></tr>
 * <tr><td>lasttransformationversion</td><td>LONGTEXT</td><td></td></tr>
-* <tr><td>forcedparams</td><td>LONGTEXT</td><td></td></tr>
 * <tr><td>changecount</td><td>BIGINT</td><td></td></tr>
 * <tr><td>firstingest</td><td>BIGINT</td><td></td></tr>
 * <tr><td>lastingest</td><td>BIGINT</td><td></td></tr>
@@ -71,7 +70,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected final static String lastVersionField = "lastversion";
   protected final static String lastOutputVersionField = "lastoutputversion";
   protected final static String lastTransformationVersionField = "lasttransformationversion";
-  protected final static String forcedParamsField = "forcedparams";
   protected final static String changeCountField = "changecount";
   protected final static String firstIngestField = "firstingest";
   protected final static String lastIngestField = "lastingest";
@@ -132,7 +130,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         map.put(lastVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(lastOutputVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(lastTransformationVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
-        map.put(forcedParamsField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(changeCountField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(firstIngestField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(lastIngestField,new ColumnDescription("BIGINT",false,false,null,null,false));
@@ -141,32 +138,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       }
       else
       {
-        // Schema upgrade from 1.1 to 1.2
-        ColumnDescription cd = (ColumnDescription)existing.get(forcedParamsField);
-        if (cd == null)
-        {
-          Map<String,ColumnDescription> addMap = new HashMap<String,ColumnDescription>();
-          addMap.put(forcedParamsField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
-          performAlter(addMap,null,null,null);
-        }
-        
-        // Schema upgrade from 1.6 to 1.7
-        cd = (ColumnDescription)existing.get(lastTransformationVersionField);
-        if (cd == null)
-        {
-          Map<String,ColumnDescription> addMap = new HashMap<String,ColumnDescription>();
-          addMap.put(lastTransformationVersionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
-          performAlter(addMap,null,null,null);
-        }
-
-        cd = (ColumnDescription)existing.get(componentHashField);
-        if (cd == null)
-        {
-          Map<String,ColumnDescription> addMap = new HashMap<String,ColumnDescription>();
-          addMap.put(componentHashField,new ColumnDescription("VARCHAR(40)",false,true,null,null,false));
-          performAlter(addMap,null,null,null);
-        }
-
+        // Upgrades from 2.0 onward go here
       }
 
       // Now, do indexes
@@ -524,7 +496,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param pipelineSpecificationWithVersions is the pipeline specification including new version info for all transformation and output
   *  connections.
   *@param newDocumentVersion is the newly-determined document version.
-  *@param newParameterVersion is the newly-determined parameter version.
   *@param newAuthorityNameString is the newly-determined authority name.
   *@return true if the document needs to be refetched.
   */
@@ -532,7 +503,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public boolean checkFetchDocument(
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
     String newDocumentVersion,
-    String newParameterVersion,
     String newAuthorityNameString)
   {
     if (newAuthorityNameString == null)
@@ -544,7 +514,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     {
       int stage = basicSpecification.getOutputStage(i);
       String oldDocumentVersion = pipelineSpecificationWithVersions.getOutputDocumentVersionString(i);
-      String oldParameterVersion = pipelineSpecificationWithVersions.getOutputParameterVersionString(i);
       String oldOutputVersion = pipelineSpecificationWithVersions.getOutputVersionString(i);
       String oldAuthorityName = pipelineSpecificationWithVersions.getAuthorityNameString(i);
       // If it looks like we never indexed this output before, we need to do it now.
@@ -552,7 +521,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         return true;
       // Look first at the version strings that aren't pipeline dependent
       if (!oldDocumentVersion.equals(newDocumentVersion) ||
-        !oldParameterVersion.equals(newParameterVersion) ||
         !oldAuthorityName.equals(newAuthorityNameString) ||
         !oldOutputVersion.equals(pipelineSpecification.getStageDescriptionString(stage).getVersionString()))
         return true;
@@ -674,7 +642,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
       // If we get here, it means we are noting that the document was examined, but that no change was required.  This is signaled
       // to noteDocumentIngest by having the null documentURI.
-      noteDocumentIngest(outputConnectionName,docKey,componentHash,documentVersion,null,null,null,null,recordTime,null,null);
+      noteDocumentIngest(outputConnectionName,docKey,componentHash,documentVersion,null,null,null,recordTime,null,null);
     }
   }
 
@@ -688,7 +656,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param identifierHash is the hashed document identifier.
   *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
-  *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
   *@param recordTime is the time at which the recording took place, in milliseconds since epoch.
   *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
@@ -698,7 +665,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
     String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
-    String parameterVersion,
     String authorityName,
     long recordTime,
     IOutputActivity activities)
@@ -720,7 +686,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Pipeline connector not installed",0L);
     try
     {
-      pipeline.noDocument(docKey,componentHash,documentVersion,parameterVersion,authorityName,activities,recordTime);
+      pipeline.noDocument(docKey,componentHash,documentVersion,authorityName,activities,recordTime);
     }
     finally
     {
@@ -738,7 +704,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param identifierHash is the hashed document identifier.
   *@param componentHash is the hashed component identifier, if any.
   *@param documentVersion is the document version.
-  *@param parameterVersion is the version string for the forced parameters.
   *@param authorityName is the name of the authority associated with the document, if any.
   *@param data is the document data.  The data is closed after ingestion is complete.
   *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
@@ -752,7 +717,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
     String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
-    String parameterVersion,
     String authorityName,
     RepositoryDocument data,
     long ingestTime, String documentURI,
@@ -778,7 +742,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Pipeline connector not installed",0L);
     try
     {
-      return pipeline.addOrReplaceDocumentWithException(docKey,componentHash,documentURI,data,documentVersion,parameterVersion,authorityName,activities,ingestTime) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
+      return pipeline.addOrReplaceDocumentWithException(docKey,componentHash,documentURI,data,documentVersion,authorityName,activities,ingestTime) == IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
     }
     finally
     {
@@ -1814,7 +1778,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       new MultiClause(outputConnNameField,outputConnectionNames)});
       
     // Get the primary records associated with this hash value
-    IResultSet set = performQuery("SELECT "+idField+","+outputConnNameField+","+docKeyField+","+componentHashField+","+lastVersionField+","+lastOutputVersionField+","+authorityNameField+","+forcedParamsField+","+lastTransformationVersionField+
+    IResultSet set = performQuery("SELECT "+idField+","+outputConnNameField+","+docKeyField+","+componentHashField+","+lastVersionField+","+lastOutputVersionField+","+authorityNameField+","+lastTransformationVersionField+
       " FROM "+getTableName()+" WHERE "+query,newList,null,null);
 
     // Now, go through the original request once more, this time building the result
@@ -1837,15 +1801,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
         if (lastOutputVersion == null)
           lastOutputVersion = "";
-        String paramVersion = (String)row.getValue(forcedParamsField);
-        if (paramVersion == null)
-          paramVersion = "";
         String authorityName = (String)row.getValue(authorityNameField);
         if (authorityName == null)
           authorityName = "";
         int indexValue = position.intValue();
         rval.addStatus(identifierClasses[indexValue],identifierHashes[indexValue],outputConnectionName,
-          componentHash,new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,paramVersion,authorityName));
+          componentHash,new DocumentIngestStatus(lastVersion,lastTransformationVersion,lastOutputVersion,authorityName));
       }
     }
   }
@@ -2051,7 +2012,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param transformationVersion is a string describing all current transformations for the document.
   *@param outputVersion is the version string calculated for the output connection.
   *@param authorityNameString is the name of the relevant authority connection.
-  *@param packedForcedParameters is the string we use to determine differences in packed parameters.
   *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
   *@param documentURI is the uri the document can be accessed at, or null (which signals that we are to record the version, but no
   * ingestion took place).
@@ -2059,7 +2019,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   protected void noteDocumentIngest(String outputConnectionName,
     String docKey, String componentHash, String documentVersion, String transformationVersion,
-    String outputVersion, String packedForcedParameters,
+    String outputVersion,
     String authorityNameString,
     long ingestTime, String documentURI, String documentURIHash)
     throws ManifoldCFException
@@ -2092,7 +2052,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       map.put(lastVersionField,documentVersion);
       map.put(lastTransformationVersionField,transformationVersion);
       map.put(lastOutputVersionField,outputVersion);
-      map.put(forcedParamsField,packedForcedParameters);
       map.put(lastIngestField,new Long(ingestTime));
       if (documentURI != null)
       {
@@ -2174,7 +2133,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       map.put(lastVersionField,documentVersion);
       map.put(lastTransformationVersionField,transformationVersion);
       map.put(lastOutputVersionField,outputVersion);
-      map.put(forcedParamsField,packedForcedParameters);
       map.put(lastIngestField,new Long(ingestTime));
       if (documentURI != null)
       {
@@ -2726,22 +2684,22 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       this.pipelineConnectionsWithVersions = pipelineConnectionsWithVersions;
     }
 
-    public int addOrReplaceDocumentWithException(String docKey, String componentHash, String documentURI, RepositoryDocument document, String newDocumentVersion, String newParameterVersion, String authorityNameString, IOutputActivity finalActivity, long ingestTime)
+    public int addOrReplaceDocumentWithException(String docKey, String componentHash, String documentURI, RepositoryDocument document, String newDocumentVersion, String authorityNameString, IOutputActivity finalActivity, long ingestTime)
       throws ManifoldCFException, ServiceInterruption, IOException
     {
-      PipelineAddFanout entryPoint = buildAddPipeline(finalActivity,newDocumentVersion,newParameterVersion,authorityNameString,ingestTime,docKey,componentHash);
+      PipelineAddFanout entryPoint = buildAddPipeline(finalActivity,newDocumentVersion,authorityNameString,ingestTime,docKey,componentHash);
       return entryPoint.sendDocument(documentURI,document);
     }
 
-    public void noDocument(String docKey, String componentHash, String newDocumentVersion, String newParameterVersion, String authorityNameString, IOutputActivity finalActivity, long ingestTime)
+    public void noDocument(String docKey, String componentHash, String newDocumentVersion, String authorityNameString, IOutputActivity finalActivity, long ingestTime)
       throws ManifoldCFException, ServiceInterruption
     {
-      PipelineAddFanout entryPoint = buildAddPipeline(finalActivity,newDocumentVersion,newParameterVersion,authorityNameString,ingestTime,docKey,componentHash);
+      PipelineAddFanout entryPoint = buildAddPipeline(finalActivity,newDocumentVersion,authorityNameString,ingestTime,docKey,componentHash);
       entryPoint.noDocument();
     }
 
     protected PipelineAddFanout buildAddPipeline(IOutputActivity finalActivity,
-      String newDocumentVersion, String newParameterVersion, String newAuthorityNameString,
+      String newDocumentVersion, String newAuthorityNameString,
       long ingestTime, String docKey, String componentHash)
     {
       // Algorithm for building a pipeline:
@@ -2765,7 +2723,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         
         // Compute whether we need to reindex this record to this output or not, based on spec.
         String oldDocumentVersion = fullSpec.getOutputDocumentVersionString(i);
-        String oldParameterVersion = fullSpec.getOutputParameterVersionString(i);
         String oldOutputVersion = fullSpec.getOutputVersionString(i);
         String oldTransformationVersion = fullSpec.getOutputTransformationVersionString(i);
         String oldAuthorityName = fullSpec.getAuthorityNameString(i);
@@ -2777,7 +2734,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         if (needToReindex == false)
         {
           needToReindex = (!oldDocumentVersion.equals(newDocumentVersion) ||
-            !oldParameterVersion.equals(newParameterVersion) ||
             !oldOutputVersion.equals(pipelineSpec.getStageDescriptionString(outputStage)) ||
             !oldAuthorityName.equals(newAuthorityNameString));
         }
@@ -2796,7 +2752,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           newTransformationVersion,
           ingestTime,
           newDocumentVersion,
-          newParameterVersion,
           docKey,
           componentHash,
           newAuthorityNameString);
@@ -3238,7 +3193,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     protected final String transformationVersion;
     protected final long ingestTime;
     protected final String documentVersion;
-    protected final String parameterVersion;
     protected final String docKey;
     protected final String componentHash;
     protected final IOutputActivity activity;
@@ -3251,7 +3205,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       String transformationVersion,
       long ingestTime,
       String documentVersion,
-      String parameterVersion,
       String docKey,
       String componentHash,
       String authorityNameString)
@@ -3262,7 +3215,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       this.transformationVersion = transformationVersion;
       this.ingestTime = ingestTime;
       this.documentVersion = documentVersion;
-      this.parameterVersion = parameterVersion;
       this.docKey = docKey;
       this.componentHash = componentHash;
       this.activity = activity;
@@ -3394,15 +3346,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           // This is a marker that says "something is there"; it has an empty version, which indicates
           // that we don't know anything about it.  That means it will be reingested when the
           // next version comes along, and will be deleted if called for also.
-          noteDocumentIngest(outputConnectionName,docKey,componentHash,null,null,null,null,null,ingestTime,documentURI,documentURIHash);
+          noteDocumentIngest(outputConnectionName,docKey,componentHash,null,null,null,null,ingestTime,documentURI,documentURIHash);
           int result = super.addOrReplaceDocumentWithException(documentURI, document);
-          noteDocumentIngest(outputConnectionName,docKey,componentHash,documentVersion,transformationVersion,pipelineDescriptionString.getVersionString(),parameterVersion,authorityNameString,ingestTime,documentURI,documentURIHash);
+          noteDocumentIngest(outputConnectionName,docKey,componentHash,documentVersion,transformationVersion,pipelineDescriptionString.getVersionString(),authorityNameString,ingestTime,documentURI,documentURIHash);
           return result;
         }
 
         // If we get here, it means we are noting that the document was examined, but that no change was required.  This is signaled
         // to noteDocumentIngest by having the null documentURI.
-        noteDocumentIngest(outputConnectionName,docKey,componentHash,documentVersion,transformationVersion,pipelineDescriptionString.getVersionString(),parameterVersion,authorityNameString,ingestTime,null,null);
+        noteDocumentIngest(outputConnectionName,docKey,componentHash,documentVersion,transformationVersion,pipelineDescriptionString.getVersionString(),authorityNameString,ingestTime,null,null);
         return IPipelineConnector.DOCUMENTSTATUS_ACCEPTED;
       }
       finally
@@ -3550,18 +3502,16 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected static class RuntPipelineSpecificationWithVersions extends RuntPipelineSpecification implements IPipelineSpecificationWithVersions
   {
     protected final String oldDocumentVersion;
-    protected final String oldParameterVersion;
     protected final String oldOutputVersion;
     protected final String oldTransformationVersion;
     protected final String oldAuthorityNameString;
     
     public RuntPipelineSpecificationWithVersions(String outputConnectionName, VersionContext outputDescriptionString,
-      String oldDocumentVersion, String oldParameterVersion, String oldOutputVersion, String oldTransformationVersion,
+      String oldDocumentVersion, String oldOutputVersion, String oldTransformationVersion,
       String oldAuthorityNameString)
     {
       super(outputConnectionName,outputDescriptionString);
       this.oldDocumentVersion = oldDocumentVersion;
-      this.oldParameterVersion = oldParameterVersion;
       this.oldOutputVersion = oldOutputVersion;
       this.oldTransformationVersion = oldTransformationVersion;
       this.oldAuthorityNameString = oldAuthorityNameString;
@@ -3588,18 +3538,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       return null;
     }
     
-    /** For a given output index, return a parameter version string.
-    *@param index is the output index.
-    *@return the parameter version string.
-    */
-    @Override
-    public String getOutputParameterVersionString(int index)
-    {
-      if (index == 0)
-        return oldParameterVersion;
-      return null;
-    }
-
     /** For a given output index, return a transformation version string.
     *@param index is the output index.
     *@return the transformation version string.

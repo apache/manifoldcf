@@ -38,12 +38,6 @@ public interface IPipelineSpecificationWithVersions
   */
   public String getOutputDocumentVersionString(int index);
   
-  /** For a given output index, return a parameter version string.
-  *@param index is the output index.
-  *@return the parameter version string.
-  */
-  public String getOutputParameterVersionString(int index);
-
   /** For a given output index, return a transformation version string.
   *@param index is the output index.
   *@return the transformation version string.
