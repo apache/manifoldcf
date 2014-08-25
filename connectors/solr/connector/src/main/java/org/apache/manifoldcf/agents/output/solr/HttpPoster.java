@@ -359,7 +359,7 @@ public class HttpPoster
       handleIOException((IOException)childException, context);
       return;
     }
-    throw new ManifoldCFException("Unhandled SolrServerException: "+e.getMessage());
+    throw new ManifoldCFException("Unhandled SolrServerException: "+e.getMessage(),e);
   }
 
   /** Handle a SolrException.
