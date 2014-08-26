@@ -122,6 +122,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   
   protected static void fillInContentsSpecificationMap(Map<String,Object> paramMap, Specification os)
   {
+    String minFileSize = DocumentFilterConfig.MINLENGTH_DEFAULT;
     String maxFileSize = DocumentFilterConfig.MAXLENGTH_DEFAULT;
     String allowedMimeTypes = DocumentFilterConfig.MIMETYPES_DEFAULT;
     String allowedFileExtensions = DocumentFilterConfig.EXTENSIONS_DEFAULT;
@@ -130,11 +131,14 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       SpecificationNode sn = os.getChild(i);
       if (sn.getType().equals(DocumentFilterConfig.NODE_MAXLENGTH))
         maxFileSize = sn.getAttributeValue(DocumentFilterConfig.ATTRIBUTE_VALUE);
+      else if (sn.getType().equals(DocumentFilterConfig.NODE_MINLENGTH))
+        minFileSize = sn.getAttributeValue(DocumentFilterConfig.ATTRIBUTE_VALUE);
       else if (sn.getType().equals(DocumentFilterConfig.NODE_MIMETYPES))
         allowedMimeTypes = sn.getValue();
       else if (sn.getType().equals(DocumentFilterConfig.NODE_EXTENSIONS))
         allowedFileExtensions = sn.getValue();
     }
+    paramMap.put("MINFILESIZE",minFileSize);
     paramMap.put("MAXFILESIZE",maxFileSize);
     paramMap.put("MIMETYPES",allowedMimeTypes);
     paramMap.put("EXTENSIONS",allowedFileExtensions);
@@ -230,7 +234,24 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     String seqPrefix = "s"+connectionSequenceNumber+"_";
 
     String x;
-        
+
+    x = variableContext.getParameter(seqPrefix+"minfilesize");
+    if (x != null)
+    {
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(DocumentFilterConfig.NODE_MINLENGTH))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode sn = new SpecificationNode(DocumentFilterConfig.NODE_MINLENGTH);
+      sn.setAttribute(DocumentFilterConfig.ATTRIBUTE_VALUE,x);
+      os.addChild(os.getChildCount(),sn);
+    }
+
     x = variableContext.getParameter(seqPrefix+"maxfilesize");
     if (x != null)
     {
@@ -333,9 +354,11 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     
     private final Set<String> extensions = new HashSet<String>();
     private final Set<String> mimeTypes = new HashSet<String>();
+    private final Long minLength;
     private final Long lengthCutoff;
     
     public SpecPacker(Specification os) {
+      Long minLength = null;
       Long lengthCutoff = null;
       String extensions = null;
       String mimeTypes = null;
@@ -349,8 +372,12 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
         } else if (sn.getType().equals(DocumentFilterConfig.NODE_MAXLENGTH)) {
           String value = sn.getAttributeValue(DocumentFilterConfig.ATTRIBUTE_VALUE);
           lengthCutoff = new Long(value);
+        } else if (sn.getType().equals(DocumentFilterConfig.NODE_MINLENGTH)) {
+          String value = sn.getAttributeValue(DocumentFilterConfig.ATTRIBUTE_VALUE);
+          minLength = new Long(value);
         }
       }
+      this.minLength = minLength;
       this.lengthCutoff = lengthCutoff;
       fillSet(this.extensions, extensions);
       fillSet(this.mimeTypes, mimeTypes);
@@ -361,9 +388,9 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       int index = 0;
       
       // Max length
-      final StringBuilder sb = new StringBuilder();
       if (packedString.length() > index) {
         if (packedString.charAt(index++) == '+') {
+          final StringBuilder sb = new StringBuilder();
           index = unpack(sb,packedString,index,'+');
           this.lengthCutoff = new Long(sb.toString());
         } else
@@ -384,6 +411,18 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       for (String extension : extensionsBuffer) {
         this.extensions.add(extension);
       }
+      
+      // Min length
+      if (packedString.length() > index) {
+        if (packedString.charAt(index++) == '+') {
+          final StringBuilder sb = new StringBuilder();
+          index = unpack(sb,packedString,index,'+');
+          this.minLength = new Long(sb.toString());
+        } else
+          this.minLength = null;
+      } else
+        this.minLength = null;
+
     }
     
     public String toPackedString() {
@@ -415,14 +454,24 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       }
       java.util.Arrays.sort(extensions);
       packList(sb,extensions,'+');
+
+      // Min length
+      if (minLength == null)
+        sb.append('-');
+      else {
+        sb.append('+');
+        pack(sb,minLength.toString(),'+');
+      }
       
       return sb.toString();
     }
     
     public boolean checkLengthIndexable(long length) {
-      if (lengthCutoff == null)
-        return true;
-      return (length <= lengthCutoff.longValue());
+      if (minLength != null && length < minLength.longValue())
+        return false;
+      if (lengthCutoff != null && length > lengthCutoff.longValue())
+        return false;
+      return true;
     }
     
     public boolean checkMimeType(String mimeType) {
