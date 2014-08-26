@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1018: Fix broken job UI.
+(Karl Wright)
+
 CONNECTORS-1015: Add minimum file size to Allowed Documents
 transformation filter.
 (David Morana, Karl Wright)

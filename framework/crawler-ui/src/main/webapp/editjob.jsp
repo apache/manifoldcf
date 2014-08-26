@@ -197,7 +197,6 @@
 			tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopFilters"));
 			sequenceArray.add(null);
 		}
-		sequenceArray.add(null);
 	}
 
 	// Get the names of the various Javascript methods we'll need to call
