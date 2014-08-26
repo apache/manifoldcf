@@ -6243,8 +6243,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           Logging.connectors.debug("Livelink: User status retrieved for "+Integer.toString(user)+": status="+Integer.toString(status));
         }
 
-        // Treat both 103101 and 103102 as 'object not found'.
-        if (status == 103101 || status == 103102)
+        // Treat both 103101 and 103102 as 'object not found'. 401101 is 'user not found'.
+        if (status == 103101 || status == 103102 || status == 401101)
           return;
 
         // This error means we don't have permission to get the object's status, apparently

@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1016: Recognize non-existent user.
+(David Morana, Karl Wright)
+
 CONNECTORS-949: Upgrade OpenCMIS to latest version to see if it
 fixes join queries.
 (Karl Wright)
