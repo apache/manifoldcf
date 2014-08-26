@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1016: Recognize non-existent user.
+(David Morana, Karl Wright)
+
 CONNECTORS-972: Remove Forced Metadata tab from all jobs.
 THIS IS A NON-BACKWARDS-COMPATIBLE CHANGE.
 (Karl Wright)
