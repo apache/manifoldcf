@@ -187,11 +187,6 @@ public class NavigationDerbyUI extends BaseUIDerby
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editjob"));
     // Visit all the Solr tabs
-    // Solr Field Mapping
-    link = window.findLink(testerInstance.createStringDescription("Solr Field Mapping tab"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
 
     // Save the job
     button = window.findButton(testerInstance.createStringDescription("Save this job"));
