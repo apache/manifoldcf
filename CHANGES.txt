@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1006: Extend GoogleDrive connector to capture
+Google native spreadsheets.
+(Shigeki Kabayashi)
+
 CONNECTORS-973: Remove field mapping tab from Solr connector.
 (Karl Wright)
 
