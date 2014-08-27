@@ -350,11 +350,6 @@
                 <figure src="images/zh_CN/solr-status.PNG" alt="Solr Status" width="80%"/>
                 <br/><br/>
                 <p>示例页面，显示因Solr连接无法正常运行而出错。</p>
-                <p>在作业选择Solr类型连接，显示［项目映射］标签。从此标签可将在作业连接类型中获取的元数据字段和Solr接收字段对应上。元数据字段名称由存储库设置，有可能和Solr模式不相配。在此标签，还可以设置将指定的元数据字段排除在索引生成对象之外。标签如下:</p>
-                <br/><br/>
-                <figure src="images/zh_CN/solr-job-field-mapping.PNG" alt="Solr Specification, Field Mapping tab" width="80%"/>
-                <br/><br/>
-                <p>添加新映射时，在［源］项输入元数据名，［目标］里输入Solr的输出字段名并单击［添加］按钮。关于不发送到Solr的字段，［目标］置为空。</p>
             </section>
 
             <section id="filesystemoutputconnector">
