@@ -350,11 +350,6 @@
                 <figure src="images/ja_JP/solr-status_ja_JP.PNG" alt="Solr Status" width="80%"/>
                 <br/><br/>
                 <p>画面例では、Solrコネクションは正常に動作していないため、エラーメッセージが表示していうます。</p>
-                <p>ジョブでSolrタイプコネクションを選択すると、「項目マッピング」タブが表示します。このタブからジョブコネクションタイプで取得したメタデータ項目をSolrが受信するように設定された項目と関連付けることができます。メタデータ項目の名前はリポジトリで設定され、Solrスキーマと不一致の場合があります。指定したメタデータ項目を索引作成の対象外に指定することもこのタブから指定することができます。タブは次のようなページです：</p>
-                <br/><br/>
-                <figure src="images/ja_JP/solr-job-field-mapping_ja_JP.PNG" alt="Solr Specification, Field Mapping tab" width="80%"/>
-                <br/><br/>
-                <p>新しいマッピングを追加する場合は、項目「ソース」にメタデータ名、「ターゲット」にSolrの出力項目名を入力して「追加」ボタンを押下してください。Solrに送信しない項目の場合は、「ターゲット」を空に設定してください。</p>
             </section>
 
             <section id="filesystemoutputconnector">

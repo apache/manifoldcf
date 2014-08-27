@@ -900,15 +900,6 @@ curl -XGET http://localhost:9200/index/_mapping
                 <figure src="images/en_US/solr-status.PNG" alt="Solr Status" width="80%"/>
                 <br/><br/>
                 <p>Note that in this example, the Solr connection is not responding, which is leading to an error status message instead of "Connection working".</p>
-                <p>When you configure a job to use a Solr-type output connection, the Solr connection type provides a tab called "Field Mapping".  The purpose of this tab
-                       is to allow you to map metadata fields as fetched by the job's connection type to fields that Solr is set up to receive.  This is necessary because
-                       the names of the metadata items are often determined by the repository, with no alignment to fields defined in the Solr schema.  You may also
-                       suppress specific metadata items from being sent to the index using this tab.  The tab looks like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/solr-job-field-mapping.PNG" alt="Solr Specification, Field Mapping tab" width="80%"/>
-                <br/><br/>
-                <p>Add a new mapping by filling in the "source" with the name of the metadata item from the repository, and "target" as the name of the output field in
-                       Solr, and click the "Add" button.  Leaving the "target" field blank will result in all metadata items of that name not being sent to Solr.</p>
             </section>
 
 
