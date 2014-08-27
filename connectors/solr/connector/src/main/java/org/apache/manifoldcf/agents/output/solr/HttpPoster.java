@@ -515,14 +515,13 @@ public class HttpPoster
    * @param documentURI is the document's uri.
    * @param document is the document structure to ingest.
    * @param arguments are the configuration arguments to pass in the post.  Key is argument name, value is a list of the argument values.
-   * @param keepAllMetadata
    * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
    * @param activities is the activities object, so we can report what's happening.   @return true if the ingestion was successful, or false if the ingestion is illegal.
   * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
-    RepositoryDocument document, Map<String,List<String>> arguments, Map<String, List<String>> sourceTargets,
-    boolean keepAllMetadata, String authorityNameString, IOutputAddActivity activities)
+    RepositoryDocument document, Map<String,List<String>> arguments,
+    String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
@@ -553,7 +552,7 @@ public class HttpPoster
 
     try
     {
-      IngestThread t = new IngestThread(documentURI,document,arguments,keepAllMetadata,sourceTargets,
+      IngestThread t = new IngestThread(documentURI,document,arguments,
                                         aclsMap,denyAclsMap);
       try
       {
@@ -836,10 +835,8 @@ public class HttpPoster
     protected final String documentURI;
     protected final RepositoryDocument document;
     protected final Map<String,List<String>> arguments;
-    protected final Map<String,List<String>> sourceTargets;
     protected final Map<String,String[]> aclsMap;
     protected final Map<String,String[]> denyAclsMap;
-    protected final boolean keepAllMetadata;
     
     protected Long activityStart = null;
     protected Long activityBytes = null;
@@ -850,7 +847,7 @@ public class HttpPoster
     protected boolean rval = false;
 
     public IngestThread(String documentURI, RepositoryDocument document,
-      Map<String, List<String>> arguments, boolean keepAllMetadata, Map<String, List<String>> sourceTargets,
+      Map<String, List<String>> arguments,
       Map<String,String[]> aclsMap, Map<String,String[]> denyAclsMap)
     {
       super();
@@ -860,8 +857,6 @@ public class HttpPoster
       this.arguments = arguments;
       this.aclsMap = aclsMap;
       this.denyAclsMap = denyAclsMap;
-      this.sourceTargets = sourceTargets;
-      this.keepAllMetadata=keepAllMetadata;
     }
 
     public void run()
@@ -1149,57 +1144,21 @@ public class HttpPoster
       */
     private void buildSolrParamsFromMetadata(ModifiableSolrParams out) throws IOException
     {
-      if (this.keepAllMetadata)
+      Iterator<String> iter = document.getFields();
+      while (iter.hasNext())
       {
-        Iterator<String> iter = document.getFields();
-        while (iter.hasNext())
-        {
-          String fieldName = iter.next();
-          List<String> mappings = sourceTargets.get(fieldName);
-          if (mappings != null)
-            for (String newFieldName : mappings)
-              applySingleMapping(fieldName, out, newFieldName);
-          else // the fields not mentioned in the mapping are added only if we have set the keep all metadata=true.
-            applySingleMapping(fieldName, out, fieldName);
-        }
-      }
-      else
-      {
-        //don't keep all the metadata but only the ones in sourceTargets
-        for (String originalFieldName : sourceTargets.keySet())
-        {
-          List<String> mapping = sourceTargets.get(originalFieldName);
-          for (String newFieldName : mapping)
-            applySingleMapping(originalFieldName, out, newFieldName);
-        }
+        String fieldName = iter.next();
+        applySingleMapping(fieldName, out, fieldName);
       }
     }
 
     private void buildSolrParamsFromMetadata(SolrInputDocument outputDocument) throws IOException
     {
-      if (this.keepAllMetadata)
+      Iterator<String> iter = document.getFields();
+      while (iter.hasNext())
       {
-        Iterator<String> iter = document.getFields();
-        while (iter.hasNext())
-        {
-          String fieldName = iter.next();
-          List<String> mappings = sourceTargets.get(fieldName);
-          if (mappings != null)
-            for (String newFieldName : mappings)
-              applySingleMapping(fieldName, outputDocument, newFieldName);
-          else // the fields not mentioned in the mapping are added only if we have set the keep all metadata=true.
-            applySingleMapping(fieldName, outputDocument, fieldName);
-        }
-      }
-      else
-      {
-        //don't keep all the metadata but only the ones in sourceTargets
-        for (String originalFieldName : sourceTargets.keySet())
-        {
-          List<String> mapping = sourceTargets.get(originalFieldName);
-          for (String newFieldName : mapping)
-            applySingleMapping(originalFieldName, outputDocument, newFieldName);
-        }
+        String fieldName = iter.next();
+        applySingleMapping(fieldName, outputDocument, fieldName);
       }
     }
 

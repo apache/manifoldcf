@@ -571,7 +571,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     getSession();
 
     // Now, go off and call the ingest API.
-    if (poster.indexPost(documentURI,document,sp.getArgs(),sp.getMappings(),sp.keepAllMetadata(),authorityNameString,activities))
+    if (poster.indexPost(documentURI,document,sp.getArgs(),authorityNameString,activities))
       return DOCUMENTSTATUS_ACCEPTED;
     return DOCUMENTSTATUS_REJECTED;
   }
@@ -2212,38 +2212,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     throws ManifoldCFException, IOException
   {
     String seqPrefix = "s"+connectionSequenceNumber+"_";
-    tabsArray.add(Messages.getString(locale,"SolrConnector.SolrFieldMapping"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
 "function "+seqPrefix+"checkSpecification()\n"+
 "{\n"+
 "  return true;\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"addFieldMapping()\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"solr_fieldmapping_source.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.FieldMapMustHaveNonNullSource")+"\");\n"+
-"    editjob."+seqPrefix+"solr_fieldmapping_source.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  editjob."+seqPrefix+"solr_fieldmapping_op.value=\"Add\";\n"+
-"  postFormSetAnchor(\""+seqPrefix+"+solr_fieldmapping\");\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"deleteFieldMapping(i)\n"+
-"{\n"+
-"  // Set the operation\n"+
-"  eval(\"editjob."+seqPrefix+"solr_fieldmapping_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
-"  // Submit\n"+
-"  if (editjob."+seqPrefix+"solr_fieldmapping_count.value==i)\n"+
-"    postFormSetAnchor(\""+seqPrefix+"solr_fieldmapping\");\n"+
-"  else\n"+
-"    postFormSetAnchor(\""+seqPrefix+"solr_fieldmapping_\"+i)\n"+
-"  // Undo, so we won't get two deletes next time\n"+
-"  eval(\"editjob."+seqPrefix+"solr_fieldmapping_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
 "}\n"+
 "\n"+
 "//-->\n"+
@@ -2267,148 +2241,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
-    String seqPrefix = "s"+connectionSequenceNumber+"_";
-    
-    int i = 0;
-    
-    // Field Mapping tab
-    if (tabName.equals(Messages.getString(locale,"SolrConnector.SolrFieldMapping")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.FieldMappings") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.MetadataFieldName") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.SolrFieldName") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-
-      int fieldCounter = 0;
-      i = 0;
-      boolean keepMetadata = true;
-      while (i < os.getChildCount()) {
-        SpecificationNode sn = os.getChild(i++);
-        if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
-          String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
-          String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
-          if (target != null && target.length() == 0) {
-            target = null;
-          }
-          String targetDisplay = target;
-          if (target == null)
-          {
-            target = "";
-            targetDisplay = "(remove)";
-          }
-          // It's prefix will be...
-          String prefix = seqPrefix+"solr_fieldmapping_" + Integer.toString(fieldCounter);
-          out.print(
-"        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"SolrConnector.DeleteFieldMapping")+Integer.toString(fieldCounter+1)+"\" onclick='javascript:"+seqPrefix+"deleteFieldMapping("+Integer.toString(fieldCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_op\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(source)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(targetDisplay)+"</nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-          );
-          fieldCounter++;
-        }
-        else if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
-          keepMetadata = Boolean.parseBoolean(sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
-        }
-      }
-      
-      if (fieldCounter == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"SolrConnector.NoFieldMappingSpecified") + "</td></tr>\n"
-        );
-      }
-      
-      String keepMetadataValue;
-      if (keepMetadata)
-        keepMetadataValue = " checked=\"true\"";
-      else
-        keepMetadataValue = "";
-
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+seqPrefix+"solr_fieldmapping\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SolrConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"SolrConnector.AddFieldMapping") + "\" onclick=\"javascript:"+seqPrefix+"addFieldMapping();\"/>\n"+
-"            </a>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"solr_fieldmapping_count\" value=\""+fieldCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"solr_fieldmapping_op\" value=\"Continue\"/>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"15\" name=\""+seqPrefix+"solr_fieldmapping_source\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"15\" name=\""+seqPrefix+"solr_fieldmapping_target\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"SolrConnector.KeepAllMetadata")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"       <input type=\"checkbox\""+keepMetadataValue+" name=\""+seqPrefix+"solr_keepallmetadata\" value=\"true\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for field mapping
-      i = 0;
-      int fieldCounter = 0;
-      String keepMetadataValue = "true";
-      while (i < os.getChildCount()) {
-        SpecificationNode sn = os.getChild(i++);
-        if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
-          String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
-          String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
-          if (target == null)
-            target = "";
-        // It's prefix will be...
-          String prefix = seqPrefix+"solr_fieldmapping_" + Integer.toString(fieldCounter);
-          out.print(
-"<input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"
-          );
-          fieldCounter++;
-        }
-        else if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA))
-        {
-          keepMetadataValue = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"solr_keepallmetadata\" value=\""+keepMetadataValue+"\"/>\n"
-      );
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"solr_fieldmapping_count\" value=\""+Integer.toString(fieldCounter)+"\"/>\n"
-      );
-    }
-
   }
   
   /** Process a specification post.
@@ -2426,67 +2258,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    String seqPrefix = "s"+connectionSequenceNumber+"_";
-    String x = variableContext.getParameter(seqPrefix+"solr_fieldmapping_count");
-    if (x != null && x.length() > 0)
-    {
-      // About to gather the fieldmapping nodes, so get rid of the old ones.
-      int i = 0;
-      while (i < os.getChildCount())
-      {
-        SpecificationNode node = os.getChild(i);
-        if (node.getType().equals(SolrConfig.NODE_FIELDMAP) || node.getType().equals(SolrConfig.NODE_KEEPMETADATA))
-          os.removeChild(i);
-        else
-          i++;
-      }
-      int count = Integer.parseInt(x);
-      i = 0;
-      while (i < count)
-      {
-        String prefix = seqPrefix+"solr_fieldmapping_"+Integer.toString(i);
-        String op = variableContext.getParameter(prefix+"_op");
-        if (op == null || !op.equals("Delete"))
-        {
-          // Gather the fieldmap etc.
-          String source = variableContext.getParameter(prefix+"_source");
-          String target = variableContext.getParameter(prefix+"_target");
-          if (target == null)
-            target = "";
-          SpecificationNode node = new SpecificationNode(SolrConfig.NODE_FIELDMAP);
-          node.setAttribute(SolrConfig.ATTRIBUTE_SOURCE,source);
-          node.setAttribute(SolrConfig.ATTRIBUTE_TARGET,target);
-          os.addChild(os.getChildCount(),node);
-        }
-        i++;
-      }
-      
-      String addop = variableContext.getParameter(seqPrefix+"solr_fieldmapping_op");
-      if (addop != null && addop.equals("Add"))
-      {
-        String source = variableContext.getParameter(seqPrefix+"solr_fieldmapping_source");
-        String target = variableContext.getParameter(seqPrefix+"solr_fieldmapping_target");
-        if (target == null)
-          target = "";
-        SpecificationNode node = new SpecificationNode(SolrConfig.NODE_FIELDMAP);
-        node.setAttribute(SolrConfig.ATTRIBUTE_SOURCE,source);
-        node.setAttribute(SolrConfig.ATTRIBUTE_TARGET,target);
-        os.addChild(os.getChildCount(),node);
-      }
-      
-      // Gather the keep all metadata parameter to be the last one
-      SpecificationNode node = new SpecificationNode(SolrConfig.NODE_KEEPMETADATA);
-      String keepAll = variableContext.getParameter(seqPrefix+"solr_keepallmetadata");
-      if (keepAll != null) {
-        node.setAttribute(SolrConfig.ATTRIBUTE_VALUE, keepAll);
-      }
-      else {
-        node.setAttribute(SolrConfig.ATTRIBUTE_VALUE, "false");
-      }
-      // Add the new keepallmetadata config parameter 
-      os.addChild(os.getChildCount(), node);
-          
-    }
     return null;
   }
   
@@ -2503,74 +2274,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
-    // Prep for field mappings
-    HashMap fieldMap = new HashMap();
-    int i = 0;
-
-    // Display field mappings
-    out.print(
-"\n"+
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.FieldMappings") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.MetadataFieldName") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.SolrFieldName") + "</nobr></td>\n"+
-"        </tr>\n"
-    );
-
-    int fieldCounter = 0;
-    i = 0;
-    String keepAllMetadataValue = "true";
-    while (i < os.getChildCount()) {
-      SpecificationNode sn = os.getChild(i++);
-      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
-        String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
-        String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
-        String targetDisplay = target;
-        if (target == null)
-        {
-          target = "";
-          targetDisplay = "(remove)";
-        }
-        out.print(
-"        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(source)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(targetDisplay)+"</nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-        );
-        fieldCounter++;
-      }
-      else if (sn.getType().equals(SolrConfig.NODE_KEEPMETADATA))
-      {
-        keepAllMetadataValue = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
-      }
-    }
-    
-    if (fieldCounter == 0)
-    {
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"SolrConnector.NoFieldMappingSpecified") + "</td></tr>\n"
-      );
-    }
-    out.print(
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.KeepAllMetadata") + "</nobr></td>\n"+
-"    <td class=\"value\"><nobr>" + keepAllMetadataValue + "</nobr></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-    );
-
   }
 
   /** This class handles Solr connector version string packing/unpacking/interpretation.
@@ -2579,10 +2282,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     
     /** Arguments, from configuration */
     private final Map<String,List<String>> args = new HashMap<String,List<String>>();
-    /** Source/targets from specification */
-    private final Map<String, List<String>> sourceTargets = new HashMap<String, List<String>>();
-    /** Keep all metadata flag, from specification */
-    private final boolean keepAllMetadata;
     
     public SpecPacker(Specification spec) {
 
@@ -2603,32 +2302,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         }
       }
     
-      // Do the source/target pairs
-      boolean keepAllMetadata = true;
-      for (int i = 0; i < spec.getChildCount(); i++)
-      {
-        SpecificationNode sn = spec.getChild(i);
-        
-        if(sn.getType().equals(SolrConfig.NODE_KEEPMETADATA)) {
-          String value = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
-          keepAllMetadata = Boolean.parseBoolean(value);
-        } else if (sn.getType().equals(SolrConfig.NODE_FIELDMAP)) {
-          String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
-          String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
-          
-          if (target == null) {
-            target = "";
-          }
-          List<String> list = sourceTargets.get(source);
-          if (list == null) {
-            list = new ArrayList<String>();
-            sourceTargets.put(source, list);
-          }
-          list.add(target);
-        }
-      }
-      this.keepAllMetadata = keepAllMetadata;
-    
     }
     
     /** Packed string parser.
@@ -2641,16 +2314,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       int index = 0;
       List<String> nameValues = new ArrayList<String>();
       index = unpackList(nameValues,packedString,index,'+');
-      List<String> sts = new ArrayList<String>();
-      index = unpackList(sts,packedString,index,'+');
-      // extract keep all metadata Flag
-      boolean keepAllMetadata = true;
-      if (index < packedString.length())
-      {
-        keepAllMetadata = (packedString.charAt(index++) == '+');
-      }
-      this.keepAllMetadata = keepAllMetadata;
-      
       
       String[] fixedBuffer = new String[2];
       
@@ -2668,20 +2331,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         list.add(fixedBuffer[1]);
       }
       
-      // Do the source/target pairs
-      for (String x : sts)
-      {
-        unpackFixedList(fixedBuffer,x,0,'=');
-        String source = fixedBuffer[0];
-        String target = fixedBuffer[1];
-        List<String> list = sourceTargets.get(source);
-        if (list == null) {
-          list = new ArrayList<String>();
-          sourceTargets.put(source, list);
-        }
-        list.add(target);
-      }
-
     }
     
     public String toPackedString() {
@@ -2716,39 +2365,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       
       packList(sb,nameValues,'+');
       
-      // Do the source/target pairs
-      sortArray = new String[sourceTargets.size()];
-      iter = sourceTargets.keySet().iterator();
-      i = 0;
-      while (iter.hasNext()) {
-        sortArray[i++] = iter.next();
-      }
-      java.util.Arrays.sort(sortArray);
-      
-      List<String> sourceTargetsList = new ArrayList<String>();
-      for (int k = 0; k < sortArray.length; k++)
-      {
-        String source = sortArray[k];
-        List<String> values = sourceTargets.get(source);
-        java.util.Collections.sort(values);
-        for (String target : values)
-        {
-          fixedList[0] = source;
-          fixedList[1] = target;
-          StringBuilder pairBuffer = new StringBuilder();
-          packFixedList(pairBuffer,fixedList,'=');
-          sourceTargetsList.add(pairBuffer.toString());
-        }
-      }
-      
-      packList(sb,sourceTargetsList,'+');
-
-      // Keep all metadata flag
-      if (keepAllMetadata)
-        sb.append('+');
-      else
-        sb.append('-');
-
       // Here, append things which we have no intention of unpacking.  This includes stuff that comes from
       // the configuration information, for instance.
 
@@ -2845,13 +2461,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       return args;
     }
     
-    public Map<String,List<String>> getMappings() {
-      return sourceTargets;
-    }
-    
-    public boolean keepAllMetadata() {
-      return keepAllMetadata;
-    }
   }
 
 }
