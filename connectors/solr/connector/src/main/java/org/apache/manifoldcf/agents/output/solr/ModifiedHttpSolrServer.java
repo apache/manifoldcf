@@ -312,7 +312,12 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
         shouldClose = false;
         return rsp;
       }
-      String charset = ContentType.getOrDefault(response.getEntity()).getCharset().name();
+      Charset charsetObject = ContentType.getOrDefault(response.getEntity()).getCharset();
+      String charset;
+      if (charsetObject != null)
+        charset = charsetObject.name();
+      else
+        charset = "utf-8";
       NamedList<Object> rsp = processor.processResponse(respBody, charset);
       if (httpStatus != HttpStatus.SC_OK) {
         String reason = null;
