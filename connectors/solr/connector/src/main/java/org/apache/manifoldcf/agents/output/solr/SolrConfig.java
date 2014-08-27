@@ -124,17 +124,4 @@ public class SolrConfig
   
   // Output specification
 
-  /** Node describing a fieldmap */
-  public static final String NODE_FIELDMAP = "fieldmap";
-  /** Attribute describing a source field name */
-  public static final String ATTRIBUTE_SOURCE = "source";
-  /** Attribute describing a target field name */
-  public static final String ATTRIBUTE_TARGET = "target";
-  
-  /**
-   * Node describing the keep metadata 
-   */
-  public static final String NODE_KEEPMETADATA = "keepAllMetadata";
-
-
 }

@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-973: Remove field mapping tab from Solr connector.
+(Karl Wright)
+
 CONNECTORS-1018: Fix broken job UI.
 (Karl Wright)
 
