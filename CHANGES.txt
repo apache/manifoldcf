@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1006: Extend GoogleDrive connector to capture
+Google native spreadsheets.
+(Shigeki Kabayashi)
+
 CONNECTORS-1015: Add minimum file size to Allowed Documents
 transformation filter.
 (David Morana, Karl Wright)
