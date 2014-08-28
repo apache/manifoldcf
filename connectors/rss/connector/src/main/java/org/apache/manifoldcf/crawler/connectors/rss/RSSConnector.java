@@ -394,10 +394,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     Filter f = new Filter(spec,true);
 
     // Go through all the seeds.
-    Iterator iter = f.getSeeds();
+    Iterator<String> iter = f.getSeeds();
     while (iter.hasNext())
     {
-      String canonicalURL = (String)iter.next();
+      String canonicalURL = iter.next();
       activities.addSeedDocument(canonicalURL);
     }
   }
@@ -738,27 +738,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     // Sort it,
     java.util.Arrays.sort(acls);
 
-    // Build a map of the metadata names and values from the spec
-    ArrayList namesAndValues = f.getMetadata();
-    // Create an array of name/value fixedlists
-    String[] metadata = new String[namesAndValues.size()];
-    int k = 0;
-    String[] fixedListStrings = new String[2];
-    while (k < metadata.length)
-    {
-      NameValue nv = (NameValue)namesAndValues.get(k);
-      String name = nv.getName();
-      String value = nv.getValue();
-      fixedListStrings[0] = name;
-      fixedListStrings[1] = value;
-      StringBuilder newsb = new StringBuilder();
-      packFixedList(newsb,fixedListStrings,'=');
-      metadata[k++] = newsb.toString();
-    }
-    java.util.Arrays.sort(metadata);
-
-    Logging.connectors.debug("RSS: Done setting up metadata version strings");
-
     // NOTE: There are two kinds of documents in here; documents that are RSS feeds (that presumably have a content-type
     // of text/xml), and documents that need to be indexed.
     //
@@ -848,8 +827,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 }
                 else
                   sb.append('-');
-                // Now, do the metadata
-                packList(sb,metadata,'+');
                 // The ingestion URL
                 pack(sb,ingestURL,'+');
                 // The pub dates
@@ -1089,8 +1066,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                           }
                           else
                             sb.append('-');
-                          // Now, do the metadata
-                          packList(sb,metadata,'+');
                           // The ingestion URL
                           pack(sb,ingestURL,'+');
                           // The pub dates
@@ -1321,8 +1296,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           {
             startPos = unpack(denyAclBuffer,version,startPos,'+');
           }
-          ArrayList metadata = new ArrayList();
-          startPos = unpackList(metadata,version,startPos,'+');
           StringBuilder ingestUrlBuffer = new StringBuilder();
           startPos = unpack(ingestUrlBuffer,version,startPos,'+');
           String ingestURL = ingestUrlBuffer.toString();
@@ -1366,37 +1339,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
             }
 
-            // Grab metadata
-            HashMap metaHash = new HashMap();
-            int k = 0;
-            while (k < metadata.size())
-            {
-              String metadataItem = (String)metadata.get(k++);
-              unpackFixedList(fixedList,metadataItem,0,'=');
-              HashMap hashValue = (HashMap)metaHash.get(fixedList[0]);
-              if (hashValue == null)
-              {
-                hashValue = new HashMap();
-                metaHash.put(fixedList[0],hashValue);
-              }
-              hashValue.put(fixedList[1],fixedList[1]);
-            }
-            Iterator metaIter = metaHash.keySet().iterator();
-            while (metaIter.hasNext())
-            {
-              String key = (String)metaIter.next();
-              HashMap metaList = (HashMap)metaHash.get(key);
-              String[] values = new String[metaList.size()];
-              Iterator iter = metaList.keySet().iterator();
-              k = 0;
-              while (iter.hasNext())
-              {
-                values[k] = (String)iter.next();
-                k++;
-              }
-              rd.addField(key,values);
-            }
-
+            int k;
+            
             // Loop through the titles to add those to the metadata
             String[] titleValues = new String[titles.size()];
             k = 0;
@@ -1943,7 +1887,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     tabsArray.add(Messages.getString(locale,"RSSConnector.Exclusions"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.TimeValues"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.Security"));
-    tabsArray.add(Messages.getString(locale,"RSSConnector.Metadata"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.DechromedContent"));
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -1981,23 +1924,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "    return;\n"+
 "  }\n"+
 "  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecAddMetadata(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.specmetaname.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.TypeInMetadataName")+"\");\n"+
-"    editjob.specmetaname.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  if (editjob.specmetavalue.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getString(locale,"RSSConnector.TypeInMetadataValue")+"\");\n"+
-"    editjob.specmetavalue.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  SpecOp(\"metadataop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
 "function URLRegexpDelete(index, anchorvalue)\n"+
@@ -2576,103 +2502,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       );
     }
 
-    // "Metadata" tab
-    if (tabName.equals(Messages.getString(locale,"RSSConnector.Metadata")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
-      );
-      // Go through metadata
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(RSSConfig.NODE_METADATA))
-        {
-          String metadataDescription = "_"+Integer.toString(k);
-          String metadataOpName = "metadataop"+metadataDescription;
-          String name = sn.getAttributeValue(RSSConfig.ATTR_NAME);
-          String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+metadataOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"+
-"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+metadataOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)+"\n"+
-"    </td>\n"+
-"    <td class=\"value\">=</td>\n"+
-"    <td class=\"value\">\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"\n"+
-"    </td>\n"+
-"  </tr>\n"
-          );
-          k++;
-        }
-
-      }
-      if (k == 0)
-      {
-        out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"4\">"+Messages.getBodyString(locale,"RSSConnector.NoMetadataPresent")+"</td>\n"+
-"  </tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"metadataop\" value=\"\"/>\n"+
-"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.AddMetadata")+"\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"specmetaname\" value=\"\"/>\n"+
-"    </td>\n"+
-"    <td class=\"value\">=</td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"80\" name=\"specmetavalue\" value=\"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-
-    }
-    else
-    {
-      // Finally, go through metadata
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(RSSConfig.NODE_METADATA))
-        {
-          String metadataDescription = "_"+Integer.toString(k);
-          String name = sn.getAttributeValue(RSSConfig.ATTR_NAME);
-          String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
-          out.print(
-"<input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-    
-    }
   }
   
   /** Process a specification post.
@@ -3068,56 +2897,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       }
     }
 
-    xc = variableContext.getParameter("metadatacount");
-    if (xc != null)
-    {
-      // Delete all tokens first
-      int i = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals(RSSConfig.NODE_METADATA))
-          ds.removeChild(i);
-        else
-          i++;
-      }
-
-      int metadataCount = Integer.parseInt(xc);
-      i = 0;
-      while (i < metadataCount)
-      {
-        String metadataDescription = "_"+Integer.toString(i);
-        String metadataOpName = "metadataop"+metadataDescription;
-        xc = variableContext.getParameter(metadataOpName);
-        if (xc != null && xc.equals("Delete"))
-        {
-          // Next row
-          i++;
-          continue;
-        }
-        // Get the stuff we need
-        String metaNameSpec = variableContext.getParameter("specmetaname"+metadataDescription);
-        String metaValueSpec = variableContext.getParameter("specmetavalue"+metadataDescription);
-        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_METADATA);
-        node.setAttribute(RSSConfig.ATTR_NAME,metaNameSpec);
-        node.setAttribute(RSSConfig.ATTR_VALUE,metaValueSpec);
-        ds.addChild(ds.getChildCount(),node);
-        i++;
-      }
-
-      String op = variableContext.getParameter("metadataop");
-      if (op != null && op.equals("Add"))
-      {
-        String metaNameSpec = variableContext.getParameter("specmetaname");
-        String metaValueSpec = variableContext.getParameter("specmetavalue");
-        
-        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_METADATA);
-        node.setAttribute(RSSConfig.ATTR_NAME,metaNameSpec);
-        node.setAttribute(RSSConfig.ATTR_VALUE,metaValueSpec);
-        
-        ds.addChild(ds.getChildCount(),node);
-      }
-    }
     return null;
   }
   
@@ -3454,46 +3233,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       out.print(
 "  <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.NoAccessTokensSpecified") + "</nobr></td></tr>\n"
-      );
-    }
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
-    // Go through looking for metadata
-    seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(RSSConfig.NODE_METADATA))
-      {
-        if (seenAny == false)
-        {
-          out.print(
-"  <tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MetadataColon") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
-          );
-          seenAny = true;
-        }
-        String name = sn.getAttributeValue(RSSConfig.ATTR_NAME);
-        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
-        out.print(
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)+"&nbsp;=&nbsp;"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"<br/>\n"
-        );
-      }
-    }
-
-    if (seenAny)
-    {
-      out.print(
-"    </td>\n"+
-"  </tr>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.NoMetadataSpecified") + "</nobr></td></tr>\n"
       );
     }
     out.print(
@@ -5425,9 +5164,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
   /** Read a string as a sequence of individual expressions, urls, etc.
   */
-  protected static ArrayList stringToArray(String input)
+  protected static List<String> stringToArray(String input)
   {
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     try
     {
       java.io.Reader str = new java.io.StringReader(input);
@@ -5469,13 +5208,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   /** Compile all regexp entries in the passed in list, and add them to the output
   * list.
   */
-  protected static void compileList(ArrayList output, ArrayList input)
+  protected static void compileList(List<Pattern> output, List<String> input)
     throws ManifoldCFException
   {
-    int i = 0;
-    while (i < input.size())
+    for (String inputString : input)
     {
-      String inputString = (String)input.get(i++);
       try
       {
         output.add(Pattern.compile(inputString));
@@ -5766,12 +5503,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   /** Class representing a URL regular expression match, for the purposes of determining canonicalization policy */
   protected static class CanonicalizationPolicy
   {
-    protected Pattern matchPattern;
-    protected boolean reorder;
-    protected boolean removeJavaSession;
-    protected boolean removeAspSession;
-    protected boolean removePhpSession;
-    protected boolean removeBVSession;
+    protected final Pattern matchPattern;
+    protected final boolean reorder;
+    protected final boolean removeJavaSession;
+    protected final boolean removeAspSession;
+    protected final boolean removePhpSession;
+    protected final boolean removeBVSession;
 
     public CanonicalizationPolicy(Pattern matchPattern, boolean reorder, boolean removeJavaSession, boolean removeAspSession,
       boolean removePhpSession, boolean removeBVSession)
@@ -5820,7 +5557,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   /** Class representing a list of canonicalization rules */
   protected static class CanonicalizationPolicies
   {
-    protected ArrayList rules = new ArrayList();
+    protected final List<CanonicalizationPolicy> rules = new ArrayList<CanonicalizationPolicy>();
 
     public CanonicalizationPolicies()
     {
@@ -5833,10 +5570,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
     public CanonicalizationPolicy findMatch(String url)
     {
-      int i = 0;
-      while (i < rules.size())
+      for (CanonicalizationPolicy rule : rules)
       {
-        CanonicalizationPolicy rule = (CanonicalizationPolicy)rules.get(i++);
         if (rule.checkMatch(url))
           return rule;
       }
@@ -5847,8 +5582,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   /** Class representing a mapping rule */
   protected static class MappingRule
   {
-    protected Pattern matchPattern;
-    protected String evalExpression;
+    protected final Pattern matchPattern;
+    protected final String evalExpression;
 
     public MappingRule(Pattern matchPattern, String evalExpression)
     {
@@ -5930,7 +5665,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   /** Class that represents all mappings */
   protected static class MappingRules
   {
-    protected ArrayList mappings = new ArrayList();
+    protected final List<MappingRule> mappings = new ArrayList<MappingRule>();
 
     public MappingRules()
     {
@@ -5945,13 +5680,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       if (mappings.size() == 0)
         return true;
-      int i = 0;
-      while (i < mappings.size())
+      for (MappingRule p : mappings)
       {
-        MappingRule p = (MappingRule)mappings.get(i);
         if (p.checkMatch(url))
           return true;
-        i++;
       }
       return false;
     }
@@ -5961,14 +5693,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       if (mappings.size() == 0)
         return url;
-      int i = 0;
-      while (i < mappings.size())
+      for (MappingRule p : mappings)
       {
-        MappingRule p = (MappingRule)mappings.get(i);
         String rval = p.map(url);
         if (rval != null)
           return rval;
-        i++;
       }
       return null;
     }
@@ -5980,21 +5709,18 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   */
   protected static class Filter
   {
-    protected MappingRules mappings = new MappingRules();
-    protected HashMap seeds = null;
+    protected final MappingRules mappings = new MappingRules();
+    protected final Set<String> seeds;
     protected Integer defaultRescanInterval = null;
     protected Integer minimumRescanInterval = null;
     protected Integer badFeedRescanInterval = null;
     protected int dechromedContentMode = DECHROMED_NONE;
     protected int chromedContentMode = CHROMED_USE;
     protected int feedTimeoutValue = 60000;
-    protected ArrayList metadata = new ArrayList();
-    protected HashMap acls = new HashMap();
-    protected CanonicalizationPolicies canonicalizationPolicies = new CanonicalizationPolicies();
-    /** The arraylist of include patterns */
-    protected ArrayList includePatterns = new ArrayList();
+    protected final Set<String> acls = new HashSet<String>();
+    protected final CanonicalizationPolicies canonicalizationPolicies = new CanonicalizationPolicies();
     /** The arraylist of exclude patterns */
-    protected ArrayList excludePatterns = new ArrayList();
+    protected final List<Pattern> excludePatterns = new ArrayList<Pattern>();
 
     /** Constructor. */
     public Filter(DocumentSpecification spec, boolean warnOnBadSeed)
@@ -6006,7 +5732,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       int initialSize = spec.getChildCount();
       if (initialSize == 0)
         initialSize = 1;
-      seeds = new HashMap((initialSize * 3) >> 1);
+      seeds = new HashSet<String>((initialSize * 3) >> 1);
 
       int i = 0;
 
@@ -6131,7 +5857,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             String canonicalURL = makeDocumentIdentifier(canonicalizationPolicies,null,rssURL);
             if (canonicalURL != null)
             {
-              seeds.put(canonicalURL,canonicalURL);
+              seeds.add(canonicalURL);
             }
             else
             {
@@ -6140,17 +5866,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals(RSSConfig.NODE_METADATA))
-        {
-          String name = n.getAttributeValue(RSSConfig.ATTR_NAME);
-          String value = n.getAttributeValue(RSSConfig.ATTR_VALUE);
-          if (name != null && name.length() > 0 && value != null && value.length() > 0)
-            metadata.add(new NameValue(name,value));
-        }
         else if (n.getType().equals(RSSConfig.NODE_ACCESS))
         {
           String token = n.getAttributeValue(RSSConfig.ATTR_TOKEN);
-          acls.put(token,token);
+          acls.add(token);
         }
         else if (n.getType().equals(RSSConfig.NODE_FEEDRESCAN))
         {
@@ -6244,30 +5963,24 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     /** Check if document is a seed */
     public boolean isSeed(String canonicalUrl)
     {
-      return seeds.get(canonicalUrl) != null;
+      return seeds.contains(canonicalUrl);
     }
 
     /** Iterate over all canonicalized seeds */
-    public Iterator getSeeds()
+    public Iterator<String> getSeeds()
     {
-      return seeds.keySet().iterator();
-    }
-
-    /** Get the specified metadata */
-    public ArrayList getMetadata()
-    {
-      return metadata;
+      return seeds.iterator();
     }
 
     /** Get the acls */
     public String[] getAcls()
     {
       String[] rval = new String[acls.size()];
-      Iterator iter = acls.keySet().iterator();
+      Iterator<String> iter = acls.iterator();
       int i = 0;
       while (iter.hasNext())
       {
-        rval[i++] = (String)iter.next();
+        rval[i++] = iter.next();
       }
       return rval;
     }
@@ -6320,7 +6033,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     */
     public boolean isLegalURL(String url)
     {
-      if (seeds.get(url) != null)
+      if (seeds.contains(url))
         return true;
       if (mappings.isMatch(url) == false)
       {
@@ -6329,10 +6042,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         return false;
       }
       // Now make sure it's not in the exclude list.
-      int i = 0;
-      while (i < excludePatterns.size())
+      for (Pattern p : excludePatterns)
       {
-        Pattern p = (Pattern)excludePatterns.get(i);
         Matcher m = p.matcher(url);
         if (m.find())
         {
@@ -6340,7 +6051,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             Logging.connectors.debug("RSS: Url '"+url+"' is illegal because exclude pattern '"+p.toString()+"' matched it");
           return false;
         }
-        i++;
       }
 
       return true;
@@ -6352,7 +6062,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     public String mapDocumentURL(String url)
       throws ManifoldCFException
     {
-      if (seeds.get(url) != null)
+      if (seeds.contains(url))
         return null;
       return mappings.map(url);
     }

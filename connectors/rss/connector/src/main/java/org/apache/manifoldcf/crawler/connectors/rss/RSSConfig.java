@@ -74,8 +74,6 @@ public class RSSConfig
   public static final String NODE_MINFEEDRESCAN = "minfeedrescan";
   /** Bad feed rescan time.  Attribute = 'value' */
   public static final String NODE_BADFEEDRESCAN = "badfeedrescan";
-  /** Metadata node.  Attributes are 'name' and 'value' */
-  public static final String NODE_METADATA = "metadata";
   /** Access node (forced ACLs).  Attribute is 'token' */
   public static final String NODE_ACCESS = "access";
   /** Dechromed mode.  Attribute is 'mode' */
