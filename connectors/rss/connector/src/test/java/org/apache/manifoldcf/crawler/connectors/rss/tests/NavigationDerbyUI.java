@@ -228,10 +228,6 @@ public class NavigationDerbyUI extends BaseUIDerby
     link = window.findLink(testerInstance.createStringDescription("Security tab"));
     link.click();
     window = testerInstance.findWindow(null);
-    // Metadata tab
-    link = window.findLink(testerInstance.createStringDescription("Metadata tab"));
-    link.click();
-    window = testerInstance.findWindow(null);
     // Dechromed Content tab
     link = window.findLink(testerInstance.createStringDescription("Dechromed Content tab"));
     link.click();
