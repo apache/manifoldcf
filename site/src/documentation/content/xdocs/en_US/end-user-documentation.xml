@@ -2374,11 +2374,6 @@ curl -XGET http://localhost:9200/index/_mapping
                     <tr><td>Title</td><td>This is the title of the document within the feed.</td></tr>
                     <tr><td>Category</td><td>This is the category of the document within the feed.</td></tr>
                 </table>
-                <p>You can add additional metadata to each document using the "Metadata" tab.  The tab looks like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/rss-job-metadata.PNG" alt="RSS job, Metadata tab" width="80%"/>
-                <br/><br/>
-                <p>Enter the name of the metadata item you want on the left, and its desired value on the right, and click the "Add" button to add it to the metadata list.</p>
                 <p>The "Dechromed Content" tab allows you to index the description of the content from the feed, instead of the document's contents.  This is helpful when the
                        description of the documents in the feeds you are crawling is sufficient for indexing purposes, and the actual documents are full of navigation clutter or "chrome".
                        The tab looks like this:</p>

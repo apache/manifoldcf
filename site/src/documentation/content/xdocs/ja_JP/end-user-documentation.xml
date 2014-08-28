@@ -742,11 +742,6 @@
                     <tr><td>Title</td><td>フィード内のコンテンツの題名。</td></tr>
                     <tr><td>Category</td><td>フィード内のコンテンツの分類。</td></tr>
                 </table>
-                <p>「メタデータ」タブからその他に任意のメタデータを追加することができます。「メタデータ」タブを選択すると次のようなページが表示されます：</p>
-                <br/><br/>
-                <figure src="images/ja_JP/rss-job-metadata_ja_JP.PNG" alt="RSS job, Metadata tab" width="80%"/>
-                <br/><br/>
-                <p>メタデータ名と値を入力して「追加」ボタンを押下すると一覧に追加されます。</p>
                 <p>「索引対象」タブからは、コンテンツからではなく、フィードの概要から索引を作成するように指定することができます。内容がリンク一覧のようなフィードで、フィードの概要から索引を作成する場合に使うことができます。「索引対象」タブを選択すると次のようなページが表示します：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/rss-job-dechromed-content_ja_JP.PNG" alt="RSS job, Dechromed Content tab" width="80%"/>
