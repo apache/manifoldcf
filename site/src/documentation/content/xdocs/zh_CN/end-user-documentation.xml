@@ -742,11 +742,7 @@
                     <tr><td>Title</td><td>馈送内文档标题。</td></tr>
                     <tr><td>Category</td><td>馈送内文档种类。</td></tr>
                 </table>
-                <p>可从［元数据］标签添加任意元数据。选择［元数据］标签会显示如下页面:</p>
-                <br/><br/>
-                <figure src="images/zh_CN/rss-job-metadata.PNG" alt="RSS job, Metadata tab" width="80%"/>
-                <br/><br/>
-                <p>输入元数据名和值，单击［添加］按钮添加到列表。</p>
+                <p>可从［元数据］标签添加任意元数据。</p>
                 <p>从［索引对象］标签，可指定从馈送概要生成索引而非文档。这可以在内容为象链接列表的馈送，馈送概要生成索引。选择［索引对象］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/rss-job-dechromed-content.PNG" alt="RSS job, Dechromed Content tab" width="80%"/>
