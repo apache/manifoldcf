@@ -2830,11 +2830,12 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <p>You will need to know the format of the access tokens for the
                        governing authority before you can add security to your documents in this way.  Enter the access token you desire and click the "Add" button.</p>
-                <p>The "Metadata" tab allows you to include specified metadata along with all documents belonging to a web job.  It looks like this:</p>
+                <p>The "Metadata" tab allows you to exclude specific optional HTTP header metadata along with all documents belonging to a web job.  (A standard set of
+                      "fixed" HTTP headers are always included.)  It looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/web-job-metadata.PNG" alt="Web Job, Metadata tab" width="80%"/>
                 <br/><br/>
-                <p>Enter the name of the desired metadata on the left, and the desired value (if any) on the right, and click the "Add" button.</p>
+                <p>Select the desired HTTP header metadata you wish to exclude.</p>
             </section>
 
             <section id="jcifsrepository">
