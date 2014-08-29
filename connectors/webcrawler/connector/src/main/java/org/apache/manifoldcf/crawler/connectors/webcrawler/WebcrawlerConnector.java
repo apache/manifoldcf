@@ -592,25 +592,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     // Sort it,
     java.util.Arrays.sort(acls);
 
-    // Build a map of the metadata names and values from the spec
-    List<NameValue> namesAndValues = findMetadata(spec);
-    // Create an array of name/value fixedlists
-    String[] metadata = new String[namesAndValues.size()];
-    int k = 0;
-    String[] fixedListStrings = new String[2];
-    while (k < metadata.length)
-    {
-      NameValue nv = namesAndValues.get(k);
-      String name = nv.getName();
-      String value = nv.getValue();
-      fixedListStrings[0] = name;
-      fixedListStrings[1] = value;
-      StringBuilder newsb = new StringBuilder();
-      packFixedList(newsb,fixedListStrings,'=');
-      metadata[k++] = newsb.toString();
-    }
-    java.util.Arrays.sort(metadata);
-
     // Get the excluded headers
     Set<String> excludedHeaders = findExcludedHeaders(spec);
     
@@ -1179,7 +1160,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             else
               sb.append('-');
 
-            // Now, do the metadata.  This comes in two parts: first, the canned metadata, then the header data.
+            // Now, do the metadata. 
+            String[] fixedListStrings = new String[2];
             // They're all folded into the same part of the version string.
             int headerCount = 0;
             Iterator<String> headerIterator = headerData.keySet().iterator();
@@ -1190,7 +1172,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               if (!reservedHeaders.contains(lowerHeaderName) && !excludedHeaders.contains(lowerHeaderName))
                 headerCount += headerData.get(headerName).size();
             }
-            String[] fullMetadata = new String[metadata.length + headerCount];
+            String[] fullMetadata = new String[headerCount];
             headerCount = 0;
             headerIterator = headerData.keySet().iterator();
             while (headerIterator.hasNext())
@@ -1209,11 +1191,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   fullMetadata[headerCount++] = newsb.toString();
                 }
               }
-            }
-            int index = 0;
-            while (index < metadata.length)
-            {
-              fullMetadata[headerCount++] = metadata[index++];
             }
             java.util.Arrays.sort(fullMetadata);
             
@@ -1398,31 +1375,29 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           }
 
           // Grab metadata
-          HashMap metaHash = new HashMap();
-          int k = 0;
-          while (k < metadata.size())
+          Map<String,Set<String>> metaHash = new HashMap<String,Set<String>>();
+          for (String metadataItem : (List<String>)metadata)
           {
-            String metadataItem = (String)metadata.get(k++);
             unpackFixedList(fixedList,metadataItem,0,'=');
-            HashMap hashValue = (HashMap)metaHash.get(fixedList[0]);
+            Set<String> hashValue = metaHash.get(fixedList[0]);
             if (hashValue == null)
             {
-              hashValue = new HashMap();
+              hashValue = new HashSet<String>();
               metaHash.put(fixedList[0],hashValue);
             }
-            hashValue.put(fixedList[1],fixedList[1]);
+            hashValue.add(fixedList[1]);
           }
-          Iterator metaIter = metaHash.keySet().iterator();
+          Iterator<String> metaIter = metaHash.keySet().iterator();
           while (metaIter.hasNext())
           {
-            String key = (String)metaIter.next();
-            HashMap metaList = (HashMap)metaHash.get(key);
+            String key = metaIter.next();
+            Set<String> metaList = metaHash.get(key);
             String[] values = new String[metaList.size()];
-            Iterator iter = metaList.keySet().iterator();
-            k = 0;
+            Iterator<String> iter = metaList.iterator();
+            int k = 0;
             while (iter.hasNext())
             {
-              values[k] = (String)iter.next();
+              values[k] = iter.next();
               k++;
             }
             rd.addField(key,values);
@@ -3750,23 +3725,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddMetadata(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.specmetaname.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.TypeInMetadataName")+"\");\n"+
-"    editjob.specmetaname.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  if (editjob.specmetavalue.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.TypeInMetadataValue")+"\");\n"+
-"    editjob.specmetavalue.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  SpecOp(\"metadataop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
 "//-->\n"+
 "</script>\n"
     );
@@ -4229,72 +4187,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       out.print(
 "    </td>\n"+
 "  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
-      );
-      // Go through metadata
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(WebcrawlerConfig.NODE_METADATA))
-        {
-          String metadataDescription = "_"+Integer.toString(k);
-          String metadataOpName = "metadataop"+metadataDescription;
-          String name = sn.getAttributeValue(WebcrawlerConfig.ATTR_NAME);
-          String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+metadataOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+Encoder.attributeEscape(name)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"+
-"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" onClick='Javascript:SpecOp(\""+metadataOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      "+Encoder.bodyEscape(name)+"\n"+
-"    </td>\n"+
-"    <td class=\"value\">==&gt;&nbsp;</td>\n"+
-"    <td class=\"value\">\n"+
-"      "+Encoder.bodyEscape(value)+"\n"+
-"    </td>\n"+
-"  </tr>\n"
-          );
-          k++;
-        }
-
-      }
-      if (k == 0)
-      {
-        out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"4\">" + Messages.getBodyString(locale,"WebcrawlerConnector.NoMetadataPresent") + "</td>\n"+
-"  </tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"metadataop\" value=\"\"/>\n"+
-"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddMetadata") + "\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"specmetaname\" value=\"\"/>\n"+
-"    </td>\n"+
-"    <td class=\"value\">==&gt;&nbsp;</td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"80\" name=\"specmetavalue\" value=\"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
 "</table>\n"
       );
-
     }
     else
     {
@@ -4307,28 +4201,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "<input type=\"hidden\" name=\"excludedheaders\" value=\""+Encoder.attributeEscape(excludedHeader)+"\"/>\n"
         );
       }
-      // Finally, go through metadata
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(WebcrawlerConfig.NODE_METADATA))
-        {
-          String metadataDescription = "_"+Integer.toString(k);
-          String name = sn.getAttributeValue(WebcrawlerConfig.ATTR_NAME);
-          String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-          out.print(
-"<input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+Encoder.attributeEscape(name)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-    
     }
   }
   
@@ -4621,56 +4493,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       }
     }
 
-    xc = variableContext.getParameter("metadatacount");
-    if (xc != null)
-    {
-      // Delete all tokens first
-      int i = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals(WebcrawlerConfig.NODE_METADATA))
-          ds.removeChild(i);
-        else
-          i++;
-      }
-
-      int metadataCount = Integer.parseInt(xc);
-      i = 0;
-      while (i < metadataCount)
-      {
-        String metadataDescription = "_"+Integer.toString(i);
-        String metadataOpName = "metadataop"+metadataDescription;
-        xc = variableContext.getParameter(metadataOpName);
-        if (xc != null && xc.equals("Delete"))
-        {
-          // Next row
-          i++;
-          continue;
-        }
-        // Get the stuff we need
-        String metaNameSpec = variableContext.getParameter("specmetaname"+metadataDescription);
-        String metaValueSpec = variableContext.getParameter("specmetavalue"+metadataDescription);
-        SpecificationNode node = new SpecificationNode(WebcrawlerConfig.NODE_METADATA);
-        node.setAttribute(WebcrawlerConfig.ATTR_NAME,metaNameSpec);
-        node.setAttribute(WebcrawlerConfig.ATTR_VALUE,metaValueSpec);
-        ds.addChild(ds.getChildCount(),node);
-        i++;
-      }
-
-      String op = variableContext.getParameter("metadataop");
-      if (op != null && op.equals("Add"))
-      {
-        String metaNameSpec = variableContext.getParameter("specmetaname");
-        String metaValueSpec = variableContext.getParameter("specmetavalue");
-        
-        SpecificationNode node = new SpecificationNode(WebcrawlerConfig.NODE_METADATA);
-        node.setAttribute(WebcrawlerConfig.ATTR_NAME,metaNameSpec);
-        node.setAttribute(WebcrawlerConfig.ATTR_VALUE,metaValueSpec);
-        
-        ds.addChild(ds.getChildCount(),node);
-      }
-    }
     return null;
   }
   
@@ -5111,47 +4933,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     out.print(
 "    </td>\n"+
 "  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
-    // Go through looking for metadata
-    seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_METADATA))
-      {
-        if (seenAny == false)
-        {
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Metadata") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
-          );
-          seenAny = true;
-        }
-        String name = sn.getAttributeValue(WebcrawlerConfig.ATTR_NAME);
-        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-        out.print(
-"      "+Encoder.bodyEscape(name)+"&nbsp;=&nbsp;"+Encoder.bodyEscape(value)+"<br/>\n"
-        );
-      }
-    }
-
-    if (seenAny)
-    {
-      out.print(
-"    </td>\n"+
-"  </tr>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.NoMetadataSpecified") + "</nobr></td></tr>\n"
-      );
-    }
-    out.print(
 "</table>\n"
     );
   }
@@ -7239,26 +7020,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (iter.hasNext())
     {
       rval[i++] = iter.next();
-    }
-    return rval;
-  }
-
-  /** Read a document specification to yield a map of name/value pairs for metadata */
-  protected static List<NameValue> findMetadata(DocumentSpecification spec)
-    throws ManifoldCFException
-  {
-    List<NameValue> rval = new ArrayList<NameValue>();
-    int i = 0;
-    while (i < spec.getChildCount())
-    {
-      SpecificationNode n = spec.getChild(i++);
-      if (n.getType().equals(WebcrawlerConfig.NODE_METADATA))
-      {
-        String name = n.getAttributeValue(WebcrawlerConfig.ATTR_NAME);
-        String value = n.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-        if (name != null && name.length() > 0 && value != null && value.length() > 0)
-          rval.add(new NameValue(name,value));
-      }
     }
     return rval;
   }
