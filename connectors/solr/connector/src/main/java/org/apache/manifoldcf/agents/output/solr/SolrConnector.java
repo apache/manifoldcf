@@ -31,6 +31,7 @@ import java.util.HashSet;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
+import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.Specification;
@@ -516,7 +517,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@return true if the mime type is indexable by this connector.
   */
   @Override
-  public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
+  public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
@@ -526,7 +527,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         return false;
       if (excludedMimeTypes != null && excludedMimeTypes.get(mimeType) != null)
         return false;
-      return super.checkMimeTypeIndexable(outputDescription,mimeType);
+      return true;
     }
     return acceptableMimeTypes.contains(mimeType.toLowerCase(Locale.ROOT));
   }
@@ -538,34 +539,33 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@return true if the file is indexable.
   */
   @Override
-  public boolean checkLengthIndexable(String outputDescription, long length)
+  public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
     if (maxDocumentLength != null && length > maxDocumentLength.longValue())
       return false;
-    return super.checkLengthIndexable(outputDescription,length);
+    return true;
   }
 
   /** Add (or replace) a document in the output data store using the connector.
   * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
   * necessary.
-  * The OutputSpecification is *not* provided to this method, because the goal is consistency, and if output is done it must be consistent with the
-  * output description, since that was what was partly used to determine if output should be taking place.  So it may be necessary for this method to decode
-  * an output description string in order to determine what should be done.
   *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
   * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
-  *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
+  *@param pipelineDescription includes the description string that was constructed for this document by the getOutputDescription() method.
   *@param document is the document data to be processed (handed to the output data store).
   *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
-  *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
+  *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity,
+  * or sending a modified document to the next stage in the pipeline.
   *@return the document status (accepted or permanently rejected).
+  *@throws IOException only if there's a stream error reading the document data.
   */
   @Override
-  public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws ManifoldCFException, ServiceInterruption
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+    throws ManifoldCFException, ServiceInterruption, IOException
   {
-    SpecPacker sp = new SpecPacker(outputDescription);
+    SpecPacker sp = new SpecPacker(pipelineDescription.getVersionString());
 
     // Establish a session
     getSession();
@@ -2177,26 +2177,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     );
   }
   
-  /** Obtain the name of the form check javascript method to call.
-  *@param connectionSequenceNumber is the unique number of this connection within the job.
-  *@return the name of the form check javascript method.
-  */
-  @Override
-  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
-  {
-    return "s"+connectionSequenceNumber+"_checkSpecification";
-  }
-
-  /** Obtain the name of the form presave check javascript method to call.
-  *@param connectionSequenceNumber is the unique number of this connection within the job.
-  *@return the name of the form presave check javascript method.
-  */
-  @Override
-  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
-  {
-    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
-  }
-
   /** Output the specification header section.
   * This method is called in the head section of a job page which has selected a pipeline connection of the current type.  Its purpose is to add the required tabs
   * to the list, and to output any javascript methods that might be needed by the job editing HTML.

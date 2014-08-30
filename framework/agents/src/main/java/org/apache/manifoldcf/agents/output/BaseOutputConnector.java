@@ -92,29 +92,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   public boolean checkMimeTypeIndexable(VersionContext pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
-    return checkMimeTypeIndexable(pipelineDescription.getVersionString(), mimeType);
-  }
-
-  /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
-  * unusable documents that will be passed to this output connector.
-  *@param outputDescription is the document's output version.
-  *@param mimeType is the mime type of the document.
-  *@return true if the mime type is indexable by this connector.
-  */
-  public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    return checkMimeTypeIndexable(mimeType);
-  }
-
-  /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
-  * unusable documents that will be passed to this output connector.
-  *@param mimeType is the mime type of the document.
-  *@return true if the mime type is indexable by this connector.
-  */
-  public boolean checkMimeTypeIndexable(String mimeType)
-    throws ManifoldCFException, ServiceInterruption
-  {
     return true;
   }
 
@@ -128,31 +105,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   */
   @Override
   public boolean checkDocumentIndexable(VersionContext pipelineDescription, File localFile, IOutputCheckActivity checkActivity)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    return checkDocumentIndexable(pipelineDescription.getVersionString(), localFile);
-  }
-
-  /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
-  * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
-  * actual transfer.  This hook is provided mainly to support search engines that only handle a small set of accepted file types.
-  *@param outputDescription is the document's output version.
-  *@param localFile is the local file to check.
-  *@return true if the file is indexable.
-  */
-  public boolean checkDocumentIndexable(String outputDescription, File localFile)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    return checkDocumentIndexable(localFile);
-  }
-
-  /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
-  * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
-  * actual transfer.  This hook is provided mainly to support search engines that only handle a small set of accepted file types.
-  *@param localFile is the local file to check.
-  *@return true if the file is indexable.
-  */
-  public boolean checkDocumentIndexable(File localFile)
     throws ManifoldCFException, ServiceInterruption
   {
     return true;
@@ -169,18 +121,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   public boolean checkLengthIndexable(VersionContext pipelineDescription, long length, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
-    return checkLengthIndexable(pipelineDescription.getVersionString(), length);
-  }
-
-  /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
-  * to help filter out documents that are too long to be indexable.
-  *@param outputDescription is the document's output version.
-  *@param length is the length of the document.
-  *@return true if the file is indexable.
-  */
-  public boolean checkLengthIndexable(String outputDescription, long length)
-    throws ManifoldCFException, ServiceInterruption
-  {
     return true;
   }
 
@@ -193,18 +133,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   */
   @Override
   public boolean checkURLIndexable(VersionContext pipelineDescription, String url, IOutputCheckActivity checkActivity)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    return checkURLIndexable(pipelineDescription.getVersionString(), url);
-  }
-
-  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
-  * to help filter out documents that are not worth indexing.
-  *@param outputDescription is the document's output version.
-  *@param url is the URL of the document.
-  *@return true if the file is indexable.
-  */
-  public boolean checkURLIndexable(String outputDescription, String url)
     throws ManifoldCFException, ServiceInterruption
   {
     return true;
@@ -225,36 +153,15 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   public VersionContext getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
-    return new VersionContext(getOutputDescription((OutputSpecification)spec),params,spec);
+    return new VersionContext("",params,spec);
   }
-
-  /** Get an output version string, given an output specification.  The output version string is used to uniquely describe the pertinent details of
-  * the output specification and the configuration, to allow the Connector Framework to determine whether a document will need to be output again.
-  * Note that the contents of the document cannot be considered by this method, and that a different version string (defined in IRepositoryConnector)
-  * is used to describe the version of the actual document.
-  *
-  * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
-  * necessary.
-  *@param spec is the current output specification for the job that is doing the crawling.
-  *@return a string, of unlimited length, which uniquely describes output configuration and specification in such a way that if two such strings are equal,
-  * the document will not need to be sent again to the output data store.
-  */
-  public String getOutputDescription(OutputSpecification spec)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    // Empty string from the base class.
-    return "";
-  }
-
+  
   /** Add (or replace) a document in the output data store using the connector.
   * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
   * necessary.
-  * The OutputSpecification is *not* provided to this method, because the goal is consistency, and if output is done it must be consistent with the
-  * output description, since that was what was partly used to determine if output should be taking place.  So it may be necessary for this method to decode
-  * an output description string in order to determine what should be done.
   *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
   * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
-  *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
+  *@param pipelineDescription includes the description string that was constructed for this document by the getOutputDescription() method.
   *@param document is the document data to be processed (handed to the output data store).
   *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
   *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity,
@@ -265,26 +172,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   @Override
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
-  {
-    return addOrReplaceDocument(documentURI, pipelineDescription.getVersionString(), document, authorityNameString, activities);
-  }
-
-  /** Add (or replace) a document in the output data store using the connector.
-  * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
-  * necessary.
-  * The OutputSpecification is *not* provided to this method, because the goal is consistency, and if output is done it must be consistent with the
-  * output description, since that was what was partly used to determine if output should be taking place.  So it may be necessary for this method to decode
-  * an output description string in order to determine what should be done.
-  *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
-  * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
-  *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
-  *@param document is the document data to be processed (handed to the output data store).
-  *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
-  *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
-  *@return the document status (accepted or permanently rejected).
-  */
-  public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws ManifoldCFException, ServiceInterruption
   {
     return DOCUMENTSTATUS_REJECTED;
   }
@@ -307,6 +194,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   * This method allows the connector to remove any internal data storage that is associated with records sent to the index on
   * behalf of a connection. It should not attempt to communicate with the output index.
   */
+  @Override
   public void noteAllRecordsRemoved()
     throws ManifoldCFException
   {
@@ -328,7 +216,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   @Override
   public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
   {
-    return "checkOutputSpecification";
+    return "s"+connectionSequenceNumber+"_checkSpecification";
   }
 
   /** Obtain the name of the form presave check javascript method to call.
@@ -338,7 +226,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   @Override
   public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
   {
-    return "checkOutputSpecificationForSave";
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
   }
 
   /** Output the specification header section.
@@ -355,47 +243,8 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
     int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    outputSpecificationHeader(out,locale,(OutputSpecification)os,tabsArray);
   }
 
-  /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected an output connection of the current type.  Its purpose is to add the required tabs
-  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
-  *@param out is the output to which any HTML should be sent.
-  *@param locale is the preferred local of the output.
-  *@param os is the current output specification for this job.
-  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
-  */
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os, List<String> tabsArray)
-    throws ManifoldCFException, IOException
-  {
-    outputSpecificationHeader(out,os,tabsArray);
-  }
-
-  /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected an output connection of the current type.  Its purpose is to add the required tabs
-  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
-  *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
-  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
-  */
-  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, List<String> tabsArray)
-    throws ManifoldCFException, IOException
-  {
-    // Call the old method signature, for backwards compatibility
-    ArrayList<Object> localTabsArray = new ArrayList<Object>();
-    outputSpecificationHeader(out,os,localTabsArray);
-    for (Object o : localTabsArray)
-    {
-      tabsArray.add((String)o);
-    }
-  }
-  
-  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList<Object> tabsArray)
-    throws ManifoldCFException, IOException
-  {
-  }
-  
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
@@ -410,35 +259,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   @Override
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
-    throws ManifoldCFException, IOException
-  {
-    outputSpecificationBody(out,locale,(OutputSpecification)os,tabName);
-  }
-  
-  /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
-  * form is "editjob".
-  *@param out is the output to which any HTML should be sent.
-  *@param locale is the preferred local of the output.
-  *@param os is the current output specification for this job.
-  *@param tabName is the current tab name.
-  */
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
-    throws ManifoldCFException, IOException
-  {
-    outputSpecificationBody(out,os,tabName);
-  }
-
-  /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
-  * form is "editjob".
-  *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
-  *@param tabName is the current tab name.
-  */
-  public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os, String tabName)
     throws ManifoldCFException, IOException
   {
   }
@@ -458,35 +278,6 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    return processSpecificationPost(variableContext,locale,(OutputSpecification)os);
-  }
-
-  /** Process a specification post.
-  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the output specification accordingly.
-  * The name of the posted form is "editjob".
-  *@param variableContext contains the post data, including binary file-upload information.
-  *@param locale is the preferred local of the output.
-  *@param os is the current output specification for this job.
-  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
-  */
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os)
-    throws ManifoldCFException
-  {
-    return processSpecificationPost(variableContext,os);
-  }
-
-  /** Process a specification post.
-  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the output specification accordingly.
-  * The name of the posted form is "editjob".
-  *@param variableContext contains the post data, including binary file-upload information.
-  *@param os is the current output specification for this job.
-  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
-  */
-  public String processSpecificationPost(IPostParameters variableContext, OutputSpecification os)
-    throws ManifoldCFException
-  {
     return null;
   }
 
@@ -503,33 +294,8 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
-    viewSpecification(out,locale,(OutputSpecification)os);
   }
   
-  /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
-  *@param out is the output to which any HTML should be sent.
-  *@param locale is the preferred local of the output.
-  *@param os is the current output specification for this job.
-  */
-  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
-    throws ManifoldCFException, IOException
-  {
-    viewSpecification(out,os);
-  }
-
-  /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
-  *@param out is the output to which any HTML should be sent.
-  *@param os is the current output specification for this job.
-  */
-  public void viewSpecification(IHTTPOutput out, OutputSpecification os)
-    throws ManifoldCFException, IOException
-  {
-  }
-
 }
 
 
