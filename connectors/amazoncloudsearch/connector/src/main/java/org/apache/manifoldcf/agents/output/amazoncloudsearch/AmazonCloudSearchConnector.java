@@ -704,24 +704,4 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
         currentTime + 300000L, currentTime + 3 * 60 * 60000L, -1, false);
   }
   
-  /** Obtain the name of the form check javascript method to call.
-  *@param connectionSequenceNumber is the unique number of this connection within the job.
-  *@return the name of the form check javascript method.
-  */
-  @Override
-  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
-  {
-    return "s"+connectionSequenceNumber+"_checkSpecification";
-  }
-
-  /** Obtain the name of the form presave check javascript method to call.
-  *@param connectionSequenceNumber is the unique number of this connection within the job.
-  *@return the name of the form presave check javascript method.
-  */
-  @Override
-  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
-  {
-    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
-  }
-
 }
