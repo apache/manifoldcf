@@ -210,27 +210,37 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   * It is not a big problem if the connector chooses to create more seeds than are
   * strictly necessary; it is merely a question of overall work required.
   *
-  * The times passed to this method may be interpreted for greatest efficiency.  The time ranges
-  * any given job uses with this connector will not overlap, but will proceed starting at 0 and going
-  * to the "current time", each time the job is run.  For continuous crawling jobs, this method will
+  * The end time and seeding version string passed to this method may be interpreted for greatest efficiency.
+  * For continuous crawling jobs, this method will
   * be called once, when the job starts, and at various periodic intervals as the job executes.
   *
-  * When a job's specification is changed, the framework automatically resets the seeding start time to 0.  The
-  * seeding start time may also be set to 0 on each job run, depending on the connector model returned by
+  * When a job's specification is changed, the framework automatically resets the seeding version string to null.  The
+  * seeding version string may also be set to null on each job run, depending on the connector model returned by
   * getConnectorModel().
   *
   * Note that it is always ok to send MORE documents rather than less to this method.
+  * The connector will be connected before this method can be called.
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
-  *@param startTime is the beginning of the time range to consider, inclusive.
-  *@param endTime is the end of the time range to consider, exclusive.
+  *@param seedTime is the end of the time range of documents to consider, exclusive.
+  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@return an updated seeding version string, to be stored with the job.
   */
   @Override
-  public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
-    long startTime, long endTime, int jobMode)
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
+    String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
   {
+    long startTime;
+    if (lastSeedVersion == null)
+      startTime = 0L;
+    else
+    {
+      // Unpack seed time from seed version string
+      startTime = new Long(lastSeedVersion).longValue();
+    }
+
     getSession();
 
     // Set up the query
@@ -239,7 +249,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     VariableMap vm = new VariableMap();
     addConstant(vm,JDBCConstants.idReturnVariable,JDBCConstants.idReturnColumnName);
     addVariable(vm,JDBCConstants.startTimeVariable,startTime);
-    addVariable(vm,JDBCConstants.endTimeVariable,endTime);
+    addVariable(vm,JDBCConstants.endTimeVariable,seedTime);
 
     // Do the substitution
     ArrayList paramList = new ArrayList();
@@ -300,6 +310,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       idSet.close();
     }
+    return new Long(seedTime).toString();
   }
 
   /** Get document versions given an array of document identifiers.
@@ -1811,7 +1822,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public String versionQuery;
     public String dataQuery;
 
-    public TableSpec(DocumentSpecification ds)
+    public TableSpec(Specification ds)
     {
       int i = 0;
       while (i < ds.getChildCount())

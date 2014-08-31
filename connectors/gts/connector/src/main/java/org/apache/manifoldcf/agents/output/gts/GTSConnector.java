@@ -239,17 +239,11 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   public VersionContext getPipelineDescription(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
-    // The information we want in this string is:
-    // (1) the collection name(s), in sorted order.
-    // (2) the document template
-    // (3) the ingest URI
-
-    ArrayList collectionList = new ArrayList();
+    List<String> collectionList = new ArrayList<String>();
     String documentTemplate = "";
-    int i = 0;
-    while (i < spec.getChildCount())
+    for (int i = 0; i < spec.getChildCount(); i++)
     {
-      SpecificationNode sn = spec.getChild(i++);
+      SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(GTSConfig.NODE_COLLECTION))
       {
         collectionList.add(sn.getAttributeValue(GTSConfig.ATTRIBUTE_VALUE));
@@ -260,20 +254,24 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
       }
     }
 
-    String[] sortArray = new String[collectionList.size()];
-    i = 0;
-    while (i < sortArray.length)
-    {
-      sortArray[i] = (String)collectionList.get(i);
-      i++;
-    }
-    java.util.Arrays.sort(sortArray);
-
     // Get the config info too.  This will be constant for any given connector instance, so we don't have to worry about it changing
     // out from under us.
     String ingestURI = params.getParameter(GTSConfig.PARAM_INGESTURI);
 
     // Now, construct the appropriate string
+    // The information we want in this string is:
+    // (1) the collection name(s), in sorted order.
+    // (2) the document template
+    // (3) the ingest URI
+
+    String[] sortArray = new String[collectionList.size()];
+    int j = 0;
+    for (String collection : collectionList)
+    {
+      sortArray[j++] = collection;
+    }
+    java.util.Arrays.sort(sortArray);
+
     StringBuilder sb = new StringBuilder();
     packList(sb,sortArray,'+');
     pack(sb,documentTemplate,'+');
@@ -300,27 +298,28 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
-    String outputDescription = pipelineDescription.getVersionString();
-	  
+    // Grab the information we need to index
+    Specification spec = pipelineDescription.getSpecification();
+    List<String> collectionList = new ArrayList<String>();
+    String documentTemplate = "";
+    for (int i = 0; i < spec.getChildCount(); i++)
+    {
+      SpecificationNode sn = spec.getChild(i);
+      if (sn.getType().equals(GTSConfig.NODE_COLLECTION))
+      {
+        collectionList.add(sn.getAttributeValue(GTSConfig.ATTRIBUTE_VALUE));
+      }
+      else if (sn.getType().equals(GTSConfig.NODE_DOCUMENTTEMPLATE))
+      {
+        documentTemplate = sn.getAttributeValue(GTSConfig.ATTRIBUTE_VALUE);
+      }
+    }
+
     // Establish a session
     getSession();
 
-    // Unpack what we need from the output description.  This consists of the collection names, plus the document template.
-    ArrayList collections = new ArrayList();
-    StringBuilder documentTemplateBuffer = new StringBuilder();
-    int startPosition = unpackList(collections,outputDescription,0,'+');
-    startPosition = unpack(documentTemplateBuffer,outputDescription,startPosition,'+');
-
-    String[] collectionArray = new String[collections.size()];
-    int i = 0;
-    while (i < collectionArray.length)
-    {
-      collectionArray[i] = (String)collections.get(i);
-      i++;
-    }
-
     // Now, go off and call the ingest API.
-    if (poster.indexPost(documentURI,collectionArray,documentTemplateBuffer.toString(),authorityNameString,document,activities))
+    if (poster.indexPost(documentURI,collectionList,documentTemplate,authorityNameString,document,activities))
       return DOCUMENTSTATUS_ACCEPTED;
     return DOCUMENTSTATUS_REJECTED;
   }

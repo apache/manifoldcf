@@ -271,9 +271,8 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   @Override
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException {
-    String outputDescription = pipelineDescription.getVersionString();
+    HDFSOutputSpecs specs = new HDFSOutputSpecs(getSpecNode(pipelineDescription.getSpecification()));
     try {
-      HDFSOutputSpecs specs = new HDFSOutputSpecs(outputDescription);
 
       /*
        * make file path
@@ -290,9 +289,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       createFile(path, document.getBinaryStream());
       activities.recordActivity(startTime, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, "OK", null);
       return DOCUMENTSTATUS_ACCEPTED;
-    } catch (JSONException e) {
-      handleJSONException(e);
-      return DOCUMENTSTATUS_REJECTED;
     } catch (URISyntaxException e) {
       handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;

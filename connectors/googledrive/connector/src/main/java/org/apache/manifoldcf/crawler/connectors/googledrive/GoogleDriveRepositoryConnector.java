@@ -38,6 +38,7 @@ import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -747,48 +748,37 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_HEADER_FORWARD,paramMap);
   }
 
-  /**
-   * Queue "seed" documents. Seed documents are the starting places for
-   * crawling activity. Documents are seeded when this method calls
-   * appropriate methods in the passed in ISeedingActivity object.
-   *
-   * This method can choose to find repository changes that happen only during
-   * the specified time interval. The seeds recorded by this method will be
-   * viewed by the framework based on what the getConnectorModel() method
-   * returns.
-   *
-   * It is not a big problem if the connector chooses to create more seeds
-   * than are strictly necessary; it is merely a question of overall work
-   * required.
-   *
-   * The times passed to this method may be interpreted for greatest
-   * efficiency. The time ranges any given job uses with this connector will
-   * not overlap, but will proceed starting at 0 and going to the "current
-   * time", each time the job is run. For continuous crawling jobs, this
-   * method will be called once, when the job starts, and at various periodic
-   * intervals as the job executes.
-   *
-   * When a job's specification is changed, the framework automatically resets
-   * the seeding start time to 0. The seeding start time may also be set to 0
-   * on each job run, depending on the connector model returned by
-   * getConnectorModel().
-   *
-   * Note that it is always ok to send MORE documents rather than less to this
-   * method.
-   *
-   * @param activities is the interface this method should use to perform
-   * whatever framework actions are desired.
-   * @param spec is a document specification (that comes from the job).
-   * @param startTime is the beginning of the time range to consider,
-   * inclusive.
-   * @param endTime is the end of the time range to consider, exclusive.
-   * @param jobMode is an integer describing how the job is being run, whether
-   * continuous or once-only.
-   */
+  /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
+  * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
+  *
+  * This method can choose to find repository changes that happen only during the specified time interval.
+  * The seeds recorded by this method will be viewed by the framework based on what the
+  * getConnectorModel() method returns.
+  *
+  * It is not a big problem if the connector chooses to create more seeds than are
+  * strictly necessary; it is merely a question of overall work required.
+  *
+  * The end time and seeding version string passed to this method may be interpreted for greatest efficiency.
+  * For continuous crawling jobs, this method will
+  * be called once, when the job starts, and at various periodic intervals as the job executes.
+  *
+  * When a job's specification is changed, the framework automatically resets the seeding version string to null.  The
+  * seeding version string may also be set to null on each job run, depending on the connector model returned by
+  * getConnectorModel().
+  *
+  * Note that it is always ok to send MORE documents rather than less to this method.
+  * The connector will be connected before this method can be called.
+  *@param activities is the interface this method should use to perform whatever framework actions are desired.
+  *@param spec is a document specification (that comes from the job).
+  *@param seedTime is the end of the time range of documents to consider, exclusive.
+  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@return an updated seeding version string, to be stored with the job.
+  */
   @Override
-  public void addSeedDocuments(ISeedingActivity activities,
-      DocumentSpecification spec, long startTime, long endTime, int jobMode)
-      throws ManifoldCFException, ServiceInterruption {
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
+    String lastSeedVersion, long seedTime, int jobMode)
+    throws ManifoldCFException, ServiceInterruption {
 
     String googleDriveQuery = GoogleDriveConfig.GOOGLEDRIVE_QUERY_DEFAULT;
     int i = 0;
@@ -843,6 +833,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       Logging.connectors.warn("GOOGLEDRIVE: Error adding seed documents: " + e.getMessage(), e);
       handleIOException(e);
     }
+    return "";
   }
   
   protected class GetSeedsThread extends Thread {

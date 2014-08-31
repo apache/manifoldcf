@@ -146,7 +146,7 @@ public class HttpPoster
   * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
-    String[] collections, String documentTemplate, String authorityNameString,
+    List<String> collections, String documentTemplate, String authorityNameString,
     RepositoryDocument document, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -671,7 +671,7 @@ public class HttpPoster
   {
     protected String documentURI;
     protected String aclXmlString;
-    protected String[] collections;
+    protected List<String> collections;
     protected String documentTemplate;
     protected RepositoryDocument document;
 
@@ -683,7 +683,7 @@ public class HttpPoster
     protected boolean readFromDocumentStreamYet = false;
     protected boolean rval = false;
 
-    public IngestThread(String documentURI, String aclXmlString, String[] collections, String documentTemplate, RepositoryDocument document)
+    public IngestThread(String documentURI, String aclXmlString, List<String> collections, String documentTemplate, RepositoryDocument document)
     {
       super();
       setDaemon(true);
@@ -761,10 +761,8 @@ public class HttpPoster
                   // Do the collections
                   if (collections != null)
                   {
-                    int index = 0;
-                    while (index < collections.length)
+                    for (String collectionName : collections)
                     {
-                      String collectionName = collections[index++];
                       String encodedValue = metadataEncode(collectionName);
                       //System.out.println("collection metadata: collection_name = '"+encodedValue+"'");
                       tmp = ("Document-Metadata: collection_name="+encodedValue+"\r\n").getBytes(StandardCharsets.UTF_8);

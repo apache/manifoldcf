@@ -34,8 +34,8 @@ public class InterruptionRepositoryConnector extends org.apache.manifoldcf.crawl
   }
 
   @Override
-  public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
-    long startTime, long endTime, int jobMode)
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
+    String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
   {
     String docCount = "10";
@@ -52,6 +52,7 @@ public class InterruptionRepositoryConnector extends org.apache.manifoldcf.crawl
       String doc = "test"+i+".txt";
       activities.addSeedDocument(doc,null);
     }
+    return "";
   }
   
   @Override
