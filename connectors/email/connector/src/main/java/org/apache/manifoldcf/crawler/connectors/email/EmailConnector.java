@@ -236,38 +236,46 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     return 10;
   }
 
-  /**
-  * Queue "seed" documents. Seed documents are the starting places for crawling activity. Documents
+  /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
-  * <p/>
+  *
   * This method can choose to find repository changes that happen only during the specified time interval.
   * The seeds recorded by this method will be viewed by the framework based on what the
   * getConnectorModel() method returns.
-  * <p/>
+  *
   * It is not a big problem if the connector chooses to create more seeds than are
   * strictly necessary; it is merely a question of overall work required.
-  * <p/>
-  * The times passed to this method may be interpreted for greatest efficiency. The time ranges
-  * any given job uses with this connector will not overlap, but will proceed starting at 0 and going
-  * to the "current time", each time the job is run. For continuous crawling jobs, this method will
-  * be called once, when the job starts, and at various periodic intervals as the job executes.
-  * <p/>
-  * When a job's specification is changed, the framework automatically resets the seeding start time to 0. The
-  * seeding start time may also be set to 0 on each job run, depending on the connector model returned by
-  * getConnectorModel().
-  * <p/>
-  * Note that it is always ok to send MORE documents rather than less to this method.
   *
-  * @param activities is the interface this method should use to perform whatever framework actions are desired.
-  * @param spec is a document specification (that comes from the job).
-  * @param startTime is the beginning of the time range to consider, inclusive.
-  * @param endTime is the end of the time range to consider, exclusive.
-  * @param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  * The end time and seeding version string passed to this method may be interpreted for greatest efficiency.
+  * For continuous crawling jobs, this method will
+  * be called once, when the job starts, and at various periodic intervals as the job executes.
+  *
+  * When a job's specification is changed, the framework automatically resets the seeding version string to null.  The
+  * seeding version string may also be set to null on each job run, depending on the connector model returned by
+  * getConnectorModel().
+  *
+  * Note that it is always ok to send MORE documents rather than less to this method.
+  * The connector will be connected before this method can be called.
+  *@param activities is the interface this method should use to perform whatever framework actions are desired.
+  *@param spec is a document specification (that comes from the job).
+  *@param seedTime is the end of the time range of documents to consider, exclusive.
+  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@return an updated seeding version string, to be stored with the job.
   */
   @Override
-  public void addSeedDocuments(ISeedingActivity activities,
-    DocumentSpecification spec, long startTime, long endTime, int jobMode)
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
+    String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption {
+
+    long startTime;
+    if (lastSeedVersion == null)
+      startTime = 0L;
+    else
+    {
+      // Unpack seed time from seed version string
+      startTime = new Long(lastSeedVersion).longValue();
+    }
 
     getSession();
 
@@ -296,7 +304,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         Folder folder = oft.finishUp();
         try
         {
-          Message[] messages = findMessages(folder, startTime, endTime, findMap);
+          Message[] messages = findMessages(folder, startTime, seedTime, findMap);
           for (Message message : messages) {
             String emailID = ((MimeMessage) message).getMessageID();
             activities.addSeedDocument(createDocumentIdentifier(folderName,emailID));
@@ -315,6 +323,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
     }
 
+    return new Long(seedTime).toString();
   }
 
   /*

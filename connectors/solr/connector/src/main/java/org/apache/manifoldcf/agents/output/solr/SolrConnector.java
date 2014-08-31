@@ -565,7 +565,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
-    SpecPacker sp = new SpecPacker(pipelineDescription.getVersionString());
+    SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
 
     // Establish a session
     getSession();
@@ -2282,35 +2282,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         }
       }
     
-    }
-    
-    /** Packed string parser.
-    * This method unpacks a packed version string, and makes the formerly packed data available for use.
-    * Note that it is actually *not* a requirement for this method to do the unpacking; that can happen "on demand"
-    * for performance, if deemed helpful.
-    */
-    public SpecPacker(String packedString) {
-      // Build the argument map we'll send.
-      int index = 0;
-      List<String> nameValues = new ArrayList<String>();
-      index = unpackList(nameValues,packedString,index,'+');
-      
-      String[] fixedBuffer = new String[2];
-      
-      // Do the name/value pairs
-      for (String x : nameValues)
-      {
-        unpackFixedList(fixedBuffer,x,0,'=');
-        String attrName = fixedBuffer[0];
-        List<String> list = args.get(attrName);
-        if (list == null)
-        {
-          list = new ArrayList<String>();
-          args.put(attrName,list);
-        }
-        list.add(fixedBuffer[1]);
-      }
-      
     }
     
     public String toPackedString() {

@@ -154,6 +154,8 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
     String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
   {
+    return "";
+    /*
     long startTime;
     if (lastSeedVersion == null)
       startTime = 0L;
@@ -164,6 +166,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
     }
     addSeedDocuments(activities,spec,startTime,seedTime,jobMode);
     return new Long(seedTime).toString();
+    */
   }
 
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
@@ -192,6 +195,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param endTime is the end of the time range to consider, exclusive.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
+  /*
   public void addSeedDocuments(ISeedingActivity activities, Specification spec,
     long startTime, long endTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
@@ -205,7 +209,8 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   {
     addSeedDocuments(activities,spec,startTime,endTime);
   }
-
+  */
+  
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
   *
@@ -231,6 +236,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param startTime is the beginning of the time range to consider, inclusive.
   *@param endTime is the end of the time range to consider, exclusive.
   */
+  /*
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
@@ -272,7 +278,8 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
       }
     }
   }
-
+  */
+  
   /** The long version of getDocumentIdentifiers.
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
@@ -280,19 +287,22 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param endTime is the end of the time range to consider, exclusive.
   *@return the local document identifiers that should be added to the queue, as a stream.
   */
+  /*
   public IDocumentIdentifierStream getDocumentIdentifiers(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
   {
     return getDocumentIdentifiers(spec,startTime,endTime);
   }
-
+  */
+  
   /** The short version of getDocumentIdentifiers.
   *@param spec is a document specification (that comes from the job).
   *@param startTime is the beginning of the time range to consider, inclusive.
   *@param endTime is the end of the time range to consider, exclusive.
   *@return the local document identifiers that should be added to the queue, as a stream.
   */
+  /*
   public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec,
     long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
@@ -300,7 +310,8 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
     // Something provided here so we can override either one.
     return null;
   }
-
+  */
+  
   /** This method returns the document identifiers that should be considered part of the seeds, but do not need to be
   * queued for processing at this time.  This method is used to keep the hopcount tables up to date.  It is
   * allowed to return more identifiers than it strictly needs to, specifically identifiers that were also returned
@@ -316,6 +327,7 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@return the local document identifiers that should be added to the queue, as a stream, or null, if none need to be
   * returned.
   */
+  /*
   public IDocumentIdentifierStream getRemainingDocumentIdentifiers(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
@@ -323,7 +335,8 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
     // Usually we don't need to worry about this.
     return null;
   }
-
+  */
+  
   /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.

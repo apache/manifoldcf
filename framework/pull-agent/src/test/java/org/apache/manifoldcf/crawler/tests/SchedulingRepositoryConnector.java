@@ -44,8 +44,8 @@ public class SchedulingRepositoryConnector extends org.apache.manifoldcf.crawler
   }
 
   @Override
-  public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
-    long startTime, long endTime, int jobMode)
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
+    String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
   {
     // A seed per domain
@@ -58,6 +58,7 @@ public class SchedulingRepositoryConnector extends org.apache.manifoldcf.crawler
       activities.addSeedDocument(Integer.toString(i)+"/",null);
     }
     System.out.println("Seeding completed at "+System.currentTimeMillis());
+    return "";
   }
   
   @Override
