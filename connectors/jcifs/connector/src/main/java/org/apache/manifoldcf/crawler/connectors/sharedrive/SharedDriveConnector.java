@@ -60,7 +60,6 @@ import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
-import org.apache.manifoldcf.crawler.interfaces.IDocumentIdentifierStream;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.IFingerprintActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
