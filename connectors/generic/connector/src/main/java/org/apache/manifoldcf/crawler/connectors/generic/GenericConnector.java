@@ -607,7 +607,8 @@ public class GenericConnector extends BaseRepositoryConnector {
   }
 
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException {
     tabsArray.add(Messages.getString(locale, "generic.Parameters"));
     tabsArray.add(Messages.getString(locale, "generic.Security"));
@@ -647,7 +648,8 @@ public class GenericConnector extends BaseRepositoryConnector {
   }
 
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException {
 
     int k, i;
@@ -829,7 +831,8 @@ public class GenericConnector extends BaseRepositoryConnector {
   }
 
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
+    int connectionSequenceNumber)
     throws ManifoldCFException {
 
     String xc = variableContext.getParameter("paramcount");
@@ -939,7 +942,8 @@ public class GenericConnector extends BaseRepositoryConnector {
   }
 
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber)
     throws ManifoldCFException, IOException {
     boolean seenAny;
     int i;
