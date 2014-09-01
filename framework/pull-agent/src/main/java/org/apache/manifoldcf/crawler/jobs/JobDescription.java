@@ -98,7 +98,7 @@ public class JobDescription implements IJobDescription
         pipelineStage.getIsOutput(),
         pipelineStage.getConnectionName(),
         pipelineStage.getDescription(),
-        ((OutputSpecification)pipelineStage.getSpecification()).duplicate(readOnly)));
+        pipelineStage.getSpecification().duplicate(readOnly)));
     }
     rval.description = description;
     rval.type = type;
@@ -616,7 +616,7 @@ public class JobDescription implements IJobDescription
       this.isOutput = isOutput;
       this.connectionName = connectionName;
       this.description = description;
-      this.specification = new OutputSpecification();
+      this.specification = new Specification();
     }
 
     public PipelineStage(int prerequisiteStage, boolean isOutput, String connectionName, String description, Specification spec)
