@@ -609,7 +609,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
   /**
    * Fill in specification Velocity parameter map for JIRAQuery tab.
    */
-  private static void fillInJIRAQuerySpecificationMap(Map<String, Object> newMap, DocumentSpecification ds) {
+  private static void fillInJIRAQuerySpecificationMap(Map<String, Object> newMap, Specification ds) {
     String JiraQuery = JiraConfig.JIRA_QUERY_DEFAULT;
     for (int i = 0; i < ds.getChildCount(); i++) {
       SpecificationNode sn = ds.getChild(i);
@@ -623,7 +623,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
   /**
    * Fill in specification Velocity parameter map for JIRASecurity tab.
    */
-  private static void fillInJIRASecuritySpecificationMap(Map<String, Object> newMap, DocumentSpecification ds) {
+  private static void fillInJIRASecuritySpecificationMap(Map<String, Object> newMap, Specification ds) {
     List<Map<String,String>> accessTokenList = new ArrayList<Map<String,String>>();
     String securityValue = "on";
     for (int i = 0; i < ds.getChildCount(); i++) {
@@ -641,19 +641,20 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     newMap.put("SECURITYON", securityValue);
   }
 
-  /**
-   * View specification. This method is called in the body section of a job's
-   * view page. Its purpose is to present the document specification
-   * information to the user. The coder can presume that the HTML that is
-   * output from this configuration will be within appropriate <html> and
-   * <body> tags.
-   *
-   * @param out is the output to which any HTML should be sent.
-   * @param ds is the current document specification for this job.
-   */
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document
+  * specification information to the user.  The coder can presume that the HTML that is output from
+  * this configuration will be within appropriate <html> and <body> tags.
+  * The connector will be connected before this method can be called.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
-      throws ManifoldCFException, IOException {
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException, IOException {
 
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
@@ -664,23 +665,22 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     Messages.outputResourceWithVelocity(out,locale,VIEW_SPEC_FORWARD,paramMap);
   }
 
-  /**
-   * Process a specification post. This method is called at the start of job's
-   * edit or view page, whenever there is a possibility that form data for a
-   * connection has been posted. Its purpose is to gather form information and
-   * modify the document specification accordingly. The name of the posted
-   * form is "editjob".
-   *
-   * @param variableContext contains the post data, including binary
-   * file-upload information.
-   * @param ds is the current document specification for this job.
-   * @return null if all is well, or a string error message if there is an
-   * error that should prevent saving of the job (and cause a redirection to
-   * an error page).
-   */
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form
+  * data for a connection has been posted.  Its purpose is to gather form information and modify the
+  * document specification accordingly.  The name of the posted form is always "editjob".
+  * The connector will be connected before this method can be called.
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of
+  * the job (and cause a redirection to an error page).
+  */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext,
-      DocumentSpecification ds) throws ManifoldCFException {
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
 
     String jiraDriveQuery = variableContext.getParameter("jiraquery");
     if (jiraDriveQuery != null) {
@@ -758,22 +758,24 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     return null;
   }
 
-  /**
-   * Output the specification body section. This method is called in the body
-   * section of a job page which has selected a repository connection of the
-   * current type. Its purpose is to present the required form elements for
-   * editing. The coder can presume that the HTML that is output from this
-   * configuration will be within appropriate <html>, <body>, and <form> tags.
-   * The name of the form is "editjob".
-   *
-   * @param out is the output to which any HTML should be sent.
-   * @param ds is the current document specification for this job.
-   * @param tabName is the current tab name.
-   */
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate
+  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  * The connector will be connected before this method can be called.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
+  *@param tabName is the current tab name.  (actualSequenceNumber, tabName) form a unique tuple within
+  *  the job.
+  */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out,
-      Locale locale, DocumentSpecification ds, String tabName) throws ManifoldCFException,
-      IOException {
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
+    throws ManifoldCFException, IOException {
 
     // Output JIRAQuery tab
     Map<String, Object> paramMap = new HashMap<String, Object>();
@@ -784,22 +786,21 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_FORWARD_SECURITY,paramMap);
   }
 
-  /**
-   * Output the specification header section. This method is called in the
-   * head section of a job page which has selected a repository connection of
-   * the current type. Its purpose is to add the required tabs to the list,
-   * and to output any javascript methods that might be needed by the job
-   * editing HTML.
-   *
-   * @param out is the output to which any HTML should be sent.
-   * @param ds is the current document specification for this job.
-   * @param tabsArray is an array of tab names. Add to this array any tab
-   * names that are specific to the connector.
-   */
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
+  * that might be needed by the job editing HTML.
+  * The connector will be connected before this method can be called.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out,
-      Locale locale, DocumentSpecification ds, List<String> tabsArray)
-      throws ManifoldCFException, IOException {
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, List<String> tabsArray)
+    throws ManifoldCFException, IOException {
 
     tabsArray.add(Messages.getString(locale, JIRA_QUERY_TAB_PROPERTY));
     tabsArray.add(Messages.getString(locale, JIRA_SECURITY_TAB_PROPERTY));
