@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1020: Email connector misuse of variable names.
+(Karl Wright, Paul Boichat)
+
 CONNECTORS-1014: Fix the fact that Solr Cloud no longer sets
 a content type in its responses.
 (Kamil Zyta, Karl Wright)
