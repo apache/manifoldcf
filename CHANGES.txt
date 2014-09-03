@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1020: Email connector misuse of variable names.
+(Karl Wright, Paul Boichat)
+
 CONNECTORS-975: Remove all 'forced metadata' equivalent tabs.
 (Karl Wright)
 
