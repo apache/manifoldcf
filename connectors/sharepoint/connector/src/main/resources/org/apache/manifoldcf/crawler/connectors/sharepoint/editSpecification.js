@@ -18,176 +18,170 @@
 <script type="text/javascript">
 <!--
 
-function checkSpecification()
+function s${SeqNum}_SpecRuleAddPath(anchorvalue)
 {
-  // Does nothing right now.
-  return true;
-}
-
-function SpecRuleAddPath(anchorvalue)
-{
-  if (editjob.spectype.value=="")
+  if (editjob.s${SeqNum}_spectype.value=="")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseSelectATypeFirst'))");
-    editjob.spectype.focus();
+    editjob.s${SeqNum}_spectype.focus();
   }
-  else if (editjob.specflavor.value=="")
+  else if (editjob.s${SeqNum}_specflavor.value=="")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseSelectAnActionFirst'))");
-    editjob.specflavor.focus();
+    editjob.s${SeqNum}_specflavor.focus();
   }
   else
-    SpecOp("specop","Add",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_specop","Add",anchorvalue);
 }
   
-function SpecPathReset(anchorvalue)
+function s${SeqNum}_SpecPathReset(anchorvalue)
 {
   SpecOp("specpathop","Reset",anchorvalue);
 }
   
-function SpecPathAppendSite(anchorvalue)
+function s${SeqNum}_SpecPathAppendSite(anchorvalue)
 {
-  if (editjob.specsite.value == "")
+  if (editjob.s${SeqNum}_specsite.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseSelectASiteFirst'))");
-    editjob.specsite.focus();
+    editjob.s${SeqNum}_specsite.focus();
   }
   else
-    SpecOp("specpathop","AppendSite",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_specpathop","AppendSite",anchorvalue);
 }
 
-function SpecPathAppendLibrary(anchorvalue)
+function s${SeqNum}_SpecPathAppendLibrary(anchorvalue)
 {
-  if (editjob.speclibrary.value == "")
+  if (editjob.s${SeqNum}_speclibrary.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseSelectALibraryFirst'))");
-    editjob.speclibrary.focus();
+    editjob.s${SeqNum}_speclibrary.focus();
   }
   else
-    SpecOp("specpathop","AppendLibrary",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_specpathop","AppendLibrary",anchorvalue);
 }
 
-function SpecPathAppendList(anchorvalue)
+function s${SeqNum}_SpecPathAppendList(anchorvalue)
 {
-  if (editjob.speclist.value == "")
+  if (editjob.s${SeqNum}_speclist.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseSelectAListFirst'))");
-    editjob.speclist.focus();
+    editjob.s${SeqNum}_speclist.focus();
   }
   else
-    SpecOp("specpathop","AppendList",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_specpathop","AppendList",anchorvalue);
 }
 
-function SpecPathAppendText(anchorvalue)
+function s${SeqNum}_SpecPathAppendText(anchorvalue)
 {
-  if (editjob.specmatch.value == "")
+  if (editjob.s${SeqNum}_specmatch.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseProvideMatchTextFirst'))");
-    editjob.specmatch.focus();
+    editjob.s${SeqNum}_specmatch.focus();
   }
   else
-    SpecOp("specpathop","AppendText",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_specpathop","AppendText",anchorvalue);
 }
 
-function SpecPathRemove(anchorvalue)
+function s${SeqNum}_SpecPathRemove(anchorvalue)
 {
-  SpecOp("specpathop","Remove",anchorvalue);
+  s${SeqNum}_SpecOp("s${SeqNum}_specpathop","Remove",anchorvalue);
 }
 
-function MetaRuleAddPath(anchorvalue)
+function s${SeqNum}_MetaRuleAddPath(anchorvalue)
 {
-  if (editjob.metaflavor.value=="")
+  if (editjob.s${SeqNum}_metaflavor.value=="")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseSelectAnActionFirst'))");
-    editjob.metaflavor.focus();
+    editjob.s${SeqNum}_metaflavor.focus();
   }
   else
-    SpecOp("metaop","Add",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_metaop","Add",anchorvalue);
 }
 
-function MetaPathReset(anchorvalue)
+function s${SeqNum}_MetaPathReset(anchorvalue)
 {
-  SpecOp("metapathop","Reset",anchorvalue);
+  s${SeqNum}_SpecOp("s${SeqNum}_metapathop","Reset",anchorvalue);
 }
   
-function MetaPathAppendSite(anchorvalue)
+function s${SeqNum}_MetaPathAppendSite(anchorvalue)
 {
-  if (editjob.metasite.value == "")
+  if (editjob.s${SeqNum}_metasite.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseSelectASiteFirst'))");
-    editjob.metasite.focus();
+    editjob.s${SeqNum}_metasite.focus();
   }
   else
-    SpecOp("metapathop","AppendSite",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_metapathop","AppendSite",anchorvalue);
 }
 
-function MetaPathAppendLibrary(anchorvalue)
+function s${SeqNum}_MetaPathAppendLibrary(anchorvalue)
 {
-  if (editjob.metalibrary.value == "")
+  if (editjob.s${SeqNum}_metalibrary.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseSelectALibraryFirst'))");
-    editjob.metalibrary.focus();
+    editjob.s${SeqNum}_metalibrary.focus();
   }
   else
-    SpecOp("metapathop","AppendLibrary",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_metapathop","AppendLibrary",anchorvalue);
 }
 
-function MetaPathAppendList(anchorvalue)
+function s${SeqNum}_MetaPathAppendList(anchorvalue)
 {
-  if (editjob.metalist.value == "")
+  if (editjob.s${SeqNum}_metalist.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseSelectAListFirst'))");
-    editjob.metalist.focus();
+    editjob.s${SeqNum}_metalist.focus();
   }
   else
-    SpecOp("metapathop","AppendList",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_metapathop","AppendList",anchorvalue);
 }
 
-function MetaPathAppendText(anchorvalue)
+function s${SeqNum}_MetaPathAppendText(anchorvalue)
 {
-  if (editjob.metamatch.value == "")
+  if (editjob.s${SeqNum}_metamatch.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.PleaseProvideMatchTextFirst'))");
-    editjob.metamatch.focus();
+    editjob.s${SeqNum}_metamatch.focus();
   }
   else
-    SpecOp("metapathop","AppendText",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_metapathop","AppendText",anchorvalue);
 }
 
-function MetaPathRemove(anchorvalue)
+function s${SeqNum}_MetaPathRemove(anchorvalue)
 {
-  SpecOp("metapathop","Remove",anchorvalue);
+  s${SeqNum}_SpecOp("s${SeqNum}_metapathop","Remove",anchorvalue);
 }
 
-function SpecAddAccessToken(anchorvalue)
+function s${SeqNum}_SpecAddAccessToken(anchorvalue)
 {
-  if (editjob.spectoken.value == "")
+  if (editjob.s${SeqNum}_spectoken.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.AccessTokenCannotBeNull'))");
-    editjob.spectoken.focus();
+    editjob.s${SeqNum}_spectoken.focus();
   }
   else
-    SpecOp("accessop","Add",anchorvalue);
+    s${SeqNum}_SpecOp("s${SeqNum}_accessop","Add",anchorvalue);
 }
 
-function SpecAddMapping(anchorvalue)
+function s${SeqNum}_SpecAddMapping(anchorvalue)
 {
-  if (editjob.specmatch.value == "")
+  if (editjob.s${SeqNum}_specmatch.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.MatchStringCannotBeEmpty'))");
-    editjob.specmatch.focus();
+    editjob.s${SeqNum}_specmatch.focus();
     return;
   }
-  if (!isRegularExpression(editjob.specmatch.value))
+  if (!isRegularExpression(editjob.s${SeqNum}_specmatch.value))
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.MatchStringMustBeValidRegularExpression'))");
-    editjob.specmatch.focus();
+    editjob.s${SeqNum}_specmatch.focus();
     return;
   }
-  SpecOp("specmappingop","Add",anchorvalue);
+  s${SeqNum}_SpecOp("s${SeqNum}_specmappingop","Add",anchorvalue);
 }
 
-function SpecOp(n, opValue, anchorvalue)
+function s${SeqNum}_SpecOp(n, opValue, anchorvalue)
 {
   eval("editjob."+n+".value = \""+opValue+"\"");
   postFormSetAnchor(anchorvalue);

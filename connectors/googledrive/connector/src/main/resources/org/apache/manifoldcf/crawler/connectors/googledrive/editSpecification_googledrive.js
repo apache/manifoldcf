@@ -17,37 +17,37 @@
 
 <script type="text/javascript">
 <!--
-function checkSpecificationForSave()
+function s${SeqNum}_checkSpecificationForSave()
 {
-  if (editjob.googledrivequery.value == "") {
+  if (editjob.s${SeqNum}_googledrivequery.value == "") {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.SeedQueryCannotBeNull'))");
-    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.GoogleDriveQuery'))");
-    editjob.googledrivequery.focus();
+    SelectSequencedTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.GoogleDriveQuery'))",${SeqNum});
+    editjob.s${SeqNum}_googledrivequery.focus();
     return false;
   }
   return true;
 }
  
-function SpecOp(n, opValue, anchorvalue)
+function s${SeqNum}_SpecOp(n, opValue, anchorvalue)
 {
   eval("editjob."+n+".value = \""+opValue+"\"");
   postFormSetAnchor(anchorvalue);
 }
 
-function SpecDeleteToken(i)
+function s${SeqNum}_SpecDeleteToken(i)
 {
-  SpecOp("accessop_"+i,"Delete","token_"+i);
+  s${SeqNum}_SpecOp("s${SeqNum}_accessop_"+i,"Delete","s${SeqNum}_token_"+i);
 }
 
-function SpecAddToken(i)
+function s${SeqNum}_SpecAddToken(i)
 {
-  if (editjob.spectoken.value == "")
+  if (editjob.s${SeqNum}_spectoken.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.TypeInAnAccessToken'))");
-    editjob.spectoken.focus();
+    editjob.s${SeqNum}_spectoken.focus();
     return;
   }
-  SpecOp("accessop","Add","token_"+i);
+  s${SeqNum}_SpecOp("s${SeqNum}_accessop","Add","s${SeqNum}_token_"+i);
 }
 
 //-->

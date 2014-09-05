@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('GoogleDriveRepositoryConnector.GoogleDriveQuery'))
+#if($TabName == $ResourceBundle.getString('GoogleDriveRepositoryConnector.GoogleDriveQuery') && ${SeqNum} == ${SelectedNum})
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
@@ -27,7 +27,7 @@
     </td>
     <td class="value">
       <nobr>
-        <input type="text" size="120" name="googledrivequery" value="$Encoder.attributeEscape($GOOGLEDRIVEQUERY)" />
+        <input type="text" size="120" name="s${SeqNum}_googledrivequery" value="$Encoder.attributeEscape($GOOGLEDRIVEQUERY)" />
       </nobr>
     </td>
   </tr>
@@ -35,6 +35,6 @@
 
 #else
 
-<input type="hidden" name="googledrivequery" value="$Encoder.attributeEscape($GOOGLEDRIVEQUERY)" />
+<input type="hidden" name="s${SeqNum}_googledrivequery" value="$Encoder.attributeEscape($GOOGLEDRIVEQUERY)" />
 
 #end

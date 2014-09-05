@@ -2644,7 +2644,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Paths"));
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Security"));
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Metadata"));
-    Messages.outputResourceWithVelocity(out,locale,"editSpecification.js",null);
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    velocityContext.put("SeqNum", Integer.toString(connectionSequenceNumber));
+
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification.js",velocityContext);
   }
   
   /** Output the specification body section.
@@ -2668,16 +2671,18 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     Map<String,Object> velocityContext = new HashMap<String,Object>();
     velocityContext.put("TabName",tabName);
-    
+    velocityContext.put("SeqNum", Integer.toString(connectionSequenceNumber));
+    velocityContext.put("SelectedNum", Integer.toString(actualSequenceNumber));
+
     fillInSecurityTab(velocityContext,out,ds);
     fillInPathsTab(velocityContext,out,ds);
     fillInMetadataTab(velocityContext,out,ds);
     
     // Now, do the part of the tabs that requires context logic
     if (tabName.equals(Messages.getString(locale,"SharePointRepository.Paths")))
-      fillInTransientPathsInfo(velocityContext);
+      fillInTransientPathsInfo(velocityContext,connectionSequenceNumber);
     else if (tabName.equals(Messages.getString(locale,"SharePointRepository.Metadata")))
-      fillInTransientMetadataInfo(velocityContext);
+      fillInTransientMetadataInfo(velocityContext,connectionSequenceNumber);
     
     Messages.outputResourceWithVelocity(out,locale,"editSpecification_Security.html",velocityContext);
     Messages.outputResourceWithVelocity(out,locale,"editSpecification_Paths.html",velocityContext);
@@ -2797,16 +2802,18 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   }
   
   /** Fill in transient metadata info */
-  protected void fillInTransientMetadataInfo(Map<String,Object> velocityContext)
+  protected void fillInTransientMetadataInfo(Map<String,Object> velocityContext, int connectionSequenceNumber)
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     // The following variables may be in the thread context because postspec.jsp put them there:
     // (1) "metapath", which contains the rule path as it currently stands;
     // (2) "metapathstate", which describes what the current path represents.  Values are "unknown", "site", "library".
     // (3) "metapathlibrary" is the library or list path (if this is known yet).
     // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
-    String metaPathSoFar = (String)currentContext.get("metapath");
-    String metaPathState = (String)currentContext.get("metapathstate");
-    String metaPathLibrary = (String)currentContext.get("metapathlibrary");
+    String metaPathSoFar = (String)currentContext.get(seqPrefix+"metapath");
+    String metaPathState = (String)currentContext.get(seqPrefix+"metapathstate");
+    String metaPathLibrary = (String)currentContext.get(seqPrefix+"metapathlibrary");
     if (metaPathState == null)
       metaPathState = "unknown";
     if (metaPathSoFar == null)
@@ -2988,16 +2995,18 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   }
   
   /** Fill in the transient portion of the Paths tab */
-  protected void fillInTransientPathsInfo(Map<String,Object> velocityContext)
+  protected void fillInTransientPathsInfo(Map<String,Object> velocityContext, int connectionSequenceNumber)
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     // The following variables may be in the thread context because postspec.jsp put them there:
     // (1) "specpath", which contains the rule path as it currently stands;
     // (2) "specpathstate", which describes what the current path represents.  Values are "unknown", "site", "library", "list".
     // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
     // specsitepath may be in the thread context, put there by postspec.jsp 
-    String pathSoFar = (String)currentContext.get("specpath");
-    String pathState = (String)currentContext.get("specpathstate");
-    String pathLibrary = (String)currentContext.get("specpathlibrary");
+    String pathSoFar = (String)currentContext.get(seqPrefix+"specpath");
+    String pathState = (String)currentContext.get(seqPrefix+"specpathstate");
+    String pathLibrary = (String)currentContext.get(seqPrefix+"specpathlibrary");
     if (pathState == null)
     {
       pathState = "unknown";
@@ -3118,8 +3127,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     // Remove old-style rules, but only if the information would not be lost
-    if (variableContext.getParameter("specpathcount") != null && variableContext.getParameter("metapathcount") != null)
+    if (variableContext.getParameter(seqPrefix+"specpathcount") != null && variableContext.getParameter(seqPrefix+"metapathcount") != null)
     {
       int i = 0;
       while (i < ds.getChildCount())
@@ -3132,7 +3143,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
     }
     
-    String x = variableContext.getParameter("specpathcount");
+    String x = variableContext.getParameter(seqPrefix+"specpathcount");
     if (x != null)
     {
       // Delete all path rule entries first
@@ -3153,7 +3164,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       while (i < pathCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "specop"+pathDescription;
+        String pathOpName = seqPrefix+"specop"+pathDescription;
         x = variableContext.getParameter(pathOpName);
         if (x != null && x.equals("Delete"))
         {
@@ -3163,9 +3174,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         }
         
         // Get the stored information for this rule.
-        String path = variableContext.getParameter("specpath"+pathDescription);
-        String type = variableContext.getParameter("spectype"+pathDescription);
-        String action = variableContext.getParameter("specflav"+pathDescription);
+        String path = variableContext.getParameter(seqPrefix+"specpath"+pathDescription);
+        String type = variableContext.getParameter(seqPrefix+"spectype"+pathDescription);
+        String action = variableContext.getParameter(seqPrefix+"specflav"+pathDescription);
         
         SpecificationNode node = new SpecificationNode("pathrule");
         node.setAttribute("match",path);
@@ -3176,9 +3187,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (x != null && x.equals("Insert Here"))
         {
           // The global parameters are what are used to create the rule
-          path = variableContext.getParameter("specpath");
-          type = variableContext.getParameter("spectype");
-          action = variableContext.getParameter("specflavor");
+          path = variableContext.getParameter(seqPrefix+"specpath");
+          type = variableContext.getParameter(seqPrefix+"spectype");
+          action = variableContext.getParameter(seqPrefix+"specflavor");
           
           SpecificationNode sn = new SpecificationNode("pathrule");
           sn.setAttribute("match",path);
@@ -3192,14 +3203,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
 
       // See if there's a global path rule operation
-      String op = variableContext.getParameter("specop");
+      String op = variableContext.getParameter(seqPrefix+"specop");
       if (op != null)
       {
         if (op.equals("Add"))
         {
-          String match = variableContext.getParameter("specpath");
-          String action = variableContext.getParameter("specflavor");
-          String type = variableContext.getParameter("spectype");
+          String match = variableContext.getParameter(seqPrefix+"specpath");
+          String action = variableContext.getParameter(seqPrefix+"specflavor");
+          String type = variableContext.getParameter(seqPrefix+"spectype");
           SpecificationNode node = new SpecificationNode("pathrule");
           node.setAttribute("match",match);
           node.setAttribute("action",action);
@@ -3209,19 +3220,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
 
       // See if there's a global pathbuilder operation
-      String pathop = variableContext.getParameter("specpathop");
+      String pathop = variableContext.getParameter(seqPrefix+"specpathop");
       if (pathop != null)
       {
         if (pathop.equals("Reset"))
         {
-          currentContext.save("specpath","/");
-          currentContext.save("specpathstate","site");
-          currentContext.save("specpathlibrary",null);
+          currentContext.save(seqPrefix+"specpath","/");
+          currentContext.save(seqPrefix+"specpathstate","site");
+          currentContext.save(seqPrefix+"specpathlibrary",null);
         }
         else if (pathop.equals("AppendSite"))
         {
-          String path = variableContext.getParameter("specpath");
-          String addon = variableContext.getParameter("specsite");
+          String path = variableContext.getParameter(seqPrefix+"specpath");
+          String addon = variableContext.getParameter(seqPrefix+"specsite");
           if (addon != null && addon.length() > 0)
           {
             if (path.equals("/"))
@@ -3229,76 +3240,76 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             else
               path = path + "/" + addon;
           }
-          currentContext.save("specpath",path);
-          currentContext.save("specpathstate","site");
-          currentContext.save("specpathlibrary",null);
+          currentContext.save(seqPrefix+"specpath",path);
+          currentContext.save(seqPrefix+"specpathstate","site");
+          currentContext.save(seqPrefix+"specpathlibrary",null);
         }
         else if (pathop.equals("AppendLibrary"))
         {
-          String path = variableContext.getParameter("specpath");
-          String addon = variableContext.getParameter("speclibrary");
+          String path = variableContext.getParameter(seqPrefix+"specpath");
+          String addon = variableContext.getParameter(seqPrefix+"speclibrary");
           if (addon != null && addon.length() > 0)
           {
             if (path.equals("/"))
               path = path + addon;
             else
               path = path + "/" + addon;
-            currentContext.save("specpathstate","library");
-            currentContext.save("specpathlibrary",path);
+            currentContext.save(seqPrefix+"specpathstate","library");
+            currentContext.save(seqPrefix+"specpathlibrary",path);
           }
-          currentContext.save("specpath",path);
+          currentContext.save(seqPrefix+"specpath",path);
         }
         else if (pathop.equals("AppendList"))
         {
-          String path = variableContext.getParameter("specpath");
-          String addon = variableContext.getParameter("speclist");
+          String path = variableContext.getParameter(seqPrefix+"specpath");
+          String addon = variableContext.getParameter(seqPrefix+"speclist");
           if (addon != null && addon.length() > 0)
           {
             if (path.equals("/"))
               path = path + addon;
             else
               path = path + "/" + addon;
-            currentContext.save("specpathstate","list");
-            currentContext.save("specpathlibrary",path);
+            currentContext.save(seqPrefix+"specpathstate","list");
+            currentContext.save(seqPrefix+"specpathlibrary",path);
           }
-          currentContext.save("specpath",path);
+          currentContext.save(seqPrefix+"specpath",path);
         }
         else if (pathop.equals("AppendText"))
         {
-          String path = variableContext.getParameter("specpath");
-          String library = variableContext.getParameter("specpathlibrary");
-          String addon = variableContext.getParameter("specmatch");
+          String path = variableContext.getParameter(seqPrefix+"specpath");
+          String library = variableContext.getParameter(seqPrefix+"specpathlibrary");
+          String addon = variableContext.getParameter(seqPrefix+"specmatch");
           if (addon != null && addon.length() > 0)
           {
             if (path.equals("/"))
               path = path + addon;
             else
               path = path + "/" + addon;
-            currentContext.save("specpathstate","unknown");
+            currentContext.save(seqPrefix+"specpathstate","unknown");
           }
-          currentContext.save("specpath",path);
-          currentContext.save("specpathlibrary",library);
+          currentContext.save(seqPrefix+"specpath",path);
+          currentContext.save(seqPrefix+"specpathlibrary",library);
         }
         else if (pathop.equals("Remove"))
         {
           // Strip off end
-          String path = variableContext.getParameter("specpath");
+          String path = variableContext.getParameter(seqPrefix+"specpath");
           int index = path.lastIndexOf("/");
           path = path.substring(0,index);
           if (path.length() == 0)
             path = "/";
-          currentContext.save("specpath",path);
+          currentContext.save(seqPrefix+"specpath",path);
           // Now, adjust state.
-          String pathState = variableContext.getParameter("specpathstate");
+          String pathState = variableContext.getParameter(seqPrefix+"specpathstate");
           if (pathState.equals("library") || pathState.equals("list"))
             pathState = "site";
-          currentContext.save("specpathstate",pathState);
+          currentContext.save(seqPrefix+"specpathstate",pathState);
         }
       }
 
     }
     
-    x = variableContext.getParameter("metapathcount");
+    x = variableContext.getParameter(seqPrefix+"metapathcount");
     if (x != null)
     {
       // Delete all metadata rule entries first
@@ -3319,7 +3330,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       while (i < pathCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "metaop"+pathDescription;
+        String pathOpName = seqPrefix+"metaop"+pathDescription;
         x = variableContext.getParameter(pathOpName);
         if (x != null && x.equals("Delete"))
         {
@@ -3329,10 +3340,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         }
 
         // Get the stored information for this rule.
-        String path = variableContext.getParameter("metapath"+pathDescription);
-        String action = variableContext.getParameter("metaflav"+pathDescription);
-        String allmetadata =  variableContext.getParameter("metaall"+pathDescription);
-        String[] metadataFields = variableContext.getParameterValues("metafields"+pathDescription);
+        String path = variableContext.getParameter(seqPrefix+"metapath"+pathDescription);
+        String action = variableContext.getParameter(seqPrefix+"metaflav"+pathDescription);
+        String allmetadata =  variableContext.getParameter(seqPrefix+"metaall"+pathDescription);
+        String[] metadataFields = variableContext.getParameterValues(seqPrefix+"metafields"+pathDescription);
         
         SpecificationNode node = new SpecificationNode("metadatarule");
         node.setAttribute("match",path);
@@ -3356,10 +3367,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (x != null && x.equals("Insert Here"))
         {
           // Insert the new global rule information now
-          path = variableContext.getParameter("metapath");
-          action = variableContext.getParameter("metaflavor");
-          allmetadata =  variableContext.getParameter("metaall");
-          metadataFields = variableContext.getParameterValues("metafields");
+          path = variableContext.getParameter(seqPrefix+"metapath");
+          action = variableContext.getParameter(seqPrefix+"metaflavor");
+          allmetadata =  variableContext.getParameter(seqPrefix+"metaall");
+          metadataFields = variableContext.getParameterValues(seqPrefix+"metafields");
         
           SpecificationNode sn = new SpecificationNode("metadatarule");
           sn.setAttribute("match",path);
@@ -3388,20 +3399,20 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
       
       // See if there's a global path rule operation
-      String op = variableContext.getParameter("metaop");
+      String op = variableContext.getParameter(seqPrefix+"metaop");
       if (op != null)
       {
         if (op.equals("Add"))
         {
-          String match = variableContext.getParameter("metapath");
-          String action = variableContext.getParameter("metaflavor");
+          String match = variableContext.getParameter(seqPrefix+"metapath");
+          String action = variableContext.getParameter(seqPrefix+"metaflavor");
           SpecificationNode node = new SpecificationNode("metadatarule");
           node.setAttribute("match",match);
           node.setAttribute("action",action);
           if (action.equals("include"))
           {
-            String allmetadata = variableContext.getParameter("metaall");
-            String[] metadataFields = variableContext.getParameterValues("metafields");
+            String allmetadata = variableContext.getParameter(seqPrefix+"metaall");
+            String[] metadataFields = variableContext.getParameterValues(seqPrefix+"metafields");
             if (allmetadata != null)
               node.setAttribute("allmetadata",allmetadata);
             if (metadataFields != null)
@@ -3421,19 +3432,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
 
       // See if there's a global pathbuilder operation
-      String pathop = variableContext.getParameter("metapathop");
+      String pathop = variableContext.getParameter(seqPrefix+"metapathop");
       if (pathop != null)
       {
         if (pathop.equals("Reset"))
         {
-          currentContext.save("metapath","/");
-          currentContext.save("metapathstate","site");
-          currentContext.save("metapathlibrary",null);
+          currentContext.save(seqPrefix+"metapath","/");
+          currentContext.save(seqPrefix+"metapathstate","site");
+          currentContext.save(seqPrefix+"metapathlibrary",null);
         }
         else if (pathop.equals("AppendSite"))
         {
-          String path = variableContext.getParameter("metapath");
-          String addon = variableContext.getParameter("metasite");
+          String path = variableContext.getParameter(seqPrefix+"metapath");
+          String addon = variableContext.getParameter(seqPrefix+"metasite");
           if (addon != null && addon.length() > 0)
           {
             if (path.equals("/"))
@@ -3441,47 +3452,47 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             else
               path = path + "/" + addon;
           }
-          currentContext.save("metapath",path);
-          currentContext.save("metapathstate","site");
-          currentContext.save("metapathlibrary",null);
+          currentContext.save(seqPrefix+"metapath",path);
+          currentContext.save(seqPrefix+"metapathstate","site");
+          currentContext.save(seqPrefix+"metapathlibrary",null);
         }
         else if (pathop.equals("AppendLibrary"))
         {
-          String path = variableContext.getParameter("metapath");
-          String addon = variableContext.getParameter("metalibrary");
+          String path = variableContext.getParameter(seqPrefix+"metapath");
+          String addon = variableContext.getParameter(seqPrefix+"metalibrary");
           if (addon != null && addon.length() > 0)
           {
             if (path.equals("/"))
               path = path + addon;
             else
               path = path + "/" + addon;
-            currentContext.save("metapathstate","library");
-            currentContext.save("metapathlibrary",path);
+            currentContext.save(seqPrefix+"metapathstate","library");
+            currentContext.save(seqPrefix+"metapathlibrary",path);
           }
-          currentContext.save("metapath",path);
+          currentContext.save(seqPrefix+"metapath",path);
         }
         else if (pathop.equals("AppendList"))
         {
-          String path = variableContext.getParameter("metapath");
-          String addon = variableContext.getParameter("metalist");
+          String path = variableContext.getParameter(seqPrefix+"metapath");
+          String addon = variableContext.getParameter(seqPrefix+"metalist");
           if (addon != null && addon.length() > 0)
           {
             if (path.equals("/"))
               path = path + addon;
             else
               path = path + "/" + addon;
-            currentContext.save("metapathstate","list");
-            currentContext.save("metapathlibrary",path);
+            currentContext.save(seqPrefix+"metapathstate","list");
+            currentContext.save(seqPrefix+"metapathlibrary",path);
             // Automatically add on wildcard for list item part of the match
             path += "/*";
           }
-          currentContext.save("metapath",path);
+          currentContext.save(seqPrefix+"metapath",path);
         }
         else if (pathop.equals("AppendText"))
         {
-          String path = variableContext.getParameter("metapath");
-          String library = variableContext.getParameter("metapathlibrary");
-          String addon = variableContext.getParameter("metamatch");
+          String path = variableContext.getParameter(seqPrefix+"metapath");
+          String library = variableContext.getParameter(seqPrefix+"metapathlibrary");
+          String addon = variableContext.getParameter(seqPrefix+"metamatch");
           if (addon != null && addon.length() > 0)
           {
             if (path.equals("/"))
@@ -3489,50 +3500,50 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             else
               path = path + "/" + addon;
             if (library != null)
-              currentContext.save("metapathstate","file");
+              currentContext.save(seqPrefix+"metapathstate","file");
             else
-              currentContext.save("metapathstate","unknown");
+              currentContext.save(seqPrefix+"metapathstate","unknown");
           }
-          currentContext.save("metapath",path);
-          currentContext.save("metapathlibrary",library);
+          currentContext.save(seqPrefix+"metapath",path);
+          currentContext.save(seqPrefix+"metapathlibrary",library);
         }
         else if (pathop.equals("Remove"))
         {
-          String pathState = variableContext.getParameter("metapathstate");
+          String pathState = variableContext.getParameter(seqPrefix+"metapathstate");
           String path;
           if (pathState.equals("file"))
           {
             pathState = "library";
-            path = variableContext.getParameter("metapathlibrary");
+            path = variableContext.getParameter(seqPrefix+"metapathlibrary");
           }
           else if (pathState.equals("list") || pathState.equals("library"))
           {
             pathState = "site";
-            path = variableContext.getParameter("metapathlibrary");
+            path = variableContext.getParameter(seqPrefix+"metapathlibrary");
             int index = path.lastIndexOf("/");
             path = path.substring(0,index);
             if (path.length() == 0)
               path = "/";
-            currentContext.save("metapathlibrary",null);
+            currentContext.save(seqPrefix+"metapathlibrary",null);
           }
           else
           {
-            path = variableContext.getParameter("metapath");
+            path = variableContext.getParameter(seqPrefix+"metapath");
             int index = path.lastIndexOf("/");
             path = path.substring(0,index);
             if (path.length() == 0)
               path = "/";
           }
 
-          currentContext.save("metapathstate",pathState);
-          currentContext.save("metapath",path);
+          currentContext.save(seqPrefix+"metapathstate",pathState);
+          currentContext.save(seqPrefix+"metapath",path);
         }
       }
 
       
     }
 
-    String xc = variableContext.getParameter("specsecurity");
+    String xc = variableContext.getParameter(seqPrefix+"specsecurity");
     if (xc != null)
     {
       // Delete all security entries first
@@ -3552,7 +3563,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     }
    
-    xc = variableContext.getParameter("tokencount");
+    xc = variableContext.getParameter(seqPrefix+"tokencount");
     if (xc != null)
     {
       // Delete all file specs first
@@ -3571,7 +3582,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       while (i < accessCount)
       {
         String accessDescription = "_"+Integer.toString(i);
-        String accessOpName = "accessop"+accessDescription;
+        String accessOpName = seqPrefix+"accessop"+accessDescription;
         xc = variableContext.getParameter(accessOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -3580,24 +3591,24 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           continue;
         }
         // Get the stuff we need
-        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        String accessSpec = variableContext.getParameter(seqPrefix+"spectoken"+accessDescription);
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token",accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
 
-      String op = variableContext.getParameter("accessop");
+      String op = variableContext.getParameter(seqPrefix+"accessop");
       if (op != null && op.equals("Add"))
       {
-        String accessspec = variableContext.getParameter("spectoken");
+        String accessspec = variableContext.getParameter(seqPrefix+"spectoken");
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token",accessspec);
         ds.addChild(ds.getChildCount(),node);
       }
     }
 
-    xc = variableContext.getParameter("specpathnameattribute");
+    xc = variableContext.getParameter(seqPrefix+"specpathnameattribute");
     if (xc != null)
     {
       // Delete old one
@@ -3618,7 +3629,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    xc = variableContext.getParameter("specmappingcount");
+    xc = variableContext.getParameter(seqPrefix+"specmappingcount");
     if (xc != null)
     {
       // Delete old spec
@@ -3640,7 +3651,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       while (i < mappingCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "specmappingop"+pathDescription;
+        String pathOpName = seqPrefix+"specmappingop"+pathDescription;
         xc = variableContext.getParameter(pathOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -3649,8 +3660,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           continue;
         }
         // Inserts won't happen until the very end
-        String match = variableContext.getParameter("specmatch"+pathDescription);
-        String replace = variableContext.getParameter("specreplace"+pathDescription);
+        String match = variableContext.getParameter(seqPrefix+"specmatch"+pathDescription);
+        String replace = variableContext.getParameter(seqPrefix+"specreplace"+pathDescription);
         SpecificationNode node = new SpecificationNode("pathmap");
         node.setAttribute("match",match);
         node.setAttribute("replace",replace);
@@ -3660,12 +3671,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
 
       // Check for add
-      xc = variableContext.getParameter("specmappingop");
+      xc = variableContext.getParameter(seqPrefix+"specmappingop");
       if (xc != null && xc.equals("Add"))
       {
-        String match = variableContext.getParameter("specmatch");
-        String replace = variableContext.getParameter("specreplace");
-        SpecificationNode node = new SpecificationNode("pathmap");
+        String match = variableContext.getParameter(seqPrefix+"specmatch");
+        String replace = variableContext.getParameter(seqPrefix+"specreplace");
+        SpecificationNode node = new SpecificationNode(seqPrefix+"pathmap");
         node.setAttribute("match",match);
         node.setAttribute("replace",replace);
         ds.addChild(ds.getChildCount(),node);
@@ -3690,7 +3701,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ManifoldCFException, IOException
   {
     Map<String,Object> velocityContext = new HashMap<String,Object>();
-    
+    velocityContext.put("SeqNum", Integer.toString(connectionSequenceNumber));
+
     fillInSecurityTab(velocityContext,out,ds);
     fillInPathsTab(velocityContext,out,ds);
     fillInMetadataTab(velocityContext,out,ds);

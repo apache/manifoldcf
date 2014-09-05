@@ -1045,90 +1045,92 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     tabsArray.add(Messages.getString(locale,"JDBCConnector.Queries"));
     tabsArray.add(Messages.getString(locale,"JDBCConnector.Security"));
 
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
 "\n"+
-"function SpecOp(n, opValue, anchorvalue)\n"+
+"function "+seqPrefix+"SpecOp(n, opValue, anchorvalue)\n"+
 "{\n"+
 "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
 "  postFormSetAnchor(anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddToken(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddToken(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.spectoken.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.TypeInAnAccessToken") + "\");\n"+
-"    editjob.spectoken.focus();\n"+
+"    editjob."+seqPrefix+"spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function checkSpecification()\n"+
+"function "+seqPrefix+"checkSpecification()\n"+
 "{\n"+
-"  if (editjob.idquery.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"idquery.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.EnterASeedingQuery") + "\");\n"+
-"    editjob.idquery.focus();\n"+
+"    editjob."+seqPrefix+"idquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editjob.idquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
+"  if (editjob."+seqPrefix+"idquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + "\");\n"+
-"    editjob.idquery.focus();\n"+
+"    editjob."+seqPrefix+"idquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editjob.versionquery.value != \"\")\n"+
+"  if (editjob."+seqPrefix+"versionquery.value != \"\")\n"+
 "  {\n"+
-"    if (editjob.versionquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
+"    if (editjob."+seqPrefix+"versionquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
 "    {\n"+
 "      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + "\");\n"+
-"      editjob.versionquery.focus();\n"+
+"      editjob."+seqPrefix+"versionquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
-"    if (editjob.versionquery.value.indexOf(\"$(VERSIONCOLUMN)\") == -1)\n"+
+"    if (editjob."+seqPrefix+"versionquery.value.indexOf(\"$(VERSIONCOLUMN)\") == -1)\n"+
 "    {\n"+
 "      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnVERSIONCOLUMNInTheResult") + "\");\n"+
-"      editjob.versionquery.focus();\n"+
+"      editjob."+seqPrefix+"versionquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
-"    if (editjob.versionquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
+"    if (editjob."+seqPrefix+"versionquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
 "    {\n"+
 "      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + "\");\n"+
-"      editjob.versionquery.focus();\n"+
+"      editjob."+seqPrefix+"versionquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
 "  }\n"+
-"  if (editjob.dataquery.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"dataquery.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.EnterADataQuery") + "\");\n"+
-"    editjob.dataquery.focus();\n"+
+"    editjob."+seqPrefix+"dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editjob.dataquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
+"  if (editjob."+seqPrefix+"dataquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult2") + "\");\n"+
-"    editjob.dataquery.focus();\n"+
+"    editjob."+seqPrefix+"dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editjob.dataquery.value.indexOf(\"$(URLCOLUMN)\") == -1)\n"+
+"  if (editjob."+seqPrefix+"dataquery.value.indexOf(\"$(URLCOLUMN)\") == -1)\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnURLCOLUMNInTheResult") + "\");\n"+
-"    editjob.dataquery.focus();\n"+
+"    editjob."+seqPrefix+"dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editjob.dataquery.value.indexOf(\"$(DATACOLUMN)\") == -1)\n"+
+"  if (editjob."+seqPrefix+"dataquery.value.indexOf(\"$(DATACOLUMN)\") == -1)\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnDATACOLUMNInTheResult") + "\");\n"+
-"    editjob.dataquery.focus();\n"+
+"    editjob."+seqPrefix+"dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editjob.dataquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
+"  if (editjob."+seqPrefix+"dataquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + "\");\n"+
-"    editjob.dataquery.focus();\n"+
+"    editjob."+seqPrefix+"dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "\n"+
@@ -1159,6 +1161,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     String idQuery = "SELECT idfield AS $(IDCOLUMN) FROM documenttable WHERE modifydatefield > $(STARTTIME) AND modifydatefield <= $(ENDTIME)";
     String versionQuery = "SELECT idfield AS $(IDCOLUMN), versionfield AS $(VERSIONCOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
     String dataQuery = "SELECT idfield AS $(IDCOLUMN), urlfield AS $(URLCOLUMN), datafield AS $(DATACOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
@@ -1189,22 +1193,22 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     // The Queries tab
 
-    if (tabName.equals(Messages.getString(locale,"JDBCConnector.Queries")))
+    if (tabName.equals(Messages.getString(locale,"JDBCConnector.Queries")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.SeedingQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsThatNeedToBeChecked") + "</nobr></td>\n"+
-"    <td class=\"value\"><textarea name=\"idquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(idQuery)+"</textarea></td>\n"+
+"    <td class=\"value\"><textarea name=\""+seqPrefix+"idquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(idQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.VersionCheckQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsAndVersionsForASetOfDocuments") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.leaveBlankIfNoVersioningCapability") + "</nobr></td>\n"+
-"    <td class=\"value\"><textarea name=\"versionquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(versionQuery)+"</textarea></td>\n"+
+"    <td class=\"value\"><textarea name=\""+seqPrefix+"versionquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(versionQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DataQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsUrlsAndDataForASetOfDocuments") + "</nobr></td>\n"+
-"    <td class=\"value\"><textarea name=\"dataquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</textarea></td>\n"+
+"    <td class=\"value\"><textarea name=\""+seqPrefix+"dataquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -1212,9 +1216,9 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"idquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idQuery)+"\"/>\n"+
-"<input type=\"hidden\" name=\"versionquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(versionQuery)+"\"/>\n"+
-"<input type=\"hidden\" name=\"dataquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dataQuery)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"idquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idQuery)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"versionquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(versionQuery)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"dataquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dataQuery)+"\"/>\n"
       );
     }
 	
@@ -1222,7 +1226,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // There is no native security, so all we care about are the tokens.
     i = 0;
 
-    if (tabName.equals(Messages.getString(locale,"JDBCConnector.Security")))
+    if (tabName.equals(Messages.getString(locale,"JDBCConnector.Security")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -1237,15 +1241,15 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (sn.getType().equals("access"))
         {
           String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = "accessop"+accessDescription;
+          String accessOpName = seqPrefix+"accessop"+accessDescription;
           String token = sn.getAttributeValue("token");
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\"" + Messages.getAttributeString(locale,"JDBCConnector.DeleteToken") + "\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"token_"+Integer.toString(k)+"\")' alt=\"" + Messages.getAttributeString(locale,"JDBCConnector.DeleteToken") + "\""+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -1268,14 +1272,14 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"JDBCConnector.AddAccessToken") + "\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecAddToken(\""+seqPrefix+"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"JDBCConnector.AddAccessToken") + "\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1294,13 +1298,13 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           String accessDescription = "_"+Integer.toString(k);
           String token = sn.getAttributeValue("token");
           out.print(
-"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
   }
@@ -1322,9 +1326,11 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    String idQuery = variableContext.getParameter("idquery");
-    String versionQuery = variableContext.getParameter("versionquery");
-    String dataQuery = variableContext.getParameter("dataquery");
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String idQuery = variableContext.getParameter(seqPrefix+"idquery");
+    String versionQuery = variableContext.getParameter(seqPrefix+"versionquery");
+    String dataQuery = variableContext.getParameter(seqPrefix+"dataquery");
 
     SpecificationNode sn;
     if (idQuery != null)
@@ -1370,7 +1376,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       ds.addChild(ds.getChildCount(),sn);
     }
 	
-    String xc = variableContext.getParameter("tokencount");
+    String xc = variableContext.getParameter(seqPrefix+"tokencount");
     if (xc != null)
     {
       // Delete all tokens first
@@ -1389,7 +1395,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       while (i < accessCount)
       {
         String accessDescription = "_"+Integer.toString(i);
-        String accessOpName = "accessop"+accessDescription;
+        String accessOpName = seqPrefix+"accessop"+accessDescription;
         xc = variableContext.getParameter(accessOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -1398,17 +1404,17 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           continue;
         }
         // Get the stuff we need
-        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        String accessSpec = variableContext.getParameter(seqPrefix+"spectoken"+accessDescription);
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token",accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
 
-      String op = variableContext.getParameter("accessop");
+      String op = variableContext.getParameter(seqPrefix+"accessop");
       if (op != null && op.equals("Add"))
       {
-        String accessspec = variableContext.getParameter("spectoken");
+        String accessspec = variableContext.getParameter(seqPrefix+"spectoken");
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token",accessspec);
         ds.addChild(ds.getChildCount(),node);

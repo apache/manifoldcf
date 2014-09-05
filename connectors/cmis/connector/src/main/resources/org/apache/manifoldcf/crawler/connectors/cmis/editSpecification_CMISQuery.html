@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-#if($TABNAME == $ResourceBundle.getString('CmisRepositoryConnector.CMISQuery'))
+#if($TABNAME == $ResourceBundle.getString('CmisRepositoryConnector.CMISQuery') && ${SEQNUM} == ${SELECTEDNUM})
 
 <table class="displaytable">
   <tr>
@@ -31,7 +31,7 @@
     </td>
     <td class="value">
       <nobr>
-        <input type="text" size="120" name="cmisQuery" value="$Encoder.attributeEscape($CMISQUERY)" />
+        <input type="text" size="120" name="s${SEQNUM}_cmisQuery" value="$Encoder.attributeEscape($CMISQUERY)" />
       </nobr>
     </td>
   </tr>
@@ -39,6 +39,6 @@
 
 #else
 
-<input type="hidden" name="cmisQuery" value="$Encoder.attributeEscape($CMISQUERY)" />
+<input type="hidden" name="s${SEQNUM}_cmisQuery" value="$Encoder.attributeEscape($CMISQUERY)" />
 
 #end

@@ -544,7 +544,8 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   */
   public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
   {
-    return "checkSpecification";
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+    //return "checkSpecification";
   }
 
   /** Obtain the name of the form presave check javascript method to call.
@@ -553,7 +554,8 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   */
   public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
   {
-    return "checkSpecificationForSave";
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+    //return "checkSpecificationForSave";
   }
 
   /** Output the specification header section.

@@ -1496,38 +1496,33 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     tabsArray.add(Messages.getString(locale,"WikiConnector.NamespaceAndTitles"));
     tabsArray.add(Messages.getString(locale, "WikiConnector.Security"));
-    
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
-"function checkSpecification()\n"+
+"function "+seqPrefix+"NsDelete(k)\n"+
 "{\n"+
-"  // Does nothing right now.\n"+
-"  return true;\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"nsop_\"+k, \"Delete\", \""+seqPrefix+"ns_\"+k);\n"+
 "}\n"+
 "\n"+
-"function NsDelete(k)\n"+
+"function "+seqPrefix+"NsAdd(k)\n"+
 "{\n"+
-"  SpecOp(\"nsop_\"+k, \"Delete\", \"ns_\"+k);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"nsop\", \"Add\", \""+seqPrefix+"ns_\"+k);\n"+
 "}\n"+
 "\n"+
-"function NsAdd(k)\n"+
+"function "+seqPrefix+"SpecAddToken(anchorvalue)\n"+
 "{\n"+
-"  SpecOp(\"nsop\", \"Add\", \"ns_\"+k);\n"+
-"}\n"+
-"\n"+
-"function SpecAddToken(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.spectoken.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale, "WikiConnector.TypeInAnAccessToken") + "\");\n"+
-"    editjob.spectoken.focus();\n"+
+"    editjob."+seqPrefix+"spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecOp(n, opValue, anchorvalue)\n"+
+"function "+seqPrefix+"SpecOp(n, opValue, anchorvalue)\n"+
 "{\n"+
 "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
 "  postFormSetAnchor(anchorvalue);\n"+
@@ -1557,7 +1552,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
-    if (tabName.equals(Messages.getString(locale,"WikiConnector.NamespaceAndTitles")))
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    if (tabName.equals(Messages.getString(locale,"WikiConnector.NamespaceAndTitles")) && connectionSequenceNumber == actualSequenceNumber)
     {
       boolean seenAny = false;
       // Output table column headers
@@ -1584,18 +1581,18 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           String namespace = sn.getAttributeValue(WikiConfig.ATTR_NAMESPACE);
           String titlePrefix = sn.getAttributeValue(WikiConfig.ATTR_TITLEPREFIX);
           
-          String nsOpName = "nsop_"+k;
-          String nsNsName = "nsnsname_"+k;
-          String nsTitlePrefix = "nstitleprefix_"+k;
+          String nsOpName = seqPrefix+"nsop_"+k;
+          String nsNsName = seqPrefix+"nsnsname_"+k;
+          String nsTitlePrefix = seqPrefix+"nstitleprefix_"+k;
           out.print(
 "        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <a name=\""+"ns_"+Integer.toString(k)+"\"/>\n"+
+"              <a name=\""+seqPrefix+"ns_"+Integer.toString(k)+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+nsOpName+"\" value=\"\"/>\n"+
 "              <input type=\"hidden\" name=\""+nsNsName+"\" value=\""+((namespace==null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(namespace))+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+nsTitlePrefix+"\" value=\""+((titlePrefix==null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(titlePrefix))+"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WikiConnector.Delete") + "\" onClick='Javascript:NsDelete("+Integer.toString(k)+")' alt=\""+Messages.getAttributeString(locale,"WikiConnector.DeleteNamespaceTitle")+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WikiConnector.Delete") + "\" onClick='Javascript:"+seqPrefix+"NsDelete("+Integer.toString(k)+")' alt=\""+Messages.getAttributeString(locale,"WikiConnector.DeleteNamespaceTitle")+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -1645,15 +1642,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "        <tr class=\"formrow\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <a name=\""+"ns_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\"nsop\" value=\"\"/>\n"+
-"              <input type=\"hidden\" name=\"nscount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WikiConnector.Add") + "\" onClick='Javascript:NsAdd("+Integer.toString(k)+")' alt=\"" + Messages.getAttributeString(locale,"WikiConnector.AddNamespacePrefix") + "\"/>\n"+
+"              <a name=\""+seqPrefix+"ns_"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+seqPrefix+"nsop\" value=\"\"/>\n"+
+"              <input type=\"hidden\" name=\""+seqPrefix+"nscount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WikiConnector.Add") + "\" onClick='Javascript:"+seqPrefix+"NsAdd("+Integer.toString(k)+")' alt=\"" + Messages.getAttributeString(locale,"WikiConnector.AddNamespacePrefix") + "\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <select name=\"nsnsname\">\n"+
+"              <select name=\""+seqPrefix+"nsnsname\">\n"+
 "                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"WikiConnector.UseDefault") + " --</option>\n"
         );
         for (int l = 0 ; l < nameSpaceNames.length ; l++)
@@ -1671,7 +1668,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <input type=\"text\" name=\"nstitleprefix\" size=\"16\" value=\"\"/>\n"+
+"              <input type=\"text\" name=\""+seqPrefix+"nstitleprefix\" size=\"16\" value=\"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"
@@ -1704,8 +1701,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           String namespace = sn.getAttributeValue(WikiConfig.ATTR_NAMESPACE);
           String titlePrefix = sn.getAttributeValue(WikiConfig.ATTR_TITLEPREFIX);
           
-          String nsNsName = "nsnsname_"+k;
-          String nsTitlePrefix = "nstitleprefix_"+k;
+          String nsNsName = seqPrefix+"nsnsname_"+k;
+          String nsTitlePrefix = seqPrefix+"nstitleprefix_"+k;
 
           out.print(
 "<input type=\"hidden\" name=\""+nsNsName+"\" value=\""+((namespace == null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(namespace))+"\"/>\n"+
@@ -1715,11 +1712,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"nscount\" value=\""+new Integer(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"nscount\" value=\""+new Integer(k)+"\"/>\n"
       );
     }
     
-    if (tabName.equals(Messages.getString(locale, "WikiConnector.Security"))) 
+    if (tabName.equals(Messages.getString(locale, "WikiConnector.Security")) && connectionSequenceNumber == actualSequenceNumber) 
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -1732,15 +1729,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         SpecificationNode sn = ds.getChild(i++);
         if (sn.getType().equals("access")) {
           String accessDescription = "_" + Integer.toString(k);
-          String accessOpName = "accessop" + accessDescription;
+          String accessOpName = seqPrefix + "accessop" + accessDescription;
           String token = sn.getAttributeValue("token");
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <input type=\"hidden\" name=\"" + accessOpName + "\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\"" + "spectoken" + accessDescription + "\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token) + "\"/>\n"+
-"      <a name=\"" + "token_" + Integer.toString(k) + "\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "WikiConnector.Delete") + "\" onClick='Javascript:SpecOp(\"" + accessOpName + "\",\"Delete\",\"token_" + Integer.toString(k) + "\")' alt=\"" + Messages.getAttributeString(locale, "WikiConnector.Delete") + Integer.toString(k) + "\"/>\n"+
+"      <input type=\"hidden\" name=\"" + seqPrefix + "spectoken" + accessDescription + "\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token) + "\"/>\n"+
+"      <a name=\"" + seqPrefix + "token_" + Integer.toString(k) + "\">\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "WikiConnector.Delete") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\"" + accessOpName + "\",\"Delete\",\""+seqPrefix+"token_" + Integer.toString(k) + "\")' alt=\"" + Messages.getAttributeString(locale, "WikiConnector.Delete") + Integer.toString(k) + "\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -1762,14 +1759,14 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n"+
-"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
-"      <a name=\"" + "token_" + Integer.toString(k) + "\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "WikiConnector.Add") + "\" onClick='Javascript:SpecAddToken(\"token_" + Integer.toString(k + 1) + "\")' alt=\"" + Messages.getAttributeString(locale, "WikiConnector.Add") + "\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"+
+"      <a name=\"" + seqPrefix + "token_" + Integer.toString(k) + "\">\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "WikiConnector.Add") + "\" onClick='Javascript:"+seqPrefix+"SpecAddToken(\""+seqPrefix+"token_" + Integer.toString(k + 1) + "\")' alt=\"" + Messages.getAttributeString(locale, "WikiConnector.Add") + "\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1786,13 +1783,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           String accessDescription = "_" + Integer.toString(k);
           String token = sn.getAttributeValue("token");
           out.print(
-"<input type=\"hidden\" name=\"" + "spectoken" + accessDescription + "\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token) + "\"/>\n"
+"<input type=\"hidden\" name=\"" + seqPrefix + "spectoken" + accessDescription + "\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token) + "\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n"
       );
     }
   }
@@ -1814,7 +1811,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    String countString = variableContext.getParameter("nscount");
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String countString = variableContext.getParameter(seqPrefix+"nscount");
     if (countString != null)
     {
       for (int i = 0 ; i < ds.getChildCount() ; i++)
@@ -1829,9 +1828,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int nsCount = Integer.parseInt(countString);
       for (int i = 0 ; i < nsCount ; i++)
       {
-        String nsOpName = "nsop_"+i;
-        String nsNsName = "nsnsname_"+i;
-        String nsTitlePrefix = "nstitleprefix_"+i;
+        String nsOpName = seqPrefix+"nsop_"+i;
+        String nsNsName = seqPrefix+"nsnsname_"+i;
+        String nsTitlePrefix = seqPrefix+"nstitleprefix_"+i;
         
         String nsOp = variableContext.getParameter(nsOpName);
         if (nsOp == null || !nsOp.equals("Delete"))
@@ -1851,13 +1850,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
       }
       
-      String newOp = variableContext.getParameter("nsop");
+      String newOp = variableContext.getParameter(seqPrefix+"nsop");
       if (newOp != null && newOp.equals("Add"))
       {
-        String namespaceName = variableContext.getParameter("nsnsname");
+        String namespaceName = variableContext.getParameter(seqPrefix+"nsnsname");
         if (namespaceName != null && namespaceName.length() == 0)
           namespaceName = null;
-        String titlePrefix = variableContext.getParameter("nstitleprefix");
+        String titlePrefix = variableContext.getParameter(seqPrefix+"nstitleprefix");
         if (titlePrefix != null && titlePrefix.length() == 0)
           titlePrefix = null;
         SpecificationNode sn = new SpecificationNode(WikiConfig.NODE_NAMESPACE_TITLE_PREFIX);
@@ -1869,7 +1868,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    String xc = variableContext.getParameter("tokencount");
+    String xc = variableContext.getParameter(seqPrefix+"tokencount");
     if (xc != null) {
       // Delete all tokens first
       int i = 0;
@@ -1886,7 +1885,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       i = 0;
       while (i < accessCount) {
         String accessDescription = "_" + Integer.toString(i);
-        String accessOpName = "accessop" + accessDescription;
+        String accessOpName = seqPrefix +"accessop" + accessDescription;
         xc = variableContext.getParameter(accessOpName);
         if (xc != null && xc.equals("Delete")) {
           // Next row
@@ -1894,16 +1893,16 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           continue;
         }
         // Get the stuff we need
-        String accessSpec = variableContext.getParameter("spectoken" + accessDescription);
+        String accessSpec = variableContext.getParameter(seqPrefix + "spectoken" + accessDescription);
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token", accessSpec);
         ds.addChild(ds.getChildCount(), node);
         i++;
       }
 
-      String op = variableContext.getParameter("accessop");
+      String op = variableContext.getParameter(seqPrefix+"accessop");
       if (op != null && op.equals("Add")) {
-        String accessspec = variableContext.getParameter("spectoken");
+        String accessspec = variableContext.getParameter(seqPrefix+"spectoken");
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token", accessspec);
         ds.addChild(ds.getChildCount(), node);

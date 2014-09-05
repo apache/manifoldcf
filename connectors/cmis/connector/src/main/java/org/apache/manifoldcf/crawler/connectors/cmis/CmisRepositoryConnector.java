@@ -946,6 +946,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     throws ManifoldCFException, IOException {
   
     Map<String,String> paramMap = new HashMap<String,String>();
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
 
     // Fill in the map with data from all tabs
     fillInCMISQuerySpecificationMap(paramMap, ds);
@@ -969,7 +970,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
     int connectionSequenceNumber)
     throws ManifoldCFException {
-    String cmisQuery = variableContext.getParameter(CmisConfig.CMIS_QUERY_PARAM);
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String cmisQuery = variableContext.getParameter(seqPrefix + CmisConfig.CMIS_QUERY_PARAM);
     if (cmisQuery != null) {
       int i = 0;
       while (i < ds.getChildCount()) {
@@ -1010,6 +1013,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     // Output CMISQuery tab
     Map<String,String> paramMap = new HashMap<String,String>();
     paramMap.put("TabName", tabName);
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
+    paramMap.put("SelectedNum", Integer.toString(actualSequenceNumber));
+
     fillInCMISQuerySpecificationMap(paramMap, ds);
     outputResource(EDIT_SPEC_FORWARD_CMISQUERY, out, locale, paramMap);
   }
@@ -1032,7 +1038,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     tabsArray.add(Messages.getString(locale,CMIS_QUERY_TAB_PROPERTY));
   
     Map<String,String> paramMap = new HashMap<String,String>();
-  
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
+
     // Fill in the specification header map, using data from all tabs.
     fillInCMISQuerySpecificationMap(paramMap, ds);
 

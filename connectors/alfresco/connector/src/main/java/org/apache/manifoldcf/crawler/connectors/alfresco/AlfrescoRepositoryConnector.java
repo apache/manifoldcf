@@ -102,6 +102,12 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   /** Tab name parameter for managin the view of the Web UI */
   private static final String TAB_NAME_PARAM = "TabName";
   
+  /** The sequence number parameter */
+  private static final String SEQ_NUM_PARAM = "SeqNum";
+  
+  /** The selected sequence number parameter */
+  private static final String SELECTED_NUM_PARAM = "SelectedNum";
+  
   /** The Lucene Query label for the configuration tab of the job settings */
   private static final String TAB_LABEL_LUCENE_QUERY_RESOURCE = "AlfrescoConnector.LuceneQuery";
   /** Alfresco Server configuration tab name */
@@ -641,7 +647,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   public String processConfigurationPost(IThreadContext threadContext,
       IPostParameters variableContext, Locale locale, ConfigParams parameters)
       throws ManifoldCFException {
-
+        
     String username = variableContext.getParameter(AlfrescoConfig.USERNAME_PARAM);
     if (username != null) {
       parameters.setParameter(AlfrescoConfig.USERNAME_PARAM, username);
@@ -719,6 +725,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
         
     // Fill in parameters from all tabs
     fillInLuceneQueryParameters(paramMap, ds);
+    paramMap.put(SEQ_NUM_PARAM, Integer.toString(connectionSequenceNumber));
 
     outputResource(VIEW_SPEC_FORWARD, out, locale, paramMap);
   }
@@ -739,7 +746,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
     int connectionSequenceNumber)
     throws ManifoldCFException {
-    String luceneQuery = variableContext.getParameter(AlfrescoConfig.LUCENE_QUERY_PARAM);
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String luceneQuery = variableContext.getParameter(seqPrefix + AlfrescoConfig.LUCENE_QUERY_PARAM);
     if (luceneQuery != null) {
       int i = 0;
       while (i < ds.getChildCount()) {
@@ -782,6 +791,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     // LuceneQuery tab
     Map<String,String> paramMap = new HashMap<String,String>();
     paramMap.put(TAB_NAME_PARAM, tabName);
+    paramMap.put(SEQ_NUM_PARAM, Integer.toString(connectionSequenceNumber));
+    paramMap.put(SELECTED_NUM_PARAM, Integer.toString(actualSequenceNumber));
+
     fillInLuceneQueryParameters(paramMap, ds);
     outputResource(EDIT_SPEC_FORWARD_LUCENEQUERY, out, locale, paramMap);
   }
@@ -806,7 +818,8 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
         
     // Fill in parameters from all tabs
     Map<String,String> paramMap = new HashMap<String,String>();
-        
+    paramMap.put(SEQ_NUM_PARAM, Integer.toString(connectionSequenceNumber));
+
     // LuceneQuery tab
     fillInLuceneQueryParameters(paramMap, ds);
 

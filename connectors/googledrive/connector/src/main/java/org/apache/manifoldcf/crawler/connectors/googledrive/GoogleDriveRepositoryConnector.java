@@ -608,6 +608,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     throws ManifoldCFException, IOException {
 
     Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
 
     // Fill in the map with data from all tabs
     fillInGOOGLEDRIVEQuerySpecificationMap(paramMap, ds);
@@ -633,7 +634,9 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     int connectionSequenceNumber)
     throws ManifoldCFException {
 
-    String googleDriveQuery = variableContext.getParameter("googledrivequery");
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String googleDriveQuery = variableContext.getParameter(seqPrefix+"googledrivequery");
     if (googleDriveQuery != null) {
       int i = 0;
       while (i < ds.getChildCount()) {
@@ -649,7 +652,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       ds.addChild(ds.getChildCount(), node);
     }
     
-    String xc = variableContext.getParameter("tokencount");
+    String xc = variableContext.getParameter(seqPrefix+"tokencount");
     if (xc != null) {
       // Delete all tokens first
       int i = 0;
@@ -665,7 +668,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       i = 0;
       while (i < accessCount) {
         String accessDescription = "_"+Integer.toString(i);
-        String accessOpName = "accessop"+accessDescription;
+        String accessOpName = seqPrefix+"accessop"+accessDescription;
         xc = variableContext.getParameter(accessOpName);
         if (xc != null && xc.equals("Delete")) {
           // Next row
@@ -673,17 +676,17 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           continue;
         }
         // Get the stuff we need
-        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        String accessSpec = variableContext.getParameter(seqPrefix+"spectoken"+accessDescription);
         SpecificationNode node = new SpecificationNode(JOB_ACCESS_NODE_TYPE);
         node.setAttribute(JOB_TOKEN_ATTRIBUTE,accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
 
-      String op = variableContext.getParameter("accessop");
+      String op = variableContext.getParameter(seqPrefix+"accessop");
       if (op != null && op.equals("Add"))
       {
-        String accessspec = variableContext.getParameter("spectoken");
+        String accessspec = variableContext.getParameter(seqPrefix+"spectoken");
         SpecificationNode node = new SpecificationNode(JOB_ACCESS_NODE_TYPE);
         node.setAttribute(JOB_TOKEN_ATTRIBUTE,accessspec);
         ds.addChild(ds.getChildCount(),node);
@@ -715,6 +718,9 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     // Output GOOGLEDRIVEQuery tab
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("TabName", tabName);
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
+    paramMap.put("SelectedNum", Integer.toString(actualSequenceNumber));
+
     fillInGOOGLEDRIVEQuerySpecificationMap(paramMap, ds);
     fillInGOOGLEDRIVESecuritySpecificationMap(paramMap, ds);
     Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_FORWARD_GOOGLEDRIVEQUERY,paramMap);
@@ -741,6 +747,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     tabsArray.add(Messages.getString(locale, GOOGLEDRIVE_SECURITY_TAB_PROPERTY));
 
     Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
 
     // Fill in the specification header map, using data from all tabs.
     fillInGOOGLEDRIVEQuerySpecificationMap(paramMap, ds);

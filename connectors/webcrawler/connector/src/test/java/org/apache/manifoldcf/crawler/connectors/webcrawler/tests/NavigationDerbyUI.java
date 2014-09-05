@@ -223,7 +223,7 @@ public class NavigationDerbyUI extends BaseUIDerby
     link.click();
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editjob"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("seeds"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("s0_seeds"));
     textarea.setValue(testerInstance.createStringDescription("http://www.cnn.com"));
     // Canonicalization tab
     link = window.findLink(testerInstance.createStringDescription("Canonicalization tab"));
@@ -248,7 +248,7 @@ public class NavigationDerbyUI extends BaseUIDerby
     link.click();
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editjob"));
-    checkbox = form.findCheckbox(testerInstance.createStringDescription("matchinghosts"),
+    checkbox = form.findCheckbox(testerInstance.createStringDescription("s0_matchinghosts"),
       testerInstance.createStringDescription("true"));
     checkbox.select();
     // Exclusions tab

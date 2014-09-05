@@ -3627,48 +3627,50 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Exclusions"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Security"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Metadata"));
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
 "\n"+
-"function SpecOp(n, opValue, anchorvalue)\n"+
+"function "+seqPrefix+"SpecOp(n, opValue, anchorvalue)\n"+
 "{\n"+
 "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
 "  postFormSetAnchor(anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function URLRegexpDelete(index, anchorvalue)\n"+
+"function "+seqPrefix+"URLRegexpDelete(index, anchorvalue)\n"+
 "{\n"+
-"  editjob.urlregexpnumber.value = index;\n"+
-"  SpecOp(\"urlregexpop\",\"Delete\",anchorvalue);\n"+
+"  editjob."+seqPrefix+"urlregexpnumber.value = index;\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"urlregexpop\",\"Delete\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function URLRegexpAdd(anchorvalue)\n"+
+"function "+seqPrefix+"URLRegexpAdd(anchorvalue)\n"+
 "{\n"+
-"  SpecOp(\"urlregexpop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"urlregexpop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function checkSpecification()\n"+
+"function "+seqPrefix+"checkSpecification()\n"+
 "{\n"+
-"  if (check_expressions(\"inclusions\",editjob.inclusions.value) == false)\n"+
+"  if ("+seqPrefix+"check_expressions(\"inclusions\",editjob."+seqPrefix+"inclusions.value) == false)\n"+
 "  {\n"+
-"    editjob.inclusions.focus();\n"+
+"    editjob."+seqPrefix+"inclusions.focus();\n"+
 "    return false;\n"+
 "  }  \n"+
-"  if (check_expressions(\"exclusions\",editjob.exclusions.value) == false)\n"+
+"  if ("+seqPrefix+"check_expressions(\"exclusions\",editjob."+seqPrefix+"exclusions.value) == false)\n"+
 "  {\n"+
-"    editjob.exclusions.focus();\n"+
+"    editjob."+seqPrefix+"exclusions.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (check_seedsList() == false)\n"+
+"  if ("+seqPrefix+"check_seedsList() == false)\n"+
 "  {\n"+
-"    editjob.seeds.focus();\n"+
+"    editjob."+seqPrefix+"seeds.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
-"function check_expressions(thecontext,theexpressionlist)\n"+
+"function "+seqPrefix+"check_expressions(thecontext,theexpressionlist)\n"+
 "{\n"+
 "  var rval = true;\n"+
 "  var theArray = theexpressionlist.split(\"\\n\");\n"+
@@ -3695,10 +3697,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  return rval;\n"+
 "}\n"+
 "\n"+
-"function check_seedsList()\n"+
+"function "+seqPrefix+"check_seedsList()\n"+
 "{\n"+
 "  var regexp = /http(s)?:\\/\\/([a-z0-9+!*(),;?&=\\$_.-]+(\\:[a-z0-9+!*(),;?&=\\$_.-]+)?@)?[a-z0-9+\\$_-]+(\\.[a-z0-9+\\$_-]+)*(\\:[0-9]{2,5})?(\\/([a-z0-9+\\$_-]\\.?)+)*\\/?(\\?[a-z+&\\$_.-][a-z0-9;:@\\/&%=+\\$_.-]*)?(#[a-z_.-][a-z0-9+\\$_.-]*)?/;\n"+
-"  var lines = editjob.seeds.value.split(\"\\n\");\n"+
+"  var lines = editjob."+seqPrefix+"seeds.value.split(\"\\n\");\n"+
 "  var trimmedUrlList = \"\";\n"+
 "  var invalidUrlList = \"\";\n"+
 "  var i = 0;\n"+
@@ -3713,7 +3715,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "    }\n"+
 "    i = i + 1;\n"+
 "  }\n"+
-"  editjob.seeds.value = trimmedUrlList;\n"+ 
+"  editjob."+seqPrefix+"seeds.value = trimmedUrlList;\n"+ 
 "  if (invalidUrlList.length > 0)\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.InvalidUrlsInSeedsList")+"\\n\" + invalidUrlList);\n"+
@@ -3722,15 +3724,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  return true;\n"+
 "}\n"+
 "\n"+
-"function SpecAddToken(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddToken(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.spectoken.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.TypeInAnAccessToken")+"\");\n"+
-"    editjob.spectoken.focus();\n"+
+"    editjob."+seqPrefix+"spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
 "//-->\n"+
@@ -3757,6 +3759,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     int i;
     int k;
 
@@ -3822,14 +3826,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     // Seeds tab
 
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Seeds")))
+    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Seeds")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"value\" colspan=\"2\">\n"+
-"      <textarea rows=\"25\" cols=\"80\" name=\"seeds\">"+Encoder.bodyEscape(seeds)+"</textarea>\n"+
+"      <textarea rows=\"25\" cols=\"80\" name=\""+seqPrefix+"seeds\">"+Encoder.bodyEscape(seeds)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -3838,21 +3842,21 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"seeds\" value=\""+Encoder.attributeEscape(seeds)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"seeds\" value=\""+Encoder.attributeEscape(seeds)+"\"/>\n"
       );
     }
 
     // Canonicalization tab
 
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Canonicalization")))
+    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Canonicalization")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"boxcell\" colspan=\"2\">\n"+
-"      <input type=\"hidden\" name=\"urlregexpop\" value=\"Continue\"/>\n"+
-"      <input type=\"hidden\" name=\"urlregexpnumber\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"urlregexpop\" value=\"Continue\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"urlregexpnumber\" value=\"\"/>\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
 "          <td class=\"formcolumnheader\"></td>\n"+
@@ -3925,18 +3929,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+"urlregexp_"+Integer.toString(l)+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteUrlRegexp")+Encoder.attributeEscape(regexpString)+"\" onclick='javascript:URLRegexpDelete("+Integer.toString(l)+",\"urlregexp_"+Integer.toString(l)+"\");'/>\n"+
+"            <a name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\">\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteUrlRegexp")+Encoder.attributeEscape(regexpString)+"\" onclick='javascript:"+seqPrefix+"URLRegexpDelete("+Integer.toString(l)+",\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\");'/>\n"+
 "            </a>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(regexpString)+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(description)+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(regexpString)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(description)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"+
 "            <nobr>"+Encoder.bodyEscape(regexpString)+"</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">"+Encoder.bodyEscape(description)+"</td>\n"+
@@ -3961,18 +3965,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "        <tr class=\"formrow\"><td colspan=\"8\" class=\"formseparator\"><hr/></td></tr>\n"+
 "        <tr class=\"formrow\">\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+"urlregexp_"+Integer.toString(l)+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddUrlRegexp") + "\" onclick='javascript:URLRegexpAdd(\"urlregexp_"+Integer.toString(l+1)+"\");'/>\n"+
-"              <input type=\"hidden\" name=\"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"+
+"            <a name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\">\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddUrlRegexp") + "\" onclick='javascript:"+seqPrefix+"URLRegexpAdd(\""+seqPrefix+"urlregexp_"+Integer.toString(l+1)+"\");'/>\n"+
+"              <input type=\"hidden\" name=\""+seqPrefix+"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"+
 "            </a>\n"+
 "          </td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"text\" name=\"urlregexp\" size=\"30\" value=\"\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"text\" name=\"urlregexpdesc\" size=\"30\" value=\"\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpreorder\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpjava\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpasp\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpphp\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpbv\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"text\" name=\""+seqPrefix+"urlregexp\" size=\"30\" value=\"\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"text\" name=\""+seqPrefix+"urlregexpdesc\" size=\"30\" value=\"\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpreorder\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpjava\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpasp\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpphp\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpbv\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
 "        </tr>\n"+
 "      </table>\n"+
 "    </td>\n"+
@@ -4011,24 +4015,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
             allowBVSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
           out.print(
-"<input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(regexpString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(description)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(regexpString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(description)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"
           );
           l++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"
       );
     }
 
     // Inclusions tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Inclusions")))
+    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Inclusions")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -4036,20 +4040,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeInCrawl") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"25\" cols=\"60\" name=\"inclusions\">"+Encoder.bodyEscape(inclusions)+"</textarea>\n"+
+"      <textarea rows=\"25\" cols=\"60\" name=\""+seqPrefix+"inclusions\">"+Encoder.bodyEscape(inclusions)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeInIndex") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"10\" cols=\"60\" name=\"inclusionsindex\">"+Encoder.bodyEscape(inclusionsIndex)+"</textarea>\n"+
+"      <textarea rows=\"10\" cols=\"60\" name=\""+seqPrefix+"inclusionsindex\">"+Encoder.bodyEscape(inclusionsIndex)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeOnlyHostsMatchingSeeds") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"checkbox\" name=\"matchinghosts\" value=\"true\""+(includeMatching?" checked=\"yes\"":"")+"/>\n"+
-"      <input type=\"hidden\" name=\"matchinghosts_present\" value=\"true\"/>\n"+
+"      <input type=\"checkbox\" name=\""+seqPrefix+"matchinghosts\" value=\"true\""+(includeMatching?" checked=\"yes\"":"")+"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"matchinghosts_present\" value=\"true\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -4058,16 +4062,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"inclusions\" value=\""+Encoder.attributeEscape(inclusions)+"\"/>\n"+
-"<input type=\"hidden\" name=\"inclusionsindex\" value=\""+Encoder.attributeEscape(inclusionsIndex)+"\"/>\n"+
-"<input type=\"hidden\" name=\"matchinghosts\" value=\""+(includeMatching?"true":"false")+"\"/>\n"+
-"<input type=\"hidden\" name=\"matchinghosts_present\" value=\"true\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"inclusions\" value=\""+Encoder.attributeEscape(inclusions)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"inclusionsindex\" value=\""+Encoder.attributeEscape(inclusionsIndex)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"matchinghosts\" value=\""+(includeMatching?"true":"false")+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"matchinghosts_present\" value=\"true\"/>\n"
       );
     }
 
     // Exclusions tab
 
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Exclusions")))
+    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Exclusions")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -4075,13 +4079,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeFromCrawl") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"25\" cols=\"60\" name=\"exclusions\">"+Encoder.bodyEscape(exclusions)+"</textarea>\n"+
+"      <textarea rows=\"25\" cols=\"60\" name=\""+seqPrefix+"exclusions\">"+Encoder.bodyEscape(exclusions)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeFromIndex") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"10\" cols=\"60\" name=\"exclusionsindex\">"+Encoder.bodyEscape(exclusionsIndex)+"</textarea>\n"+
+"      <textarea rows=\"10\" cols=\"60\" name=\""+seqPrefix+"exclusionsindex\">"+Encoder.bodyEscape(exclusionsIndex)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -4090,8 +4094,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"exclusions\" value=\""+Encoder.attributeEscape(exclusions)+"\"/>\n"+
-"<input type=\"hidden\" name=\"exclusionsindex\" value=\""+Encoder.attributeEscape(exclusionsIndex)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"exclusions\" value=\""+Encoder.attributeEscape(exclusions)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"exclusionsindex\" value=\""+Encoder.attributeEscape(exclusionsIndex)+"\"/>\n"
       );
     }
   
@@ -4099,7 +4103,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     // There is no native security, so all we care about are the tokens.
     i = 0;
 
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Security")))
+    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Security")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -4114,15 +4118,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
         {
           String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = "accessop"+accessDescription;
+          String accessOpName = seqPrefix+"accessop"+accessDescription;
           String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -4145,14 +4149,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddAccessToken") + "\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" onClick='Javascript:"+seqPrefix+"SpecAddToken(\""+seqPrefix+"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddAccessToken") + "\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -4171,18 +4175,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           String accessDescription = "_"+Integer.toString(k);
           String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
           out.print(
-"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+Encoder.attributeEscape(token)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+Encoder.attributeEscape(token)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
 
     // "Metadata" tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Metadata")))
+    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Metadata")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -4190,13 +4194,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale, "WebcrawlerConnector.ExcludedHeadersColon")+"</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
-"      <input type=\"hidden\" name=\"excludedheaders_present\" value=\"true\"/>\n"
+"      <input type=\"hidden\" name=\""+seqPrefix+"excludedheaders_present\" value=\"true\"/>\n"
       );
       
       for (String potentiallyExcludedHeader : potentiallyExcludedHeaders)
       {
         out.print(
-"      <input type=\"checkbox\" name=\"excludedheaders\" value=\""+Encoder.attributeEscape(potentiallyExcludedHeader)+"\""+(excludedHeaders.contains(potentiallyExcludedHeader)?" checked=\"true\"":"")+">"+Encoder.bodyEscape(potentiallyExcludedHeader)+"</input><br/>\n"
+"      <input type=\"checkbox\" name=\""+seqPrefix+"excludedheaders\" value=\""+Encoder.attributeEscape(potentiallyExcludedHeader)+"\""+(excludedHeaders.contains(potentiallyExcludedHeader)?" checked=\"true\"":"")+">"+Encoder.bodyEscape(potentiallyExcludedHeader)+"</input><br/>\n"
         );
       }
       out.print(
@@ -4208,12 +4212,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"excludedheaders_present\" value=\"true\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"excludedheaders_present\" value=\"true\"/>\n"
       );
       for (String excludedHeader : excludedHeaders)
       {
         out.print(
-"<input type=\"hidden\" name=\"excludedheaders\" value=\""+Encoder.attributeEscape(excludedHeader)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"excludedheaders\" value=\""+Encoder.attributeEscape(excludedHeader)+"\"/>\n"
         );
       }
     }
@@ -4236,8 +4240,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     // Get excluded headers
-    String excludedHeadersPresent = variableContext.getParameter("excludedheaders_present");
+    String excludedHeadersPresent = variableContext.getParameter(seqPrefix+"excludedheaders_present");
     if (excludedHeadersPresent != null)
     {
       // Delete existing excludedheader record first
@@ -4250,7 +4256,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         else
           i++;
       }
-      String[] excludedHeaders = variableContext.getParameterValues("excludedheaders");
+      String[] excludedHeaders = variableContext.getParameterValues(seqPrefix+"excludedheaders");
       if (excludedHeaders != null)
       {
         for (String excludedHeader : excludedHeaders)
@@ -4263,7 +4269,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     
     // Get the seeds
-    String seeds = variableContext.getParameter("seeds");
+    String seeds = variableContext.getParameter(seqPrefix+"seeds");
     if (seeds != null)
     {
       // Delete existing seeds record first
@@ -4283,7 +4289,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     // Get the inclusions
-    String inclusions = variableContext.getParameter("inclusions");
+    String inclusions = variableContext.getParameter(seqPrefix+"inclusions");
     if (inclusions != null)
     {
       // Delete existing inclusions record first
@@ -4303,7 +4309,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     // Get the index inclusions
-    String inclusionsIndex = variableContext.getParameter("inclusionsindex");
+    String inclusionsIndex = variableContext.getParameter(seqPrefix+"inclusionsindex");
     if (inclusionsIndex != null)
     {
       // Delete existing index inclusions record first
@@ -4323,7 +4329,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     // Handle the seeds-only switch
-    String matchingHostsPresent = variableContext.getParameter("matchinghosts_present");
+    String matchingHostsPresent = variableContext.getParameter(seqPrefix+"matchinghosts_present");
     if (matchingHostsPresent != null)
     {
       // Delete existing switch record first
@@ -4337,14 +4343,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           i++;
       }
 
-      String matchingHosts = variableContext.getParameter("matchinghosts");
+      String matchingHosts = variableContext.getParameter(seqPrefix+"matchinghosts");
       SpecificationNode cn = new SpecificationNode(WebcrawlerConfig.NODE_LIMITTOSEEDS);
       cn.setAttribute(WebcrawlerConfig.ATTR_VALUE,(matchingHosts==null||matchingHosts.equals("false"))?"false":"true");
       ds.addChild(ds.getChildCount(),cn);
     }
     
     // Get the exclusions
-    String exclusions = variableContext.getParameter("exclusions");
+    String exclusions = variableContext.getParameter(seqPrefix+"exclusions");
     if (exclusions != null)
     {
       // Delete existing exclusions record first
@@ -4364,7 +4370,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     // Get the index exclusions
-    String exclusionsIndex = variableContext.getParameter("exclusionsindex");
+    String exclusionsIndex = variableContext.getParameter(seqPrefix+"exclusionsindex");
     if (exclusionsIndex != null)
     {
       // Delete existing exclusions record first
@@ -4384,7 +4390,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     // Read the url specs
-    String urlRegexpCount = variableContext.getParameter("urlregexpcount");
+    String urlRegexpCount = variableContext.getParameter(seqPrefix+"urlregexpcount");
     if (urlRegexpCount != null && urlRegexpCount.length() > 0)
     {
       int regexpCount = Integer.parseInt(urlRegexpCount);
@@ -4399,12 +4405,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       }
       
       // Grab the operation and the index (if any)
-      String operation = variableContext.getParameter("urlregexpop");
+      String operation = variableContext.getParameter(seqPrefix+"urlregexpop");
       if (operation == null)
         operation = "Continue";
       int opIndex = -1;
       if (operation.equals("Delete"))
-        opIndex = Integer.parseInt(variableContext.getParameter("urlregexpnumber"));
+        opIndex = Integer.parseInt(variableContext.getParameter(seqPrefix+"urlregexpnumber"));
       
       // Reconstruct urlspec nodes
       j = 0;
@@ -4414,13 +4420,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         if (!operation.equals("Delete") || j != opIndex)
         {
           // Add the jth node
-          String regexp = variableContext.getParameter("urlregexp_"+Integer.toString(j));
-          String regexpDescription = variableContext.getParameter("urlregexpdesc_"+Integer.toString(j));
-          String reorder = variableContext.getParameter("urlregexpreorder_"+Integer.toString(j));
-          String javaSession = variableContext.getParameter("urlregexpjava_"+Integer.toString(j));
-          String aspSession = variableContext.getParameter("urlregexpasp_"+Integer.toString(j));
-          String phpSession = variableContext.getParameter("urlregexpphp_"+Integer.toString(j));
-          String bvSession = variableContext.getParameter("urlregexpbv_"+Integer.toString(j));
+          String regexp = variableContext.getParameter(seqPrefix+"urlregexp_"+Integer.toString(j));
+          String regexpDescription = variableContext.getParameter(seqPrefix+"urlregexpdesc_"+Integer.toString(j));
+          String reorder = variableContext.getParameter(seqPrefix+"urlregexpreorder_"+Integer.toString(j));
+          String javaSession = variableContext.getParameter(seqPrefix+"urlregexpjava_"+Integer.toString(j));
+          String aspSession = variableContext.getParameter(seqPrefix+"urlregexpasp_"+Integer.toString(j));
+          String phpSession = variableContext.getParameter(seqPrefix+"urlregexpphp_"+Integer.toString(j));
+          String bvSession = variableContext.getParameter(seqPrefix+"urlregexpbv_"+Integer.toString(j));
           SpecificationNode newSn = new SpecificationNode(WebcrawlerConfig.NODE_URLSPEC);
           newSn.setAttribute(WebcrawlerConfig.ATTR_REGEXP,regexp);
           if (regexpDescription != null && regexpDescription.length() > 0)
@@ -4441,13 +4447,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       }
       if (operation.equals("Add"))
       {
-        String regexp = variableContext.getParameter("urlregexp");
-        String regexpDescription = variableContext.getParameter("urlregexpdesc");
-        String reorder = variableContext.getParameter("urlregexpreorder");
-        String javaSession = variableContext.getParameter("urlregexpjava");
-        String aspSession = variableContext.getParameter("urlregexpasp");
-        String phpSession = variableContext.getParameter("urlregexpphp");
-        String bvSession = variableContext.getParameter("urlregexpbv");
+        String regexp = variableContext.getParameter(seqPrefix+"urlregexp");
+        String regexpDescription = variableContext.getParameter(seqPrefix+"urlregexpdesc");
+        String reorder = variableContext.getParameter(seqPrefix+"urlregexpreorder");
+        String javaSession = variableContext.getParameter(seqPrefix+"urlregexpjava");
+        String aspSession = variableContext.getParameter(seqPrefix+"urlregexpasp");
+        String phpSession = variableContext.getParameter(seqPrefix+"urlregexpphp");
+        String bvSession = variableContext.getParameter(seqPrefix+"urlregexpbv");
 
         // Add a new node at the end
         SpecificationNode newSn = new SpecificationNode(WebcrawlerConfig.NODE_URLSPEC);
@@ -4468,7 +4474,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       }
     }
 
-    String xc = variableContext.getParameter("tokencount");
+    String xc = variableContext.getParameter(seqPrefix+"tokencount");
     if (xc != null)
     {
       // Delete all tokens first
@@ -4487,7 +4493,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < accessCount)
       {
         String accessDescription = "_"+Integer.toString(i);
-        String accessOpName = "accessop"+accessDescription;
+        String accessOpName = seqPrefix+"accessop"+accessDescription;
         xc = variableContext.getParameter(accessOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -4496,17 +4502,17 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           continue;
         }
         // Get the stuff we need
-        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        String accessSpec = variableContext.getParameter(seqPrefix+"spectoken"+accessDescription);
         SpecificationNode node = new SpecificationNode(WebcrawlerConfig.NODE_ACCESS);
         node.setAttribute(WebcrawlerConfig.ATTR_TOKEN,accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
 
-      String op = variableContext.getParameter("accessop");
+      String op = variableContext.getParameter(seqPrefix+"accessop");
       if (op != null && op.equals("Add"))
       {
-        String accessspec = variableContext.getParameter("spectoken");
+        String accessspec = variableContext.getParameter(seqPrefix+"spectoken");
         SpecificationNode node = new SpecificationNode(WebcrawlerConfig.NODE_ACCESS);
         node.setAttribute(WebcrawlerConfig.ATTR_TOKEN,accessspec);
         ds.addChild(ds.getChildCount(),node);
