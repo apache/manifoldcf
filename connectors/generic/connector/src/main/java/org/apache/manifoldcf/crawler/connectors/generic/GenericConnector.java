@@ -442,7 +442,7 @@ public class GenericConnector extends BaseRepositoryConnector {
             try {
               // Can only index while background thread is running!
               doc.setBinary(is, fileLength);
-              activities.ingestDocument(documentIdentifiers[i], versions[i], item.url, doc);
+              activities.ingestDocumentWithException(documentIdentifiers[i], versions[i], item.url, doc);
             } finally {
               is.close();
             }
@@ -613,35 +613,33 @@ public class GenericConnector extends BaseRepositoryConnector {
     tabsArray.add(Messages.getString(locale, "generic.Parameters"));
     tabsArray.add(Messages.getString(locale, "generic.Security"));
 
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     out.print(
       "<script type=\"text/javascript\">\n"
       + "<!--\n"
-      + "function SpecOp(n, opValue, anchorvalue) {\n"
+      + "function "+seqPrefix+"SpecOp(n, opValue, anchorvalue) {\n"
       + "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"
       + "  postFormSetAnchor(anchorvalue);\n"
       + "}\n"
       + "\n"
-      + "function checkSpecification() {\n"
-      + "  return true;\n"
-      + "}\n"
-      + "\n"
-      + "function SpecAddToken(anchorvalue) {\n"
-      + "  if (editjob.spectoken.value == \"\")\n"
+      + "function "+seqPrefix+"SpecAddToken(anchorvalue) {\n"
+      + "  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"
       + "  {\n"
       + "    alert(\"" + Messages.getBodyJavascriptString(locale, "generic.TypeInAnAccessToken") + "\");\n"
-      + "    editjob.spectoken.focus();\n"
+      + "    editjob."+seqPrefix+"spectoken.focus();\n"
       + "    return;\n"
       + "  }\n"
-      + "  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"
+      + "  "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"
       + "}\n"
-      + "function SpecAddParam(anchorvalue) {\n"
-      + "  if (editjob.specparamname.value == \"\")\n"
+      + "function "+seqPrefix+"SpecAddParam(anchorvalue) {\n"
+      + "  if (editjob."+seqPrefix+"specparamname.value == \"\")\n"
       + "  {\n"
       + "    alert(\"" + Messages.getBodyJavascriptString(locale, "generic.TypeInParamName") + "\");\n"
-      + "    editjob.specparamname.focus();\n"
+      + "    editjob."+seqPrefix+"specparamname.focus();\n"
       + "    return;\n"
       + "  }\n"
-      + "  SpecOp(\"paramop\",\"Add\",anchorvalue);\n"
+      + "  "+seqPrefix+"SpecOp(\""+seqPrefix+"paramop\",\"Add\",anchorvalue);\n"
       + "}\n"
       + "//-->\n"
       + "</script>\n");
@@ -652,9 +650,11 @@ public class GenericConnector extends BaseRepositoryConnector {
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException {
 
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     int k, i;
 
-    if (tabName.equals(Messages.getString(locale, "generic.Parameters"))) {
+    if (tabName.equals(Messages.getString(locale, "generic.Parameters")) && connectionSequenceNumber == actualSequenceNumber) {
 
       out.print("<table class=\"displaytable\">"
         + "<tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ParametersColon") + "</nobr></td>"
@@ -673,22 +673,22 @@ public class GenericConnector extends BaseRepositoryConnector {
         SpecificationNode sn = ds.getChild(i++);
         if (sn.getType().equals("param")) {
           String paramDescription = "_" + Integer.toString(k);
-          String paramOpName = "paramop" + paramDescription;
+          String paramOpName = seqPrefix + "paramop" + paramDescription;
           String paramName = sn.getAttributeValue("name");
           String paramValue = sn.getValue();
           out.print(
             "  <tr class=\"evenformrow\">\n"
             + "    <td class=\"formcolumncell\">\n"
             + "      <input type=\"hidden\" name=\"" + paramOpName + "\" value=\"\"/>\n"
-            + "      <a name=\"" + "param_" + Integer.toString(k) + "\">\n"
+            + "      <a name=\"" + seqPrefix + "param_" + Integer.toString(k) + "\">\n"
             + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Delete") + "\" onClick='Javascript:SpecOp(\"" + paramOpName + "\",\"Delete\",\"param" + paramDescription + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.DeleteParameter") + Integer.toString(k) + "\"/>\n"
             + "      </a>&nbsp;\n"
             + "    </td>\n"
             + "    <td class=\"formcolumncell\">\n"
-            + "      <input type=\"text\" name=\"specparamname" + paramDescription + "\" value=\"" + Encoder.attributeEscape(paramName) + "\"/>\n"
+            + "      <input type=\"text\" name=\""+seqPrefix+"specparamname" + paramDescription + "\" value=\"" + Encoder.attributeEscape(paramName) + "\"/>\n"
             + "    </td>\n"
             + "    <td class=\"formcolumncell\">\n"
-            + "      <input type=\"text\" name=\"specparamvalue" + paramDescription + "\" value=\"" + Encoder.attributeEscape(paramValue) + "\"/>\n"
+            + "      <input type=\"text\" name=\""+seqPrefix+"specparamvalue" + paramDescription + "\" value=\"" + Encoder.attributeEscape(paramValue) + "\"/>\n"
             + "    </td>\n"
             + "  </tr>\n");
           k++;
@@ -704,17 +704,17 @@ public class GenericConnector extends BaseRepositoryConnector {
         "  <tr><td class=\"lightseparator\" colspan=\"3\"><hr/></td></tr>\n"
         + "  <tr class=\"evenformrow\">\n"
         + "    <td class=\"formcolumncell\">\n"
-        + "      <input type=\"hidden\" name=\"paramcount\" value=\"" + Integer.toString(k) + "\"/>\n"
-        + "      <input type=\"hidden\" name=\"paramop\" value=\"\"/>\n"
-        + "      <a name=\"param_" + Integer.toString(k) + "\">\n"
-        + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Add") + "\" onClick='Javascript:SpecAddParam(\"param_" + Integer.toString(k + 1) + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.AddParameter") + "\"/>\n"
+        + "      <input type=\"hidden\" name=\""+seqPrefix+"paramcount\" value=\"" + Integer.toString(k) + "\"/>\n"
+        + "      <input type=\"hidden\" name=\""+seqPrefix+"paramop\" value=\"\"/>\n"
+        + "      <a name=\""+seqPrefix+"param_" + Integer.toString(k) + "\">\n"
+        + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Add") + "\" onClick='Javascript:"+seqPrefix+"SpecAddParam(\""+seqPrefix+"param_" + Integer.toString(k + 1) + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.AddParameter") + "\"/>\n"
         + "      </a>&nbsp;\n"
         + "    </td>\n"
         + "    <td class=\"formcolumncell\">\n"
-        + "      <input type=\"text\" size=\"30\" name=\"specparamname\" value=\"\"/>\n"
+        + "      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"specparamname\" value=\"\"/>\n"
         + "    </td>\n"
         + "    <td class=\"formcolumncell\">\n"
-        + "      <input type=\"text\" size=\"30\" name=\"specparamvalue\" value=\"\"/>\n"
+        + "      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"specparamvalue\" value=\"\"/>\n"
         + "    </td>\n"
         + "  </tr>\n"
         + "</table>\n");
@@ -729,12 +729,12 @@ public class GenericConnector extends BaseRepositoryConnector {
           String paramName = sn.getAttributeValue("name");
           String paramValue = sn.getValue();
           out.print(
-            "<input type=\"hidden\" name=\"" + "specparamname" + accessDescription + "\" value=\"" + Encoder.attributeEscape(paramName) + "\"/>\n"
-            + "<input type=\"hidden\" name=\"" + "specparamvalue" + accessDescription + "\" value=\"" + Encoder.attributeEscape(paramValue) + "\"/>\n");
+            "<input type=\"hidden\" name=\"" + seqPrefix + "specparamname" + accessDescription + "\" value=\"" + Encoder.attributeEscape(paramName) + "\"/>\n"
+            + "<input type=\"hidden\" name=\"" + seqPrefix + "specparamvalue" + accessDescription + "\" value=\"" + Encoder.attributeEscape(paramValue) + "\"/>\n");
           k++;
         }
       }
-      out.print("<input type=\"hidden\" name=\"paramcount\" value=\"" + Integer.toString(k) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\""+seqPrefix+"paramcount\" value=\"" + Integer.toString(k) + "\"/>\n");
     }
 
     // Security tab
@@ -745,7 +745,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         genericAuthMode = sn.getValue();
       }
     }
-    if (tabName.equals(Messages.getString(locale, "generic.Security"))) {
+    if (tabName.equals(Messages.getString(locale, "generic.Security")) && connectionSequenceNumber == actualSequenceNumber) {
       out.print(
         "<table class=\"displaytable\">\n"
         + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n");
@@ -753,8 +753,8 @@ public class GenericConnector extends BaseRepositoryConnector {
       out.print("  <tr>\n"
         + "    <td class=\"description\">" + Messages.getBodyString(locale, "generic.AuthMode") + "</td>\n"
         + "    <td class=\"value\" >\n"
-        + "      <input type=\"radio\" name=\"genericAuthMode\" value=\"provided\" " + ("provided".equals(genericAuthMode) ? "checked=\"checked\"" : "") + "/>" + Messages.getBodyString(locale, "generic.AuthModeProvided") + "<br/>\n"
-        + "      <input type=\"radio\" name=\"genericAuthMode\" value=\"forced\" " + ("forced".equals(genericAuthMode) ? "checked=\"checked\"" : "") + "/>" + Messages.getBodyString(locale, "generic.AuthModeForced") + "<br/>\n"
+        + "      <input type=\"radio\" name=\""+seqPrefix+"genericAuthMode\" value=\"provided\" " + ("provided".equals(genericAuthMode) ? "checked=\"checked\"" : "") + "/>" + Messages.getBodyString(locale, "generic.AuthModeProvided") + "<br/>\n"
+        + "      <input type=\"radio\" name=\""+seqPrefix+"genericAuthMode\" value=\"forced\" " + ("forced".equals(genericAuthMode) ? "checked=\"checked\"" : "") + "/>" + Messages.getBodyString(locale, "generic.AuthModeForced") + "<br/>\n"
         + "    </td>\n"
         + "  </tr>\n");
       // Go through forced ACL
@@ -771,15 +771,15 @@ public class GenericConnector extends BaseRepositoryConnector {
         SpecificationNode sn = ds.getChild(i++);
         if (sn.getType().equals("access")) {
           String accessDescription = "_" + Integer.toString(k);
-          String accessOpName = "accessop" + accessDescription;
+          String accessOpName = seqPrefix + "accessop" + accessDescription;
           String token = sn.getAttributeValue("token");
           out.print(
             "  <tr class=\"evenformrow\">\n"
             + "    <td class=\"formcolumncell\">\n"
             + "      <input type=\"hidden\" name=\"" + accessOpName + "\" value=\"\"/>\n"
-            + "      <input type=\"hidden\" name=\"" + "spectoken" + accessDescription + "\" value=\"" + Encoder.attributeEscape(token) + "\"/>\n"
-            + "      <a name=\"" + "token_" + Integer.toString(k) + "\">\n"
-            + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Delete") + "\" onClick='Javascript:SpecOp(\"" + accessOpName + "\",\"Delete\",\"token_" + Integer.toString(k) + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.DeleteToken") + Integer.toString(k) + "\"/>\n"
+            + "      <input type=\"hidden\" name=\"" + seqPrefix + "spectoken" + accessDescription + "\" value=\"" + Encoder.attributeEscape(token) + "\"/>\n"
+            + "      <a name=\"" + seqPrefix + "token_" + Integer.toString(k) + "\">\n"
+            + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Delete") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\"" + accessOpName + "\",\"Delete\",\""+seqPrefix+"token_" + Integer.toString(k) + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.DeleteToken") + Integer.toString(k) + "\"/>\n"
             + "      </a>&nbsp;\n"
             + "    </td>\n"
             + "    <td class=\"formcolumncell\">\n"
@@ -799,14 +799,14 @@ public class GenericConnector extends BaseRepositoryConnector {
         "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"
         + "  <tr class=\"evenformrow\">\n"
         + "    <td class=\"formcolumncell\">\n"
-        + "      <input type=\"hidden\" name=\"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n"
-        + "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"
-        + "      <a name=\"" + "token_" + Integer.toString(k) + "\">\n"
-        + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Add") + "\" onClick='Javascript:SpecAddToken(\"token_" + Integer.toString(k + 1) + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.AddAccessToken") + "\"/>\n"
+        + "      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n"
+        + "      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"
+        + "      <a name=\"" + seqPrefix + "token_" + Integer.toString(k) + "\">\n"
+        + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Add") + "\" onClick='Javascript:"+seqPrefix+"SpecAddToken(\""+seqPrefix+"token_" + Integer.toString(k + 1) + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.AddAccessToken") + "\"/>\n"
         + "      </a>&nbsp;\n"
         + "    </td>\n"
         + "    <td class=\"formcolumncell\">\n"
-        + "      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"
+        + "      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/>\n"
         + "    </td>\n"
         + "  </tr>\n"
         + "</table>\n");
@@ -819,14 +819,14 @@ public class GenericConnector extends BaseRepositoryConnector {
         SpecificationNode sn = ds.getChild(i++);
         if (sn.getType().equals("access")) {
           String accessDescription = "_" + Integer.toString(k);
-          String token = "" + sn.getAttributeValue("token");
+          String token = sn.getAttributeValue("token");
           out.print(
-            "<input type=\"hidden\" name=\"" + "spectoken" + accessDescription + "\" value=\"" + Encoder.attributeEscape(token) + "\"/>\n");
+            "<input type=\"hidden\" name=\"" + seqPrefix + "spectoken" + accessDescription + "\" value=\"" + Encoder.attributeEscape(token) + "\"/>\n");
           k++;
         }
       }
-      out.print("<input type=\"hidden\" name=\"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"genericAuthMode\" value=\"" + Encoder.attributeEscape(genericAuthMode) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\""+seqPrefix+"genericAuthMode\" value=\"" + Encoder.attributeEscape(genericAuthMode) + "\"/>\n");
     }
   }
 
@@ -834,8 +834,9 @@ public class GenericConnector extends BaseRepositoryConnector {
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
     int connectionSequenceNumber)
     throws ManifoldCFException {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
 
-    String xc = variableContext.getParameter("paramcount");
+    String xc = variableContext.getParameter(seqPrefix+"paramcount");
     if (xc != null) {
       // Delete all tokens first
       int i = 0;
@@ -852,7 +853,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       i = 0;
       while (i < accessCount) {
         String paramDescription = "_" + Integer.toString(i);
-        String paramOpName = "paramop" + paramDescription;
+        String paramOpName = seqPrefix + "paramop" + paramDescription;
         xc = variableContext.getParameter(paramOpName);
         if (xc != null && xc.equals("Delete")) {
           // Next row
@@ -860,8 +861,8 @@ public class GenericConnector extends BaseRepositoryConnector {
           continue;
         }
         // Get the stuff we need
-        String paramName = variableContext.getParameter("specparamname" + paramDescription);
-        String paramValue = variableContext.getParameter("specparamvalue" + paramDescription);
+        String paramName = variableContext.getParameter(seqPrefix + "specparamname" + paramDescription);
+        String paramValue = variableContext.getParameter(seqPrefix + "specparamvalue" + paramDescription);
         SpecificationNode node = new SpecificationNode("param");
         node.setAttribute("name", paramName);
         node.setValue(paramValue);
@@ -869,10 +870,10 @@ public class GenericConnector extends BaseRepositoryConnector {
         i++;
       }
 
-      String op = variableContext.getParameter("paramop");
+      String op = variableContext.getParameter(seqPrefix+"paramop");
       if (op != null && op.equals("Add")) {
-        String paramName = variableContext.getParameter("specparamname");
-        String paramValue = variableContext.getParameter("specparamvalue");
+        String paramName = variableContext.getParameter(seqPrefix+"specparamname");
+        String paramValue = variableContext.getParameter(seqPrefix+"specparamvalue");
         SpecificationNode node = new SpecificationNode("param");
         node.setAttribute("name", paramName);
         node.setValue(paramValue);
@@ -880,7 +881,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
     }
 
-    String redmineAuthMode = variableContext.getParameter("genericAuthMode");
+    String redmineAuthMode = variableContext.getParameter(seqPrefix+"genericAuthMode");
     if (redmineAuthMode != null) {
       // Delete existing seeds record first
       int i = 0;
@@ -897,7 +898,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       ds.addChild(ds.getChildCount(), cn);
     }
 
-    xc = variableContext.getParameter("tokencount");
+    xc = variableContext.getParameter(seqPrefix+"tokencount");
     if (xc != null) {
       // Delete all tokens first
       int i = 0;
@@ -914,7 +915,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       i = 0;
       while (i < accessCount) {
         String accessDescription = "_" + Integer.toString(i);
-        String accessOpName = "accessop" + accessDescription;
+        String accessOpName = seqPrefix + "accessop" + accessDescription;
         xc = variableContext.getParameter(accessOpName);
         if (xc != null && xc.equals("Delete")) {
           // Next row
@@ -922,16 +923,16 @@ public class GenericConnector extends BaseRepositoryConnector {
           continue;
         }
         // Get the stuff we need
-        String accessSpec = variableContext.getParameter("spectoken" + accessDescription);
+        String accessSpec = variableContext.getParameter(seqPrefix + "spectoken" + accessDescription);
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token", accessSpec);
         ds.addChild(ds.getChildCount(), node);
         i++;
       }
 
-      String op = variableContext.getParameter("accessop");
+      String op = variableContext.getParameter(seqPrefix+"accessop");
       if (op != null && op.equals("Add")) {
-        String accessspec = variableContext.getParameter("spectoken");
+        String accessspec = variableContext.getParameter(seqPrefix+"spectoken");
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token", accessspec);
         ds.addChild(ds.getChildCount(), node);

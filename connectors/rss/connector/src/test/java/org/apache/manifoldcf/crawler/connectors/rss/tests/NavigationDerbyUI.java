@@ -207,7 +207,7 @@ public class NavigationDerbyUI extends BaseUIDerby
     link.click();
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editjob"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("rssurls"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("s0_rssurls"));
     textarea.setValue(testerInstance.createStringDescription("http://www.cnn.com"));
     // Canonicalization tab
     link = window.findLink(testerInstance.createStringDescription("Canonicalization tab"));

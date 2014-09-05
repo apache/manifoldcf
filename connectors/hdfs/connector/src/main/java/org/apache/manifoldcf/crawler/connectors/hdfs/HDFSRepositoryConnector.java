@@ -760,16 +760,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   {
     tabsArray.add(Messages.getString(locale,"HDFSRepositoryConnector.Paths"));
 
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
-"function checkSpecification()\n"+
-"{\n"+
-"  // Does nothing right now.\n"+
-"  return true;\n"+
-"}\n"+
 "\n"+
-"function SpecOp(n, opValue, anchorvalue)\n"+
+"function "+seqPrefix+"SpecOp(n, opValue, anchorvalue)\n"+
 "{\n"+
 "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
 "  postFormSetAnchor(anchorvalue);\n"+
@@ -798,11 +795,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     int i;
     int k;
 
     // Paths tab
-    if (tabName.equals(Messages.getString(locale,"HDFSRepositoryConnector.Paths")))
+    if (tabName.equals(Messages.getString(locale,"HDFSRepositoryConnector.Paths")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -826,7 +825,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         if (sn.getType().equals("startpoint"))
         {
           String pathDescription = "_"+Integer.toString(k);
-          String pathOpName = "specop"+pathDescription;
+          String pathOpName = seqPrefix+"specop"+pathDescription;
           
           String path = sn.getAttributeValue("path");
           String convertToURIString = sn.getAttributeValue("converttouri");
@@ -839,9 +838,9 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"            <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
-"            <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"HDFSRepositoryConnector.DeletePath")+Integer.toString(k)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
+"            <a name=\""+seqPrefix+"path_"+Integer.toString(k)+"\">\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.Delete") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+pathOpName+"\",\"Delete\",\""+seqPrefix+"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"HDFSRepositoryConnector.DeletePath")+Integer.toString(k)+"\"/>\n"+
 "            </a>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -850,13 +849,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <input type=\"hidden\" name=\"converttouri"+pathDescription+"\" value=\""+(convertToURI?"true":"false")+"\">\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"converttouri"+pathDescription+"\" value=\""+(convertToURI?"true":"false")+"\">\n"+
 "            <nobr>\n"+
 "              "+(convertToURI?Messages.getBodyString(locale,"HDFSRepositoryConnector.Yes"):Messages.getBodyString(locale,"HDFSRepositoryConnector.No"))+" \n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"boxcell\">\n"+
-"            <input type=\"hidden\" name=\""+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(sn.getChildCount())+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(sn.getChildCount())+"\"/>\n"+
 "            <table class=\"formtable\">\n"+
 "              <tr class=\"formheaderrow\">\n"+
 "                <td class=\"formcolumnheader\"></td>\n"+
@@ -870,7 +869,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
           {
             SpecificationNode excludeNode = sn.getChild(j);
             String instanceDescription = "_"+Integer.toString(k)+"_"+Integer.toString(j);
-            String instanceOpName = "specop" + instanceDescription;
+            String instanceOpName = seqPrefix + "specop" + instanceDescription;
 
             String nodeFlavor = excludeNode.getType();
             String nodeType = excludeNode.getAttributeValue("type");
@@ -879,12 +878,12 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "              <tr class=\"evenformrow\">\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.InsertHere") + "\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Insert Here\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"HDFSRepositoryConnector.InsertNewMatchForPath")+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.InsertHere") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"specop"+instanceDescription+"\",\"Insert Here\",\""+seqPrefix+"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"HDFSRepositoryConnector.InsertNewMatchForPath")+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <select name=\""+"specflavor"+instanceDescription+"\">\n"+
+"                    <select name=\""+seqPrefix+"specflavor"+instanceDescription+"\">\n"+
 "                      <option value=\"include\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.include") + "</option>\n"+
 "                      <option value=\"exclude\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.exclude") + "</option>\n"+
 "                    </select>\n"+
@@ -892,7 +891,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <select name=\""+"spectype"+instanceDescription+"\">\n"+
+"                    <select name=\""+seqPrefix+"spectype"+instanceDescription+"\">\n"+
 "                      <option value=\"file\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.File") + "</option>\n"+
 "                      <option value=\"directory\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.Directory") + "</option>\n"+
 "                    </select>\n"+
@@ -900,19 +899,19 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <input type=\"text\" size=\"10\" name=\""+"specmatch"+instanceDescription+"\" value=\"\"/>\n"+
+"                    <input type=\"text\" size=\"10\" name=\""+seqPrefix+"specmatch"+instanceDescription+"\" value=\"\"/>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
 "              </tr>\n"+
 "              <tr class=\"oddformrow\">\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <input type=\"hidden\" name=\""+"specop"+instanceDescription+"\" value=\"\"/>\n"+
-"                    <input type=\"hidden\" name=\""+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
-"                    <input type=\"hidden\" name=\""+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
-"                    <input type=\"hidden\" name=\""+"specma"+instanceDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nodeMatch)+"\"/>\n"+
-"                    <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
-"                      <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.Delete") + "\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Delete\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+Messages.getAttributeString(locale,"HDFSRepositoryConnector.DeletePath")+Integer.toString(k)+", match spec #"+Integer.toString(j)+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+instanceOpName+"\" value=\"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+seqPrefix+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+seqPrefix+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+seqPrefix+"specma"+instanceDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nodeMatch)+"\"/>\n"+
+"                    <a name=\""+seqPrefix+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
+"                      <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.Delete") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+instanceOpName+"\",\"Delete\",\""+seqPrefix+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+Messages.getAttributeString(locale,"HDFSRepositoryConnector.DeletePath")+Integer.toString(k)+", match spec #"+Integer.toString(j)+"\"/>\n"+
 "                    </a>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
@@ -945,13 +944,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "              <tr class=\"formrow\"><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
 "              <tr class=\"formrow\">\n"+
 "                <td class=\"formcolumncell\">\n"+
-"                  <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
-"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.Add") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Add\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"HDFSRepositoryConnector.AddNewMatchForPath")+Integer.toString(k)+"\"/>\n"+
+"                  <a name=\""+seqPrefix+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.Add") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+pathOpName+"\",\"Add\",\""+seqPrefix+"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"HDFSRepositoryConnector.AddNewMatchForPath")+Integer.toString(k)+"\"/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <select name=\""+"specflavor"+pathDescription+"\">\n"+
+"                    <select name=\""+seqPrefix+"specflavor"+pathDescription+"\">\n"+
 "                      <option value=\"include\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.include") + "</option>\n"+
 "                      <option value=\"exclude\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.exclude") + "</option>\n"+
 "                    </select>\n"+
@@ -959,7 +958,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <select name=\""+"spectype"+pathDescription+"\">\n"+
+"                    <select name=\""+seqPrefix+"spectype"+pathDescription+"\">\n"+
 "                      <option value=\"file\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.File") + "</option>\n"+
 "                      <option value=\"directory\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.Directory") + "</option>\n"+
 "                    </select>\n"+
@@ -967,7 +966,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <input type=\"text\" size=\"10\" name=\""+"specmatch"+pathDescription+"\" value=\"\"/>\n"+
+"                    <input type=\"text\" size=\"10\" name=\""+seqPrefix+"specmatch"+pathDescription+"\" value=\"\"/>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
 "              </tr>\n"+
@@ -989,21 +988,21 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "        <tr class=\"formrow\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"                <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.Add") + "\" onClick='Javascript:SpecOp(\"specop\",\"Add\",\"path_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.AddNewPath") + "\"/>\n"+
-"                <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"                <input type=\"hidden\" name=\"specop\" value=\"\"/>\n"+
+"              <a name=\""+seqPrefix+"path_"+Integer.toString(k)+"\">\n"+
+"                <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.Add") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"specop\",\"Add\",\""+seqPrefix+"path_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.AddNewPath") + "\"/>\n"+
+"                <input type=\"hidden\" name=\""+seqPrefix+"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"                <input type=\"hidden\" name=\""+seqPrefix+"specop\" value=\"\"/>\n"+
 "              </a>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <input type=\"text\" size=\"30\" name=\"specpath\" value=\"\"/>\n"+
+"              <input type=\"text\" size=\"30\" name=\""+seqPrefix+"specpath\" value=\"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <input name=\"converttouri\" type=\"checkbox\" value=\"true\"/>\n"+
+"              <input name=\""+seqPrefix+"converttouri\" type=\"checkbox\" value=\"true\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -1034,9 +1033,9 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
             convertToURI = true;
 
           out.print(
-"<input type=\"hidden\" name=\"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
-"<input type=\"hidden\" name=\"converttouri"+pathDescription+"\" value=\""+(convertToURI?"true":"false")+"\">\n"+
-"<input type=\"hidden\" name=\"specchildcount"+pathDescription+"\" value=\""+Integer.toString(sn.getChildCount())+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"converttouri"+pathDescription+"\" value=\""+(convertToURI?"true":"false")+"\">\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(sn.getChildCount())+"\"/>\n"
           );
 
           int j = 0;
@@ -1049,9 +1048,9 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
             String nodeType = excludeNode.getAttributeValue("type");
             String nodeMatch = excludeNode.getAttributeValue("match");
             out.print(
-"<input type=\"hidden\" name=\"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
-"<input type=\"hidden\" name=\"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
-"<input type=\"hidden\" name=\"specma"+instanceDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nodeMatch)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specma"+instanceDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nodeMatch)+"\"/>\n"
             );
             j++;
           }
@@ -1059,7 +1058,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
   }
@@ -1081,7 +1080,9 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    String x = variableContext.getParameter("pathcount");
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String x = variableContext.getParameter(seqPrefix+"pathcount");
     if (x != null)
     {
       ds.clearChildren();
@@ -1093,7 +1094,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       while (i < pathCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "specop"+pathDescription;
+        String pathOpName = seqPrefix+"specop"+pathDescription;
         x = variableContext.getParameter(pathOpName);
         if (x != null && x.equals("Delete"))
         {
@@ -1102,8 +1103,8 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
           continue;
         }
         // Path inserts won't happen until the very end
-        String path = variableContext.getParameter("specpath"+pathDescription);
-        String convertToURI = variableContext.getParameter("converttouri"+pathDescription);
+        String path = variableContext.getParameter(seqPrefix+"specpath"+pathDescription);
+        String convertToURI = variableContext.getParameter(seqPrefix+"converttouri"+pathDescription);
 
         SpecificationNode node = new SpecificationNode("startpoint");
         node.setAttribute("path",path);
@@ -1111,7 +1112,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
           node.setAttribute("converttouri",convertToURI);
 
         // Now, get the number of children
-        String y = variableContext.getParameter("specchildcount"+pathDescription);
+        String y = variableContext.getParameter(seqPrefix+"specchildcount"+pathDescription);
         int childCount = Integer.parseInt(y);
         int j = 0;
         int w = 0;
@@ -1119,7 +1120,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         {
           String instanceDescription = "_"+Integer.toString(i)+"_"+Integer.toString(j);
           // Look for an insert or a delete at this point
-          String instanceOp = "specop"+instanceDescription;
+          String instanceOp = seqPrefix+"specop"+instanceDescription;
           String z = variableContext.getParameter(instanceOp);
           String flavor;
           String type;
@@ -1134,17 +1135,17 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
           if (z != null && z.equals("Insert Here"))
           {
             // Process the insertion as we gather.
-            flavor = variableContext.getParameter("specflavor"+instanceDescription);
-            type = variableContext.getParameter("spectype"+instanceDescription);
-            match = variableContext.getParameter("specmatch"+instanceDescription);
+            flavor = variableContext.getParameter(seqPrefix+"specflavor"+instanceDescription);
+            type = variableContext.getParameter(seqPrefix+"spectype"+instanceDescription);
+            match = variableContext.getParameter(seqPrefix+"specmatch"+instanceDescription);
             sn = new SpecificationNode(flavor);
             sn.setAttribute("type",type);
             sn.setAttribute("match",match);
             node.addChild(w++,sn);
           }
-          flavor = variableContext.getParameter("specfl"+instanceDescription);
-          type = variableContext.getParameter("specty"+instanceDescription);
-          match = variableContext.getParameter("specma"+instanceDescription);
+          flavor = variableContext.getParameter(seqPrefix+"specfl"+instanceDescription);
+          type = variableContext.getParameter(seqPrefix+"specty"+instanceDescription);
+          match = variableContext.getParameter(seqPrefix+"specma"+instanceDescription);
           sn = new SpecificationNode(flavor);
           sn.setAttribute("type",type);
           sn.setAttribute("match",match);
@@ -1154,9 +1155,9 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         if (x != null && x.equals("Add"))
         {
           // Process adds to the end of the rules in-line
-          String match = variableContext.getParameter("specmatch"+pathDescription);
-          String type = variableContext.getParameter("spectype"+pathDescription);
-          String flavor = variableContext.getParameter("specflavor"+pathDescription);
+          String match = variableContext.getParameter(seqPrefix+"specmatch"+pathDescription);
+          String type = variableContext.getParameter(seqPrefix+"spectype"+pathDescription);
+          String flavor = variableContext.getParameter(seqPrefix+"specflavor"+pathDescription);
           SpecificationNode sn = new SpecificationNode(flavor);
           sn.setAttribute("type",type);
           sn.setAttribute("match",match);
@@ -1167,11 +1168,11 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       }
 
       // See if there's a global add operation
-      String op = variableContext.getParameter("specop");
+      String op = variableContext.getParameter(seqPrefix+"specop");
       if (op != null && op.equals("Add"))
       {
-        String path = variableContext.getParameter("specpath");
-        String convertToURI = variableContext.getParameter("converttouri");
+        String path = variableContext.getParameter(seqPrefix+"specpath");
+        String convertToURI = variableContext.getParameter(seqPrefix+"converttouri");
 
         SpecificationNode node = new SpecificationNode("startpoint");
         node.setAttribute("path",path);
@@ -1190,25 +1191,6 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 
         ds.addChild(k,node);
       }
-    }
-    
-    /*
-     * "filepathtouri"
-     */
-    String filepathtouri = variableContext.getParameter("filepathtouri");
-    if (filepathtouri != null) {
-      SpecificationNode sn;
-      int i = 0;
-      while (i < ds.getChildCount()) {
-        if (ds.getChild(i).getType().equals("filepathtouri")) {
-          ds.removeChild(i);
-        } else {
-          i++;
-        }
-      }
-      sn = new SpecificationNode("filepathtouri");
-      sn.setValue(filepathtouri);
-      ds.addChild(ds.getChildCount(),sn);
     }
     
     return null;

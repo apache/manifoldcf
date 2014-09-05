@@ -2299,75 +2299,71 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     tabsArray.add(Messages.getString(locale,"MeridioConnector.DataTypes"));
     tabsArray.add(Messages.getString(locale,"MeridioConnector.Security"));
     tabsArray.add(Messages.getString(locale,"MeridioConnector.Metadata"));
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
 "\n"+
-"function checkSpecification()\n"+
-"{\n"+
-"  // Does nothing right now.\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function SpecDeletePath(n)\n"+
+"function "+seqPrefix+"SpecDeletePath(n)\n"+
 "{\n"+
 "  var anchor;\n"+
 "  if (n == 0)\n"+
-"    anchor = \"SpecPathAdd\";\n"+
+"    anchor = \""+seqPrefix+"SpecPathAdd\";\n"+
 "  else\n"+
-"    anchor = \"SpecPath_\"+(n-1);\n"+
-"  SpecOp(\"specpathop_\"+n,\"Delete\",anchor);\n"+
+"    anchor = \""+seqPrefix+"SpecPath_\"+(n-1);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specpathop_\"+n,\"Delete\",anchor);\n"+
 "}\n"+
 "\n"+
-"function SpecAddPath()\n"+
+"function "+seqPrefix+"SpecAddPath()\n"+
 "{\n"+
-"  SpecOp(\"specpathop\",\"Add\",\"SpecPathAdd\");\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specpathop\",\"Add\",\""+seqPrefix+"SpecPathAdd\");\n"+
 "}\n"+
 "\n"+
-"function SpecDeleteFromPath()\n"+
+"function "+seqPrefix+"SpecDeleteFromPath()\n"+
 "{\n"+
-"  SpecOp(\"specpathop\",\"DeleteFromPath\",\"SpecPathAdd\");\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specpathop\",\"DeleteFromPath\",\""+seqPrefix+"SpecPathAdd\");\n"+
 "}\n"+
 "\n"+
-"function SpecAddToPath()\n"+
+"function "+seqPrefix+"SpecAddToPath()\n"+
 "{\n"+
-"  if (editjob.specpath.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"specpath.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.SelectAFolderOrClassFirst") + "\");\n"+
-"    editjob.specpath.focus();\n"+
+"    editjob."+seqPrefix+"specpath.focus();\n"+
 "  }\n"+
 "  else\n"+
-"    SpecOp(\"specpathop\",\"AddToPath\",\"SpecPathAdd\");\n"+
+"    "+seqPrefix+"SpecOp(\""+seqPrefix+"specpathop\",\"AddToPath\",\""+seqPrefix+"SpecPathAdd\");\n"+
 "}\n"+
 "\n"+
-"function SpecAddAccessToken(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddAccessToken(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.spectoken.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.AccessTokenCannotBeNull") + "\");\n"+
-"    editjob.spectoken.focus();\n"+
+"    editjob."+seqPrefix+"spectoken.focus();\n"+
 "  }\n"+
 "  else\n"+
-"    SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"    "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecDeleteMapping(item, anchorvalue)\n"+
+"function "+seqPrefix+"SpecDeleteMapping(item, anchorvalue)\n"+
 "{\n"+
-"  SpecOp(\"specmappingop_\"+item,\"Delete\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specmappingop_\"+item,\"Delete\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddMapping(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddMapping(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.specmatch.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"specmatch.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.MatchStringCannotBeEmpty") + "\");\n"+
-"    editjob.specmatch.focus();\n"+
+"    editjob."+seqPrefix+"specmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"specmappingop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specmappingop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecOp(n, opValue, anchorvalue)\n"+
+"function "+seqPrefix+"SpecOp(n, opValue, anchorvalue)\n"+
 "{\n"+
 "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
 "  postFormSetAnchor(anchorvalue);\n"+
@@ -2396,11 +2392,13 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     int i;
     int k;
 
     // Search Paths tab
-    if (tabName.equals(Messages.getString(locale,"MeridioConnector.SearchPaths")))
+    if (tabName.equals(Messages.getString(locale,"MeridioConnector.SearchPaths")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2419,10 +2417,10 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+"specpathop_"+Integer.toString(k)+"\" value=\"Continue\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specpath_"+Integer.toString(k)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathString)+"\"/>\n"+
-"      <a name=\""+"SpecPath_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onclick='javascript:SpecDeletePath("+Integer.toString(k)+");' alt=\""+Messages.getAttributeString(locale,"MeridioConnector.DeletePath")+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specpathop_"+Integer.toString(k)+"\" value=\"Continue\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specpath_"+Integer.toString(k)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathString)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"SpecPath_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onclick='javascript:"+seqPrefix+"SpecDeletePath("+Integer.toString(k)+");' alt=\""+Messages.getAttributeString(locale,"MeridioConnector.DeletePath")+Integer.toString(k)+"\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathString)+"</nobr></td>\n"+
@@ -2439,16 +2437,16 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       out.print(
 "  <tr>\n"+
-"    <td class=\"lightseparator\" colspan=\"2\"><input type=\"hidden\" name=\"specpath_total\" value=\""+Integer.toString(k)+"\"/><hr/></td>\n"+
+"    <td class=\"lightseparator\" colspan=\"2\"><input type=\"hidden\" name=\""+seqPrefix+"specpath_total\" value=\""+Integer.toString(k)+"\"/><hr/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"
       );
       // The path, and the corresponding IDs
-      String pathSoFar = (String)currentContext.get("specpath");
-      String idsSoFar = (String)currentContext.get("specpathids");
+      String pathSoFar = (String)currentContext.get(seqPrefix+"specpath");
+      String idsSoFar = (String)currentContext.get(seqPrefix+"specpathids");
 
       // The type of the object described by the path
-      Integer containerType = (Integer)currentContext.get("specpathtype");
+      Integer containerType = (Integer)currentContext.get(seqPrefix+"specpathtype");
 
       if (pathSoFar == null)
         pathSoFar = "/";
@@ -2476,11 +2474,11 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           childList = new org.apache.manifoldcf.crawler.connectors.meridio.MeridioClassContents[0];
         out.print(
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"specpathop\" value=\"Continue\"/>\n"+
-"      <input type=\"hidden\" name=\"specpathbase\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"specidsbase\" value=\""+idsSoFar+"\"/>\n"+
-"      <input type=\"hidden\" name=\"spectype\" value=\""+containerType.toString()+"\"/>\n"+
-"      <a name=\"SpecPathAdd\"><input type=\"button\" value=\"Add\" onclick=\"javascript:SpecAddPath();\" alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.AddPath") + "\"/></a>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specpathop\" value=\"Continue\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specpathbase\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specidsbase\" value=\""+idsSoFar+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"spectype\" value=\""+containerType.toString()+"\"/>\n"+
+"      <a name=\""+seqPrefix+"SpecPathAdd\"><input type=\"button\" value=\"Add\" onclick=\"javascript:"+seqPrefix+"SpecAddPath();\" alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.AddPath") + "\"/></a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
 "      <nobr>\n"+
@@ -2489,14 +2487,14 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         if (pathSoFar.length() > 1)
         {
           out.print(
-"        <input type=\"button\" value=\"-\" onclick=\"javascript:SpecDeleteFromPath();\" alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.DeleteFromPath") + "\"/>\n"
+"        <input type=\"button\" value=\"-\" onclick=\"javascript:"+seqPrefix+"SpecDeleteFromPath();\" alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.DeleteFromPath") + "\"/>\n"
           );
         }
         if (childList.length > 0)
         {
           out.print(
-"        <input type=\"button\" value=\"+\" onclick=\"javascript:SpecAddToPath();\" alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.AddToPath") + "\"/>\n"+
-"        <select name=\"specpath\" size=\"10\">\n"+
+"        <input type=\"button\" value=\"+\" onclick=\"javascript:"+seqPrefix+"SpecAddToPath();\" alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.AddToPath") + "\"/>\n"+
+"        <select name=\""+seqPrefix+"specpath\" size=\"10\">\n"+
 "          <option value=\"\" selected=\"\">" + Messages.getBodyString(locale,"MeridioConnector.PickAFolder") + "</option>\n"
           );
           int j = 0;
@@ -2554,13 +2552,13 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           // body data, so I'm going to presume it's a value attribute.
           String pathString = sn.getAttributeValue("path");
           out.print(
-"<input type=\"hidden\" name=\""+"specpath_"+Integer.toString(k)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathString)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specpath_"+Integer.toString(k)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathString)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"specpath_total\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specpath_total\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
 
@@ -2587,7 +2585,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"MeridioConnector.ContentTypes")))
+    if (tabName.equals(Messages.getString(locale,"MeridioConnector.ContentTypes")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2602,7 +2600,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         String mimeType = allowedMimeTypes[i++];
         out.print(
 "      <nobr>\n"+
-"        <input type=\"checkbox\" name=\"specmimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeType)+"\" "+((mimeTypeMap.get(mimeType)!=null)?"checked=\"true\"":"")+">\n"+
+"        <input type=\"checkbox\" name=\""+seqPrefix+"specmimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeType)+"\" "+((mimeTypeMap.get(mimeType)!=null)?"checked=\"true\"":"")+">\n"+
 "          "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mimeType)+"\n"+
 "        </input>\n"+
 "      </nobr>\n"+
@@ -2624,7 +2622,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         String mimeType = (String)iter.next();
         out.print(
-"<input type=\"hidden\" name=\"specmimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeType)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specmimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeType)+"\"/>\n"
         );
       }
     }
@@ -2643,7 +2641,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"MeridioConnector.Categories")))
+    if (tabName.equals(Messages.getString(locale,"MeridioConnector.Categories")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2665,7 +2663,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           String category = categoryList[k++];
           out.print(
 "      <nobr>\n"+
-"        <input type=\"checkbox\" name=\"speccategories\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(category)+"\" "+((categoriesMap.get(category)!=null)?"checked=\"true\"":"")+">\n"+
+"        <input type=\"checkbox\" name=\""+seqPrefix+"speccategories\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(category)+"\" "+((categoriesMap.get(category)!=null)?"checked=\"true\"":"")+">\n"+
 "        "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(category)+"\n"+
 "        </input>\n"+
 "      </nobr>\n"+
@@ -2704,7 +2702,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         String category = (String)iter.next();
         out.print(
-"<input type=\"hidden\" name=\"speccategories\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(category)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"speccategories\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(category)+"\"/>\n"
         );
       }
     }
@@ -2719,7 +2717,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         mode = sn.getAttributeValue("value");
     }
 
-    if (tabName.equals(Messages.getString(locale,"MeridioConnector.DataTypes")))
+    if (tabName.equals(Messages.getString(locale,"MeridioConnector.DataTypes")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2727,9 +2725,9 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"MeridioConnector.DataTypesToIngest") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <nobr><input type=\"radio\" name=\"specsearchon\" value=\"DOCUMENTS\" "+(mode.equals("DOCUMENTS")?"checked=\"true\"":"")+"/>" + Messages.getBodyString(locale,"MeridioConnector.Documents") + "</nobr><br/>\n"+
-"      <nobr><input type=\"radio\" name=\"specsearchon\" value=\"RECORDS\" "+(mode.equals("RECORDS")?"checked=\"true\"":"")+"/>" + Messages.getBodyString(locale,"MeridioConnector.Records") + "</nobr><br/>\n"+
-"      <nobr><input type=\"radio\" name=\"specsearchon\" value=\"DOCUMENTS_AND_RECORDS\" "+(mode.equals("DOCUMENTS_AND_RECORDS")?"checked=\"true\"":"")+"/>" + Messages.getBodyString(locale,"MeridioConnector.DocumentsAndRecords") + "</nobr><br/>\n"+
+"      <nobr><input type=\"radio\" name=\""+seqPrefix+"specsearchon\" value=\"DOCUMENTS\" "+(mode.equals("DOCUMENTS")?"checked=\"true\"":"")+"/>" + Messages.getBodyString(locale,"MeridioConnector.Documents") + "</nobr><br/>\n"+
+"      <nobr><input type=\"radio\" name=\""+seqPrefix+"specsearchon\" value=\"RECORDS\" "+(mode.equals("RECORDS")?"checked=\"true\"":"")+"/>" + Messages.getBodyString(locale,"MeridioConnector.Records") + "</nobr><br/>\n"+
+"      <nobr><input type=\"radio\" name=\""+seqPrefix+"specsearchon\" value=\"DOCUMENTS_AND_RECORDS\" "+(mode.equals("DOCUMENTS_AND_RECORDS")?"checked=\"true\"":"")+"/>" + Messages.getBodyString(locale,"MeridioConnector.DocumentsAndRecords") + "</nobr><br/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -2738,7 +2736,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specsearchon\" value=\""+mode+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specsearchon\" value=\""+mode+"\"/>\n"
       );
     }
 
@@ -2760,7 +2758,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"MeridioConnector.Security")))
+    if (tabName.equals(Messages.getString(locale,"MeridioConnector.Security")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2768,8 +2766,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"MeridioConnector.Security2") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"MeridioConnector.Enabled") + "&nbsp;\n"+
-"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"MeridioConnector.Disabled") + "\n"+
+"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"MeridioConnector.Enabled") + "&nbsp;\n"+
+"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"MeridioConnector.Disabled") + "\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -2783,15 +2781,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         if (sn.getType().equals("access"))
         {
           String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = "accessop"+accessDescription;
+          String accessOpName = seqPrefix+"accessop"+accessDescription;
           String token = sn.getAttributeValue("token");
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"MeridioConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"MeridioConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2814,14 +2812,14 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddAccessToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.AddAccessToken") + "\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecAddAccessToken(\""+seqPrefix+"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.AddAccessToken") + "\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -2830,7 +2828,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
       );
       // Finally, go through forced ACL
       i = 0;
@@ -2843,13 +2841,13 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           String accessDescription = "_"+Integer.toString(k);
           String token = sn.getAttributeValue("token");
           out.print(
-"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
 
@@ -2909,11 +2907,11 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           allMetadata = false;
       }
     }
-    if (tabName.equals(Messages.getString(locale,"MeridioConnector.Metadata")))
+    if (tabName.equals(Messages.getString(locale,"MeridioConnector.Metadata")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
-"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
-"<input type=\"hidden\" name=\"specmappingop\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specmappingop\" value=\"\"/>\n"+
 "\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
@@ -2923,8 +2921,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "    </td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
 "      <nobr>\n"+
-"        <input type=\"radio\" name=\"allmetadata\" value=\"false\" "+((allMetadata==false)?"checked=\"true\"":"")+">" + Messages.getBodyString(locale,"MeridioConnector.IncludeSpecified") + "</input>\n"+
-"        <input type=\"radio\" name=\"allmetadata\" value=\"true\" "+(allMetadata?"checked=\"true\"":"")+">" + Messages.getBodyString(locale,"MeridioConnector.IncludeAll") + "</input>\n"+
+"        <input type=\"radio\" name=\""+seqPrefix+"allmetadata\" value=\"false\" "+((allMetadata==false)?"checked=\"true\"":"")+">" + Messages.getBodyString(locale,"MeridioConnector.IncludeSpecified") + "</input>\n"+
+"        <input type=\"radio\" name=\""+seqPrefix+"allmetadata\" value=\"true\" "+(allMetadata?"checked=\"true\"":"")+">" + Messages.getBodyString(locale,"MeridioConnector.IncludeAll") + "</input>\n"+
 "      </nobr>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -2939,7 +2937,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         out.print(
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"MeridioConnector.Metadata") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
-"      <input type=\"hidden\" name=\"specproperties_edit\" value=\"true\"/>\n"
+"      <input type=\"hidden\" name=\""+seqPrefix+"specproperties_edit\" value=\"true\"/>\n"
         );
         k = 0;
         while (k < propertyList.length)
@@ -2947,7 +2945,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           String descriptor = propertyList[k++];
           out.print(
 "      <nobr>\n"+
-"        <input type=\"checkbox\" name=\"specproperties\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(descriptor)+"\" "+((metadataSelected.get(descriptor)!=null)?"checked=\"true\"":"")+">\n"+
+"        <input type=\"checkbox\" name=\""+seqPrefix+"specproperties\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(descriptor)+"\" "+((metadataSelected.get(descriptor)!=null)?"checked=\"true\"":"")+">\n"+
 "          "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(descriptor)+"\n"+
 "        </input>\n"+
 "      </nobr>\n"+
@@ -2978,7 +2976,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"MeridioConnector.PathAttributeMetadataName") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\"><nobr>\n"+
-"      <input type=\"text\" size=\"16\" name=\"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/></nobr>\n"+
+"      <input type=\"text\" size=\"16\" name=\""+seqPrefix+"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/></nobr>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
@@ -2990,14 +2988,14 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         String replaceString = matchMap.getReplaceString(i);
         out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
-"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecDeleteMapping(Integer.toString(i),\"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"MeridioConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"    <td class=\"description\"><input type=\"hidden\" name=\""+seqPrefix+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecDeleteMapping(Integer.toString(i),\""+seqPrefix+"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"MeridioConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
-"    <td class=\"value\"><input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+seqPrefix+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
 "    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\"><input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+seqPrefix+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
 "  </tr>\n"
         );
         i++;
@@ -3012,13 +3010,13 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.AddToMappings") + "\" value=\"Add\"/>\n"+
+"      <a name=\""+seqPrefix+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecAddMapping(\""+seqPrefix+"mapping_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.AddToMappings") + "\" value=\"Add\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
-"    <td class=\"value\">" + Messages.getBodyString(locale,"MeridioConnector.MatchRegexp") + "&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">" + Messages.getBodyString(locale,"MeridioConnector.MatchRegexp") + "&nbsp;<input type=\"text\" name=\""+seqPrefix+"specmatch\" size=\"32\" value=\"\"/></td>\n"+
 "    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\">" + Messages.getBodyString(locale,"MeridioConnector.ReplaceString") + "&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">" + Messages.getBodyString(locale,"MeridioConnector.ReplaceString") + "&nbsp;<input type=\"text\" name=\""+seqPrefix+"specreplace\" size=\"32\" value=\"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -3026,20 +3024,20 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specproperties_edit\" value=\"true\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specproperties_edit\" value=\"true\"/>\n"
       );
       Iterator iter = metadataSelected.keySet().iterator();
       while (iter.hasNext())
       {
         String descriptor = (String)iter.next();
         out.print(
-"<input type=\"hidden\" name=\"specproperties\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(descriptor)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specproperties\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(descriptor)+"\"/>\n"
         );
       }
       out.print(
-"<input type=\"hidden\" name=\"allmetadata\" value=\""+(allMetadata?"true":"false")+"\"/>\n"+
-"<input type=\"hidden\" name=\"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
-"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"allmetadata\" value=\""+(allMetadata?"true":"false")+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
       );
       i = 0;
       while (i < matchMap.getMatchCount())
@@ -3047,8 +3045,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         String matchString = matchMap.getMatchString(i);
         String replaceString = matchMap.getReplaceString(i);
         out.print(
-"<input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
         );
         i++;
       }
@@ -3073,10 +3071,12 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     int i;
 
     // Gather the path names
-    String x = variableContext.getParameter("specpath_total");
+    String x = variableContext.getParameter(seqPrefix+"specpath_total");
     if (x != null)
     {
       // Get rid of old specpath entries
@@ -3095,8 +3095,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       int count = Integer.parseInt(x);
       while (i < count)
       {
-        String path = variableContext.getParameter("specpath_"+Integer.toString(i));
-        String pathOp = variableContext.getParameter("specpathop_"+Integer.toString(i));
+        String path = variableContext.getParameter(seqPrefix+"specpath_"+Integer.toString(i));
+        String pathOp = variableContext.getParameter(seqPrefix+"specpathop_"+Integer.toString(i));
         if (pathOp == null || !pathOp.equals("Delete"))
         {
           SpecificationNode sn = new SpecificationNode("SearchPath");
@@ -3108,13 +3108,13 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
 
       // Do operation
-      x = variableContext.getParameter("specpathop");
+      x = variableContext.getParameter(seqPrefix+"specpathop");
       if (x != null)
       {
         // Retrieve current state information
-        String pathSoFar = variableContext.getParameter("specpathbase");
-        String idsSoFar = variableContext.getParameter("specidsbase");
-        Integer containerType = new Integer(variableContext.getParameter("spectype"));
+        String pathSoFar = variableContext.getParameter(seqPrefix+"specpathbase");
+        String idsSoFar = variableContext.getParameter(seqPrefix+"specidsbase");
+        Integer containerType = new Integer(variableContext.getParameter(seqPrefix+"spectype"));
 
         if (x.equals("Add"))
         {
@@ -3128,7 +3128,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         }
         else if (x.equals("AddToPath"))
         {
-          String pathField = variableContext.getParameter("specpath");
+          String pathField = variableContext.getParameter(seqPrefix+"specpath");
           int index = pathField.indexOf(";");
           int secondIndex = pathField.indexOf(";",index+1);
           pathSoFar = pathSoFar + pathField.substring(secondIndex+1) + "/";
@@ -3143,15 +3143,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           containerType = new Integer(org.apache.manifoldcf.crawler.connectors.meridio.MeridioClassContents.CLASS);
         }
 
-        currentContext.save("specpath",pathSoFar);
-        currentContext.save("specpathids",idsSoFar);
-        currentContext.save("specpathtype",containerType);
+        currentContext.save(seqPrefix+"specpath",pathSoFar);
+        currentContext.save(seqPrefix+"specpathids",idsSoFar);
+        currentContext.save(seqPrefix+"specpathtype",containerType);
       }
 
     }
 
     // Searchon parameter
-    x = variableContext.getParameter("specsearchon");
+    x = variableContext.getParameter(seqPrefix+"specsearchon");
     if (x != null)
     {
       i = 0;
@@ -3170,7 +3170,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
 
     // Categories parameter
-    String[] y = variableContext.getParameterValues("speccategories");
+    String[] y = variableContext.getParameterValues(seqPrefix+"speccategories");
     if (y != null)
     {
       i = 0;
@@ -3194,7 +3194,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
 
     // Properties parameter
-    x = variableContext.getParameter("specproperties_edit");
+    x = variableContext.getParameter(seqPrefix+"specproperties_edit");
     if (x != null && x.length() > 0)
     {
       i = 0;
@@ -3207,7 +3207,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           i++;
       }
 
-      y = variableContext.getParameterValues("specproperties");
+      y = variableContext.getParameterValues(seqPrefix+"specproperties");
       if (y != null)
       {
         i = 0;
@@ -3238,7 +3238,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
 
     // Mime types parameter
-    y = variableContext.getParameterValues("specmimetypes");
+    y = variableContext.getParameterValues(seqPrefix+"specmimetypes");
     if (y != null)
     {
       i = 0;
@@ -3261,7 +3261,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    x = variableContext.getParameter("specsecurity");
+    x = variableContext.getParameter(seqPrefix+"specsecurity");
     if (x != null)
     {
       // Delete all security entries first
@@ -3281,7 +3281,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
     }
 
-    x = variableContext.getParameter("tokencount");
+    x = variableContext.getParameter(seqPrefix+"tokencount");
     if (x != null)
     {
       // Delete all file specs first
@@ -3300,7 +3300,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       while (i < accessCount)
       {
         String accessDescription = "_"+Integer.toString(i);
-        String accessOpName = "accessop"+accessDescription;
+        String accessOpName = seqPrefix+"accessop"+accessDescription;
         String xc = variableContext.getParameter(accessOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -3309,24 +3309,24 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           continue;
         }
         // Get the stuff we need
-        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        String accessSpec = variableContext.getParameter(seqPrefix+"spectoken"+accessDescription);
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token",accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
 
-      String op = variableContext.getParameter("accessop");
+      String op = variableContext.getParameter(seqPrefix+"accessop");
       if (op != null && op.equals("Add"))
       {
-        String accessspec = variableContext.getParameter("spectoken");
+        String accessspec = variableContext.getParameter(seqPrefix+"spectoken");
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token",accessspec);
         ds.addChild(ds.getChildCount(),node);
       }
     }
 
-    x = variableContext.getParameter("specpathnameattribute");
+    x = variableContext.getParameter(seqPrefix+"specpathnameattribute");
     if (x != null && x.length() > 0)
     {
       i = 0;
@@ -3343,7 +3343,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       ds.addChild(ds.getChildCount(),node);
     }
     
-    x = variableContext.getParameter("specmappingcount");
+    x = variableContext.getParameter(seqPrefix+"specmappingcount");
     if (x != null && x.length() > 0)
     {
       // Delete old spec
@@ -3365,7 +3365,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       while (i < mappingCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "specmappingop"+pathDescription;
+        String pathOpName = seqPrefix+"specmappingop"+pathDescription;
         x = variableContext.getParameter(pathOpName);
         if (x != null && x.equals("Delete"))
         {
@@ -3374,8 +3374,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           continue;
         }
         // Inserts won't happen until the very end
-        String match = variableContext.getParameter("specmatch"+pathDescription);
-        String replace = variableContext.getParameter("specreplace"+pathDescription);
+        String match = variableContext.getParameter(seqPrefix+"specmatch"+pathDescription);
+        String replace = variableContext.getParameter(seqPrefix+"specreplace"+pathDescription);
         SpecificationNode node = new SpecificationNode("pathmap");
         node.setAttribute("match",match);
         node.setAttribute("replace",replace);
@@ -3384,11 +3384,11 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
 
       // Check for add
-      x = variableContext.getParameter("specmappingop");
+      x = variableContext.getParameter(seqPrefix+"specmappingop");
       if (x != null && x.equals("Add"))
       {
-        String match = variableContext.getParameter("specmatch");
-        String replace = variableContext.getParameter("specreplace");
+        String match = variableContext.getParameter(seqPrefix+"specmatch");
+        String replace = variableContext.getParameter(seqPrefix+"specreplace");
         SpecificationNode node = new SpecificationNode("pathmap");
         node.setAttribute("match",match);
         node.setAttribute("replace",replace);
@@ -3396,7 +3396,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    x = variableContext.getParameter("allmetadata");
+    x = variableContext.getParameter(seqPrefix+"allmetadata");
     if (x != null)
     {
       i = 0;

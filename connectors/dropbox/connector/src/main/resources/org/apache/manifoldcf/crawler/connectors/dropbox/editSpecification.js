@@ -17,42 +17,37 @@
 
 <script type="text/javascript">
 <!--
-function checkSpecification()
+function s${SeqNum}_checkSpecificationForSave()
 {
-  return true;
-}
- 
-function checkSpecificationForSave()
-{
-  if(editjob.dropboxpath.value == "") {
+  if(editjob.s${SeqNum}_dropboxpath.value == "") {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.PathMustNotBeNull'))");
-    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.Server'))");
-    editjob.dropboxpath.focus();
+    SelectSequencedTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.Server'))",${SEQNUM});
+    editjob.s${SeqNum}_dropboxpath.focus();
     return false;
   }
   return true;
 }
  
-function SpecOp(n, opValue, anchorvalue)
+function s${SeqNum}_SpecOp(n, opValue, anchorvalue)
 {
   eval("editjob."+n+".value = \""+opValue+"\"");
   postFormSetAnchor(anchorvalue);
 }
 
-function SpecDeleteToken(i)
+function s${SeqNum}_SpecDeleteToken(i)
 {
-  SpecOp("accessop_"+i,"Delete","token_"+i);
+  s${SeqNum}_SpecOp("s${SeqNum}_accessop_"+i,"Delete","s${SeqNum}_token_"+i);
 }
 
-function SpecAddToken(i)
+function s${SeqNum}_SpecAddToken(i)
 {
-  if (editjob.spectoken.value == "")
+  if (editjob.s${SeqNum}_spectoken.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.TypeInAnAccessToken'))");
-    editjob.spectoken.focus();
+    editjob.s${SeqNum}_spectoken.focus();
     return;
   }
-  SpecOp("accessop","Add","token_"+i);
+  s${SeqNum}_SpecOp("s${SeqNum}_accessop","Add","s${SeqNum}_token_"+i);
 }
 
 //-->

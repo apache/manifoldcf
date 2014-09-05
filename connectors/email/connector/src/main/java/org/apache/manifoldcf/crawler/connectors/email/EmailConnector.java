@@ -875,10 +875,12 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
     int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException {
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
     // Add the tabs
     tabsArray.add(Messages.getString(locale, "EmailConnector.Metadata"));
     tabsArray.add(Messages.getString(locale, "EmailConnector.Filter"));
-    Messages.outputResourceWithVelocity(out, locale, "SpecificationHeader.js", null);
+    Messages.outputResourceWithVelocity(out, locale, "SpecificationHeader.js", paramMap);
   }
 
   /** Output the specification body section.
@@ -899,18 +901,20 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException {
-    outputFilterTab(out, locale, ds, tabName);
-    outputMetadataTab(out, locale, ds, tabName);
+    outputFilterTab(out, locale, ds, tabName, connectionSequenceNumber, actualSequenceNumber);
+    outputMetadataTab(out, locale, ds, tabName, connectionSequenceNumber, actualSequenceNumber);
   }
 
   /**
 * Take care of "Metadata" tab.
 */
   protected void outputMetadataTab(IHTTPOutput out, Locale locale,
-    Specification ds, String tabName)
+    Specification ds, String tabName, int connectionSequenceNumber, int actualSequenceNumber)
     throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("TabName", tabName);
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
+    paramMap.put("SelectedNum", Integer.toString(actualSequenceNumber));
     fillInMetadataTab(paramMap, ds);
     fillInMetadataAttributes(paramMap);
     Messages.outputResourceWithVelocity(out, locale, "Specification_Metadata.html", paramMap);
@@ -942,10 +946,12 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   }
 
   protected void outputFilterTab(IHTTPOutput out, Locale locale,
-    Specification ds, String tabName)
+    Specification ds, String tabName, int connectionSequenceNumber, int actualSequenceNumber)
     throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("TabName", tabName);
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
+    paramMap.put("SelectedNum", Integer.toString(actualSequenceNumber));
     fillInFilterTab(paramMap, ds);
     if (tabName.equals(Messages.getString(locale, "EmailConnector.Filter")))
       fillInSearchableAttributes(paramMap);
@@ -1014,18 +1020,21 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     int connectionSequenceNumber)
     throws ManifoldCFException {
 
-    String result = processFilterTab(variableContext, ds);
+    String result = processFilterTab(variableContext, ds, connectionSequenceNumber);
     if (result != null)
       return result;
-    result = processMetadataTab(variableContext, ds);
+    result = processMetadataTab(variableContext, ds, connectionSequenceNumber);
     return result;
   }
 
 
-  protected String processFilterTab(IPostParameters variableContext, Specification ds)
-      throws ManifoldCFException {
+  protected String processFilterTab(IPostParameters variableContext, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
 
-    String findCountString = variableContext.getParameter("findcount");
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+      
+    String findCountString = variableContext.getParameter(seqPrefix + "findcount");
     if (findCountString != null) {
       int findCount = Integer.parseInt(findCountString);
       
@@ -1036,23 +1045,23 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       while (i < findCount) {
         String suffix = "_" + Integer.toString(i++);
         // Only add the name/value if the item was not deleted.
-        String findParameterOp = variableContext.getParameter("findop" + suffix);
+        String findParameterOp = variableContext.getParameter(seqPrefix + "findop" + suffix);
         if (findParameterOp == null || !findParameterOp.equals("Delete")) {
-          String findParameterName = variableContext.getParameter("findname" + suffix);
-          String findParameterValue = variableContext.getParameter("findvalue" + suffix);
+          String findParameterName = variableContext.getParameter(seqPrefix + "findname" + suffix);
+          String findParameterValue = variableContext.getParameter(seqPrefix + "findvalue" + suffix);
           addFindParameterNode(ds, findParameterName, findParameterValue);
         }
       }
 
-      String operation = variableContext.getParameter("findop");
+      String operation = variableContext.getParameter(seqPrefix + "findop");
       if (operation != null && operation.equals("Add")) {
-        String findParameterName = variableContext.getParameter("findname");
-        String findParameterValue = variableContext.getParameter("findvalue");
+        String findParameterName = variableContext.getParameter(seqPrefix + "findname");
+        String findParameterValue = variableContext.getParameter(seqPrefix + "findvalue");
         addFindParameterNode(ds, findParameterName, findParameterValue);
       }
     }
     
-    String[] folders = variableContext.getParameterValues("folders");
+    String[] folders = variableContext.getParameterValues(seqPrefix + "folders");
     if (folders != null)
     {
       removeNodes(ds, EmailConfig.NODE_FOLDER);
@@ -1065,13 +1074,17 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   }
 
 
-  protected String processMetadataTab(IPostParameters variableContext, Specification ds)
-      throws ManifoldCFException {
+  protected String processMetadataTab(IPostParameters variableContext, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
+      
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     // Remove old included metadata nodes
     removeNodes(ds, EmailConfig.NODE_METADATA);
 
     // Get the posted metadata values
-    String[] metadataNames = variableContext.getParameterValues("metadata");
+    String[] metadataNames = variableContext.getParameterValues(seqPrefix + "metadata");
     if (metadataNames != null) {
       // Add each metadata name as a node to the document specification
       int i = 0;
@@ -1099,6 +1112,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
     fillInFilterTab(paramMap, ds);
     fillInMetadataTab(paramMap, ds);
     Messages.outputResourceWithVelocity(out, locale, "SpecificationView.html", paramMap);
