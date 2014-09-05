@@ -996,6 +996,9 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
             if (modifiedDate != null)
               rd.setModifiedDate(modifiedDate);
             
+            rd.addField("key", jiraFile.getKey());
+            rd.addField("self", jiraFile.getSelf());
+            rd.addField("description", jiraFile.getDescription());
             // Get general document metadata
             Map<String,String[]> metadataMap = jiraFile.getMetadata();
               
