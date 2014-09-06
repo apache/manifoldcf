@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1021: Add more metadata for Jira connector.
+(Daniel Aschaeur)
+
 CONNECTORS-1022: Add URL mapping tab to web connector.
 (Luca Basso, Karl Wright)
 
