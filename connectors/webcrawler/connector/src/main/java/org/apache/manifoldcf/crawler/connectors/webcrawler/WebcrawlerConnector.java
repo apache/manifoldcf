@@ -1326,10 +1326,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         // Consider this document for ingestion.
         // We can exclude it if it does not seem to be a kind of document that the ingestion system knows
         // about.
+        String ingestURL;
         if (indexDocument)
-          indexDocument = isDataIngestable(activities,documentIdentifier,filter);
+          ingestURL = isDataIngestable(activities,documentIdentifier,filter);
+        else
+          ingestURL = null;
 
-        if (indexDocument)
+        if (ingestURL != null)
         {
           // Ingest the document
           if (Logging.connectors.isDebugEnabled())
@@ -1416,7 +1419,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               rd.setBinary(is,length);
               try
               {
-                activities.ingestDocumentWithException(documentIdentifier,version,documentIdentifier,rd);
+                activities.ingestDocumentWithException(documentIdentifier,version,ingestURL,rd);
               }
               catch (IOException e)
               {
@@ -3623,6 +3626,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   {
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Seeds"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Canonicalization"));
+    tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.URLMappings"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Inclusions"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Exclusions"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Security"));
@@ -3637,6 +3641,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "{\n"+
 "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
 "  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function "+seqPrefix+"AddRegexp(anchorvalue)\n"+
+"{\n"+
+"  if (editjob."+seqPrefix+"rssmatch.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MatchMustHaveARegexpValue")+"\");\n"+
+"    editjob."+seqPrefix+"rssmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"rssop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function "+seqPrefix+"RemoveRegexp(index, anchorvalue)\n"+
+"{\n"+
+"  editjob."+seqPrefix+"rssindex.value = index;\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"rssop\",\"Delete\",anchorvalue);\n"+
 "}\n"+
 "\n"+
 "function "+seqPrefix+"URLRegexpDelete(index, anchorvalue)\n"+
@@ -3765,6 +3787,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     int k;
 
     // Find the various strings
+    List<String> regexp = new ArrayList<String>();
+    List<String> matchStrings = new ArrayList<String>();
+
     String seeds = "";
     String inclusions = ".*\n";
     String exclusions = "";
@@ -3778,7 +3803,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
+      if (sn.getType().equals(WebcrawlerConfig.NODE_MAP))
+      {
+        String match = sn.getAttributeValue(WebcrawlerConfig.ATTR_MATCH);
+        String map = sn.getAttributeValue(WebcrawlerConfig.ATTR_MAP);
+        if (match != null)
+        {
+          regexp.add(match);
+          if (map == null)
+            map = "";
+          matchStrings.add(map);
+        }
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
       {
         seeds = sn.getValue();
         if (seeds == null)
@@ -4031,6 +4068,83 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       );
     }
 
+    // Mappings tab
+    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.URLMappings")) && connectionSequenceNumber == actualSequenceNumber)
+    {
+      out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"rssop\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"rssindex\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"+
+"\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
+      );
+
+      i = 0;
+      while (i < regexp.size())
+      {
+        String prefix = seqPrefix+"rssregexp_"+Integer.toString(i)+"_";
+        out.print(
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <a name=\""+seqPrefix+"regexp_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" value=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.Remove")+"\" onclick='javascript:"+seqPrefix+"RemoveRegexp("+Integer.toString(i)+",\""+seqPrefix+"regexp_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.RemoveRegexp")+Integer.toString(i)+"\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape((String)regexp.get(i))+"</td>\n"+
+"    <td class=\"value\">--&gt;</td>\n"+
+"    <td class=\"value\">\n"
+        );
+        String match = (String)matchStrings.get(i);
+        out.print(
+"      <input type=\"hidden\" name=\""+prefix+"map"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"
+        );
+        if (match.length() == 0)
+        {
+          out.print(
+"      &lt;as is&gt;\n"
+          );
+        }
+        else
+        {
+          out.print(
+"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(match)+"\n"
+          );
+        }
+        out.print(
+"    </td>\n"+
+"  </tr>\n"
+        );
+        i++;
+      }
+      out.print(
+"  <tr>\n"+
+"    <td class=\"value\"><a name=\""+seqPrefix+"regexp_"+Integer.toString(i)+"\"><input type=\"button\" value=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.Add")+"\" onclick='javascript:"+seqPrefix+"AddRegexp(\""+seqPrefix+"regexp_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddRegexp")+"\"/></a></td>\n"+
+"    <td class=\"value\"><input type=\"text\" name=\""+seqPrefix+"rssmatch\" size=\"16\" value=\"\"/></td>\n"+
+"    <td class=\"value\">--&gt;</td>\n"+
+"    <td class=\"value\"><input type=\"text\" name=\""+seqPrefix+"rssmap\" size=\"16\" value=\"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"
+      );
+      i = 0;
+      while (i < regexp.size())
+      {
+        String prefix = seqPrefix+"rssregexp_"+Integer.toString(i)+"_";
+        String match = (String)matchStrings.get(i);
+        out.print(
+"<input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>\n"+
+"<input type=\"hidden\" name=\""+prefix+"map"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"
+        );
+        i++;
+      }
+    }
+
     // Inclusions tab
     if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Inclusions")) && connectionSequenceNumber == actualSequenceNumber)
     {
@@ -4241,6 +4355,73 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     throws ManifoldCFException
   {
     String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    // Get the map
+    String value = variableContext.getParameter(seqPrefix+"rssmapcount");
+    if (value != null)
+    {
+      int mapsize = Integer.parseInt(value);
+
+      // Clear it first
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals(WebcrawlerConfig.NODE_MAP))
+          ds.removeChild(j);
+        else
+          j++;
+      }
+
+      // Grab the map values
+      j = 0;
+      while (j < mapsize)
+      {
+        String prefix = seqPrefix+"rssregexp_"+Integer.toString(j)+"_";
+        String match = variableContext.getParameter(prefix+"match");
+        String map = variableContext.getParameter(prefix+"map");
+        if (map == null)
+          map = "";
+        // Add to the specification
+        SpecificationNode node = new SpecificationNode(WebcrawlerConfig.NODE_MAP);
+        node.setAttribute(WebcrawlerConfig.ATTR_MATCH,match);
+        node.setAttribute(WebcrawlerConfig.ATTR_MAP,map);
+        ds.addChild(ds.getChildCount(),node);
+
+        j++;
+      }
+    }
+    // Now, do whatever action we were told to do.
+    String rssop = variableContext.getParameter(seqPrefix+"rssop");
+    if (rssop != null && rssop.equals("Add"))
+    {
+      // Add a match to the end
+      String match = variableContext.getParameter(seqPrefix+"rssmatch");
+      String map = variableContext.getParameter(seqPrefix+"rssmap");
+      SpecificationNode node = new SpecificationNode(WebcrawlerConfig.NODE_MAP);
+      node.setAttribute(WebcrawlerConfig.ATTR_MATCH,match);
+      node.setAttribute(WebcrawlerConfig.ATTR_MAP,map);
+      ds.addChild(ds.getChildCount(),node);
+    }
+    else if (rssop != null && rssop.equals("Delete"))
+    {
+      int index = Integer.parseInt(variableContext.getParameter(seqPrefix+"rssindex"));
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals(WebcrawlerConfig.NODE_MAP))
+        {
+          if (index == 0)
+          {
+            ds.removeChild(j);
+            break;
+          }
+          index--;
+        }
+        j++;
+      }
+    }
 
     // Get excluded headers
     String excludedHeadersPresent = variableContext.getParameter(seqPrefix+"excludedheaders_present");
@@ -4730,6 +4911,57 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.NoCanonicalizationSpecified") + "</nobr></td></tr>\n"
       );
     }
+
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    i = 0;
+    seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_MAP))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.URLMappingsColon")+"</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String match = sn.getAttributeValue(WebcrawlerConfig.ATTR_MATCH);
+        String map = sn.getAttributeValue(WebcrawlerConfig.ATTR_MAP);
+        out.print(
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(match)+"</nobr>\n"
+        );
+        if (map != null && map.length() > 0)
+        {
+          out.print(
+"      &nbsp;--&gt;&nbsp;<nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(map)+"</nobr>\n"
+          );
+        }
+        out.print(
+"      <br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.NoMappingsSpecifiedWillAcceptAllUrls")+"</nobr></td></tr>\n"
+      );
+    }
+
     out.print(
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
@@ -5596,32 +5828,34 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   }
   
   /** Code to check if an already-fetched document should be ingested.
+  *@return null if document should not be ingested, or the URL if it should.
   */
-  protected boolean isDataIngestable(IFingerprintActivity activities, String documentIdentifier, DocumentURLFilter filter)
+  protected String isDataIngestable(IFingerprintActivity activities, String documentIdentifier, DocumentURLFilter filter)
     throws ServiceInterruption, ManifoldCFException
   {
     if (cache.getResponseCode(documentIdentifier) != 200)
-      return false;
+      return null;
 
     if (activities.checkLengthIndexable(cache.getDataLength(documentIdentifier)) == false)
     {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector thinks length "+cache.getDataLength(documentIdentifier)+" is too long");
-      return false;
+      return null;
     }
     
     if (activities.checkURLIndexable(documentIdentifier) == false)
     {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want URL");
-      return false;
+      return null;
     }
 
-    if (filter.isDocumentIndexable(documentIdentifier) == false)
+    String ingestURL = filter.isDocumentIndexable(documentIdentifier);
+    if (ingestURL == null)
     {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because document does not match web job constraints");
-      return false;
+      return null;
     }
     
     // Check if it's a recognized content type
@@ -5638,7 +5872,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     if (contentType == null)
-      return false;
+      return null;
 
     int pos = contentType.indexOf(";");
     if (pos != -1)
@@ -5646,9 +5880,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     contentType = contentType.trim();
 
     boolean rval = activities.checkMimeTypeIndexable(contentType);
-    if (rval == false && Logging.connectors.isDebugEnabled())
-      Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want mime type '"+contentType+"'");
-    return rval;
+    if (rval == false)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want mime type '"+contentType+"'");
+      return null;
+    }
+    
+    return ingestURL;
   }
 
   /** Convert a document identifier to filename.
@@ -7131,6 +7370,199 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
+  /** Evaluator token.
+  */
+  protected static class EvaluatorToken
+  {
+    public final static int TYPE_GROUP = 0;
+    public final static int TYPE_TEXT = 1;
+    public final static int TYPE_COMMA = 2;
+
+    public final static int GROUPSTYLE_NONE = 0;
+    public final static int GROUPSTYLE_LOWER = 1;
+    public final static int GROUPSTYLE_UPPER = 2;
+    public final static int GROUPSTYLE_MIXED = 3;
+
+    protected int type;
+    protected int groupNumber = -1;
+    protected int groupStyle = GROUPSTYLE_NONE;
+    protected String textValue = null;
+
+    public EvaluatorToken()
+    {
+      type = TYPE_COMMA;
+    }
+
+    public EvaluatorToken(int groupNumber, int groupStyle)
+    {
+      type = TYPE_GROUP;
+      this.groupNumber = groupNumber;
+      this.groupStyle = groupStyle;
+    }
+
+    public EvaluatorToken(String text)
+    {
+      type = TYPE_TEXT;
+      this.textValue = text;
+    }
+
+    public int getType()
+    {
+      return type;
+    }
+
+    public int getGroupNumber()
+    {
+      return groupNumber;
+    }
+
+    public int getGroupStyle()
+    {
+      return groupStyle;
+    }
+
+    public String getTextValue()
+    {
+      return textValue;
+    }
+
+  }
+
+
+  /** Token stream.
+  */
+  protected static class EvaluatorTokenStream
+  {
+    protected String text;
+    protected int pos;
+    protected EvaluatorToken token = null;
+
+    /** Constructor.
+    */
+    public EvaluatorTokenStream(String text)
+    {
+      this.text = text;
+      this.pos = 0;
+    }
+
+    /** Get current token.
+    */
+    public EvaluatorToken peek()
+      throws ManifoldCFException
+    {
+      if (token == null)
+      {
+        token = nextToken();
+      }
+      return token;
+    }
+
+    /** Go on to next token.
+    */
+    public void advance()
+    {
+      token = null;
+    }
+
+    protected EvaluatorToken nextToken()
+      throws ManifoldCFException
+    {
+      char x;
+      // Fetch the next token
+      while (true)
+      {
+        if (pos == text.length())
+          return null;
+        x = text.charAt(pos);
+        if (x > ' ')
+          break;
+        pos++;
+      }
+
+      StringBuilder sb;
+
+      if (x == '"')
+      {
+        // Parse text
+        pos++;
+        sb = new StringBuilder();
+        while (true)
+        {
+          if (pos == text.length())
+            break;
+          x = text.charAt(pos);
+          pos++;
+          if (x == '"')
+          {
+            break;
+          }
+          if (x == '\\')
+          {
+            if (pos == text.length())
+              break;
+            x = text.charAt(pos++);
+          }
+          sb.append(x);
+        }
+
+        return new EvaluatorToken(sb.toString());
+      }
+
+      if (x == ',')
+      {
+        pos++;
+        return new EvaluatorToken();
+      }
+
+      // Eat number at beginning
+      sb = new StringBuilder();
+      while (true)
+      {
+        if (pos == text.length())
+          break;
+        x = text.charAt(pos);
+        if (x >= '0' && x <= '9')
+        {
+          sb.append(x);
+          pos++;
+          continue;
+        }
+        break;
+      }
+      String numberValue = sb.toString();
+      int groupNumber = 0;
+      if (numberValue.length() > 0)
+        groupNumber = new Integer(numberValue).intValue();
+      // Save the next char position
+      int modifierPos = pos;
+      // Go to the end of the word
+      while (true)
+      {
+        if (pos == text.length())
+          break;
+        x = text.charAt(pos);
+        if (x == ',' || x >= '0' && x <= '9' || x <= ' ' && x >= 0)
+          break;
+        pos++;
+      }
+
+      int style = EvaluatorToken.GROUPSTYLE_NONE;
+      if (modifierPos != pos)
+      {
+        String modifier = text.substring(modifierPos,pos);
+        if (modifier.startsWith("u"))
+          style = EvaluatorToken.GROUPSTYLE_UPPER;
+        else if (modifier.startsWith("l"))
+          style = EvaluatorToken.GROUPSTYLE_LOWER;
+        else if (modifier.startsWith("m"))
+          style = EvaluatorToken.GROUPSTYLE_MIXED;
+        else
+          throw new ManifoldCFException("Unknown style: "+modifier);
+      }
+      return new EvaluatorToken(groupNumber,style);
+    }
+  }
+
   /** Class representing a URL regular expression match, for the purposes of determining canonicalization policy */
   protected static class CanonicalizationPolicy
   {
@@ -7212,12 +7644,138 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
+  /** Class representing a mapping rule */
+  protected static class MappingRule
+  {
+    protected final Pattern matchPattern;
+    protected final String evalExpression;
+
+    public MappingRule(Pattern matchPattern, String evalExpression)
+    {
+      this.matchPattern = matchPattern;
+      this.evalExpression = evalExpression;
+    }
+
+    public boolean checkMatch(String url)
+    {
+      Matcher matcher = matchPattern.matcher(url);
+      return matcher.matches();
+    }
+
+    public String map(String url)
+      throws ManifoldCFException
+    {
+      // Create a matcher, and attempt to do a match
+      Matcher matcher = matchPattern.matcher(url);
+      if (!matcher.matches())
+      {
+        return null;
+      }
+
+      // A match!  Now, interpret the output expression
+      if (evalExpression == null || evalExpression.length() == 0)
+        return url;
+
+      StringBuilder sb = new StringBuilder();
+      EvaluatorTokenStream et = new EvaluatorTokenStream(evalExpression);
+
+      while (true)
+      {
+        EvaluatorToken t = et.peek();
+        if (t == null)
+          break;
+        switch (t.getType())
+        {
+        case EvaluatorToken.TYPE_COMMA:
+          et.advance();
+          break;
+        case EvaluatorToken.TYPE_GROUP:
+          et.advance();
+          String groupValue = matcher.group(t.getGroupNumber());
+          switch (t.getGroupStyle())
+          {
+          case EvaluatorToken.GROUPSTYLE_NONE:
+            sb.append(groupValue);
+            break;
+          case EvaluatorToken.GROUPSTYLE_LOWER:
+            sb.append(groupValue.toLowerCase());
+            break;
+          case EvaluatorToken.GROUPSTYLE_UPPER:
+            sb.append(groupValue.toUpperCase());
+            break;
+          case EvaluatorToken.GROUPSTYLE_MIXED:
+            if (groupValue.length() > 0)
+            {
+              sb.append(groupValue.substring(0,1).toUpperCase());
+              sb.append(groupValue.substring(1).toLowerCase());
+            }
+            break;
+          default:
+            throw new ManifoldCFException("Illegal group style");
+          }
+          break;
+        case EvaluatorToken.TYPE_TEXT:
+          et.advance();
+          sb.append(t.getTextValue());
+          break;
+        default:
+          throw new ManifoldCFException("Illegal token type");
+        }
+      }
+      return sb.toString();
+    }
+
+  }
+
+  /** Class that represents all mappings */
+  protected static class MappingRules
+  {
+    protected final List<MappingRule> mappings = new ArrayList<MappingRule>();
+
+    public MappingRules()
+    {
+    }
+
+    public void add(MappingRule rule)
+    {
+      mappings.add(rule);
+    }
+
+    public boolean isMatch(String url)
+    {
+      if (mappings.size() == 0)
+        return true;
+      for (MappingRule p : mappings)
+      {
+        if (p.checkMatch(url))
+          return true;
+      }
+      return false;
+    }
+
+    public String map(String url)
+      throws ManifoldCFException
+    {
+      if (mappings.size() == 0)
+        return url;
+      for (MappingRule p : mappings)
+      {
+        String rval = p.map(url);
+        if (rval != null)
+          return rval;
+      }
+      return null;
+    }
+  }
+
   /** This class describes the url filtering information (for crawling and indexing) obtained from a digested DocumentSpecification.
   */
   protected static class DocumentURLFilter
   {
     /** The version string */
     protected String versionString;
+    /** Mapping rules */
+    protected final MappingRules mappings = new MappingRules();
     /** The arraylist of include patterns */
     protected final List<Pattern> includePatterns = new ArrayList<Pattern>();
     /** The arraylist of exclude patterns */
@@ -7245,12 +7803,39 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       String includesIndex = ".*";
       String excludesIndex = "";
       String seeds = "";
+      List<String> packList = new ArrayList<String>();
+      String[] packStuff = new String[2];
       boolean limitToSeeds = false;
       int i = 0;
       while (i < spec.getChildCount())
       {
         SpecificationNode sn = spec.getChild(i++);
-        if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_MAP))
+        {
+          String match = sn.getAttributeValue(WebcrawlerConfig.ATTR_MATCH);
+          String map = sn.getAttributeValue(WebcrawlerConfig.ATTR_MAP);
+          if (match != null && match.length() > 0)
+          {
+            packStuff[0] = match;
+            packStuff[1] = map;
+            StringBuilder sb = new StringBuilder();
+            packList(sb,packStuff,'=');
+            packList.add(sb.toString());
+            Pattern p;
+            try
+            {
+              p = Pattern.compile(match);
+            }
+            catch (java.util.regex.PatternSyntaxException e)
+            {
+              throw new ManifoldCFException("Regular expression '"+match+"' is illegal: "+e.getMessage(),e);
+            }
+            if (map == null)
+              map = "";
+            mappings.add(new MappingRule(p,map));
+          }
+        }
+        else if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
         {
           // Save the seeds aside; we'll parse them only if we need to.
           seeds = sn.getValue();
@@ -7350,7 +7935,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         }
       }
 
-      versionString = includesIndex + "+" + excludesIndex;
+      // Note: format change since MCF 1.7 release
+      StringBuilder versionBuffer = new StringBuilder();
+      pack(versionBuffer,includesIndex,'+');
+      pack(versionBuffer,excludesIndex,'+');
+      packList(versionBuffer,packList,'+');
+      versionString = versionBuffer.toString();
       
       List<String> list;
       list = stringToArray(includes);
@@ -7478,9 +8068,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       return true;
     }
 
-    /** Check if the document identifier is indexable.
+    /** Check if the document identifier is indexable, and return the indexing URL if found.
+    * @return null if the url doesn't match or should not be ingested, or the new string if it does.
     */
-    public boolean isDocumentIndexable(String url)
+    public String isDocumentIndexable(String url)
+      throws ManifoldCFException
     {
       // First, verify that the url matches one of the patterns in the include list.
       int i = 0;
@@ -7496,7 +8088,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: Url '"+url+"' is not indexable because no include patterns match it");
-        return false;
+        return null;
       }
 
       // Now make sure it's not in the exclude list.
@@ -7509,12 +8101,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         {
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("WEB: Url '"+url+"' is not indexable because exclude pattern '"+p.toString()+"' matched it");
-          return false;
+          return null;
         }
         i++;
       }
 
-      return true;
+      String rval = mappings.map(url);
+      if (rval == null)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: Url '"+url+"' is not indexable because it did not match a mapping rule");
+      }
+
+      return rval;
     }
 
     /** Get canonicalization policies */
