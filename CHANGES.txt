@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1022: Add URL mapping tab to web connector.
+(Luca Basso, Karl Wright)
+
 CONNECTORS-1020: Email connector misuse of variable names.
 (Karl Wright, Paul Boichat)
 

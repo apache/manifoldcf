@@ -116,6 +116,8 @@ public class WebcrawlerConfig
   // Constants used in the document specification part of the configuration structure.
   // This describes the "what" of the job.
 
+  /** Map entry specification node.  Has two attributes: 'match' and 'map'. */
+  public static final String NODE_MAP = "map";
   /** The seeds node.  The value of this node contains the seeds, as a large
   * text area. */
   public static final String NODE_SEEDS = "seeds";
@@ -172,7 +174,11 @@ public class WebcrawlerConfig
   public static final String ATTRVALUE_FALSE = "false";
   /** Value true */
   public static final String ATTRVALUE_TRUE = "true";
-  
+  /** Match attribute */
+  public static final String ATTR_MATCH = "match";
+  /** Map attribute */
+  public static final String ATTR_MAP = "map";
+
 }
 
 
