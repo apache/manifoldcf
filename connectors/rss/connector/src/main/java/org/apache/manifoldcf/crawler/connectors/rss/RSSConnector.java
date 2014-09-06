@@ -2344,11 +2344,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
 "      <a name=\""+"regexp_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" value=\"Remove\" onclick='javascript:RemoveRegexp("+Integer.toString(i)+",\"regexp_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.RemoveRegexp")+Integer.toString(i)+"\"/>\n"+
+"        <input type=\"button\" value=\""+Messages.getAttributeString(locale,"RSSConnector.Remove")+"\" onclick='javascript:RemoveRegexp("+Integer.toString(i)+",\"regexp_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.RemoveRegexp")+Integer.toString(i)+"\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\"><input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape((String)regexp.get(i))+"</td>\n"+
-"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\">--&gt;</td>\n"+
 "    <td class=\"value\">\n"
         );
         String match = (String)matchStrings.get(i);
@@ -2375,9 +2375,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       }
       out.print(
 "  <tr>\n"+
-"    <td class=\"value\"><a name=\""+"regexp_"+Integer.toString(i)+"\"><input type=\"button\" value=\"Add\" onclick='javascript:AddRegexp(\"regexp_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.AddRegexp")+"\"/></a></td>\n"+
+"    <td class=\"value\"><a name=\""+"regexp_"+Integer.toString(i)+"\"><input type=\"button\" value=\""+Messages.getAttributeString(locale,"RSSConnector.Add")+"\" onclick='javascript:AddRegexp(\"regexp_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.AddRegexp")+"\"/></a></td>\n"+
 "    <td class=\"value\"><input type=\"text\" name=\"rssmatch\" size=\"16\" value=\"\"/></td>\n"+
-"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\">--&gt;</td>\n"+
 "    <td class=\"value\"><input type=\"text\" name=\"rssmap\" size=\"16\" value=\"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
