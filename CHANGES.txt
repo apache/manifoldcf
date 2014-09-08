@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1024: Non-null components always failed due to a
+null pointer exception.
+(Karl Wright)
+
 CONNECTORS-1023: Fix Alfresco tests.  They don't yet succeed, but
 at least they run, and the connector can communicate with Alfresco.
 (Karl Wright)
