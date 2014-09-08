@@ -144,6 +144,9 @@
             <include name="axis*.jar"/>
             <include name="saaj*.jar"/>
             <include name="wsdl4j*.jar"/>
+            <include name="wss4j*.jar"/>
+            <include name="xmlsec*.jar"/>
+            <include name="opensaml*.jar"/>
             <include name="commons-discovery*.jar"/>
             <include name="activation*.jar"/>
             <include name="castor*.jar"/>
