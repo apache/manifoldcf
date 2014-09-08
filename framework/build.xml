@@ -39,6 +39,8 @@
             <include name="wss4j*.jar"/>
             <include name="saaj*.jar"/>
             <include name="wsdl4j*.jar"/>
+            <include name="xmlsec*.jar"/>
+            <include name="opensaml*.jar"/>
             <include name="activation*.jar"/>
         </fileset>
         <fileset dir="../lib">
@@ -332,6 +334,8 @@
                 <include name="wss4j*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
@@ -382,6 +386,8 @@
                 <include name="wss4j*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
@@ -437,6 +443,8 @@
                 <include name="wss4j*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
@@ -488,6 +496,8 @@
                 <include name="wss4j*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
@@ -544,6 +554,8 @@
                 <include name="wss4j*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
@@ -603,6 +615,8 @@
                 <include name="wss4j*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
@@ -669,6 +683,8 @@
                 <include name="wss4j*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
@@ -730,6 +746,8 @@
                 <include name="wss4j*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
@@ -860,6 +878,8 @@
                 <include name="wss4j*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
@@ -1034,6 +1054,8 @@
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="axis-jaxrpc.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="axis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="wss4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="xmlsec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="opensaml.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="wsdl4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="saaj-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-jetty-add-lib-classpath"><param name="lib-jar" value="saaj-impl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -1077,6 +1099,8 @@
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="axis-jaxrpc.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="axis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="wss4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="xmlsec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="opensaml.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="wsdl4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="saaj-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-combined-add-lib-classpath"><param name="lib-jar" value="saaj-impl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -1120,6 +1144,8 @@
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="axis-jaxrpc.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="axis.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="wss4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="xmlsec.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
+        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="opensaml.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="wsdl4j.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="saaj-api.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="saaj-impl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -1415,8 +1441,10 @@
         <property name="manifest-cp-71" value="${manifest-cp-70} ../lib/saaj-impl.jar"/>
         <property name="manifest-cp-72" value="${manifest-cp-71} ../lib/activation.jar"/>
         <property name="manifest-cp-73" value="${manifest-cp-72} ../lib/wss4j.jar"/>
+        <property name="manifest-cp-74" value="${manifest-cp-73} ../lib/xmlsec.jar"/>
+        <property name="manifest-cp-75" value="${manifest-cp-74} ../lib/opensaml.jar"/>
 
-        <property name="manifest-cp" value="${manifest-cp-73}"/>
+        <property name="manifest-cp" value="${manifest-cp-75}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1520,8 +1548,10 @@
         <property name="manifest-cp-proprietary-73" value="${manifest-cp-proprietary-72} ../lib/saaj-impl.jar"/>
         <property name="manifest-cp-proprietary-74" value="${manifest-cp-proprietary-73} ../lib/activation.jar"/>
         <property name="manifest-cp-proprietary-75" value="${manifest-cp-proprietary-74} ../lib/wss4j.jar"/>
+        <property name="manifest-cp-proprietary-76" value="${manifest-cp-proprietary-75} ../lib/xmlsec.jar"/>
+        <property name="manifest-cp-proprietary-77" value="${manifest-cp-proprietary-76} ../lib/opensaml.jar"/>
         
-        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-75}"/>
+        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-77}"/>
         <mkdir dir="build/example-proprietary"/>
         <manifest file="build/example-proprietary/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
