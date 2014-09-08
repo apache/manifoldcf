@@ -2114,7 +2114,7 @@ public class WorkerThread extends Thread
     protected void checkMultipleDispositions(String documentIdentifier, String componentIdentifier, String componentIdentifierHash)
     {
       if (abortSet.contains(documentIdentifier))
-        throw new IllegalStateException("Multiple document dispositions not allowed: Abort cannot be combiend with component disposition; document '"+documentIdentifier+"'");
+        throw new IllegalStateException("Multiple document dispositions not allowed: Abort cannot be combined with component disposition; document '"+documentIdentifier+"'");
       if (documentDeletedSet.contains(documentIdentifier))
         throw new IllegalStateException("Multiple document dispositions not allowed: Document delete cannot be combined with component disposition; document '"+documentIdentifier+"'");
       if (componentIdentifierHash == null)
@@ -2126,7 +2126,7 @@ public class WorkerThread extends Thread
       else
       {
         Set<String> components = touchedComponentSet.get(documentIdentifier);
-        if (components.contains(componentIdentifierHash))
+        if (components != null && components.contains(componentIdentifierHash))
           throw new IllegalStateException("Multiple document component dispositions not allowed: document '"+documentIdentifier+"', component '"+componentIdentifier+"'");
       }
     }
