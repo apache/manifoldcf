@@ -56,9 +56,7 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="lib-proprietary" includes="*.jar"/>
         <fileset dir="../../lib">
-            <include name="jaxrpc*.jar"/>
-            <include name="opensaml*.jar"/>
-            <include name="xmlsec*.jar"/>
+            <!-- include name="jaxrpc*.jar"/ -->
         </fileset>
     </path>
 
@@ -72,9 +70,7 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="../../lib">
-                <include name="jaxrpc*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="xmlsec*.jar"/>
+                <!-- include name="jaxrpc*.jar"/ -->
             </fileset>
         </copy>
         <mkdir dir="dist/lib-proprietary-only"/>
@@ -106,7 +102,7 @@
 
     <target name="run-IT-derby" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-derby-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="1024m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
