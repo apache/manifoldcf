@@ -56,7 +56,7 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="lib-proprietary" includes="*.jar"/>
         <fileset dir="../../lib">
-            <!-- include name="jaxrpc*.jar"/ -->
+            <include name="jaxrpc*.jar"/>
         </fileset>
     </path>
 
@@ -70,7 +70,7 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="../../lib">
-                <!-- include name="jaxrpc*.jar"/ -->
+                <include name="jaxrpc*.jar"/>
             </fileset>
         </copy>
         <mkdir dir="dist/lib-proprietary-only"/>
