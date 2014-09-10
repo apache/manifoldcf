@@ -93,9 +93,26 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws InterruptedException, java.net.MalformedURLException, NotBoundException, RemoteException, DocumentumException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof java.net.MalformedURLException)
+          throw (java.net.MalformedURLException)thr;
+        else if (thr instanceof NotBoundException)
+          throw (NotBoundException)thr;
+        else if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof DocumentumException)
+          throw (DocumentumException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
   }
 
@@ -150,21 +167,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof java.net.MalformedURLException)
-            throw (java.net.MalformedURLException)thr;
-          else if (thr instanceof NotBoundException)
-            throw (NotBoundException)thr;
-          else if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof DocumentumException)
-            throw (DocumentumException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
       }
       catch (InterruptedException e)
       {
@@ -214,18 +217,18 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
   protected class GetListOfValuesThread extends Thread
   {
-    protected String query;
-    protected String fieldName;
-    protected ArrayList list;
+    protected final String query;
+    protected final String fieldName;
+    
     protected Throwable exception = null;
+    protected final List<String> list = new ArrayList<String>();
 
-    public GetListOfValuesThread(String query, String fieldName, ArrayList list)
+    public GetListOfValuesThread(String query, String fieldName)
     {
       super();
       setDaemon(true);
       this.query = query;
       this.fieldName = fieldName;
-      this.list = list;
     }
 
     public void run()
@@ -254,14 +257,30 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    public Throwable getException()
+    public List<String> finishUp()
+      throws InterruptedException, RemoteException, DocumentumException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof DocumentumException)
+          throw (DocumentumException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
+      return list;
     }
 
   }
 
-  protected void getAttributesForType(ArrayList list, String typeName)
+  protected List<String> getAttributesForType(String typeName)
     throws DocumentumException, ManifoldCFException, ServiceInterruption
   {
     String strDQL = "select attr_name FROM dmi_dd_attr_info where type_name = '" + typeName + "'";
@@ -270,24 +289,11 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     {
       boolean noSession = (session==null);
       getSession();
-      GetListOfValuesThread t = new GetListOfValuesThread(strDQL,"attr_name",list);
+      GetListOfValuesThread t = new GetListOfValuesThread(strDQL,"attr_name");
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof DocumentumException)
-            throw (DocumentumException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
-        return;
+        return t.finishUp();
       }
       catch (InterruptedException e)
       {
@@ -333,11 +339,25 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    public Throwable getException()
-    {
-      return exception;
+    public void finishUp()
+      throws InterruptedException, RemoteException, DocumentumException
+    {    
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof DocumentumException)
+          throw (DocumentumException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
-
   }
 
   /** Check connection, with appropriate retries */
@@ -352,19 +372,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof DocumentumException)
-            throw (DocumentumException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         return;
       }
       catch (InterruptedException e)
@@ -414,13 +422,24 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    public Throwable getException()
+    public String finishUp()
+      throws InterruptedException, RemoteException, DocumentumException
     {
-      return exception;
-    }
-
-    public String getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof DocumentumException)
+          throw (DocumentumException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
   }
@@ -437,20 +456,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof DocumentumException)
-            throw (DocumentumException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
-        return t.getResponse();
+        return t.finishUp();
       }
       catch (InterruptedException e)
       {
@@ -496,11 +502,25 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws InterruptedException, RemoteException, DocumentumException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof DocumentumException)
+          throw (DocumentumException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
-
   }
 
   /** Release the session, if it's time.
@@ -518,19 +538,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof DocumentumException)
-            throw (DocumentumException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         session = null;
         lastSessionFetch = -1L;
       }
@@ -676,19 +684,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof DocumentumException)
-            throw (DocumentumException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         session = null;
         lastSessionFetch = -1L;
       }
@@ -868,6 +864,26 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       catch (InterruptedException e)
       {
         // Just end
+      }
+    }
+
+    public void finishUp()
+      throws RemoteException, DocumentumException, InterruptedException
+    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof DocumentumException)
+          throw (DocumentumException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
       }
     }
 
@@ -1172,21 +1188,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                   break;
                 activities.addSeedDocument(next);
               }
-              t.join();
-              Throwable thr = t.getException();
-              if (thr != null)
-              {
-                if (thr instanceof RemoteException)
-                  throw (RemoteException)thr;
-                else if (thr instanceof DocumentumException)
-                  throw (DocumentumException)thr;
-                else if (thr instanceof InterruptedException)
-                  throw (InterruptedException)thr;
-                else if (thr instanceof RuntimeException)
-                  throw (RuntimeException)thr;
-                else
-                  throw (Error)thr;
-              }
+              t.finishUp();
               tokenIndex++;
               // Go on to next document type and repeat
               break;
@@ -1271,23 +1273,38 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
   }
 
-  protected class GetDocumentVersionThread extends Thread
+  protected class ProcessDocumentThread extends Thread
   {
-    protected String documentIdentifier;
-    protected HashMap typeMap;
-    protected String forcedAclString;
-    protected String pathNameAttributeVersion;
+    // Initial data
+    protected final String documentIdentifier;
+    protected final SpecInfo sDesc;
+    
+    // State
+    protected volatile boolean versionPartDone = false;
+    protected volatile boolean threadExit = false;
+    protected volatile boolean startFetch = false;
+    protected volatile boolean abort = false;
+    
+    // Return info
+    protected File objFileTemp = null;
     protected Throwable exception = null;
-    protected String rval = null;
+    protected String versionString = null;
+    protected RepositoryDocument rval = null;
+    protected Long activityStartTime = null;
+    protected Long activityFileLength = null;
+    protected String activityStatus = null;
+    protected String activityMessage = null;
+    protected String uri = null;
+    protected String contentType = null;
+    protected Long contentSize = null;
 
-    public GetDocumentVersionThread(String documentIdentifier, HashMap typeMap, String forcedAclString, String pathNameAttributeVersion)
+    public ProcessDocumentThread(String documentIdentifier, SpecInfo sDesc)
     {
       super();
       setDaemon(true);
       this.documentIdentifier = documentIdentifier;
-      this.typeMap = typeMap;
-      this.forcedAclString = forcedAclString;
-      this.pathNameAttributeVersion = pathNameAttributeVersion;
+      this.objFileTemp = objFileTemp;
+      this.sDesc = sDesc;
     }
 
     public void run()
@@ -1299,8 +1316,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           "' and any r_version_label='CURRENT'");
         try
         {
+          long contentSizeValue = object.getContentSize();
+          contentSize = new Long(contentSizeValue);
+          // Get the type name; this is what we use to figure out the desired attributes
+          String typeName = object.getTypeName();
+          
           if (object.exists() && !object.isDeleted() && !object.isHidden() && object.getPermit() > 1 &&
-            object.getContentSize() > 0 && object.getPageCount() > 0)
+            contentSizeValue > 0 && object.getPageCount() > 0)
           {
             // According to Ryck, the version label is not helping us much, so if it's null it's ok
             String versionLabel = object.getVersionLabel();
@@ -1309,22 +1331,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
             StringBuilder strVersionLabel = new StringBuilder();
 
-            // Get the type name; this is what we use to figure out the desired attributes
-            String typeName = object.getTypeName();
-            // Look for the string to append to the version
-            String metadataVersionAddendum = (String)typeMap.get(typeName);
-            // If there's no typemap entry, it can only mean that the document type was not selected for in the UI.
-            // In that case, we presume no metadata.
-
-            if (metadataVersionAddendum != null)
-              strVersionLabel.append(metadataVersionAddendum);
-            else
-              packList(strVersionLabel,new String[0],'+');
+            strVersionLabel.append(sDesc.getMetadataVersionAddendum(typeName));
 
             // Now do the forced acls.  Since this is a reorganization of the version string,
             // I decided to make these parseable, and pass them through to processDocument() in that
             // way, because most connectors seem to be heading in that direction.
-            strVersionLabel.append(forcedAclString);
+            strVersionLabel.append(sDesc.getForcedAclString());
 
             // The version label passed back will be a concatenation of the implicit version label and the v_stamp
             // This way we can catch any changes to the content
@@ -1345,423 +1357,215 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             */
 
             // Append the path name attribute version
-            strVersionLabel.append(pathNameAttributeVersion);
+            strVersionLabel.append(sDesc.getPathNameAttributeAddendum());
 
             // Append the Webtop base url.  This was added on 9/7/2007.
             strVersionLabel.append("_").append(webtopBaseURL);
 
-            rval = strVersionLabel.toString();
+            versionString = strVersionLabel.toString();
           }
           else
-            rval = null;
-        }
-        finally
-        {
-          object.release();
-        }
+            versionString = null;
+          
+          // Signal that we are done with the version string
+          synchronized (this)
+          {
+            versionPartDone = true;
+            notifyAll();
+            while (true)
+            {
+              if (startFetch || abort)
+                break;
+              wait();
+            }
+            if (abort)
+              return;
+          }
 
-      }
-      catch (Throwable e)
-      {
-        this.exception = e;
-      }
-    }
+          // Do fetch phase
+            
+          String objName = object.getObjectName();
+          String contentType = object.getContentType();
+            
+          // This particular way of getting content failed, because DFC loaded the
+          // whole object into memory (very very bad DFC!)
+          // InputStream is = objIDfSysObject.getContent();
+          //
+          // Instead, read the file to a disk temporary file, and then stream from there.
+          activityStartTime = new Long(System.currentTimeMillis());
 
-    public Throwable getException()
-    {
-      return exception;
-    }
-
-    public String getResponse()
-    {
-      return rval;
-    }
-  }
-
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is
-  * therefore important to perform as little work as possible here.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activity is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
-  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
-  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
-  */
-  @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    Logging.connectors.debug("DCTM: Inside getDocumentVersions");
-
-    String[] strArrayRetVal = new String[documentIdentifiers.length];
-
-    // Get the forced acls (and whether security is on as well)
-    String[] acls = getAcls(spec);
-    // Build a "forced acl" version string, of the form ";<acl>+<acl>+..."
-    StringBuilder forcedAclString = new StringBuilder();
-    if (acls != null)
-    {
-      forcedAclString.append('+');
-      java.util.Arrays.sort(acls);
-      packList(forcedAclString,acls,'+');
-      pack(forcedAclString,denyToken,'+');
-    }
-    else
-      forcedAclString.append('-');
-
-    // Build a map of type name and metadata version string to append
-    HashMap typeMap = new HashMap();
-    String pathAttributeName = null;
-    MatchMap matchMap = new MatchMap();
-
-    int i = 0;
-    while (i < spec.getChildCount())
-    {
-      SpecificationNode n = spec.getChild(i++);
-      if (n.getType().equals(CONFIG_PARAM_OBJECTTYPE))
-      {
-        String typeName = n.getAttributeValue("token");
-        String isAll = n.getAttributeValue("all");
-        ArrayList list = new ArrayList();
-        if (isAll != null && isAll.equals("true"))
-        {
-          // "All" attributes are specified
-          // The current complete list of attributes must be fetched for this document type
+          String strFilePath = null;
           try
           {
-            getAttributesForType(list,typeName);
+            strFilePath = object.getFile(objFileTemp.getCanonicalPath());
           }
-          catch (DocumentumException e)
+          catch (DocumentumException dfe)
           {
-            // Base our treatment on the kind of error it is.
-            long currentTime = System.currentTimeMillis();
-            if (e.getType() == DocumentumException.TYPE_SERVICEINTERRUPTION)
-            {
-              Logging.connectors.warn("DCTM: Remote service interruption listing attributes: "+e.getMessage(),e);
-              throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
-            }
-            throw new ManifoldCFException(e.getMessage(),e);
+            // Fetch failed, so log it
+            activityStatus = "Did not exist";
+            activityMessage = dfe.getMessage();
+            if (dfe.getType() != DocumentumException.TYPE_NOTALLOWED)
+              throw dfe;
+            return;
+          }
+          long fileLength = objFileTemp.length();
+          activityFileLength = new Long(fileLength);
+
+          if (strFilePath == null)
+          {
+            activityStatus = "Failed";
+            activityMessage = "Unknown";
+            // We don't know why it won't fetch, but skip it and keep going.
+            return;
           }
 
-        }
-        else
-        {
-          int l = 0;
-          while (l < n.getChildCount())
-          {
-            SpecificationNode sn = n.getChild(l++);
-            if (sn.getType().equals(CONFIG_PARAM_ATTRIBUTENAME))
-            {
-              String attrName = sn.getAttributeValue("attrname");
-              list.add(attrName);
-            }
-          }
-        }
-        // Sort the attribute names, because we need them to be comparable.
-        String[] sortArray = new String[list.size()];
-        int j = 0;
-        while (j < sortArray.length)
-        {
-          sortArray[j] = (String)list.get(j);
-          j++;
-        }
-        java.util.Arrays.sort(sortArray);
-        StringBuilder sb = new StringBuilder();
-        packList(sb,sortArray,'+');
-        typeMap.put(typeName,sb.toString());
-      }
-      else if (n.getType().equals(CONFIG_PARAM_PATHNAMEATTRIBUTE))
-        pathAttributeName = n.getAttributeValue("value");
-      else if (n.getType().equals(CONFIG_PARAM_PATHMAP))
-      {
-        // Path mapping info also needs to be looked at, because it affects what is
-        // ingested.
-        String pathMatch = n.getAttributeValue("match");
-        String pathReplace = n.getAttributeValue("replace");
-        matchMap.appendMatchPair(pathMatch,pathReplace);
-      }
-    }
+          activityStatus = "Success";
 
+          rval = new RepositoryDocument();
 
-    // Calculate the part of the version string that comes from path name and mapping.
-    // This starts with = since ; is used by another optional component (the forced acls)
-    StringBuilder pathNameAttributeVersion = new StringBuilder();
-    if (pathAttributeName != null)
-      pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(matchMap);
-
-    int intObjectIdCount = documentIdentifiers.length;
-
-    long currentTime;
-
-    try
-    {
-      for (int intInc = 0; intInc < intObjectIdCount; intInc++)
-      {
-        // Since each documentum access is time-consuming, be sure that we abort if the job has gone inactive
-        activity.checkJobStillActive();
-
-        String documentIdentifier = documentIdentifiers[intInc];
-        while (true)
-        {
-          boolean noSession = (session==null);
-          getSession();
-          GetDocumentVersionThread t = new GetDocumentVersionThread(documentIdentifier, typeMap, forcedAclString.toString(), pathNameAttributeVersion.toString());
-          try
-          {
-            t.start();
-            t.join();
-            Throwable thr = t.getException();
-            if (thr != null)
-            {
-              if (thr instanceof RemoteException)
-                throw (RemoteException)thr;
-              else if (thr instanceof DocumentumException)
-                throw (DocumentumException)thr;
-              else if (thr instanceof RuntimeException)
-                throw (RuntimeException)thr;
-              else
-                throw (Error)thr;
-            }
-            String versionString = t.getResponse();
-            strArrayRetVal[intInc] = versionString;
-
-            if (Logging.connectors.isDebugEnabled())
-            {
-              if (versionString != null)
-              {
-                Logging.connectors.debug("DCTM: Document " + documentIdentifier+" has version label: " + versionString);
-              }
-              else
-              {
-                Logging.connectors.debug("DCTM: Document " + documentIdentifier+" has been removed or is hidden");
-              }
-            }
-            // Leave the retry loop; go on to the next document
-            break;
-          }
-          catch (InterruptedException e)
-          {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (RemoteException e)
-          {
-            Throwable e2 = e.getCause();
-            if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-              throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
-            if (noSession)
-            {
-              currentTime = System.currentTimeMillis();
-              throw new ServiceInterruption("Transient error connecting to documentum service: "+e.getMessage(),currentTime + 60000L);
-            }
-            session = null;
-            lastSessionFetch = -1L;
-            // Go back around again
-          }
-        }
-      }
-      return strArrayRetVal;
-    }
-    catch (DocumentumException e)
-    {
-      // Base our treatment on the kind of error it is.
-      currentTime = System.currentTimeMillis();
-      if (e.getType() == DocumentumException.TYPE_SERVICEINTERRUPTION)
-      {
-        Logging.connectors.warn("DCTM: Remote service interruption getting versions: "+e.getMessage(),e);
-        throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
-      }
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
-  }
-
-  protected class ProcessDocumentThread extends Thread
-  {
-    protected String documentIdentifier;
-    protected String versionString;
-    protected File objFileTemp;
-    protected SystemMetadataDescription sDesc;
-    protected Throwable exception = null;
-    protected RepositoryDocument rval = null;
-    protected Long activityStartTime = null;
-    protected Long activityFileLength = null;
-    protected String activityStatus = null;
-    protected String activityMessage = null;
-    protected String uri = null;
-    protected String contentType = null;
-    protected Long contentSize = null;
-
-
-    public ProcessDocumentThread(String documentIdentifier, String versionString, File objFileTemp, SystemMetadataDescription sDesc)
-    {
-      super();
-      setDaemon(true);
-      this.documentIdentifier = documentIdentifier;
-      this.versionString = versionString;
-      this.objFileTemp = objFileTemp;
-      this.sDesc = sDesc;
-    }
-
-    public void run()
-    {
-      try
-      {
-        IDocumentumObject object = session.getObjectByQualification("dm_document where i_chronicle_id='" + documentIdentifier +
-          "' and any r_version_label='CURRENT'");
-        try
-        {
-          long contentSizeValue = object.getContentSize();
-          if (object.exists() && !object.isDeleted() && !object.isHidden() && object.getPermit() > 1 &&
-            contentSizeValue > 0 && object.getPageCount() > 0)
-          {
-            contentSize = new Long(contentSizeValue);
+          if (contentType != null)
+            rval.setMimeType(contentType);
             
-            String objName = object.getObjectName();
-
-            String contentType = object.getContentType();
-            
-            // This particular way of getting content failed, because DFC loaded the
-            // whole object into memory (very very bad DFC!)
-            // InputStream is = objIDfSysObject.getContent();
-            //
-            // Instead, read the file to a disk temporary file, and then stream from there.
-            activityStartTime = new Long(System.currentTimeMillis());
-
-            String strFilePath = null;
-            try
+          List<String> attributeDescriptions = sDesc.getMetadataFields(typeName);
+          if (attributeDescriptions != null)
+          {
+            for (String attrName : attributeDescriptions)
             {
-              strFilePath = object.getFile(objFileTemp.getCanonicalPath());
-            }
-            catch (DocumentumException dfe)
-            {
-              // Fetch failed, so log it
-              activityStatus = "Did not exist";
-              activityMessage = dfe.getMessage();
-              if (dfe.getType() != DocumentumException.TYPE_NOTALLOWED)
-                throw dfe;
-              return;
-            }
-            long fileLength = objFileTemp.length();
-            activityFileLength = new Long(fileLength);
-
-            if (strFilePath == null)
-            {
-              activityStatus = "Failed";
-              activityMessage = "Unknown";
-              // We don't know why it won't fetch, but skip it and keep going.
-              return;
-            }
-
-            activityStatus = "Success";
-
-            rval = new RepositoryDocument();
-
-            if (contentType != null)
-              rval.setMimeType(contentType);
-            
-            // Handle the metadata.
-            // The start of the version string contains the names of the metadata.  We parse it out of the
-            // version string, because we don't want the chance of somebody changing something after we got
-            // the version together and before we actually ingested the metadata.  Plus, it's faster.
-            ArrayList attributeDescriptions = new ArrayList();
-            int startPosition = unpackList(attributeDescriptions,versionString,0,'+');
-            // Unpack forced acls.
-            ArrayList acls = null;
-            String denyAcl = null;
-            if (startPosition < versionString.length() && versionString.charAt(startPosition++) == '+')
-            {
-              acls = new ArrayList();
-              startPosition = unpackList(acls,versionString,startPosition,'+');
-              StringBuilder denyAclBuffer = new StringBuilder();
-              startPosition = unpack(denyAclBuffer,versionString,startPosition,'+');
-              denyAcl = denyAclBuffer.toString();
-            }
-
-            int z = 0;
-            while (z < attributeDescriptions.size())
-            {
-              String attrName = (String)attributeDescriptions.get(z++);
               // Fetch the attributes from the object
               String[] values = object.getAttributeValues(attrName);
               // Add the attribute to the rd
               rval.addField(attrName,values);
             }
-
-            // Add the path metadata item into the mix, if enabled
-            String pathAttributeName = sDesc.getPathAttributeName();
-            if (pathAttributeName != null && pathAttributeName.length() > 0)
-            {
-              String[] pathString = sDesc.getPathAttributeValue(object);
-              rval.addField(pathAttributeName,pathString);
-            }
-
-            // Handle the forced acls
-            if (acls != null && acls.size() == 0)
-            {
-              String[] strarrACL = new String[1];
-              // This used to go back-and-forth to documentum to get the docbase name, but that seemed stupid, so i just
-              // use the one I have already now.
-              strarrACL[0] = docbaseName + ":" + object.getACLDomain() + "." + object.getACLName();
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("DCTM: Processing document (" + objName + ") with ACL=" + strarrACL[0] + " and size=" + object.getContentSize() + " bytes.");
-              rval.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,strarrACL);
-            }
-            else if (acls != null)
-            {
-              String[] forcedAcls = new String[acls.size()];
-              z = 0;
-              while (z < forcedAcls.length)
-              {
-                forcedAcls[z] = (String)acls.get(z);
-                z++;
-              }
-              rval.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,forcedAcls);
-
-
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("DCTM: Processing document (" + objName + ") with size=" + object.getContentSize() + " bytes.");
-            }
-
-            if (denyAcl != null)
-            {
-              String[] denyAcls = new String[]{denyAcl};
-              rval.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAcls);
-            }
-
-            contentType = object.getContentType();
-            uri = convertToURI(object.getObjectId(),contentType);
           }
+
+          // Add the path metadata item into the mix, if enabled
+          String pathAttributeName = sDesc.getPathAttributeName();
+          if (pathAttributeName != null && pathAttributeName.length() > 0)
+          {
+            String[] pathString = sDesc.getPathAttributeValue(object);
+            rval.addField(pathAttributeName,pathString);
+          }
+
+          // Handle the forced acls
+          String[] acls = sDesc.getAcls();
+          if (acls != null && acls.length == 0)
+          {
+            String[] strarrACL = new String[1];
+            // This used to go back-and-forth to documentum to get the docbase name, but that seemed stupid, so i just
+            // use the one I have already now.
+            strarrACL[0] = docbaseName + ":" + object.getACLDomain() + "." + object.getACLName();
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("DCTM: Processing document (" + objName + ") with ACL=" + strarrACL[0] + " and size=" + object.getContentSize() + " bytes.");
+            rval.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,strarrACL);
+          }
+          else if (acls != null)
+          {
+            rval.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls);
+
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("DCTM: Processing document (" + objName + ") with size=" + object.getContentSize() + " bytes.");
+          }
+
+          String[] denyAcls = new String[]{denyToken};
+          rval.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAcls);
+
+          uri = convertToURI(object.getObjectId(),contentType);
         }
         finally
         {
           object.release();
         }
+
       }
       catch (Throwable e)
       {
         this.exception = e;
       }
+      finally
+      {
+        synchronized(this)
+        {
+          threadExit = true;
+          notifyAll();
+        }
+      }
     }
 
-    public Throwable getException()
+    public String getVersionString()
+      throws RemoteException, DocumentumException, InterruptedException
     {
-      return exception;
+      // First, wait for version to be ready
+      synchronized (this)
+      {
+        while (true)
+        {
+          wait();
+          if (threadExit || versionPartDone)
+            break;
+        }
+      }
+      if (exception != null)
+      {
+        if (exception instanceof RemoteException)
+          throw (RemoteException)exception;
+        else if (exception instanceof DocumentumException)
+          throw (DocumentumException)exception;
+        else if (exception instanceof RuntimeException)
+          throw (RuntimeException)exception;
+        else if (exception instanceof Error)
+          throw (Error)exception;
+        else
+          throw new RuntimeException("Unexpected exception type: "+exception.getClass().getName()+": "+exception.getMessage(),exception);
+      }
+      // Return the version
+      return versionString;
+    }
+    
+    public void startFetch(File objFileTemp)
+    {
+      // Begin the fetch part
+      synchronized (this)
+      {
+        this.objFileTemp = objFileTemp;
+        startFetch = true;
+        notifyAll();
+      }
+    }
+    
+    public void finishWithoutFetch()
+      throws InterruptedException
+    {
+      // Abort the fetch phase, and shut the thread down
+      synchronized (this)
+      {
+        abort = true;
+        notifyAll();
+      }
+      join();
     }
 
-    public RepositoryDocument getResponse()
+    public RepositoryDocument finishUp()
+      throws RemoteException, DocumentumException, InterruptedException, ManifoldCFException
     {
+      join();
+      if (exception != null)
+      {
+        if (exception instanceof RemoteException)
+          throw (RemoteException)exception;
+        else if (exception instanceof DocumentumException)
+          throw (DocumentumException)exception;
+        else if (exception instanceof ManifoldCFException)
+          throw (ManifoldCFException)exception;
+        else if (exception instanceof RuntimeException)
+          throw (RuntimeException)exception;
+        else if (exception instanceof Error)
+          throw (Error)exception;
+        else
+          throw new RuntimeException("Unexpected exception type: "+exception.getClass().getName()+": "+exception.getMessage(),exception);
+      }
       return rval;
     }
-
+    
     public Long getContentSize()
     {
       return contentSize;
@@ -1796,68 +1600,89 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     {
       return uri;
     }
-  }
 
-  /** Process documents whose versions indicate they need processing.
+
+  }
+  
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
   */
   @Override
-  public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
-    IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
-    Logging.connectors.debug("DCTM: Inside processDocuments");
-
-    // Build the node/path cache
-    SystemMetadataDescription sDesc = new SystemMetadataDescription(spec);
-
-    int intObjectIdCount = documentIdentifiers.length;
-
     long currentTime;
-
+    // Do any preliminary work
+    // Build the node/path cache
+    SpecInfo sDesc = new SpecInfo(spec);
+    
     try
     {
-      for (int intInc = 0; intInc < intObjectIdCount; intInc++)
+      // Now we are ready to go through the document identifiers
+      for (String documentIdentifier : documentIdentifiers)
       {
-        // Since each livelink access is time-consuming, be sure that we abort if the job has gone inactive
+        // It is better, performance-wise, to fetch a document object just once.  Under RMI,
+        // though, we will need to do this in a background thread, since it's socket-based and can therefore
+        // be broken by network disruption.  On the other hand, decisions about how to proceed can
+        // only be undertaken in the local ManifoldCF worker thread.
+        // In order to deal with these constraints, the background thread needs to have multiple "stages".
+        // Each stage executes to completion and then blocks, while the MCF worker thread looks at the
+        // results, and then informs the background thread to proceed (or to abort, if no further work
+        // is desired).
+        
+        // Since each documentum access is time-consuming, be sure that we abort if the job has gone inactive
         activities.checkJobStillActive();
 
-        String documentIdentifier = documentIdentifiers[intInc];
-        String versionString =  documentVersions[intInc];
-
-        if (!scanOnly[intInc])
+        while (true)
         {
-          while (true)
+          boolean noSession = (session==null);
+          getSession();
+          ProcessDocumentThread t = new ProcessDocumentThread(documentIdentifier, sDesc);
+          // Start the thread
+          t.start();
+          try
           {
-            boolean noSession = (session==null);
-            getSession();
+            // Wait for version string
+            String versionString = t.getVersionString();
 
-            // Create a temporary file for every attempt, because we don't know yet whether we'll need it or not -
-            // but probably we will.
-            File objFileTemp = File.createTempFile("_mc_dctm_", null);
-            try
+            if (Logging.connectors.isDebugEnabled())
             {
-              ProcessDocumentThread t = new ProcessDocumentThread(documentIdentifier,versionString,objFileTemp,
-                sDesc);
+              if (versionString != null)
+              {
+                Logging.connectors.debug("DCTM: Document " + documentIdentifier+" has version label: " + versionString);
+              }
+              else
+              {
+                Logging.connectors.debug("DCTM: Document " + documentIdentifier+" has been removed or is hidden");
+              }
+            }
+            
+            if (versionString == null)
+            {
+              t.finishWithoutFetch();
+              activities.deleteDocument(documentIdentifier);
+            }
+            else
+            {
+              // Start the fetch part
+              // Create a temporary file for every attempt, because we don't know yet whether we'll need it or not -
+              // but probably we will.
+              File objFileTemp = File.createTempFile("_mc_dctm_", null);
               try
               {
-                t.start();
-                t.join();
-                Throwable thr = t.getException();
-                if (thr != null)
-                {
-                  if (thr instanceof RemoteException)
-                    throw (RemoteException)thr;
-                  else if (thr instanceof DocumentumException)
-                    throw (DocumentumException)thr;
-                  else if (thr instanceof ManifoldCFException)
-                    throw (ManifoldCFException)thr;
-                  else if (thr instanceof RuntimeException)
-                    throw (RuntimeException)thr;
-                  else
-                    throw (Error)thr;
-                }
-
-                RepositoryDocument rd = t.getResponse();
+                t.startFetch(objFileTemp);
+                RepositoryDocument rd = t.finishUp();
                 if (rd != null)
                 {
                   long fileLength = t.getContentSize().longValue();
@@ -1897,37 +1722,35 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                 
                 if (rd == null)
                   activities.noDocument(documentIdentifier,versionString);
-                
-                // Abort the retry loop and go on to the next document
-                break;
-
               }
-              catch (InterruptedException e)
+              finally
               {
-                t.interrupt();
-                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-              }
-              catch (RemoteException e)
-              {
-                Throwable e2 = e.getCause();
-                if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-                  throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
-                if (noSession)
-                {
-                  currentTime = System.currentTimeMillis();
-                  throw new ServiceInterruption("Transient error connecting to documentum service: "+e.getMessage(),currentTime + 60000L);
-                }
-                session = null;
-                lastSessionFetch = -1L;
-                // Go back around
+                objFileTemp.delete();
               }
             }
-            finally
-            {
-              objFileTemp.delete();
-            }
+            
+            // Leave the retry loop; go on to the next document
+            break;
           }
-
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RemoteException e)
+          {
+            Throwable e2 = e.getCause();
+            if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
+              throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
+            if (noSession)
+            {
+              currentTime = System.currentTimeMillis();
+              throw new ServiceInterruption("Transient error connecting to documentum service: "+e.getMessage(),currentTime + 60000L);
+            }
+            session = null;
+            lastSessionFetch = -1L;
+            // Go back around again
+          }
         }
       }
     }
@@ -1937,7 +1760,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       currentTime = System.currentTimeMillis();
       if (e.getType() == DocumentumException.TYPE_SERVICEINTERRUPTION)
       {
-        Logging.connectors.warn("DCTM: Remote service interruption reading files: "+e.getMessage(),e);
+        Logging.connectors.warn("DCTM: Remote service interruption processing documents: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
       }
       throw new ManifoldCFException(e.getMessage(),e);
@@ -1950,22 +1773,6 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     {
       throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
-  }
-
-  /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
-  * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
-  * committed during the getDocumentVersions() method.  It is guaranteed to be called AFTER any calls to
-  * processDocuments() for the documents in question.
-  *@param documentIdentifiers is the set of document identifiers.
-  *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
-  */
-  @Override
-  public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws ManifoldCFException
-
-
-  {
-    // Nothing to do
   }
 
   @Override
@@ -3682,29 +3489,17 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       {
         boolean noSession = (session==null);
         getSession();
-        ArrayList contentTypes = new ArrayList();
-        GetListOfValuesThread t = new GetListOfValuesThread(dql,"name",contentTypes);
+        GetListOfValuesThread t = new GetListOfValuesThread(dql,"name");
         try
         {
           t.start();
-          t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof RemoteException)
-              throw (RemoteException)thr;
-            else if (thr instanceof DocumentumException)
-              throw (DocumentumException)thr;
-            else if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else
-              throw (Error)thr;
-          }
+          List<String> contentTypes = t.finishUp();
+          
           String[] rval = new String[contentTypes.size()];
           int i = 0;
           while (i < rval.length)
           {
-            rval[i] = (String)contentTypes.get(i);
+            rval[i] = contentTypes.get(i);
             i++;
           }
           return rval;
@@ -3758,29 +3553,16 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       {
         boolean noSession = (session==null);
         getSession();
-        ArrayList objectTypes = new ArrayList();
-        GetListOfValuesThread t = new GetListOfValuesThread(strDQL,"r_type_name",objectTypes);
+        GetListOfValuesThread t = new GetListOfValuesThread(strDQL,"r_type_name");
         try
         {
           t.start();
-          t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof RemoteException)
-              throw (RemoteException)thr;
-            else if (thr instanceof DocumentumException)
-              throw (DocumentumException)thr;
-            else if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else
-              throw (Error)thr;
-          }
+          List<String> objectTypes = t.finishUp();
           String[] rval = new String[objectTypes.size()];
           int i = 0;
           while (i < rval.length)
           {
-            rval[i] = (String)objectTypes.get(i);
+            rval[i] = objectTypes.get(i);
             i++;
           }
           return rval;
@@ -3822,7 +3604,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
   protected class GetChildFolderNamesThread extends Thread
   {
-    protected String strTheParentFolderPath;
+    protected final String strTheParentFolderPath;
+    
     protected Throwable exception = null;
     protected String[] rval = null;
 
@@ -3891,15 +3674,27 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    public Throwable getException()
+    public String[] finishUp()
+      throws InterruptedException, RemoteException, DocumentumException
     {
-      return exception;
-    }
-
-    public String[] getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof DocumentumException)
+          throw (DocumentumException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
+
   }
 
   /** This method returns an ordered set of the "next things" given a folder path, for the UI to
@@ -3918,20 +3713,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         try
         {
           t.start();
-          t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof RemoteException)
-              throw (RemoteException)thr;
-            else if (thr instanceof DocumentumException)
-              throw (DocumentumException)thr;
-            else if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else
-              throw (Error)thr;
-          }
-          return t.getResponse();
+          return t.finishUp();
         }
         catch (InterruptedException e)
         {
@@ -3984,29 +3766,16 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       {
         boolean noSession = (session==null);
         getSession();
-        ArrayList attributes = new ArrayList();
-        GetListOfValuesThread t = new GetListOfValuesThread(strDQL,"attr_name",attributes);
+        GetListOfValuesThread t = new GetListOfValuesThread(strDQL,"attr_name");
         try
         {
           t.start();
-          t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof RemoteException)
-              throw (RemoteException)thr;
-            else if (thr instanceof DocumentumException)
-              throw (DocumentumException)thr;
-            else if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else
-              throw (Error)thr;
-          }
+          List<String> attributes = t.finishUp();
           String[] rval = new String[attributes.size()];
           int i = 0;
           while (i < rval.length)
           {
-            rval[i] = (String)attributes.get(i);
+            rval[i] = attributes.get(i);
             i++;
           }
           return rval;
@@ -4048,69 +3817,33 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
   // Private and protected methods
 
-  /** Grab forced acl out of document specification.
-  *@param spec is the document specification.
-  *@return the acls.
+  /** This class digests specifications and allows easy access to the data within.
   */
-  protected static String[] getAcls(DocumentSpecification spec)
+  protected class SpecInfo
   {
-    HashMap map = new HashMap();
-    int i = 0;
-    boolean securityOn = true;
-    while (i < spec.getChildCount())
-    {
-      SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals("access"))
-      {
-        String token = sn.getAttributeValue("token");
-        map.put(token,token);
-      }
-      else if (sn.getType().equals("security"))
-      {
-        String value = sn.getAttributeValue("value");
-        if (value.equals("on"))
-          securityOn = true;
-        else if (value.equals("off"))
-          securityOn = false;
-      }
-    }
-    if (!securityOn)
-      return null;
-
-    String[] rval = new String[map.size()];
-    Iterator iter = map.keySet().iterator();
-    i = 0;
-    while (iter.hasNext())
-    {
-      rval[i++] = (String)iter.next();
-    }
-    return rval;
-  }
-
-  /** Class that tracks paths associated with folder IDs, and also keeps track of the name
-  * of the metadata attribute to use for the path.
-  */
-  protected class SystemMetadataDescription
-  {
-    // The path attribute name
-    protected String pathAttributeName;
-
-    // The folder ID to path name mapping (which acts like a cache).
-    // The key is the folder ID, and the value is an array of Strings.
-    protected Map pathMap = new HashMap();
-
-    // The path name map
-    protected MatchMap matchMap = new MatchMap();
+    /** The path attribute name */
+    protected final String pathAttributeName;
+    /** The folder ID to path name mapping (which acts like a cache).
+      The key is the folder ID, and the value is an array of Strings. */
+    protected final Map<String,String[]> pathMap = new HashMap<String,String[]>();
+    /** The path name map */
+    protected final MatchMap matchMap = new MatchMap();
+    /** A set of forced acls */
+    protected final Set<String> aclSet = new HashSet<String>();
+    /** Security on/off */
+    protected final boolean securityOn;
+    /** Map of type to selected attributes */
+    protected final Map<String,List<String>> typeMap = new HashMap<String,List<String>>();
 
     /** Constructor */
-    public SystemMetadataDescription(DocumentSpecification spec)
-      throws ManifoldCFException
+    public SpecInfo(Specification spec)
+      throws ManifoldCFException, ServiceInterruption
     {
-      pathAttributeName = null;
-      int i = 0;
-      while (i < spec.getChildCount())
+      String pathAttributeName = null;
+      boolean securityOn = true;
+      for (int i = 0; i < spec.getChildCount(); i++)
       {
-        SpecificationNode n = spec.getChild(i++);
+        SpecificationNode n = spec.getChild(i);
         if (n.getType().equals(CONFIG_PARAM_PATHNAMEATTRIBUTE))
           pathAttributeName = n.getAttributeValue("value");
         else if (n.getType().equals(CONFIG_PARAM_PATHMAP))
@@ -4119,7 +3852,62 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           String pathReplace = n.getAttributeValue("replace");
           matchMap.appendMatchPair(pathMatch,pathReplace);
         }
+        else if (n.getType().equals("access"))
+        {
+          String token = n.getAttributeValue("token");
+          aclSet.add(token);
+        }
+        else if (n.getType().equals("security"))
+        {
+          String value = n.getAttributeValue("value");
+          if (value.equals("on"))
+            securityOn = true;
+          else if (value.equals("off"))
+            securityOn = false;
+        }
+        else if (n.getType().equals(CONFIG_PARAM_OBJECTTYPE))
+        {
+          String typeName = n.getAttributeValue("token");
+          String isAll = n.getAttributeValue("all");
+          List<String> list;
+          if (isAll != null && isAll.equals("true"))
+          {
+            // "All" attributes are specified
+            // The current complete list of attributes must be fetched for this document type
+            try
+            {
+              list = getAttributesForType(typeName);
+            }
+            catch (DocumentumException e)
+            {
+              // Base our treatment on the kind of error it is.
+              if (e.getType() == DocumentumException.TYPE_SERVICEINTERRUPTION)
+              {
+                long currentTime = System.currentTimeMillis();
+                Logging.connectors.warn("DCTM: Remote service interruption listing attributes: "+e.getMessage(),e);
+                throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
+              }
+              throw new ManifoldCFException(e.getMessage(),e);
+            }
+          }
+          else
+          {
+            list = new ArrayList<String>();
+            for (int l = 0; i < n.getChildCount(); l++)
+            {
+              SpecificationNode sn = n.getChild(l);
+              if (sn.getType().equals(CONFIG_PARAM_ATTRIBUTENAME))
+              {
+                String attrName = sn.getAttributeValue("attrname");
+                list.add(attrName);
+              }
+            }
+          }
+          typeMap.put(typeName,list);
+        }
       }
+      this.pathAttributeName = pathAttributeName;
+      this.securityOn = securityOn;
     }
 
     /** Get the path attribute name.
@@ -4137,14 +3925,84 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     {
       String[] paths = object.getFolderPaths(pathMap);
       String[] rval = new String[paths.length];
-      int i = 0;
-      while (i < paths.length)
+      for (int i = 0; i < paths.length; i++)
       {
         rval[i] = matchMap.translate(paths[i]);
-        i++;
       }
       return rval;
     }
 
+    /** Grab forced acl out of document specification.
+    *@param spec is the document specification.
+    *@return the acls.
+    */
+    public String[] getAcls()
+    {
+      if (!securityOn)
+        return null;
+
+      String[] rval = new String[aclSet.size()];
+      Iterator<String> iter = aclSet.iterator();
+      int i = 0;
+      for (String value : aclSet)
+      {
+        rval[i++] = value;
+      }
+      return rval;
+    }
+
+    public String getForcedAclString()
+    {
+      // Get the forced acls (and whether security is on as well)
+      String[] acls = getAcls();
+      // Build a "forced acl" version string, of the form ";<acl>+<acl>+..."
+      StringBuilder forcedAclString = new StringBuilder();
+      if (acls != null)
+      {
+        forcedAclString.append('+');
+        java.util.Arrays.sort(acls);
+        packList(forcedAclString,acls,'+');
+        pack(forcedAclString,denyToken,'+');
+      }
+      else
+        forcedAclString.append('-');
+      return forcedAclString.toString();
+    }
+    
+    public List<String> getMetadataFields(String typeName)
+    {
+      return typeMap.get(typeName);
+    }
+    
+    public String getMetadataVersionAddendum(String typeName)
+    {
+      // Sort the attribute names, because we need them to be comparable.
+      StringBuilder sb = new StringBuilder();
+      List<String> list = typeMap.get(typeName);
+      if (list == null)
+        packList(sb,new String[0],'+');
+      else
+      {
+        String[] sortArray = new String[list.size()];
+        int j = 0;
+        for (String thing : list)
+        {
+          sortArray[j++] = thing;
+        }
+        java.util.Arrays.sort(sortArray);
+        packList(sb,sortArray,'+');
+      }
+      return sb.toString();
+    }
+    
+    public String getPathNameAttributeAddendum()
+    {
+      // This starts with = since ; is used by another optional component (the forced acls)
+      StringBuilder pathNameAttributeVersion = new StringBuilder();
+      if (pathAttributeName != null)
+        pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(matchMap);
+      return pathNameAttributeVersion.toString();
+    }
+    
   }
 }
