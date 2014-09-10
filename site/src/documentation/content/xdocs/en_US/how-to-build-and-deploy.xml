@@ -1033,7 +1033,7 @@ cd example
             <tr><td>org.apache.manifoldcf.db.postgres.analyze.&#60;tablename&#62;</td><td>No</td><td>2000</td><td>For postgresql, specify how many changes should be carried out before carrying out an 'ANALYZE' on the specified table.</td></tr>
             <tr><td>org.apache.manifoldcf.db.postgres.reindex.&#60;tablename&#62;</td><td>No</td><td>250000</td><td>For postgresql, specify how many changes should be carried out before carrying out an 'REINDEX' on the specified table.</td></tr>
             <tr><td>org.apache.manifoldcf.db.mysql.analyze.&#60;tablename&#62;</td><td>No</td><td>2000</td><td>For mysql, specify how many changes should be carried out before carrying out an 'ANALYZE' on the specified table.</td></tr>
-            <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>10000</td><td>Set the upper limit for the precise document count to be returned on the 'Status and Job Management' page.</td></tr>
+            <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>500000</td><td>Set the upper limit for the precise document count to be returned on the 'Status and Job Management' page.</td></tr>
           </table>
           <p></p>
           <p>The configuration file can also specify a set of directories which will be searched for connector jars.  The directive that adds to the class path is:</p>
