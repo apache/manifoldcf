@@ -79,7 +79,7 @@ public interface IFilenet extends Remote
   /** Get document information for a given filenet document.  Will return null if the version id is not a current document version id.
   * The metadataFields hashmap is keyed by document class, and contains as a value either null (meaning "all"), or a String[] that has the
   * list of fields desired. */
-  public FileInfo getDocumentInformation(String docId, HashMap metadataFields)
+  public FileInfo getDocumentInformation(String docId, Map<String,Object> metadataFields)
     throws FilenetException, RemoteException;
 
   /** Get document contents */
