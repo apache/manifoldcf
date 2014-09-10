@@ -55,48 +55,44 @@ public class InterruptionRepositoryConnector extends org.apache.manifoldcf.crawl
     return "";
   }
   
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+  */
   @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    String[] rval = new String[documentIdentifiers.length];
-    for (int i = 0; i < rval.length; i++)
-    {
-      rval[i] = "";
-    }
-    return rval;
-  }
-
-  @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    DocumentSpecification spec, boolean[] scanOnly, int jobMode)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
     for (int i = 0; i < documentIdentifiers.length; i++)
     {
       String documentIdentifier = documentIdentifiers[i];
-      String version = versions[i];
-      if (!scanOnly[i])
+      if (documentIdentifier.equals("test0.txt"))
       {
-        if (documentIdentifier.equals("test0.txt"))
-        {
-          // This will emulate one particular document failing (and being skipped)
-          long currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Pretending there's a service interruption",
-            null,currentTime+1000L,currentTime+5000L,10,false);
-        }
-        RepositoryDocument rd = new RepositoryDocument();
-        byte[] bytes = documentIdentifier.getBytes(StandardCharsets.UTF_8);
-        rd.setBinary(new ByteArrayInputStream(bytes),bytes.length);
-        try
-        {
-          activities.ingestDocumentWithException(documentIdentifier,version,"http://"+documentIdentifier,rd);
-        }
-        catch (IOException e)
-        {
-          throw new RuntimeException("Shouldn't be seeing IOException from binary array input stream: "+e.getMessage(),e);
-        }
+        // This will emulate one particular document failing (and being skipped)
+        long currentTime = System.currentTimeMillis();
+        throw new ServiceInterruption("Pretending there's a service interruption",
+          null,currentTime+1000L,currentTime+5000L,10,false);
+      }
+      RepositoryDocument rd = new RepositoryDocument();
+      byte[] bytes = documentIdentifier.getBytes(StandardCharsets.UTF_8);
+      rd.setBinary(new ByteArrayInputStream(bytes),bytes.length);
+      try
+      {
+        activities.ingestDocumentWithException(documentIdentifier,"","http://"+documentIdentifier,rd);
+      }
+      catch (IOException e)
+      {
+        throw new RuntimeException("Shouldn't be seeing IOException from binary array input stream: "+e.getMessage(),e);
       }
     }
   }
