@@ -443,66 +443,27 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     }
   }
 
-  /**
-  * Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is therefore important to perform
-  * as little work as possible here.
-  * The connector will be connected before this method can be called.
-  *
-  * @param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  * @param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  * A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  * had an empty version string.
-  * @param activities is the interface this method should use to perform whatever framework actions are desired.
-  * @param spec is the current document specification for the current job. If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes. This is primarily useful for metadata.
-  * @param jobMode is an integer describing how the job is being run, whether continuous or once-only.
-  * @param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  * @return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
-  */
-  @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ManifoldCFException, ServiceInterruption {
-
-    String[] result = new String[documentIdentifiers.length];
-    for (int i = 0; i < documentIdentifiers.length; i++)
-    {
-      result[i] = "_" + urlTemplate;   // NOT empty; we need to make ManifoldCF understand that this is a document that never will change.
-    }
-    return result;
-
-  }
-
-  /**
-  * Process a set of documents.
+  /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
   * The document specification allows this class to filter what is done based on the job.
   * The connector will be connected before this method can be called.
-  *
-  * @param documentIdentifiers is the set of document identifiers to process.
-  * @param versions is the corresponding document versions to process, as returned by getDocumentVersions() above.
-  * The implementation may choose to ignore this parameter and always process the current version.
-  * @param activities is the interface this method should use to queue up new document references
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
   * and ingest documents.
-  * @param spec is the document specification.
-  * @param scanOnly is an array corresponding to the document identifiers. It is set to true to indicate when the processing
-  * should only find other references, and should not actually call the ingestion methods.
-  * @param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
   */
   @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    DocumentSpecification spec, boolean[] scanOnly, int jobMode)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption {
-    getSession();
-    int i = 0;
+
     List<String> requiredMetadata = new ArrayList<String>();
-    while (i < spec.getChildCount()) {
-      SpecificationNode sn = spec.getChild(i++);
+    for (int i = 0; i < spec.getChildCount(); i++) {
+      SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(EmailConfig.NODE_METADATA)) {
         String metadataAttribute = sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
         requiredMetadata.add(metadataAttribute);
@@ -512,124 +473,130 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     // Keep a cached set of open folders
     Map<String,Folder> openFolders = new HashMap<String,Folder>();
     try {
-      i = 0;
-      while (i < documentIdentifiers.length) {
-        String compositeID = documentIdentifiers[i];
-        String version = versions[i];
-        String folderName = extractFolderNameFromDocumentIdentifier(compositeID);
-        String id = extractEmailIDFromDocumentIdentifier(compositeID);
-        try {
-          Folder folder = openFolders.get(folderName);
-          if (folder == null)
-          {
-            OpenFolderThread oft = new OpenFolderThread(session, folderName);
-            oft.start();
-            folder = oft.finishUp();
-            openFolders.put(folderName,folder);
-          }
-          
-          long startTime = System.currentTimeMillis();
-          InputStream is = null;
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Email: Processing document identifier '"
-              + compositeID + "'");
-          SearchTerm messageIDTerm = new MessageIDTerm(id);
-          
-          SearchMessagesThread smt = new SearchMessagesThread(session, folder, messageIDTerm);
-          smt.start();
-          Message[] message = smt.finishUp();
 
-          for (Message msg : message) {
-            RepositoryDocument rd = new RepositoryDocument();
-            Date setDate = msg.getSentDate();
-            rd.setFileName(msg.getFileName());
-            is = msg.getInputStream();
-            rd.setBinary(is, msg.getSize());
-            String subject = StringUtils.EMPTY;
-            for (String metadata : requiredMetadata) {
-              if (metadata.toLowerCase().equals(EmailConfig.EMAIL_TO)) {
-                Address[] to = msg.getRecipients(Message.RecipientType.TO);
-                String[] toStr = new String[to.length];
-                int j = 0;
-                for (Address address : to) {
-                  toStr[j] = address.toString();
-                }
-                rd.addField(EmailConfig.EMAIL_TO, toStr);
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_FROM)) {
-                Address[] from = msg.getFrom();
-                String[] fromStr = new String[from.length];
-                int j = 0;
-                for (Address address : from) {
-                  fromStr[j] = address.toString();
-                }
-                rd.addField(EmailConfig.EMAIL_TO, fromStr);
+      for (String documentIdentifier : documentIdentifiers) {
+        String versionString = "_" + urlTemplate;   // NOT empty; we need to make ManifoldCF understand that this is a document that never will change.
+        
+        // Check if we need to index
+        if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+        {
+          String compositeID = documentIdentifier;
+          String version = versionString;
+          String folderName = extractFolderNameFromDocumentIdentifier(compositeID);
+          String id = extractEmailIDFromDocumentIdentifier(compositeID);
+          try {
+            Folder folder = openFolders.get(folderName);
+            if (folder == null)
+            {
+              getSession();
+              OpenFolderThread oft = new OpenFolderThread(session, folderName);
+              oft.start();
+              folder = oft.finishUp();
+              openFolders.put(folderName,folder);
+            }
+            
+            long startTime = System.currentTimeMillis();
+            InputStream is = null;
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("Email: Processing document identifier '"
+                + compositeID + "'");
+            SearchTerm messageIDTerm = new MessageIDTerm(id);
+            
+            getSession();
+            SearchMessagesThread smt = new SearchMessagesThread(session, folder, messageIDTerm);
+            smt.start();
+            Message[] message = smt.finishUp();
 
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_SUBJECT)) {
-                subject = msg.getSubject();
-                rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_BODY)) {
-                Multipart mp = (Multipart) msg.getContent();
-                for (int k = 0, n = mp.getCount(); k < n; k++) {
-                  Part part = mp.getBodyPart(k);
-                  String disposition = part.getDisposition();
-                  if ((disposition == null)) {
-                    MimeBodyPart mbp = (MimeBodyPart) part;
-                    if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
-                      rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
-                    } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
-                      rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
+            for (Message msg : message) {
+              RepositoryDocument rd = new RepositoryDocument();
+              Date setDate = msg.getSentDate();
+              rd.setFileName(msg.getFileName());
+              is = msg.getInputStream();
+              rd.setBinary(is, msg.getSize());
+              String subject = StringUtils.EMPTY;
+              for (String metadata : requiredMetadata) {
+                if (metadata.toLowerCase().equals(EmailConfig.EMAIL_TO)) {
+                  Address[] to = msg.getRecipients(Message.RecipientType.TO);
+                  String[] toStr = new String[to.length];
+                  int j = 0;
+                  for (Address address : to) {
+                    toStr[j] = address.toString();
+                  }
+                  rd.addField(EmailConfig.EMAIL_TO, toStr);
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_FROM)) {
+                  Address[] from = msg.getFrom();
+                  String[] fromStr = new String[from.length];
+                  int j = 0;
+                  for (Address address : from) {
+                    fromStr[j] = address.toString();
+                  }
+                  rd.addField(EmailConfig.EMAIL_TO, fromStr);
+
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_SUBJECT)) {
+                  subject = msg.getSubject();
+                  rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_BODY)) {
+                  Multipart mp = (Multipart) msg.getContent();
+                  for (int k = 0, n = mp.getCount(); k < n; k++) {
+                    Part part = mp.getBodyPart(k);
+                    String disposition = part.getDisposition();
+                    if ((disposition == null)) {
+                      MimeBodyPart mbp = (MimeBodyPart) part;
+                      if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
+                        rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
+                      } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
+                        rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
+                      }
                     }
                   }
-                }
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_DATE)) {
-                Date sentDate = msg.getSentDate();
-                rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
-                Multipart mp = (Multipart) msg.getContent();
-                if (mp != null) {
-                  String[] encoding = new String[mp.getCount()];
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_DATE)) {
+                  Date sentDate = msg.getSentDate();
+                  rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
+                  Multipart mp = (Multipart) msg.getContent();
+                  if (mp != null) {
+                    String[] encoding = new String[mp.getCount()];
+                    for (int k = 0, n = mp.getCount(); k < n; k++) {
+                      Part part = mp.getBodyPart(k);
+                      String disposition = part.getDisposition();
+                      if ((disposition != null) &&
+                          ((disposition.equals(Part.ATTACHMENT) ||
+                              (disposition.equals(Part.INLINE))))) {
+                        encoding[k] = part.getFileName().split("\\?")[1];
+
+                      }
+                    }
+                    rd.addField(EmailConfig.ENCODING_FIELD, encoding);
+                  }
+                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
+                  Multipart mp = (Multipart) msg.getContent();
+                  String[] MIMEType = new String[mp.getCount()];
                   for (int k = 0, n = mp.getCount(); k < n; k++) {
                     Part part = mp.getBodyPart(k);
                     String disposition = part.getDisposition();
                     if ((disposition != null) &&
                         ((disposition.equals(Part.ATTACHMENT) ||
                             (disposition.equals(Part.INLINE))))) {
-                      encoding[k] = part.getFileName().split("\\?")[1];
+                      MIMEType[k] = part.getContentType();
 
                     }
                   }
-                  rd.addField(EmailConfig.ENCODING_FIELD, encoding);
+                  rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
                 }
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
-                Multipart mp = (Multipart) msg.getContent();
-                String[] MIMEType = new String[mp.getCount()];
-                for (int k = 0, n = mp.getCount(); k < n; k++) {
-                  Part part = mp.getBodyPart(k);
-                  String disposition = part.getDisposition();
-                  if ((disposition != null) &&
-                      ((disposition.equals(Part.ATTACHMENT) ||
-                          (disposition.equals(Part.INLINE))))) {
-                    MIMEType[k] = part.getContentType();
-
-                  }
-                }
-                rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
               }
-            }
-            String documentURI = makeDocumentURI(urlTemplate, folderName, id);
-            activities.ingestDocumentWithException(id, version, documentURI, rd);
+              String documentURI = makeDocumentURI(urlTemplate, folderName, id);
+              activities.ingestDocumentWithException(id, version, documentURI, rd);
 
+            }
+          } catch (InterruptedException e) {
+            throw new ManifoldCFException(e.getMessage(), ManifoldCFException.INTERRUPTED);
+          } catch (MessagingException e) {
+            handleMessagingException(e, "processing email");
+          } catch (IOException e) {
+            handleIOException(e, "processing email");
+            throw new ManifoldCFException(e.getMessage(), e);
           }
-        } catch (InterruptedException e) {
-          throw new ManifoldCFException(e.getMessage(), ManifoldCFException.INTERRUPTED);
-        } catch (MessagingException e) {
-          handleMessagingException(e, "processing email");
-        } catch (IOException e) {
-          handleIOException(e, "processing email");
-          throw new ManifoldCFException(e.getMessage(), e);
         }
-        
-        i++;
       }
     }
     finally
@@ -652,6 +619,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         }
       }
     }
+
   }
 
   //////////////////////////////End of Repository Connector Methods///////////////////////////////////
