@@ -935,10 +935,12 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
             // content ingestion
             RepositoryDocument rd = new RepositoryDocument();
 
-            rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls);
-            String[] denyAclArray = new String[]{defaultAuthorityDenyToken};
-            rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
-
+            if (acls.length > 0) {
+              rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls);
+              String[] denyAclArray = new String[]{defaultAuthorityDenyToken};
+              rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
+            }
+            
             // Length in bytes
             long fileLength = dropboxObject.bytes;
             //documentURI
