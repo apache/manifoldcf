@@ -50,6 +50,7 @@ import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
+import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.log4j.Logger;
 
 import com.google.api.services.drive.model.File;
@@ -954,116 +955,136 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     }
   }
   
-  /**
-   * Process a set of documents. This is the method that should cause each
-   * document to be fetched, processed, and the results either added to the
-   * queue of documents for the current job, and/or entered into the
-   * incremental ingestion manager. The document specification allows this
-   * class to filter what is done based on the job.
-   *
-   * @param documentIdentifiers is the set of document identifiers to process.
-   * @param versions is the corresponding document versions to process, as
-   * returned by getDocumentVersions() above. The implementation may choose to
-   * ignore this parameter and always process the current version.
-   * @param activities is the interface this method should use to queue up new
-   * document references and ingest documents.
-   * @param spec is the document specification.
-   * @param scanOnly is an array corresponding to the document identifiers. It
-   * is set to true to indicate when the processing should only find other
-   * references, and should not actually call the ingestion methods.
-   * @param jobMode is an integer describing how the job is being run, whether
-   * continuous or once-only.
-   */
-  @SuppressWarnings("unchecked")
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+  */
   @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions,
-      IProcessActivity activities, DocumentSpecification spec,
-      boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption {
-
-    Logging.connectors.debug("GOOGLEDRIVE: Inside processDocuments");
-
-    for (int i = 0; i < documentIdentifiers.length; i++) {
-      // MHL for access tokens
-      long startTime = System.currentTimeMillis();
-      String errorCode = "FAILED";
-      String errorDesc = StringUtils.EMPTY;
-      Long fileSize = null;
-      boolean doLog = false;
-      String nodeId = documentIdentifiers[i];
-      String version = versions[i];
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
+    throws ManifoldCFException, ServiceInterruption {
       
-      try {
-        if (Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug("GOOGLEDRIVE: Processing document identifier '"
-              + nodeId + "'");
-        }
+    // Forced acls
+    String[] acls = getAcls(spec);
+    // Sort it,
+    java.util.Arrays.sort(acls);
 
-        File googleFile = getObject(nodeId);
-        if (googleFile == null || (googleFile.containsKey("explicitlyTrashed") && googleFile.getExplicitlyTrashed())) {
-          //its deleted, move on
+    for (String documentIdentifier : documentIdentifiers) {
+      File googleFile = getObject(documentIdentifier);
+      String versionString;
+      
+      if (googleFile == null || (googleFile.containsKey("explicitlyTrashed") && googleFile.getExplicitlyTrashed())) {
+        //its deleted, move on
+        activities.deleteDocument(documentIdentifier);
+        continue;
+      }
+
+      if (!isDir(googleFile)) {
+        String rev = googleFile.getModifiedDate().toStringRfc3339();
+        if (StringUtils.isNotEmpty(rev)) {
+          StringBuilder sb = new StringBuilder();
+
+          // Acls
+          packList(sb,acls,'+');
+          if (acls.length > 0) {
+            sb.append('+');
+            pack(sb,defaultAuthorityDenyToken,'+');
+          }
+          else
+            sb.append('-');
+
+          sb.append(rev);
+          versionString = sb.toString();
+        } else {
+          //a google document that doesn't contain versioning information will NEVER be processed.
+          // I don't know what this means, and whether it can ever occur.
+          activities.deleteDocument(documentIdentifier);
           continue;
         }
+      } else {
+        //a google folder will always be processed
+        versionString = StringUtils.EMPTY;
+      }
 
+      if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)) {
+        long startTime = System.currentTimeMillis();
+        String errorCode = "FAILED";
+        String errorDesc = StringUtils.EMPTY;
+        Long fileSize = null;
+        boolean doLog = false;
+        String nodeId = documentIdentifier;
+        String version = versionString;
 
-        if (Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug("GOOGLEDRIVE: have this file:\t" + googleFile.getTitle());
-        }
-
-        if ("application/vnd.google-apps.folder".equals(googleFile.getMimeType())) {
-          //if directory add its children
-
+        try {
           if (Logging.connectors.isDebugEnabled()) {
-            Logging.connectors.debug("GOOGLEDRIVE: its a directory");
+            Logging.connectors.debug("GOOGLEDRIVE: Processing document identifier '"
+                + nodeId + "'");
+            Logging.connectors.debug("GOOGLEDRIVE: have this file:\t" + googleFile.getTitle());
           }
 
-          // adding all the children + subdirs for a folder
+          if ("application/vnd.google-apps.folder".equals(googleFile.getMimeType())) {
+            //if directory add its children
 
-          getSession();
-          GetChildrenThread t = new GetChildrenThread(nodeId);
-          try {
-            t.start();
-            boolean wasInterrupted = false;
+            if (Logging.connectors.isDebugEnabled()) {
+              Logging.connectors.debug("GOOGLEDRIVE: its a directory");
+            }
+
+            // adding all the children + subdirs for a folder
+
+            getSession();
+            GetChildrenThread t = new GetChildrenThread(nodeId);
             try {
-              XThreadStringBuffer childBuffer = t.getBuffer();
-              // Pick up the paths, and add them to the activities, before we join with the child thread.
-              while (true) {
-                // The only kind of exceptions this can throw are going to shut the process down.
-                String child = childBuffer.fetch();
-                if (child ==  null)
-                  break;
-                // Add the pageID to the queue
-                activities.addDocumentReference(child, nodeId, RELATIONSHIP_CHILD);
+              t.start();
+              boolean wasInterrupted = false;
+              try {
+                XThreadStringBuffer childBuffer = t.getBuffer();
+                // Pick up the paths, and add them to the activities, before we join with the child thread.
+                while (true) {
+                  // The only kind of exceptions this can throw are going to shut the process down.
+                  String child = childBuffer.fetch();
+                  if (child ==  null)
+                    break;
+                  // Add the pageID to the queue
+                  activities.addDocumentReference(child, nodeId, RELATIONSHIP_CHILD);
+                }
+              } catch (InterruptedException e) {
+                wasInterrupted = true;
+                throw e;
+              } catch (ManifoldCFException e) {
+                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                  wasInterrupted = true;
+                throw e;
+              } finally {
+                if (!wasInterrupted)
+                  t.finishUp();
               }
             } catch (InterruptedException e) {
-              wasInterrupted = true;
-              throw e;
-            } catch (ManifoldCFException e) {
-              if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                wasInterrupted = true;
-              throw e;
-            } finally {
-              if (!wasInterrupted)
-                t.finishUp();
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+                ManifoldCFException.INTERRUPTED);
+            } catch (java.net.SocketTimeoutException e) {
+              Logging.connectors.warn("GOOGLEDRIVE: Socket timeout adding child documents: " + e.getMessage(), e);
+              handleIOException(e);
+            } catch (InterruptedIOException e) {
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+                ManifoldCFException.INTERRUPTED);
+            } catch (IOException e) {
+              Logging.connectors.warn("GOOGLEDRIVE: Error adding child documents: " + e.getMessage(), e);
+              handleIOException(e);
             }
-          } catch (InterruptedException e) {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-              ManifoldCFException.INTERRUPTED);
-          } catch (java.net.SocketTimeoutException e) {
-            Logging.connectors.warn("GOOGLEDRIVE: Socket timeout adding child documents: " + e.getMessage(), e);
-            handleIOException(e);
-          } catch (InterruptedIOException e) {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-              ManifoldCFException.INTERRUPTED);
-          } catch (IOException e) {
-            Logging.connectors.warn("GOOGLEDRIVE: Error adding child documents: " + e.getMessage(), e);
-            handleIOException(e);
-          }
 
-        } else {
-          // its a file
-          if (!scanOnly[i]) {
+          } else {
+            // its a file
             doLog = true;
 
             if (Logging.connectors.isDebugEnabled()) {
@@ -1082,28 +1103,16 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
             Long fileLength = Objects.firstNonNull(googleFile.getFileSize(), 0L);
             if (fileLength != null) {
 
-              // Unpack the version string
-              ArrayList acls = new ArrayList();
-              StringBuilder denyAclBuffer = new StringBuilder();
-              int index = unpackList(acls,version,0,'+');
-              if (index < version.length() && version.charAt(index++) == '+') {
-                index = unpack(denyAclBuffer,version,index,'+');
-              }
-
-              //otherwise process
               RepositoryDocument rd = new RepositoryDocument();
 
-              // Turn into acls and add into description
-              String[] aclArray = new String[acls.size()];
-              for (int j = 0; j < aclArray.length; j++) {
-                aclArray[j] = (String)acls.get(j);
+              if (acls != null) {
+                rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls);
+                if (acls.length > 0) {
+                  String[] denyAclArray = new String[]{defaultAuthorityDenyToken};
+                  rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
+                }
               }
-              rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray);
-              if (denyAclBuffer.length() > 0) {
-                String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-                rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
-              }
-
+              
               // Now do standard stuff
               String mimeType = googleFile.getMimeType();
               DateTime createdDate = googleFile.getCreatedDate();
@@ -1182,15 +1191,16 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               errorDesc = "Document "+nodeId+" had no length; skipping";
             }
           }
+        } finally {
+          if (doLog)
+            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+              fileSize, nodeId, errorCode, errorDesc, null);
         }
-      } finally {
-        if (doLog)
-          activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-            fileSize, nodeId, errorCode, errorDesc, null);
       }
     }
+    
   }
-
+  
   protected class DocumentReadingThread extends Thread {
 
     protected Throwable exception = null;
@@ -1297,70 +1307,11 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  /**
-   * The short version of getDocumentVersions. Get document versions given an
-   * array of document identifiers. This method is called for EVERY document
-   * that is considered. It is therefore important to perform as little work
-   * as possible here.
-   *
-   * @param documentIdentifiers is the array of local document identifiers, as
-   * understood by this connector.
-   * @param spec is the current document specification for the current job. If
-   * there is a dependency on this specification, then the version string
-   * should include the pertinent data, so that reingestion will occur when
-   * the specification changes. This is primarily useful for metadata.
-   * @return the corresponding version strings, with null in the places where
-   * the document no longer exists. Empty version strings indicate that there
-   * is no versioning ability for the corresponding document, and the document
-   * will always be processed.
-   */
-  @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers,
-      DocumentSpecification spec) throws ManifoldCFException,
-      ServiceInterruption {
-
-    // Forced acls
-    String[] acls = getAcls(spec);
-    // Sort it,
-    java.util.Arrays.sort(acls);
-
-    String[] rval = new String[documentIdentifiers.length];
-    for (int i = 0; i < rval.length; i++) {
-      File googleFile = getObject(documentIdentifiers[i]);
-      if (!isDir(googleFile)) {
-        String rev = googleFile.getModifiedDate().toStringRfc3339();
-        if (StringUtils.isNotEmpty(rev)) {
-          StringBuilder sb = new StringBuilder();
-
-          // Acls
-          packList(sb,acls,'+');
-          if (acls.length > 0) {
-            sb.append('+');
-            pack(sb,defaultAuthorityDenyToken,'+');
-          }
-          else
-            sb.append('-');
-
-          sb.append(rev);
-          rval[i] = sb.toString();
-        } else {
-          //a google document that doesn't contain versioning information will NEVER be processed.
-          // I don't know what this means, and whether it can ever occur.
-          rval[i] = null;
-        }
-      } else {
-        //a google folder will always be processed
-        rval[i] = StringUtils.EMPTY;
-      }
-    }
-    return rval;
-  }
-
   /** Grab forced acl out of document specification.
   *@param spec is the document specification.
   *@return the acls.
   */
-  protected static String[] getAcls(DocumentSpecification spec) {
+  protected static String[] getAcls(Specification spec) {
     Set<String> map = new HashSet<String>();
     for (int i = 0; i < spec.getChildCount(); i++) {
       SpecificationNode sn = spec.getChild(i);
