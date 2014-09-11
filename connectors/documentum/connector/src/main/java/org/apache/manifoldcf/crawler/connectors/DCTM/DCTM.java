@@ -1447,6 +1447,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           }
 
           // Handle the forced acls
+          String[] denyAcls = new String[]{denyToken};
           String[] acls = sDesc.getAcls();
           if (acls != null && acls.length == 0)
           {
@@ -1457,17 +1458,16 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("DCTM: Processing document (" + objName + ") with ACL=" + strarrACL[0] + " and size=" + object.getContentSize() + " bytes.");
             rval.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,strarrACL);
+            rval.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAcls);
           }
           else if (acls != null)
           {
             rval.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls);
+            rval.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAcls);
 
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("DCTM: Processing document (" + objName + ") with size=" + object.getContentSize() + " bytes.");
           }
-
-          String[] denyAcls = new String[]{denyToken};
-          rval.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAcls);
 
           uri = convertToURI(object.getObjectId(),contentType);
         }
