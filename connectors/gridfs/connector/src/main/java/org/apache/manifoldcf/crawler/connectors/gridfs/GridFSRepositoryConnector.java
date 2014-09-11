@@ -49,6 +49,7 @@ import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
+import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.bson.types.ObjectId;
 
@@ -371,69 +372,67 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
         return "";
     }
 
-    /**
-     * Process a set of documents. This is the method that should cause each
-     * document to be fetched, processed, and the results either added to the
-     * queue of documents for the current job, and/or entered into the
-     * incremental ingestion manager. The document specification allows this
-     * class to filter what is done based on the job. The connector will be
-     * connected before this method can be called.
-     *
-     * @param documentIdentifiers is the set of document identifiers to process.
-     * @param versions is the corresponding document versions to process, as
-     * returned by getDocumentVersions() above. The implementation may choose to
-     * ignore this parameter and always process the current version.
-     * @param activities is the interface this method should use to queue up new
-     * document references and ingest documents.
-     * @param spec is the document specification.
-     * @param scanOnly is an array corresponding to the document identifiers. It
-     * is set to true to indicate when the processing should only find other
-     * references, and should not actually call the ingestion methods.
-     * @throws org.apache.manifoldcf.core.interfaces.ManifoldCFException
-     * @throws org.apache.manifoldcf.agents.interfaces.ServiceInterruption
-     */
+    /** Process a set of documents.
+    * This is the method that should cause each document to be fetched, processed, and the results either added
+    * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+    * The document specification allows this class to filter what is done based on the job.
+    * The connector will be connected before this method can be called.
+    *@param documentIdentifiers is the set of document identifiers to process.
+    *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+    * passed in above.
+    *@param activities is the interface this method should use to queue up new document references
+    * and ingest documents.
+    *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+    *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+    */
     @Override
-    public void processDocuments(String[] documentIdentifiers, String[] versions,
-            IProcessActivity activities, DocumentSpecification spec,
-            boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption {
-        if (Logging.connectors.isDebugEnabled()) {
-            Logging.connectors.debug("GridFS: Inside processDocuments");
-        }
-        int i = 0;
-        while (i < documentIdentifiers.length) {
-            long startTime = System.currentTimeMillis();
-            String errorCode = "OK";
-            String errorDesc = null;
-            String _id = documentIdentifiers[i];
-            String version = versions[i];
+    public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+      IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
+      throws ManifoldCFException, ServiceInterruption {
+        
+        for (String documentIdentifier : documentIdentifiers) {
+          
+            String versionString;
+            GridFS gfs;
+            GridFSDBFile document;
+          
             getSession();
-            GridFS gfs = new GridFS(session, bucket);
-
-            RepositoryDocument rd = new RepositoryDocument();
-            if (Logging.connectors.isDebugEnabled()) {
-                Logging.connectors.debug("GridFS: Processing document _id = " + _id);
-            }
-
-            GridFSDBFile document = gfs.findOne(new ObjectId(_id));
-
+            String _id = documentIdentifier;
+            gfs = new GridFS(session, bucket);
+            document = gfs.findOne(new ObjectId(_id));
             if (document == null) {
-                activities.deleteDocument(_id);
-                i++;
+                activities.deleteDocument(documentIdentifier);
                 continue;
+            } else {
+                DBObject metadata = document.getMetaData();
+                versionString = document.getMD5() + "+" + metadata != null
+                        ? Integer.toString(metadata.hashCode())
+                        : StringUtils.EMPTY;
             }
+            
+            if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)) {
+                long startTime = System.currentTimeMillis();
+                String errorCode = "OK";
+                String errorDesc = null;
+                String version = versionString;
 
-            DBObject metadata = document.getMetaData();
-            if (metadata == null) {
-                Logging.connectors.warn("GridFS: Document " + _id + " has a null metadata - skipping.");
-                i++;
-                continue;
-            }
+                RepositoryDocument rd = new RepositoryDocument();
 
-            String urlValue = document.getMetaData().get(this.url) == null
-                    ? StringUtils.EMPTY
-                    : document.getMetaData().get(this.url).toString();
-            if (!StringUtils.isEmpty(urlValue)) {
-                if (!scanOnly[i]) {
+                if (Logging.connectors.isDebugEnabled()) {
+                    Logging.connectors.debug("GridFS: Processing document _id = " + _id);
+                }
+
+                DBObject metadata = document.getMetaData();
+                if (metadata == null) {
+                    Logging.connectors.warn("GridFS: Document " + _id + " has a null metadata - skipping.");
+                    activities.noDocument(_id,version);
+                    continue;
+                }
+
+                String urlValue = document.getMetaData().get(this.url) == null
+                        ? StringUtils.EMPTY
+                        : document.getMetaData().get(this.url).toString();
+                if (!StringUtils.isEmpty(urlValue)) {
                     boolean validURL;
                     try {
                         new java.net.URI(urlValue);
@@ -499,17 +498,16 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                                 fileLenght, _id, errorCode, errorDesc, null);
                     } else {
                         Logging.connectors.warn("GridFS: Document " + _id + " has a invalid URL: " + urlValue + " - skipping.");
+                        activities.noDocument(_id,version);
                     }
                 } else {
-                    if (Logging.connectors.isDebugEnabled()) {
-                        Logging.connectors.debug("GridFS: Document " + _id + " wasn't fetched because has still same version.");
-                    }
+                    Logging.connectors.warn("GridFS: Document " + _id + " has a null URL - skipping.");
+                    activities.noDocument(_id,version);
                 }
-            } else {
-                Logging.connectors.warn("GridFS: Document " + _id + " has a null URL - skipping.");
+              
             }
-            i++;
         }
+
     }
 
     protected static void handleIOException(IOException e) throws ManifoldCFException, ServiceInterruption {
@@ -520,51 +518,6 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
         }
     }
     
-    /**
-     * Get document versions given an array of document identifiers. This method
-     * is called for EVERY document that is considered. It is therefore
-     * important to perform as little work as possible here. The connector will
-     * be connected before this method can be called.
-     *
-     * @param documentIdentifiers is the array of local document identifiers, as
-     * understood by this connector.
-     * @param spec is the current document specification for the current job. If
-     * there is a dependency on this specification, then the version string
-     * should include the pertinent data, so that reingestion will occur when
-     * the specification changes. This is primarily useful for metadata.
-     * @return the corresponding version strings, with null in the places where
-     * the document no longer exists. Empty version strings indicate that there
-     * is no versioning ability for the corresponding document, and the document
-     * will always be processed.
-     * @throws org.apache.manifoldcf.core.interfaces.ManifoldCFException
-     * @throws org.apache.manifoldcf.agents.interfaces.ServiceInterruption
-     */
-    @Override
-    public String[] getDocumentVersions(String[] documentIdentifiers,
-            DocumentSpecification spec) throws ManifoldCFException, ServiceInterruption {
-        if (Logging.connectors.isDebugEnabled()) {
-            Logging.connectors.debug("GridFS: Inside getDocumentVersions");
-        }
-        String[] versions = new String[documentIdentifiers.length];
-        getSession();
-        int i = 0;
-        while (i < versions.length) {
-            String _id = documentIdentifiers[i];
-            GridFS gridfs = new GridFS(session, bucket);
-            GridFSDBFile document = gridfs.findOne(new ObjectId(_id));
-            if (document == null) {
-                versions[i] = null;
-            } else {
-                DBObject metadata = document.getMetaData();
-                versions[i] = document.getMD5() + "+" + metadata != null
-                        ? Integer.toString(metadata.hashCode())
-                        : StringUtils.EMPTY;
-            }
-            i++;
-        }
-        return versions;
-    }
-
     /**
      * Output the configuration header section. This method is called in the
      * head section of the connector's configuration page. Its purpose is to add
