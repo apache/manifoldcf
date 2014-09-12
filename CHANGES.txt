@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1027: Improve some general and PostgreSQL queries
+for large crawling sets.
+(Paul Boichat, Karl Wright)
+
 CONNECTORS-1025: SharePoint connector should skip blocked files.
 (Radek Sklenicka, Karl Wright)
 
