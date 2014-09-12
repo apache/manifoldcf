@@ -8553,10 +8553,11 @@ public class JobManager implements IJobManager
         StringBuilder sb = new StringBuilder("SELECT ");
         ArrayList list = new ArrayList();
             
-        sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-          .append(" FROM ").append(jobQueue.getTableName()).append(" t1");
+        sb.append(database.constructCountClause("t2.x")).append(" AS doccount")
+          .append(" FROM (SELECT 'x' AS x FROM ").append(jobQueue.getTableName()).append(" t1");
         addWhereClause(sb,list,whereClause,whereParams,false);
-        sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+        sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false))
+          .append(") t2");
         IResultSet countResult = database.performQuery(sb.toString(),list,null,null);
         if (countResult.getRowCount() > 0 && ((Long)countResult.getRow(0).getValue("doccount")).longValue() > maxCount)
         {
@@ -8746,10 +8747,11 @@ public class JobManager implements IJobManager
       // Now, for each job, fire off a separate, limited, query for each count we care about
       sb = new StringBuilder("SELECT ");
       list.clear();
-      sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-        .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
+      sb.append(database.constructCountClause("t2.x")).append(" AS doccount")
+        .append(" FROM (SELECT 'x' AS x FROM ").append(jobQueue.getTableName()).append(" WHERE ");
       sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(JobQueue.jobIDField,jobID)}));
-      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false))
+        .append(") t2");
       
       IResultSet totalSet = database.performQuery(sb.toString(),list,null,null);
       if (totalSet.getRowCount() > 0)
@@ -8769,12 +8771,13 @@ public class JobManager implements IJobManager
           
       sb = new StringBuilder("SELECT ");
       list.clear();
-      sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-        .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
+      sb.append(database.constructCountClause("t2.x")).append(" AS doccount")
+        .append(" FROM (SELECT 'x' AS x FROM ").append(jobQueue.getTableName()).append(" WHERE ");
       sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(JobQueue.jobIDField,jobID)}));
       sb.append(" AND ");
       sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{buildOutstandingClause()}));
-      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false))
+        .append(") t2");
       
       IResultSet outstandingSet = database.performQuery(sb.toString(),list,null,null);
       if (outstandingSet.getRowCount() > 0)
@@ -8794,12 +8797,13 @@ public class JobManager implements IJobManager
 
       sb = new StringBuilder("SELECT ");
       list.clear();
-      sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-        .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
+      sb.append(database.constructCountClause("t2.x")).append(" AS doccount")
+        .append(" FROM (SELECT 'x' AS x FROM ").append(jobQueue.getTableName()).append(" WHERE ");
       sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(JobQueue.jobIDField,jobID)}));
       sb.append(" AND ");
       sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{buildProcessedClause()}));
-      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false))
+        .append(") t2");
       
       IResultSet processedSet = database.performQuery(sb.toString(),list,null,null);
       if (processedSet.getRowCount() > 0)
