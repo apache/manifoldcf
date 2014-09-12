@@ -59,8 +59,8 @@ import org.apache.manifoldcf.core.interfaces.Configuration;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
-import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
+import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IFingerprintActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.interfaces.IVersionActivity;
@@ -495,30 +495,24 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     return "";
   }
 
-
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is
-  * therefore important to perform as little work as possible here.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
   */
   @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
-    getSession();
     // Read the forced acls.  A null return indicates that security is disabled!!!
     // A zero-length return indicates that the native acls should be used.
     // All of this is germane to how we ingest the document, so we need to note it in
@@ -560,17 +554,34 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    String[] rval = new String[documentIdentifiers.length];
-    String documentIdentifier = null;
-    i = 0;
-    while (i < rval.length)
+    for (String documentIdentifier : documentIdentifiers)
     {
-      documentIdentifier = documentIdentifiers[i];
+      getSession();
+
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("JCIFS: Processing '"+documentIdentifier+"'");
+
+      String versionString;
+      SmbFile file;
+      
+      String ingestionURI = null;
+      String pathAttributeValue = null;
+      
+      String[] shareAllow = null;
+      String[] shareDeny = null;
+      boolean shareSecurityOn = false;
+      
+      String[] parentAllow = null;
+      String[] parentDeny = null;
+      boolean parentSecurityOn = false;
+      
+      String[] documentAllow = null;
+      String[] documentDeny = null;
+      boolean documentSecurityOn = false;
+      
       try
       {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("JCIFS: getVersions(): documentIdentifiers[" + i + "] is: " + documentIdentifier);
-        SmbFile file = new SmbFile(documentIdentifier,pa);
+        file = new SmbFile(documentIdentifier,pa);
 
         // File has to exist AND have a non-null canonical path to be readable.  If the canonical path is
         // null, it means that the windows permissions are not right and directory/file is not readable!!!
@@ -580,17 +591,43 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         {
           if (fileIsDirectory(file))
           {
+            // Hmm, this is not correct; version string should be empty for windows directories, since
+            // they are not hierarchical in modified date propagation.
             // It's a directory. The version ID will be the
             // last modified date.
-            long lastModified = fileLastModified(file);
-            rval[i] = new Long(lastModified).toString();
+            //long lastModified = fileLastModified(file);
+            //versionString = new Long(lastModified).toString();
+            versionString = "";
 
           }
           else
           {
             // It's a file of acceptable length.
             // The ability to get ACLs, list files, and an inputstream under DFS all work now.
+            // The SmbFile for parentFolder acls.
+            SmbFile parentFolder = new SmbFile(file.getParent(),pa);
 
+            // Compute the security information
+            String[] modelArray = new String[0];
+            
+            List<String> allowList = new ArrayList<String>();
+            List<String> denyList = new ArrayList<String>();
+            shareSecurityOn = getFileShareSecuritySet(allowList, denyList, file, shareAcls);
+            shareAllow = allowList.toArray(modelArray);
+            shareDeny = denyList.toArray(modelArray);
+
+            allowList.clear();
+            denyList.clear();
+            parentSecurityOn = getFileSecuritySet(allowList, denyList, parentFolder, parentFolderAcls);
+            parentAllow = allowList.toArray(modelArray);
+            parentDeny = denyList.toArray(modelArray);
+
+            allowList.clear();
+            denyList.clear();
+            documentSecurityOn = getFileSecuritySet(allowList, denyList, file, acls);
+            documentAllow = allowList.toArray(modelArray);
+            documentDeny = denyList.toArray(modelArray);
+            
             // The format of this string changed on 11/8/2006 to be comformant with the standard way
             // acls and metadata descriptions are being stuffed into the version string across connectors.
 
@@ -599,11 +636,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
             StringBuilder sb = new StringBuilder();
 
-            // The SmbFile for parentFolder acls.
-            SmbFile parentFolder = new SmbFile(file.getParent(),pa);
-
-            // Parseable stuff goes first.  There's no metadata for jcifs, so this will just be the acls
-            describeDocumentSecurity(sb,file,parentFolder,acls,shareAcls,parentFolderAcls);
+            addSecuritySet(sb,shareSecurityOn,shareAllow,shareDeny);
+            addSecuritySet(sb,parentSecurityOn,parentAllow,parentDeny);
+            addSecuritySet(sb,documentSecurityOn,documentAllow,documentDeny);
 
             // Include the path attribute name and value in the parseable area.
             if (pathAttributeName != null)
@@ -611,7 +646,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               sb.append('+');
               pack(sb,pathAttributeName,'+');
               // Calculate path string; we'll include that wholesale in the version
-              String pathAttributeValue = documentIdentifier;
+              pathAttributeValue = documentIdentifier;
               // 3/13/2008
               // In looking at what comes into the path metadata attribute by default, and cogitating a bit, I've concluded that
               // the smb:// and the server/domain name at the start of the path are just plain old noise, and should be stripped.
@@ -633,7 +668,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               sb.append('-');
 
             // Calculate the ingestion IRI/URI, and include that in the parseable area.
-            String ingestionURI = convertToURI(documentIdentifier,fileMap,uriMap);
+            ingestionURI = convertToURI(documentIdentifier,fileMap,uriMap);
             pack(sb,ingestionURI,'+');
 
             // The stuff from here on down is non-parseable.
@@ -653,16 +688,20 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               sb.append("I");
             else
               sb.append(ifIndexable?"Y":"N");
-            rval[i] = sb.toString();
+            versionString = sb.toString();
           }
         }
         else
-          rval[i] = null;
+        {
+          activities.deleteDocument(documentIdentifier);
+          continue;
+        }
       }
       catch (jcifs.smb.SmbAuthException e)
       {
         Logging.connectors.warn("JCIFS: Authorization exception reading version information for "+documentIdentifier+" - skipping");
-        rval[i] = null;
+        activities.deleteDocument(documentIdentifier);
+        continue;
       }
       catch (MalformedURLException mue)
       {
@@ -672,7 +711,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       catch (SmbException se)
       {
         processSMBException(se,documentIdentifier,"getting document version","fetching share security");
-        rval[i] = null;
+        activities.deleteDocument(documentIdentifier);
+        continue;
       }
       catch (java.net.SocketTimeoutException e)
       {
@@ -692,83 +732,42 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         throw new ServiceInterruption("Timeout or other service interruption: "+e.getMessage(),e,currentTime + 300000L,
           currentTime + 3 * 60 * 60000L,-1,false);
       }
-      i++;
-    }
-    return rval;
-  }
-
-
-  /**
-  * Process a set of documents. This is the method that should cause each
-  * document to be fetched, processed, and the results either added to the
-  * queue of documents for the current job, and/or entered into the
-  * incremental ingestion manager. The document specification allows this
-  * class to filter what is done based on the job.
-  *
-  * @param documentIdentifiers
-  *            is the set of document identifiers to process.
-  * @param activities
-  *            is the interface this method should use to queue up new
-  *            document references and ingest documents.
-  * @param spec
-  *            is the document specification.
-  * @param scanOnly
-  *            is an array corresponding to the document identifiers. It is
-  *            set to true to indicate when the processing should only find
-  *            other references, and should not actually call the ingestion
-  *            methods.
-  */
-  @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    DocumentSpecification spec, boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption
-  {
-    getSession();
-
-    byte[] transferBuffer = null;
-
-    int i = 0;
-    while (i < documentIdentifiers.length)
-    {
-      String documentIdentifier = documentIdentifiers[i];
-      String version = versions[i];
-
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("JCIFS: Processing '"+documentIdentifier+"'");
-      try
+      
+      if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
       {
+        byte[] transferBuffer = null;
 
-        SmbFile file = new SmbFile(documentIdentifier,pa);
-
-        if (fileExists(file))
+        try
         {
-          if (fileIsDirectory(file))
+
+          if (fileExists(file))
           {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("JCIFS: '"+documentIdentifier+"' is a directory");
-
-            // Queue up stuff for directory
-            // DFS special support no longer needed, because JCifs now does the right thing.
-
-            // This is the string we replace in the child canonical paths.
-            // String matchPrefix = "";
-            // This is what we replace it with, to get back to a DFS path.
-            // String matchReplace = "";
-
-            // DFS resolved.
-
-            // Use a filter to actually do the work here.  This prevents large arrays from being
-            // created when there are big directories.
-            ProcessDocumentsFilter filter = new ProcessDocumentsFilter(activities,spec);
-            fileListFiles(file,filter);
-            filter.checkAndThrow();
-          }
-          else
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("JCIFS: '"+documentIdentifier+"' is a file");
-
-            if (!scanOnly[i])
+            if (fileIsDirectory(file))
             {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("JCIFS: '"+documentIdentifier+"' is a directory");
+
+              // Queue up stuff for directory
+              // DFS special support no longer needed, because JCifs now does the right thing.
+
+              // This is the string we replace in the child canonical paths.
+              // String matchPrefix = "";
+              // This is what we replace it with, to get back to a DFS path.
+              // String matchReplace = "";
+
+              // DFS resolved.
+
+              // Use a filter to actually do the work here.  This prevents large arrays from being
+              // created when there are big directories.
+              ProcessDocumentsFilter filter = new ProcessDocumentsFilter(activities,spec);
+              fileListFiles(file,filter);
+              filter.checkAndThrow();
+            }
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("JCIFS: '"+documentIdentifier+"' is a file");
+
               // We've already avoided queuing documents that we
               // don't want, based on file specifications.
               // We still need to check based on file data.
@@ -779,12 +778,17 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               String fileName = getFileCanonicalPath(file);
               if (fileName != null && !file.isHidden())
               {
-                // Initialize repository document with common stuff, and find the URI
-                RepositoryDocument rd = new RepositoryDocument();
-                String uri = prepareForIndexing(rd,file,version);
+                String uri = ingestionURI;
 
                 if (activities.checkURLIndexable(uri))
                 {
+                  // Initialize repository document with common stuff, and find the URI
+                  RepositoryDocument rd = new RepositoryDocument();
+                  prepareForIndexing(rd,file,
+                    shareAllow,shareDeny,
+                    parentAllow,parentDeny,
+                    documentAllow,documentDeny,
+                    pathAttributeName,pathAttributeValue);
 
                   // manipulate path to include the DFS alias, not the literal path
                   // String newPath = matchPrefix + fileName.substring(matchReplace.length());
@@ -837,7 +841,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                         {
                           rd.setBinary(inputStream, tempFile.length());
                           
-                          activities.ingestDocumentWithException(documentIdentifier, version, uri, rd);
+                          activities.ingestDocumentWithException(documentIdentifier, versionString, uri, rd);
                         }
                         finally
                         {
@@ -858,7 +862,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                         // method has no way of signalling this, since it does not do the fingerprinting.
                         if (Logging.connectors.isDebugEnabled())
                           Logging.connectors.debug("JCIFS: Decided to remove '"+documentIdentifier+"'");
-                        activities.noDocument(documentIdentifier, version);
+                        activities.noDocument(documentIdentifier, versionString);
                         // We should record the access here as well, since this is a non-exception way through the code path.
                         // (I noticed that this was not being recorded in the history while fixing 25477.)
                         activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
@@ -884,7 +888,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                     {
                       rd.setBinary(inputStream, fileLength(file));
                       
-                      activities.ingestDocumentWithException(documentIdentifier, version, uri, rd);
+                      activities.ingestDocumentWithException(documentIdentifier, versionString, uri, rd);
                     }
                     finally
                     {
@@ -899,6 +903,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                   Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept it");
                   activities.recordActivity(null,ACTIVITY_ACCESS,
                     null,documentIdentifier,"Skip","Output connector refused",null);
+                  activities.noDocument(documentIdentifier,versionString);
                 }
               }
               else
@@ -906,130 +911,131 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                 Logging.connectors.debug("JCIFS: Skipping file because canonical path is null, or because file is hidden");
                 activities.recordActivity(null,ACTIVITY_ACCESS,
                   null,documentIdentifier,"Skip","Null canonical path or hidden file",null);
+                activities.noDocument(documentIdentifier,versionString);
               }
             }
           }
         }
-      }
-      catch (MalformedURLException mue)
-      {
-        Logging.connectors.error("MalformedURLException tossed",mue);
-        activities.recordActivity(null,ACTIVITY_ACCESS,
-          null,documentIdentifier,"Error","Malformed URL: "+mue.getMessage(),null);
-        throw new ManifoldCFException("MalformedURLException tossed: "+mue.getMessage(),mue);
-      }
-      catch (jcifs.smb.SmbAuthException e)
-      {
-        Logging.connectors.warn("JCIFS: Authorization exception reading document/directory "+documentIdentifier+" - skipping");
-        activities.recordActivity(null,ACTIVITY_ACCESS,
-          null,documentIdentifier,"Skip","Authorization: "+e.getMessage(),null);
-        // We call the delete even if it's a directory; this is harmless.
-        activities.noDocument(documentIdentifier, version);
-      }
-      catch (SmbException se)
-      {
-        // At least some of these are transport errors, and should be treated as service
-        // interruptions.
-        long currentTime = System.currentTimeMillis();
-        Throwable cause = se.getRootCause();
-        if (cause != null && (cause instanceof jcifs.util.transport.TransportException))
+        catch (MalformedURLException mue)
         {
-          // See if it's an interruption
-          jcifs.util.transport.TransportException te = (jcifs.util.transport.TransportException)cause;
-          if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
-            throw new ManifoldCFException(te.getRootCause().getMessage(),te.getRootCause(),ManifoldCFException.INTERRUPTED);
+          Logging.connectors.error("MalformedURLException tossed",mue);
+          activities.recordActivity(null,ACTIVITY_ACCESS,
+            null,documentIdentifier,"Error","Malformed URL: "+mue.getMessage(),null);
+          throw new ManifoldCFException("MalformedURLException tossed: "+mue.getMessage(),mue);
+        }
+        catch (jcifs.smb.SmbAuthException e)
+        {
+          Logging.connectors.warn("JCIFS: Authorization exception reading document/directory "+documentIdentifier+" - skipping");
+          activities.recordActivity(null,ACTIVITY_ACCESS,
+            null,documentIdentifier,"Skip","Authorization: "+e.getMessage(),null);
+          // We call the delete even if it's a directory; this is harmless.
+          activities.noDocument(documentIdentifier, versionString);
+        }
+        catch (SmbException se)
+        {
+          // At least some of these are transport errors, and should be treated as service
+          // interruptions.
+          long currentTime = System.currentTimeMillis();
+          Throwable cause = se.getRootCause();
+          if (cause != null && (cause instanceof jcifs.util.transport.TransportException))
+          {
+            // See if it's an interruption
+            jcifs.util.transport.TransportException te = (jcifs.util.transport.TransportException)cause;
+            if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
+              throw new ManifoldCFException(te.getRootCause().getMessage(),te.getRootCause(),ManifoldCFException.INTERRUPTED);
 
-          Logging.connectors.warn("JCIFS: Timeout processing document/directory "+documentIdentifier+": retrying...",se);
-          activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Retry","Transport: "+cause.getMessage(),null);
-          throw new ServiceInterruption("Timeout or other service interruption: "+cause.getMessage(),cause,currentTime + 300000L,
-            currentTime + 12 * 60 * 60000L,-1,false);
+            Logging.connectors.warn("JCIFS: Timeout processing document/directory "+documentIdentifier+": retrying...",se);
+            activities.recordActivity(null,ACTIVITY_ACCESS,
+              null,documentIdentifier,"Retry","Transport: "+cause.getMessage(),null);
+            throw new ServiceInterruption("Timeout or other service interruption: "+cause.getMessage(),cause,currentTime + 300000L,
+              currentTime + 12 * 60 * 60000L,-1,false);
+          }
+          if (se.getMessage().indexOf("busy") != -1)
+          {
+            Logging.connectors.warn("JCIFS: 'Busy' response when processing document/directory for "+documentIdentifier+": retrying...",se);
+            activities.recordActivity(null,ACTIVITY_ACCESS,
+              null,documentIdentifier,"Retry","Busy: "+se.getMessage(),null);
+            throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+              currentTime + 3 * 60 * 60000L,-1,false);
+          }
+          else if (se.getMessage().indexOf("handle is invalid") != -1)
+          {
+            Logging.connectors.warn("JCIFS: 'Handle is invalid' response when processing document/directory for "+documentIdentifier+": retrying...",se);
+            activities.recordActivity(null,ACTIVITY_ACCESS,
+              null,documentIdentifier,"Retry","Expiration: "+se.getMessage(),null);
+            throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+              currentTime + 3 * 60 * 60000L,-1,false);
+          }
+          else if (se.getMessage().indexOf("parameter is incorrect") != -1)
+          {
+            Logging.connectors.warn("JCIFS: 'Parameter is incorrect' response when processing document/directory for "+documentIdentifier+": retrying...",se);
+            activities.recordActivity(null,ACTIVITY_ACCESS,
+              null,documentIdentifier,"Retry","Expiration: "+se.getMessage(),null);
+            throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+              currentTime + 3 * 60 * 60000L,-1,false);
+          }
+          else if (se.getMessage().indexOf("no longer available") != -1)
+          {
+            Logging.connectors.warn("JCIFS: 'No longer available' response when processing document/directory for "+documentIdentifier+": retrying...",se);
+            activities.recordActivity(null,ACTIVITY_ACCESS,
+              null,documentIdentifier,"Retry","Expiration: "+se.getMessage(),null);
+            throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+              currentTime + 3 * 60 * 60000L,-1,false);
+          }
+          else if (se.getMessage().indexOf("cannot find") != -1 || se.getMessage().indexOf("cannot be found") != -1)
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("JCIFS: Skipping document/directory "+documentIdentifier+" because it cannot be found");
+            activities.recordActivity(null,ACTIVITY_ACCESS,
+              null,documentIdentifier,"Not found",null,null);
+            activities.noDocument(documentIdentifier, versionString);
+          }
+          else if (se.getMessage().indexOf("is denied") != -1)
+          {
+            Logging.connectors.warn("JCIFS: Access exception reading document/directory "+documentIdentifier+" - skipping");
+            // We call the delete even if it's a directory; this is harmless and it cleans up the jobqueue row.
+            activities.recordActivity(null,ACTIVITY_ACCESS,
+              null,documentIdentifier,"Skip","Authorization: "+se.getMessage(),null);
+            activities.noDocument(documentIdentifier, versionString);
+          }
+          else
+          {
+            Logging.connectors.error("JCIFS: SmbException tossed processing "+documentIdentifier,se);
+            activities.recordActivity(null,ACTIVITY_ACCESS,
+              null,documentIdentifier,"Error","Unknown: "+se.getMessage(),null);
+            throw new ManifoldCFException("SmbException tossed: "+se.getMessage(),se);
+          }
         }
-        if (se.getMessage().indexOf("busy") != -1)
+        catch (java.net.SocketTimeoutException e)
         {
-          Logging.connectors.warn("JCIFS: 'Busy' response when processing document/directory for "+documentIdentifier+": retrying...",se);
+          long currentTime = System.currentTimeMillis();
+          Logging.connectors.warn("JCIFS: Socket timeout processing "+documentIdentifier+": "+e.getMessage(),e);
           activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Retry","Busy: "+se.getMessage(),null);
-          throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+            null,documentIdentifier,"Retry","Socket timeout: "+e.getMessage(),null);
+          throw new ServiceInterruption("Timeout or other service interruption: "+e.getMessage(),e,currentTime + 300000L,
             currentTime + 3 * 60 * 60000L,-1,false);
         }
-        else if (se.getMessage().indexOf("handle is invalid") != -1)
+        catch (InterruptedIOException e)
         {
-          Logging.connectors.warn("JCIFS: 'Handle is invalid' response when processing document/directory for "+documentIdentifier+": retrying...",se);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+        catch (IOException e)
+        {
+          long currentTime = System.currentTimeMillis();
+          Logging.connectors.warn("JCIFS: IO error processing "+documentIdentifier+": "+e.getMessage(),e);
           activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Retry","Expiration: "+se.getMessage(),null);
-          throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+            null,documentIdentifier,"Retry","IO Error: "+e.getMessage(),null);
+          throw new ServiceInterruption("Timeout or other service interruption: "+e.getMessage(),e,currentTime + 300000L,
             currentTime + 3 * 60 * 60000L,-1,false);
         }
-        else if (se.getMessage().indexOf("parameter is incorrect") != -1)
-        {
-          Logging.connectors.warn("JCIFS: 'Parameter is incorrect' response when processing document/directory for "+documentIdentifier+": retrying...",se);
-          activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Retry","Expiration: "+se.getMessage(),null);
-          throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
-            currentTime + 3 * 60 * 60000L,-1,false);
-        }
-        else if (se.getMessage().indexOf("no longer available") != -1)
-        {
-          Logging.connectors.warn("JCIFS: 'No longer available' response when processing document/directory for "+documentIdentifier+": retrying...",se);
-          activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Retry","Expiration: "+se.getMessage(),null);
-          throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
-            currentTime + 3 * 60 * 60000L,-1,false);
-        }
-        else if (se.getMessage().indexOf("cannot find") != -1 || se.getMessage().indexOf("cannot be found") != -1)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("JCIFS: Skipping document/directory "+documentIdentifier+" because it cannot be found");
-          activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Not found",null,null);
-          activities.noDocument(documentIdentifier, version);
-        }
-        else if (se.getMessage().indexOf("is denied") != -1)
-        {
-          Logging.connectors.warn("JCIFS: Access exception reading document/directory "+documentIdentifier+" - skipping");
-          // We call the delete even if it's a directory; this is harmless and it cleans up the jobqueue row.
-          activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Skip","Authorization: "+se.getMessage(),null);
-          activities.noDocument(documentIdentifier, version);
-        }
-        else
-        {
-          Logging.connectors.error("JCIFS: SmbException tossed processing "+documentIdentifier,se);
-          activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Error","Unknown: "+se.getMessage(),null);
-          throw new ManifoldCFException("SmbException tossed: "+se.getMessage(),se);
-        }
       }
-      catch (java.net.SocketTimeoutException e)
-      {
-        long currentTime = System.currentTimeMillis();
-        Logging.connectors.warn("JCIFS: Socket timeout processing "+documentIdentifier+": "+e.getMessage(),e);
-        activities.recordActivity(null,ACTIVITY_ACCESS,
-          null,documentIdentifier,"Retry","Socket timeout: "+e.getMessage(),null);
-        throw new ServiceInterruption("Timeout or other service interruption: "+e.getMessage(),e,currentTime + 300000L,
-          currentTime + 3 * 60 * 60000L,-1,false);
-      }
-      catch (InterruptedIOException e)
-      {
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (IOException e)
-      {
-        long currentTime = System.currentTimeMillis();
-        Logging.connectors.warn("JCIFS: IO error processing "+documentIdentifier+": "+e.getMessage(),e);
-        activities.recordActivity(null,ACTIVITY_ACCESS,
-          null,documentIdentifier,"Retry","IO Error: "+e.getMessage(),null);
-        throw new ServiceInterruption("Timeout or other service interruption: "+e.getMessage(),e,currentTime + 300000L,
-          currentTime + 3 * 60 * 60000L,-1,false);
-      }
-
-      i++;
     }
-
   }
 
-  protected static String prepareForIndexing(RepositoryDocument rd, SmbFile file, String version)
+
+  protected static void prepareForIndexing(RepositoryDocument rd, SmbFile file,
+    String[] shareAllow, String[] shareDeny, String[] parentAllow, String[] parentDeny, String[] allow, String[] deny,
+    String pathAttributeName, String pathAttributeValue)
     throws ManifoldCFException, SmbException
   {
     String fileNameString = file.getName();
@@ -1057,13 +1063,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     rd.addField("attributes", Integer.toString(attributes));
     rd.addField("shareName", shareName);
 
-
-    int index = 0;
-    index = setDocumentSecurity(rd,version,index);
-    index = setPathMetadata(rd,version,index);
-    StringBuilder ingestURI = new StringBuilder();
-    index = unpack(ingestURI,version,index,'+');
-    return ingestURI.toString();
+    setDocumentSecurity(rd,shareAllow,shareDeny,parentAllow,parentDeny,allow,deny);
+    setPathMetadata(rd,pathAttributeName,pathAttributeValue);
   }
   
   /** Map an extension to a mime type */
@@ -1078,258 +1079,93 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     return ExtensionMimeMap.mapToMimeType(fileName.substring(dotIndex+1).toLowerCase(java.util.Locale.ROOT));
   }
   
-  /** This method calculates an ACL string based on whether there are forced acls and also based on
-  * the acls in place for a file.
-  */
-  protected void describeDocumentSecurity(StringBuilder description, 
-    SmbFile file, SmbFile parentFolder,
-    String[] forcedacls, String[] forcedShareAcls, String[] forcedParentFolderAcls)
-    throws ManifoldCFException, IOException
+  protected static void addSecuritySet(StringBuilder description,
+    boolean enabled, String[] allowTokens, String[] denyTokens)
   {
-    String[] shareAllowAcls;
-    String[] shareDenyAcls;
-    String[] parentAllowAcls;
-    String[] parentDenyAcls;
-    String[] allowAcls;
-    String[] denyAcls;
-
-    int j;
-    int allowCount;
-    int denyCount;
-    ACE[] aces;
-
-    if (forcedShareAcls!=null)
+    if (enabled)
     {
       description.append("+");
-
-      if (forcedShareAcls.length==0)
-      {
-        // Do the share acls first.  Note that the smbfile passed in has been dereferenced,
-        // so if this is a DFS path, we will be looking up the permissions on the share
-        // that is actually used to contain the file.  However, there's no guarantee that the
-        // url generated from the original share will work to get there; the permissions on
-        // the original share may prohibit users that the could nevertheless see the document
-        // if they went in the direct way.
-
-
-        // Grab the share permissions.
-        aces = getFileShareSecurity(file, useSIDs);
-
-        if (aces == null)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("JCIFS: Share has no ACL for '"+getFileCanonicalPath(file)+"'");
-
-          // "Public" share: S-1-1-0
-          shareAllowAcls = new String[]{"S-1-1-0"};
-          shareDenyAcls = new String[]{defaultAuthorityDenyToken};
-        }
-        else
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("JCIFS: Found "+Integer.toString(aces.length)+" share access tokens for '"+getFileCanonicalPath(file)+"'");
-
-          // We are interested in the read permission, and take
-          // a keen interest in allow/deny
-          allowCount = 0;
-          denyCount = 0;
-          j = 0;
-          while (j < aces.length)
-          {
-            ACE ace = aces[j++];
-            if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
-            {
-              if (ace.isAllow())
-                allowCount++;
-              else
-                denyCount++;
-            }
-          }
-
-          shareAllowAcls = new String[allowCount];
-          shareDenyAcls = new String[denyCount+1];
-          j = 0;
-          allowCount = 0;
-          denyCount = 0;
-          shareDenyAcls[denyCount++] = defaultAuthorityDenyToken;
-          while (j < aces.length)
-          {
-            ACE ace = aces[j++];
-            if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
-            {
-              if (ace.isAllow())
-                shareAllowAcls[allowCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
-              else
-                shareDenyAcls[denyCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
-            }
-          }
-        }
-      }
-      else
-      {
-        shareAllowAcls = forcedShareAcls;
-        if (forcedShareAcls.length == 0)
-          shareDenyAcls = new String[0];
-        else
-          shareDenyAcls = new String[]{defaultAuthorityDenyToken};
-      }
-      java.util.Arrays.sort(shareAllowAcls);
-      java.util.Arrays.sort(shareDenyAcls);
+      java.util.Arrays.sort(allowTokens);
+      java.util.Arrays.sort(denyTokens);
       // Stuff the acls into the description string.
-      packList(description,shareAllowAcls,'+');
-      packList(description,shareDenyAcls,'+');
+      packList(description,allowTokens,'+');
+      packList(description,denyTokens,'+');
     }
     else
-      description.append('-');
-
-    if (forcedParentFolderAcls!=null)
-    {
-      description.append("+");
-
-      if (forcedParentFolderAcls.length==0)
-      {
-        aces = getFileSecurity(parentFolder, useSIDs);
-        if (aces == null)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("JCIFS: Parent folder has no ACL for '"+getFileCanonicalPath(parentFolder)+"'");
-
-          // Parent folder is "public", meaning we want S-1-1-0 and the deny token
-          parentAllowAcls = new String[]{"S-1-1-0"};
-          parentDenyAcls = new String[]{defaultAuthorityDenyToken};
-        }
-        else
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("JCIFS: Found "+Integer.toString(aces.length)+" parent folder access tokens for '"+getFileCanonicalPath(parentFolder)+"'");
-
-          // We are interested in the read permission, and take
-          // a keen interest in allow/deny
-          allowCount = 0;
-          denyCount = 0;
-          j = 0;
-          while (j < aces.length)
-          {
-            ACE ace = aces[j++];
-            if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
-            {
-              if (ace.isAllow())
-                allowCount++;
-              else
-                denyCount++;
-            }
-          }
-
-          parentAllowAcls = new String[allowCount];
-          parentDenyAcls = new String[denyCount+1];
-          j = 0;
-          allowCount = 0;
-          denyCount = 0;
-          parentDenyAcls[denyCount++] = defaultAuthorityDenyToken;
-          while (j < aces.length)
-          {
-            ACE ace = aces[j++];
-            if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
-            {
-              if (ace.isAllow())
-                parentAllowAcls[allowCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
-              else
-                parentDenyAcls[denyCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
-            }
-          }
-        }
-      }
-      else
-      {
-        parentAllowAcls = forcedParentFolderAcls;
-        if (forcedParentFolderAcls.length == 0)
-          parentDenyAcls = new String[0];
-        else
-          parentDenyAcls = new String[]{defaultAuthorityDenyToken};
-      }
-      java.util.Arrays.sort(parentAllowAcls);
-      java.util.Arrays.sort(parentDenyAcls);
-      packList(description,parentAllowAcls,'+');
-      packList(description,parentDenyAcls,'+');
-    }
-    else
-      description.append('-');
-
-    if (forcedacls!=null)
-    {
-      description.append("+");
-
-      if (forcedacls.length==0)
-      {
-        aces = getFileSecurity(file, useSIDs);
-        if (aces == null)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("JCIFS: Document has no ACL for '"+getFileCanonicalPath(file)+"'");
-
-          // Document is "public", meaning we want S-1-1-0 and the deny token
-          allowAcls = new String[]{"S-1-1-0"};
-          denyAcls = new String[]{defaultAuthorityDenyToken};
-        }
-        else
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("JCIFS: Found "+Integer.toString(aces.length)+" document access tokens for '"+getFileCanonicalPath(file)+"'");
-
-          // We are interested in the read permission, and take
-          // a keen interest in allow/deny
-          allowCount = 0;
-          denyCount = 0;
-          j = 0;
-          while (j < aces.length)
-          {
-            ACE ace = aces[j++];
-            if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
-            {
-              if (ace.isAllow())
-                allowCount++;
-              else
-                denyCount++;
-            }
-          }
-
-          allowAcls = new String[allowCount];
-          denyAcls = new String[denyCount+1];
-          j = 0;
-          allowCount = 0;
-          denyCount = 0;
-          denyAcls[denyCount++] = defaultAuthorityDenyToken;
-          while (j < aces.length)
-          {
-            ACE ace = aces[j++];
-            if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
-            {
-              if (ace.isAllow())
-                allowAcls[allowCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
-              else
-                denyAcls[denyCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
-            }
-          }
-        }
-      }
-      else
-      {
-        allowAcls = forcedacls;
-        if (forcedacls.length == 0)
-          denyAcls = new String[0];
-        else
-          denyAcls = new String[]{defaultAuthorityDenyToken};
-      }
-      java.util.Arrays.sort(allowAcls);
-      java.util.Arrays.sort(denyAcls);
-      packList(description,allowAcls,'+');
-      packList(description,denyAcls,'+');
-    }
-    else
-      description.append('-');
+      description.append("-");
 
   }
+  
+  protected boolean getFileSecuritySet(List<String> allowList, List<String> denyList, SmbFile file, String[] forced)
+    throws ManifoldCFException, IOException
+  {
+    if (forced != null)
+    {
+      if (forced.length == 0)
+      {
+        convertACEs(allowList,denyList,getFileSecurity(file, useSIDs));
+      }
+      else
+      {
+        for (String forcedToken : forced)
+        {
+          allowList.add(forcedToken);
+        }
+        denyList.add(defaultAuthorityDenyToken);
+      }
+      return true;
+    }
+    else
+      return false;
+  }
 
+  protected boolean getFileShareSecuritySet(List<String> allowList, List<String> denyList, SmbFile file, String[] forced)
+    throws ManifoldCFException, IOException
+  {
+    if (forced != null)
+    {
+      if (forced.length == 0)
+      {
+        convertACEs(allowList,denyList,getFileShareSecurity(file, useSIDs));
+      }
+      else
+      {
+        for (String forcedToken : forced)
+        {
+          allowList.add(forcedToken);
+        }
+        denyList.add(defaultAuthorityDenyToken);
+      }
+      return true;
+    }
+    else
+      return false;
+  }
+  
+  protected void convertACEs(List<String> allowList, List<String> denyList, ACE[] aces)
+  {
+    if (aces == null)
+    {
+      // "Public" share: S-1-1-0
+      allowList.add("S-1-1-0");
+      denyList.add(defaultAuthorityDenyToken);
+    }
+    else
+    {
+      denyList.add(defaultAuthorityDenyToken);
+      for (ACE ace : aces)
+      {
+        if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
+        {
+          if (ace.isAllow())
+            allowList.add(useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName());
+          else
+            denyList.add(useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName());
+        }
+      }
+    }
+  }
+  
 
   protected static void processSMBException(SmbException se, String documentIdentifier, String activity, String operation)
     throws ManifoldCFException, ServiceInterruption
@@ -1406,97 +1242,26 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
   }
 
-  protected static int setDocumentSecurity(RepositoryDocument rd, String version, int startPosition)
+  protected static void setDocumentSecurity(RepositoryDocument rd,
+    String[] shareAllow, String[] shareDeny,
+    String[] parentAllow, String[] parentDeny,
+    String[] allow, String[] deny)
   {
-    if (startPosition < version.length() && version.charAt(startPosition++) == '+')
-    {
-      // Unpack share allow and share deny
-      ArrayList shareAllowAcls = new ArrayList();
-      startPosition = unpackList(shareAllowAcls,version,startPosition,'+');
-      ArrayList shareDenyAcls = new ArrayList();
-      startPosition = unpackList(shareDenyAcls,version,startPosition,'+');
-      String[] shareAllow = new String[shareAllowAcls.size()];
-      String[] shareDeny = new String[shareDenyAcls.size()];
-      int i = 0;
-      while (i < shareAllow.length)
-      {
-        shareAllow[i] = (String)shareAllowAcls.get(i);
-        i++;
-      }
-      i = 0;
-      while (i < shareDeny.length)
-      {
-        shareDeny[i] = (String)shareDenyAcls.get(i);
-        i++;
-      }
-
-      // set share acls
+    // set share acls
+    if (shareAllow.length > 0 || shareDeny.length > 0)
       rd.setSecurity(RepositoryDocument.SECURITY_TYPE_SHARE,shareAllow,shareDeny);
-    }
-    if (startPosition < version.length() && version.charAt(startPosition++) == '+')
-    {
-      // Unpack parent allow and deny acls
-      ArrayList parentAllowAcls = new ArrayList();
-      startPosition = unpackList(parentAllowAcls,version,startPosition,'+');
-      ArrayList parentDenyAcls = new ArrayList();
-      startPosition = unpackList(parentDenyAcls,version,startPosition,'+');
-      String[] parentAllow = new String[parentAllowAcls.size()];
-      String[] parentDeny = new String[parentDenyAcls.size()];
-      int i = 0;
-      while (i < parentAllow.length)
-      {
-        parentAllow[i] = (String)parentAllowAcls.get(i);
-        i++;
-      }
-      i = 0;
-      while (i < parentDeny.length)
-      {
-        parentDeny[i] = (String)parentDenyAcls.get(i);
-        i++;
-      }
-
-      // set parent folder acls
+    // set parent folder acls
+    if (parentAllow.length > 0 || parentDeny.length > 0)
       rd.setSecurity(RepositoryDocument.SECURITY_TYPE_PARENT,parentAllow,parentDeny);
-    }
-    if (startPosition < version.length() && version.charAt(startPosition++) == '+')
-    {
-      // Unpack allow and deny acls
-      ArrayList allowAcls = new ArrayList();
-      startPosition = unpackList(allowAcls,version,startPosition,'+');
-      ArrayList denyAcls = new ArrayList();
-      startPosition = unpackList(denyAcls,version,startPosition,'+');
-      String[] allow = new String[allowAcls.size()];
-      String[] deny = new String[denyAcls.size()];
-      int i = 0;
-      while (i < allow.length)
-      {
-        allow[i] = (String)allowAcls.get(i);
-        i++;
-      }
-      i = 0;
-      while (i < deny.length)
-      {
-        deny[i] = (String)denyAcls.get(i);
-        i++;
-      }
-
-      // set native file acls
+    // set native file acls
+    if (allow.length > 0 || deny.length > 0)
       rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,allow,deny);
-    }
-    return startPosition;
   }
 
-  protected static int setPathMetadata(RepositoryDocument rd, String version, int index)
+  protected static void setPathMetadata(RepositoryDocument rd, String pathAttributeName, String pathAttributeValue)
     throws ManifoldCFException
   {
-    if (version.length() > index && version.charAt(index++) == '+')
-    {
-      StringBuilder pathAttributeNameBuffer = new StringBuilder();
-      StringBuilder pathAttributeValueBuffer = new StringBuilder();
-      index = unpack(pathAttributeNameBuffer,version,index,'+');
-      index = unpack(pathAttributeValueBuffer,version,index,'+');
-      String pathAttributeName = pathAttributeNameBuffer.toString();
-      String pathAttributeValue = pathAttributeValueBuffer.toString();
+    if (pathAttributeName != null && pathAttributeValue != null) {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("JCIFS: Path attribute name is '"+pathAttributeName+"'");
       if (Logging.connectors.isDebugEnabled())
@@ -1505,7 +1270,6 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
     else
       Logging.connectors.debug("JCIFS: Path attribute name is null");
-    return index;
   }
 
   /** Check status of connection.
@@ -1570,7 +1334,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the specification.
   *@return true if it should be included.
   */
-  protected boolean checkInclude(SmbFile file, String fileName, DocumentSpecification documentSpecification, IFingerprintActivity activities)
+  protected boolean checkInclude(SmbFile file, String fileName, Specification documentSpecification, IFingerprintActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.connectors.isDebugEnabled())
@@ -1786,7 +1550,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *       or false otherwise.
   *@return true if the file would be ingested given the parameters.
   */
-  protected boolean wouldFileBeIncluded(String fileName, DocumentSpecification documentSpecification,
+  protected boolean wouldFileBeIncluded(String fileName, Specification documentSpecification,
     boolean pretendIndexable)
     throws ManifoldCFException
   {
@@ -1921,7 +1685,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the document specification.
   *@return true if the file needs to be fingerprinted.
   */
-  protected boolean checkNeedFileData(String fileName, DocumentSpecification documentSpecification)
+  protected boolean checkNeedFileData(String fileName, Specification documentSpecification)
     throws ManifoldCFException
   {
     return wouldFileBeIncluded(fileName,documentSpecification,true) != wouldFileBeIncluded(fileName,documentSpecification,false);
@@ -1936,7 +1700,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param activities are the activities available to determine indexability.
   *@return true if the file should be ingested.
   */
-  protected boolean checkIngest(File localFile, String fileName, DocumentSpecification documentSpecification, IFingerprintActivity activities)
+  protected boolean checkIngest(File localFile, String fileName, Specification documentSpecification, IFingerprintActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.connectors.isDebugEnabled())
@@ -2177,7 +1941,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param spec is the document specification.
   *@return the acls.
   */
-  protected static String[] getForcedAcls(DocumentSpecification spec)
+  protected static String[] getForcedAcls(Specification spec)
   {
     HashMap map = new HashMap();
     int i = 0;
@@ -2216,7 +1980,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param spec is the document specification.
   *@return the acls.
   */
-  protected static String[] getForcedShareAcls(DocumentSpecification spec)
+  protected static String[] getForcedShareAcls(Specification spec)
   {
     HashMap map = new HashMap();
     int i = 0;
@@ -2254,7 +2018,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param spec is the document specification.
   *@return the acls.
   */
-  protected static String[] getForcedParentFolderAcls(DocumentSpecification spec)
+  protected static String[] getForcedParentFolderAcls(Specification spec)
   {
     HashMap map = new HashMap();
     int i = 0;
@@ -4971,15 +4735,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   {
 
     /** This is the activities object, where matching references will be logged */
-    protected IProcessActivity activities;
+    protected final IProcessActivity activities;
     /** Document specification */
-    protected DocumentSpecification spec;
+    protected final Specification spec;
     /** Exceptions that we saw.  These are saved here so that they can be rethrown when done */
     protected ManifoldCFException lcfException = null;
     protected ServiceInterruption serviceInterruption = null;
 
     /** Constructor */
-    public ProcessDocumentsFilter(IProcessActivity activities, DocumentSpecification spec)
+    public ProcessDocumentsFilter(IProcessActivity activities, Specification spec)
     {
       this.activities = activities;
       this.spec = spec;
