@@ -51,6 +51,7 @@ import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
+import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import java.util.Map.Entry;
 
 /**
@@ -907,88 +908,97 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
   }
   
 
-  
-  /**
-   * Process a set of documents. This is the method that should cause each
-   * document to be fetched, processed, and the results either added to the
-   * queue of documents for the current job, and/or entered into the
-   * incremental ingestion manager. The document specification allows this
-   * class to filter what is done based on the job.
-   *
-   * @param documentIdentifiers is the set of document identifiers to process.
-   * @param versions is the corresponding document versions to process, as
-   * returned by getDocumentVersions() above. The implementation may choose to
-   * ignore this parameter and always process the current version.
-   * @param activities is the interface this method should use to queue up new
-   * document references and ingest documents.
-   * @param spec is the document specification.
-   * @param scanOnly is an array corresponding to the document identifiers. It
-   * is set to true to indicate when the processing should only find other
-   * references, and should not actually call the ingestion methods.
-   * @param jobMode is an integer describing how the job is being run, whether
-   * continuous or once-only.
-   */
-  @SuppressWarnings("unchecked")
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+  */
   @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions,
-      IProcessActivity activities, DocumentSpecification spec,
-      boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption {
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
+    throws ManifoldCFException, ServiceInterruption {
 
-    Logging.connectors.debug("JIRA: Inside processDocuments");
+    // Forced acls
+    String[] acls = getAcls(spec);
+    if (acls != null)
+      java.util.Arrays.sort(acls);
 
-    for (int i = 0; i < documentIdentifiers.length; i++) {
-      String nodeId = documentIdentifiers[i];
-      String version = versions[i];
+    for (String documentIdentifier : documentIdentifiers) {
       
-      long startTime = System.currentTimeMillis();
-      String errorCode = "FAILED";
-      String errorDesc = StringUtils.EMPTY;
-      Long fileSize = null;
-      boolean doLog = false;
-      
-      try {
-        if (Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug("JIRA: Processing document identifier '"
-              + nodeId + "'");
+      if (documentIdentifier.startsWith("I-")) {
+        // It is an issue
+        String versionString;
+        String[] aclsToUse;
+        String issueID;
+        JiraIssue jiraFile;
+        
+        issueID = documentIdentifier.substring(2);
+        jiraFile = getIssue(issueID);
+        if (jiraFile == null) {
+          activities.deleteDocument(documentIdentifier);
+          continue;
+        }
+        Date rev = jiraFile.getUpdatedDate();
+        if (rev != null) {
+          StringBuilder sb = new StringBuilder();
+
+          if (acls == null) {
+            // Get acls from issue
+            List<String> users = getUsers(issueID);
+            aclsToUse = (String[])users.toArray(new String[0]);
+            java.util.Arrays.sort(aclsToUse);
+          } else {
+            aclsToUse = acls;
+          }
+          
+          // Acls
+          packList(sb,aclsToUse,'+');
+          if (aclsToUse.length > 0) {
+            sb.append('+');
+            pack(sb,defaultAuthorityDenyToken,'+');
+          } else
+            sb.append('-');
+          sb.append(rev.toString());
+          versionString = sb.toString();
+        } else {
+          //a jira document that doesn't contain versioning information will NEVER be processed.
+          // I don't know what this means, and whether it can ever occur.
+          activities.deleteDocument(documentIdentifier);
+          continue;
         }
 
-        if (!scanOnly[i]) {
-          doLog = true;
-
-          if (nodeId.startsWith("I-")) {
-            // It's an issue
-            String issueKey = nodeId.substring(2);
-            JiraIssue jiraFile = getIssue(issueKey);
-            if (jiraFile == null) {
-              activities.deleteDocument(nodeId);
-              continue;
-            }
-            
+        if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+        {
+          
+          long startTime = System.currentTimeMillis();
+          String errorCode = "FAILED";
+          String errorDesc = StringUtils.EMPTY;
+          Long fileSize = null;
+          
+          try {
             if (Logging.connectors.isDebugEnabled()) {
-              Logging.connectors.debug("JIRA: This issue exists: " + jiraFile.getKey());
-            }
-
-            // Unpack the version string
-            ArrayList acls = new ArrayList();
-            StringBuilder denyAclBuffer = new StringBuilder();
-            int index = unpackList(acls,version,0,'+');
-            if (index < version.length() && version.charAt(index++) == '+') {
-              index = unpack(denyAclBuffer,version,index,'+');
+              Logging.connectors.debug("JIRA: Processing document identifier '"
+                  + documentIdentifier + "'");
             }
 
             //otherwise process
             RepositoryDocument rd = new RepositoryDocument();
               
             // Turn into acls and add into description
-            String[] aclArray = new String[acls.size()];
-            for (int j = 0; j < aclArray.length; j++) {
-              aclArray[j] = (String)acls.get(j);
-            }
-            rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray);
-            if (denyAclBuffer.length() > 0) {
-              String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-              rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
-            }
+            String[] denyAclsToUse;
+            if (aclsToUse.length > 0)
+              denyAclsToUse = new String[]{defaultAuthorityDenyToken};
+            else
+              denyAclsToUse = new String[0];
+            rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclsToUse,denyAclsToUse);
 
             // Now do standard stuff
               
@@ -1020,7 +1030,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
               InputStream is = new ByteArrayInputStream(documentBytes);
               try {
                 rd.setBinary(is, documentBytes.length);
-                activities.ingestDocumentWithException(nodeId, version, documentURI, rd);
+                activities.ingestDocumentWithException(documentIdentifier, versionString, documentURI, rd);
                 // No errors.  Record the fact that we made it.
                 errorCode = "OK";
                 fileSize = new Long(documentBytes.length);
@@ -1030,16 +1040,20 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
             } catch (java.io.IOException e) {
               handleIOException(e);
             }
+          } finally {
+            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+              fileSize, documentIdentifier, errorCode, errorDesc, null);
           }
+
         }
-      } finally {
-        if (doLog)
-          activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-            fileSize, nodeId, errorCode, errorDesc, null);
+      } else {
+        // Unrecognized identifier type
+        activities.deleteDocument(documentIdentifier);
+        continue;
       }
     }
   }
-
+  
   protected static String getJiraBody(JiraIssue jiraFile) {
     String summary = jiraFile.getSummary();
     String description = jiraFile.getDescription();
@@ -1054,78 +1068,11 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     return body.toString();
   }
 
-  /**
-   * The short version of getDocumentVersions. Get document versions given an
-   * array of document identifiers. This method is called for EVERY document
-   * that is considered. It is therefore important to perform as little work
-   * as possible here.
-   *
-   * @param documentIdentifiers is the array of local document identifiers, as
-   * understood by this connector.
-   * @param spec is the current document specification for the current job. If
-   * there is a dependency on this specification, then the version string
-   * should include the pertinent data, so that reingestion will occur when
-   * the specification changes. This is primarily useful for metadata.
-   * @return the corresponding version strings, with null in the places where
-   * the document no longer exists. Empty version strings indicate that there
-   * is no versioning ability for the corresponding document, and the document
-   * will always be processed.
-   */
-  @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers,
-      DocumentSpecification spec) throws ManifoldCFException,
-      ServiceInterruption {
-
-    // Forced acls
-    String[] acls = getAcls(spec);
-    if (acls != null)
-      java.util.Arrays.sort(acls);
-
-    String[] rval = new String[documentIdentifiers.length];
-    for (int i = 0; i < rval.length; i++) {
-      String nodeId = documentIdentifiers[i];
-      if (nodeId.startsWith("I-")) {
-        // It is an issue
-        String issueID = nodeId.substring(2);
-        JiraIssue jiraFile = getIssue(issueID);
-        Date rev = jiraFile.getUpdatedDate();
-        if (rev != null) {
-          StringBuilder sb = new StringBuilder();
-
-          String[] aclsToUse;
-          if (acls == null) {
-            // Get acls from issue
-            List<String> users = getUsers(issueID);
-            aclsToUse = (String[])users.toArray(new String[0]);
-            java.util.Arrays.sort(aclsToUse);
-          } else {
-            aclsToUse = acls;
-          }
-          
-          // Acls
-          packList(sb,aclsToUse,'+');
-          if (aclsToUse.length > 0) {
-            sb.append('+');
-            pack(sb,defaultAuthorityDenyToken,'+');
-          } else
-            sb.append('-');
-          sb.append(rev.toString());
-          rval[i] = sb.toString();
-        } else {
-          //a jira document that doesn't contain versioning information will NEVER be processed.
-          // I don't know what this means, and whether it can ever occur.
-          rval[i] = null;
-        }
-      }
-    }
-    return rval;
-  }
-
   /** Grab forced acl out of document specification.
   *@param spec is the document specification.
   *@return the acls, or null if security is on (and the acls need to be fetched)
   */
-  protected static String[] getAcls(DocumentSpecification spec) {
+  protected static String[] getAcls(Specification spec) {
     Set<String> map = new HashSet<String>();
     for (int i = 0; i < spec.getChildCount(); i++) {
       SpecificationNode sn = spec.getChild(i);
