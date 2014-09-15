@@ -563,26 +563,22 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   protected static final int RESULT_RETRY_DOCUMENT = 3;
 
 
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is
-  * therefore important to perform as little work as possible here.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
   */
   @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
@@ -605,8 +601,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     String filterVersion = filter.getVersionString();
     
-    String[] rval = new String[documentIdentifiers.length];
-
     long currentTime = System.currentTimeMillis();
 
     // There are two ways to handle any document that's not available.  The first is to remove it.  The second is to keep it, but mark it with an empty version string.
@@ -616,12 +610,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     // incapable of deleting documents.
     // Since the primary use of the crawler is expected to be repeated intranet crawls,  I've thus chosen to optimize the crawler for accuracy rather than performance
     // - if the document is gone, I just remove it, and expect churn when recrawling activities occur.
-    int i = 0;
-    while (i < documentIdentifiers.length)
+    for (String documentIdentifier : documentIdentifiers)
     {
-      String documentIdentifier = documentIdentifiers[i];
       // Verify that the url is legal
-      if (filter.isDocumentAndHostLegal(documentIdentifier))
+      if (!filter.isDocumentAndHostLegal(documentIdentifier))
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: Removing url '"+documentIdentifier+"' because it's not in the set of allowed ones");
+        // Use null because we should have already filtered when we queued.
+        activities.deleteDocument(documentIdentifier);
+        continue;
+      }
+      
+      try
       {
         // The first thing we need to know is whether this url is part of a session-protected area.  We'll use that information
         // later to detect redirection to login.
@@ -632,7 +633,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           if (sessionCredential != null)
             Logging.connectors.debug("Web: For document identifier '"+documentIdentifier+"' found session credential key '"+sessionCredential.getSequenceKey()+"'");
         }
-        
+          
         // Set up the initial state and state variables.
         int sessionState = SESSIONSTATE_NORMAL;
         String currentURI = documentIdentifier;
@@ -669,7 +670,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           String checkSum = null;
           // The headers, which will be needed if resultSignal is RESULT_VERSION_NEEDED.
           Map<String,List<String>> headerData = null;
-          
+            
           while (true)
           {
             try
@@ -1004,7 +1005,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                       }
                       // Otherwise, the last fetch stands on its own.  Fall through, and allow processing and link extraction
                     }
-
+                    
                     // Now, based on the session state and the document contents, decide how to proceed
                     if (resultSignal == RESULT_VERSION_NEEDED && sessionState == SESSIONSTATE_LOGIN)
                     {
@@ -1142,12 +1143,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           case RESULT_NO_DOCUMENT:
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("WEB: Removing url '"+documentIdentifier+"'"+((contextMessage!=null)?" because "+contextMessage:""),contextException);
-            rval[i] = null;
+            activities.deleteDocument(documentIdentifier);
             break;
           case RESULT_NO_VERSION:
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("WEB: Ignoring url '"+documentIdentifier+"'"+((contextMessage!=null)?" because "+contextMessage:""),contextException);
-            rval[i] = "";
+            
+            // We get here when a document didn't fetch.
+            // No version 
+            activities.noDocument(documentIdentifier,"");
             break;
           case RESULT_VERSION_NEEDED:
             // Calculate version from document data, which is presumed to be present.
@@ -1164,6 +1168,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               sb.append('-');
 
             // Now, do the metadata. 
+            Map<String,Set<String>> metaHash = new HashMap<String,Set<String>>();
+            
             String[] fixedListStrings = new String[2];
             // They're all folded into the same part of the version string.
             int headerCount = 0;
@@ -1184,9 +1190,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               String lowerHeaderName = headerName.toLowerCase(Locale.ROOT);
               if (!reservedHeaders.contains(lowerHeaderName) && !excludedHeaders.contains(lowerHeaderName))
               {
+                Set<String> valueSet = metaHash.get(headerName);
+                if (valueSet == null)
+                {
+                  valueSet = new HashSet<String>();
+                  metaHash.put(headerName,valueSet);
+                }
                 List<String> headerValues = headerData.get(headerName);
                 for (String headerValue : headerValues)
                 {
+                  valueSet.add(headerValue);
                   fixedListStrings[0] = "header-"+headerName;
                   fixedListStrings[1] = headerValue;
                   StringBuilder newsb = new StringBuilder();
@@ -1196,21 +1209,134 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               }
             }
             java.util.Arrays.sort(fullMetadata);
-            
+              
             packList(sb,fullMetadata,'+');
             // Done with the parseable part!  Add the checksum.
             sb.append(checkSum);
             // Add the filter version
             sb.append("+");
             sb.append(filterVersion);
-            rval[i] = sb.toString();
+              
+            String versionString = sb.toString();
+              
+            // Now, extract links.
+            // We'll call the "link extractor" series, so we can plug more stuff in over time.
+            boolean indexDocument = extractLinks(documentIdentifier,activities,filter);
+
+            // If scanOnly is set, we never ingest.  But all else is the same.
+            if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+              continue;
+            
+            // Consider this document for ingestion.
+            // We can exclude it if it does not seem to be a kind of document that the ingestion system knows
+            // about.
+            String ingestURL;
+            if (indexDocument)
+              ingestURL = isDataIngestable(activities,documentIdentifier,filter);
+            else
+              ingestURL = null;
+
+            if (ingestURL == null)
+            {
+              // In case the indexability of the document changed, we still want to notify the incremental indexer.
+              // We do this by using a null url and a null repository document.  If a document with this identifier was
+              // previously indexed, it will be removed.
+                
+              activities.noDocument(documentIdentifier,versionString);
+                
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("WEB: Decided not to ingest '"+documentIdentifier+"' because it did not match ingestability criteria");
+              continue;
+            }
+            
+            // Ingest the document
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("WEB: Decided to ingest '"+documentIdentifier+"'");
+
+            RepositoryDocument rd = new RepositoryDocument();
+
+            // Set the file name
+            String fileName = "";
+            try {
+              fileName = documentIdentifiertoFileName(documentIdentifier);
+            } catch (URISyntaxException e1) {
+              fileName = "";
+            }
+            if (fileName.length() > 0){
+              rd.setFileName(fileName);
+            }
+                
+            // Set the content type
+            rd.setMimeType(cache.getContentType(documentIdentifier));
+                
+            // Turn into acls and add into description
+            String[] denyAcls;
+            if (acls == null)
+              denyAcls = null;
+            else
+            {
+              if (acls.length > 0)
+                denyAcls = new String[]{defaultAuthorityDenyToken};
+              else
+                denyAcls = new String[0];
+            }
+            
+            if (acls != null && denyAcls != null)
+              rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls,denyAcls);
+
+            // Grab metadata
+            for (String key : metaHash.keySet())
+            {
+              Set<String> metaList = metaHash.get(key);
+              String[] values = new String[metaList.size()];
+              int k = 0;
+              for (String value : metaList)
+              {
+                values[k++] = value;
+              }
+              rd.addField(key,values);
+            }
+
+            long length = cache.getDataLength(documentIdentifier);
+            InputStream is = cache.getData(documentIdentifier);
+
+            if (is != null)
+            {
+              try
+              {
+                rd.setBinary(is,length);
+                try
+                {
+                  activities.ingestDocumentWithException(documentIdentifier,versionString,ingestURL,rd);
+                }
+                catch (IOException e)
+                {
+                  handleIOException(e,"reading data");
+                }
+              }
+              finally
+              {
+                try
+                {
+                  is.close();
+                }
+                catch (IOException e)
+                {
+                  handleIOException(e,"closing stream");
+                }
+              }
+            }
+            else
+              Logging.connectors.error("WEB: Expected a cached document for '"+documentIdentifier+"', but none present!");
+
+            // MHL
+              
             break;
           case RESULT_RETRY_DOCUMENT:
             // Document could not be processed right now.
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("WEB: Retrying url '"+documentIdentifier+"' later"+((contextMessage!=null)?" because "+contextMessage:""),contextException);
             activities.retryDocumentProcessing(documentIdentifier);
-            rval[i] = null;
             break;
           default:
             throw new ManifoldCFException("Unexpected value for result signal: "+Integer.toString(resultSignal));
@@ -1226,16 +1352,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           }
         }
       }
-      else
+      finally
       {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("WEB: Removing url '"+documentIdentifier+"' because it's not in the set of allowed ones");
-        // Use null because we should have already filtered when we queued.
-        rval[i] = null;
+        cache.deleteData(documentIdentifier);
       }
-      i++;
     }
-    return rval;
   }
 
   protected static String extractContentType(String contentType)
@@ -1277,188 +1398,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     return contentType;
   }
   
-  /** Process a set of documents.
-  * This is the method that should cause each document to be fetched, processed, and the results either added
-  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
-  * The document specification allows this class to filter what is done based on the job.
-  *@param documentIdentifiers is the set of document identifiers to process.
-  *@param activities is the interface this method should use to queue up new document references
-  * and ingest documents.
-  *@param spec is the document specification.
-  *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-  * should only find other references, and should not actually call the ingestion methods.
-  */
-  @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    getSession();
-
-    DocumentURLFilter filter = new DocumentURLFilter(spec);
-
-    String[] fixedList = new String[2];
-
-    // We need to extract and ingest here.
-    int i = 0;
-    while (i < documentIdentifiers.length)
-    {
-      String documentIdentifier = documentIdentifiers[i];
-      String version = versions[i];
-      boolean doScanOnly = scanOnly[i];
-
-      if (version.length() == 0)
-      {
-        i++;
-        // Leave document in jobqueue, but do NOT get rid of it, or we will wind up seeing it queued again by
-        // somebody else.  We *do* have to signal the document to be removed from the index, however, or it will
-        // stick around until the job is deleted.
-        activities.noDocument(documentIdentifier,version);
-        continue;
-      }
-
-      // Now, extract links.
-      // We'll call the "link extractor" series, so we can plug more stuff in over time.
-      boolean indexDocument = extractLinks(documentIdentifier,activities,filter);
-
-      // If scanOnly is set, we never ingest.  But all else is the same.
-      if (!doScanOnly)
-      {
-        // Consider this document for ingestion.
-        // We can exclude it if it does not seem to be a kind of document that the ingestion system knows
-        // about.
-        String ingestURL;
-        if (indexDocument)
-          ingestURL = isDataIngestable(activities,documentIdentifier,filter);
-        else
-          ingestURL = null;
-
-        if (ingestURL != null)
-        {
-          // Ingest the document
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("WEB: Decided to ingest '"+documentIdentifier+"'");
-
-          // Unpack the version string
-          ArrayList acls = new ArrayList();
-          StringBuilder denyAclBuffer = new StringBuilder();
-          ArrayList metadata = new ArrayList();
-          int index = unpackList(acls,version,0,'+');
-          if (index < version.length() && version.charAt(index++) == '+')
-          {
-            index = unpack(denyAclBuffer,version,index,'+');
-          }
-          index = unpackList(metadata,version,index,'+');
-
-          RepositoryDocument rd = new RepositoryDocument();
-
-          // Set the file name
-          String fileName = "";
-          try {
-            fileName = documentIdentifiertoFileName(documentIdentifier);
-          } catch (URISyntaxException e1) {
-            fileName = "";
-          }
-          if (fileName.length() > 0){
-            rd.setFileName(fileName);
-          }
-          
-          // Set the content type
-          rd.setMimeType(cache.getContentType(documentIdentifier));
-          
-          // Turn into acls and add into description
-          String[] aclArray = new String[acls.size()];
-          int j = 0;
-          while (j < aclArray.length)
-          {
-            aclArray[j] = (String)acls.get(j);
-            j++;
-          }
-          rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray);
-          if (denyAclBuffer.length() > 0)
-          {
-            String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-            rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
-          }
-
-          // Grab metadata
-          Map<String,Set<String>> metaHash = new HashMap<String,Set<String>>();
-          for (String metadataItem : (List<String>)metadata)
-          {
-            unpackFixedList(fixedList,metadataItem,0,'=');
-            Set<String> hashValue = metaHash.get(fixedList[0]);
-            if (hashValue == null)
-            {
-              hashValue = new HashSet<String>();
-              metaHash.put(fixedList[0],hashValue);
-            }
-            hashValue.add(fixedList[1]);
-          }
-          Iterator<String> metaIter = metaHash.keySet().iterator();
-          while (metaIter.hasNext())
-          {
-            String key = metaIter.next();
-            Set<String> metaList = metaHash.get(key);
-            String[] values = new String[metaList.size()];
-            Iterator<String> iter = metaList.iterator();
-            int k = 0;
-            while (iter.hasNext())
-            {
-              values[k] = iter.next();
-              k++;
-            }
-            rd.addField(key,values);
-          }
-
-          long length = cache.getDataLength(documentIdentifier);
-          InputStream is = cache.getData(documentIdentifier);
-
-          if (is != null)
-          {
-            try
-            {
-              rd.setBinary(is,length);
-              try
-              {
-                activities.ingestDocumentWithException(documentIdentifier,version,ingestURL,rd);
-              }
-              catch (IOException e)
-              {
-                handleIOException(e,"reading data");
-              }
-            }
-            finally
-            {
-              try
-              {
-                is.close();
-              }
-              catch (IOException e)
-              {
-                handleIOException(e,"closing stream");
-              }
-            }
-          }
-          else
-            Logging.connectors.error("WEB: Expected a cached document for '"+documentIdentifier+"', but none present!");
-        }
-        else
-        {
-          // In case the indexability of the document changed, we still want to notify the incremental indexer.
-          // We do this by using a null url and a null repository document.  If a document with this identifier was
-          // previously indexed, it will be removed.
-          
-          activities.noDocument(documentIdentifier,version);
-          
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("WEB: Decided not to ingest '"+documentIdentifier+"' because it did not match ingestability criteria");
-        }
-      }
-
-
-      i++;
-    }
-  }
-
   protected static void handleIOException(IOException e, String context)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -1472,30 +1411,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throw new ManifoldCFException("IO error "+context+": "+e.getMessage(),e);
   }
   
-  /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
-  * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
-  * committed during the getDocumentVersions() method.  It is guaranteed to be called AFTER any calls to
-  * processDocuments() for the documents in question.
-  *@param documentIdentifiers is the set of document identifiers.
-  *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
-  */
-  @Override
-  public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws ManifoldCFException
-  {
-    int i = 0;
-    while (i < documentIdentifiers.length)
-    {
-      String version = versions[i];
-      if (version != null)
-      {
-        String urlValue = documentIdentifiers[i];
-        cache.deleteData(urlValue);
-      }
-      i++;
-    }
-  }
-
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   *@return the maximum number. 0 indicates "unlimited".
   */
@@ -7270,7 +7185,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param spec is the document specification.
   *@return the acls.
   */
-  protected static String[] getAcls(DocumentSpecification spec)
+  protected static String[] getAcls(Specification spec)
   {
     Set<String> map = new HashSet<String>();
     int i = 0;
@@ -7295,7 +7210,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   }
 
   /** Read a document specification to get a set of excluded headers */
-  protected static Set<String> findExcludedHeaders(DocumentSpecification spec)
+  protected static Set<String> findExcludedHeaders(Specification spec)
     throws ManifoldCFException
   {
     Set<String> rval = new HashSet<String>();
