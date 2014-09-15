@@ -170,7 +170,7 @@ public class SanityDerbyIT extends BaseITDerby
       
       // Now, set up the document specification.
       // Right now we don't need any...
-      DocumentSpecification ds = job.getSpecification();
+      Specification ds = job.getSpecification();
       
       // Save the job.
       jobManager.save(job);

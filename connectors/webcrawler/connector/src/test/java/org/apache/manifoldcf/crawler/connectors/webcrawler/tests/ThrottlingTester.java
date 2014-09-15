@@ -100,7 +100,7 @@ public class ThrottlingTester
     job.setHopcountMode(job.HOPCOUNT_NEVERDELETE);
 
     // Now, set up the document specification.
-    DocumentSpecification ds = job.getSpecification();
+    Specification ds = job.getSpecification();
     
     // Set up 100 seeds
     SpecificationNode sn = new SpecificationNode(WebcrawlerConfig.NODE_SEEDS);

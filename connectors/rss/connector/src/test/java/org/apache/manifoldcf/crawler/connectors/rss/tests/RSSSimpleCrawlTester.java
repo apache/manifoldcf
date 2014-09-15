@@ -89,7 +89,7 @@ public class RSSSimpleCrawlTester
     job.setHopcountMode(job.HOPCOUNT_NEVERDELETE);
       
     // Now, set up the document specification.
-    DocumentSpecification ds = job.getSpecification();
+    Specification ds = job.getSpecification();
     // For 100 documents, set up 10 seeds
     for (int i = 0 ; i < 10 ; i++)
     {

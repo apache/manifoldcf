@@ -146,7 +146,7 @@ public class WorkerThread extends Thread
 
             // Universal job data we'll need later
             String connectionName = job.getConnectionName();
-            DocumentSpecification spec = job.getSpecification();
+            Specification spec = job.getSpecification();
             int jobType = job.getType();
 
             IRepositoryConnection connection = qds.getConnection();

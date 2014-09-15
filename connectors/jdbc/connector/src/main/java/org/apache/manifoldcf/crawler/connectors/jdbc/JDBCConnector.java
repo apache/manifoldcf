@@ -1642,34 +1642,6 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
   }
 
-  /** Grab forced acl out of document specification.
-  *@param spec is the document specification.
-  *@return the acls.
-  */
-  protected static String[] getAcls(DocumentSpecification spec)
-  {
-    HashMap map = new HashMap();
-    int i = 0;
-    while (i < spec.getChildCount())
-    {
-      SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals("access"))
-      {
-        String token = sn.getAttributeValue("token");
-        map.put(token,token);
-      }
-    }
-
-    String[] rval = new String[map.size()];
-    Iterator iter = map.keySet().iterator();
-    i = 0;
-    while (iter.hasNext())
-    {
-      rval[i++] = (String)iter.next();
-    }
-    return rval;
-  }
-
   /** Create an entity identifier from a querystring and a parameter list.
   */
   protected static String createQueryString(String queryText, ArrayList paramList)

@@ -53,7 +53,7 @@ public class GetSeedList
       IJobDescription desc = jobManager.load(new Long(jobString));
 
       // Edit the job specification
-      DocumentSpecification ds = desc.getSpecification();
+      Specification ds = desc.getSpecification();
 
       // Delete all url specs first
       int i = 0;
