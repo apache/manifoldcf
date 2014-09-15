@@ -82,7 +82,7 @@ public class BigCrawlTester
     job.setHopcountMode(job.HOPCOUNT_NEVERDELETE);
       
     // Now, set up the document specification.
-    DocumentSpecification ds = job.getSpecification();
+    Specification ds = job.getSpecification();
     // For 100000 documents, set up 10000 seeds
     for (int i = 0 ; i < 10000 ; i++)
     {

@@ -3946,7 +3946,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else if (childType.equals(JOBNODE_DOCUMENTSPECIFICATION))
       {
         // Get the job's document specification, clear out the children, and copy new ones from the child.
-        DocumentSpecification ds = jobDescription.getSpecification();
+        Specification ds = jobDescription.getSpecification();
         ds.clearChildren();
         for (int j = 0; j < child.getChildCount(); j++)
         {
@@ -4180,7 +4180,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
 
     // Document specification
-    DocumentSpecification ds = job.getSpecification();
+    Specification ds = job.getSpecification();
     child = new ConfigurationNode(JOBNODE_DOCUMENTSPECIFICATION);
     for (int j = 0; j < ds.getChildCount(); j++)
     {

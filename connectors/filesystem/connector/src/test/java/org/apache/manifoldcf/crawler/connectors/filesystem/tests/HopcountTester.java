@@ -90,7 +90,7 @@ public class HopcountTester
     job.addHopCountFilter("child",new Long(2));
       
     // Now, set up the document specification.
-    DocumentSpecification ds = job.getSpecification();
+    Specification ds = job.getSpecification();
     // Crawl everything underneath the 'testdata' area
     File testDataFile = new File("testdata").getCanonicalFile();
     if (!testDataFile.exists())

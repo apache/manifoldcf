@@ -135,7 +135,7 @@ public class SessionTester
     job.setHopcountMode(job.HOPCOUNT_NEVERDELETE);
 
     // Now, set up the document specification.
-    DocumentSpecification ds = job.getSpecification();
+    Specification ds = job.getSpecification();
     
     // Set up the seed
     SpecificationNode sn = new SpecificationNode(WebcrawlerConfig.NODE_SEEDS);

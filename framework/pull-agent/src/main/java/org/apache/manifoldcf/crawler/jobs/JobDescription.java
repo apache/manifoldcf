@@ -67,7 +67,7 @@ public class JobDescription implements IJobDescription
   protected Long reseedInterval = new Long(60L * 60L * 1000L);    // 1 hour is the default
 
   // Document specification
-  protected DocumentSpecification documentSpecification = new DocumentSpecification();
+  protected Specification documentSpecification = new Specification();
 
   // Hop count filters.
   protected HashMap hopCountFilters = new HashMap();
@@ -525,7 +525,7 @@ public class JobDescription implements IJobDescription
   *@return the document specification object.
   */
   @Override
-  public DocumentSpecification getSpecification()
+  public Specification getSpecification()
   {
     return documentSpecification;
   }

@@ -128,7 +128,7 @@ public class BigCrawlTester
     job.setHopcountMode(job.HOPCOUNT_NEVERDELETE);
       
     // Now, set up the document specification.
-    DocumentSpecification ds = job.getSpecification();
+    Specification ds = job.getSpecification();
     // Crawl everything underneath the 'testdata' area
     File testDataFile = new File("testdata").getCanonicalFile();
     if (!testDataFile.exists())

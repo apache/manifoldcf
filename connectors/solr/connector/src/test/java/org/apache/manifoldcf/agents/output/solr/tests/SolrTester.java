@@ -86,7 +86,7 @@ public class SolrTester
     job.setHopcountMode(job.HOPCOUNT_NEVERDELETE);
       
     // Now, set up the document specification.
-    DocumentSpecification ds = job.getSpecification();
+    Specification ds = job.getSpecification();
     SpecificationNode sn = new SpecificationNode("documentcount");
     sn.setAttribute("count","111");
     ds.addChild(ds.getChildCount(),sn);

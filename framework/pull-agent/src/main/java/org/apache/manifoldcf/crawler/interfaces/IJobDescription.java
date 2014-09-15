@@ -240,7 +240,7 @@ public interface IJobDescription
   /** Get the document specification (which can be modified).
   *@return the specification.
   */
-  public DocumentSpecification getSpecification();
+  public Specification getSpecification();
 
 
   // Priority

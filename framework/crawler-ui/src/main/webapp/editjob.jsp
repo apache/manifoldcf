@@ -80,7 +80,7 @@
 	String connectionName = "";
 	String description = "";
 	int type = IJobDescription.TYPE_SPECIFIED;
-	DocumentSpecification documentSpecification = new DocumentSpecification();
+	Specification documentSpecification = new Specification();
 	
 	// Pipeline data
 	String[] pipelineConnectionNames = new String[0];

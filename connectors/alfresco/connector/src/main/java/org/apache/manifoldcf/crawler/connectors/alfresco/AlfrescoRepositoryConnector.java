@@ -56,7 +56,6 @@ import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
-import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {

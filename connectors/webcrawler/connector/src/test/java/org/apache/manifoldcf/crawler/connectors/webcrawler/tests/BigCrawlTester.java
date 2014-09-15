@@ -85,7 +85,7 @@ public class BigCrawlTester
     //job.addHopCountFilter("redirect",new Long(2));
 
     // Now, set up the document specification.
-    DocumentSpecification ds = job.getSpecification();
+    Specification ds = job.getSpecification();
     
     // For 100000 documents, set up 10 seeds
     SpecificationNode sn = new SpecificationNode(WebcrawlerConfig.NODE_SEEDS);
