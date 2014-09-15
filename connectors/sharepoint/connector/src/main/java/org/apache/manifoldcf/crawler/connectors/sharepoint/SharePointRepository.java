@@ -679,33 +679,30 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return "";
   }
 
+  protected static final String[] attachmentDataNames = new String[]{"createdDate","modifiedDate","accessTokens","denyTokens","url","guids"};
 
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is
-  * therefore important to perform as little work as possible here.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
   */
   @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
-    getSession();
-
     // Get the forced acls.  (We need this only for the case where documents have their own acls)
     String[] forcedAcls = getAcls(spec);
+    
+    SystemMetadataDescription sDesc = new SystemMetadataDescription(spec);
 
     // Look at the metadata attributes.
     // So that the version strings are comparable, we will put them in an array first, and sort them.
@@ -734,15 +731,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (pathAttributeName != null)
       pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(matchMap);
 
-    String[] rval = new String[documentIdentifiers.length];
-    
-    i = 0;
-    while (i < rval.length)
+    for (String documentIdentifier : documentIdentifiers)
     {
       // Check if we should abort
       activities.checkJobStillActive();
 
-      String documentIdentifier = documentIdentifiers[i];
+      getSession();
+
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug( "SharePoint: Getting version of '" + documentIdentifier + "'");
       if ( documentIdentifier.startsWith("D") || documentIdentifier.startsWith("S") )
@@ -750,7 +745,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         // Old-style document identifier.  We don't recognize these anymore, so signal deletion.
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("SharePoint: Removing old-style document identifier '"+documentIdentifier+"'");
-        rval[i] = null;
+        activities.deleteDocument(documentIdentifier);
+        continue;
       }
       else if (documentIdentifier.startsWith("/"))
       {
@@ -764,15 +760,96 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           if (dListSeparatorIndex == documentIdentifier.length() - 3)
           {
             // == List path! ==
-            if (checkIncludeList(documentIdentifier.substring(0,documentIdentifier.length()-3),spec))
-              // This is the path for the list: No versioning
-              rval[i] = "";
-            else
+            if (!checkIncludeList(documentIdentifier.substring(0,documentIdentifier.length()-3),spec))
             {
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("SharePoint: List specification no longer includes list '"+documentIdentifier+"' - removing");
-              rval[i] = null;
+              activities.deleteDocument(documentIdentifier);
+              continue;
             }
+            
+            // Version string for a list
+            String versionString = "";
+
+            // Chained connectors always scan parent nodes, so they don't bother setting a version
+            String siteListPath = documentIdentifier.substring(0,documentIdentifier.length()-3);
+            int listCutoff = siteListPath.lastIndexOf( "/" );
+            String site = siteListPath.substring(0,listCutoff);
+            String listName = siteListPath.substring( listCutoff + 1 );
+
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug( "SharePoint: Document identifier is a list: '" + siteListPath + "'" );
+
+            String listID = proxy.getListID( encodePath(site), site, listName );
+            if (listID == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: GUID lookup failed for list '"+siteListPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            
+            String encodedSitePath = encodePath(site);
+                
+            // Get the list's fields
+            Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, listID );
+            if (fieldNames == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Field list lookup failed for list '"+siteListPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            
+            String[] fields = new String[fieldNames.size()];
+            int j = 0;
+            for (String field : fieldNames.keySet())
+            {
+              fields[j++] = field;
+            }
+                  
+            String[] accessTokens;
+            String[] denyTokens;
+                  
+            if (forcedAcls == null)
+            {
+              // Security is off
+              accessTokens = new String[0];
+              denyTokens = new String[0];
+            }
+            else if (forcedAcls.length != 0)
+            {
+              // Forced security
+              accessTokens = forcedAcls;
+              denyTokens = new String[0];
+            }
+            else
+            {
+              // Security enabled, native security
+              accessTokens = proxy.getACLs( encodedSitePath, listID, activeDirectoryAuthority );
+              denyTokens = new String[]{defaultAuthorityDenyToken};
+            }
+
+            if (accessTokens == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Access token lookup failed for list '"+siteListPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            
+            ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, siteListPath, spec,
+              documentIdentifier, accessTokens, denyTokens, listID, fields );
+            boolean success = proxy.getChildren( fs, encodedSitePath , listID, dspStsWorks );
+            if (!success)
+            {
+              // Site/list no longer exists, so delete entry
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: No list found for list '"+siteListPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            activities.noDocument(documentIdentifier,versionString);
           }
           else
           {
@@ -792,191 +869,342 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             if (attachmentSeparatorIndex == -1)
             {
               // == List item path! ==
-              if (checkIncludeListItem(decodedItemPath,spec))
-              {
-                // This file is included, so calculate a version string.  This will include metadata info, so get that first.
-                MetadataInformation metadataInfo = getMetadataSpecification(decodedItemPath,spec);
-
-                String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
-                String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
-                String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
-                String[] listFields = activities.retrieveParentData(documentIdentifier, "fields");
-                String[] displayURLs = activities.retrieveParentData(documentIdentifier, "displayURLs");
-                
-                String listID;
-                if (listIDs.length >= 1)
-                  listID = listIDs[0];
-                else
-                  listID = null;
-
-                String displayURL;
-                if (displayURLs.length >= 1)
-                  displayURL = displayURLs[0];
-                else
-                  displayURL = null;
-
-                if (listID != null)
-                {
-                  String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,listFields);
-                  
-                  // Sort access tokens so they are comparable in the version string
-                  java.util.Arrays.sort(accessTokens);
-                  java.util.Arrays.sort(denyTokens);
-
-                  // Next, get the actual timestamp field for the file.
-                  ArrayList metadataDescription = new ArrayList();
-                  metadataDescription.add("Modified");
-                  metadataDescription.add("Created");
-                  metadataDescription.add("ID");
-                  metadataDescription.add("GUID");
-                  // The document path includes the library, with no leading slash, and is decoded.
-                  String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
-                  Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
-                  String modifiedDate = values.get("Modified");
-                  String createdDate = values.get("Created");
-                  String id = values.get("ID");
-                  String guid = values.get("GUID");
-                  if (modifiedDate != null)
-                  {
-                    // Item has a modified date so we presume it exists.
-                    
-                    Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
-                    Date createdDateValue = DateParser.parseISO8601Date(createdDate);
-                    
-                    // Build version string
-                    String versionToken = modifiedDate;
-                      
-                    // Revamped version string on 9/21/2013 to make parseability better
-                    
-                    StringBuilder sb = new StringBuilder();
-
-                    packList(sb,sortedMetadataFields,'+');
-                    packList(sb,accessTokens,'+');
-                    packList(sb,denyTokens,'+');
-                    packDate(sb,modifiedDateValue);
-                    packDate(sb,createdDateValue);
-                    pack(sb,id,'+');
-                    pack(sb,guid,'+');
-                    pack(sb,displayURL,'+');
-                    // The rest of this is unparseable
-                    sb.append(versionToken);
-                    sb.append(pathNameAttributeVersion);
-                    // Added 9/7/07
-                    sb.append("_").append(fileBaseUrl);
-                    //
-                    rval[i] = sb.toString();
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
-                  }
-                  else
-                  {
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
-                    rval[i] = null;
-                  }
-                }
-                else
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list '"+decodedListPath+"' does not exist - removing");
-                  rval[i] = null;
-                }
-              }
-              else
+              if (!checkIncludeListItem(decodedItemPath,spec))
               {
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("SharePoint: List item '"+documentIdentifier+"' is no longer included - removing");
-                rval[i] = null;
+                activities.deleteDocument(documentIdentifier);
+                continue;
               }
+
+              // This file is included, so calculate a version string.  This will include metadata info, so get that first.
+              MetadataInformation metadataInfo = getMetadataSpecification(decodedItemPath,spec);
+
+              String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
+              String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
+              String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
+              String[] listFields = activities.retrieveParentData(documentIdentifier, "fields");
+              String[] displayURLs = activities.retrieveParentData(documentIdentifier, "displayURLs");
+                
+              String listID;
+              if (listIDs.length >= 1)
+                listID = listIDs[0];
+              else
+                listID = null;
+
+              String displayURL;
+              if (displayURLs.length >= 1)
+                displayURL = displayURLs[0];
+              else
+                displayURL = null;
+
+              if (listID == null)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list '"+decodedListPath+"' does not exist - removing");
+                activities.deleteDocument(documentIdentifier);
+                continue;
+              }
+              
+              String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,listFields);
+                  
+              // Sort access tokens so they are comparable in the version string
+              java.util.Arrays.sort(accessTokens);
+              java.util.Arrays.sort(denyTokens);
+
+              // Next, get the actual timestamp field for the file.
+              List<String> metadataDescription = new ArrayList<String>();
+              metadataDescription.add("Modified");
+              metadataDescription.add("Created");
+              metadataDescription.add("ID");
+              metadataDescription.add("GUID");
+              // The document path includes the library, with no leading slash, and is decoded.
+              String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
+              Map<String,String> values = proxy.getFieldValues( metadataDescription.toArray(new String[0]), encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
+              String modifiedDate = values.get("Modified");
+              String createdDate = values.get("Created");
+              String id = values.get("ID");
+              String guid = values.get("GUID");
+              if (modifiedDate == null)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
+                activities.deleteDocument(documentIdentifier);
+                continue;
+              }
+              
+              // Item has a modified date so we presume it exists.
+                  
+              Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
+              Date createdDateValue = DateParser.parseISO8601Date(createdDate);
+                    
+              // Build version string
+              String versionToken = modifiedDate;
+                      
+              // Revamped version string on 9/21/2013 to make parseability better
+              
+              StringBuilder sb = new StringBuilder();
+
+              packList(sb,sortedMetadataFields,'+');
+              packList(sb,accessTokens,'+');
+              packList(sb,denyTokens,'+');
+              packDate(sb,modifiedDateValue);
+              packDate(sb,createdDateValue);
+              pack(sb,id,'+');
+              pack(sb,guid,'+');
+              pack(sb,displayURL,'+');
+              // The rest of this is unparseable
+              sb.append(versionToken);
+              sb.append(pathNameAttributeVersion);
+              // Added 9/7/07
+              sb.append("_").append(fileBaseUrl);
+              //
+              String versionString = sb.toString();
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + versionString);
+              
+              // Before we index, we queue up any attachments
+
+              // Now, do any queuing that is needed.
+              if (attachmentsSupported)
+              {
+                String itemNumber = id;
+
+
+                List<NameValue> attachmentNames = proxy.getAttachmentNames( sitePath, listID, itemNumber );
+                // Now, queue up each attachment as a separate entry
+                for (NameValue attachmentName : attachmentNames)
+                {
+                  // For attachments, we use the carry-down feature to get the data where we need it.  That's why
+                  // we unpacked the version information early above.
+                  
+                  // No check for inclusion; if the list item is included, so is this
+                  String[][] dataValues = new String[attachmentDataNames.length][];
+                  if (createdDateValue == null)
+                    dataValues[0] = new String[0];
+                  else
+                    dataValues[0] = new String[]{new Long(createdDateValue.getTime()).toString()};
+                  if (modifiedDateValue == null)
+                    dataValues[1] = new String[0];
+                  else
+                    dataValues[1] = new String[]{new Long(modifiedDateValue.getTime()).toString()};
+                  if (accessTokens == null)
+                    dataValues[2] = new String[0];
+                  else
+                    dataValues[2] = accessTokens;
+                  if (denyTokens == null)
+                    dataValues[3] = new String[0];
+                  else
+                    dataValues[3] = denyTokens;
+                  dataValues[4] = new String[]{attachmentName.getPrettyName()};
+                  dataValues[5] = new String[]{guid};
+
+                  activities.addDocumentReference(documentIdentifier + "//" + attachmentName.getValue(),
+                    documentIdentifier, null, attachmentDataNames, dataValues);
+                  
+                }
+              }
+
+              if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+                continue;
+                            
+              // Convert the modified document path to an unmodified one, plus a library path.
+              String encodedItemPath = encodePath(decodedListPath.substring(0,cutoff) + "/Lists/" + decodedItemPath.substring(cutoff+1));
+                
+              // Generate the URL we are going to use
+              String itemUrl = fileBaseUrl + displayURL;  //fileBaseUrl + encodedItemPath;
+                
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug( "SharePoint: Processing list item '"+documentIdentifier+"'; url: '" + itemUrl + "'" );
+
+              // Fetch the metadata we will be indexing
+              Map<String,String> metadataValues = null;
+              if (sortedMetadataFields.length > 0)
+              {
+                metadataValues = proxy.getFieldValues( sortedMetadataFields, encodePath(sitePath), listID, "/Lists/" + decodedItemPath.substring(cutoff+1), dspStsWorks );
+                if (metadataValues == null)
+                {
+                  // Item has vanished
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Item metadata fetch failure indicated that item is gone: '"+documentIdentifier+"' - removing");
+                  activities.noDocument(documentIdentifier,versionString);
+                  continue;
+                }
+              }
+                
+              if (!activities.checkLengthIndexable(0L))
+              {
+                // Document too long (should never happen; length is 0)
+                activities.noDocument( documentIdentifier, versionString );
+                continue;
+              }
+                
+              InputStream is = new ByteArrayInputStream(new byte[0]);
+              try
+              {
+                RepositoryDocument data = new RepositoryDocument();
+                data.setBinary( is, 0L );
+
+                if (modifiedDateValue != null)
+                  data.setModifiedDate(modifiedDateValue);
+                if (createdDateValue != null)
+                  data.setCreatedDate(createdDateValue);
+                    
+                setDataACLs(data,accessTokens,denyTokens);
+                
+                setPathAttribute(data,sDesc,documentIdentifier);
+
+                if (metadataValues != null)
+                {
+                  Iterator<String> iter = metadataValues.keySet().iterator();
+                  while (iter.hasNext())
+                  {
+                    String fieldName = iter.next();
+                    String fieldData = metadataValues.get(fieldName);
+                    data.addField(fieldName,fieldData);
+                  }
+                }
+                data.addField("GUID",guid);
+                try
+                {
+                  activities.ingestDocumentWithException( documentIdentifier, versionString, itemUrl , data );
+                }
+                catch (IOException e)
+                {
+                  handleIOException(e,"reading document");
+                }
+              }
+              finally
+              {
+                try
+                {
+                  is.close();
+                }
+                catch (IOException e)
+                {
+                  handleIOException(e,"closing stream");
+                }
+              }
+
             }
             else
             {
               // == List item attachment path! ==
-              if (checkIncludeListItemAttachment(decodedItemPath,spec))
-              {
-
-                // To save work, we retrieve most of what we need in version info from the parent.
-
-                // Retrieve modified and created dates
-                String[] modifiedDateSet = activities.retrieveParentData(documentIdentifier, "modifiedDate");
-                String[] createdDateSet = activities.retrieveParentData(documentIdentifier, "createdDate");
-                String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
-                String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
-                String[] urlSet = activities.retrieveParentData(documentIdentifier, "url");
-
-                // Only one modifiedDate and createdDate can be used.  If there's more than one, just pick one - the item will be reindexed
-                // anyhow.
-                String modifiedDate;
-                if (modifiedDateSet.length >= 1)
-                  modifiedDate = modifiedDateSet[0];
-                else
-                  modifiedDate = null;
-                String createdDate;
-                if (createdDateSet.length >= 1)
-                  createdDate = createdDateSet[0];
-                else
-                  createdDate = null;
-                String url;
-                if (urlSet.length >=1)
-                  url = urlSet[0];
-                else
-                  url = null;
-
-                // If we have no modified or created date, it means that the parent has gone away, so we go away too.
-                if (modifiedDate != null && url != null)
-                {
-                  // Item has a modified date so we presume it exists.
-                      
-                  Date modifiedDateValue;
-                  if (modifiedDate != null)
-                    modifiedDateValue = new Date(new Long(modifiedDate).longValue());
-                  else
-                    modifiedDateValue = null;
-                  Date createdDateValue;
-                  if (createdDate != null)
-                    createdDateValue = new Date(new Long(createdDate).longValue());
-                  else
-                    createdDateValue = null;
-                      
-                  // Build version string
-                  String versionToken = modifiedDate;
-                      
-                  StringBuilder sb = new StringBuilder();
-
-                  // Pack the URL to get the data from
-                  pack(sb,url,'+');
-                  
-                  // Do the acls.  If we get this far, we are guaranteed to have them, but we need to sort.
-                  java.util.Arrays.sort(accessTokens);
-                  java.util.Arrays.sort(denyTokens);
-                  
-                  packList(sb,accessTokens,'+');
-                  packList(sb,denyTokens,'+');
-                  packDate(sb,modifiedDateValue);
-                  packDate(sb,createdDateValue);
-
-                  // The rest of this is unparseable
-                  sb.append(versionToken);
-                  sb.append(pathNameAttributeVersion);
-                  sb.append("_").append(fileBaseUrl);
-                  //
-                  rval[i] = sb.toString();
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
-                }
-                else
-                {
-                  // Can't look up list ID, which means the list is gone, so delete
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because modified date or attachment url not found");
-                  rval[i] = null;
-                }
-              }
-              else
+              if (!checkIncludeListItemAttachment(decodedItemPath,spec))
               {
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("SharePoint: List item attachment '"+documentIdentifier+"' is no longer included - removing");
-                rval[i] = null;
+                activities.deleteDocument(documentIdentifier);
+                continue;
+              }
+              
+              // To save work, we retrieve most of what we need in version info from the parent.
+
+              // Retrieve modified and created dates
+              String[] modifiedDateSet = activities.retrieveParentData(documentIdentifier, "modifiedDate");
+              String[] createdDateSet = activities.retrieveParentData(documentIdentifier, "createdDate");
+              String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
+              String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
+              String[] urlSet = activities.retrieveParentData(documentIdentifier, "url");
+
+              // Only one modifiedDate and createdDate can be used.  If there's more than one, just pick one - the item will be reindexed
+              // anyhow.
+              String modifiedDate;
+              if (modifiedDateSet.length >= 1)
+                modifiedDate = modifiedDateSet[0];
+              else
+                modifiedDate = null;
+              String createdDate;
+              if (createdDateSet.length >= 1)
+                createdDate = createdDateSet[0];
+              else
+                createdDate = null;
+              String url;
+              if (urlSet.length >=1)
+                url = urlSet[0];
+              else
+                url = null;
+
+              // If we have no modified or created date, it means that the parent has gone away, so we go away too.
+              if (modifiedDate == null || url == null)
+              {
+                // Can't look up list ID, which means the list is gone, so delete
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because modified date or attachment url not found");
+                activities.deleteDocument(documentIdentifier);
+                continue;
+              }
+              
+              // Item has a modified date so we presume it exists.
+                      
+              Date modifiedDateValue;
+              if (modifiedDate != null)
+                modifiedDateValue = new Date(new Long(modifiedDate).longValue());
+              else
+                modifiedDateValue = null;
+              Date createdDateValue;
+              if (createdDate != null)
+                createdDateValue = new Date(new Long(createdDate).longValue());
+              else
+                createdDateValue = null;
+                      
+              // Build version string
+              String versionToken = modifiedDate;
+                      
+              StringBuilder sb = new StringBuilder();
+
+              // Pack the URL to get the data from
+              pack(sb,url,'+');
+                  
+              // Do the acls.  If we get this far, we are guaranteed to have them, but we need to sort.
+              java.util.Arrays.sort(accessTokens);
+              java.util.Arrays.sort(denyTokens);
+                  
+              packList(sb,accessTokens,'+');
+              packList(sb,denyTokens,'+');
+              packDate(sb,modifiedDateValue);
+              packDate(sb,createdDateValue);
+
+              // The rest of this is unparseable
+              sb.append(versionToken);
+              sb.append(pathNameAttributeVersion);
+              sb.append("_").append(fileBaseUrl);
+              //
+              String versionString = sb.toString();
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + versionString);
+
+              if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+                continue;
+              
+              // We need the list ID, which we've already fetched, so grab that from the parent data.
+              String[] guids = activities.retrieveParentData(documentIdentifier, "guids");
+              String guid;
+              if (guids.length >= 1)
+                guid = guids[0];
+              else
+                guid = null;
+                
+              if (guid == null)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: Skipping attachment '"+documentIdentifier+"' because no parent guid found");
+                activities.noDocument(documentIdentifier,versionString);
+                continue;
+              }
+              
+              int lastIndex = url.lastIndexOf("/");
+              guid = guid + ":" + url.substring(lastIndex+1);
+                  
+              // Fetch and index.  This also filters documents based on output connector restrictions.
+              String fileUrl = serverUrl + encodePath(url);
+              String fetchUrl = fileUrl;
+              if (!fetchAndIndexFile(activities, documentIdentifier, versionString, fileUrl, fetchUrl,
+                accessTokens, denyTokens, createdDateValue, modifiedDateValue, null, guid, sDesc))
+              {
+                // Document not indexed for whatever reason
+                activities.noDocument(documentIdentifier,versionString);
+                continue;
               }
             }
           }
@@ -987,15 +1215,98 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           if (dLibSeparatorIndex == documentIdentifier.length() - 2)
           {
             // Library path!
-            if (checkIncludeLibrary(documentIdentifier.substring(0,documentIdentifier.length()-2),spec))
-              // This is the path for the library: No versioning
-              rval[i] = "";
-            else
+            if (!checkIncludeLibrary(documentIdentifier.substring(0,documentIdentifier.length()-2),spec))
             {
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("SharePoint: Library specification no longer includes library '"+documentIdentifier+"' - removing");
-              rval[i] = null;
+              activities.deleteDocument(documentIdentifier);
+              continue;
             }
+              
+            // This is the path for the library: No versioning
+            String versionString = "";
+            // Chained document parents are always rescanned
+            String siteLibPath = documentIdentifier.substring(0,documentIdentifier.length()-2);
+            int libCutoff = siteLibPath.lastIndexOf( "/" );
+            String site = siteLibPath.substring(0,libCutoff);
+            String libName = siteLibPath.substring( libCutoff + 1 );
+
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug( "SharePoint: Document identifier is a library: '" + siteLibPath + "'" );
+
+            String libID = proxy.getDocLibID( encodePath(site), site, libName );
+            if (libID == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: GUID lookup failed for library '"+siteLibPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            
+            String encodedSitePath = encodePath(site);
+              
+            // Get the lib's fields
+            Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, libID );
+            if (fieldNames == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Field list lookup failed for library '"+siteLibPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            
+            String[] fields = new String[fieldNames.size()];
+            int j = 0;
+            for (String field : fieldNames.keySet())
+            {
+              fields[j++] = field;
+            }
+                  
+            String[] accessTokens;
+            String[] denyTokens;
+                  
+            if (forcedAcls == null)
+            {
+              // Security is off
+              accessTokens = new String[0];
+              denyTokens = new String[0];
+            }
+            else if (forcedAcls.length != 0)
+            {
+              // Forced security
+              accessTokens = forcedAcls;
+              denyTokens = new String[0];
+            }
+            else
+            {
+              // Security enabled, native security
+              accessTokens = proxy.getACLs( encodedSitePath, libID, activeDirectoryAuthority );
+              denyTokens = new String[]{defaultAuthorityDenyToken};
+            }
+
+            if (accessTokens == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Access token lookup failed for library '"+siteLibPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            
+            FileStream fs = new FileStream( activities, encodedServerLocation, site, siteLibPath, spec,
+              documentIdentifier, accessTokens, denyTokens, libID, fields );
+            
+            boolean success = proxy.getChildren( fs, encodedSitePath , libID, dspStsWorks );
+            
+            if (!success)
+            {
+              // Site/library no longer exists, so delete entry
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+
+            activities.noDocument(documentIdentifier,versionString);
           }
           else
           {
@@ -1003,134 +1314,166 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             // Convert the modified document path to an unmodified one, plus a library path.
             String decodedLibPath = documentIdentifier.substring(0,dLibSeparatorIndex);
             String decodedDocumentPath = decodedLibPath + documentIdentifier.substring(dLibSeparatorIndex+1);
-            if (checkIncludeFile(decodedDocumentPath,spec))
-            {
-              // This file is included, so calculate a version string.  This will include metadata info, so get that first.
-              MetadataInformation metadataInfo = getMetadataSpecification(decodedDocumentPath,spec);
-
-              int lastIndex = decodedLibPath.lastIndexOf("/");
-              String sitePath = decodedLibPath.substring(0,lastIndex);
-              String lib = decodedLibPath.substring(lastIndex+1);
-
-              // Retrieve the carry-down data we will be using.
-              // Note well: for sharepoint versions that include document/folder acls, these access tokens will be ignored,
-              // but they will still be carried down nonetheless, in case someone switches versions on us.
-              String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
-              String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
-              String[] libIDs = activities.retrieveParentData(documentIdentifier, "guids");
-              String[] libFields = activities.retrieveParentData(documentIdentifier, "fields");
-
-              String libID;
-              if (libIDs.length >= 1)
-                libID = libIDs[0];
-              else
-                libID = null;
-              
-              if (libID != null)
-              {
-                String encodedSitePath = encodePath(sitePath);
-                String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,libFields);
-                
-                // Sort access tokens
-                java.util.Arrays.sort(accessTokens);
-                java.util.Arrays.sort(denyTokens);
-
-                // Next, get the actual timestamp field for the file.
-                ArrayList metadataDescription = new ArrayList();
-                metadataDescription.add("Last_x0020_Modified");
-                metadataDescription.add("Modified");
-                metadataDescription.add("Created");
-                metadataDescription.add("GUID");
-                // The document path includes the library, with no leading slash, and is decoded.
-                int cutoff = decodedLibPath.lastIndexOf("/");
-                String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff);
-                Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
-
-                String modifiedDate = values.get("Modified");
-                String createdDate = values.get("Created");
-                String guid = values.get("GUID");
-                String modifyDate = values.get("Last_x0020_Modified");
-
-                if (modifyDate != null)
-                {
-                  // Item has a modified date, so we presume it exists
-                  Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
-                  Date createdDateValue = DateParser.parseISO8601Date(createdDate);
-
-                  // Build version string
-                  String versionToken = modifyDate;
-
-                  if (supportsItemSecurity)
-                  {
-                    // Do the acls.
-                    if (forcedAcls == null)
-                    {
-                      // Security is off
-                      accessTokens = new String[0];
-                      denyTokens = new String[0];
-                    }
-                    else if (forcedAcls.length > 0)
-                    {
-                      // Security on, forced acls
-                      accessTokens = forcedAcls;
-                      denyTokens = new String[0];
-                    }
-                    else
-                    {
-                      // Security on, is native
-                      accessTokens = proxy.getDocumentACLs( encodedSitePath, encodePath(decodedDocumentPath), activeDirectoryAuthority );
-                      denyTokens = new String[]{defaultAuthorityDenyToken};
-                    }
-                  }
-                  
-                  if (accessTokens != null)
-                  {
-                    // Revamped version string on 9/21/2013 to make parseability better
-
-                    StringBuilder sb = new StringBuilder();
-
-                    packList(sb,sortedMetadataFields,'+');
-                    packList(sb,accessTokens,'+');
-                    packList(sb,denyTokens,'+');
-                    packDate(sb,modifiedDateValue);
-                    packDate(sb,createdDateValue);
-                    pack(sb,guid,'+');
-                    // The rest of this is unparseable
-                    sb.append(versionToken);
-                    sb.append(pathNameAttributeVersion);
-                    // Added 9/7/07
-                    sb.append("_").append(fileBaseUrl);
-                    //
-                    rval[i] = sb.toString();
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
-                  }
-                  else
-                  {
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Couldn't get access tokens for item '"+decodedDocumentPath+"'; removing document '"+documentIdentifier+"'");
-                    rval[i] = null;
-                  }
-                }
-                else
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
-                  rval[i] = null;
-                }
-              }
-              else
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because library '"+decodedLibPath+"' does not exist - removing");
-                rval[i] = null;
-              }
-            }
-            else
+            if (!checkIncludeFile(decodedDocumentPath,spec))
             {
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("SharePoint: Document '"+documentIdentifier+"' is no longer included - removing");
-              rval[i] = null;
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            
+            // This file is included, so calculate a version string.  This will include metadata info, so get that first.
+            MetadataInformation metadataInfo = getMetadataSpecification(decodedDocumentPath,spec);
+            
+            int lastIndex = decodedLibPath.lastIndexOf("/");
+            String sitePath = decodedLibPath.substring(0,lastIndex);
+            String lib = decodedLibPath.substring(lastIndex+1);
+
+            // Retrieve the carry-down data we will be using.
+            // Note well: for sharepoint versions that include document/folder acls, these access tokens will be ignored,
+            // but they will still be carried down nonetheless, in case someone switches versions on us.
+            String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
+            String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
+            String[] libIDs = activities.retrieveParentData(documentIdentifier, "guids");
+            String[] libFields = activities.retrieveParentData(documentIdentifier, "fields");
+
+            String libID;
+            if (libIDs.length >= 1)
+              libID = libIDs[0];
+            else
+              libID = null;
+
+            if (libID == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because library '"+decodedLibPath+"' does not exist - removing");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            
+            String encodedSitePath = encodePath(sitePath);
+            String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,libFields);
+                
+            // Sort access tokens
+            java.util.Arrays.sort(accessTokens);
+            java.util.Arrays.sort(denyTokens);
+
+            // Next, get the actual timestamp field for the file.
+            List<String> metadataDescription = new ArrayList<String>();
+            metadataDescription.add("Last_x0020_Modified");
+            metadataDescription.add("Modified");
+            metadataDescription.add("Created");
+            metadataDescription.add("GUID");
+            // The document path includes the library, with no leading slash, and is decoded.
+            int cutoff = decodedLibPath.lastIndexOf("/");
+            String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff);
+            Map<String,String> values = proxy.getFieldValues( metadataDescription.toArray(new String[0]), encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
+
+            String modifiedDate = values.get("Modified");
+            String createdDate = values.get("Created");
+            String guid = values.get("GUID");
+            String modifyDate = values.get("Last_x0020_Modified");
+
+            if (modifyDate == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            
+            // Item has a modified date, so we presume it exists
+            Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
+            Date createdDateValue = DateParser.parseISO8601Date(createdDate);
+
+            // Build version string
+            String versionToken = modifyDate;
+
+            if (supportsItemSecurity)
+            {
+              // Do the acls.
+              if (forcedAcls == null)
+              {
+                // Security is off
+                accessTokens = new String[0];
+                denyTokens = new String[0];
+              }
+              else if (forcedAcls.length > 0)
+              {
+                // Security on, forced acls
+                accessTokens = forcedAcls;
+                denyTokens = new String[0];
+              }
+              else
+              {
+                // Security on, is native
+                accessTokens = proxy.getDocumentACLs( encodedSitePath, encodePath(decodedDocumentPath), activeDirectoryAuthority );
+                denyTokens = new String[]{defaultAuthorityDenyToken};
+              }
+            }
+                  
+            if (accessTokens == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Couldn't get access tokens for item '"+decodedDocumentPath+"'; removing document '"+documentIdentifier+"'");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+            
+            // Revamped version string on 9/21/2013 to make parseability better
+
+            StringBuilder sb = new StringBuilder();
+            packList(sb,sortedMetadataFields,'+');
+            packList(sb,accessTokens,'+');
+            packList(sb,denyTokens,'+');
+            packDate(sb,modifiedDateValue);
+            packDate(sb,createdDateValue);
+            pack(sb,guid,'+');
+            // The rest of this is unparseable
+            sb.append(versionToken);
+            sb.append(pathNameAttributeVersion);
+            // Added 9/7/07
+            sb.append("_").append(fileBaseUrl);
+            //
+            String versionString = sb.toString();
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + versionString);
+            
+            if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+              continue;
+            
+            // Convert the modified document path to an unmodified one, plus a library path.
+            String encodedDocumentPath = encodePath(decodedDocumentPath);
+
+            // Parse what we need out of version string.
+
+            // Generate the URL we are going to use
+            String fileUrl = fileBaseUrl + encodedDocumentPath;
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug( "SharePoint: Processing file '"+documentIdentifier+"'; url: '" + fileUrl + "'" );
+
+            // First, fetch the metadata we plan to index.
+            Map<String,String> metadataValues = null;
+            if (sortedMetadataFields.length > 0)
+            {
+              metadataValues = proxy.getFieldValues( sortedMetadataFields, encodePath(sitePath), libID, decodedDocumentPath.substring(cutoff), dspStsWorks );
+              if (metadataValues == null)
+              {
+                // Document has vanished
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
+                activities.noDocument(documentIdentifier,versionString);
+                continue;
+              }
+            }
+
+            // Fetch and index.  This also filters documents based on output connector restrictions.
+            if (!fetchAndIndexFile(activities, documentIdentifier, versionString, fileUrl, serverUrl + encodedServerLocation + encodedDocumentPath,
+              accessTokens, denyTokens, createdDateValue, modifiedDateValue, metadataValues, guid, sDesc))
+            {
+              // Document not indexed for whatever reason
+              activities.noDocument(documentIdentifier,versionString);
+              continue;
             }
           }
         }
@@ -1140,22 +1483,85 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           String sitePath = documentIdentifier.substring(0,documentIdentifier.length()-1);
           if (sitePath.length() == 0)
             sitePath = "/";
-          if (checkIncludeSite(sitePath,spec))
-            // This is the path for the site: No versioning
-            rval[i] = "";
-          else
+          if (!checkIncludeSite(sitePath,spec))
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("SharePoint: Site specification no longer includes site '"+documentIdentifier+"' - removing");
-            rval[i] = null;
+            activities.deleteDocument(documentIdentifier);
+            continue;
           }
+          
+          String versionString = "";
+          activities.noDocument(documentIdentifier,versionString);
+
+          // Strip off the trailing "/" to get the site name.
+          String decodedSitePath = documentIdentifier.substring(0,documentIdentifier.length()-1);
+
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug( "SharePoint: Document identifier is a site: '" + decodedSitePath + "'" );
+
+          // Look at subsites
+          List<NameValue> subsites = proxy.getSites( encodePath(decodedSitePath) );
+          if (subsites != null)
+          {
+            for (NameValue subSiteName : subsites)
+            {
+              String newPath = decodedSitePath + "/" + subSiteName.getValue();
+
+              String encodedNewPath = encodePath(newPath);
+              if ( checkIncludeSite(newPath,spec) )
+                activities.addDocumentReference(newPath + "/");
+            }
+          }
+          else
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("SharePoint: No permissions to access subsites of '"+decodedSitePath+"' - skipping");
+          }
+
+          // Look at libraries
+          List<NameValue> libraries = proxy.getDocumentLibraries( encodePath(decodedSitePath), decodedSitePath );
+          if (libraries != null)
+          {
+            for (NameValue library : libraries)
+            {
+              String newPath = decodedSitePath + "/" + library.getValue();
+
+              if (checkIncludeLibrary(newPath,spec))
+                activities.addDocumentReference(newPath + "//");
+
+            }
+          }
+          else
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("SharePoint: No permissions to access libraries of '"+decodedSitePath+"' - skipping");
+          }
+
+          // Look at lists
+          List<NameValue> lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath );
+          if (lists != null)
+          {
+            for (NameValue list : lists)
+            {
+              String newPath = decodedSitePath + "/" + list.getValue();
+
+              if (checkIncludeList(newPath,spec))
+                activities.addDocumentReference(newPath + "///");
+
+            }
+          }
+          else
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("SharePoint: No permissions to access lists of '"+decodedSitePath+"' - skipping");
+          }
+
         }
       }
       else
         throw new ManifoldCFException("Invalid document identifier discovered: '"+documentIdentifier+"'");
-      i++;
     }
-    return rval;
   }
 
   protected static void packDate(StringBuilder sb, Date dateValue)
@@ -1219,659 +1625,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return sortedMetadataFields;
   }
 
-  protected static final String[] attachmentDataNames = new String[]{"createdDate","modifiedDate","accessTokens","denyTokens","url","guids"};
-
-  /** Process a set of documents.
-  * This is the method that should cause each document to be fetched, processed, and the results either added
-  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
-  * The document specification allows this class to filter what is done based on the job.
-  *@param documentIdentifiers is the set of document identifiers to process.
-  *@param activities is the interface this method should use to queue up new document references
-  * and ingest documents.
-  *@param spec is the document specification.
-  *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-  * should only find other references, and should not actually call the ingestion methods.
-  */
-  @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    getSession();
-
-    // Read the forced acls.  A null return indicates that security is disabled!!!
-    // A zero-length return indicates that the native acls should be used.
-    // All of this is germane to how we ingest the document, so we need to note it in
-    // the version string completely.
-    String[] forcedAcls = getAcls(spec);
-
-    // Decode the system metadata part of the specification
-    SystemMetadataDescription sDesc = new SystemMetadataDescription(spec);
-
-    int i = 0;
-    while (i < documentIdentifiers.length)
-    {
-      // Make sure the job is still active
-      activities.checkJobStillActive();
-
-      String documentIdentifier = documentIdentifiers[i];
-      String version = versions[i];
-
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug( "SharePoint: Processing: '" + documentIdentifier + "'");
-      if ( documentIdentifier.startsWith("/") )
-      {
-        // New document identifier format.
-        int dListSeparatorIndex = documentIdentifier.indexOf("///");
-        int dLibSeparatorIndex = documentIdentifier.indexOf("//");
-        if (dListSeparatorIndex != -1)
-        {
-          // === List style identifier ===
-          if (dListSeparatorIndex == documentIdentifier.length() - 3)
-          {
-            // Chained connectors always scan parent nodes, so they don't bother setting a version
-            String siteListPath = documentIdentifier.substring(0,documentIdentifier.length()-3);
-            int listCutoff = siteListPath.lastIndexOf( "/" );
-            String site = siteListPath.substring(0,listCutoff);
-            String listName = siteListPath.substring( listCutoff + 1 );
-
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug( "SharePoint: Document identifier is a list: '" + siteListPath + "'" );
-
-            String listID = proxy.getListID( encodePath(site), site, listName );
-            if (listID != null)
-            {
-              String encodedSitePath = encodePath(site);
-                
-              // Get the list's fields
-              Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, listID );
-              if (fieldNames != null)
-              {
-                String[] fields = new String[fieldNames.size()];
-                int j = 0;
-                for (String field : fieldNames.keySet())
-                {
-                  fields[j++] = field;
-                }
-                  
-                String[] accessTokens;
-                String[] denyTokens;
-                  
-                if (forcedAcls == null)
-                {
-                  // Security is off
-                  accessTokens = new String[0];
-                  denyTokens = new String[0];
-                }
-                else if (forcedAcls.length != 0)
-                {
-                  // Forced security
-                  accessTokens = forcedAcls;
-                  denyTokens = new String[0];
-                }
-                else
-                {
-                  // Security enabled, native security
-                  accessTokens = proxy.getACLs( encodedSitePath, listID, activeDirectoryAuthority );
-                  denyTokens = new String[]{defaultAuthorityDenyToken};
-                }
-
-                if (accessTokens != null)
-                {
-                  ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, siteListPath, spec,
-                    documentIdentifier, accessTokens, denyTokens, listID, fields );
-                  boolean success = proxy.getChildren( fs, encodedSitePath , listID, dspStsWorks );
-                  if (!success)
-                  {
-                    // Site/list no longer exists, so delete entry
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: No list found for list '"+siteListPath+"' - deleting");
-                    activities.deleteDocument(documentIdentifier);
-                  }
-                }
-                else
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Access token lookup failed for list '"+siteListPath+"' - deleting");
-                  activities.deleteDocument(documentIdentifier);
-                }
-              }
-              else
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: Field list lookup failed for list '"+siteListPath+"' - deleting");
-                activities.deleteDocument(documentIdentifier);
-              }
-            }
-            else
-            {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("SharePoint: GUID lookup failed for list '"+siteListPath+"' - deleting");
-              activities.deleteDocument(documentIdentifier);
-            }
-          }
-          else
-          {
-            // == List item or attachment identifier ==
-            
-            // Get the item part of the path
-            String decodedListPath = documentIdentifier.substring(0,dListSeparatorIndex);
-            String itemAndAttachment = documentIdentifier.substring(dListSeparatorIndex+2);
-            String decodedItemPath = decodedListPath + itemAndAttachment;
-            
-            // If the item part has a slash, we're looking at an attachment
-            int attachmentSeparatorIndex = itemAndAttachment.indexOf("//",1);
-            if (attachmentSeparatorIndex == -1)
-            {
-              // == List item identifier ==
-              
-              // Before we index, we queue up any attachments
-              int listCutoff = decodedListPath.lastIndexOf( "/" );
-              String site = decodedListPath.substring(0,listCutoff);
-              String listName = decodedListPath.substring( listCutoff + 1 );
-
-              // Placeholder for metadata specification
-              ArrayList metadataDescription = new ArrayList();
-              int startPosition = unpackList(metadataDescription,version,0,'+');
-
-              // Acls
-              ArrayList acls = new ArrayList();
-              ArrayList denyAcls = new ArrayList();
-              startPosition = unpackList(acls,version,startPosition,'+');
-              startPosition = unpackList(denyAcls,version,startPosition,'+');
-
-              // Dates
-              Date modifiedDate = new Date(0L);
-              startPosition = unpackDate(version,startPosition,modifiedDate);
-              if (modifiedDate.getTime() == 0L)
-                modifiedDate = null;
-              Date createdDate = new Date(0L);
-              startPosition = unpackDate(version,startPosition,createdDate);
-              if (createdDate.getTime() == 0L)
-                createdDate = null;
-
-              // ID (for looking up attachments)
-              StringBuilder idBuffer = new StringBuilder();
-              startPosition = unpack(idBuffer,version,startPosition,'+');
-
-              // List item GUID (for metadata)
-              StringBuilder guidBuffer = new StringBuilder();
-              startPosition = unpack(guidBuffer,version,startPosition,'+');
-              String guid = guidBuffer.toString();
-              
-              // List item URL
-              StringBuilder relURLBuffer = new StringBuilder();
-              startPosition = unpack(relURLBuffer,version,startPosition,'+');
-              String relURL = relURLBuffer.toString();
-              
-              // We need the list ID, which we've already fetched, so grab that from the parent data.
-              String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
-
-              String listID;
-              if (listIDs.length >= 1)
-                listID = listIDs[0];
-              else
-                listID = null;
-
-              if (listID == null)
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: List '"+decodedListPath+"' no longer exists - deleting item '"+documentIdentifier+"'");
-                activities.deleteDocument(documentIdentifier);
-                i++;
-                continue;
-              }
-
-              // Now, do any queuing that is needed.
-              if (attachmentsSupported)
-              {
-                String itemNumber = idBuffer.toString();
-
-
-                List<NameValue> attachmentNames = proxy.getAttachmentNames( site, listID, itemNumber );
-                // Now, queue up each attachment as a separate entry
-                for (NameValue attachmentName : attachmentNames)
-                {
-                  // For attachments, we use the carry-down feature to get the data where we need it.  That's why
-                  // we unpacked the version information early above.
-                  
-                  // No check for inclusion; if the list item is included, so is this
-                  String[][] dataValues = new String[attachmentDataNames.length][];
-                  if (createdDate == null)
-                    dataValues[0] = new String[0];
-                  else
-                    dataValues[0] = new String[]{new Long(createdDate.getTime()).toString()};
-                  if (modifiedDate == null)
-                    dataValues[1] = new String[0];
-                  else
-                    dataValues[1] = new String[]{new Long(modifiedDate.getTime()).toString()};
-                  if (acls == null)
-                    dataValues[2] = new String[0];
-                  else
-                    dataValues[2] = (String[])acls.toArray(new String[0]);
-                  if (denyAcls == null)
-                    dataValues[3] = new String[0];
-                  else
-                    dataValues[3] = (String[])denyAcls.toArray(new String[0]);
-                  dataValues[4] = new String[]{attachmentName.getPrettyName()};
-                  dataValues[5] = new String[]{guid};
-
-                  activities.addDocumentReference(documentIdentifier + "//" + attachmentName.getValue(),
-                    documentIdentifier, null, attachmentDataNames, dataValues);
-                  
-                }
-              }
-              
-              if ( !scanOnly[ i ] )
-              {
-                // Convert the modified document path to an unmodified one, plus a library path.
-                String encodedItemPath = encodePath(decodedListPath.substring(0,listCutoff) + "/Lists/" + decodedItemPath.substring(listCutoff+1));
-                
-                // Generate the URL we are going to use
-                String itemUrl = fileBaseUrl + relURL;  //fileBaseUrl + encodedItemPath;
-                
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug( "SharePoint: Processing list item '"+documentIdentifier+"'; url: '" + itemUrl + "'" );
-
-                // Fetch the metadata we will be indexing
-                Map<String,String> metadataValues = null;
-                if (metadataDescription.size() > 0)
-                {
-                  metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), listID, "/Lists/" + decodedItemPath.substring(listCutoff+1), dspStsWorks );
-                  if (metadataValues == null)
-                  {
-                    // Item has vanished
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Item metadata fetch failure indicated that item is gone: '"+documentIdentifier+"' - removing");
-                    activities.noDocument(documentIdentifier,version);
-                    i++;
-                    continue;
-                  }
-                }
-                
-                if (activities.checkLengthIndexable(0L))
-                {
-                  InputStream is = new ByteArrayInputStream(new byte[0]);
-                  try
-                  {
-                    RepositoryDocument data = new RepositoryDocument();
-                    data.setBinary( is, 0L );
-
-                    if (modifiedDate != null)
-                      data.setModifiedDate(modifiedDate);
-                    if (createdDate != null)
-                      data.setCreatedDate(createdDate);
-                    
-                    setDataACLs(data,acls,denyAcls);
-                    
-                    setPathAttribute(data,sDesc,documentIdentifier);
-
-                    if (metadataValues != null)
-                    {
-                      Iterator<String> iter = metadataValues.keySet().iterator();
-                      while (iter.hasNext())
-                      {
-                        String fieldName = iter.next();
-                        String fieldData = metadataValues.get(fieldName);
-                        data.addField(fieldName,fieldData);
-                      }
-                    }
-                    data.addField("GUID",guid);
-                    try
-                    {
-                      activities.ingestDocumentWithException( documentIdentifier, version, itemUrl , data );
-                    }
-                    catch (IOException e)
-                    {
-                      handleIOException(e,"reading document");
-                    }
-                  }
-                  finally
-                  {
-                    try
-                    {
-                      is.close();
-                    }
-                    catch (IOException e)
-                    {
-                      handleIOException(e,"closing stream");
-                    }
-                  }
-                }
-                else
-                  // Document too long (should never happen; length is 0)
-                  activities.noDocument( documentIdentifier, version );
-              }
-            }
-            else
-            {
-              // == List item attachment identifier ==
-              if (!scanOnly[i])
-              {
-                // Unpack the version info.
-                int startPosition = 0;
-                StringBuilder urlBuffer = new StringBuilder();
-                ArrayList accessTokens = new ArrayList();
-                ArrayList denyTokens = new ArrayList();
-                Date modifiedDate = new Date(0L);
-                Date createdDate = new Date(0L);
-                
-                startPosition = unpack(urlBuffer,version,startPosition,'+');
-                startPosition = unpackList(accessTokens,version,startPosition,'+');
-                startPosition = unpackList(denyTokens,version,startPosition,'+');
-                startPosition = unpackDate(version,startPosition,modifiedDate);
-                startPosition = unpackDate(version,startPosition,createdDate);
-
-                if (modifiedDate.getTime() == 0L)
-                  modifiedDate = null;
-                if (createdDate.getTime() == 0L)
-                  createdDate = null;
-
-                // We need the list ID, which we've already fetched, so grab that from the parent data.
-                String[] guids = activities.retrieveParentData(documentIdentifier, "guids");
-                String guid;
-                if (guids.length >= 1)
-                  guid = guids[0];
-                else
-                  guid = null;
-                
-                if (guid != null)
-                {
-                  String url = urlBuffer.toString();
-                  int lastIndex = url.lastIndexOf("/");
-                  guid = guid + ":" + url.substring(lastIndex+1);
-                  
-                  // Fetch and index.  This also filters documents based on output connector restrictions.
-                  String fileUrl = serverUrl + encodePath(url);
-                  String fetchUrl = fileUrl;
-                  if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, fetchUrl,
-                    accessTokens, denyTokens, createdDate, modifiedDate, null, guid, sDesc))
-                  {
-                    // Document not indexed for whatever reason
-                    activities.noDocument(documentIdentifier,version);
-                    i++;
-                    continue;
-                  }
-                }
-                else
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Skipping attachment '"+documentIdentifier+"' because no parent guid found");
-                  activities.noDocument(documentIdentifier,version);
-                  i++;
-                  continue;
-                }
-                
-              }
-            }
-          }
-        }
-        else if (dLibSeparatorIndex != -1)
-        {
-          // === Library style identifier ===
-          if (dLibSeparatorIndex == documentIdentifier.length() - 2)
-          {
-            // Chained document parents are always rescanned
-            String siteLibPath = documentIdentifier.substring(0,documentIdentifier.length()-2);
-            int libCutoff = siteLibPath.lastIndexOf( "/" );
-            String site = siteLibPath.substring(0,libCutoff);
-            String libName = siteLibPath.substring( libCutoff + 1 );
-
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug( "SharePoint: Document identifier is a library: '" + siteLibPath + "'" );
-
-            String libID = proxy.getDocLibID( encodePath(site), site, libName );
-            if (libID != null)
-            {
-              String encodedSitePath = encodePath(site);
-              
-              // Get the lib's fields
-              Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, libID );
-              if (fieldNames != null)
-              {
-                String[] fields = new String[fieldNames.size()];
-                int j = 0;
-                for (String field : fieldNames.keySet())
-                {
-                  fields[j++] = field;
-                }
-                  
-                String[] accessTokens;
-                String[] denyTokens;
-                  
-                if (forcedAcls == null)
-                {
-                  // Security is off
-                  accessTokens = new String[0];
-                  denyTokens = new String[0];
-                }
-                else if (forcedAcls.length != 0)
-                {
-                  // Forced security
-                  accessTokens = forcedAcls;
-                  denyTokens = new String[0];
-                }
-                else
-                {
-                  // Security enabled, native security
-                  accessTokens = proxy.getACLs( encodedSitePath, libID, activeDirectoryAuthority );
-                  denyTokens = new String[]{defaultAuthorityDenyToken};
-                }
-
-                if (accessTokens != null)
-                {
-                  FileStream fs = new FileStream( activities, encodedServerLocation, site, siteLibPath, spec,
-                    documentIdentifier, accessTokens, denyTokens, libID, fields );
-                  boolean success = proxy.getChildren( fs, encodedSitePath , libID, dspStsWorks );
-                  if (!success)
-                  {
-                    // Site/library no longer exists, so delete entry
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
-                    activities.deleteDocument(documentIdentifier);
-                  }
-                }
-                else
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Access token lookup failed for library '"+siteLibPath+"' - deleting");
-                  activities.deleteDocument(documentIdentifier);
-                }
-              }
-              else
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: Field list lookup failed for library '"+siteLibPath+"' - deleting");
-                activities.deleteDocument(documentIdentifier);
-              }
-            }
-            else
-            {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("SharePoint: GUID lookup failed for library '"+siteLibPath+"' - deleting");
-              activities.deleteDocument(documentIdentifier);
-            }
-          }
-          else
-          {
-            // File/folder identifier
-            if ( !scanOnly[ i ] )
-            {
-              // Convert the modified document path to an unmodified one, plus a library path.
-              String decodedLibPath = documentIdentifier.substring(0,dLibSeparatorIndex);
-              String decodedDocumentPath = decodedLibPath + documentIdentifier.substring(dLibSeparatorIndex+1);
-              String encodedDocumentPath = encodePath(decodedDocumentPath);
-
-              int libCutoff = decodedLibPath.lastIndexOf( "/" );
-              String site = decodedLibPath.substring(0,libCutoff);
-              String libName = decodedLibPath.substring( libCutoff + 1 );
-
-              // Parse what we need out of version string.
-
-              // Placeholder for metadata specification
-              ArrayList metadataDescription = new ArrayList();
-              int startPosition = unpackList(metadataDescription,version,0,'+');
-
-              // Acls
-              ArrayList acls = new ArrayList();
-              ArrayList denyAcls = new ArrayList();
-              startPosition = unpackList(acls,version,startPosition,'+');
-              startPosition = unpackList(denyAcls,version,startPosition,'+');
-
-              // Dates
-              Date modifiedDate = new Date(0L);
-              startPosition = unpackDate(version,startPosition,modifiedDate);
-              if (modifiedDate.getTime() == 0L)
-                modifiedDate = null;
-              Date createdDate = new Date(0L);
-              startPosition = unpackDate(version,startPosition,createdDate);
-              if (createdDate.getTime() == 0L)
-                createdDate = null;
-              
-              // Document GUID (for metadata)
-              StringBuilder guidBuffer = new StringBuilder();
-              startPosition = unpack(guidBuffer,version,startPosition,'+');
-              String guid = guidBuffer.toString();
-
-              // Generate the URL we are going to use
-              String fileUrl = fileBaseUrl + encodedDocumentPath;
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug( "SharePoint: Processing file '"+documentIdentifier+"'; url: '" + fileUrl + "'" );
-
-              // First, fetch the metadata we plan to index.
-              Map<String,String> metadataValues = null;
-              if (metadataDescription.size() > 0)
-              {
-                // Retrieve the library guid from carrydown data
-                String[] libIDs = activities.retrieveParentData(documentIdentifier, "guids");
-
-                String documentLibID;
-                if (libIDs.length >= 1)
-                  documentLibID = libIDs[0];
-                else
-                  documentLibID = null;
-
-                if (documentLibID == null)
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
-                  activities.deleteDocument(documentIdentifier);
-                  i++;
-                  continue;
-                }
-
-                int cutoff = decodedLibPath.lastIndexOf("/");
-                metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff), dspStsWorks );
-                if (metadataValues == null)
-                {
-                  // Document has vanished
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
-                  activities.noDocument(documentIdentifier,version);
-                  i++;
-                  continue;
-                }
-              }
-
-              // Fetch and index.  This also filters documents based on output connector restrictions.
-              if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, serverUrl + encodedServerLocation + encodedDocumentPath,
-                acls, denyAcls, createdDate, modifiedDate, metadataValues, guid, sDesc))
-              {
-                // Document not indexed for whatever reason
-                activities.noDocument(documentIdentifier,version);
-                i++;
-                continue;
-              }
-            }
-          }
-        }
-        else
-        {
-          // === Site-style identifier ===
-          activities.noDocument(documentIdentifier,version);
-
-          // Strip off the trailing "/" to get the site name.
-          String decodedSitePath = documentIdentifier.substring(0,documentIdentifier.length()-1);
-
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug( "SharePoint: Document identifier is a site: '" + decodedSitePath + "'" );
-
-          // Look at subsites
-          List<NameValue> subsites = proxy.getSites( encodePath(decodedSitePath) );
-          if (subsites != null)
-          {
-            int j = 0;
-            while (j < subsites.size())
-            {
-              NameValue subSiteName = subsites.get(j++);
-              String newPath = decodedSitePath + "/" + subSiteName.getValue();
-
-              String encodedNewPath = encodePath(newPath);
-              if ( checkIncludeSite(newPath,spec) )
-                activities.addDocumentReference(newPath + "/");
-            }
-          }
-          else
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: No permissions to access subsites of '"+decodedSitePath+"' - skipping");
-          }
-
-          // Look at libraries
-          List<NameValue> libraries = proxy.getDocumentLibraries( encodePath(decodedSitePath), decodedSitePath );
-          if (libraries != null)
-          {
-            int j = 0;
-            while (j < libraries.size())
-            {
-              NameValue library = libraries.get(j++);
-              String newPath = decodedSitePath + "/" + library.getValue();
-
-              if (checkIncludeLibrary(newPath,spec))
-                activities.addDocumentReference(newPath + "//");
-
-            }
-          }
-          else
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: No permissions to access libraries of '"+decodedSitePath+"' - skipping");
-          }
-
-          // Look at lists
-          List<NameValue> lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath );
-          if (lists != null)
-          {
-            int j = 0;
-            while (j < lists.size())
-            {
-              NameValue list = lists.get(j++);
-              String newPath = decodedSitePath + "/" + list.getValue();
-
-              if (checkIncludeList(newPath,spec))
-                activities.addDocumentReference(newPath + "///");
-
-            }
-          }
-          else
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: No permissions to access lists of '"+decodedSitePath+"' - skipping");
-          }
-
-        }
-      }
-      else
-        throw new ManifoldCFException("Found illegal document identifier in processDocuments: '"+documentIdentifier+"'");
-
-      i++;
-    }
-  }
-
   /** Method that fetches and indexes a file fetched from a SharePoint URL, with appropriate error handling
   * etc.
   */
   protected boolean fetchAndIndexFile(IProcessActivity activities, String documentIdentifier, String version,
-    String fileUrl, String fetchUrl, ArrayList acls, ArrayList denyAcls, Date createdDate, Date modifiedDate,
+    String fileUrl, String fetchUrl, String[] accessTokens, String[] denyTokens, Date createdDate, Date modifiedDate,
     Map<String,String> metadataValues, String guid, SystemMetadataDescription sDesc)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -1994,7 +1752,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 if (contentType != null)
                   data.setMimeType(contentType);
                 
-                setDataACLs(data,acls,denyAcls);
+                setDataACLs(data,accessTokens,denyTokens);
 
                 setPathAttribute(data,sDesc,documentIdentifier);
                           
@@ -2141,50 +1899,38 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return fileName;
   }
   
-  protected static void setDataACLs(RepositoryDocument data, ArrayList acls, ArrayList denyAcls)
+  protected static void setDataACLs(RepositoryDocument data, String[] acls, String[] denyAcls)
   {
     if (acls != null)
     {
-      String[] actualAcls = new String[acls.size()];
-      for (int j = 0; j < actualAcls.length; j++)
-      {
-        actualAcls[j] = (String)acls.get(j);
-      }
-
       if (Logging.connectors.isDebugEnabled())
       {
         StringBuilder sb = new StringBuilder("SharePoint: Acls: [ ");
-        for (int j = 0; j < actualAcls.length; j++)
+        for (String acl : acls)
         {
-          sb.append(actualAcls[j]).append(" ");
+          sb.append(acl).append(" ");
         }
         sb.append("]");
         Logging.connectors.debug( sb.toString() );
       }
 
-      data.setSecurityACL( RepositoryDocument.SECURITY_TYPE_DOCUMENT, actualAcls );
+      data.setSecurityACL( RepositoryDocument.SECURITY_TYPE_DOCUMENT, acls );
     }
 
     if (denyAcls != null)
     {
-      String[] actualDenyAcls = new String[denyAcls.size()];
-      for (int j = 0; j < actualDenyAcls.length; j++)
-      {
-        actualDenyAcls[j] = (String)denyAcls.get(j);
-      }
-
       if (Logging.connectors.isDebugEnabled())
       {
         StringBuilder sb = new StringBuilder("SharePoint: DenyAcls: [ ");
-        for (int j = 0; j < actualDenyAcls.length; j++)
+        for (String denyAcl : denyAcls)
         {
-          sb.append(actualDenyAcls[j]).append(" ");
+          sb.append(denyAcl).append(" ");
         }
         sb.append("]");
         Logging.connectors.debug( sb.toString() );
       }
 
-      data.setSecurityDenyACL( RepositoryDocument.SECURITY_TYPE_DOCUMENT, actualDenyAcls);
+      data.setSecurityDenyACL( RepositoryDocument.SECURITY_TYPE_DOCUMENT, denyAcls);
     }
   }
 
@@ -2211,7 +1957,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   protected class FileStream implements IFileStream
   {
     protected final IProcessActivity activities;
-    protected final DocumentSpecification spec;
+    protected final Specification spec;
     protected final String rootPath;
     protected final String sitePath;
     protected final String siteLibPath;
@@ -2220,7 +1966,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     protected final String documentIdentifier;
     protected final String[][] dataValues;
     
-    public FileStream(IProcessActivity activities, String rootPath, String sitePath, String siteLibPath, DocumentSpecification spec,
+    public FileStream(IProcessActivity activities, String rootPath, String sitePath, String siteLibPath, Specification spec,
       String documentIdentifier, String[] accessTokens, String denyTokens[], String libID, String[] fields)
     {
       this.activities = activities;
@@ -2280,7 +2026,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   protected class ListItemStream implements IFileStream
   {
     protected final IProcessActivity activities;
-    protected final DocumentSpecification spec;
+    protected final Specification spec;
     protected final String rootPath;
     protected final String sitePath;
     protected final String siteListPath;
@@ -2289,7 +2035,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     protected final String documentIdentifier;
     protected final String[][] dataValues;
 
-    public ListItemStream(IProcessActivity activities, String rootPath, String sitePath, String siteListPath, DocumentSpecification spec,
+    public ListItemStream(IProcessActivity activities, String rootPath, String sitePath, String siteListPath, Specification spec,
       String documentIdentifier, String[] accessTokens, String denyTokens[], String listID, String[] fields)
     {
       this.activities = activities;
@@ -3864,7 +3610,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the specification.
   *@return true if it should be included.
   */
-  protected boolean checkIncludeLibrary( String libraryPath, DocumentSpecification documentSpecification )
+  protected boolean checkIncludeLibrary( String libraryPath, Specification documentSpecification )
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug( "SharePoint: Checking whether to include library '" + libraryPath + "'" );
@@ -3944,7 +3690,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the specification.
   *@return true if it should be included.
   */
-  protected boolean checkIncludeList( String listPath, DocumentSpecification documentSpecification )
+  protected boolean checkIncludeList( String listPath, Specification documentSpecification )
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug( "SharePoint: Checking whether to include list '" + listPath + "'" );
@@ -3994,7 +3740,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the specification.
   *@return true if it should be included.
   */
-  protected boolean checkIncludeSite( String sitePath, DocumentSpecification documentSpecification )
+  protected boolean checkIncludeSite( String sitePath, Specification documentSpecification )
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug( "SharePoint: Checking whether to include site '" + sitePath + "'" );
@@ -4097,7 +3843,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the document specification.
   *@return the metadata description appropriate to the file.
   */
-  protected MetadataInformation getMetadataSpecification( String filePath, DocumentSpecification documentSpecification )
+  protected MetadataInformation getMetadataSpecification( String filePath, Specification documentSpecification )
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug( "SharePoint: Finding metadata to include for document/item '" + filePath + "'." );
@@ -4180,7 +3926,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the document specification.
   *@return true if file should be included.
   */
-  protected boolean checkIncludeFile( String filePath, DocumentSpecification documentSpecification )
+  protected boolean checkIncludeFile( String filePath, Specification documentSpecification )
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug( "SharePoint: Checking whether to include document '" + filePath + "'" );
@@ -4297,7 +4043,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the document specification.
   *@return true if file should be included.
   */
-  protected boolean checkIncludeListItemAttachment( String attachmentPath, DocumentSpecification documentSpecification )
+  protected boolean checkIncludeListItemAttachment( String attachmentPath, Specification documentSpecification )
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug( "SharePoint: Checking whether to include list item attachment '" + attachmentPath + "'" );
@@ -4311,7 +4057,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the document specification.
   *@return true if file should be included.
   */
-  protected boolean checkIncludeListItem( String itemPath, DocumentSpecification documentSpecification )
+  protected boolean checkIncludeListItem( String itemPath, Specification documentSpecification )
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug( "SharePoint: Checking whether to include list item '" + itemPath + "'" );
@@ -4501,7 +4247,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param spec is the document specification.
   *@return the acls.
   */
-  protected static String[] getAcls(DocumentSpecification spec)
+  protected static String[] getAcls(Specification spec)
   {
     HashMap map = new HashMap();
     int i = 0;
@@ -4644,20 +4390,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   protected class SystemMetadataDescription
   {
     // The path attribute name
-    protected String pathAttributeName;
+    protected final String pathAttributeName;
 
     // The path name map
-    protected MatchMap matchMap = new MatchMap();
+    protected final MatchMap matchMap = new MatchMap();
 
     /** Constructor */
-    public SystemMetadataDescription(DocumentSpecification spec)
+    public SystemMetadataDescription(Specification spec)
       throws ManifoldCFException
     {
-      pathAttributeName = null;
-      int i = 0;
-      while (i < spec.getChildCount())
+      String pathAttributeName = null;
+      for (int i = 0; i < spec.getChildCount(); i++)
       {
-        SpecificationNode n = spec.getChild(i++);
+        SpecificationNode n = spec.getChild(i);
         if (n.getType().equals("pathnameattribute"))
           pathAttributeName = n.getAttributeValue("value");
         else if (n.getType().equals("pathmap"))
@@ -4667,6 +4412,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           matchMap.appendMatchPair(pathMatch,pathReplace);
         }
       }
+      this.pathAttributeName = pathAttributeName;
     }
 
     /** Get the path attribute name.

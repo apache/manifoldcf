@@ -1830,7 +1830,7 @@ public class SPSProxyHelper {
   * @param docId
   * @return set of the field values
   */
-  public Map<String,String> getFieldValues( ArrayList fieldNames, String site, String docLibrary, String docId, boolean dspStsWorks )
+  public Map<String,String> getFieldValues( String[] fieldNames, String site, String docLibrary, String docId, boolean dspStsWorks )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -1868,7 +1868,7 @@ public class SPSProxyHelper {
         DspQuery spQuery = new DspQuery();
         spQuery.setRowLimit( 1 );
         // For the Requested Fields
-        if ( fieldNames.size() > 0 )
+        if ( fieldNames.length > 0 )
         {
           Fields spFields = new Fields();
           Field[] fieldArray = new Field[0];
@@ -1879,11 +1879,11 @@ public class SPSProxyHelper {
           //                      spField.setAlias( "ID" );
           //                      fields.add( spField );
 
-          for ( int k = 0; k < fieldNames.size(); k++ )
+          for ( String fieldName : fieldNames )
           {
             spField = new Field();
-            spField.setName( (String)fieldNames.get(k) );
-            spField.setAlias( (String)fieldNames.get(k) );
+            spField.setName( fieldName );
+            spField.setAlias( fieldName );
             fields.add( spField );
           }
           spFields.setField( (Field[]) fields.toArray( fieldArray ));
@@ -2557,7 +2557,7 @@ public class SPSProxyHelper {
   
   /** Build viewFields XML for the ListItems call.
   */
-  protected static GetListItemsViewFields buildViewFields(ArrayList fieldNames)
+  protected static GetListItemsViewFields buildViewFields(String[] fieldNames)
     throws ManifoldCFException
   {
     try
@@ -2565,11 +2565,11 @@ public class SPSProxyHelper {
       GetListItemsViewFields rval = new GetListItemsViewFields();
       MessageElement viewFieldsNode = new MessageElement((String)null,"ViewFields");
       rval.set_any(new MessageElement[]{viewFieldsNode});
-      for (Object x : fieldNames)
+      for (String fieldName : fieldNames)
       {
         MessageElement child = new MessageElement((String)null,"FieldRef");
         viewFieldsNode.addChild(child);
-        child.addAttribute(null,"Name",(String)x);
+        child.addAttribute(null,"Name",fieldName);
       }
       return rval;
     }
