@@ -899,94 +899,86 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     return new Long(seedTime).toString();
   }
 
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is
-  * therefore important to perform as little work as possible here.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
-  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
-  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
-  */
-  @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    Map<String,String> versions = new HashMap<String,String>();
-    getTimestamps(documentIdentifiers,versions,activities);
-    String[] rval = new String[documentIdentifiers.length];
-    for (int i = 0 ; i < rval.length ; i++)
-    {
-      rval[i] = versions.get(documentIdentifiers[i]);
-    }
-    return rval;
-  }
-  
   /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
   * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
   *@param documentIdentifiers is the set of document identifiers to process.
-  *@param versions is the corresponding document versions to process, as returned by getDocumentVersions() above.
-  *       The implementation may choose to ignore this parameter and always process the current version.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
   *@param activities is the interface this method should use to queue up new document references
   * and ingest documents.
-  *@param spec is the document specification.
-  *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-  * should only find other references, and should not actually call the ingestion methods.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
   */
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    DocumentSpecification spec, boolean[] scanOnly, int jobMode)
+  @Override
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
     // Forced acls
     String[] acls = getAcls(spec);
 
+    Map<String,String> versions = new HashMap<String,String>();
+    getTimestamps(documentIdentifiers,versions,activities);
+    
+    List<String> fetchDocuments = new ArrayList<String>();
+    for (String documentIdentifier : documentIdentifiers)
+    {
+      String versionString = versions.get(documentIdentifier);
+      if (versionString == null)
+      {
+        activities.deleteDocument(documentIdentifier);
+        continue;
+      }
+      
+      if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+        continue;
+      
+      fetchDocuments.add(documentIdentifier);
+    }
+    
+    if (fetchDocuments.size() == 0)
+      return;
+    
+    String[] fetchDocumentsArray = fetchDocuments.toArray(new String[0]);
     Map<String,String> urls = new HashMap<String,String>();
     getDocURLs(documentIdentifiers,urls);
-    for (int i = 0 ; i < documentIdentifiers.length ; i++)
+    for (String documentIdentifier : fetchDocumentsArray)
     {
-      if (!scanOnly[i])
-      {
-        String url = urls.get(documentIdentifiers[i]);
-        if (url != null)
-          getDocInfo(documentIdentifiers[i], versions[i], url, activities, acls);
-      }
+      String url = urls.get(documentIdentifier);
+      String versionString = versions.get(documentIdentifier);
+      if (url != null)
+        getDocInfo(documentIdentifier, versionString, url, activities, acls);
+      else
+        activities.noDocument(documentIdentifier,versionString);
     }
-  }
 
+  }
+  
   /**
    * Grab forced acl out of document specification.
    *
    * @param spec is the document specification.
    * @return the acls.
    */
-  protected static String[] getAcls(DocumentSpecification spec) {
-    HashMap map = new HashMap();
-    int i = 0;
-    while (i < spec.getChildCount()) {
-      SpecificationNode sn = spec.getChild(i++);
+  protected static String[] getAcls(Specification spec) {
+    Set<String> aclMap = new HashSet<String>();
+    for (int i = 0; i < spec.getChildCount(); i++)
+    {
+      SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals("access")) {
         String token = sn.getAttributeValue("token");
-        map.put(token, token);
+        aclMap.add(token);
       }
     }
 
-    String[] rval = new String[map.size()];
-    Iterator iter = map.keySet().iterator();
-    i = 0;
-    while (iter.hasNext()) {
-      rval[i++] = (String) iter.next();
+    String[] rval = new String[aclMap.size()];
+    int j = 0;
+    for (String acl : aclMap)
+    {
+      rval[j++] = acl;
     }
     return rval;
   }
@@ -3213,10 +3205,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** Thread to execute a "get timestamp" operation.  This thread both executes the operation and parses the result. */
   protected static class ExecuteGetTimestampThread extends Thread
   {
-    protected HttpClient client;
-    protected HttpRequestBase executeMethod;
+    protected final HttpClient client;
+    protected final HttpRequestBase executeMethod;
     protected Throwable exception = null;
-    protected Map<String,String> versions;
+    protected final Map<String,String> versions;
     protected boolean loginNeeded = false;
 
     public ExecuteGetTimestampThread(HttpClient client, HttpRequestBase executeMethod, Map<String,String> versions)
