@@ -907,8 +907,8 @@ public class ZooKeeperConnection
     if (e instanceof KeeperException.ConnectionLossException || e instanceof KeeperException.SessionExpiredException)
     {
       // Close the handle, open a new one
-      zookeeper.close();
       lockNode = null;
+      zookeeper.close();
       createSession();
     }
     else
@@ -931,8 +931,8 @@ public class ZooKeeperConnection
     else if (e instanceof KeeperException.SessionExpiredException)
     {
       // Close the handle, open a new one
-      zookeeper.close();
       lockNode = null;
+      zookeeper.close();
       createSession();
     }
     else
