@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1026: Change JIRA URL to use the standard form.
+(Daniel Aschaeur)
+
 CONNECTORS-1027: Improve some general and PostgreSQL queries
 for large crawling sets.
 (Paul Boichat, Karl Wright)

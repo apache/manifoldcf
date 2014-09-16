@@ -30,8 +30,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.apache.manifoldcf.core.util.URLEncoder;
-import java.nio.charset.Charset;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.HashMap;
@@ -66,9 +66,7 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.client.protocol.HttpClientContext;
-
 import org.apache.http.ParseException;
-
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.JSONArray;
@@ -83,6 +81,7 @@ public class JiraSession {
   private final String path;
   private final String clientId;
   private final String clientSecret;
+  private String baseUrl;
   
   private HttpClientConnectionManager connectionManager;
   private HttpClient httpClient;
@@ -291,6 +290,21 @@ public class JiraSession {
     getRest("search?maxResults=1&jql=", qr);
     statistics.put("Total Issues", qr.getTotal().toString());
     return statistics;
+  }
+  
+  /**
+   * Get baseUrl via serverInfo API call
+   * @return
+   * @throws IOException
+   * @throws ResponseException
+   */
+  public String getBaseUrl() throws IOException, ResponseException {
+    if (this.baseUrl == null) {
+      JiraServerInfo jiraServerInfo = new JiraServerInfo();
+      getRest("serverInfo",jiraServerInfo);
+      this.baseUrl = jiraServerInfo.getBaseUrl();
+    }
+    return this.baseUrl;
   }
 
   /**
