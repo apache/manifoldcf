@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
+package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.crawler.connectors.webcrawler.WebURL;
 import org.junit.*;
