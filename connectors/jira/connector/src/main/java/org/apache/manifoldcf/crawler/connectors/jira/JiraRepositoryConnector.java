@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Date;
 import java.util.Set;
 import java.util.Iterator;
+
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -51,6 +52,7 @@ import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
+
 import java.util.Map.Entry;
 
 /**
@@ -1022,7 +1024,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
               rd.addField(entry.getKey(), entry.getValue());
             }
 
-            String documentURI = jiraFile.getSelf();
+            String documentURI = composeDocumentURI(getBaseUrl(session), jiraFile.getKey());
             String document = getJiraBody(jiraFile);
             try {
               byte[] documentBytes = document.getBytes(StandardCharsets.UTF_8);
@@ -1065,6 +1067,19 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       body.append(description);
     }
     return body.toString();
+  }
+  
+  
+  /**
+   * Compose the "real" url of the jira issue (BASEURL+/browse/+ISSUEKEY)
+   * @param baseUrl
+   * @param key
+   * @return
+   */
+  private String composeDocumentURI(String baseUrl, String key) {
+	  if (!baseUrl.endsWith("/"))
+	  	baseUrl = baseUrl + "/";
+      return baseUrl + "browse/" + key;
   }
 
   /** Grab forced acl out of document specification.
@@ -1312,6 +1327,24 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       handleResponseException(e);
     }
     return t.getResponse();
+  }
+  
+  
+  protected String getBaseUrl(JiraSession jiraSession) throws ManifoldCFException, ServiceInterruption {
+	  String url = "";
+	  try {
+		  url = jiraSession.getBaseUrl();
+		  return url;
+	    } catch (java.net.SocketTimeoutException e) {
+	        handleIOException(e);
+	    } catch (InterruptedIOException e) {
+	        handleIOException(e);
+	    } catch (IOException e) {
+	        handleIOException(e);
+	    } catch (ResponseException e) {
+	        handleResponseException(e);
+	    }
+	return url;
   }
   
   protected static class GetIssueThread extends Thread {
