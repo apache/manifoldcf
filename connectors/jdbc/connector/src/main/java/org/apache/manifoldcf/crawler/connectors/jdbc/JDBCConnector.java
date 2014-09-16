@@ -267,7 +267,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           Object o = row.getValue(JDBCConstants.idReturnColumnName);
           if (o == null)
-            throw new ManifoldCFException("Bad seed query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+            throw new ManifoldCFException("Bad seed query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
           String idValue = JDBCConnection.readAsString(o);
           activities.addSeedDocument(idValue);
         }
@@ -380,7 +380,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
             {
               Object o = row.getValue(JDBCConstants.idReturnColumnName);
               if (o == null)
-                throw new ManifoldCFException("Bad version query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+                throw new ManifoldCFException("Bad version query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
               String idValue = JDBCConnection.readAsString(o);
               o = row.getValue(JDBCConstants.versionReturnColumnName);
               String versionValue;
@@ -486,7 +486,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           Object o = row.getValue(JDBCConstants.idReturnColumnName);
           if (o == null)
-            throw new ManifoldCFException("Bad document query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+            throw new ManifoldCFException("Bad document query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
           String id = JDBCConnection.readAsString(o);
           String version = map.get(id);
           if (version != null)
