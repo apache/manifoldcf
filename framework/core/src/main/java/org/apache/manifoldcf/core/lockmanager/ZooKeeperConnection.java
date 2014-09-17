@@ -53,6 +53,8 @@ public class ZooKeeperConnection
 
   // Transient state
   protected String lockNode = null;
+  protected String nodePath = null;
+  protected byte[] nodeData = null;
 
   /** Constructor. */
   public ZooKeeperConnection(String connectString, int sessionTimeout)
@@ -86,16 +88,25 @@ public class ZooKeeperConnection
   public void createNode(String nodePath, byte[] nodeData)
     throws ManifoldCFException, InterruptedException
   {
+    if (this.nodePath != null)
+      throw new IllegalStateException("Ephemeral node '"+this.nodePath+"' already open; can't open '"+nodePath+"'.");
+
     while (true)
     {
       try
       {
-        zookeeper.create(nodePath, nodeData, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        if (this.nodePath == null)
+        {
+          zookeeper.create(nodePath, nodeData, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+          // Keep a record of the ephemeral node
+          this.nodePath = nodePath;
+          this.nodeData = nodeData;
+        }
         break;
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleEphemeralNodeKeeperException(e,false);
       }
     }
   }
@@ -115,7 +126,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleKeeperException(e,true);
       }
     }
   }
@@ -132,27 +143,37 @@ public class ZooKeeperConnection
   
   /** Set node data.
   */
-  public void setNodeData(String nodePath, byte[] data)
+  public void setNodeData(byte[] data)
     throws ManifoldCFException, InterruptedException
   {
+    if (nodePath == null)
+      throw new IllegalStateException("Can't set data for a node path we did not create: '"+nodePath+"'");
     writeData(nodePath, data);
+    this.nodeData = data;
   }
   
   /** Delete a node.
   */
-  public void deleteNode(String nodePath)
+  public void deleteNode()
     throws ManifoldCFException, InterruptedException
   {
+    if (nodePath == null)
+      throw new IllegalStateException("Can't delete ephemeral node that isn't registered: '"+nodePath+"'");
     while (true)
     {
       try
       {
-        zookeeper.delete(nodePath,-1);
+        if (nodePath != null)
+        {
+          zookeeper.delete(nodePath,-1);
+          nodePath = null;
+          nodeData = null;
+        }
         return;
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleEphemeralNodeKeeperException(e,false);
       }
     }
   }
@@ -179,7 +200,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleKeeperException(e,true);
       }
     }
   }
@@ -211,7 +232,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleKeeperException(e,true);
       }
     }
   }
@@ -248,7 +269,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleKeeperException(e,true);
       }
     }
   }
@@ -269,7 +290,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleKeeperException(e,true);
       }
     }
   }
@@ -289,6 +310,7 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a write lock
+        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
         String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length());
@@ -313,11 +335,12 @@ public class ZooKeeperConnection
           }
         }
         // We got it!
+        this.lockNode = lockNode;
         return true;
       }
       catch (KeeperException e)
       {
-        handleEphemeralNodeKeeperException(e);
+        handleEphemeralNodeKeeperException(e,true);
       }
     }
   }
@@ -336,6 +359,7 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a write lock
+        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
         long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length())).longValue();
@@ -378,6 +402,7 @@ public class ZooKeeperConnection
           {
             // We got it!
             //System.out.println("Got write lock for '"+lockSequenceNumber+"'");
+            this.lockNode = lockNode;
             return;
           }
 
@@ -398,7 +423,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleEphemeralNodeKeeperException(e);
+        handleEphemeralNodeKeeperException(e,true);
       }
     }
   }
@@ -418,6 +443,7 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a read lock
+        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
         String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length());
@@ -437,7 +463,7 @@ public class ZooKeeperConnection
           }
           catch (KeeperException e)
           {
-            handleKeeperException(e);
+            handleKeeperException(e,true);
           }
         }
         if (children == null)
@@ -462,11 +488,12 @@ public class ZooKeeperConnection
           }
         }
         // We got it!
+        this.lockNode = lockNode;
         return true;
       }
       catch (KeeperException e)
       {
-        handleEphemeralNodeKeeperException(e);
+        handleEphemeralNodeKeeperException(e,true);
       }
     }
   }
@@ -485,6 +512,7 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a read lock
+        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
         long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length())).longValue();
@@ -505,7 +533,7 @@ public class ZooKeeperConnection
             }
             catch (KeeperException e)
             {
-              handleKeeperException(e);
+              handleKeeperException(e,true);
             }
           }
 
@@ -540,8 +568,11 @@ public class ZooKeeperConnection
           }
             
           if (gotLock)
+          {
             // We got it!
+            this.lockNode = lockNode;
             return;
+          }
 
           // There SHOULD be a previous node immediately prior to the one we asserted.  If we didn't find one, go back around;
           // the previous lock was probably created and destroyed before we managed to get the children.
@@ -557,7 +588,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleEphemeralNodeKeeperException(e);
+        handleEphemeralNodeKeeperException(e,true);
       }
     }
   }
@@ -577,6 +608,7 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a read lock
+        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,READ_PREFIX);
         String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length());
@@ -595,7 +627,7 @@ public class ZooKeeperConnection
           }
           catch (KeeperException e)
           {
-            handleKeeperException(e);
+            handleKeeperException(e,true);
           }
         }
         if (children == null)
@@ -617,11 +649,12 @@ public class ZooKeeperConnection
           }
         }
         // We got it!
+        this.lockNode= lockNode;
         return true;
       }
       catch (KeeperException e)
       {
-        handleEphemeralNodeKeeperException(e);
+        handleEphemeralNodeKeeperException(e,true);
       }
     }
   }
@@ -640,6 +673,7 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a read lock
+        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,READ_PREFIX);
         long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length())).longValue();
@@ -661,7 +695,7 @@ public class ZooKeeperConnection
             }
             catch (KeeperException e)
             {
-              handleKeeperException(e);
+              handleKeeperException(e,true);
             }
           }
 
@@ -700,6 +734,7 @@ public class ZooKeeperConnection
           {
             // We got it!
             //System.out.println("Got read lock for '"+lockSequenceNumber+"'");
+            this.lockNode = lockNode;
             return;
           }
 
@@ -721,7 +756,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleEphemeralNodeKeeperException(e);
+        handleEphemeralNodeKeeperException(e,true);
       }
     }
   }
@@ -745,9 +780,14 @@ public class ZooKeeperConnection
         lockNode = null;
         break;
       }
+      catch (InterruptedException e)
+      {
+        lockNode = null;
+        throw e;
+      }
       catch (KeeperException e)
       {
-        handleEphemeralNodeKeeperException(e);
+        handleEphemeralNodeKeeperException(e,true);
       }
     }
   }
@@ -767,7 +807,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleKeeperException(e,true);
       }
     }
   }
@@ -818,7 +858,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleKeeperException(e,true);
       }
     }
   }
@@ -842,7 +882,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleKeeperException(e,true);
       }
     }
   }
@@ -866,7 +906,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleKeeperException(e,true);
       }
     }
   }
@@ -883,7 +923,7 @@ public class ZooKeeperConnection
       }
       catch (KeeperException e)
       {
-        handleKeeperException(e);
+        handleKeeperException(e,true);
       }
     }
   }
@@ -901,15 +941,37 @@ public class ZooKeeperConnection
   
   /** Handle keeper exceptions that may involve ephemeral node creation.
   */
-  protected void handleEphemeralNodeKeeperException(KeeperException e)
+  protected void handleEphemeralNodeKeeperException(KeeperException e, boolean recreate)
     throws ManifoldCFException, InterruptedException
   {
     if (e instanceof KeeperException.ConnectionLossException || e instanceof KeeperException.SessionExpiredException)
     {
-      // Close the handle, open a new one
-      lockNode = null;
-      zookeeper.close();
-      createSession();
+      while (true)
+      {
+        try
+        {
+          // Close the handle, open a new one
+          lockNode = null;
+          if (!recreate)
+          {
+            nodePath = null;
+            nodeData = null;
+          }
+          zookeeper.close();
+          createSession();
+          // Lock is lost, but we can (and should) recreate the ephemeral nodes
+          if (nodePath != null)
+          {
+            zookeeper.create(nodePath, nodeData, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+          }
+          break;
+        }
+        catch (KeeperException e2)
+        {
+          if (!(e2 instanceof KeeperException.ConnectionLossException) && !(e2 instanceof KeeperException.SessionExpiredException))
+            throw new ManifoldCFException(e2.getMessage(),e2);
+        }
+      }
     }
     else
     {
@@ -920,7 +982,7 @@ public class ZooKeeperConnection
 
   /** Handle keeper exceptions that don't involve ephemeral node creation.
   */
-  protected void handleKeeperException(KeeperException e)
+  protected void handleKeeperException(KeeperException e, boolean recreate)
     throws ManifoldCFException, InterruptedException
   {
     if (e instanceof KeeperException.ConnectionLossException)
@@ -930,10 +992,32 @@ public class ZooKeeperConnection
     }
     else if (e instanceof KeeperException.SessionExpiredException)
     {
-      // Close the handle, open a new one
-      lockNode = null;
-      zookeeper.close();
-      createSession();
+      while (true)
+      {
+        try
+        {
+          // Close the handle, open a new one
+          lockNode = null;
+          if (!recreate)
+          {
+            nodePath = null;
+            nodeData = null;
+          }
+          zookeeper.close();
+          createSession();
+          // Lock is lost, but we can (and should) recreate the ephemeral nodes
+          if (nodePath != null)
+          {
+            zookeeper.create(nodePath, nodeData, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+          }
+          break;
+        }
+        catch (KeeperException e2)
+        {
+          if (!(e2 instanceof KeeperException.ConnectionLossException) && !(e2 instanceof KeeperException.SessionExpiredException))
+            throw new ManifoldCFException(e2.getMessage(),e2);
+        }
+      }
     }
     else
     {
