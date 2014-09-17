@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Date;
 import java.util.Set;
 import java.util.Iterator;
+
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -49,8 +50,11 @@ import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.log4j.Logger;
+
 import com.google.api.services.drive.model.File;
+import com.google.api.client.repackaged.com.google.common.base.Objects;
 import com.google.api.client.util.DateTime;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -1067,11 +1071,16 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               Logging.connectors.debug("GOOGLEDRIVE: its a file");
             }
 
-            // We always direct to the PDF
-            String documentURI = getUrl(googleFile, "application/pdf");
+            // We always direct to the PDF except for Spreadsheets
+            String documentURI = null;
+            if (!googleFile.getMimeType().equals("application/vnd.google-apps.spreadsheet")) {
+              documentURI = getUrl(googleFile, "application/pdf");
+            } else {
+              documentURI = getUrl(googleFile, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            }
 
             // Get the file length
-            Long fileLength = googleFile.getFileSize();
+            Long fileLength = Objects.firstNonNull(googleFile.getFileSize(), 0L);
             if (fileLength != null) {
 
               // Unpack the version string
