@@ -2,11 +2,15 @@ ManifoldCF Change Log
 $Id$
 
 
+======================= Release 1.7.1 =====================
+
 CONNECTORS-1031: Fix Zookeeper synchronization to be resilient
 against short tick time settings.
 (Karl Wright)
 
-======================= Release 1.7.1 =====================
+CONNECTORS-1013: Handle new kind of XML we see coming back from
+SharePoint on getLists metadata field list requests.
+(Lalit Jangra, Karl Wright)
 
 
 ======================= Release 1.7 =====================
