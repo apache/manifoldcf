@@ -1059,6 +1059,66 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     return 25;
   }
 
+  /* Calculate the number of values a particular clause can have, given the values for all the other clauses.
+  * For example, if in the expression x AND y AND z, x has 2 values and z has 1, find out how many values x can legally have
+  * when using the buildConjunctionClause() method below.
+  */
+  @Override
+  public int findConjunctionClauseMax(ClauseDescription[] otherClauseDescriptions)
+  {
+    // This implementation uses "OR"
+    return getMaxOrClause();
+  }
+
+  /* Construct a conjunction clause, e.g. x AND y AND z, where there is expected to be an index (x,y,z,...), and where x, y, or z
+  * can have multiple distinct values, The proper implementation of this method differs from database to database, because some databases
+  * only permit index operations when there are OR's between clauses, such as x1 AND y1 AND z1 OR x2 AND y2 AND z2 ..., where others
+  * only recognize index operations when there are lists specified for each, such as x IN (x1,x2) AND y IN (y1,y2) AND z IN (z1,z2).
+  */
+  @Override
+  public String buildConjunctionClause(List outputParameters, ClauseDescription[] clauseDescriptions)
+  {
+    // This implementation uses "OR" instead of "IN ()" for multiple values, since this generates better plans in Postgresql 9.x.
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0 ; i < clauseDescriptions.length ; i++)
+    {
+      ClauseDescription cd = clauseDescriptions[i];
+      if (i > 0)
+        sb.append(" AND ");
+      String columnName = cd.getColumnName();
+      List values = cd.getValues();
+      String operation = cd.getOperation();
+      String joinColumn = cd.getJoinColumnName();
+      if (values != null)
+      {
+        if (values.size() > 1)
+        {
+          sb.append(" (");
+          for (int j = 0 ; j < values.size() ; j++)
+          {
+            if (j > 0)
+              sb.append(" OR ");
+            sb.append(columnName).append(operation).append("?");
+            outputParameters.add(values.get(j));
+          }
+          sb.append(")");
+        }
+        else
+        {
+          sb.append(columnName).append(operation).append("?");
+          outputParameters.add(values.get(0));
+        }
+      }
+      else if (joinColumn != null)
+      {
+        sb.append(columnName).append(operation).append(joinColumn);
+      }
+      else
+        sb.append(columnName).append(operation);
+    }
+    return sb.toString();
+  }
+
   /** For windowed report queries, e.g. maxActivity or maxBandwidth, obtain the maximum number of rows
   * that can reasonably be expected to complete in an acceptable time.
   *@return the maximum number of rows.
