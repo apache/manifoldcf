@@ -560,8 +560,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                 rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
               } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_BODY)) {
                 Multipart mp = (Multipart) msg.getContent();
-                for (int j = 0, n = mp.getCount(); i < n; i++) {
-                  Part part = mp.getBodyPart(i);
+                for (int k = 0, n = mp.getCount(); k < n; k++) {
+                  Part part = mp.getBodyPart(k);
                   String disposition = part.getDisposition();
                   if ((disposition == null)) {
                     MimeBodyPart mbp = (MimeBodyPart) part;
@@ -579,8 +579,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                 Multipart mp = (Multipart) msg.getContent();
                 if (mp != null) {
                   String[] encoding = new String[mp.getCount()];
-                  for (int k = 0, n = mp.getCount(); i < n; i++) {
-                    Part part = mp.getBodyPart(i);
+                  for (int k = 0, n = mp.getCount(); k < n; k++) {
+                    Part part = mp.getBodyPart(k);
                     String disposition = part.getDisposition();
                     if ((disposition != null) &&
                         ((disposition.equals(Part.ATTACHMENT) ||
@@ -594,8 +594,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
                 Multipart mp = (Multipart) msg.getContent();
                 String[] MIMEType = new String[mp.getCount()];
-                for (int k = 0, n = mp.getCount(); i < n; i++) {
-                  Part part = mp.getBodyPart(i);
+                for (int k = 0, n = mp.getCount(); k < n; k++) {
+                  Part part = mp.getBodyPart(k);
                   String disposition = part.getDisposition();
                   if ((disposition != null) &&
                       ((disposition.equals(Part.ATTACHMENT) ||
