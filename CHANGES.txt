@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1036: Zookeeper service handling also has
+ephemeral nodes which need to be tied to sessions.
+(Karl Wright)
+
 CONNECTORS-1031: Fix Zookeeper synchronization to be resilient
 against short tick time settings.
 (Karl Wright)
