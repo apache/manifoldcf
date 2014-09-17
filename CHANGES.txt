@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 1.7.1 =====================
 
+CONNECTORS-1023: Fix Alfresco tests.  They don't yet succeed, but
+at least they run, and the connector can communicate with Alfresco.
+(Karl Wright)
+
 CONNECTORS-1031: Fix Zookeeper synchronization to be resilient
 against short tick time settings.
 (Karl Wright)
