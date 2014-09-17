@@ -54,6 +54,8 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   protected static ZooKeeperConnectionPool pool = null;
   protected static Integer zookeeperPoolLocker = new Integer(0);
   protected static LockPool myZooKeeperLocks = null;
+  protected static Integer ephemeralPoolLocker = new Integer(0);
+  protected static ZooKeeperEphemeralNodePool myEphemeralNodes = null;
 
   /** Constructor */
   public ZooKeeperLockManager()
@@ -77,6 +79,13 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
       if (myZooKeeperLocks == null)
       {
         myZooKeeperLocks = new LockPool(new ZooKeeperLockObjectFactory(pool));
+      }
+    }
+    synchronized (ephemeralPoolLocker)
+    {
+      if (myEphemeralNodes == null)
+      {
+        myEphemeralNodes = new ZooKeeperEphemeralNodePool(pool);
       }
     }
   }
@@ -213,7 +222,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
           }
           
           // Last, set the appropriate active flag
-          connection.createNode(activePath, initialData);
+          myEphemeralNodes.createNode(activePath, initialData);
           return serviceName;
         }
         finally
@@ -251,7 +260,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         try
         {
           String activePath = buildServiceTypeActivePath(serviceType, ZooKeeperConnection.zooKeeperSafeName(serviceName));
-          connection.setNodeData(activePath, (serviceData==null)?new byte[0]:serviceData);
+          myEphemeralNodes.setNodeData(activePath, (serviceData==null)?new byte[0]:serviceData);
         }
         finally
         {
@@ -475,7 +484,7 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
         enterServiceRegistryWriteLock(connection, serviceType);
         try
         {
-          connection.deleteNode(buildServiceTypeActivePath(serviceType, ZooKeeperConnection.zooKeeperSafeName(serviceName)));
+          myEphemeralNodes.deleteNode(buildServiceTypeActivePath(serviceType, ZooKeeperConnection.zooKeeperSafeName(serviceName)));
         }
         finally
         {
@@ -907,6 +916,22 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   protected static void shutdownPool()
     throws ManifoldCFException
   {
+    synchronized (ephemeralPoolLocker)
+    {
+      if (myEphemeralNodes != null)
+      {
+        try
+        {
+          myEphemeralNodes.deleteAll();
+          myEphemeralNodes = null;
+        }
+        catch (InterruptedException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+      }
+    }
+    
     synchronized (connectionPoolLock)
     {
       if (pool != null)
