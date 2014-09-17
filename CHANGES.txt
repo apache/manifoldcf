@@ -8,6 +8,9 @@ CONNECTORS-1031: Fix Zookeeper synchronization to be resilient
 against short tick time settings.
 (Karl Wright)
 
+CONNECTORS-1016: Recognize non-existent user.
+(David Morana, Karl Wright)
+
 CONNECTORS-949: Upgrade OpenCMIS to latest version to see if it
 fixes join queries.
 (Karl Wright)
