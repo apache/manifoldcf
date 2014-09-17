@@ -8,6 +8,10 @@ CONNECTORS-1031: Fix Zookeeper synchronization to be resilient
 against short tick time settings.
 (Karl Wright)
 
+CONNECTORS-1014: Fix the fact that Solr Cloud no longer sets
+a content type in its responses.
+(Kamil Zyta, Karl Wright)
+
 CONNECTORS-1006: Extend GoogleDrive connector to capture
 Google native spreadsheets.
 (Shigeki Kabayashi)
