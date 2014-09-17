@@ -456,10 +456,10 @@ public class ElasticSearchConnector extends BaseOutputConnector
   }
 
   @Override
-  public boolean checkMimeTypeIndexable(String outputDescription,
-      String mimeType) throws ManifoldCFException, ServiceInterruption
+  public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption
   {
-    ElasticSearchSpecs specs = getSpecsCache(outputDescription);
+    ElasticSearchSpecs specs = getSpecsCache(outputDescription.getVersionString());
     return specs.checkMimeType(mimeType);
   }
 
@@ -504,11 +504,24 @@ public class ElasticSearchConnector extends BaseOutputConnector
     return new String[0];
   }
 
+  /** Add (or replace) a document in the output data store using the connector.
+  * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
+  * necessary.
+  *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
+  * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
+  *@param pipelineDescription includes the description string that was constructed for this document by the getOutputDescription() method.
+  *@param document is the document data to be processed (handed to the output data store).
+  *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
+  *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity,
+  * or sending a modified document to the next stage in the pipeline.
+  *@return the document status (accepted or permanently rejected).
+  *@throws IOException only if there's a stream error reading the document data.
+  */
   @Override
-  public int addOrReplaceDocument(String documentURI, String outputDescription,
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription,
       RepositoryDocument document, String authorityNameString,
       IOutputAddActivity activities) throws ManifoldCFException,
-      ServiceInterruption
+      ServiceInterruption, IOException
   {
     HttpClient client = getSession();
     ElasticSearchConfig config = getConfigParameters(null);
