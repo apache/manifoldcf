@@ -256,22 +256,22 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   }
 
   /** Add (or replace) a document in the output data store using the connector.
-  * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
-  * necessary.
-  *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
-  * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
-  *@param pipelineDescription includes the description string that was constructed for this document by the getOutputDescription() method.
-  *@param document is the document data to be processed (handed to the output data store).
-  *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
-  *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity,
-  * or sending a modified document to the next stage in the pipeline.
-  *@return the document status (accepted or permanently rejected).
-  *@throws IOException only if there's a stream error reading the document data.
-  */
+   * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
+   * necessary.
+   * The OutputSpecification is *not* provided to this method, because the goal is consistency, and if output is done it must be consistent with the
+   * output description, since that was what was partly used to determine if output should be taking place.  So it may be necessary for this method to decode
+   * an output description string in order to determine what should be done.
+   *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
+   * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
+   *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
+   *@param document is the document data to be processed (handed to the output data store).
+   *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
+   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
+   *@return the document status (accepted or permanently rejected).
+   */
   @Override
-  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws ManifoldCFException, ServiceInterruption, IOException {
-    String outputDescription = pipelineDescription.getVersionString();
+  public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities) throws ManifoldCFException, ServiceInterruption {
+
     try {
       HDFSOutputSpecs specs = new HDFSOutputSpecs(outputDescription);
 
@@ -389,6 +389,26 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
     outputResource(VIEW_CONFIGURATION_HTML, out, locale, getConfigParameters(parameters), null, null, null);
+  }
+
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  @Override
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
   }
 
   /** Output the specification header section.

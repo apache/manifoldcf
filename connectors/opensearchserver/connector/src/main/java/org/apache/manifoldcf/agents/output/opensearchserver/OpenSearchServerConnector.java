@@ -37,7 +37,6 @@ import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
-import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
@@ -261,6 +260,31 @@ public class OpenSearchServerConnector extends BaseOutputConnector
   }
 
   /**
+  * Obtain the name of the form check javascript method to call.
+  *
+  * @param connectionSequenceNumber is the unique number of this connection within the job.
+  * @return the name of the form check javascript method.
+  */
+  @Override
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s" + connectionSequenceNumber + "_checkSpecification";
+  }
+
+  /**
+  * Obtain the name of the form presave check javascript method to call.
+  *
+  * @param connectionSequenceNumber is the unique number of this connection within the job.
+  * @return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(
+      int connectionSequenceNumber)
+  {
+    return "s" + connectionSequenceNumber + "_checkSpecificationForSave";
+  }
+
+  /**
   * Output the specification header section. This method is called in the head
   * section of a job page which has selected a pipeline connection of the
   * current type. Its purpose is to add the required tabs to the list, and to
@@ -407,21 +431,29 @@ public class OpenSearchServerConnector extends BaseOutputConnector
   }
 
   @Override
-  public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
+  public boolean checkLengthIndexable(String outputDescription, long length)
       throws ManifoldCFException, ServiceInterruption
   {
-    OpenSearchServerSpecs specs = getSpecsCache(outputDescription.getVersionString());
+    OpenSearchServerSpecs specs = getSpecsCache(outputDescription);
     long maxFileSize = specs.getMaxFileSize();
     if (length > maxFileSize)
       return false;
+    return super.checkLengthIndexable(outputDescription, length);
+  }
+
+  @Override
+  public boolean checkDocumentIndexable(String outputDescription, File localFile)
+      throws ManifoldCFException, ServiceInterruption
+  {
     return true;
   }
 
   @Override
-  public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
+  public boolean checkMimeTypeIndexable(String outputDescription,
+      String mimeType)
       throws ManifoldCFException, ServiceInterruption
   {
-    OpenSearchServerSpecs specs = getSpecsCache(outputDescription.getVersionString());
+    OpenSearchServerSpecs specs = getSpecsCache(outputDescription);
     return specs.checkMimeType(mimeType);
   }
 
@@ -437,10 +469,10 @@ public class OpenSearchServerConnector extends BaseOutputConnector
    * @return true if the file is indexable.
    */
   @Override
-  public boolean checkURLIndexable(VersionContext outputDescription, String url, IOutputCheckActivity activities)
+  public boolean checkURLIndexable(String outputDescription, String url)
       throws ManifoldCFException, ServiceInterruption
   {
-    OpenSearchServerSpecs specs = getSpecsCache(outputDescription.getVersionString());
+    OpenSearchServerSpecs specs = getSpecsCache(outputDescription);
     return specs.checkExtension(FilenameUtils.getExtension(url));
   }
 
@@ -518,24 +550,11 @@ public class OpenSearchServerConnector extends BaseOutputConnector
     }
   }
 
-  /** Add (or replace) a document in the output data store using the connector.
-  * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
-  * necessary.
-  *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
-  * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
-  *@param pipelineDescription includes the description string that was constructed for this document by the getOutputDescription() method.
-  *@param document is the document data to be processed (handed to the output data store).
-  *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
-  *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity,
-  * or sending a modified document to the next stage in the pipeline.
-  *@return the document status (accepted or permanently rejected).
-  *@throws IOException only if there's a stream error reading the document data.
-  */
   @Override
-  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription,
+  public int addOrReplaceDocument(String documentURI, String outputDescription,
       RepositoryDocument document, String authorityNameString,
       IOutputAddActivity activities)
-      throws ManifoldCFException, ServiceInterruption, IOException
+      throws ManifoldCFException, ServiceInterruption
   {
     HttpClient client = getSession();
     OpenSearchServerConfig config = getConfigParameters(null);
