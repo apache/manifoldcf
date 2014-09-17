@@ -20,6 +20,13 @@
 <table class="displaytable">
   <tr>
     <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DocumentFilter.MinFileSizeBytesColon'))</nobr>
+    </td>
+    <td class="value"><input name="s${SEQNUM}_minfilesize" type="text"
+      value="$Encoder.attributeEscape($MINFILESIZE)" size="24" /></td>
+  </tr>
+  <tr>
+    <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DocumentFilter.MaxFileSizeBytesColon'))</nobr>
     </td>
     <td class="value"><input name="s${SEQNUM}_maxfilesize" type="text"
@@ -43,6 +50,7 @@
 
 #else
 
+<input type="hidden" name="s${SEQNUM}_minfilesize" value="$Encoder.attributeEscape($MINFILESIZE)" />
 <input type="hidden" name="s${SEQNUM}_maxfilesize" value="$Encoder.attributeEscape($MAXFILESIZE)" />
 <input type="hidden" name="s${SEQNUM}_mimetypes" value="$Encoder.attributeEscape($MIMETYPES)" />
 <input type="hidden" name="s${SEQNUM}_extensions" value="$Encoder.attributeEscape($EXTENSIONS)" />

@@ -8,6 +8,10 @@ CONNECTORS-1031: Fix Zookeeper synchronization to be resilient
 against short tick time settings.
 (Karl Wright)
 
+CONNECTORS-1015: Add minimum file size to Allowed Documents
+transformation filter.
+(David Morana, Karl Wright)
+
 CONNECTORS-1016: Recognize non-existent user.
 (David Morana, Karl Wright)
 

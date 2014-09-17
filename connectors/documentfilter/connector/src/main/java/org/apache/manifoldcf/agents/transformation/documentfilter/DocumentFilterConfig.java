@@ -26,6 +26,8 @@ public class DocumentFilterConfig {
   // Configuration parameters
   
   // Specification nodes and values
+  public static final String NODE_MINLENGTH = "minlength";
+  public static final String MINLENGTH_DEFAULT = "0";
   public static final String NODE_MAXLENGTH = "maxlength";
   public static final String MAXLENGTH_DEFAULT = "16777216";
   public static final String NODE_MIMETYPES = "mimetypes";
