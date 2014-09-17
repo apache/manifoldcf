@@ -29,7 +29,7 @@
 
   <groupId>org.apache.manifoldcf</groupId>
   <artifactId>mcf-parent</artifactId>
-  <version>1.7</version>
+  <version>1.7.1</version>
 
   <name>ManifoldCF</name>
   <packaging>pom</packaging>
