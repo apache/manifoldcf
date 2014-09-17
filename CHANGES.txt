@@ -8,6 +8,9 @@ CONNECTORS-1031: Fix Zookeeper synchronization to be resilient
 against short tick time settings.
 (Karl Wright)
 
+CONNECTORS-1025: SharePoint connector should skip blocked files.
+(Radek Sklenicka, Karl Wright)
+
 CONNECTORS-1024: Non-null components always failed due to a
 null pointer exception.
 (Karl Wright)

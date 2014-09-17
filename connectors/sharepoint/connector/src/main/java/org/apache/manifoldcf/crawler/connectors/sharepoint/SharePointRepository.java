@@ -1899,7 +1899,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 emt.start();
                 int returnCode = emt.finishUp();
                   
-                if (returnCode == 404 || returnCode == 401 || returnCode == 400)
+                if (returnCode == 404 || returnCode == 401 || returnCode == 400 || returnCode == 415)
                 {
                   // Well, sharepoint thought the document was there, but it really isn't, so delete it.
                   if (Logging.connectors.isDebugEnabled())
