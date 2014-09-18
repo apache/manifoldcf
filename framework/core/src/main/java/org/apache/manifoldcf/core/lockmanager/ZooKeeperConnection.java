@@ -310,7 +310,6 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a write lock
-        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
         String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length());
@@ -335,8 +334,12 @@ public class ZooKeeperConnection
           }
         }
         // We got it!
-        this.lockNode = lockNode;
         return true;
+      }
+      catch (InterruptedException e)
+      {
+        lockNode = null;
+        throw e;
       }
       catch (KeeperException e)
       {
@@ -359,7 +362,6 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a write lock
-        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
         long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length())).longValue();
@@ -402,7 +404,6 @@ public class ZooKeeperConnection
           {
             // We got it!
             //System.out.println("Got write lock for '"+lockSequenceNumber+"'");
-            this.lockNode = lockNode;
             return;
           }
 
@@ -420,6 +421,11 @@ public class ZooKeeperConnection
           //else
           //  System.out.println(" Retrying for write lock '"+lockSequenceNumber+"'");
         }
+      }
+      catch (InterruptedException e)
+      {
+        lockNode = null;
+        throw e;
       }
       catch (KeeperException e)
       {
@@ -443,7 +449,6 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a read lock
-        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
         String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length());
@@ -488,8 +493,12 @@ public class ZooKeeperConnection
           }
         }
         // We got it!
-        this.lockNode = lockNode;
         return true;
+      }
+      catch (InterruptedException e)
+      {
+        lockNode = null;
+        throw e;
       }
       catch (KeeperException e)
       {
@@ -512,7 +521,6 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a read lock
-        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
         long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length())).longValue();
@@ -570,7 +578,6 @@ public class ZooKeeperConnection
           if (gotLock)
           {
             // We got it!
-            this.lockNode = lockNode;
             return;
           }
 
@@ -585,6 +592,11 @@ public class ZooKeeperConnection
               w.waitForEvent();
           }
         }
+      }
+      catch (InterruptedException e)
+      {
+        lockNode = null;
+        throw e;
       }
       catch (KeeperException e)
       {
@@ -608,7 +620,6 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a read lock
-        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,READ_PREFIX);
         String lockSequenceNumber = lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length());
@@ -649,8 +660,12 @@ public class ZooKeeperConnection
           }
         }
         // We got it!
-        this.lockNode= lockNode;
         return true;
+      }
+      catch (InterruptedException e)
+      {
+        lockNode = null;
+        throw e;
       }
       catch (KeeperException e)
       {
@@ -673,7 +688,6 @@ public class ZooKeeperConnection
       try
       {
         // Assert that we want a read lock
-        String lockNode = this.lockNode;
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,READ_PREFIX);
         long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length())).longValue();
@@ -734,7 +748,6 @@ public class ZooKeeperConnection
           {
             // We got it!
             //System.out.println("Got read lock for '"+lockSequenceNumber+"'");
-            this.lockNode = lockNode;
             return;
           }
 
@@ -753,6 +766,11 @@ public class ZooKeeperConnection
           //  System.out.println(" Retrying for read lock '"+lockSequenceNumber+"'");
 
         }
+      }
+      catch (InterruptedException e)
+      {
+        lockNode = null;
+        throw e;
       }
       catch (KeeperException e)
       {
