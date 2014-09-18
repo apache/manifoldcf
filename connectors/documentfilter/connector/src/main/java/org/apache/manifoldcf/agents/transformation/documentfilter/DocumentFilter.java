@@ -73,7 +73,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    SpecPacker sp = new SpecPacker(outputDescription.getVersionString());
+    SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
     if (sp.checkMimeType(mimeType))
       return super.checkMimeTypeIndexable(outputDescription, mimeType, activities);
     else
@@ -83,7 +83,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   @Override
   public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption {
-    SpecPacker sp = new SpecPacker(outputDescription.getVersionString());
+    SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
     if (sp.checkLengthIndexable(length))
       return super.checkLengthIndexable(outputDescription, length, activities);
     else
@@ -93,7 +93,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   @Override
   public boolean checkURLIndexable(VersionContext outputDescription, String url, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption {
-    SpecPacker sp = new SpecPacker(outputDescription.getVersionString());
+    SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
     if (sp.checkURLIndexable(url))
       return super.checkURLIndexable(outputDescription, url, activities);
     else
@@ -382,48 +382,6 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       this.lengthCutoff = lengthCutoff;
       fillSet(this.extensions, extensions);
       fillSet(this.mimeTypes, mimeTypes);
-    }
-    
-    public SpecPacker(String packedString) {
-      
-      int index = 0;
-      
-      // Max length
-      if (packedString.length() > index) {
-        if (packedString.charAt(index++) == '+') {
-          final StringBuilder sb = new StringBuilder();
-          index = unpack(sb,packedString,index,'+');
-          this.lengthCutoff = new Long(sb.toString());
-        } else
-          this.lengthCutoff = null;
-      } else
-        this.lengthCutoff = null;
-      
-      // Mime types
-      final List<String> mimeBuffer = new ArrayList<String>();
-      index = unpackList(mimeBuffer,packedString,index,'+');
-      for (String mimeType : mimeBuffer) {
-        this.mimeTypes.add(mimeType);
-      }
-      
-      // Extensions
-      final List<String> extensionsBuffer = new ArrayList<String>();
-      index = unpackList(extensionsBuffer,packedString,index,'+');
-      for (String extension : extensionsBuffer) {
-        this.extensions.add(extension);
-      }
-      
-      // Min length
-      if (packedString.length() > index) {
-        if (packedString.charAt(index++) == '+') {
-          final StringBuilder sb = new StringBuilder();
-          index = unpack(sb,packedString,index,'+');
-          this.minLength = new Long(sb.toString());
-        } else
-          this.minLength = null;
-      } else
-        this.minLength = null;
-
     }
     
     public String toPackedString() {
