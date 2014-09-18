@@ -81,8 +81,9 @@ public class ZooKeeperEphemeralNodeObject
     throws ManifoldCFException, InterruptedException
   {
     if (currentConnection == null)
+      throw new IllegalStateException("Can't delete node '"+nodePath+"' that we don't own");
       // It's allowed to delete the same node multiple times
-      return;
+      //return;
     
     currentConnection.deleteNode();
     pool.release(currentConnection);

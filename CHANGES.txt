@@ -8,6 +8,9 @@ CONNECTORS-1041: Livelink connector should force HTTPS off when
 HTTP is selected.
 (Karl Wright)
 
+CONNECTORS-1038: Handle multiple pool closes properly.
+(Karl Wright)
+
 CONNECTORS-1036: Zookeeper service handling also has
 ephemeral nodes which need to be tied to sessions.
 (Karl Wright)
