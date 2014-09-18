@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('SharePointRepository.Security'))
+#if($TabName == $ResourceBundle.getString('SharePointRepository.Security') && ${SeqNum} == ${SelectedNum})
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
@@ -24,15 +24,15 @@
     <td class="value" colspan="1">
       <nobr>
   #if($SECURITY == 'on')
-        <input type="radio" name="specsecurity" value="on" checked="true"/>
+        <input type="radio" name="s${SeqNum}_specsecurity" value="on" checked="true"/>
   #else
-        <input type="radio" name="specsecurity" value="on"/>
+        <input type="radio" name="s${SeqNum}_specsecurity" value="on"/>
   #end
           $Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.Enabled'))&nbsp;
   #if($SECURITY == 'off')
-        <input type="radio" name="specsecurity" value="off" checked="true"/>
+        <input type="radio" name="s${SeqNum}_specsecurity" value="off" checked="true"/>
   #else
-        <input type="radio" name="specsecurity" value="off"/>
+        <input type="radio" name="s${SeqNum}_specsecurity" value="off"/>
   #end
           $Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.Disabled'))
       </nobr>
@@ -46,10 +46,10 @@
 
   <tr>
     <td class="description">
-      <input type="hidden" name="accessop_$atcounter" value=""/>
-      <input type="hidden" name="spectoken_$atcounter" value="$Encoder.attributeEscape($accesstoken)"/>
-      <a name="token_$atcounter">
-        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.Delete'))" onClick='Javascript:SpecOp("accessop_$atcounter","Delete","token_$atcounter")' alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.DeleteToken'))$atcounter"/>
+      <input type="hidden" name="s${SeqNum}_accessop_$atcounter" value=""/>
+      <input type="hidden" name="s${SeqNum}_spectoken_$atcounter" value="$Encoder.attributeEscape($accesstoken)"/>
+      <a name="s${SeqNum}_token_$atcounter">
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.Delete'))" onClick='Javascript:s${SeqNum}_SpecOp("s${SeqNum}_accessop_$atcounter","Delete","s${SeqNum}_token_$atcounter")' alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.DeleteToken'))$atcounter"/>
       </a>
     </td>
     <td class="value">
@@ -70,30 +70,30 @@
   <tr><td class="lightseparator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
-      <input type="hidden" name="tokencount" value="$atcounter"/>
-      <input type="hidden" name="accessop" value=""/>
-      <a name="token_$atcounter">
-        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.Add'))" onClick='Javascript:SpecAddAccessToken("token_$atcounter")' alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.AddAccessToken'))"/>
+      <input type="hidden" name="s${SeqNum}_tokencount" value="$atcounter"/>
+      <input type="hidden" name="s${SeqNum}_accessop" value=""/>
+      <a name="s${SeqNum}_token_$atcounter">
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.Add'))" onClick='Javascript:s${SeqNum}_SpecAddAccessToken("s${SeqNum}_token_$atcounter")' alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.AddAccessToken'))"/>
       </a>
     </td>
     <td class="value">
-      <input type="text" size="30" name="spectoken" value=""/>
+      <input type="text" size="30" name="s${SeqNum}_spectoken" value=""/>
     </td>
   </tr>
 </table>
 
 #else
 
-<input type="hidden" name="specsecurity" value="$SECURITY"/>
+<input type="hidden" name="s${SeqNum}_specsecurity" value="$SECURITY"/>
 
   #set($atcounter = 0)
   #foreach($accesstoken in $ACCESSTOKENS)
   
-<input type="hidden" name="spectoken_$atcounter" value="$Encoder.attributeEscape($accesstoken)"/>
+<input type="hidden" name="s${SeqNum}_spectoken_$atcounter" value="$Encoder.attributeEscape($accesstoken)"/>
 
     #set($atcounter = $atcounter + 1)
   #end
 
-<input type="hidden" name="tokencount" value="$atcounter"/>
+<input type="hidden" name="s${SeqNum}_tokencount" value="$atcounter"/>
 
 #end

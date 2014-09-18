@@ -17,11 +17,6 @@
 
 <script type="text/javascript">
 <!--
-function s${SEQNUM}_checkSpecification()
-{
-  return true;
-}
-
 function s${SEQNUM}_addFieldMapping()
 {
   if (editjob.s${SEQNUM}_fieldmapping_source.value == "")

@@ -1861,18 +1861,47 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "</table>\n"
     );
   }
-  
+
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  @Override
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+    //return "checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+    //return "checkSpecificationForSave";
+  }
+
   /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
-  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  * This method is called in the head section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
+  * that might be needed by the job editing HTML.
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     tabsArray.add(Messages.getString(locale,"FilenetConnector.DocumentClasses"));
     tabsArray.add(Messages.getString(locale,"FilenetConnector.MimeTypes"));
     tabsArray.add(Messages.getString(locale,"FilenetConnector.Folders"));
@@ -1881,56 +1910,51 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
 "\n"+
-"function checkSpecification()\n"+
-"{\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function SpecOp(n, opValue, anchorvalue)\n"+
+"function "+seqPrefix+"SpecOp(n, opValue, anchorvalue)\n"+
 "{\n"+
 "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
 "  postFormSetAnchor(anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddToPath(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddToPath(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.pathaddon.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"pathaddon.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAFolderFirst") + "\");\n"+
-"    editjob.pathaddon.focus();\n"+
+"    editjob."+seqPrefix+"pathaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"pathop\",\"AddToPath\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\",\"AddToPath\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddMatch(docclass, anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddMatch(docclass, anchorvalue)\n"+
 "{\n"+
-"  if (eval(\"editjob.matchfield_\"+docclass+\".value\") == \"\")\n"+
+"  if (eval(\"editjob."+seqPrefix+"matchfield_\"+docclass+\".value\") == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAFieldFirst") + "\");\n"+
-"    eval(\"editjob.matchfield_\"+docclass+\".focus()\");\n"+
+"    eval(\"editjob."+seqPrefix+"matchfield_\"+docclass+\".focus()\");\n"+
 "    return;\n"+
 "  }\n"+
-"  if (eval(\"editjob.matchtype_\"+docclass+\".value\") == \"\")\n"+
+"  if (eval(\"editjob."+seqPrefix+"matchtype_\"+docclass+\".value\") == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAMatchType") + "\");\n"+
-"    eval(\"editjob.matchtype_\"+docclass+\".focus()\");\n"+
+"    eval(\"editjob."+seqPrefix+"matchtype_\"+docclass+\".focus()\");\n"+
 "    return;\n"+
 "  }\n"+
 "\n"+
-"  SpecOp(\"matchop_\"+docclass,\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"matchop_\"+docclass,\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddToken(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddToken(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.spectoken.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.NullTokensNotAllowed") + "\");\n"+
-"    editjob.spectoken.focus();\n"+
+"    editjob."+seqPrefix+"spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
 "\n"+
-"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
 "//-->\n"+
@@ -1939,17 +1963,26 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   }
   
   /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
-  * form is "editjob".
+  * This method is called in the body section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate
+  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
-  *@param tabName is the current tab name.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
+  *@param tabName is the current tab name.  (actualSequenceNumber, tabName) form a unique tuple within
+  *  the job.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     int i;
     int k;
     Iterator iter;
@@ -1971,7 +2004,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
 
     // Folders tab
-    if (tabName.equals(Messages.getString(locale,"FilenetConnector.Folders")))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.Folders")) && actualSequenceNumber == connectionSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -1988,17 +2021,17 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         if (sn.getType().equals(SPEC_NODE_FOLDER))
         {
           String pathDescription = "_"+Integer.toString(k);
-          String pathOpName = "pathop"+pathDescription;
+          String pathOpName = seqPrefix+"pathop"+pathDescription;
           String startPath = sn.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
           out.print(
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
-"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"FilenetConnector.DeletePath")+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")'/>\n"+
+"      <a name=\""+seqPrefix+"path_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"FilenetConnector.DeletePath")+Integer.toString(k)+"\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+pathOpName+"\",\"Delete\",\""+seqPrefix+"path_"+Integer.toString(k)+"\")'/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(startPath)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(startPath)+"\"/>\n"+
 "      <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
 "      <nobr>"+((startPath.length() == 0)?"(root)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(startPath))+"</nobr>\n"+
 "    </td>\n"+
@@ -2020,11 +2053,11 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr>\n"+
 "    <td class=\"value\" colspan=\"2\">\n"+
 "      <nobr>\n"+
-"        <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"        <a name=\""+"path_"+Integer.toString(k)+"\">\n"
+"        <input type=\"hidden\" name=\""+seqPrefix+"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"        <a name=\""+seqPrefix+"path_"+Integer.toString(k)+"\">\n"
       );
 	
-      String pathSoFar = (String)currentContext.get("specpath");
+      String pathSoFar = (String)currentContext.get(seqPrefix+"specpath");
       if (pathSoFar == null)
         pathSoFar = "/";
 
@@ -2042,23 +2075,23 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw new ManifoldCFException("Can't find any children for root folder");
         }
         out.print(
-"          <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
-"          <input type=\"hidden\" name=\"pathop\" value=\"\"/>\n"+
-"          <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddPath") + "\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")'/>\n"+
+"          <input type=\"hidden\" name=\""+seqPrefix+"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
+"          <input type=\"hidden\" name=\""+seqPrefix+"pathop\" value=\"\"/>\n"+
+"          <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddPath") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\"pathop\",\"Add\",\""+seqPrefix+"path_"+Integer.toString(k+1)+"\")'/>\n"+
 "          &nbsp;"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathSoFar)+"\n"
         );
         if (pathSoFar.length() > 0 && !pathSoFar.equals("/"))
         {
           out.print(
-"          <input type=\"button\" value=\"-\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.RemoveFromPath") + "\" onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")'/>\n"
+"          <input type=\"button\" value=\"-\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.RemoveFromPath") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")'/>\n"
           );
         }
         if (childList.length > 0)
         {
           out.print(
 "          <nobr>\n"+
-"            <input type=\"button\" value=\"+\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddToPath") + "\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
-"            <select multiple=\"false\" name=\"pathaddon\" size=\"4\">\n"+
+"            <input type=\"button\" value=\"+\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddToPath") + "\" onClick='Javascript:"+seqPrefix+"SpecAddToPath(\""+seqPrefix+"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
+"            <select multiple=\"false\" name=\""+seqPrefix+"pathaddon\" size=\"4\">\n"+
 "              <option value=\"\" selected=\"selected\">-- " + Messages.getBodyString(locale,"FilenetConnector.PickAFolder") + " --</option>\n"
           );
           int j = 0;
@@ -2108,21 +2141,21 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           String pathDescription = "_"+Integer.toString(k);
           String startPath = sn.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
           out.print(
-"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(startPath)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(startPath)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
     
     // Document classes tab
-    if (tabName.equals(Messages.getString(locale,"FilenetConnector.DocumentClasses")))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.DocumentClasses")) && actualSequenceNumber == connectionSequenceNumber)
     {
       out.print(
-"<input type=\"hidden\" name=\"hasdocumentclasses\" value=\"true\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"hasdocumentclasses\" value=\"true\"/>\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
       );
@@ -2177,7 +2210,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "            <nobr>" + Messages.getBodyString(locale,"FilenetConnector.Include") + "</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"value\">\n"+
-"            <nobr><input type=\"checkbox\" name=\"documentclasses\" "+((spec != null)?"checked=\"true\"":"")+" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\"></input></nobr>\n"+
+"            <nobr><input type=\"checkbox\" name=\""+seqPrefix+"documentclasses\" "+((spec != null)?"checked=\"true\"":"")+" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\"></input></nobr>\n"+
 "          </td>\n"+
 "        </tr>\n"+
 "        <tr>\n"+
@@ -2206,26 +2239,26 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             String matchType = spec.getMatchType(q);
             String matchField = spec.getMatchField(q);
             String matchValue = spec.getMatchValue(q);
-            String opName = "matchop_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" +Integer.toString(q);
-            String labelName = "match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
+            String opName = seqPrefix+"matchop_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" +Integer.toString(q);
+            String labelName = seqPrefix+"match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
             out.print(
 "              <tr>\n"+
 "                <td class=\"description\">\n"+
 "                  <input type=\"hidden\" name=\""+opName+"\" value=\"\"/>\n"+
 "                  <a name=\""+labelName+"\">\n"+
-"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + documentClass+" match # "+Integer.toString(q)+"\" onClick='Javascript:SpecOp(\""+opName+"\",\"Delete\",\""+labelName+"\")'/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + documentClass+" match # "+Integer.toString(q)+"\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+opName+"\",\"Delete\",\""+labelName+"\")'/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <input type=\"hidden\" name=\"matchfield_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchField)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"matchfield_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchField)+"\"/>\n"+
 "                  <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchField)+"</nobr>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <input type=\"hidden\" name=\"matchtype_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+matchType+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"matchtype_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+matchType+"\"/>\n"+
 "                  <nobr>"+matchType+"</nobr>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <input type=\"hidden\" name=\"matchvalue_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchValue)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"matchvalue_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchValue)+"\"/>\n"+
 "                  <nobr>\""+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchValue)+"\"</nobr>\n"+
 "                </td>\n"+
 "              </tr>\n"
@@ -2238,20 +2271,20 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "              <tr><td class=\"message\" colspan=\"4\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.NoCriteriaSpecified") + "</nobr></td></tr>\n"
             );
           }
-          String addLabelName = "match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
-          String addOpName = "matchop_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass);
+          String addLabelName = seqPrefix+"match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
+          String addOpName = seqPrefix+"matchop_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass);
           out.print(
 "              <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
 "              <tr>\n"+
 "                <td class=\"description\">\n"+
-"                  <input type=\"hidden\" name=\""+"matchcount_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+Integer.toString(matchCount)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"matchcount_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+Integer.toString(matchCount)+"\"/>\n"+
 "                  <input type=\"hidden\" name=\""+addOpName+"\" value=\"\"/>\n"+
 "                  <a name=\""+addLabelName+"\">\n"+
-"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddMatchFor") +org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" onClick='Javascript:SpecAddMatch(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\",\"match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")'/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddMatchFor") +org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" onClick='Javascript:"+seqPrefix+"SpecAddMatch(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\",\""+seqPrefix+"match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")'/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <select name=\"matchfield_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" size=\"5\">\n"
+"                  <select name=\""+seqPrefix+"matchfield_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" size=\"5\">\n"
           );
           q = 0;
           while (q < fieldArray.length)
@@ -2266,14 +2299,14 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "                  </select>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <select name=\"matchtype_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\">\n"+
+"                  <select name=\""+seqPrefix+"matchtype_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\">\n"+
 "                    <option value=\"=\">" + Messages.getBodyString(locale,"FilenetConnector.Equals") + "</option>\n"+
 "                    <option value=\"!=\">" + Messages.getBodyString(locale,"FilenetConnector.NotEquals") + "</option>\n"+
 "                    <option value=\"LIKE\">" + Messages.getBodyString(locale,"FilenetConnector.Like") + "</option>\n"+
 "                  </select>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <input name=\"matchvalue_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" type=\"text\" size=\"32\" value=\"\"/>\n"+
+"                  <input name=\""+seqPrefix+"matchvalue_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" type=\"text\" size=\"32\" value=\"\"/>\n"+
 "                </td>\n"+
 "              </tr>\n"+
           
@@ -2285,7 +2318,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "            <nobr>" + Messages.getBodyString(locale,"FilenetConnector.IngestAllMetadataFields") + "</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"value\">\n"+
-"            <nobr><input type=\"checkbox\" name=\"allmetadata_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\"true\" "+((spec != null && spec.getAllMetadata())?"checked=\"\"":"")+"></input></nobr><br/>\n"+
+"            <nobr><input type=\"checkbox\" name=\""+seqPrefix+"allmetadata_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\"true\" "+((spec != null && spec.getAllMetadata())?"checked=\"\"":"")+"></input></nobr><br/>\n"+
 "          </td>\n"+
 "        </tr>\n"+
 "        <tr>\n"+
@@ -2294,7 +2327,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "          </td>\n"+
 "          <td class=\"value\">\n"+
 "            <nobr>\n"+
-"              <select name=\""+"metadatafield_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" multiple=\"true\" size=\"5\">\n"
+"              <select name=\""+seqPrefix+"metadatafield_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" multiple=\"true\" size=\"5\">\n"
           );
           j = 0;
           while (j < fieldArray.length)
@@ -2324,7 +2357,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"hasdocumentclasses\" value=\"true\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"hasdocumentclasses\" value=\"true\"/>\n"
       );
       iter = documentClasses.keySet().iterator();
       while (iter.hasNext())
@@ -2334,7 +2367,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         if (spec.getAllMetadata())
         {
           out.print(
-"<input type=\"hidden\" name=\""+"allmetadata_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\"true\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"allmetadata_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\"true\"/>\n"
           );
         }
         else
@@ -2345,7 +2378,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             String field = metadataFields[q++];
             out.print(
-"<input type=\"hidden\" name=\""+"metadatafield_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(field)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"metadatafield_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(field)+"\"/>\n"
             );
           }
         }
@@ -2359,15 +2392,15 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           String matchField = spec.getMatchField(q);
           String matchValue = spec.getMatchValue(q);
           out.print(
-"<input type=\"hidden\" name=\""+"matchfield_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchField)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"matchtype_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)+"\" value=\""+matchType+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"matchvalue_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchValue)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"matchfield_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchField)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"matchtype_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)+"\" value=\""+matchType+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"matchvalue_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchValue)+"\"/>\n"
           );
           q++;
         }
         out.print(
-"<input type=\"hidden\" name=\""+"matchcount_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+Integer.toString(matchCount)+"\"/>\n"+
-"<input type=\"hidden\" name=\"documentclasses\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"matchcount_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+Integer.toString(matchCount)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"documentclasses\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\"/>\n"
         );
       }
     }
@@ -2387,10 +2420,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"FilenetConnector.MimeTypes")))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.MimeTypes")) && actualSequenceNumber == connectionSequenceNumber)
     {
       out.print(
-"<input type=\"hidden\" name=\"hasmimetypes\" value=\"true\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"hasmimetypes\" value=\"true\"/>\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
       );
@@ -2423,7 +2456,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         out.print(
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.MimeTypesToInclude") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <select name=\"mimetypes\" size=\"10\" multiple=\"true\">\n"
+"      <select name=\""+seqPrefix+"mimetypes\" size=\"10\" multiple=\"true\">\n"
         );
         i = 0;
         while (i < mimeTypesArray.length)
@@ -2459,7 +2492,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"hasmimetypes\" value=\"true\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"hasmimetypes\" value=\"true\"/>\n"
       );
       if (mimeTypes != null)
       {
@@ -2468,7 +2501,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         {
           String mimeType = (String)iter.next();
           out.print(
-"<input type=\"hidden\" name=\"mimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeType)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"mimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeType)+"\"/>\n"
           );
         }
       }
@@ -2491,7 +2524,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"FilenetConnector.Security")))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.Security")) && actualSequenceNumber == connectionSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2499,8 +2532,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.Security2") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+((securityOn)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"FilenetConnector.Enabled") +
-"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"FilenetConnector.Disabled") + 
+"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"on\" "+((securityOn)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"FilenetConnector.Enabled") +
+"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"FilenetConnector.Disabled") + 
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -2514,15 +2547,15 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         if (sn.getType().equals("access"))
         {
           String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = "accessop"+accessDescription;
+          String accessOpName = seqPrefix+"accessop"+accessDescription;
           String token = sn.getAttributeValue("token");
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\""+ Messages.getAttributeString(locale,"FilenetConnector.DeleteAccessToken")+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")'/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\""+ Messages.getAttributeString(locale,"FilenetConnector.DeleteAccessToken")+Integer.toString(k)+"\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"token_"+Integer.toString(k)+"\")'/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2545,14 +2578,14 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddAccessToken") + "\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")'/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddAccessToken") + "\" onClick='Javascript:"+seqPrefix+"SpecAddToken(\""+seqPrefix+"token_"+Integer.toString(k+1)+"\")'/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -2561,7 +2594,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
       );
       // Finally, go through forced ACL
       i = 0;
@@ -2574,34 +2607,41 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           String accessDescription = "_"+Integer.toString(k);
           String token = sn.getAttributeValue("token");
           out.print(
-"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
   }
   
   /** Process a specification post.
-  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
-  * The name of the posted form is "editjob".
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form
+  * data for a connection has been posted.  Its purpose is to gather form information and modify the
+  * document specification accordingly.  The name of the posted form is always "editjob".
+  * The connector will be connected before this method can be called.
   *@param variableContext contains the post data, including binary file-upload information.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
-  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of
+  * the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
+    int connectionSequenceNumber)
     throws ManifoldCFException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     String[] x;
     String y;
     int i;
 
-    if (variableContext.getParameter("hasdocumentclasses") != null)
+    if (variableContext.getParameter(seqPrefix+"hasdocumentclasses") != null)
     {
       i = 0;
       while (i < ds.getChildCount())
@@ -2611,7 +2651,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         else
           i++;
       }
-      x = variableContext.getParameterValues("documentclasses");
+      x = variableContext.getParameterValues(seqPrefix+"documentclasses");
       if (x != null)
       {
         i = 0;
@@ -2621,14 +2661,14 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           SpecificationNode node = new SpecificationNode(SPEC_NODE_DOCUMENTCLASS);
           node.setAttribute(SPEC_ATTRIBUTE_VALUE,value);
           // Get the allmetadata value for this document class
-          String allmetadata = variableContext.getParameter("allmetadata_"+value);
+          String allmetadata = variableContext.getParameter(seqPrefix+"allmetadata_"+value);
           if (allmetadata == null)
             allmetadata = "false";
           if (allmetadata.equals("true"))
             node.setAttribute(SPEC_ATTRIBUTE_ALLMETADATA,allmetadata);
           else
           {
-            String[] fields = variableContext.getParameterValues("metadatafield_"+value);
+            String[] fields = variableContext.getParameterValues(seqPrefix+"metadatafield_"+value);
             if (fields != null)
             {
               int j = 0;
@@ -2643,15 +2683,15 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           }
 			
           // Now, gather up matches too
-          String matchCountString = variableContext.getParameter("matchcount_"+value);
+          String matchCountString = variableContext.getParameter(seqPrefix+"matchcount_"+value);
           int matchCount = Integer.parseInt(matchCountString);
           int q = 0;
           while (q < matchCount)
           {
-            String matchOp = variableContext.getParameter("matchop_"+value+"_"+Integer.toString(q));
-            String matchType = variableContext.getParameter("matchtype_"+value+"_"+Integer.toString(q));
-            String matchField = variableContext.getParameter("matchfield_"+value+"_"+Integer.toString(q));
-            String matchValue = variableContext.getParameter("matchvalue_"+value+"_"+Integer.toString(q));
+            String matchOp = variableContext.getParameter(seqPrefix+"matchop_"+value+"_"+Integer.toString(q));
+            String matchType = variableContext.getParameter(seqPrefix+"matchtype_"+value+"_"+Integer.toString(q));
+            String matchField = variableContext.getParameter(seqPrefix+"matchfield_"+value+"_"+Integer.toString(q));
+            String matchValue = variableContext.getParameter(seqPrefix+"matchvalue_"+value+"_"+Integer.toString(q));
             if (matchOp == null || !matchOp.equals("Delete"))
             {
               SpecificationNode matchNode = new SpecificationNode(SPEC_NODE_MATCH);
@@ -2667,12 +2707,12 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           ds.addChild(ds.getChildCount(),node);
 			
           // Look for the add operation
-          String addMatchOp = variableContext.getParameter("matchop_"+value);
+          String addMatchOp = variableContext.getParameter(seqPrefix+"matchop_"+value);
           if (addMatchOp != null && addMatchOp.equals("Add"))
           {
-            String matchType = variableContext.getParameter("matchtype_"+value);
-            String matchField = variableContext.getParameter("matchfield_"+value);
-            String matchValue = variableContext.getParameter("matchvalue_"+value);
+            String matchType = variableContext.getParameter(seqPrefix+"matchtype_"+value);
+            String matchField = variableContext.getParameter(seqPrefix+"matchfield_"+value);
+            String matchValue = variableContext.getParameter(seqPrefix+"matchvalue_"+value);
             SpecificationNode matchNode = new SpecificationNode(SPEC_NODE_MATCH);
             matchNode.setAttribute(SPEC_ATTRIBUTE_MATCHTYPE,matchType);
             matchNode.setAttribute(SPEC_ATTRIBUTE_FIELDNAME,matchField);
@@ -2686,7 +2726,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 	
-    if (variableContext.getParameter("hasmimetypes") != null)
+    if (variableContext.getParameter(seqPrefix+"hasmimetypes") != null)
     {
       i = 0;
       while (i < ds.getChildCount())
@@ -2696,7 +2736,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         else
           i++;
       }
-      x = variableContext.getParameterValues("mimetypes");
+      x = variableContext.getParameterValues(seqPrefix+"mimetypes");
       if (x != null)
       {
         i = 0;
@@ -2710,7 +2750,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    y = variableContext.getParameter("pathcount");
+    y = variableContext.getParameter(seqPrefix+"pathcount");
     if (y != null)
     {
       // Delete all path specs first
@@ -2731,7 +2771,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       while (i < pathCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "pathop"+pathDescription;
+        String pathOpName = seqPrefix+"pathop"+pathDescription;
         y = variableContext.getParameter(pathOpName);
         if (y != null && y.equals("Delete"))
         {
@@ -2740,7 +2780,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           continue;
         }
         // Path inserts won't happen until the very end
-        String path = variableContext.getParameter("specpath"+pathDescription);
+        String path = variableContext.getParameter(seqPrefix+"specpath"+pathDescription);
         SpecificationNode node = new SpecificationNode(SPEC_NODE_FOLDER);
         node.setAttribute(SPEC_ATTRIBUTE_VALUE,path);
 
@@ -2749,10 +2789,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
 
       // See if there's a global add operation
-      String op = variableContext.getParameter("pathop");
+      String op = variableContext.getParameter(seqPrefix+"pathop");
       if (op != null && op.equals("Add"))
       {
-        String path = variableContext.getParameter("specpath");
+        String path = variableContext.getParameter(seqPrefix+"specpath");
         SpecificationNode node = new SpecificationNode(SPEC_NODE_FOLDER);
         node.setAttribute(SPEC_ATTRIBUTE_VALUE,path);
         ds.addChild(ds.getChildCount(),node);
@@ -2760,18 +2800,18 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       else if (op != null && op.equals("Up"))
       {
         // Strip off end
-        String path = variableContext.getParameter("specpath");
+        String path = variableContext.getParameter(seqPrefix+"specpath");
         int k = path.lastIndexOf("/");
         if (k <= 0)
           path = "/";
         else
           path = path.substring(0,k);
-        currentContext.save("specpath",path);
+        currentContext.save(seqPrefix+"specpath",path);
       }
       else if (op != null && op.equals("AddToPath"))
       {
-        String path = variableContext.getParameter("specpath");
-        String addon = variableContext.getParameter("pathaddon");
+        String path = variableContext.getParameter(seqPrefix+"specpath");
+        String addon = variableContext.getParameter(seqPrefix+"pathaddon");
         if (addon != null && addon.length() > 0)
         {
           if (path.length() <= 1)
@@ -2779,11 +2819,11 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           else
             path += "/" + addon;
         }
-        currentContext.save("specpath",path);
+        currentContext.save(seqPrefix+"specpath",path);
       }
     }
 
-    y = variableContext.getParameter("specsecurity");
+    y = variableContext.getParameter(seqPrefix+"specsecurity");
     if (y != null)
     {
       // Delete all security entries first
@@ -2803,7 +2843,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
     }
 
-    y = variableContext.getParameter("tokencount");
+    y = variableContext.getParameter(seqPrefix+"tokencount");
     if (y != null)
     {
       // Delete all file specs first
@@ -2822,7 +2862,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       while (i < accessCount)
       {
         String accessDescription = "_"+Integer.toString(i);
-        String accessOpName = "accessop"+accessDescription;
+        String accessOpName = seqPrefix+"accessop"+accessDescription;
         y = variableContext.getParameter(accessOpName);
         if (y != null && y.equals("Delete"))
         {
@@ -2831,17 +2871,17 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           continue;
         }
         // Get the stuff we need
-        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        String accessSpec = variableContext.getParameter(seqPrefix+"spectoken"+accessDescription);
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token",accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
 
-      String op = variableContext.getParameter("accessop");
+      String op = variableContext.getParameter(seqPrefix+"accessop");
       if (op != null && op.equals("Add"))
       {
-        String accessspec = variableContext.getParameter("spectoken");
+        String accessspec = variableContext.getParameter(seqPrefix+"spectoken");
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token",accessspec);
         ds.addChild(ds.getChildCount(),node);
@@ -2852,13 +2892,18 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   }
   
   /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document
+  * specification information to the user.  The coder can presume that the HTML that is output from
+  * this configuration will be within appropriate <html> and <body> tags.
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
     int i;

@@ -2396,130 +2396,154 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     );
   }
   
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  @Override
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+    //return "checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+    //return "checkSpecificationForSave";
+  }
+
   /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
-  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  * This method is called in the head section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
+  * that might be needed by the job editing HTML.
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Paths"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Filters"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Security"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Metadata"));
+    
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
 "\n"+
-"function checkSpecification()\n"+
-"{\n"+
-"  // Does nothing right now.\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function SpecOp(n, opValue, anchorvalue)\n"+
+"function "+seqPrefix+"SpecOp(n, opValue, anchorvalue)\n"+
 "{\n"+
 "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
 "  postFormSetAnchor(anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddToPath(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddToPath(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.pathaddon.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"pathaddon.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAFolderFirst")+"\");\n"+
-"    editjob.pathaddon.focus();\n"+
+"    editjob."+seqPrefix+"pathaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
 "\n"+
-"  SpecOp(\"pathop\",\"AddToPath\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\",\"AddToPath\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddFilespec(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddFilespec(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.specfile.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"specfile.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TypeInAFileSpecification")+"\");\n"+
-"    editjob.specfile.focus();\n"+
+"    editjob."+seqPrefix+"specfile.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"fileop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"fileop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddToken(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddToken(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.spectoken.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TypeInAnAccessToken")+"\");\n"+
-"    editjob.spectoken.focus();\n"+
+"    editjob."+seqPrefix+"spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddToMetadata(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddToMetadata(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.metadataaddon.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"metadataaddon.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAFolderFirst")+"\");\n"+
-"    editjob.metadataaddon.focus();\n"+
+"    editjob."+seqPrefix+"metadataaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"metadataop\",\"AddToPath\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"AddToPath\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecSetWorkspace(anchorvalue)\n"+
+"function "+seqPrefix+"SpecSetWorkspace(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.metadataaddon.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"metadataaddon.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAWorkspaceFirst")+"\");\n"+
-"    editjob.metadataaddon.focus();\n"+
+"    editjob."+seqPrefix+"metadataaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"metadataop\",\"SetWorkspace\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"SetWorkspace\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddCategory(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddCategory(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.categoryaddon.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"categoryaddon.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectACategoryFirst")+"\");\n"+
-"    editjob.categoryaddon.focus();\n"+
+"    editjob."+seqPrefix+"categoryaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"metadataop\",\"AddCategory\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"AddCategory\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddMetadata(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddMetadata(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.attributeselect.value == \"\" && editjob.attributeall.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"attributeselect.value == \"\" && editjob."+seqPrefix+"attributeall.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAtLeastOneAttributeFirst")+"\");\n"+
-"    editjob.attributeselect.focus();\n"+
+"    editjob."+seqPrefix+"attributeselect.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"metadataop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddMapping(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddMapping(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.specmatch.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"specmatch.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.MatchStringCannotBeEmpty")+"\");\n"+
-"    editjob.specmatch.focus();\n"+
+"    editjob."+seqPrefix+"specmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  if (!isRegularExpression(editjob.specmatch.value))\n"+
+"  if (!isRegularExpression(editjob."+seqPrefix+"specmatch.value))\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.MatchStringMustBeValidRegularExpression")+"\");\n"+
-"    editjob.specmatch.focus();\n"+
+"    editjob."+seqPrefix+"specmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"specmappingop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specmappingop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "//-->\n"+
 "</script>\n"
@@ -2527,17 +2551,26 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
   
   /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
-  * form is "editjob".
+  * This method is called in the body section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate
+  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
-  *@param tabName is the current tab name.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
+  *@param tabName is the current tab name.  (actualSequenceNumber, tabName) form a unique tuple within
+  *  the job.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     int i;
     int k;
 
@@ -2554,7 +2587,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           userWorkspaces = true;
       }
     }
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Paths")))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Paths")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2564,8 +2597,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "      <nobr>"+Messages.getBodyString(locale,"LivelinkConnector.CrawlUserWorkspaces")+"</nobr>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"checkbox\" name=\"userworkspace\" value=\"true\""+(userWorkspaces?" checked=\"true\"":"")+"/>\n"+
-"      <input type=\"hidden\" name=\"userworkspace_present\" value=\"true\"/>\n"+
+"      <input type=\"checkbox\" name=\""+seqPrefix+"userworkspace\" value=\"true\""+(userWorkspaces?" checked=\"true\"":"")+"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"userworkspace_present\" value=\"true\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -2579,14 +2612,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (sn.getType().equals("startpoint"))
         {
           String pathDescription = "_"+Integer.toString(k);
-          String pathOpName = "pathop"+pathDescription;
+          String pathOpName = seqPrefix+"pathop"+pathDescription;
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
 "      <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeletePath")+Integer.toString(k)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"path_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+pathOpName+"\",\"Delete\",\""+seqPrefix+"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeletePath")+Integer.toString(k)+"\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2609,10 +2642,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+"      <input type=\"hidden\" name=\""+seqPrefix+"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
   
-      String pathSoFar = (String)currentContext.get("specpath");
+      String pathSoFar = (String)currentContext.get(seqPrefix+"specpath");
       if (pathSoFar == null)
       pathSoFar = "";
 
@@ -2630,10 +2663,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             throw new ManifoldCFException("Can't find any children for root folder");
         }
         out.print(
-"      <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"pathop\" value=\"\"/>\n"+
-"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddPath")+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"pathop\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"path_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\",\"Add\",\""+seqPrefix+"path_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddPath")+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2642,14 +2675,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (pathSoFar.length() > 0)
         {
           out.print(
-"      <input type=\"button\" value=\"-\" onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")' alt=\"Back up path\"/>\n"
+"      <input type=\"button\" value=\"-\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\",\"Up\",\""+seqPrefix+"path_"+Integer.toString(k)+"\")' alt=\"Back up path\"/>\n"
           );
         }
         if (childList.length > 0)
         {
           out.print(
-"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToPath")+"\"/>&nbsp;\n"+
-"      <select multiple=\"false\" name=\"pathaddon\" size=\"2\">\n"+
+"      <input type=\"button\" value=\"+\" onClick='Javascript:"+seqPrefix+"SpecAddToPath(\""+seqPrefix+"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToPath")+"\"/>&nbsp;\n"+
+"      <select multiple=\"false\" name=\""+seqPrefix+"pathaddon\" size=\"2\">\n"+
 "        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickAFolder")+"</option>\n"
           );
           int j = 0;
@@ -2693,20 +2726,20 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           String pathDescription = "_"+Integer.toString(k);
           out.print(
-"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"<input type=\"hidden\" name=\"userworkspace\" value=\""+(userWorkspaces?"true":"false")+"\"/>\n"+
-"<input type=\"hidden\" name=\"userworkspace_present\" value=\"true\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"userworkspace\" value=\""+(userWorkspaces?"true":"false")+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"userworkspace_present\" value=\"true\"/>\n"
       );
     }
 
     // Filter tab
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Filters")))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Filters")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2721,21 +2754,21 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (sn.getType().equals("include") || sn.getType().equals("exclude"))
         {
           String fileSpecDescription = "_"+Integer.toString(k);
-          String fileOpName = "fileop"+fileSpecDescription;
+          String fileOpName = seqPrefix+"fileop"+fileSpecDescription;
           String filespec = sn.getAttributeValue("filespec");
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+"specfiletype"+fileSpecDescription+"\" value=\""+sn.getType()+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specfiletype"+fileSpecDescription+"\" value=\""+sn.getType()+"\"/>\n"+
 "      <input type=\"hidden\" name=\""+fileOpName+"\" value=\"\"/>\n"+
-"      <a name=\""+"filespec_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+fileOpName+"\",\"Delete\",\"filespec_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteFilespec")+Integer.toString(k)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"filespec_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+fileOpName+"\",\"Delete\",\""+seqPrefix+"filespec_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteFilespec")+Integer.toString(k)+"\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
 "      "+(sn.getType().equals("include")?"Include:":"")+"\n"+
 "      "+(sn.getType().equals("exclude")?"Exclude:":"")+"\n"+
-"      &nbsp;<input type=\"hidden\" name=\""+"specfile"+fileSpecDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"+
+"      &nbsp;<input type=\"hidden\" name=\""+seqPrefix+"specfile"+fileSpecDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"+
 "      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filespec)+"\n"+
 "    </td>\n"+
 "  </tr>\n"
@@ -2755,18 +2788,18 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"filecount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"fileop\" value=\"\"/>\n"+
-"      <a name=\""+"filespec_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddFilespec(\"filespec_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddFileSpecification")+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"filecount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"fileop\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"filespec_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecAddFilespec(\""+seqPrefix+"filespec_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddFileSpecification")+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <select name=\"specfiletype\" size=\"1\">\n"+
+"      <select name=\""+seqPrefix+"specfiletype\" size=\"1\">\n"+
 "        <option value=\"include\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.Include")+"</option>\n"+
 "        <option value=\"exclude\">"+Messages.getBodyString(locale,"LivelinkConnector.Exclude")+"</option>\n"+
 "      </select>&nbsp;\n"+
-"      <input type=\"text\" size=\"30\" name=\"specfile\" value=\"\"/>\n"+
+"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"specfile\" value=\"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -2785,14 +2818,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           String fileSpecDescription = "_"+Integer.toString(k);
           String filespec = sn.getAttributeValue("filespec");
           out.print(
-"<input type=\"hidden\" name=\""+"specfiletype"+fileSpecDescription+"\" value=\""+sn.getType()+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specfile"+fileSpecDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specfiletype"+fileSpecDescription+"\" value=\""+sn.getType()+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specfile"+fileSpecDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"filecount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"filecount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
 
@@ -2814,7 +2847,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Security")))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Security")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2822,8 +2855,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SecurityColon")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"LivelinkConnector.Enabled")+"\n"+
-"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"LivelinkConnector.Disabled")+"\n"+
+"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"LivelinkConnector.Enabled")+"\n"+
+"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"LivelinkConnector.Disabled")+"\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -2837,15 +2870,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (sn.getType().equals("access"))
         {
           String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = "accessop"+accessDescription;
+          String accessOpName = seqPrefix+"accessop"+accessDescription;
           String token = sn.getAttributeValue("token");
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2868,14 +2901,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddAccessToken")+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecAddToken(\""+seqPrefix+"token_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddAccessToken")+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -2884,7 +2917,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
       );
       // Finally, go through forced ACL
       i = 0;
@@ -2897,13 +2930,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           String accessDescription = "_"+Integer.toString(k);
           String token = sn.getAttributeValue("token");
           out.print(
-"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
 
@@ -2953,19 +2986,19 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Metadata")))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Metadata")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
-"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
-"<input type=\"hidden\" name=\"specmappingop\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specmappingop\" value=\"\"/>\n"+
 "\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.IngestALLMetadata")+"</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
-"      <nobr><input type=\"radio\" name=\"specallmetadata\" value=\"true\" "+(ingestAllMetadata.equals("true")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"LivelinkConnector.Yes")+"</nobr>&nbsp;\n"+
-"      <nobr><input type=\"radio\" name=\"specallmetadata\" value=\"false\" "+(ingestAllMetadata.equals("false")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"LivelinkConnector.No")+"</nobr>\n"+
+"      <nobr><input type=\"radio\" name=\""+seqPrefix+"specallmetadata\" value=\"true\" "+(ingestAllMetadata.equals("true")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"LivelinkConnector.Yes")+"</nobr>&nbsp;\n"+
+"      <nobr><input type=\"radio\" name=\""+seqPrefix+"specallmetadata\" value=\"false\" "+(ingestAllMetadata.equals("false")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"LivelinkConnector.No")+"</nobr>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
@@ -2979,7 +3012,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (sn.getType().equals("metadata"))
         {
           String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = "metadataop"+accessDescription;
+          String accessOpName = seqPrefix+"metadataop"+accessDescription;
           String categoryPath = sn.getAttributeValue("category");
           String isAll = sn.getAttributeValue("all");
           if (isAll == null)
@@ -2991,11 +3024,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\">\n"+
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"speccategory"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(categoryPath)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specattributeall"+accessDescription+"\" value=\""+isAll+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specattribute"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"+
-"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"speccategory"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(categoryPath)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specattributeall"+accessDescription+"\" value=\""+isAll+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specattribute"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"metadata_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
@@ -3018,10 +3051,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\">\n"+
-"      <a name=\""+"metadata_"+Integer.toString(k)+"\"></a>\n"+
-"      <input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"
+"      <a name=\""+seqPrefix+"metadata_"+Integer.toString(k)+"\"></a>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
-      String categorySoFar = (String)currentContext.get("speccategory");
+      String categorySoFar = (String)currentContext.get(seqPrefix+"speccategory");
       if (categorySoFar == null)
       categorySoFar = "";
       // Grab next folder/project list, and the appropriate category list
@@ -3055,22 +3088,22 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           }
         }
         out.print(
-"      <input type=\"hidden\" name=\"speccategory\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(categorySoFar)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"metadataop\" value=\"\"/>\n"
+"      <input type=\"hidden\" name=\""+seqPrefix+"speccategory\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(categorySoFar)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"metadataop\" value=\"\"/>\n"
         );
         if (attributeList != null)
         {
           // We have a valid category!
           out.print(
-"      <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddMetadataItem")+"\"/>&nbsp;\n"+
+"      <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecAddMetadata(\""+seqPrefix+"metadata_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddMetadataItem")+"\"/>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(categorySoFar)+":<input type=\"button\" value=\"-\" onClick='Javascript:SpecOp(\"metadataop\",\"Up\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.BackUpMetadataPath")+"\"/>&nbsp;\n"+
+"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(categorySoFar)+":<input type=\"button\" value=\"-\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"Up\",\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.BackUpMetadataPath")+"\"/>&nbsp;\n"+
 "      <table class=\"displaytable\">\n"+
 "        <tr>\n"+
 "          <td class=\"value\">\n"+
-"            <input type=\"checkbox\" name=\"attributeall\" value=\"true\"/>"+Messages.getBodyString(locale,"LivelinkConnector.AllAttributesInThisCategory")+"<br/>\n"+
-"            <select multiple=\"true\" name=\"attributeselect\" size=\"2\">\n"+
+"            <input type=\"checkbox\" name=\""+seqPrefix+"attributeall\" value=\"true\"/>"+Messages.getBodyString(locale,"LivelinkConnector.AllAttributesInThisCategory")+"<br/>\n"+
+"            <select multiple=\"true\" name=\""+seqPrefix+"attributeselect\" size=\"2\">\n"+
 "              <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickAttributes")+"</option>\n"
           );
           int l = 0;
@@ -3093,8 +3126,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           out.print(
 "    </td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
-"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecSetWorkspace(\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMetadataPath")+"\"/>&nbsp;\n"+
-"      <select multiple=\"false\" name=\"metadataaddon\" size=\"2\">\n"+
+"      <input type=\"button\" value=\"+\" onClick='Javascript:"+seqPrefix+"SpecSetWorkspace(\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMetadataPath")+"\"/>&nbsp;\n"+
+"      <select multiple=\"false\" name=\""+seqPrefix+"metadataaddon\" size=\"2\">\n"+
 "        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickWorkspace")+"</option>\n"
           );
           int j = 0;
@@ -3119,14 +3152,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           if (categorySoFar.length() > 0)
           {
             out.print(
-"      <input type=\"button\" value=\"-\" onClick='Javascript:SpecOp(\"metadataop\",\"Up\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.BackUpMetadataPath")+"\"/>&nbsp;\n"
+"      <input type=\"button\" value=\"-\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"Up\",\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.BackUpMetadataPath")+"\"/>&nbsp;\n"
             );
           }
           if (childList.length > 0)
           {
             out.print(
-"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddToMetadata(\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMetadataPath")+"\"/>&nbsp;\n"+
-"      <select multiple=\"false\" name=\"metadataaddon\" size=\"2\">\n"+
+"      <input type=\"button\" value=\"+\" onClick='Javascript:"+seqPrefix+"SpecAddToMetadata(\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMetadataPath")+"\"/>&nbsp;\n"+
+"      <select multiple=\"false\" name=\""+seqPrefix+"metadataaddon\" size=\"2\">\n"+
 "        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickAFolder")+"</option>\n"
             );
             int j = 0;
@@ -3144,8 +3177,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           if (categoryList.length > 0)
           {
             out.print(
-"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddCategory(\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCategory")+"\"/>&nbsp;\n"+
-"      <select multiple=\"false\" name=\"categoryaddon\" size=\"2\">\n"+
+"      <input type=\"button\" value=\"+\" onClick='Javascript:"+seqPrefix+"SpecAddCategory(\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCategory")+"\"/>&nbsp;\n"+
+"      <select multiple=\"false\" name=\""+seqPrefix+"categoryaddon\" size=\"2\">\n"+
 "        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickACategory")+"</option>\n"
             );
             int j = 0;
@@ -3179,11 +3212,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.PathAttributeName")+"</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <input type=\"text\" name=\"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"      <input type=\"text\" name=\""+seqPrefix+"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
 "    </td>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.PathSeparatorString")+"</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <input type=\"text\" name=\"specpathnameseparator\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameSeparator)+"\"/>\n"+
+"      <input type=\"text\" name=\""+seqPrefix+"specpathnameseparator\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameSeparator)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
@@ -3196,17 +3229,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
-"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\""+seqPrefix+"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"\n"+
 "    </td>\n"+
 "    <td class=\"value\">==></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"\n"+
 "    </td>\n"+
 "  </tr>\n"
         );
@@ -3222,13 +3255,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMappings")+"\" value=\"Add\"/>\n"+
+"      <a name=\""+seqPrefix+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecAddMapping(\""+seqPrefix+"mapping_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMappings")+"\" value=\"Add\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
-"    <td class=\"value\">Match regexp:&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">Match regexp:&nbsp;<input type=\"text\" name=\""+seqPrefix+"specmatch\" size=\"32\" value=\"\"/></td>\n"+
 "    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\">Replace string:&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">Replace string:&nbsp;<input type=\"text\" name=\""+seqPrefix+"specreplace\" size=\"32\" value=\"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -3236,7 +3269,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specallmetadata\" value=\""+ingestAllMetadata+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specallmetadata\" value=\""+ingestAllMetadata+"\"/>\n"
       );
       // Go through the selected metadata attributes
       i = 0;
@@ -3255,18 +3288,18 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           if (attributeName == null)
             attributeName = "";
           out.print(
-"<input type=\"hidden\" name=\""+"speccategory"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(categoryPath)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specattributeall"+accessDescription+"\" value=\""+isAll+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specattribute"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"speccategory"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(categoryPath)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specattributeall"+accessDescription+"\" value=\""+isAll+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specattribute"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"<input type=\"hidden\" name=\"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
-"<input type=\"hidden\" name=\"specpathnameseparator\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameSeparator)+"\"/>\n"+
-"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specpathnameseparator\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameSeparator)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
       );
       i = 0;
       while (i < matchMap.getMatchCount())
@@ -3274,8 +3307,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         String matchString = matchMap.getMatchString(i);
         String replaceString = matchMap.getReplaceString(i);
         out.print(
-"<input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
         );
         i++;
       }
@@ -3283,21 +3316,28 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
   
   /** Process a specification post.
-  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
-  * The name of the posted form is "editjob".
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form
+  * data for a connection has been posted.  Its purpose is to gather form information and modify the
+  * document specification accordingly.  The name of the posted form is always "editjob".
+  * The connector will be connected before this method can be called.
   *@param variableContext contains the post data, including binary file-upload information.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
-  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of
+  * the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
+    int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    String userWorkspacesPresent = variableContext.getParameter("userworkspace_present");
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String userWorkspacesPresent = variableContext.getParameter(seqPrefix+"userworkspace_present");
     if (userWorkspacesPresent != null)
     {
-      String value = variableContext.getParameter("userworkspace");
+      String value = variableContext.getParameter(seqPrefix+"userworkspace");
       int i = 0;
       while (i < ds.getChildCount())
       {
@@ -3312,7 +3352,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       ds.addChild(ds.getChildCount(),sn);
     }
     
-    String xc = variableContext.getParameter("pathcount");
+    String xc = variableContext.getParameter(seqPrefix+"pathcount");
     if (xc != null)
     {
       // Delete all path specs first
@@ -3333,7 +3373,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       while (i < pathCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "pathop"+pathDescription;
+        String pathOpName = seqPrefix+"pathop"+pathDescription;
         xc = variableContext.getParameter(pathOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -3342,7 +3382,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           continue;
         }
         // Path inserts won't happen until the very end
-        String path = variableContext.getParameter("specpath"+pathDescription);
+        String path = variableContext.getParameter(seqPrefix+"specpath"+pathDescription);
         SpecificationNode node = new SpecificationNode("startpoint");
         node.setAttribute("path",path);
         ds.addChild(ds.getChildCount(),node);
@@ -3350,7 +3390,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
 
       // See if there's a global add operation
-      String op = variableContext.getParameter("pathop");
+      String op = variableContext.getParameter(seqPrefix+"pathop");
       if (op != null && op.equals("Add"))
       {
         String path = variableContext.getParameter("specpath");
@@ -3361,7 +3401,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       else if (op != null && op.equals("Up"))
       {
         // Strip off end
-        String path = variableContext.getParameter("specpath");
+        String path = variableContext.getParameter(seqPrefix+"specpath");
         int lastSlash = -1;
         int k = 0;
         while (k < path.length())
@@ -3379,12 +3419,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           path = "";
         else
           path = path.substring(0,lastSlash);
-        currentContext.save("specpath",path);
+        currentContext.save(seqPrefix+"specpath",path);
       }
       else if (op != null && op.equals("AddToPath"))
       {
-        String path = variableContext.getParameter("specpath");
-        String addon = variableContext.getParameter("pathaddon");
+        String path = variableContext.getParameter(seqPrefix+"specpath");
+        String addon = variableContext.getParameter(seqPrefix+"pathaddon");
         if (addon != null && addon.length() > 0)
         {
           StringBuilder sb = new StringBuilder();
@@ -3401,11 +3441,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           else
             path += "/" + sb.toString();
         }
-        currentContext.save("specpath",path);
+        currentContext.save(seqPrefix+"specpath",path);
       }
     }
 
-    xc = variableContext.getParameter("filecount");
+    xc = variableContext.getParameter(seqPrefix+"filecount");
     if (xc != null)
     {
       // Delete all file specs first
@@ -3424,7 +3464,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       while (i < fileCount)
       {
         String fileSpecDescription = "_"+Integer.toString(i);
-        String fileOpName = "fileop"+fileSpecDescription;
+        String fileOpName = seqPrefix+"fileop"+fileSpecDescription;
         xc = variableContext.getParameter(fileOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -3433,26 +3473,26 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           continue;
         }
         // Get the stuff we need
-        String filespecType = variableContext.getParameter("specfiletype"+fileSpecDescription);
-        String filespec = variableContext.getParameter("specfile"+fileSpecDescription);
+        String filespecType = variableContext.getParameter(seqPrefix+"specfiletype"+fileSpecDescription);
+        String filespec = variableContext.getParameter(seqPrefix+"specfile"+fileSpecDescription);
         SpecificationNode node = new SpecificationNode(filespecType);
         node.setAttribute("filespec",filespec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
 
-      String op = variableContext.getParameter("fileop");
+      String op = variableContext.getParameter(seqPrefix+"fileop");
       if (op != null && op.equals("Add"))
       {
-        String filespec = variableContext.getParameter("specfile");
-        String filespectype = variableContext.getParameter("specfiletype");
+        String filespec = variableContext.getParameter(seqPrefix+"specfile");
+        String filespectype = variableContext.getParameter(seqPrefix+"specfiletype");
         SpecificationNode node = new SpecificationNode(filespectype);
         node.setAttribute("filespec",filespec);
         ds.addChild(ds.getChildCount(),node);
       }
     }
 
-    xc = variableContext.getParameter("specsecurity");
+    xc = variableContext.getParameter(seqPrefix+"specsecurity");
     if (xc != null)
     {
       // Delete all security entries first
@@ -3472,7 +3512,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     }
 
-    xc = variableContext.getParameter("tokencount");
+    xc = variableContext.getParameter(seqPrefix+"tokencount");
     if (xc != null)
     {
       // Delete all file specs first
@@ -3491,7 +3531,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       while (i < accessCount)
       {
         String accessDescription = "_"+Integer.toString(i);
-        String accessOpName = "accessop"+accessDescription;
+        String accessOpName = seqPrefix+"accessop"+accessDescription;
         xc = variableContext.getParameter(accessOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -3500,24 +3540,24 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           continue;
         }
         // Get the stuff we need
-        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        String accessSpec = variableContext.getParameter(seqPrefix+"spectoken"+accessDescription);
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token",accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
 
-      String op = variableContext.getParameter("accessop");
+      String op = variableContext.getParameter(seqPrefix+"accessop");
       if (op != null && op.equals("Add"))
       {
-        String accessspec = variableContext.getParameter("spectoken");
+        String accessspec = variableContext.getParameter(seqPrefix+"spectoken");
         SpecificationNode node = new SpecificationNode("access");
         node.setAttribute("token",accessspec);
         ds.addChild(ds.getChildCount(),node);
       }
     }
 
-    xc = variableContext.getParameter("specallmetadata");
+    xc = variableContext.getParameter(seqPrefix+"specallmetadata");
     if (xc != null)
     {
       // Look for the 'all metadata' checkbox
@@ -3539,7 +3579,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    xc = variableContext.getParameter("metadatacount");
+    xc = variableContext.getParameter(seqPrefix+"metadatacount");
     if (xc != null)
     {
       // Delete all metadata specs first
@@ -3560,7 +3600,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       while (i < metadataCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "metadataop"+pathDescription;
+        String pathOpName = seqPrefix+"metadataop"+pathDescription;
         xc = variableContext.getParameter(pathOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -3569,9 +3609,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           continue;
         }
         // Metadata inserts won't happen until the very end
-        String category = variableContext.getParameter("speccategory"+pathDescription);
-        String attributeName = variableContext.getParameter("specattribute"+pathDescription);
-        String isAll = variableContext.getParameter("specattributeall"+pathDescription);
+        String category = variableContext.getParameter(seqPrefix+"speccategory"+pathDescription);
+        String attributeName = variableContext.getParameter(seqPrefix+"specattribute"+pathDescription);
+        String isAll = variableContext.getParameter(seqPrefix+"specattributeall"+pathDescription);
         SpecificationNode node = new SpecificationNode("metadata");
         node.setAttribute("category",category);
         if (isAll != null && isAll.equals("true"))
@@ -3583,11 +3623,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
 
       // See if there's a global add operation
-      String op = variableContext.getParameter("metadataop");
+      String op = variableContext.getParameter(seqPrefix+"metadataop");
       if (op != null && op.equals("Add"))
       {
-        String category = variableContext.getParameter("speccategory");
-        String isAll = variableContext.getParameter("attributeall");
+        String category = variableContext.getParameter(seqPrefix+"speccategory");
+        String isAll = variableContext.getParameter(seqPrefix+"attributeall");
         if (isAll != null && isAll.equals("true"))
         {
           SpecificationNode node = new SpecificationNode("metadata");
@@ -3597,7 +3637,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
         else
         {
-          String[] attributes = variableContext.getParameterValues("attributeselect");
+          String[] attributes = variableContext.getParameterValues(seqPrefix+"attributeselect");
           if (attributes != null && attributes.length > 0)
           {
             int k = 0;
@@ -3615,7 +3655,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       else if (op != null && op.equals("Up"))
       {
         // Strip off end
-        String category = variableContext.getParameter("speccategory");
+        String category = variableContext.getParameter(seqPrefix+"speccategory");
         int lastSlash = -1;
         int firstColon = -1;      
         int k = 0;
@@ -3645,12 +3685,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
         else
           category = category.substring(0,lastSlash);
-        currentContext.save("speccategory",category);
+        currentContext.save(seqPrefix+"speccategory",category);
       }
       else if (op != null && op.equals("AddToPath"))
       {
-        String category = variableContext.getParameter("speccategory");
-        String addon = variableContext.getParameter("metadataaddon");
+        String category = variableContext.getParameter(seqPrefix+"speccategory");
+        String addon = variableContext.getParameter(seqPrefix+"metadataaddon");
         if (addon != null && addon.length() > 0)
         {
           StringBuilder sb = new StringBuilder();
@@ -3667,11 +3707,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           else
             category += "/" + sb.toString();
         }
-        currentContext.save("speccategory",category);
+        currentContext.save(seqPrefix+"speccategory",category);
       }
       else if (op != null && op.equals("SetWorkspace"))
       {
-        String addon = variableContext.getParameter("metadataaddon");
+        String addon = variableContext.getParameter(seqPrefix+"metadataaddon");
         if (addon != null && addon.length() > 0)
         {
           StringBuilder sb = new StringBuilder();
@@ -3685,13 +3725,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           }
 
           String category = sb.toString() + ":";
-          currentContext.save("speccategory",category);
+          currentContext.save(seqPrefix+"speccategory",category);
         }
       }
       else if (op != null && op.equals("AddCategory"))
       {
-        String category = variableContext.getParameter("speccategory");
-        String addon = variableContext.getParameter("categoryaddon");
+        String category = variableContext.getParameter(seqPrefix+"speccategory");
+        String addon = variableContext.getParameter(seqPrefix+"categoryaddon");
         if (addon != null && addon.length() > 0)
         {
           StringBuilder sb = new StringBuilder();
@@ -3708,14 +3748,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           else
             category += "/" + sb.toString();
         }
-        currentContext.save("speccategory",category);
+        currentContext.save(seqPrefix+"speccategory",category);
       }
     }
 
-    xc = variableContext.getParameter("specpathnameattribute");
+    xc = variableContext.getParameter(seqPrefix+"specpathnameattribute");
     if (xc != null)
     {
-      String separator = variableContext.getParameter("specpathnameseparator");
+      String separator = variableContext.getParameter(seqPrefix+"specpathnameseparator");
       if (separator == null)
         separator = "/";
       // Delete old one
@@ -3737,7 +3777,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    xc = variableContext.getParameter("specmappingcount");
+    xc = variableContext.getParameter(seqPrefix+"specmappingcount");
     if (xc != null)
     {
       // Delete old spec
@@ -3759,7 +3799,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       while (i < mappingCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "specmappingop"+pathDescription;
+        String pathOpName = seqPrefix+"specmappingop"+pathDescription;
         xc = variableContext.getParameter(pathOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -3768,8 +3808,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           continue;
         }
         // Inserts won't happen until the very end
-        String match = variableContext.getParameter("specmatch"+pathDescription);
-        String replace = variableContext.getParameter("specreplace"+pathDescription);
+        String match = variableContext.getParameter(seqPrefix+"specmatch"+pathDescription);
+        String replace = variableContext.getParameter(seqPrefix+"specreplace"+pathDescription);
         SpecificationNode node = new SpecificationNode("pathmap");
         node.setAttribute("match",match);
         node.setAttribute("replace",replace);
@@ -3778,11 +3818,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
 
       // Check for add
-      xc = variableContext.getParameter("specmappingop");
+      xc = variableContext.getParameter(seqPrefix+"specmappingop");
       if (xc != null && xc.equals("Add"))
       {
-        String match = variableContext.getParameter("specmatch");
-        String replace = variableContext.getParameter("specreplace");
+        String match = variableContext.getParameter(seqPrefix+"specmatch");
+        String replace = variableContext.getParameter(seqPrefix+"specreplace");
         SpecificationNode node = new SpecificationNode("pathmap");
         node.setAttribute("match",match);
         node.setAttribute("replace",replace);
@@ -3793,13 +3833,18 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
   
   /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document
+  * specification information to the user.  The coder can presume that the HTML that is output from
+  * this configuration will be within appropriate <html> and <body> tags.
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
     out.print(

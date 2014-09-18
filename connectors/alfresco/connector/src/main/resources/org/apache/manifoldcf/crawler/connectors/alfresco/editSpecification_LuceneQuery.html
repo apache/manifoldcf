@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-#if($TABNAME == $ResourceBundle.getString('AlfrescoConnector.LuceneQuery'))
+#if($TABNAME == $ResourceBundle.getString('AlfrescoConnector.LuceneQuery') && ${SEQNUM} == ${SELECTEDNUM})
 
 <table class="displaytable">
   <tr>
@@ -31,7 +31,7 @@
     </td>
     <td class="value">
       <nobr>
-        <input type="text" size="120" name="luceneQuery" value="$Encoder.attributeEscape($LUCENEQUERY)" />
+        <input type="text" size="120" name="s${SEQNUM}_luceneQuery" value="$Encoder.attributeEscape($LUCENEQUERY)" />
       </nobr>
     </td>
   </tr>
@@ -39,6 +39,6 @@
 
 #else
 
-<input type="hidden" name="luceneQuery" value="$Encoder.attributeEscape($LUCENEQUERY)" />
+<input type="hidden" name="s${SEQNUM}_luceneQuery" value="$Encoder.attributeEscape($LUCENEQUERY)" />
 
 #end
