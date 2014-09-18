@@ -729,10 +729,13 @@ public abstract class ConnectorPool<T extends IConnector>
       flushUnused(threadContext);
       
       // End service activity
-      isAlive = false;
-      notifyAll();
-      ILockManager lockManager = LockManagerFactory.make(threadContext);
-      lockManager.endServiceActivity(serviceTypeName, serviceName);
+      if (isAlive)
+      {
+        isAlive = false;
+        notifyAll();
+        ILockManager lockManager = LockManagerFactory.make(threadContext);
+        lockManager.endServiceActivity(serviceTypeName, serviceName);
+      }
     }
 
   }
