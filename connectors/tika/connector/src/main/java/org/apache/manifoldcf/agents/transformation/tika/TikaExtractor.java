@@ -160,7 +160,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       return DOCUMENTSTATUS_REJECTED;
     }
 
-    SpecPacker sp = new SpecPacker(pipelineDescription.getVersionString());
+    SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
 
     // Tika's API reads from an input stream and writes to an output Writer.
     // Since a RepositoryDocument includes readers and inputstreams exclusively, AND all downstream
@@ -772,33 +772,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       }
       this.keepAllMetadata = keepAllMetadata;
       this.ignoreTikaException = ignoreTikaException;
-    }
-    
-    public SpecPacker(String packedString) {
-      
-      int index = 0;
-      
-      // Mappings
-      final List<String> packedMappings = new ArrayList<String>();
-      index = unpackList(packedMappings,packedString,index,'+');
-      String[] fixedList = new String[2];
-      for (String packedMapping : packedMappings) {
-        unpackFixedList(fixedList,packedMapping,0,':');
-        sourceTargets.put(fixedList[0], fixedList[1]);
-      }
-      
-      // Keep all metadata
-      if (packedString.length() > index)
-        keepAllMetadata = (packedString.charAt(index++) == '+');
-      else
-        keepAllMetadata = true;
-
-      // Ignore tika exception
-      if (packedString.length() > index)
-        ignoreTikaException = (packedString.charAt(index++) == '+');
-      else
-        ignoreTikaException = true;
-      
     }
     
     public String toPackedString() {

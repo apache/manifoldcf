@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1040: Transformation connectors should use specification
+rather than unpacking version string.
+(Karl Wright)
+
 CONNECTORS-1039: Use a URL-centric way of getting the extension
 for document filtering.
 (David Morana, Karl Wright)

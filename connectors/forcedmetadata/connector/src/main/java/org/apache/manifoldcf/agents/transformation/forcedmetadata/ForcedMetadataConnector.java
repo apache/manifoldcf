@@ -89,7 +89,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     throws ManifoldCFException, ServiceInterruption, IOException
   {
     // Unpack the forced metadata
-    SpecPacker sp = new SpecPacker(pipelineDescription.getVersionString());
+    SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
     // We have to create a copy of the Repository Document, since we might be rearranging things
     RepositoryDocument docCopy = document.duplicate();
     docCopy.clearFields();
@@ -493,42 +493,6 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
         }
       }
       this.keepAllMetadata = keepAllMetadata;
-    }
-    
-    public SpecPacker(String packedString) {
-      
-      int index = 0;
-      
-      // Mappings
-      final List<String> packedMappings = new ArrayList<String>();
-      index = unpackList(packedMappings,packedString,index,'+');
-      String[] fixedList = new String[2];
-      for (String packedMapping : packedMappings) {
-        unpackFixedList(fixedList,packedMapping,0,':');
-        sourceTargets.put(fixedList[0], fixedList[1]);
-      }
-      
-      // Keep all metadata
-      if (packedString.length() > index)
-        keepAllMetadata = (packedString.charAt(index++) == '+');
-      else
-        keepAllMetadata = true;
-      
-      List<String> keys = new ArrayList<String>();
-      index = unpackList(keys,packedString,index,'+');
-      // For each key, unpack its list of values
-      for (String key : keys)
-      {
-        List<String> values = new ArrayList<String>();
-        index = unpackList(values,packedString,index,'+');
-        Set<String> valueSet = new HashSet<String>();
-        for (String value : values)
-        {
-          valueSet.add(value);
-        }
-        parameters.put(key,valueSet);
-      }
-
     }
     
     public String toPackedString() {
