@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 1.7.1 =====================
 
+CONNECTORS-1041: Livelink connector should force HTTPS off when
+HTTP is selected.
+(Karl Wright)
+
 CONNECTORS-1036: Zookeeper service handling also has
 ephemeral nodes which need to be tied to sessions.
 (Karl Wright)

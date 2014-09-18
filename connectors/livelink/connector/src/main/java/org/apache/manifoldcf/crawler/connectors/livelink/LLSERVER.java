@@ -171,6 +171,10 @@ public class LLSERVER
           LLSession.GetCARootCerts(certFolder.toString(),rootCACertList);
           configuration.add("CARootCerts", rootCACertList);
         }
+        else
+        {
+          configuration.add("HTTPS", LLValue.LL_FALSE);
+        }
       }
       else
         configuration = null;
