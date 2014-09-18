@@ -762,22 +762,10 @@ public class HttpPoster
     return new String[0];
   }
 
-  /** Preprocess field name.
-  * SolrJ has a bug where it does not URL-escape field names.  This causes carnage for
-  * ManifoldCF, because it results in IllegalArgumentExceptions getting thrown deep in SolrJ.
-  * See CONNECTORS-630.
-  * In order to get around this, we need to URL-encode argument names, at least until the underlying
-  * SolrJ issue is fixed.
-  */
-  protected static String preEncode(String fieldName)
-  {
-      return URLEncoder.encode(fieldName);
-  }
-  
   /** Write a field */
   protected static void writeField(ModifiableSolrParams out, String fieldName, String[] fieldValues)
   {
-    out.add(preEncode(fieldName), fieldValues);
+    out.add(fieldName, fieldValues);
   }
   
   /** Write a field */
@@ -794,7 +782,7 @@ public class HttpPoster
   /** Write a field */
   protected static void writeField(ModifiableSolrParams out, String fieldName, String fieldValue)
   {
-    out.add(preEncode(fieldName), fieldValue);
+    out.add(fieldName, fieldValue);
   }
 
   /** Output an acl level */
@@ -1147,7 +1135,7 @@ public class HttpPoster
       Iterator<String> iter = document.getFields();
       while (iter.hasNext())
       {
-        String fieldName = iter.next();
+        String fieldName = makeSafeLuceneField(iter.next());
         applySingleMapping(fieldName, out, fieldName);
       }
     }
@@ -1157,7 +1145,7 @@ public class HttpPoster
       Iterator<String> iter = document.getFields();
       while (iter.hasNext())
       {
-        String fieldName = iter.next();
+        String fieldName = makeSafeLuceneField(iter.next());
         applySingleMapping(fieldName, outputDocument, fieldName);
       }
     }
@@ -1570,5 +1558,36 @@ public class HttpPoster
     }
   }
 
+  /** See CONNECTORS-956.  Make a safe lucene field name from a possibly
+  * unsafe input field name from a repository connector.
+  */
+  protected static String makeSafeLuceneField(String inputField)
+  {
+    StringBuilder sb = new StringBuilder();
+    boolean isFirst = true;
+    for (int i = 0; i < inputField.length(); i++)
+    {
+      char x = inputField.charAt(i);
+      if (isFirst && !Character.isJavaIdentifierStart(x) || !isFirst && !Character.isJavaIdentifierPart(x))
+      {
+        // Check for exceptions for Lucene
+        if (!isFirst && (x == '.' || x == '-'))
+          sb.append(x);
+        else
+          sb.append('_');
+      }
+      else
+      {
+        // Check for exceptions for Lucene
+        if (isFirst && x == '$')
+          sb.append('_');
+        else
+          sb.append(x);
+      }
+      isFirst = false;
+    }
+    return sb.toString();
+  }
+  
 }
 

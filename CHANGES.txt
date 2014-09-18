@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-956: Change how Solr field name escaping is done.
+(Piergiorgio Lucidi, Shinichiro Abe, Edgardo Ambrosi, Karl Wright)
+
 CONNECTORS-1036: Zookeeper service handling also has
 ephemeral nodes which need to be tied to sessions.
 (Karl Wright)
