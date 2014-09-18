@@ -8,6 +8,10 @@ CONNECTORS-1041: Livelink connector should force HTTPS off when
 HTTP is selected.
 (Karl Wright)
 
+CONNECTORS-1039: Use a URL-centric way of getting the extension
+for document filtering.
+(David Morana, Karl Wright)
+
 CONNECTORS-1038: Handle multiple pool closes properly.
 (Karl Wright)
 
