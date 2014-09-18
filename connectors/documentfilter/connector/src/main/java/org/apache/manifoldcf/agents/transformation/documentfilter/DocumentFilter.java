@@ -28,6 +28,7 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.*;
 import java.util.*;
+import java.net.*;
 
 public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.BaseTransformationConnector {
 
@@ -481,7 +482,17 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     }
     
     public boolean checkURLIndexable(String url) {
-      String extension = FilenameUtils.getExtension(url);
+      String extension = null;
+      try
+      {
+        String path = new URI(url).getPath();
+        if (path != null)
+          extension = FilenameUtils.getExtension(path);
+      }
+      catch (URISyntaxException e)
+      {
+        extension = FilenameUtils.getExtension(url);
+      }
       if (extension == null || extension.length() == 0)
         extension = ".";
       return extensions.contains(extension.toLowerCase(Locale.ROOT));

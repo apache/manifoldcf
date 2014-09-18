@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1039: Use a URL-centric way of getting the extension
+for document filtering.
+(David Morana, Karl Wright)
+
 CONNECTORS-1038: Handle multiple pool closes properly.
 (Karl Wright)
 
