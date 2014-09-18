@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1041: Livelink connector should force HTTPS off when
+HTTP is selected.
+(Karl Wright)
+
 CONNECTORS-1040: Transformation connectors should use specification
 rather than unpacking version string.
 (Karl Wright)
