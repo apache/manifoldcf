@@ -61,6 +61,7 @@ import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IDocumentIdentifierStream;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.IFingerprintActivity;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.interfaces.IVersionActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
@@ -2940,16 +2941,43 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "</table>\n"
     );
   }
-  
+
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
+  @Override
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+    //return "checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+    //return "checkSpecificationForSave";
+  }
+
   /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
-  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  * This method is called in the head section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
+  * that might be needed by the job editing HTML.
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"SharedDriveConnector.Paths"));
@@ -2958,126 +2986,128 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     tabsArray.add(Messages.getString(locale,"SharedDriveConnector.ContentLength"));
     tabsArray.add(Messages.getString(locale,"SharedDriveConnector.FileMapping"));
     tabsArray.add(Messages.getString(locale,"SharedDriveConnector.URLMapping"));
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "//<!--\n"+
 "\n"+
-"function checkSpecification()\n"+
+"function "+seqPrefix+"checkSpecification()\n"+
 "{\n"+
-"  if (editjob.specmaxlength.value != \"\" && !isInteger(editjob.specmaxlength.value))\n"+
+"  if (editjob."+seqPrefix+"specmaxlength.value != \"\" && !isInteger(editjob."+seqPrefix+"specmaxlength.value))\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.NeedAValidNumberForMaximumDocumentLength") + "\");\n"+
-"    editjob.specmaxlength.focus();\n"+
+"    editjob."+seqPrefix+"specmaxlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
-"function SpecOp(n, opValue, anchorvalue)\n"+
+"function "+seqPrefix+"SpecOp(n, opValue, anchorvalue)\n"+
 "{\n"+
 "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
 "  postFormSetAnchor(anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddToPath(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddToPath(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.pathaddon.value == \"\" && editjob.pathtypein.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"pathaddon.value == \"\" && editjob."+seqPrefix+"pathtypein.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.SelectAFolderOrTypeInAPathFirst") + "\");\n"+
-"    editjob.pathaddon.focus();\n"+
+"    editjob."+seqPrefix+"pathaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  if (editjob.pathaddon.value != \"\" && editjob.pathtypein.value != \"\")\n"+
+"  if (editjob."+seqPrefix+"pathaddon.value != \"\" && editjob."+seqPrefix+"pathtypein.value != \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.EitherSelectAFolderORTypeInAPath") + "\");\n"+
-"    editjob.pathaddon.focus();\n"+
+"    editjob."+seqPrefix+"pathaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"pathop\",\"AddToPath\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\",\"AddToPath\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddSpec(suffix,anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddSpec(suffix,anchorvalue)\n"+
 "{\n"+
-"  if (eval(\"editjob.specfile\"+suffix+\".value\") == \"\")\n"+
+"  if (eval(\"editjob."+seqPrefix+"specfile\"+suffix+\".value\") == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.EnterAFileSpecificationFirst") + "\");\n"+
-"    eval(\"editjob.specfile\"+suffix+\".focus()\");\n"+
+"    eval(\"editjob."+seqPrefix+"specfile\"+suffix+\".focus()\");\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"pathop\"+suffix,\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\"+suffix,\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecInsertSpec(postfix,anchorvalue)\n"+
+"function "+seqPrefix+"SpecInsertSpec(postfix,anchorvalue)\n"+
 "{\n"+
-"  if (eval(\"editjob.specfile_i\"+postfix+\".value\") == \"\")\n"+
+"  if (eval(\"editjob."+seqPrefix+"specfile_i\"+postfix+\".value\") == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.EnterAFileSpecificationFirst") + "\");\n"+
-"    eval(\"editjob.specfile_i\"+postfix+\".focus()\");\n"+
+"    eval(\"editjob."+seqPrefix+"specfile_i\"+postfix+\".focus()\");\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"specop\"+postfix,\"Insert Here\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specop\"+postfix,\"Insert Here\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddToken(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddToken(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.spectoken.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.NullAccessTokensNotAllowed") + "\");\n"+
-"    editjob.spectoken.focus();\n"+
+"    editjob."+seqPrefix+"spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddMapping(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddMapping(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.specmatch.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"specmatch.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.MatchStringCannotBeEmpty") + "\");\n"+
-"    editjob.specmatch.focus();\n"+
+"    editjob."+seqPrefix+"specmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  if (!isRegularExpression(editjob.specmatch.value))\n"+
+"  if (!isRegularExpression(editjob."+seqPrefix+"specmatch.value))\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.MatchStringMustBeValidRegularExpression") + "\");\n"+
-"    editjob.specmatch.focus();\n"+
+"    editjob."+seqPrefix+"specmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"specmappingop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specmappingop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddFMap(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddFMap(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.specfmapmatch.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"specfmapmatch.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.MatchStringCannotBeEmpty") + "\");\n"+
-"    editjob.specfmapmatch.focus();\n"+
+"    editjob."+seqPrefix+"specfmapmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  if (!isRegularExpression(editjob.specfmapmatch.value))\n"+
+"  if (!isRegularExpression(editjob."+seqPrefix+"specfmapmatch.value))\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.MatchStringMustBeValidRegularExpression") + "\");\n"+
-"    editjob.specfmapmatch.focus();\n"+
+"    editjob."+seqPrefix+"specfmapmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"specfmapop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specfmapop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddUMap(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddUMap(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.specumapmatch.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"specumapmatch.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.MatchStringCannotBeEmpty") + "\");\n"+
-"    editjob.specumapmatch.focus();\n"+
+"    editjob."+seqPrefix+"specumapmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  if (!isRegularExpression(editjob.specumapmatch.value))\n"+
+"  if (!isRegularExpression(editjob."+seqPrefix+"specumapmatch.value))\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"SharedDriveConnector.MatchStringMustBeValidRegularExpression") + "\");\n"+
-"    editjob.specumapmatch.focus();\n"+
+"    editjob."+seqPrefix+"specumapmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"specumapop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specumapop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
 "//-->\n"+
@@ -3086,17 +3116,26 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
   
   /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
-  * form is "editjob".
+  * This method is called in the body section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate
+  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
-  *@param tabName is the current tab name.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
+  *@param tabName is the current tab name.  (actualSequenceNumber, tabName) form a unique tuple within
+  *  the job.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     int i;
     int k;
 
@@ -3112,14 +3151,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     if (maxLength == null)
       maxLength = "";
 
-    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.ContentLength")))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.ContentLength")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.MaximumDocumentLength") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" name=\"specmaxlength\" size=\"10\" value=\""+maxLength+"\"/></td>\n"+
+"    <td class=\"value\"><input type=\"text\" name=\""+seqPrefix+"specmaxlength\" size=\"10\" value=\""+maxLength+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -3127,12 +3166,12 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specmaxlength\" value=\""+maxLength+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specmaxlength\" value=\""+maxLength+"\"/>\n"
       );
     }
 
     // Check for Paths tab
-    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Paths")))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Paths")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -3149,20 +3188,20 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
         {
           String pathDescription = "_"+Integer.toString(k);
-          String pathOpName = "pathop"+pathDescription;
+          String pathOpName = seqPrefix+"pathop"+pathDescription;
           String startPath = sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH);
           out.print(
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
-"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeletePath")+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")'/>\n"+
+"      <a name=\""+seqPrefix+"path_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeletePath")+Integer.toString(k)+"\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+pathOpName+"\",\"Delete\",\""+seqPrefix+"path_"+Integer.toString(k)+"\")'/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"+
 "        <tr>\n"+
 "          <td class=\"value\">\n"+
-"            <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH))+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH))+"\"/>\n"+
 "            <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
 "            <nobr>"+((startPath.length() == 0)?"(root)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(startPath))+"</nobr>\n"+
 "          </td>\n"+
@@ -3178,7 +3217,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           {
             SpecificationNode excludeNode = sn.getChild(j);
             String instanceDescription = "_"+Integer.toString(k)+"_"+Integer.toString(j);
-            String instanceOpName = "specop" + instanceDescription;
+            String instanceOpName = seqPrefix + "specop" + instanceDescription;
 
             String nodeFlavor = excludeNode.getType();
             String nodeType = excludeNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE);
@@ -3191,39 +3230,39 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             out.print(
 "              <tr>\n"+
 "                <td class=\"value\">\n"+
-"                    <input type=\"button\" value=\"Insert\" onClick='Javascript:SpecInsertSpec(\""+instanceDescription+"\",\"filespec_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.InsertNewMatchForPath")+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
+"                    <input type=\"button\" value=\"Insert\" onClick='Javascript:"+seqPrefix+"SpecInsertSpec(\""+instanceDescription+"\",\""+seqPrefix+"filespec_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.InsertNewMatchForPath")+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
 "                  <nobr>\n"+
-"                    <select name=\""+"specfl_i"+instanceDescription+"\">\n"+
+"                    <select name=\""+seqPrefix+"specfl_i"+instanceDescription+"\">\n"+
 "                      <option value=\"include\">" + Messages.getBodyString(locale,"SharedDriveConnector.Include") + "</option>\n"+
 "                      <option value=\"exclude\">" + Messages.getBodyString(locale,"SharedDriveConnector.Exclude") + "</option>\n"+
 "                    </select>&nbsp;\n"+
-"                    <select name=\""+"spectin_i"+instanceDescription+"\">\n"+
+"                    <select name=\""+seqPrefix+"spectin_i"+instanceDescription+"\">\n"+
 "                      <option value=\"\" selected=\"selected\">" + Messages.getBodyString(locale,"SharedDriveConnector.AnyFileOrDirectory") + "</option>\n"+
 "                      <option value=\"file\">" + Messages.getBodyString(locale,"SharedDriveConnector.files") + "</option>\n"+
 "                      <option value=\"indexable-file\">" + Messages.getBodyString(locale,"SharedDriveConnector.indexableFiles") + "</option>\n"+
 "                      <option value=\"unindexable-file\">" + Messages.getBodyString(locale,"SharedDriveConnector.unindexableFiles") + "</option>\n"+
 "                      <option value=\"directory\">" + Messages.getBodyString(locale,"SharedDriveConnector.directorys") + "</option>\n"+
 "                    </select>&nbsp;" + Messages.getBodyString(locale,"SharedDriveConnector.matching") + "&nbsp;\n"+
-"                    <input type=\"text\" size=\"20\" name=\""+"specfile_i"+instanceDescription+"\" value=\"\"/>\n"+
+"                    <input type=\"text\" size=\"20\" name=\""+seqPrefix+"specfile_i"+instanceDescription+"\" value=\"\"/>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
 "\n"+
 "              </tr>\n"+
 "              <tr>\n"+
 "                <td class=\"value\">\n"+
-"                  <a name=\""+"filespec_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
-"                    <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+"specop"+instanceDescription+"\",\"Delete\",\"filespec_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeletePath")+Integer.toString(k)+Messages.getAttributeString(locale,"SharedDriveConnector.matchSpec")+Integer.toString(j)+"\"/>\n"+
+"                  <a name=\""+seqPrefix+"filespec_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
+"                    <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+instanceOpName+"\",\"Delete\",\""+seqPrefix+"filespec_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeletePath")+Integer.toString(k)+Messages.getAttributeString(locale,"SharedDriveConnector.matchSpec")+Integer.toString(j)+"\"/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
 "                  <nobr>\n"+
-"                    <input type=\"hidden\" name=\""+"specop"+instanceDescription+"\" value=\"\"/>\n"+
-"                    <input type=\"hidden\" name=\""+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
-"                    <input type=\"hidden\" name=\""+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
-"                    <input type=\"hidden\" name=\""+"specin"+instanceDescription+"\" value=\""+indexable+"\"/>\n"+
-"                    <input type=\"hidden\" name=\""+"specfile"+instanceDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+instanceOpName+"\" value=\"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+seqPrefix+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+seqPrefix+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+seqPrefix+"specin"+instanceDescription+"\" value=\""+indexable+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+seqPrefix+"specfile"+instanceDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"+
 "                    "+Integer.toString(j+1)+".&nbsp;"+(nodeFlavor.equals("include")?"Include":"")+""+(nodeFlavor.equals("exclude")?"Exclude":"")+""+(indexable.equals("yes")?"&nbsp;indexable":"")+""+(indexable.equals("no")?"&nbsp;un-indexable":"")+""+(nodeType.equals("file")?"&nbsp;file(s)":"")+""+(nodeType.equals("directory")?"&nbsp;directory(s)":"")+""+(nodeType.equals("")?"&nbsp;file(s)&nbsp;or&nbsp;directory(s)":"")+"&nbsp;matching&nbsp;"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filespec)+"\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
@@ -3241,25 +3280,25 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "              <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
 "              <tr>\n"+
 "                <td class=\"value\">\n"+
-"                  <input type=\"hidden\" name=\""+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(j)+"\"/>\n"+
-"                  <a name=\""+"filespec_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
-"                    <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddSpec(\""+pathDescription+"\",\"filespec_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.AddNewMatchForPath")+Integer.toString(k)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(j)+"\"/>\n"+
+"                  <a name=\""+seqPrefix+"filespec_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
+"                    <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecAddSpec(\""+pathDescription+"\",\""+seqPrefix+"filespec_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.AddNewMatchForPath")+Integer.toString(k)+"\"/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
 "                  <nobr>\n"+
-"                    <select name=\""+"specfl"+pathDescription+"\">\n"+
+"                    <select name=\""+seqPrefix+"specfl"+pathDescription+"\">\n"+
 "                      <option value=\"include\">" + Messages.getBodyString(locale,"SharedDriveConnector.Include") + "</option>\n"+
 "                      <option value=\"exclude\">" + Messages.getBodyString(locale,"SharedDriveConnector.Exclude") + "</option>\n"+
 "                    </select>&nbsp;\n"+
-"                    <select name=\""+"spectin"+pathDescription+"\">\n"+
+"                    <select name=\""+seqPrefix+"spectin"+pathDescription+"\">\n"+
 "                      <option value=\"\">" + Messages.getBodyString(locale,"SharedDriveConnector.AnyFileOrDirectory") + "</option>\n"+
 "                      <option value=\"file\">" + Messages.getBodyString(locale,"SharedDriveConnector.files") + "</option>\n"+
 "                      <option value=\"indexable-file\">" + Messages.getBodyString(locale,"SharedDriveConnector.indexableFiles") + "</option>\n"+
 "                      <option value=\"unindexable-file\">" + Messages.getBodyString(locale,"SharedDriveConnector.unindexableFiles") + "</option>\n"+
 "                      <option value=\"directory\">" + Messages.getBodyString(locale,"SharedDriveConnector.directorys") + "</option>\n"+
 "                    </select>&nbsp;" + Messages.getBodyString(locale,"SharedDriveConnector.matching") + "&nbsp;\n"+
-"                    <input type=\"text\" size=\"20\" name=\""+"specfile"+pathDescription+"\" value=\"\"/>\n"+
+"                    <input type=\"text\" size=\"20\" name=\""+seqPrefix+"specfile"+pathDescription+"\" value=\"\"/>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
 "              </tr>\n"+
@@ -3286,11 +3325,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "  <tr>\n"+
 "    <td class=\"value\" colspan=\"2\">\n"+
 "      <nobr>\n"+
-"        <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"        <a name=\""+"path_"+Integer.toString(k)+"\">\n"
+"        <input type=\"hidden\" name=\""+seqPrefix+"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"        <a name=\""+seqPrefix+"path_"+Integer.toString(k)+"\">\n"
       );
 	
-      String pathSoFar = (String)currentContext.get("specpath");
+      String pathSoFar = (String)currentContext.get(seqPrefix+"specpath");
       if (pathSoFar == null)
         pathSoFar = "";
 
@@ -3308,23 +3347,23 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             throw new ManifoldCFException("Can't find any children for root folder");
         }
         out.print(
-"          <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
-"          <input type=\"hidden\" name=\"pathop\" value=\"\"/>\n"+
-"          <input type=\"button\" value=\"Add\" alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddPath") + "\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")'/>\n"+
+"          <input type=\"hidden\" name=\""+seqPrefix+"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
+"          <input type=\"hidden\" name=\""+seqPrefix+"pathop\" value=\"\"/>\n"+
+"          <input type=\"button\" value=\"Add\" alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddPath") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\",\"Add\",\""+seqPrefix+"path_"+Integer.toString(k+1)+"\")'/>\n"+
 "          &nbsp;"+((pathSoFar.length()==0)?"(root)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathSoFar))+"\n"
         );
         if (pathSoFar.length() > 0)
         {
           out.print(
-"          <input type=\"button\" value=\"-\" alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.RemoveFromPath") + "\" onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")'/>\n"
+"          <input type=\"button\" value=\"-\" alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.RemoveFromPath") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\",\"Up\",\""+seqPrefix+"path_"+Integer.toString(k)+"\")'/>\n"
           );
         }
         if (childList.length > 0)
         {
           out.print(
 "          <nobr>\n"+
-"            <input type=\"button\" value=\"+\" alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddPath") + "\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
-"            <select multiple=\"false\" name=\"pathaddon\" size=\"4\">\n"+
+"            <input type=\"button\" value=\"+\" alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddPath") + "\" onClick='Javascript:"+seqPrefix+"SpecAddToPath(\""+seqPrefix+"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
+"            <select multiple=\"false\" name=\""+seqPrefix+"pathaddon\" size=\"4\">\n"+
 "              <option value=\"\" selected=\"selected\">" + Messages.getBodyString(locale,"SharedDriveConnector.PickAFolder") + "</option>\n"
           );
           int j = 0;
@@ -3338,7 +3377,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           }
           out.print(
 "            </select>" + Messages.getBodyString(locale,"SharedDriveConnector.orTypeAPath") +
-"            <input type=\"text\" name=\"pathtypein\" size=\"16\" value=\"\"/>\n"+
+"            <input type=\"text\" name=\""+seqPrefix+"pathtypein\" size=\"16\" value=\"\"/>\n"+
 "          </nobr>\n"
           );
         }
@@ -3369,7 +3408,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           String pathDescription = "_"+Integer.toString(k);
           String startPath = sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH);
           out.print(
-"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(startPath)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(startPath)+"\"/>\n"
           );
           // Now go through the include/exclude children of this node.
           int j = 0;
@@ -3387,21 +3426,21 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             if (indexable == null)
               indexable = "";
             out.print(
-"<input type=\"hidden\" name=\""+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specin"+instanceDescription+"\" value=\""+indexable+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specfile"+instanceDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specin"+instanceDescription+"\" value=\""+indexable+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specfile"+instanceDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"
             );
             j++;
           }
           k++;
           out.print(
-"<input type=\"hidden\" name=\""+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(j)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(j)+"\"/>\n"
           );
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
 
@@ -3442,7 +3481,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Security")))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Security")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -3452,8 +3491,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.FileSecurity") + "</nobr></td>\n"+
 "    <td colspan=\"3\" class=\"value\">\n"+
 "      <nobr>\n"+
-"        <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Enabled") + "&nbsp;\n"+
-"        <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Disabled") + "\n"+
+"        <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Enabled") + "&nbsp;\n"+
+"        <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Disabled") + "\n"+
 "      </nobr>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -3470,15 +3509,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
         {
           String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = "accessop"+accessDescription;
+          String accessOpName = seqPrefix+"accessop"+accessDescription;
           String token = sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN);
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\">\n"+
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeleteToken")+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")'/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeleteToken")+Integer.toString(k)+"\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"token_"+Integer.toString(k)+"\")'/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
@@ -3501,14 +3540,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\">\n"+
-"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddToken") + "\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")'/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddToken") + "\" onClick='Javascript:"+seqPrefix+"SpecAddToken(\""+seqPrefix+"token_"+Integer.toString(k+1)+"\")'/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
-"      <nobr><input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/></nobr>\n"+
+"      <nobr><input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/></nobr>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "\n"+
@@ -3518,8 +3557,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.ShareSecurity") + "</nobr></td>\n"+
 "    <td colspan=\"3\" class=\"value\">\n"+
 "      <nobr>\n"+
-"        <input type=\"radio\" name=\"specsharesecurity\" value=\"on\" "+(shareSecurityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Enabled") + "&nbsp;\n"+
-"        <input type=\"radio\" name=\"specsharesecurity\" value=\"off\" "+((shareSecurityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Disabled") + "\n"+
+"        <input type=\"radio\" name=\""+seqPrefix+"specsharesecurity\" value=\"on\" "+(shareSecurityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Enabled") + "&nbsp;\n"+
+"        <input type=\"radio\" name=\""+seqPrefix+"specsharesecurity\" value=\"off\" "+((shareSecurityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Disabled") + "\n"+
 "      </nobr>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -3530,8 +3569,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.ParentFolderSecurity") + "</nobr></td>\n"+
 "    <td colspan=\"3\" class=\"value\">\n"+
 "      <nobr>\n"+
-"        <input type=\"radio\" name=\"specparentfoldersecurity\" value=\"on\" "+(parentFolderSecurityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Enabled") + "&nbsp;\n"+
-"        <input type=\"radio\" name=\"specparentfoldersecurity\" value=\"off\" "+((parentFolderSecurityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Disabled") + "\n"+
+"        <input type=\"radio\" name=\""+seqPrefix+"specparentfoldersecurity\" value=\"on\" "+(parentFolderSecurityOn?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Enabled") + "&nbsp;\n"+
+"        <input type=\"radio\" name=\""+seqPrefix+"specparentfoldersecurity\" value=\"off\" "+((parentFolderSecurityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"SharedDriveConnector.Disabled") + "\n"+
 "      </nobr>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -3542,7 +3581,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
       );
       // Finally, go through forced ACL
       i = 0;
@@ -3555,16 +3594,16 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           String accessDescription = "_"+Integer.toString(k);
           String token = sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN);
           out.print(
-"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"<input type=\"hidden\" name=\"specsharesecurity\" value=\""+(shareSecurityOn?"on":"off")+"\"/>\n"+
-"<input type=\"hidden\" name=\"specparentfoldersecurity\" value=\""+(parentFolderSecurityOn?"on":"off")+"\"/>\n"
-    		  );
+"<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specsharesecurity\" value=\""+(shareSecurityOn?"on":"off")+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specparentfoldersecurity\" value=\""+(parentFolderSecurityOn?"on":"off")+"\"/>\n"
+      );
     }
 
 
@@ -3591,18 +3630,18 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Metadata")))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Metadata")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
-"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
-"<input type=\"hidden\" name=\"specmappingop\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specmappingop\" value=\"\"/>\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
 "\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.PathAttributeName") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
-"      <input type=\"text\" name=\"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"      <input type=\"text\" name=\""+seqPrefix+"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "\n"+
@@ -3617,14 +3656,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         out.print(
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
-"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\""+seqPrefix+"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
-"    <td class=\"value\"><input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+seqPrefix+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
 "    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\"><input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+seqPrefix+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
 "  </tr>\n"
         );
         i++;
@@ -3640,13 +3679,13 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "\n"+
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
-"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddToMappings") + "\" value=\"Add\"/>\n"+
+"      <a name=\""+seqPrefix+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecAddMapping(\""+seqPrefix+"mapping_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddToMappings") + "\" value=\"Add\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
-"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.MatchRegexp") + "<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.MatchRegexp") + "<input type=\"text\" name=\""+seqPrefix+"specmatch\" size=\"32\" value=\"\"/></td>\n"+
 "    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.ReplaceString") + "<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.ReplaceString") + "<input type=\"text\" name=\""+seqPrefix+"specreplace\" size=\"32\" value=\"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -3654,8 +3693,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
-"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
       );
       i = 0;
       while (i < matchMap.getMatchCount())
@@ -3663,8 +3702,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         String matchString = matchMap.getMatchString(i);
         String replaceString = matchMap.getReplaceString(i);
         out.print(
-"<input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
         );
         i++;
       }
@@ -3694,11 +3733,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.FileMapping")))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.FileMapping")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
-"<input type=\"hidden\" name=\"specfmapcount\" value=\""+Integer.toString(fileMap.getMatchCount())+"\"/>\n"+
-"<input type=\"hidden\" name=\"specfmapop\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specfmapcount\" value=\""+Integer.toString(fileMap.getMatchCount())+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specfmapop\" value=\"\"/>\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
       );
@@ -3710,14 +3749,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         out.print(
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\""+"specfmapop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
-"      <a name=\""+"fmap_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecOp(\"specfmapop_"+Integer.toString(i)+"\",\"Delete\",\"fmap_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeleteFileMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specfmapop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"fmap_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"specfmapop_"+Integer.toString(i)+"\",\"Delete\",\""+seqPrefix+"fmap_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeleteFileMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
-"    <td class=\"value\"><input type=\"hidden\" name=\""+"specfmapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+seqPrefix+"specfmapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
 "    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\"><input type=\"hidden\" name=\""+"specfmapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+seqPrefix+"specfmapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
 "  </tr>\n"
         );
         i++;
@@ -3733,13 +3772,13 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "\n"+
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
-"      <a name=\""+"fmap_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecAddFMap(\"fmap_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddToFileMappings") + "\" value=\"Add\"/>\n"+
+"      <a name=\""+seqPrefix+"fmap_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecAddFMap(\""+seqPrefix+"fmap_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddToFileMappings") + "\" value=\"Add\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
-"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.MatchRegexp") + "<input type=\"text\" name=\"specfmapmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.MatchRegexp") + "<input type=\"text\" name=\""+seqPrefix+"specfmapmatch\" size=\"32\" value=\"\"/></td>\n"+
 "    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.ReplaceString") + "<input type=\"text\" name=\"specfmapreplace\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.ReplaceString") + "<input type=\"text\" name=\""+seqPrefix+"specfmapreplace\" size=\"32\" value=\"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -3747,7 +3786,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specfmapcount\" value=\""+Integer.toString(fileMap.getMatchCount())+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specfmapcount\" value=\""+Integer.toString(fileMap.getMatchCount())+"\"/>\n"
       );
       i = 0;
       while (i < fileMap.getMatchCount())
@@ -3755,18 +3794,18 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         String matchString = fileMap.getMatchString(i);
         String replaceString = fileMap.getReplaceString(i);
         out.print(
-"<input type=\"hidden\" name=\""+"specfmapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specfmapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specfmapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specfmapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
         );
         i++;
       }
     }
 	
-    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.URLMapping")))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.URLMapping")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
-"<input type=\"hidden\" name=\"specumapcount\" value=\""+Integer.toString(uriMap.getMatchCount())+"\"/>\n"+
-"<input type=\"hidden\" name=\"specumapop\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specumapcount\" value=\""+Integer.toString(uriMap.getMatchCount())+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specumapop\" value=\"\"/>\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
       );
@@ -3778,18 +3817,18 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         out.print(
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\""+"specumapop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
-"      <a name=\""+"umap_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecOp(\"specumapop_"+Integer.toString(i)+"\",\"Delete\",\"umap_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeleteUrlMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specumapop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"umap_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"specumapop_"+Integer.toString(i)+"\",\"Delete\",\""+seqPrefix+"umap_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"SharedDriveConnector.DeleteUrlMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\""+"specumapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specumapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
 "      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"\n"+
 "    </td>\n"+
 "    <td class=\"value\">==></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\""+"specumapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specumapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"+
 "      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"\n"+
 "    </td>\n"+
 "  </tr>\n"
@@ -3807,13 +3846,13 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "      \n"+
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
-"      <a name=\""+"umap_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecAddUMap(\"umap_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddToURLMappings") + "\" value=\"Add\"/>\n"+
+"      <a name=\""+seqPrefix+"umap_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecAddUMap(\""+seqPrefix+"umap_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddToURLMappings") + "\" value=\"Add\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
-"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.MatchRegexp") + "<input type=\"text\" name=\"specumapmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.MatchRegexp") + "<input type=\"text\" name=\""+seqPrefix+"specumapmatch\" size=\"32\" value=\"\"/></td>\n"+
 "    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.ReplaceString") + "<input type=\"text\" name=\"specumapreplace\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.ReplaceString") + "<input type=\"text\" name=\""+seqPrefix+"specumapreplace\" size=\"32\" value=\"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -3821,7 +3860,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"specumapcount\" value=\""+Integer.toString(uriMap.getMatchCount())+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specumapcount\" value=\""+Integer.toString(uriMap.getMatchCount())+"\"/>\n"
       );
       i = 0;
       while (i < uriMap.getMatchCount())
@@ -3829,8 +3868,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         String matchString = uriMap.getMatchString(i);
         String replaceString = uriMap.getReplaceString(i);
         out.print(
-"<input type=\"hidden\" name=\""+"specumapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specumapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specumapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specumapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
         );
         i++;
       }
@@ -3838,18 +3877,25 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
   
   /** Process a specification post.
-  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
-  * The name of the posted form is "editjob".
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form
+  * data for a connection has been posted.  Its purpose is to gather form information and modify the
+  * document specification accordingly.  The name of the posted form is always "editjob".
+  * The connector will be connected before this method can be called.
   *@param variableContext contains the post data, including binary file-upload information.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
-  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of
+  * the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
+    int connectionSequenceNumber)
     throws ManifoldCFException
   {
-    String x = variableContext.getParameter("pathcount");
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String x = variableContext.getParameter(seqPrefix+"pathcount");
     if (x != null)
     {
       // Delete all path specs first
@@ -3870,7 +3916,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       while (i < pathCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "pathop"+pathDescription;
+        String pathOpName = seqPrefix+"pathop"+pathDescription;
         x = variableContext.getParameter(pathOpName);
         if (x != null && x.equals("Delete"))
         {
@@ -3879,12 +3925,12 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           continue;
         }
         // Path inserts won't happen until the very end
-        String path = variableContext.getParameter("specpath"+pathDescription);
+        String path = variableContext.getParameter(seqPrefix+"specpath"+pathDescription);
         SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH,path);
 
         // Now, get the number of children
-        String y = variableContext.getParameter("specchildcount"+pathDescription);
+        String y = variableContext.getParameter(seqPrefix+"specchildcount"+pathDescription);
         int childCount = Integer.parseInt(y);
         int j = 0;
         int w = 0;
@@ -3892,7 +3938,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         {
           String instanceDescription = "_"+Integer.toString(i)+"_"+Integer.toString(j);
           // Look for an insert or a delete at this point
-          String instanceOp = "specop"+instanceDescription;
+          String instanceOp = seqPrefix+"specop"+instanceDescription;
           String z = variableContext.getParameter(instanceOp);
           String flavor;
           String type;
@@ -3908,10 +3954,10 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           if (z != null && z.equals("Insert Here"))
           {
             // Process the insertion as we gather.
-            flavor = variableContext.getParameter("specfl_i"+instanceDescription);
+            flavor = variableContext.getParameter(seqPrefix+"specfl_i"+instanceDescription);
             indexable = "";
             type = "";
-            String xxx = variableContext.getParameter("spectin_i"+instanceDescription);
+            String xxx = variableContext.getParameter(seqPrefix+"spectin_i"+instanceDescription);
             if (xxx.equals("file") || xxx.equals("directory"))
               type = xxx;
             else if (xxx.equals("indexable-file"))
@@ -3925,7 +3971,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               type = "file";
             }
 
-            match = variableContext.getParameter("specfile_i"+instanceDescription);
+            match = variableContext.getParameter(seqPrefix+"specfile_i"+instanceDescription);
             sn = new SpecificationNode(flavor);
             if (type != null && type.length() > 0)
               sn.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
@@ -3934,10 +3980,10 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             sn.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,match);
             node.addChild(w++,sn);
           }
-          flavor = variableContext.getParameter("specfl"+instanceDescription);
-          type = variableContext.getParameter("specty"+instanceDescription);
-          match = variableContext.getParameter("specfile"+instanceDescription);
-          indexable = variableContext.getParameter("specin"+instanceDescription);
+          flavor = variableContext.getParameter(seqPrefix+"specfl"+instanceDescription);
+          type = variableContext.getParameter(seqPrefix+"specty"+instanceDescription);
+          match = variableContext.getParameter(seqPrefix+"specfile"+instanceDescription);
+          indexable = variableContext.getParameter(seqPrefix+"specin"+instanceDescription);
           sn = new SpecificationNode(flavor);
           if (type != null && type.length() > 0)
             sn.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
@@ -3950,10 +3996,10 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         if (x != null && x.equals("Add"))
         {
           // Process adds to the end of the rules in-line
-          String match = variableContext.getParameter("specfile"+pathDescription);
+          String match = variableContext.getParameter(seqPrefix+"specfile"+pathDescription);
           String indexable = "";
           String type = "";
-          String xxx = variableContext.getParameter("spectin"+pathDescription);
+          String xxx = variableContext.getParameter(seqPrefix+"spectin"+pathDescription);
           if (xxx.equals("file") || xxx.equals("directory"))
             type = xxx;
           else if (xxx.equals("indexable-file"))
@@ -3967,7 +4013,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             type = "file";
           }
 
-          String flavor = variableContext.getParameter("specfl"+pathDescription);
+          String flavor = variableContext.getParameter(seqPrefix+"specfl"+pathDescription);
           SpecificationNode sn = new SpecificationNode(flavor);
           if (type != null && type.length() > 0)
             sn.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
@@ -3982,10 +4028,10 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
 
       // See if there's a global add operation
-      String op = variableContext.getParameter("pathop");
+      String op = variableContext.getParameter(seqPrefix+"pathop");
       if (op != null && op.equals("Add"))
       {
-        String path = variableContext.getParameter("specpath");
+        String path = variableContext.getParameter(seqPrefix+"specpath");
         SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH,path);
         ds.addChild(ds.getChildCount(),node);
@@ -4004,19 +4050,19 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       else if (op != null && op.equals("Up"))
       {
         // Strip off end
-        String path = variableContext.getParameter("specpath");
+        String path = variableContext.getParameter(seqPrefix+"specpath");
         int k = path.lastIndexOf("/");
         if (k == -1)
           path = "";
         else
           path = path.substring(0,k);
-        currentContext.save("specpath",path);
+        currentContext.save(seqPrefix+"specpath",path);
       }
       else if (op != null && op.equals("AddToPath"))
       {
-        String path = variableContext.getParameter("specpath");
-        String addon = variableContext.getParameter("pathaddon");
-        String typein = variableContext.getParameter("pathtypein");
+        String path = variableContext.getParameter(seqPrefix+"specpath");
+        String addon = variableContext.getParameter(seqPrefix+"pathaddon");
+        String typein = variableContext.getParameter(seqPrefix+"pathtypein");
         if (addon != null && addon.length() > 0)
         {
           if (path.length() == 0)
@@ -4043,11 +4089,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             // Effectively, this just means we can't add a typein to the path right now.
           }
         }
-        currentContext.save("specpath",path);
+        currentContext.save(seqPrefix+"specpath",path);
       }
     }
 
-    x = variableContext.getParameter("specmaxlength");
+    x = variableContext.getParameter(seqPrefix+"specmaxlength");
     if (x != null)
     {
       // Delete max length entry
@@ -4068,7 +4114,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    x = variableContext.getParameter("specsecurity");
+    x = variableContext.getParameter(seqPrefix+"specsecurity");
     if (x != null)
     {
       // Delete all security entries first
@@ -4088,7 +4134,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
     }
 
-    x = variableContext.getParameter("tokencount");
+    x = variableContext.getParameter(seqPrefix+"tokencount");
     if (x != null)
     {
       // Delete all file specs first
@@ -4107,7 +4153,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       while (i < accessCount)
       {
         String accessDescription = "_"+Integer.toString(i);
-        String accessOpName = "accessop"+accessDescription;
+        String accessOpName = seqPrefix+"accessop"+accessDescription;
         x = variableContext.getParameter(accessOpName);
         if (x != null && x.equals("Delete"))
         {
@@ -4116,24 +4162,24 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           continue;
         }
         // Get the stuff we need
-        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        String accessSpec = variableContext.getParameter(seqPrefix+"spectoken"+accessDescription);
         SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN,accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
 
-      String op = variableContext.getParameter("accessop");
+      String op = variableContext.getParameter(seqPrefix+"accessop");
       if (op != null && op.equals("Add"))
       {
-        String accessspec = variableContext.getParameter("spectoken");
+        String accessspec = variableContext.getParameter(seqPrefix+"spectoken");
         SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN,accessspec);
         ds.addChild(ds.getChildCount(),node);
       }
     }
 
-    x = variableContext.getParameter("specsharesecurity");
+    x = variableContext.getParameter(seqPrefix+"specsharesecurity");
     if (x != null)
     {
       // Delete all security entries first
@@ -4153,7 +4199,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
     }
 
-    x = variableContext.getParameter("specparentfoldersecurity");
+    x = variableContext.getParameter(seqPrefix+"specparentfoldersecurity");
     if (x != null)
     {
       // Delete all security entries first
@@ -4173,7 +4219,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
     }
 
-    String xc = variableContext.getParameter("specpathnameattribute");
+    String xc = variableContext.getParameter(seqPrefix+"specpathnameattribute");
     if (xc != null)
     {
       // Delete old one
@@ -4194,7 +4240,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    xc = variableContext.getParameter("specmappingcount");
+    xc = variableContext.getParameter(seqPrefix+"specmappingcount");
     if (xc != null)
     {
       // Delete old spec
@@ -4216,7 +4262,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       while (i < mappingCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "specmappingop"+pathDescription;
+        String pathOpName = seqPrefix+"specmappingop"+pathDescription;
         xc = variableContext.getParameter(pathOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -4225,8 +4271,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           continue;
         }
         // Inserts won't happen until the very end
-        String match = variableContext.getParameter("specmatch"+pathDescription);
-        String replace = variableContext.getParameter("specreplace"+pathDescription);
+        String match = variableContext.getParameter(seqPrefix+"specmatch"+pathDescription);
+        String replace = variableContext.getParameter(seqPrefix+"specreplace"+pathDescription);
         SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
@@ -4235,11 +4281,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
 
       // Check for add
-      xc = variableContext.getParameter("specmappingop");
+      xc = variableContext.getParameter(seqPrefix+"specmappingop");
       if (xc != null && xc.equals("Add"))
       {
-        String match = variableContext.getParameter("specmatch");
-        String replace = variableContext.getParameter("specreplace");
+        String match = variableContext.getParameter(seqPrefix+"specmatch");
+        String replace = variableContext.getParameter(seqPrefix+"specreplace");
         SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
@@ -4247,7 +4293,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 	
-    xc = variableContext.getParameter("specfmapcount");
+    xc = variableContext.getParameter(seqPrefix+"specfmapcount");
     if (xc != null)
     {
       // Delete old spec
@@ -4269,7 +4315,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       while (i < mappingCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "specfmapop"+pathDescription;
+        String pathOpName = seqPrefix+"specfmapop"+pathDescription;
         xc = variableContext.getParameter(pathOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -4278,8 +4324,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           continue;
         }
         // Inserts won't happen until the very end
-        String match = variableContext.getParameter("specfmapmatch"+pathDescription);
-        String replace = variableContext.getParameter("specfmapreplace"+pathDescription);
+        String match = variableContext.getParameter(seqPrefix+"specfmapmatch"+pathDescription);
+        String replace = variableContext.getParameter(seqPrefix+"specfmapreplace"+pathDescription);
         SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
@@ -4288,11 +4334,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
 
       // Check for add
-      xc = variableContext.getParameter("specfmapop");
+      xc = variableContext.getParameter(seqPrefix+"specfmapop");
       if (xc != null && xc.equals("Add"))
       {
-        String match = variableContext.getParameter("specfmapmatch");
-        String replace = variableContext.getParameter("specfmapreplace");
+        String match = variableContext.getParameter(seqPrefix+"specfmapmatch");
+        String replace = variableContext.getParameter(seqPrefix+"specfmapreplace");
         SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
@@ -4300,7 +4346,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    xc = variableContext.getParameter("specumapcount");
+    xc = variableContext.getParameter(seqPrefix+"specumapcount");
     if (xc != null)
     {
       // Delete old spec
@@ -4322,7 +4368,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       while (i < mappingCount)
       {
         String pathDescription = "_"+Integer.toString(i);
-        String pathOpName = "specumapop"+pathDescription;
+        String pathOpName = seqPrefix+"specumapop"+pathDescription;
         xc = variableContext.getParameter(pathOpName);
         if (xc != null && xc.equals("Delete"))
         {
@@ -4331,8 +4377,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           continue;
         }
         // Inserts won't happen until the very end
-        String match = variableContext.getParameter("specumapmatch"+pathDescription);
-        String replace = variableContext.getParameter("specumapreplace"+pathDescription);
+        String match = variableContext.getParameter(seqPrefix+"specumapmatch"+pathDescription);
+        String replace = variableContext.getParameter(seqPrefix+"specumapreplace"+pathDescription);
         SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
@@ -4341,11 +4387,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
 
       // Check for add
-      xc = variableContext.getParameter("specumapop");
+      xc = variableContext.getParameter(seqPrefix+"specumapop");
       if (xc != null && xc.equals("Add"))
       {
-        String match = variableContext.getParameter("specumapmatch");
-        String replace = variableContext.getParameter("specumapreplace");
+        String match = variableContext.getParameter(seqPrefix+"specumapmatch");
+        String replace = variableContext.getParameter(seqPrefix+"specumapreplace");
         SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
@@ -4356,13 +4402,18 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
   
   /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document
+  * specification information to the user.  The coder can presume that the HTML that is output from
+  * this configuration will be within appropriate <html> and <body> tags.
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
     out.print(

@@ -18,51 +18,51 @@
 <script type="text/javascript">
 <!--
 
-function checkSpecification()
+function s${SeqNum}_checkSpecification()
 {
-  if (checkDocumentsTab() == false)
+  if (s${SeqNum}_checkDocumentsTab() == false)
     return false;
-  if (checkMetadataTab() == false)
+  if (s${SeqNum}_checkMetadataTab() == false)
     return false;
   return true;
 }
  
-function SpecOp(n, opValue, anchorvalue)
+function s${SeqNum}_SpecOp(n, opValue, anchorvalue)
 {
   eval("editjob."+n+".value = \""+opValue+"\"");
   postFormSetAnchor(anchorvalue);
 }
 
-function checkDocumentsTab()
+function s${SeqNum}_checkDocumentsTab()
 {
   return true;
 }
 
-function checkMetadataTab()
+function s${SeqNum}_checkMetadataTab()
 {
   return true;
 }
 
-function FindDelete(n)
+function s${SeqNum}_FindDelete(n)
 {
-  SpecOp("findop_"+n, "Delete", "find_"+n);
+  s${SeqNum}_SpecOp("s${SeqNum}_findop_"+n, "Delete", "s${SeqNum}_find_"+n);
 }
 
-function FindAdd(n)
+function s${SeqNum}_FindAdd(n)
 {
-  if (editjob.findname.value == "")
+  if (editjob.s${SeqNum}_findname.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.PleaseSelectAMetadataName'))");
-    editjob.findname.focus();
+    editjob.s${SeqNum}_findname.focus();
     return;
   }
-  if (editjob.findvalue.value == "")
+  if (editjob.s${SeqNum}_findvalue.value == "")
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.ValueCannotBeBlank'))");
-    editjob.findvalue.focus();
+    editjob.s${SeqNum}_findvalue.focus();
     return;
   }
-  SpecOp("findop", "Add", "find_"+n);
+  s${SeqNum}_SpecOp("s${SeqNum}_findop", "Add", "s${SeqNum}_find_"+n);
 }
 
 //-->

@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('EmailConnector.Metadata'))
+#if($TabName == $ResourceBundle.getString('EmailConnector.Metadata') && ${SeqNum} == ${SelectedNum})
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
@@ -24,9 +24,9 @@ limitations under the License.
     <td class="value">
   #foreach($metadataattribute in $METADATAATTRIBUTES)
     #if($METADATASELECTIONS.contains($metadataattribute))
-      <input type="checkbox" name="metadata" value="$Encoder.attributeEscape($metadataattribute)" checked="true"/>
+      <input type="checkbox" name="s${SeqNum}_metadata" value="$Encoder.attributeEscape($metadataattribute)" checked="true"/>
     #else
-      <input type="checkbox" name="metadata" value="$Encoder.attributeEscape($metadataattribute)"/>
+      <input type="checkbox" name="s${SeqNum}_metadata" value="$Encoder.attributeEscape($metadataattribute)"/>
     #end
       <nobr>$Encoder.bodyEscape($metadataattribute)</nobr><br/>
   #end
@@ -38,7 +38,7 @@ limitations under the License.
 #else
 
   #foreach($metadataselection in $METADATASELECTIONS)
-<input type="hidden" name="metadata" value="$Encoder.attributeEscape($metadataselection)"/>
+<input type="hidden" name="s${SeqNum}_metadata" value="$Encoder.attributeEscape($metadataselection)"/>
   #end
   
 #end

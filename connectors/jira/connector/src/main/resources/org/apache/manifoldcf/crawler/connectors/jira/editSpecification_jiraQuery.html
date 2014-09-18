@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('JiraRepositoryConnector.JiraQuery'))
+#if($TabName == $ResourceBundle.getString('JiraRepositoryConnector.JiraQuery') && ${SeqNum} == ${SelectedNum})
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
@@ -27,7 +27,7 @@
     </td>
     <td class="value">
       <nobr>
-        <input type="text" size="120" name="jiraquery" value="$Encoder.attributeEscape($JIRAQUERY)" />
+        <input type="text" size="120" name="s${SeqNum}_jiraquery" value="$Encoder.attributeEscape($JIRAQUERY)" />
       </nobr>
     </td>
   </tr>
@@ -35,6 +35,6 @@
 
 #else
 
-<input type="hidden" name="jiraquery" value="$Encoder.attributeEscape($JIRAQUERY)" />
+<input type="hidden" name="s${SeqNum}_jiraquery" value="$Encoder.attributeEscape($JIRAQUERY)" />
 
 #end

@@ -851,57 +851,83 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   /////////////////////////////////Start of Specification UI//////////////////////////////////////////////////
 
-  /**
-  * Output the specification header section.
-  * This method is called in the head section of a job page which has selected a repository connection of the
-  * current type. Its purpose is to add the required tabs to the list, and to output any javascript methods
-  * that might be needed by the job editing HTML.
-  * The connector will be connected before this method can be called.
-  *
-  * @param out is the output to which any HTML should be sent.
-  * @param locale is the desired locale.
-  * @param ds is the current document specification for this job.
-  * @param tabsArray is an array of tab names. Add to this array any tab names that are specific to the connector.
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale,
-    DocumentSpecification ds, List<String> tabsArray)
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+    //return "checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+    //return "checkSpecificationForSave";
+  }
+
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
+  * that might be needed by the job editing HTML.
+  * The connector will be connected before this method can be called.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException {
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
     // Add the tabs
     tabsArray.add(Messages.getString(locale, "EmailConnector.Metadata"));
     tabsArray.add(Messages.getString(locale, "EmailConnector.Filter"));
-    Messages.outputResourceWithVelocity(out, locale, "SpecificationHeader.js", null);
+    Messages.outputResourceWithVelocity(out, locale, "SpecificationHeader.js", paramMap);
   }
 
-  /**
-  * Output the specification body section.
+  /** Output the specification body section.
   * This method is called in the body section of a job page which has selected a repository connection of the
-  * current type. Its purpose is to present the required form elements for editing.
+  * current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate
-  * <html>, <body>, and <form> tags. The name of the form is always "editjob".
+  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
   * The connector will be connected before this method can be called.
-  *
-  * @param out is the output to which any HTML should be sent.
-  * @param locale is the desired locale.
-  * @param ds is the current document specification for this job.
-  * @param tabName is the current tab name.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
+  *@param tabName is the current tab name.  (actualSequenceNumber, tabName) form a unique tuple within
+  *  the job.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale,
-    DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException {
-    outputFilterTab(out, locale, ds, tabName);
-    outputMetadataTab(out, locale, ds, tabName);
+    outputFilterTab(out, locale, ds, tabName, connectionSequenceNumber, actualSequenceNumber);
+    outputMetadataTab(out, locale, ds, tabName, connectionSequenceNumber, actualSequenceNumber);
   }
 
   /**
 * Take care of "Metadata" tab.
 */
   protected void outputMetadataTab(IHTTPOutput out, Locale locale,
-                   DocumentSpecification ds, String tabName)
-      throws ManifoldCFException, IOException {
+    Specification ds, String tabName, int connectionSequenceNumber, int actualSequenceNumber)
+    throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("TabName", tabName);
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
+    paramMap.put("SelectedNum", Integer.toString(actualSequenceNumber));
     fillInMetadataTab(paramMap, ds);
     fillInMetadataAttributes(paramMap);
     Messages.outputResourceWithVelocity(out, locale, "Specification_Metadata.html", paramMap);
@@ -911,7 +937,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   * Fill in Velocity context for Metadata tab.
   */
   protected static void fillInMetadataTab(Map<String, Object> paramMap,
-    DocumentSpecification ds) {
+    Specification ds) {
     Set<String> metadataSelections = new HashSet<String>();
     int i = 0;
     while (i < ds.getChildCount()) {
@@ -933,10 +959,12 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   }
 
   protected void outputFilterTab(IHTTPOutput out, Locale locale,
-    DocumentSpecification ds, String tabName)
+    Specification ds, String tabName, int connectionSequenceNumber, int actualSequenceNumber)
     throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("TabName", tabName);
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
+    paramMap.put("SelectedNum", Integer.toString(actualSequenceNumber));
     fillInFilterTab(paramMap, ds);
     if (tabName.equals(Messages.getString(locale, "EmailConnector.Filter")))
       fillInSearchableAttributes(paramMap);
@@ -964,7 +992,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   }
 
   protected static void fillInFilterTab(Map<String, Object> paramMap,
-    DocumentSpecification ds) {
+    Specification ds) {
     List<Map<String, String>> filterList = new ArrayList<Map<String, String>>();
     Set<String> folders = new HashSet<String>();
     int i = 0;
@@ -988,34 +1016,38 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     paramMap.put("FOLDERS", folders);
   }
 
-  /**
-  * Process a specification post.
+  /** Process a specification post.
   * This method is called at the start of job's edit or view page, whenever there is a possibility that form
-  * data for a connection has been posted. Its purpose is to gather form information and modify the
-  * document specification accordingly. The name of the posted form is always "editjob".
+  * data for a connection has been posted.  Its purpose is to gather form information and modify the
+  * document specification accordingly.  The name of the posted form is always "editjob".
   * The connector will be connected before this method can be called.
-  *
-  * @param variableContext contains the post data, including binary file-upload information.
-  * @param ds is the current document specification for this job.
-  * @return null if all is well, or a string error message if there is an error that should prevent saving of
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of
   * the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-      throws ManifoldCFException {
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
 
-    String result = processFilterTab(variableContext, ds);
+    String result = processFilterTab(variableContext, ds, connectionSequenceNumber);
     if (result != null)
       return result;
-    result = processMetadataTab(variableContext, ds);
+    result = processMetadataTab(variableContext, ds, connectionSequenceNumber);
     return result;
   }
 
 
-  protected String processFilterTab(IPostParameters variableContext, DocumentSpecification ds)
-      throws ManifoldCFException {
+  protected String processFilterTab(IPostParameters variableContext, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
 
-    String findCountString = variableContext.getParameter("findcount");
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+      
+    String findCountString = variableContext.getParameter(seqPrefix + "findcount");
     if (findCountString != null) {
       int findCount = Integer.parseInt(findCountString);
       
@@ -1026,23 +1058,23 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       while (i < findCount) {
         String suffix = "_" + Integer.toString(i++);
         // Only add the name/value if the item was not deleted.
-        String findParameterOp = variableContext.getParameter("findop" + suffix);
+        String findParameterOp = variableContext.getParameter(seqPrefix + "findop" + suffix);
         if (findParameterOp == null || !findParameterOp.equals("Delete")) {
-          String findParameterName = variableContext.getParameter("findname" + suffix);
-          String findParameterValue = variableContext.getParameter("findvalue" + suffix);
+          String findParameterName = variableContext.getParameter(seqPrefix + "findname" + suffix);
+          String findParameterValue = variableContext.getParameter(seqPrefix + "findvalue" + suffix);
           addFindParameterNode(ds, findParameterName, findParameterValue);
         }
       }
 
-      String operation = variableContext.getParameter("findop");
+      String operation = variableContext.getParameter(seqPrefix + "findop");
       if (operation != null && operation.equals("Add")) {
-        String findParameterName = variableContext.getParameter("findname");
-        String findParameterValue = variableContext.getParameter("findvalue");
+        String findParameterName = variableContext.getParameter(seqPrefix + "findname");
+        String findParameterValue = variableContext.getParameter(seqPrefix + "findvalue");
         addFindParameterNode(ds, findParameterName, findParameterValue);
       }
     }
     
-    String[] folders = variableContext.getParameterValues("folders");
+    String[] folders = variableContext.getParameterValues(seqPrefix + "folders");
     if (folders != null)
     {
       removeNodes(ds, EmailConfig.NODE_FOLDER);
@@ -1055,13 +1087,17 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   }
 
 
-  protected String processMetadataTab(IPostParameters variableContext, DocumentSpecification ds)
-      throws ManifoldCFException {
+  protected String processMetadataTab(IPostParameters variableContext, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
+      
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
     // Remove old included metadata nodes
     removeNodes(ds, EmailConfig.NODE_METADATA);
 
     // Get the posted metadata values
-    String[] metadataNames = variableContext.getParameterValues("metadata");
+    String[] metadataNames = variableContext.getParameterValues(seqPrefix + "metadata");
     if (metadataNames != null) {
       // Add each metadata name as a node to the document specification
       int i = 0;
@@ -1074,21 +1110,22 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     return null;
   }
 
-  /**
-  * View specification.
-  * This method is called in the body section of a job's view page. Its purpose is to present the document
-  * specification information to the user. The coder can presume that the HTML that is output from
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document
+  * specification information to the user.  The coder can presume that the HTML that is output from
   * this configuration will be within appropriate <html> and <body> tags.
   * The connector will be connected before this method can be called.
-  *
-  * @param out is the output to which any HTML should be sent.
-  * @param locale is the desired locale.
-  * @param ds is the current document specification for this job.
-*/
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
-      throws ManifoldCFException, IOException {
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
+    paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
     fillInFilterTab(paramMap, ds);
     fillInMetadataTab(paramMap, ds);
     Messages.outputResourceWithVelocity(out, locale, "SpecificationView.html", paramMap);
@@ -1181,7 +1218,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     }
   }
 
-  protected static void removeNodes(DocumentSpecification ds,
+  protected static void removeNodes(Specification ds,
                     String nodeTypeName) {
     int i = 0;
     while (i < ds.getChildCount()) {
@@ -1193,7 +1230,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     }
   }
 
-  protected static void addIncludedMetadataNode(DocumentSpecification ds,
+  protected static void addIncludedMetadataNode(Specification ds,
                           String metadataName) {
     // Build the proper node
     SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_METADATA);
@@ -1202,7 +1239,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     ds.addChild(ds.getChildCount(), sn);
   }
 
-  protected static void addFindParameterNode(DocumentSpecification ds, String findParameterName, String findParameterValue) {
+  protected static void addFindParameterNode(Specification ds, String findParameterName, String findParameterValue) {
     SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_FILTER);
     sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, findParameterName);
     sn.setAttribute(EmailConfig.ATTRIBUTE_VALUE, findParameterValue);
@@ -1210,7 +1247,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     ds.addChild(ds.getChildCount(), sn);
   }
 
-  protected static void addFolderNode(DocumentSpecification ds, String folderName)
+  protected static void addFolderNode(Specification ds, String folderName)
   {
     SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_FOLDER);
     sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, folderName);

@@ -14,7 +14,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-#if($TabName == $ResourceBundle.getString('DropboxRepositoryConnector.DropboxPath'))
+#if($TabName == $ResourceBundle.getString('DropboxRepositoryConnector.DropboxPath') && ${SeqNum} == ${SelectedNum})
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
@@ -23,14 +23,14 @@
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.DropboxPathColon'))</nobr>
     </td>
     <td class="value">
-      <nobr><input type="text" size="80" name="dropboxpath" value="$Encoder.attributeEscape($DROPBOXPATH)" /></nobr>
+      <nobr><input type="text" size="80" name="s${SeqNum}_dropboxpath" value="$Encoder.attributeEscape($DROPBOXPATH)" /></nobr>
     </td>
   </tr>
 </table>
 
 #else
 
-<input type="hidden" name="dropboxpath" value="$Encoder.attributeEscape($DROPBOXPATH)" />
+<input type="hidden" name="s${SeqNum}_dropboxpath" value="$Encoder.attributeEscape($DROPBOXPATH)" />
 
 #end
 

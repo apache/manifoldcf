@@ -50,6 +50,7 @@ import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
@@ -100,6 +101,12 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   
   /** Tab name parameter for managin the view of the Web UI */
   private static final String TAB_NAME_PARAM = "TabName";
+  
+  /** The sequence number parameter */
+  private static final String SEQ_NUM_PARAM = "SeqNum";
+  
+  /** The selected sequence number parameter */
+  private static final String SELECTED_NUM_PARAM = "SelectedNum";
   
   /** The Lucene Query label for the configuration tab of the job settings */
   private static final String TAB_LABEL_LUCENE_QUERY_RESOURCE = "AlfrescoConnector.LuceneQuery";
@@ -638,7 +645,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   public String processConfigurationPost(IThreadContext threadContext,
       IPostParameters variableContext, Locale locale, ConfigParams parameters)
       throws ManifoldCFException {
-
+        
     String username = variableContext.getParameter(AlfrescoConfig.USERNAME_PARAM);
     if (username != null) {
       parameters.setParameter(AlfrescoConfig.USERNAME_PARAM, username);
@@ -684,7 +691,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
 
   /** Fill in Velocity parameters for the LuceneQuery tab.
   */
-  private static void fillInLuceneQueryParameters(Map<String,String> paramMap, DocumentSpecification ds)
+  private static void fillInLuceneQueryParameters(Map<String,String> paramMap, Specification ds)
   {
     int i = 0;
     String luceneQuery = "";
@@ -698,47 +705,48 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     paramMap.put(AlfrescoConfig.LUCENE_QUERY_PARAM, luceneQuery);
   }
 
-  /**
-   * View specification. This method is called in the body section of a job's
-   * view page. Its purpose is to present the document specification information
-   * to the user. The coder can presume that the HTML that is output from this
-   * configuration will be within appropriate <html> and <body> tags.
-   * 
-   * @param out
-   *          is the output to which any HTML should be sent.
-   * @param ds
-   *          is the current document specification for this job.
-   */
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document
+  * specification information to the user.  The coder can presume that the HTML that is output from
+  * this configuration will be within appropriate <html> and <body> tags.
+  * The connector will be connected before this method can be called.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  */
   @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
-      throws ManifoldCFException, IOException {
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException, IOException {
     Map<String,String> paramMap = new HashMap<String,String>();
         
     // Fill in parameters from all tabs
     fillInLuceneQueryParameters(paramMap, ds);
+    paramMap.put(SEQ_NUM_PARAM, Integer.toString(connectionSequenceNumber));
 
     outputResource(VIEW_SPEC_FORWARD, out, locale, paramMap);
   }
 
-  /**
-   * Process a specification post. This method is called at the start of job's
-   * edit or view page, whenever there is a possibility that form data for a
-   * connection has been posted. Its purpose is to gather form information and
-   * modify the document specification accordingly. The name of the posted form
-   * is "editjob".
-   * 
-   * @param variableContext
-   *          contains the post data, including binary file-upload information.
-   * @param ds
-   *          is the current document specification for this job.
-   * @return null if all is well, or a string error message if there is an error
-   *         that should prevent saving of the job (and cause a redirection to
-   *         an error page).
-   */
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form
+  * data for a connection has been posted.  Its purpose is to gather form information and modify the
+  * document specification accordingly.  The name of the posted form is always "editjob".
+  * The connector will be connected before this method can be called.
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of
+  * the job (and cause a redirection to an error page).
+  */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext,
-      Locale locale, DocumentSpecification ds) throws ManifoldCFException {
-    String luceneQuery = variableContext.getParameter(AlfrescoConfig.LUCENE_QUERY_PARAM);
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String luceneQuery = variableContext.getParameter(seqPrefix + AlfrescoConfig.LUCENE_QUERY_PARAM);
     if (luceneQuery != null) {
       int i = 0;
       while (i < ds.getChildCount()) {
@@ -757,59 +765,81 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     return null;
   }
 
-  /**
-   * Output the specification body section. This method is called in the body
-   * section of a job page which has selected a repository connection of the
-   * current type. Its purpose is to present the required form elements for
-   * editing. The coder can presume that the HTML that is output from this
-   * configuration will be within appropriate <html>, <body>, and <form> tags.
-   * The name of the form is "editjob".
-   * 
-   * @param out
-   *          is the output to which any HTML should be sent.
-   * @param ds
-   *          is the current document specification for this job.
-   * @param tabName
-   *          is the current tab name.
-   */
+  /** Obtain the name of the form check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form check javascript method.
+  */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale,
-      DocumentSpecification ds, String tabName) throws ManifoldCFException,
-      IOException {
+  public String getFormCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecification";
+    //return "checkSpecification";
+  }
+
+  /** Obtain the name of the form presave check javascript method to call.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@return the name of the form presave check javascript method.
+  */
+  @Override
+  public String getFormPresaveCheckJavascriptMethodName(int connectionSequenceNumber)
+  {
+    return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
+    //return "checkSpecificationForSave";
+  }
+
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate
+  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  * The connector will be connected before this method can be called.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param actualSequenceNumber is the connection within the job that has currently been selected.
+  *@param tabName is the current tab name.  (actualSequenceNumber, tabName) form a unique tuple within
+  *  the job.
+  */
+  @Override
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
+    throws ManifoldCFException, IOException {
     
     // Do all tabs in turn.
         
     // LuceneQuery tab
     Map<String,String> paramMap = new HashMap<String,String>();
     paramMap.put(TAB_NAME_PARAM, tabName);
+    paramMap.put(SEQ_NUM_PARAM, Integer.toString(connectionSequenceNumber));
+    paramMap.put(SELECTED_NUM_PARAM, Integer.toString(actualSequenceNumber));
+
     fillInLuceneQueryParameters(paramMap, ds);
     outputResource(EDIT_SPEC_FORWARD_LUCENEQUERY, out, locale, paramMap);
   }
 
-  /**
-   * Output the specification header section. This method is called in the head
-   * section of a job page which has selected a repository connection of the
-   * current type. Its purpose is to add the required tabs to the list, and to
-   * output any javascript methods that might be needed by the job editing HTML.
-   * 
-   * @param out
-   *          is the output to which any HTML should be sent.
-   * @param ds
-   *          is the current document specification for this job.
-   * @param tabsArray
-   *          is an array of tab names. Add to this array any tab names that are
-   *          specific to the connector.
-   */
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
+  * that might be needed by the job editing HTML.
+  * The connector will be connected before this method can be called.
+  *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
+  *@param ds is the current document specification for this job.
+  *@param connectionSequenceNumber is the unique number of this connection within the job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out,
-      Locale locale, DocumentSpecification ds, List<String> tabsArray)
-      throws ManifoldCFException, IOException {
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
+    int connectionSequenceNumber, List<String> tabsArray)
+    throws ManifoldCFException, IOException {
     // Add LuceneQuery tab
     tabsArray.add(Messages.getString(locale,TAB_LABEL_LUCENE_QUERY_RESOURCE));
         
     // Fill in parameters from all tabs
     Map<String,String> paramMap = new HashMap<String,String>();
-        
+    paramMap.put(SEQ_NUM_PARAM, Integer.toString(connectionSequenceNumber));
+
     // LuceneQuery tab
     fillInLuceneQueryParameters(paramMap, ds);
 
