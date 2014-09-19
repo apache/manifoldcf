@@ -401,18 +401,6 @@ public class ElasticSearchConnector extends BaseOutputConnector
     return new ElasticSearchSpecs(getSpecNode(os));
   }
 
-  final private ElasticSearchSpecs getSpecsCache(String outputDescription)
-      throws ManifoldCFException
-  {
-    try
-    {
-      return new ElasticSearchSpecs(new JSONObject(outputDescription));
-    } catch (JSONException e)
-    {
-      throw new ManifoldCFException(e);
-    }
-  }
-
   @Override
   public VersionContext getPipelineDescription(Specification os)
       throws ManifoldCFException
@@ -425,22 +413,13 @@ public class ElasticSearchConnector extends BaseOutputConnector
   public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
       throws ManifoldCFException, ServiceInterruption
   {
-    ElasticSearchSpecs specs = getSpecsCache(outputDescription.getVersionString());
+    ElasticSearchSpecs specs = new ElasticSearchSpecs(getSpecNode(outputDescription.getSpecification()));
     long maxFileSize = specs.getMaxFileSize();
     if (length > maxFileSize)
       return false;
     return super.checkLengthIndexable(outputDescription, length, activities);
   }
 
-  @Override
-  public boolean checkDocumentIndexable(VersionContext outputDescription, File localFile, IOutputCheckActivity activities)
-      throws ManifoldCFException, ServiceInterruption
-  {
-    // No filtering here; we don't look inside the file and don't know its extension.  That's done via the url
-    // filter
-    return true;
-  }
-  
   /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
   * to help filter out documents that are not worth indexing.
   *@param outputDescription is the document's output version.
@@ -451,7 +430,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
   public boolean checkURLIndexable(VersionContext outputDescription, String url, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    ElasticSearchSpecs specs = getSpecsCache(outputDescription.getVersionString());
+    ElasticSearchSpecs specs = new ElasticSearchSpecs(getSpecNode(outputDescription.getSpecification()));
     return specs.checkExtension(FilenameUtils.getExtension(url));
   }
 
@@ -459,7 +438,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
   public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    ElasticSearchSpecs specs = getSpecsCache(outputDescription.getVersionString());
+    ElasticSearchSpecs specs = new ElasticSearchSpecs(getSpecNode(outputDescription.getSpecification()));
     return specs.checkMimeType(mimeType);
   }
 

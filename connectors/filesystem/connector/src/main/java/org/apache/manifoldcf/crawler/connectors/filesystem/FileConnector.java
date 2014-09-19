@@ -166,26 +166,64 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
 
-  /** Given a document specification, get either a list of starting document identifiers (seeds),
-  * or a list of changes (deltas), depending on whether this is a "crawled" connector or not.
-  * These document identifiers will be loaded into the job's queue at the beginning of the
-  * job's execution.
-  * This method can return changes only (because it is provided a time range).  For full
-  * recrawls, the start time is always zero.
-  * Note that it is always ok to return MORE documents rather than less with this method.
+  /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
+  * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
+  *
+  * This method can choose to find repository changes that happen only during the specified time interval.
+  * The seeds recorded by this method will be viewed by the framework based on what the
+  * getConnectorModel() method returns.
+  *
+  * It is not a big problem if the connector chooses to create more seeds than are
+  * strictly necessary; it is merely a question of overall work required.
+  *
+  * The end time and seeding version string passed to this method may be interpreted for greatest efficiency.
+  * For continuous crawling jobs, this method will
+  * be called once, when the job starts, and at various periodic intervals as the job executes.
+  *
+  * When a job's specification is changed, the framework automatically resets the seeding version string to null.  The
+  * seeding version string may also be set to null on each job run, depending on the connector model returned by
+  * getConnectorModel().
+  *
+  * Note that it is always ok to send MORE documents rather than less to this method.
+  * The connector will be connected before this method can be called.
+  *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
-  *@param startTime is the beginning of the time range to consider, inclusive.
-  *@param endTime is the end of the time range to consider, exclusive.
-  *@return the stream of local document identifiers that should be added to the queue.
+  *@param seedTime is the end of the time range of documents to consider, exclusive.
+  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@return an updated seeding version string, to be stored with the job.
   */
   @Override
-  public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
-    throws ManifoldCFException
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
+    String lastSeedVersion, long seedTime, int jobMode)
+    throws ManifoldCFException, ServiceInterruption
   {
-    return new IdentifierStream(spec);
+    try
+    {
+      // Walk the specification for the "startpoint" types.  Amalgamate these into a list of strings.
+      // Presume that all roots are startpoint nodes
+      for (int i = 0; i < spec.getChildCount(); i++)
+      {
+        SpecificationNode n = spec.getChild(i);
+        if (n.getType().equals("startpoint"))
+        {
+          // The id returned MUST be in canonical form!!!
+          String seed = new File(n.getAttributeValue("path")).getCanonicalPath();
+          if (Logging.connectors.isDebugEnabled())
+          {
+            Logging.connectors.debug("Seed = '"+seed+"'");
+          }
+          activities.addSeedDocument(seed);
+        }
+      }
+    }
+    catch (IOException e)
+    {
+      throw new ManifoldCFException("Could not get a canonical path: "+e.getMessage(),e);
+    }
+    return "";
   }
-
-
+  
   /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
@@ -1234,75 +1272,6 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       else
         return false;
     }
-  }
-
-  /** Document identifier stream.
-  */
-  protected static class IdentifierStream implements IDocumentIdentifierStream
-  {
-    protected String[] ids = null;
-    protected int currentIndex = 0;
-
-    public IdentifierStream(DocumentSpecification spec)
-      throws ManifoldCFException
-    {
-      try
-      {
-        // Walk the specification for the "startpoint" types.  Amalgamate these into a list of strings.
-        // Presume that all roots are startpoint nodes
-        int i = 0;
-        int j = 0;
-        while (i < spec.getChildCount())
-        {
-          SpecificationNode n = spec.getChild(i);
-          if (n.getType().equals("startpoint"))
-            j++;
-          i++;
-        }
-        ids = new String[j];
-        i = 0;
-        j = 0;
-        while (i < ids.length)
-        {
-          SpecificationNode n = spec.getChild(i);
-          if (n.getType().equals("startpoint"))
-          {
-            // The id returned MUST be in canonical form!!!
-            ids[j] = new File(n.getAttributeValue("path")).getCanonicalPath();
-            if (Logging.connectors.isDebugEnabled())
-            {
-              Logging.connectors.debug("Seed = '"+ids[j]+"'");
-            }
-            j++;
-          }
-          i++;
-        }
-      }
-      catch (IOException e)
-      {
-        throw new ManifoldCFException("Could not get a canonical path",e);
-      }
-    }
-
-    /** Get the next identifier.
-    *@return the next document identifier, or null if there are no more.
-    */
-    public String getNextIdentifier()
-      throws ManifoldCFException, ServiceInterruption
-    {
-      if (currentIndex == ids.length)
-        return null;
-      return ids[currentIndex++];
-    }
-
-    /** Close the stream.
-    */
-    public void close()
-      throws ManifoldCFException
-    {
-      ids = null;
-    }
-
   }
 
 }

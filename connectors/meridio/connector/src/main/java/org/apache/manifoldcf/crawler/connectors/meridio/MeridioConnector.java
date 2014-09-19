@@ -70,6 +70,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   protected String urlBase = null;
   protected String urlVersionBase = null;
 
+  private final static int maxHitsToReturn      = 100;
+
   /** Deny access token for Meridio */
   private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
@@ -563,39 +565,130 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     return true;
   }
 
-  /** Given a document specification, get either a list of starting document identifiers (seeds),
-  * or a list of changes (deltas), depending on whether this is a "crawled" connector or not.
-  * These document identifiers will be loaded into the job's queue at the beginning of the
-  * job's execution.
-  * This method can return changes only (because it is provided a time range).  For full
-  * recrawls, the start time is always zero.
-  * Note that it is always ok to return MORE documents rather than less with this method.
+  /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
+  * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
+  *
+  * This method can choose to find repository changes that happen only during the specified time interval.
+  * The seeds recorded by this method will be viewed by the framework based on what the
+  * getConnectorModel() method returns.
+  *
+  * It is not a big problem if the connector chooses to create more seeds than are
+  * strictly necessary; it is merely a question of overall work required.
+  *
+  * The end time and seeding version string passed to this method may be interpreted for greatest efficiency.
+  * For continuous crawling jobs, this method will
+  * be called once, when the job starts, and at various periodic intervals as the job executes.
+  *
+  * When a job's specification is changed, the framework automatically resets the seeding version string to null.  The
+  * seeding version string may also be set to null on each job run, depending on the connector model returned by
+  * getConnectorModel().
+  *
+  * Note that it is always ok to send MORE documents rather than less to this method.
+  * The connector will be connected before this method can be called.
+  *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
-  *@param startTime is the beginning of the time range to consider, inclusive.
-  *@param endTime is the end of the time range to consider, exclusive.
-  *@return the stream of local document identifiers that should be added to the queue.
+  *@param seedTime is the end of the time range of documents to consider, exclusive.
+  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@return an updated seeding version string, to be stored with the job.
   */
   @Override
-  public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
+    String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
   {
-    Logging.connectors.debug("Meridio: Entering 'getDocumentIdentifiers' method");
+    Logging.connectors.debug("Meridio: Entering 'addSeedDocuments' method");
+    long startTime;
+    if (lastSeedVersion == null)
+      startTime = 0L;
+    else
+    {
+      // Unpack seed time from seed version string
+      startTime = new Long(lastSeedVersion).longValue();
+    }
+    // Adjust start time so that we don't miss documents that squeeze in with earlier timestamps after we've already scanned that interval.
+    // Chose an interval of 15 minutes, but I've never seen this effect take place over a time interval even 1/10 of that.
+    long timeAdjust = 15L * 60000L;
+    if (startTime > timeAdjust)
+      startTime -= timeAdjust;
+    else
+      startTime = 0L;
 
-    try
+    while (true)
     {
-      // Adjust start time so that we don't miss documents that squeeze in with earlier timestamps after we've already scanned that interval.
-      // Chose an interval of 15 minutes, but I've never seen this effect take place over a time interval even 1/10 of that.
-      long timeAdjust = 15L * 60000L;
-      if (startTime > timeAdjust)
-        startTime -= timeAdjust;
-      else
-        startTime = 0L;
-      return new IdentifierStream(spec, startTime, endTime);
+      getSession();
+
+      try
+      {
+        DMSearchResults searchResults;
+        int numResultsReturnedByStream = 0;
+
+        while (true)
+        {
+          searchResults = documentSpecificationSearch(spec,
+            startTime, seedTime, numResultsReturnedByStream + 1, maxHitsToReturn);
+
+          for (int i = 0; i < searchResults.returnedHitsCount; i++)
+          {
+            long documentId =
+              searchResults.dsDM.getSEARCHRESULTS_DOCUMENTS()[i].getDocId();
+
+            String strDocumentId = new Long(documentId).toString();
+            activities.addSeedDocument(strDocumentId);
+          }
+          
+          numResultsReturnedByStream += searchResults.returnedHitsCount;
+          if (numResultsReturnedByStream == searchResults.totalHitsCount)
+            break;
+        }
+        return new Long(seedTime).toString();
+      }
+      catch (org.apache.axis.AxisFault e)
+      {
+        long currentTime = System.currentTimeMillis();
+        if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
+        {
+          org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
+          if (elem != null)
+          {
+            elem.normalize();
+            String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
+            throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+          }
+          throw new ManifoldCFException("Unknown http error occurred while performing search: "+e.getMessage(),e);
+        }
+        if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
+        {
+          String exceptionName = e.getFaultString();
+          if (exceptionName.equals("java.lang.InterruptedException"))
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+        }
+        if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
+        {
+          if (e.getFaultString().indexOf(" 23031#") != -1)
+          {
+            // This means that the session has expired, so reset it and retry
+            meridio_ = null;
+            continue;
+          }
+        }
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Meridio: Got an unknown remote exception while performing search - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
+        throw new ServiceInterruption("Remote procedure exception: "+e.getMessage(),  e, currentTime + 300000L,
+          currentTime + 3 * 60 * 60000L,-1,false);
+      }
+      catch (RemoteException remoteException)
+      {
+        throw new ManifoldCFException("Meridio: A Remote Exception occurred while " +
+          "performing a search: "+remoteException.getMessage(), remoteException);
+      }
+      catch (MeridioDataSetException meridioDataSetException)
+      {
+        throw new ManifoldCFException("Meridio: A problem occurred manipulating the Web " +
+          "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
+      }
     }
-    finally
-    {
-      Logging.connectors.debug("Meridio: Exiting 'getDocumentIdentifiers' method");
-    }
+
   }
 
 
@@ -4167,208 +4260,6 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
 
   }
-
-
-  private final static int maxHitsToReturn      = 100;
-
-  /** Document identifier stream.
-  */
-  protected class IdentifierStream implements IDocumentIdentifierStream
-  {
-    protected DMSearchResults searchResults  = null;
-    protected int currentResult              = 0;
-    protected int numResultsReturnedByStream = 0;
-
-    DocumentSpecification spec_              = null;
-    long startTime_                          = 0L;
-    long endTime_                            = 0L;
-
-
-    public IdentifierStream
-    (
-      DocumentSpecification spec,
-      long startTime,
-      long endTime
-    )
-      throws ManifoldCFException,ServiceInterruption
-    {
-      Logging.connectors.debug("Meridio: Entering 'IdentifierStream' constructor");
-      while (true)
-      {
-        getSession();
-
-        try
-        {
-          spec_             = spec;
-          startTime_        = startTime;
-          endTime_          = endTime;
-
-          searchResults = documentSpecificationSearch(spec,
-            startTime, endTime,     1, maxHitsToReturn);
-
-          Logging.connectors.debug("Meridio: Exiting 'IdentifierStream' constructor");
-
-          return;
-        }
-        catch (org.apache.axis.AxisFault e)
-        {
-          long currentTime = System.currentTimeMillis();
-          if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
-          {
-            org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
-            if (elem != null)
-            {
-              elem.normalize();
-              String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-              throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
-            }
-            throw new ManifoldCFException("Unknown http error occurred while performing search: "+e.getMessage(),e);
-          }
-          if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
-          {
-            String exceptionName = e.getFaultString();
-            if (exceptionName.equals("java.lang.InterruptedException"))
-              throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-          }
-          if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
-          {
-            if (e.getFaultString().indexOf(" 23031#") != -1)
-            {
-              // This means that the session has expired, so reset it and retry
-              meridio_ = null;
-              continue;
-            }
-          }
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Meridio: Got an unknown remote exception while performing search - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
-          throw new ServiceInterruption("Remote procedure exception: "+e.getMessage(),  e, currentTime + 300000L,
-            currentTime + 3 * 60 * 60000L,-1,false);
-        }
-        catch (RemoteException remoteException)
-        {
-          throw new ManifoldCFException("Meridio: A Remote Exception occurred while " +
-            "performing a search: "+remoteException.getMessage(), remoteException);
-        }
-        catch (MeridioDataSetException meridioDataSetException)
-        {
-          throw new ManifoldCFException("Meridio: A problem occurred manipulating the Web " +
-            "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
-        }
-      }
-    }
-
-
-
-    /** Get the next identifier.
-    *@return the next document identifier, or null if there are no more.
-    */
-    public String getNextIdentifier()
-      throws ManifoldCFException, ServiceInterruption
-    {
-      Logging.connectors.debug("Meridio: Entering 'getNextIdentifier' method");
-
-      try
-      {
-        if (null                       == searchResults ||
-          numResultsReturnedByStream == searchResults.totalHitsCount)
-        {
-          return null;
-        }
-
-        if (currentResult == searchResults.returnedHitsCount)
-        {
-          while (true)
-          {
-            getSession();
-            try
-            {
-              searchResults = documentSpecificationSearch(spec_,
-                startTime_, endTime_, numResultsReturnedByStream + 1,
-                maxHitsToReturn);
-
-              currentResult = 0;
-              break;
-            }
-            catch (org.apache.axis.AxisFault e)
-            {
-              long currentTime = System.currentTimeMillis();
-              if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
-              {
-                org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
-                if (elem != null)
-                {
-                  elem.normalize();
-                  String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-                  throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" performing search: "+e.getMessage());
-                }
-                throw new ManifoldCFException("Unknown http error occurred while performing search: "+e.getMessage(),e);
-              }
-              if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
-              {
-                String exceptionName = e.getFaultString();
-                if (exceptionName.equals("java.lang.InterruptedException"))
-                  throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-              }
-              if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
-              {
-                if (e.getFaultString().indexOf(" 23031#") != -1)
-                {
-                  // This means that the session has expired, so reset it and retry
-                  meridio_ = null;
-                  continue;
-                }
-              }
-
-              throw new ManifoldCFException("Meridio: Got an unknown remote exception performing search - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
-            }
-            catch (RemoteException remoteException)
-            {
-              throw new ServiceInterruption("Meridio: A Remote Exception occurred while " +
-                "performing a Meridio search: "+remoteException.getMessage(), remoteException,
-                System.currentTimeMillis() + interruptionRetryTime,
-                -1L, -1, true);
-            }
-            catch (MeridioDataSetException meridioDataSetException)
-            {
-              throw new ManifoldCFException("Meridio: A problem occurred manipulating the Web " +
-                "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
-            }
-          }
-        }
-
-        long documentId =
-          searchResults.dsDM.getSEARCHRESULTS_DOCUMENTS()[currentResult].getDocId();
-
-        String strDocumentId = new Long(documentId).toString();
-
-        currentResult++;
-        numResultsReturnedByStream++;
-
-        return strDocumentId;
-      }
-      finally
-      {
-        Logging.connectors.debug("Meridio: Exiting 'getNextIdentifier' method");
-      }
-    }
-
-
-
-    /** Close the stream.
-    */
-    public void close()
-      throws ManifoldCFException
-    {
-      Logging.connectors.debug("Meridio: Entering 'IdentifierStream.close' method");
-
-      searchResults              = null;
-      currentResult              = 0;
-      numResultsReturnedByStream = 0;
-
-      Logging.connectors.debug("Meridio: Exiting 'IdentifierStream.close' method");
-    }
-  }
-
 
 
   /** Returns the categories set up in the Meridio system; these are used by the UI for two

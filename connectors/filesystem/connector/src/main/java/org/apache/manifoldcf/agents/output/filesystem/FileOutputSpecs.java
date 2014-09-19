@@ -44,36 +44,6 @@ public class FileOutputSpecs extends FileOutputParam {
 
   private String rootPath;
 
-  /** Build a set of ElasticSearch parameters by reading an JSON object
-   * 
-   * @param json
-   * @throws JSONException
-   * @throws ManifoldCFException
-   */
-  public FileOutputSpecs(String json) throws JSONException, ManifoldCFException {
-    this(new JSONObject(json));
-  }
-
-  /** Build a set of ElasticSearch parameters by reading an JSON object
-   * 
-   * @param json
-   * @throws JSONException
-   * @throws ManifoldCFException
-   */
-  public FileOutputSpecs(JSONObject json) throws JSONException, ManifoldCFException {
-    super(SPECIFICATIONLIST);
-    rootPath = null;
-    for (ParameterEnum param : SPECIFICATIONLIST) {
-      String value = null;
-      value = json.getString(param.name());
-      if (value == null) {
-        value = param.defaultValue;
-      }
-      put(param, value);
-    }
-    rootPath = getRootPath();
-  }
-
   /** Build a set of ElasticSearch parameters by reading an instance of
    * SpecificationNode.
    * 

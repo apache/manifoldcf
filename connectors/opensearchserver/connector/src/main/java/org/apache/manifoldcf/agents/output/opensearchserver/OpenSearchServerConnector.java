@@ -98,15 +98,8 @@ public class OpenSearchServerConnector extends BaseOutputConnector
   private HttpClient client = null;
   private long expirationTime = -1L;
 
-  // Private data
-
-  private String specsCacheOutpuDescription;
-  private OpenSearchServerSpecs specsCache;
-
   public OpenSearchServerConnector()
   {
-    specsCacheOutpuDescription = null;
-    specsCache = null;
   }
 
   @Override
@@ -397,27 +390,6 @@ public class OpenSearchServerConnector extends BaseOutputConnector
     return new OpenSearchServerSpecs(getSpecNode(os));
   }
 
-  final private OpenSearchServerSpecs getSpecsCache(String outputDescription)
-      throws ManifoldCFException
-  {
-    try
-    {
-      synchronized (this)
-      {
-        if (!outputDescription.equals(specsCacheOutpuDescription))
-          specsCache = null;
-        if (specsCache == null)
-          specsCache = new OpenSearchServerSpecs(new JSONObject(
-              outputDescription));
-        return specsCache;
-      }
-    }
-    catch (JSONException e)
-    {
-      throw new ManifoldCFException(e);
-    }
-  }
-
   @Override
   public VersionContext getPipelineDescription(Specification os)
       throws ManifoldCFException
@@ -430,7 +402,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector
   public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
       throws ManifoldCFException, ServiceInterruption
   {
-    OpenSearchServerSpecs specs = getSpecsCache(outputDescription.getVersionString());
+    OpenSearchServerSpecs specs = new OpenSearchServerSpecs(getSpecNode(outputDescription.getSpecification()));
     long maxFileSize = specs.getMaxFileSize();
     if (length > maxFileSize)
       return false;
@@ -441,7 +413,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector
   public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
       throws ManifoldCFException, ServiceInterruption
   {
-    OpenSearchServerSpecs specs = getSpecsCache(outputDescription.getVersionString());
+    OpenSearchServerSpecs specs = new OpenSearchServerSpecs(getSpecNode(outputDescription.getSpecification()));
     return specs.checkMimeType(mimeType);
   }
 
@@ -460,7 +432,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector
   public boolean checkURLIndexable(VersionContext outputDescription, String url, IOutputCheckActivity activities)
       throws ManifoldCFException, ServiceInterruption
   {
-    OpenSearchServerSpecs specs = getSpecsCache(outputDescription.getVersionString());
+    OpenSearchServerSpecs specs = new OpenSearchServerSpecs(getSpecNode(outputDescription.getSpecification()));
     return specs.checkExtension(FilenameUtils.getExtension(url));
   }
 
@@ -502,12 +474,12 @@ public class OpenSearchServerConnector extends BaseOutputConnector
     return null;
   }
 
-  private static Map<String, Integer> ossInstances = null;
+  // Apparently, only one connection to any given Open Search Server instance is allowed at a time.
+  
+  private static Map<String, Integer> ossInstances = new TreeMap<String, Integer>();
 
-  private synchronized final Integer addInstance(OpenSearchServerConfig config)
+  private final Integer addInstance(OpenSearchServerConfig config)
   {
-    if (ossInstances == null)
-      ossInstances = new TreeMap<String, Integer>();
     synchronized (ossInstances)
     {
       String uii = config.getUniqueIndexIdentifier();
@@ -523,10 +495,8 @@ public class OpenSearchServerConnector extends BaseOutputConnector
     }
   }
 
-  private synchronized final void removeInstance(OpenSearchServerConfig config)
+  private final void removeInstance(OpenSearchServerConfig config)
   {
-    if (ossInstances == null)
-      return;
     synchronized (ossInstances)
     {
       String uii = config.getUniqueIndexIdentifier();
