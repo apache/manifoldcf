@@ -46,10 +46,10 @@ public class XMLGenTest
   public void buildViewFieldsTest()
     throws Exception
   {
-    ArrayList list = new ArrayList();
+    List<String> list = new ArrayList<String>();
     list.add("foo");
     list.add("bar");
-    String viewFieldsXML = SPSProxyHelper.buildViewFields(list).get_any()[0].toString();
+    String viewFieldsXML = SPSProxyHelper.buildViewFields(list.toArray(new String[0])).get_any()[0].toString();
     assertEquals("<ViewFields><FieldRef Name=\"foo\"/><FieldRef Name=\"bar\"/></ViewFields>",viewFieldsXML);
   }
   

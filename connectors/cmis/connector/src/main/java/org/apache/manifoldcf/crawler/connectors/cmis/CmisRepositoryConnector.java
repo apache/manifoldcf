@@ -68,6 +68,7 @@ import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
+import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 /**
@@ -1067,28 +1068,24 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   }
 
   /** Process a set of documents.
-   * This is the method that should cause each document to be fetched, processed, and the results either added
-   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
-   * The document specification allows this class to filter what is done based on the job.
-   *@param documentIdentifiers is the set of document identifiers to process.
-   *@param versions is the corresponding document versions to process, as returned by getDocumentVersions() above.
-   *       The implementation may choose to ignore this parameter and always process the current version.
-   *@param activities is the interface this method should use to queue up new document references
-   * and ingest documents.
-   *@param spec is the document specification.
-   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-   * should only find other references, and should not actually call the ingestion methods.
-   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
-   */
-  @SuppressWarnings("unchecked")
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+  */
   @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions,
-      IProcessActivity activities, DocumentSpecification spec,
-      boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption {
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
+    throws ManifoldCFException, ServiceInterruption {
 
-    getSession();
-    Logging.connectors.debug("CMIS: Inside processDocuments");
-    
+    // Extract what we need from the spec
     String cmisQuery = StringUtils.EMPTY;
     for (int i = 0; i < spec.getChildCount(); i++)
     {
@@ -1099,207 +1096,244 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       }
     }
 
-    for (int i = 0; i < documentIdentifiers.length; i++) {
-      long startTime = System.currentTimeMillis();
-      String nodeId = documentIdentifiers[i];
-      String version = versions[i];
+    getSession();
 
+    for (String documentIdentifier : documentIdentifiers) {
+      
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("CMIS: Processing document identifier '"
-            + nodeId + "'");
+            + documentIdentifier + "'");
 
+      // Load the object.  If this fails, it has been deleted.
       CmisObject cmisObject;
       try {
-        cmisObject = session.getObject(nodeId);
+        cmisObject = session.getObject(documentIdentifier);
       } catch (CmisObjectNotFoundException e) {
-        // Delete it
-        activities.deleteDocument(nodeId);
+        cmisObject = null;
+      }
+
+      if (cmisObject == null) {
+        //System.out.println(" doesn't exist");
+        activities.deleteDocument(documentIdentifier);
         continue;
       }
       
-      String errorCode = "OK";
-      String errorDesc = StringUtils.EMPTY;
-      String baseTypeId = cmisObject.getBaseType().getId();
+      String versionString;
+      
+      if (cmisObject.getBaseType().getId().equals(CMIS_DOCUMENT_BASE_TYPE)) {
+        Document document = (Document) cmisObject;
 
-      if (baseTypeId.equals(CMIS_FOLDER_BASE_TYPE)) {
-
-        // adding all the children for a folder
-
-        Folder folder = (Folder) cmisObject;
-        ItemIterable<CmisObject> children = folder.getChildren();
-        for (CmisObject child : children) {
-          activities.addDocumentReference(child.getId(), nodeId,
-              RELATIONSHIP_CHILD);
+        // Since documents that are not current have different node id's, we can return a constant version,
+        // EXCEPT when the document is not the current one (in which case we delete)
+        boolean isCurrentVersion;
+        try {
+          Document d = document.getObjectOfLatestVersion(false);
+          isCurrentVersion = d.getId().equals(documentIdentifier);
+        } catch (CmisObjectNotFoundException e) {
+          isCurrentVersion = false;
         }
-      } else if(baseTypeId.equals(CMIS_DOCUMENT_BASE_TYPE)){
-        if (!scanOnly[i]) {
-          // content ingestion
+        if (isCurrentVersion) {
+          //System.out.println(" is latest version");
+          versionString = documentIdentifier + ":" + cmisQuery;
+        } else {
+          //System.out.println(" is NOT latest vrersion");
+          activities.deleteDocument(documentIdentifier);
+          continue;
+        }
+      } else {
+        //a CMIS folder will always be processed
+        //System.out.println(" is folder");
+        versionString = StringUtils.EMPTY;
+      }
+      
+      if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)) {
+        // Index this document
+        String errorCode = "OK";
+        String errorDesc = StringUtils.EMPTY;
+        long startTime = System.currentTimeMillis();
+        
+        String baseTypeId = cmisObject.getBaseType().getId();
 
-          Document document = (Document) cmisObject;
-          long fileLength;
-          InputStream is;
-          try {
-            fileLength = document.getContentStreamLength();
-            if (fileLength > 0)
-              is = document.getContentStream().getStream();
-            else
-              is = null;
-          } catch (CmisObjectNotFoundException e) {
-            // Document gone
-            activities.deleteDocument(nodeId);
-            continue;
+        if (baseTypeId.equals(CMIS_FOLDER_BASE_TYPE)) {
+
+          // adding all the children for a folder
+
+          Folder folder = (Folder) cmisObject;
+          ItemIterable<CmisObject> children = folder.getChildren();
+          for (CmisObject child : children) {
+            activities.addDocumentReference(child.getId(), documentIdentifier,
+                RELATIONSHIP_CHILD);
+          }
+      } else if(baseTypeId.equals(CMIS_DOCUMENT_BASE_TYPE)){
+        // content ingestion
+
+        Document document = (Document) cmisObject;
+        long fileLength;
+        InputStream is;
+        try {
+          fileLength = document.getContentStreamLength();
+          if (fileLength > 0)
+            is = document.getContentStream().getStream();
+          else
+            is = null;
+        } catch (CmisObjectNotFoundException e) {
+          // Document gone
+          activities.deleteDocument(documentIdentifier);
+          continue;
+        }
+          
+        try {
+          RepositoryDocument rd = new RepositoryDocument();
+          Date createdDate = document.getCreationDate().getTime();
+          Date modifiedDate = document.getLastModificationDate().getTime();
+            
+          rd.setFileName(document.getContentStreamFileName());
+          rd.setMimeType(document.getContentStreamMimeType());
+          rd.setCreatedDate(createdDate);
+          rd.setModifiedDate(modifiedDate);
+            
+          //binary
+          if(is != null) {
+            rd.setBinary(is, fileLength);
+          } else {
+            rd.setBinary(new NullInputStream(0),0);
+          }
+
+          //properties
+          List<Property<?>> properties = document.getProperties();
+          String id = StringUtils.EMPTY;
+          for (Property<?> property : properties) {
+            String propertyId = property.getId();
+              
+            if(CmisRepositoryConnectorUtils.existsInSelectClause(cmisQuery, propertyId)){
+                
+              if (propertyId.endsWith(Constants.PARAM_OBJECT_ID)) {
+                id = (String) property.getValue();
+    
+                if (property.getValue() !=null 
+                    || property.getValues() != null) {
+                  PropertyType propertyType = property.getType();
+      
+                  switch (propertyType) {
+      
+                  case STRING:
+                  case ID:
+                  case URI:
+                  case HTML:
+                    if(property.isMultiValued()){
+                      List<String> htmlPropertyValues = (List<String>) property.getValues();
+                      for (String htmlPropertyValue : htmlPropertyValues) {
+                        rd.addField(propertyId, htmlPropertyValue);
+                      }
+                    } else {
+                      String stringValue = (String) property.getValue();
+                      if(StringUtils.isNotEmpty(stringValue)){
+                        rd.addField(propertyId, stringValue);
+                      }
+                    }
+                    break;
+           
+                  case BOOLEAN:
+                    if(property.isMultiValued()){
+                      List<Boolean> booleanPropertyValues = (List<Boolean>) property.getValues();
+                      for (Boolean booleanPropertyValue : booleanPropertyValues) {
+                        rd.addField(propertyId, booleanPropertyValue.toString());
+                      }
+                    } else {
+                      Boolean booleanValue = (Boolean) property.getValue();
+                      if(booleanValue!=null){
+                        rd.addField(propertyId, booleanValue.toString());
+                      }
+                    }
+                    break;
+      
+                  case INTEGER:
+                    if(property.isMultiValued()){
+                      List<BigInteger> integerPropertyValues = (List<BigInteger>) property.getValues();
+                      for (BigInteger integerPropertyValue : integerPropertyValues) {
+                        rd.addField(propertyId, integerPropertyValue.toString());
+                      }
+                    } else {
+                      BigInteger integerValue = (BigInteger) property.getValue();
+                      if(integerValue!=null){
+                        rd.addField(propertyId, integerValue.toString());
+                      }
+                    }
+                    break;
+      
+                  case DECIMAL:
+                    if(property.isMultiValued()){
+                      List<BigDecimal> decimalPropertyValues = (List<BigDecimal>) property.getValues();
+                      for (BigDecimal decimalPropertyValue : decimalPropertyValues) {
+                        rd.addField(propertyId, decimalPropertyValue.toString());
+                      }
+                    } else {
+                      BigDecimal decimalValue = (BigDecimal) property.getValue();
+                      if(decimalValue!=null){
+                        rd.addField(propertyId, decimalValue.toString());
+                      }
+                    }
+                    break;
+      
+                  case DATETIME:
+                    if(property.isMultiValued()){
+                      List<GregorianCalendar> datePropertyValues = (List<GregorianCalendar>) property.getValues();
+                      for (GregorianCalendar datePropertyValue : datePropertyValues) {
+                        rd.addField(propertyId,
+                            ISO8601_DATE_FORMATTER.format(datePropertyValue.getTime()));
+                      }
+                    } else {
+                      GregorianCalendar dateValue = (GregorianCalendar) property.getValue();
+                      if(dateValue!=null){
+                        rd.addField(propertyId, ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
+                      }
+                    }
+                    break;
+      
+                  default:
+                    break;
+                  }
+                }
+                  
+              }
+              
+            }
           }
           
+          //ingestion
+            
+          //documentURI
+          String documentURI = CmisRepositoryConnectorUtils.getDocumentURL(document, session);
+            
           try {
-            RepositoryDocument rd = new RepositoryDocument();
-            Date createdDate = document.getCreationDate().getTime();
-            Date modifiedDate = document.getLastModificationDate().getTime();
-            
-            rd.setFileName(document.getContentStreamFileName());
-            rd.setMimeType(document.getContentStreamMimeType());
-            rd.setCreatedDate(createdDate);
-            rd.setModifiedDate(modifiedDate);
-            
-            //binary
-            if(is != null) {
-              rd.setBinary(is, fileLength);
-            } else {
-              rd.setBinary(new NullInputStream(0),0);
+            activities.ingestDocumentWithException(documentIdentifier, versionString, documentURI, rd);
+          } catch (IOException e) {
+            errorCode = "IO ERROR";
+            errorDesc = e.getMessage();
+            handleIOException(e, "reading file input stream");
+          }
+        } finally {
+          try {
+            if(is!=null){
+              is.close();
             }
-
-            //properties
-            List<Property<?>> properties = document.getProperties();
-            String id = StringUtils.EMPTY;
-            for (Property<?> property : properties) {
-              String propertyId = property.getId();
-              
-              if(CmisRepositoryConnectorUtils.existsInSelectClause(cmisQuery, propertyId)){
-                
-                if (propertyId.endsWith(Constants.PARAM_OBJECT_ID))
-                  id = (String) property.getValue();
-    
-                  if (property.getValue() !=null 
-                      || property.getValues() != null) {
-                    PropertyType propertyType = property.getType();
-      
-                    switch (propertyType) {
-      
-                    case STRING:
-                    case ID:
-                    case URI:
-                    case HTML:
-                      if(property.isMultiValued()){
-                        List<String> htmlPropertyValues = (List<String>) property.getValues();
-                        for (String htmlPropertyValue : htmlPropertyValues) {
-                          rd.addField(propertyId, htmlPropertyValue);
-                        }
-                      } else {
-                        String stringValue = (String) property.getValue();
-                        if(StringUtils.isNotEmpty(stringValue)){
-                          rd.addField(propertyId, stringValue);
-                        }
-                      }
-                      break;
-           
-                    case BOOLEAN:
-                      if(property.isMultiValued()){
-                        List<Boolean> booleanPropertyValues = (List<Boolean>) property.getValues();
-                        for (Boolean booleanPropertyValue : booleanPropertyValues) {
-                          rd.addField(propertyId, booleanPropertyValue.toString());
-                        }
-                      } else {
-                        Boolean booleanValue = (Boolean) property.getValue();
-                        if(booleanValue!=null){
-                          rd.addField(propertyId, booleanValue.toString());
-                        }
-                      }
-                      break;
-      
-                    case INTEGER:
-                      if(property.isMultiValued()){
-                        List<BigInteger> integerPropertyValues = (List<BigInteger>) property.getValues();
-                        for (BigInteger integerPropertyValue : integerPropertyValues) {
-                          rd.addField(propertyId, integerPropertyValue.toString());
-                        }
-                      } else {
-                        BigInteger integerValue = (BigInteger) property.getValue();
-                        if(integerValue!=null){
-                          rd.addField(propertyId, integerValue.toString());
-                        }
-                      }
-                      break;
-      
-                    case DECIMAL:
-                      if(property.isMultiValued()){
-                        List<BigDecimal> decimalPropertyValues = (List<BigDecimal>) property.getValues();
-                        for (BigDecimal decimalPropertyValue : decimalPropertyValues) {
-                          rd.addField(propertyId, decimalPropertyValue.toString());
-                        }
-                      } else {
-                        BigDecimal decimalValue = (BigDecimal) property.getValue();
-                        if(decimalValue!=null){
-                          rd.addField(propertyId, decimalValue.toString());
-                        }
-                      }
-                      break;
-      
-                    case DATETIME:
-                      if(property.isMultiValued()){
-                        List<GregorianCalendar> datePropertyValues = (List<GregorianCalendar>) property.getValues();
-                        for (GregorianCalendar datePropertyValue : datePropertyValues) {
-                          rd.addField(propertyId,
-                              ISO8601_DATE_FORMATTER.format(datePropertyValue.getTime()));
-                        }
-                      } else {
-                        GregorianCalendar dateValue = (GregorianCalendar) property.getValue();
-                        if(dateValue!=null){
-                          rd.addField(propertyId, ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
-                        }
-                      }
-                      break;
-      
-                    default:
-                      break;
-                    }
-                  }
-                  
-                }
-              
-            }
-            
-            //ingestion
-            
-            //documentURI
-            String documentURI = CmisRepositoryConnectorUtils.getDocumentURL(document, session);
-            
-            try {
-              activities.ingestDocumentWithException(nodeId, version, documentURI, rd);
-            } catch (IOException e) {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              handleIOException(e, "reading file input stream");
-            }
+          } catch (IOException e) {
+            errorCode = "IO ERROR";
+            errorDesc = e.getMessage();
+            handleIOException(e, "closing file input stream");
           } finally {
-            try {
-              if(is!=null){
-                is.close();
-              }
-            } catch (IOException e) {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              handleIOException(e, "closing file input stream");
-            } finally {
-              activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-                fileLength, nodeId, errorCode, errorDesc, null);
-            }
+            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+              fileLength, documentIdentifier, errorCode, errorDesc, null);
           }
         }
       }
       else
-        activities.deleteDocument(nodeId);
+        activities.deleteDocument(documentIdentifier);
+      }
     }
+    
   }
-  
+
   protected static void handleIOException(IOException e, String context) throws ManifoldCFException, ServiceInterruption {
     if (e instanceof InterruptedIOException) {
       throw new ManifoldCFException(e.getMessage(), e,
@@ -1311,77 +1345,5 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       throw new ManifoldCFException(e.getMessage(), e);
     }
   }
-  
-  /** The short version of getDocumentVersions.
-   * Get document versions given an array of document identifiers.
-   * This method is called for EVERY document that is considered. It is
-   * therefore important to perform as little work as possible here.
-   *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-   *@param spec is the current document specification for the current job.  If there is a dependency on this
-   * specification, then the version string should include the pertinent data, so that reingestion will occur
-   * when the specification changes.  This is primarily useful for metadata.
-   *@return the corresponding version strings, with null in the places where the document no longer exists.
-   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-   * will always be processed.
-   */
-  @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers,
-      DocumentSpecification spec) throws ManifoldCFException,
-      ServiceInterruption {
-    
-    String cmisQuery = StringUtils.EMPTY;
-    for (int i = 0; i < spec.getChildCount(); i++)
-    {
-      SpecificationNode sn = spec.getChild(i);
-      if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
-        break;
-      }
-    }
 
-    getSession();
-
-    String[] rval = new String[documentIdentifiers.length];
-    for (int i = 0; i < rval.length; i++) {
-      //System.out.println("Get document versions: "+documentIdentifiers[i]);
-      CmisObject cmisObject;
-      try {
-        cmisObject = session.getObject(documentIdentifiers[i]);
-      } catch (CmisObjectNotFoundException e) {
-        cmisObject = null;
-      }
-
-      if (cmisObject == null) {
-        //System.out.println(" doesn't exist");
-        rval[i] = null;
-        continue;
-      }
-      
-      if (cmisObject.getBaseType().getId().equals(CMIS_DOCUMENT_BASE_TYPE)) {
-        Document document = (Document) cmisObject;
-
-        // Since documents that are not current have different node id's, we can return a constant version,
-        // EXCEPT when the document is not the current one (in which case we delete)
-        boolean isCurrentVersion;
-        try {
-          Document d = document.getObjectOfLatestVersion(false);
-          isCurrentVersion = d.getId().equals(documentIdentifiers[i]);
-        } catch (CmisObjectNotFoundException e) {
-          isCurrentVersion = false;
-        }
-        if (isCurrentVersion) {
-          //System.out.println(" is latest version");
-          rval[i] = documentIdentifiers[i] + ":" + cmisQuery;
-        } else {
-          //System.out.println(" is NOT latest vrersion");
-          rval[i] = null;
-        }
-      } else {
-        //a CMIS folder will always be processed
-        //System.out.println(" is folder");
-        rval[i] = StringUtils.EMPTY;
-      }
-    }
-    return rval;
-  }
 }

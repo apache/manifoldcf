@@ -349,7 +349,7 @@ public class FilenetImpl extends UnicastRemoteObject implements IFilenet
   /** Get document information for a given filenet document.  Will return null if the version id is not a current document version id.
   * The metadataFields hashmap is keyed by document class, and contains as a value either Boolean(true) (meaning "all"), or a String[] that has the
   * list of fields desired. */
-  public FileInfo getDocumentInformation(String docId, HashMap metadataFields)
+  public FileInfo getDocumentInformation(String docId, Map<String,Object> metadataFields)
     throws FilenetException, RemoteException
   {
     //System.out.println("Looking for document information on "+docId);

@@ -699,27 +699,22 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
 
-
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is
-  * therefore important to perform as little work as possible here.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
-  *@param jobType is an integer describing how the job is being run, whether continuous or once-only.
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
   */
   @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobType, boolean usesDefaultAuthority)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
@@ -742,9 +737,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     ArrayList namesAndValues = f.getMetadata();
     // Create an array of name/value fixedlists
     String[] metadata = new String[namesAndValues.size()];
-    int k = 0;
     String[] fixedListStrings = new String[2];
-    while (k < metadata.length)
+    for (int k = 0; k < metadata.length; k++)
     {
       NameValue nv = (NameValue)namesAndValues.get(k);
       String name = nv.getName();
@@ -753,7 +747,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       fixedListStrings[1] = value;
       StringBuilder newsb = new StringBuilder();
       packFixedList(newsb,fixedListStrings,'=');
-      metadata[k++] = newsb.toString();
+      metadata[k] = newsb.toString();
     }
     java.util.Arrays.sort(metadata);
 
@@ -775,185 +769,187 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
     int feedTimeout = f.getFeedTimeoutValue();
 
-    // A preliminary fetch must be done in either case, because otherwise we cannot detect a deletion.
-    // But, since we don't want to fetch twice, write these urls to temporary files.  The
-    // files will be cleaned up as soon as possible.
-
-    String[] rval = new String[documentIdentifiers.length];
-
-    // HttpClient client = new HttpClient(httpConMan.getManager());
-
     // The document specification has already been used to trim out documents that are not
     // allowed from appearing in the queue.  So, even that has already been done.
-    int i = 0;
-    while (i < documentIdentifiers.length)
+    for (String documentIdentifier : documentIdentifiers)
     {
       // If it is in this list, we presume that it has been vetted against the map etc., so we don't do that again.  We just fetch it.
       // And, if the content type is xml, we calculate the version as if it is a feed rather than a document.
 
       // Get the url
-      String urlValue = documentIdentifiers[i];
+      String urlValue = documentIdentifier;
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("RSS: Getting version string for '"+urlValue+"'");
 
-      // If there's a carrydown "data" value for this url, we use that value rather than actually fetching the document.  This also means we don't need to
-      // do a robots check, because we aren't actually crawling anything.  So, ALWAYS do this first...
-      CharacterInput[] dechromedData = activities.retrieveParentDataAsFiles(urlValue,"data");
+      String versionString;
+      String ingestURL = null;
+      String[] pubDates = null;
+      String[] sources = null;
+      String[] titles = null;
+      String[] authorNames = null;
+      String[] authorEmails = null;
+      String[] categories = null;
+      String[] descriptions = null;
+                  
       try
       {
-        if (dechromedData.length > 0)
+        // If there's a carrydown "data" value for this url, we use that value rather than actually fetching the document.  This also means we don't need to
+        // do a robots check, because we aren't actually crawling anything.  So, ALWAYS do this first...
+        CharacterInput[] dechromedData = activities.retrieveParentDataAsFiles(urlValue,"data");
+        try
         {
-          // Data already available.  The fetch cycle can be entirely avoided, as can the robots check.
-          String ingestURL = f.mapDocumentURL(urlValue);
-          if (ingestURL != null)
+          if (dechromedData.length > 0)
           {
-            // Open up an input stream corresponding to the carrydown data.  The stream will be encoded as utf-8.
-            try
+            // Data already available.  The fetch cycle can be entirely avoided, as can the robots check.
+            ingestURL = f.mapDocumentURL(urlValue);
+            if (ingestURL != null)
             {
-              InputStream is = dechromedData[0].getUtf8Stream();
+              // Open up an input stream corresponding to the carrydown data.  The stream will be encoded as utf-8.
               try
               {
-                StringBuilder sb = new StringBuilder();
-                long checkSum = cache.addData(activities,urlValue,"text/html",is);
-                // Grab what we need from the passed-down data for the document.  These will all become part
-                // of the version string.
-                String[] pubDates = activities.retrieveParentData(urlValue,"pubdate");
-                String[] sources = activities.retrieveParentData(urlValue,"source");
-                String[] titles = activities.retrieveParentData(urlValue,"title");
-                String[] authorNames = activities.retrieveParentData(urlValue,"authorname");
-                String[] authorEmails = activities.retrieveParentData(urlValue,"authoremail");
-                String[] categories = activities.retrieveParentData(urlValue,"category");
-                String[] descriptions = activities.retrieveParentData(urlValue,"description");
-                java.util.Arrays.sort(pubDates);
-                java.util.Arrays.sort(sources);
-                java.util.Arrays.sort(titles);
-                java.util.Arrays.sort(authorNames);
-                java.util.Arrays.sort(authorEmails);
-                java.util.Arrays.sort(categories);
-                java.util.Arrays.sort(descriptions);
-
-                if (sources.length == 0)
+                InputStream is = dechromedData[0].getUtf8Stream();
+                try
                 {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("RSS: Warning; URL '"+ingestURL+"' doesn't seem to have any RSS feed source!");
-                }
+                  StringBuilder sb = new StringBuilder();
+                  long checkSum = cache.addData(activities,urlValue,"text/html",is);
+                  // Grab what we need from the passed-down data for the document.  These will all become part
+                  // of the version string.
+                  pubDates = activities.retrieveParentData(urlValue,"pubdate");
+                  sources = activities.retrieveParentData(urlValue,"source");
+                  titles = activities.retrieveParentData(urlValue,"title");
+                  authorNames = activities.retrieveParentData(urlValue,"authorname");
+                  authorEmails = activities.retrieveParentData(urlValue,"authoremail");
+                  categories = activities.retrieveParentData(urlValue,"category");
+                  descriptions = activities.retrieveParentData(urlValue,"description");
+                  java.util.Arrays.sort(pubDates);
+                  java.util.Arrays.sort(sources);
+                  java.util.Arrays.sort(titles);
+                  java.util.Arrays.sort(authorNames);
+                  java.util.Arrays.sort(authorEmails);
+                  java.util.Arrays.sort(categories);
+                  java.util.Arrays.sort(descriptions);
 
-                sb.append('+');
-                packList(sb,acls,'+');
-                if (acls.length > 0)
-                {
+                  if (sources.length == 0)
+                  {
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("RSS: Warning; URL '"+ingestURL+"' doesn't seem to have any RSS feed source!");
+                  }
+
                   sb.append('+');
-                  pack(sb,defaultAuthorityDenyToken,'+');
+                  packList(sb,acls,'+');
+                  if (acls.length > 0)
+                  {
+                    sb.append('+');
+                    pack(sb,defaultAuthorityDenyToken,'+');
+                  }
+                  else
+                    sb.append('-');
+                  // Now, do the metadata
+                  packList(sb,metadata,'+');
+                  // The ingestion URL
+                  pack(sb,ingestURL,'+');
+                  // The pub dates
+                  packList(sb,pubDates,'+');
+                  // The titles
+                  packList(sb,titles,'+');
+                  // The sources
+                  packList(sb,sources,'+');
+                  // The categories
+                  packList(sb,categories,'+');
+                  // The descriptions
+                  packList(sb,descriptions,'+');
+                  // The author names
+                  packList(sb,authorNames,'+');
+                  // The author emails
+                  packList(sb,authorEmails,'+');
+
+                  // Do the checksum part, which does not need to be parseable.
+                  sb.append(new Long(checkSum).toString());
+
+                  versionString = sb.toString();
                 }
-                else
-                  sb.append('-');
-                // Now, do the metadata
-                packList(sb,metadata,'+');
-                // The ingestion URL
-                pack(sb,ingestURL,'+');
-                // The pub dates
-                packList(sb,pubDates,'+');
-                // The titles
-                packList(sb,titles,'+');
-                // The sources
-                packList(sb,sources,'+');
-                // The categories
-                packList(sb,categories,'+');
-                // The descriptions
-                packList(sb,descriptions,'+');
-                // The author names
-                packList(sb,authorNames,'+');
-                // The author emails
-                packList(sb,authorEmails,'+');
-
-                // Do the checksum part, which does not need to be parseable.
-                sb.append(new Long(checkSum).toString());
-
-                rval[i] = sb.toString();
+                finally
+                {
+                  is.close();
+                }
               }
-              finally
+              catch (java.net.SocketTimeoutException e)
               {
-                is.close();
+                throw new ManifoldCFException("IO exception reading data from string: "+e.getMessage(),e);
+              }
+              catch (InterruptedIOException e)
+              {
+                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+              }
+              catch (IOException e)
+              {
+                throw new ManifoldCFException("IO exception reading data from string: "+e.getMessage(),e);
               }
             }
-            catch (java.net.SocketTimeoutException e)
+            else
             {
-              throw new ManifoldCFException("IO exception reading data from string: "+e.getMessage(),e);
-            }
-            catch (InterruptedIOException e)
-            {
-              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-            }
-            catch (IOException e)
-            {
-              throw new ManifoldCFException("IO exception reading data from string: "+e.getMessage(),e);
+              // Document a seed or unmappable; just skip
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("RSS: Skipping carry-down document '"+urlValue+"' because it is unmappable or is a seed.");
             }
           }
           else
           {
-            // Document a seed or unmappable; just skip
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("RSS: Skipping carry-down document '"+urlValue+"' because it is unmappable or is a seed.");
-          }
-        }
-        else
-        {
-          // Get the old version string
-          String oldVersionString = oldVersions[i];
+            // Get the old version string
+            String oldVersionString = statuses.getIndexedVersionString(documentIdentifier);
 
-          // Unpack the old version as much as possible.
-          // We are interested in what the ETag and Last-Modified headers were last time.
-          String lastETagValue = null;
-          String lastModifiedValue = null;
-          // Note well: Non-continuous jobs cannot use etag because the rss document MUST be fetched each time for such jobs,
-          // or the documents it points at would get deleted.
-          //
-          // NOTE: I disabled this code because we really need the feed's TTL value in order to reschedule properly.  I can't get the
-          // TTL value without refetching the document - therefore ETag and Last-Modified cannot be used :-(
-          if (false && jobType == JOBMODE_CONTINUOUS && oldVersionString != null && oldVersionString.startsWith("-"))
-          {
-            // It's a feed, so the last etag and last-modified fields should be encoded in this version string.
-            StringBuilder lastETagBuffer = new StringBuilder();
-            int unpackPos = unpack(lastETagBuffer,oldVersionString,1,'+');
-            StringBuilder lastModifiedBuffer = new StringBuilder();
-            unpackPos = unpack(lastModifiedBuffer,oldVersionString,unpackPos,'+');
-            if (lastETagBuffer.length() > 0)
-              lastETagValue = lastETagBuffer.toString();
-            if (lastModifiedBuffer.length() > 0)
-              lastModifiedValue = lastModifiedBuffer.toString();
-          }
-
-          if (Logging.connectors.isDebugEnabled() && (lastETagValue != null || lastModifiedValue != null))
-            Logging.connectors.debug("RSS: Document '"+urlValue+"' was found to have a previous ETag value of '"+((lastETagValue==null)?"null":lastETagValue)+
-            "' and a previous Last-Modified value of '"+((lastModifiedValue==null)?"null":lastModifiedValue)+"'");
-
-          // Robots check.  First, we need to separate the url into its components
-          try
-          {
-            URL url = new URL(urlValue);
-            String protocol = url.getProtocol();
-            int port = url.getPort();
-            String hostName = url.getHost();
-            String pathPart = url.getFile();
-
-            // Check with robots to see if it's allowed
-            if (robotsUsage >= ROBOTS_DATA && !robots.isFetchAllowed(currentContext,throttleGroupName,
-              protocol,port,hostName,url.getPath(),
-              userAgent,from,
-              proxyHost, proxyPort, proxyAuthDomain, proxyAuthUsername, proxyAuthPassword,
-              activities, connectionLimit))
+            // Unpack the old version as much as possible.
+            // We are interested in what the ETag and Last-Modified headers were last time.
+            String lastETagValue = null;
+            String lastModifiedValue = null;
+            // Note well: Non-continuous jobs cannot use etag because the rss document MUST be fetched each time for such jobs,
+            // or the documents it points at would get deleted.
+            //
+            // NOTE: I disabled this code because we really need the feed's TTL value in order to reschedule properly.  I can't get the
+            // TTL value without refetching the document - therefore ETag and Last-Modified cannot be used :-(
+            if (false && jobMode == JOBMODE_CONTINUOUS && oldVersionString != null && oldVersionString.startsWith("-"))
             {
-              activities.recordActivity(null,ACTIVITY_FETCH,
-                null,urlValue,Integer.toString(-2),"Robots exclusion",null);
-
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("RSS: Skipping url '"+urlValue+"' because robots.txt says to");
-              rval[i] = null;
+              // It's a feed, so the last etag and last-modified fields should be encoded in this version string.
+              StringBuilder lastETagBuffer = new StringBuilder();
+              int unpackPos = unpack(lastETagBuffer,oldVersionString,1,'+');
+              StringBuilder lastModifiedBuffer = new StringBuilder();
+              unpackPos = unpack(lastModifiedBuffer,oldVersionString,unpackPos,'+');
+              if (lastETagBuffer.length() > 0)
+                lastETagValue = lastETagBuffer.toString();
+              if (lastModifiedBuffer.length() > 0)
+                lastModifiedValue = lastModifiedBuffer.toString();
             }
-            else
-            {
 
+            if (Logging.connectors.isDebugEnabled() && (lastETagValue != null || lastModifiedValue != null))
+              Logging.connectors.debug("RSS: Document '"+urlValue+"' was found to have a previous ETag value of '"+((lastETagValue==null)?"null":lastETagValue)+
+              "' and a previous Last-Modified value of '"+((lastModifiedValue==null)?"null":lastModifiedValue)+"'");
+
+            // Robots check.  First, we need to separate the url into its components
+            try
+            {
+              URL url = new URL(urlValue);
+              String protocol = url.getProtocol();
+              int port = url.getPort();
+              String hostName = url.getHost();
+              String pathPart = url.getFile();
+
+              // Check with robots to see if it's allowed
+              if (robotsUsage >= ROBOTS_DATA && !robots.isFetchAllowed(currentContext,throttleGroupName,
+                protocol,port,hostName,url.getPath(),
+                userAgent,from,
+                proxyHost, proxyPort, proxyAuthDomain, proxyAuthUsername, proxyAuthPassword,
+                activities, connectionLimit))
+              {
+                activities.recordActivity(null,ACTIVITY_FETCH,
+                  null,urlValue,Integer.toString(-2),"Robots exclusion",null);
+
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("RSS: Skipping url '"+urlValue+"' because robots.txt says to");
+                activities.deleteDocument(documentIdentifier);
+                continue;
+              }
+              
               // Now, use the fetcher, and get the file.
               IThrottledConnection connection = fetcher.createConnection(currentContext,
                 throttleGroupName,
@@ -978,7 +974,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                   switch (status)
                   {
                   case IThrottledConnection.STATUS_NOCHANGE:
-                    rval[i] = oldVersionString;
+                    versionString = oldVersionString;
                     break;
                   case IThrottledConnection.STATUS_OK:
                     try
@@ -1007,7 +1003,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                         contentType.startsWith("application/rdf+xml") ||
                         contentType.startsWith("text/application") ||
                         contentType.startsWith("XML") ));
-                      String ingestURL = null;
+                      ingestURL = null;
                       if (!isXML)
                       {
                         // If the chromed content mode is set to "skip", and we got here, it means
@@ -1016,7 +1012,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                         {
                           if (Logging.connectors.isDebugEnabled())
                             Logging.connectors.debug("RSS: Removing url '"+urlValue+"' because it no longer has dechromed content available");
-                          rval[i] = null;
+                          versionString = null;
                           break;
                         }
 
@@ -1027,7 +1023,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                         {
                           if (Logging.connectors.isDebugEnabled())
                             Logging.connectors.debug("RSS: Removing url '"+urlValue+"' because it had the wrong content type: "+((contentType==null)?"null":"'"+contentType+"'"));
-                          rval[i] = null;
+                          versionString = null;
                           break;
                         }
 
@@ -1043,7 +1039,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                           // Remove the feed from consideration, since it has left the list of seeds
                           if (Logging.connectors.isDebugEnabled())
                             Logging.connectors.debug("RSS: Removing feed url '"+urlValue+"' because it is not a seed.");
-                          rval[i] = null;
+                          versionString = null;
                           break;
                         }
                       }
@@ -1059,13 +1055,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
                           // Grab what we need from the passed-down data for the document.  These will all become part
                           // of the version string.
-                          String[] pubDates = activities.retrieveParentData(urlValue,"pubdate");
-                          String[] sources = activities.retrieveParentData(urlValue,"source");
-                          String[] titles = activities.retrieveParentData(urlValue,"title");
-                          String[] authorNames = activities.retrieveParentData(urlValue,"authorname");
-                          String[] authorEmails = activities.retrieveParentData(urlValue,"authoremail");
-                          String[] categories = activities.retrieveParentData(urlValue,"category");
-                          String[] descriptions = activities.retrieveParentData(urlValue,"description");
+                          pubDates = activities.retrieveParentData(urlValue,"pubdate");
+                          sources = activities.retrieveParentData(urlValue,"source");
+                          titles = activities.retrieveParentData(urlValue,"title");
+                          authorNames = activities.retrieveParentData(urlValue,"authorname");
+                          authorEmails = activities.retrieveParentData(urlValue,"authoremail");
+                          categories = activities.retrieveParentData(urlValue,"category");
+                          descriptions = activities.retrieveParentData(urlValue,"description");
                           java.util.Arrays.sort(pubDates);
                           java.util.Arrays.sort(sources);
                           java.util.Arrays.sort(titles);
@@ -1127,7 +1123,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                         // Do the checksum part, which does not need to be parseable.
                         sb.append(new Long(checkSum).toString());
 
-                        rval[i] = sb.toString();
+                        versionString = sb.toString();
                       }
                       finally
                       {
@@ -1137,12 +1133,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                     catch (java.net.SocketTimeoutException e)
                     {
                       Logging.connectors.warn("RSS: Socket timeout exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
-                      rval[i] = null;
+                      versionString = null;
                     }
                     catch (ConnectTimeoutException e)
                     {
                       Logging.connectors.warn("RSS: Connecto timeout exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
-                      rval[i] = null;
+                      versionString = null;
                     }
                     catch (InterruptedIOException e)
                     {
@@ -1151,7 +1147,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                     catch (IOException e)
                     {
                       Logging.connectors.warn("RSS: IO exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
-                      rval[i] = null;
+                      versionString = null;
                     }
 
                     break;
@@ -1162,7 +1158,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                     // Record an *empty* version.
                     // This signals the processDocuments() method that we really don't want to ingest this document, but we also don't
                     // want to blow the document out of the queue, since then we'd wind up perhaps fetching it multiple times.
-                    rval[i] = "";
+                    versionString = "";
                     break;
                   }
                 }
@@ -1175,373 +1171,229 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               {
                 connection.close();
               }
+                
+              if (versionString == null)
+              {
+                activities.deleteDocument(documentIdentifier);
+                continue;
+              }
+                
+              if (!(versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)))
+                continue;
+              
+              // Process document!
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("RSS: Processing '"+urlValue+"'");
+
+              // The only links we extract come from documents that we think are RSS feeds.
+              // When we think that's the case, we attempt to parse it as RSS XML.
+              if (ingestURL == null)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("RSS: Interpreting document '"+urlValue+"' as a feed");
+
+                // We think it is a feed.
+                // If this is a continuous job, AND scanonly is true, it means that the document was either identical to the
+                // previous fetch, or was not fetched at all.  In that case, it may not even be there, and we *certainly* don't
+                // want to attempt to process it in any case.
+                //
+
+                // NOTE: I re-enabled the scan permanently because we need the TTL value to be set whatever the cost.  If the
+                // TTL value is not set, we default to the specified job's feed-rescan time, which is not going to be current enough for some feeds.
+                if (true || jobMode != JOBMODE_CONTINUOUS)
+                {
+                  handleRSSFeedSAX(urlValue,activities,f);
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("RSS: Extraction of feed '"+urlValue+"' complete");
+
+                  // Record the feed's version string, so we won't refetch unless needed.
+                  // This functionality is required for the last ETag and Last-Modified fields to be sent to the rss server, and to
+                  // keep track of the adaptive parameters.
+                  activities.recordDocument(documentIdentifier,versionString);
+                }
+                else
+                {
+                  // The problem here is that we really do need to set the rescan time to something reasonable.
+                  // But we might not even have read the feed!  So what to do??
+                  // One answer is to build a connector-specific table that carries the last value of every feed around.
+                  // Another answer is to change the version code to always read the feed (and the heck with ETag and Last-Modified).
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("RSS: Feed '"+urlValue+"' does not appear to differ from previous fetch for a continuous job; not extracting!");
+
+                  long currentTime = System.currentTimeMillis();
+
+                  Long defaultRescanTime = f.getDefaultRescanTime(currentTime);
+
+                  if (defaultRescanTime != null)
+                  {
+                    Long minimumTime = f.getMinimumRescanTime(currentTime);
+                    if (minimumTime != null)
+                    {
+                      if (defaultRescanTime.longValue() < minimumTime.longValue())
+                        defaultRescanTime = minimumTime;
+                    }
+                  }
+
+                  activities.setDocumentScheduleBounds(urlValue,defaultRescanTime,defaultRescanTime,null,null);
+
+                }
+              }
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("RSS: Interpreting '"+urlValue+"' as a document");
+
+                if (isDataIngestable(activities,urlValue))
+                {
+                  // Treat it as an ingestable document.
+                  
+                  long dataSize = cache.getDataLength(urlValue);
+                  RepositoryDocument rd = new RepositoryDocument();
+
+                  // Set content type
+                  rd.setMimeType(cache.getContentType(urlValue));
+
+                  // Turn into acls and add into description
+                  String[] denyAcls;
+                  if (acls == null)
+                    denyAcls = null;
+                  else if (acls.length == 0)
+                    denyAcls = new String[0];
+                  else
+                    denyAcls = new String[]{defaultAuthorityDenyToken};
+                      
+                  if (acls != null && denyAcls != null)
+                    rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls,denyAcls);
+
+                  // Grab metadata
+                  Map<String,Set<String>> metaHash = new HashMap<String,Set<String>>();
+                  for (int k = 0; k < namesAndValues.size(); k++)
+                  {
+                    NameValue nv = (NameValue)namesAndValues.get(k);
+                    Set<String> hashValues = metaHash.get(nv.getName());
+                    if (hashValues == null)
+                    {
+                      hashValues = new HashSet<String>();
+                      metaHash.put(nv.getName(),hashValues);
+                    }
+                    hashValues.add(nv.getValue());
+                  }
+                  for (String key : metaHash.keySet())
+                  {
+                    Set<String> metaList = metaHash.get(key);
+                    String[] values = new String[metaList.size()];
+                    int k = 0;
+                    for (String value : metaList)
+                    {
+                      values[k++] = value;
+                    }
+                    rd.addField(key,values);
+                  }
+
+                  if (titles != null && titles.length > 0)
+                    rd.addField("title",titles);
+                  if (authorNames != null && authorNames.length > 0)
+                    rd.addField("authorname",authorNames);
+                  if (authorEmails != null && authorEmails.length > 0)
+                    rd.addField("authoremail",authorEmails);
+                  if (descriptions != null && descriptions.length > 0)
+                    rd.addField("summary",descriptions);
+                  if (sources != null && sources.length > 0)
+                    rd.addField("source",sources);
+                  if (categories != null && categories.length > 0)
+                    rd.addField("category",categories);
+
+                  // The pubdates are a ms since epoch value; we want the minimum one for the origination time.
+                  Long minimumOrigTime = null;
+                  if (pubDates != null && pubDates.length > 0)
+                  {
+                    String[] pubDateValuesISO = new String[pubDates.length];
+                    TimeZone tz = TimeZone.getTimeZone("UTC");
+                    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+                    df.setTimeZone(tz);
+                    for (int k = 0; k < pubDates.length; k++)
+                    {
+                      String pubDate = pubDates[k];
+                      try
+                      {
+                        Long pubDateLong = new Long(pubDate);
+                        if (minimumOrigTime == null || pubDateLong.longValue() < minimumOrigTime.longValue())
+                          minimumOrigTime = pubDateLong;
+                        pubDateValuesISO[k] = df.format(new Date(pubDateLong.longValue()));
+                      }
+                      catch (NumberFormatException e)
+                      {
+                        // Do nothing; the version string seems to not mean anything
+                        pubDateValuesISO[k] = "";
+                      }
+                    }
+                    rd.addField("pubdate",pubDates);
+                    rd.addField("pubdateiso",pubDateValuesISO);
+                  }
+
+                  if (minimumOrigTime != null)
+                    activities.setDocumentOriginationTime(urlValue,minimumOrigTime);
+
+                  InputStream is = cache.getData(urlValue);
+                  if (is != null)
+                  {
+                    try
+                    {
+                      rd.setBinary(is,dataSize);
+                      try
+                      {
+                        activities.ingestDocumentWithException(documentIdentifier,versionString,ingestURL,rd);
+                      }
+                      catch (IOException e)
+                      {
+                        handleIOException(e,"reading data");
+                      }
+                    }
+                    finally
+                    {
+                      try
+                      {
+                        is.close();
+                      }
+                      catch (IOException e)
+                      {
+                        handleIOException(e,"closing stream");
+                      }
+                    }
+                  }
+                }
+                else
+                {
+                  activities.noDocument(documentIdentifier,versionString);
+
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("RSS: Skipping document '"+urlValue+"' because it cannot be indexed");
+                }
+              }
+            }
+            catch (MalformedURLException e)
+            {
+              Logging.connectors.debug("RSS: URL '"+urlValue+"' is malformed; skipping",e);
+              activities.deleteDocument(documentIdentifier);
+              continue;
             }
           }
-          catch (MalformedURLException e)
+        }
+        finally
+        {
+          for (CharacterInput ci : dechromedData)
           {
-            Logging.connectors.debug("RSS: URL '"+urlValue+"' is malformed; skipping",e);
-            rval[i] = null;
+            if (ci != null)
+              ci.discard();
           }
         }
       }
       finally
       {
-        int j = 0;
-        while (j < dechromedData.length)
-        {
-          CharacterInput ci = (CharacterInput)dechromedData[j++];
-          if (ci != null)
-            ci.discard();
-        }
-
+        // Remove any fetched documents.
+        cache.deleteData(documentIdentifier);
       }
-
-      i++;
     }
-
-    return rval;
-  }
-
-  /** Process a set of documents.
-  * This is the method that should cause each document to be fetched, processed, and the results either added
-  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
-  * The document specification allows this class to filter what is done based on the job.
-  *@param documentIdentifiers is the set of document identifiers to process.
-  *@param activities is the interface this method should use to queue up new document references
-  * and ingest documents.
-  *@param spec is the document specification.
-  *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-  * should only find other references, and should not actually call the ingestion methods.
-  */
-  @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    DocumentSpecification spec, boolean[] scanOnly, int jobType)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    getSession();
-
-    // The version strings contain the ingest url as well as everything we need to determine if this url is a feed or just a document.
-    // So, there is no need to reparse the specification.
-    Filter f = null;
-
-    String[] fixedList = new String[2];
-
-    int i = 0;
-    while (i < documentIdentifiers.length)
-    {
-      String urlValue = documentIdentifiers[i];
-      String version = versions[i];
-
-      if (version.length() == 0)
-      {
-        // This document had an http response incompatible with its existence on the web.
-        i++;
-        // Leave document in jobqueue, but do NOT get rid of it, or we will wind up seeing it queued again by
-        // somebody else.  We *do* have to signal the document to be removed from the index, however, or it will
-        // stick around until the job is deleted.
-        activities.noDocument(urlValue,version);
-        continue;
-      }
-
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("RSS: Processing '"+urlValue+"'");
-
-      // The only links we extract come from documents that we think are RSS feeds.
-      // When we think that's the case, we attempt to parse it as RSS XML.
-      if (version.startsWith("-"))
-      {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("RSS: Interpreting document '"+urlValue+"' as a feed");
-
-        // We think it is a feed.
-        // The version string does not have anything useful in it.
-        if (f == null)
-          f = new Filter(spec,false);
-
-        // If this is a continuous job, AND scanonly is true, it means that the document was either identical to the
-        // previous fetch, or was not fetched at all.  In that case, it may not even be there, and we *certainly* don't
-        // want to attempt to process it in any case.
-        //
-
-        // NOTE: I re-enabled the scan permanently because we need the TTL value to be set whatever the cost.  If the
-        // TTL value is not set, we default to the specified job's feed-rescan time, which is not going to be current enough for some feeds.
-        if (true || scanOnly[i] == false || jobType != JOBMODE_CONTINUOUS)
-        {
-          handleRSSFeedSAX(urlValue,activities,f);
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("RSS: Extraction of feed '"+urlValue+"' complete");
-
-          // Record the feed's version string, so we won't refetch unless needed.
-          // This functionality is required for the last ETag and Last-Modified fields to be sent to the rss server, and to
-          // keep track of the adaptive parameters.
-          activities.recordDocument(urlValue,version);
-        }
-        else
-        {
-          // The problem here is that we really do need to set the rescan time to something reasonable.
-          // But we might not even have read the feed!  So what to do??
-          // One answer is to build a connector-specific table that carries the last value of every feed around.
-          // Another answer is to change the version code to always read the feed (and the heck with ETag and Last-Modified).
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("RSS: Feed '"+urlValue+"' does not appear to differ from previous fetch for a continuous job; not extracting!");
-
-          long currentTime = System.currentTimeMillis();
-
-          Long defaultRescanTime = f.getDefaultRescanTime(currentTime);
-
-          if (defaultRescanTime != null)
-          {
-            Long minimumTime = f.getMinimumRescanTime(currentTime);
-            if (minimumTime != null)
-            {
-              if (defaultRescanTime.longValue() < minimumTime.longValue())
-                defaultRescanTime = minimumTime;
-            }
-          }
-
-          activities.setDocumentScheduleBounds(urlValue,defaultRescanTime,defaultRescanTime,null,null);
-
-        }
-      }
-      else if (scanOnly[i] == false && version.startsWith("+"))
-      {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("RSS: Interpreting '"+urlValue+"' as a document");
-
-
-
-        if (isDataIngestable(activities,urlValue))
-        {
-          // Treat it as an ingestable document.
-          // Version *should* start with a "+".
-          ArrayList acls = new ArrayList();
-          StringBuilder denyAclBuffer = new StringBuilder();
-          int startPos = unpackList(acls,version,1,'+');
-          if (startPos < version.length() && version.charAt(startPos++) == '+')
-          {
-            startPos = unpack(denyAclBuffer,version,startPos,'+');
-          }
-          ArrayList metadata = new ArrayList();
-          startPos = unpackList(metadata,version,startPos,'+');
-          StringBuilder ingestUrlBuffer = new StringBuilder();
-          startPos = unpack(ingestUrlBuffer,version,startPos,'+');
-          String ingestURL = ingestUrlBuffer.toString();
-          ArrayList pubDates = new ArrayList();
-          startPos = unpackList(pubDates,version,startPos,'+');
-          ArrayList titles = new ArrayList();
-          startPos = unpackList(titles,version,startPos,'+');
-          ArrayList sources = new ArrayList();
-          startPos = unpackList(sources,version,startPos,'+');
-          ArrayList categories = new ArrayList();
-          startPos = unpackList(categories,version,startPos,'+');
-          ArrayList descriptions = new ArrayList();
-          startPos = unpackList(descriptions,version,startPos,'+');
-          ArrayList authorNames = new ArrayList();
-          startPos = unpackList(authorNames,version,startPos,'+');
-          ArrayList authorEmails = new ArrayList();
-          startPos = unpackList(authorEmails,version,startPos,'+');
-
-          if (ingestURL.length() > 0)
-          {
-            long dataSize = cache.getDataLength(urlValue);
-            RepositoryDocument rd = new RepositoryDocument();
-
-            // Set content type
-            rd.setMimeType(cache.getContentType(urlValue));
-
-            // Turn into acls and add into description
-            String[] aclArray = new String[acls.size()];
-            int j = 0;
-            while (j < aclArray.length)
-            {
-              aclArray[j] = (String)acls.get(j);
-              j++;
-            }
-            rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray);
-
-            // Deny acl too
-            if (denyAclBuffer.length() > 0)
-            {
-              String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-              rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
-            }
-
-            // Grab metadata
-            HashMap metaHash = new HashMap();
-            int k = 0;
-            while (k < metadata.size())
-            {
-              String metadataItem = (String)metadata.get(k++);
-              unpackFixedList(fixedList,metadataItem,0,'=');
-              HashMap hashValue = (HashMap)metaHash.get(fixedList[0]);
-              if (hashValue == null)
-              {
-                hashValue = new HashMap();
-                metaHash.put(fixedList[0],hashValue);
-              }
-              hashValue.put(fixedList[1],fixedList[1]);
-            }
-            Iterator metaIter = metaHash.keySet().iterator();
-            while (metaIter.hasNext())
-            {
-              String key = (String)metaIter.next();
-              HashMap metaList = (HashMap)metaHash.get(key);
-              String[] values = new String[metaList.size()];
-              Iterator iter = metaList.keySet().iterator();
-              k = 0;
-              while (iter.hasNext())
-              {
-                values[k] = (String)iter.next();
-                k++;
-              }
-              rd.addField(key,values);
-            }
-
-            // Loop through the titles to add those to the metadata
-            String[] titleValues = new String[titles.size()];
-            k = 0;
-            while (k < titleValues.length)
-            {
-              titleValues[k] = (String)titles.get(k);
-              k++;
-            }
-            if (k > 0)
-              rd.addField("title",titleValues);
-
-            // Loop through the author names to add those to the metadata
-            String[] authorNameValues = new String[authorNames.size()];
-            k = 0;
-            while (k < authorNameValues.length)
-            {
-              authorNameValues[k] = (String)authorNames.get(k);
-              k++;
-            }
-            if (k > 0)
-              rd.addField("authorname",authorNameValues);
-
-            // Loop through the author emails to add those to the metadata
-            String[] authorEmailValues = new String[authorEmails.size()];
-            k = 0;
-            while (k < authorEmailValues.length)
-            {
-              authorEmailValues[k] = (String)authorEmails.get(k);
-              k++;
-            }
-            if (k > 0)
-              rd.addField("authoremail",authorEmailValues);
-            
-            // Loop through the descriptions to add those to the metadata
-            String[] descriptionValues = new String[descriptions.size()];
-            k = 0;
-            while (k < descriptionValues.length)
-            {
-              descriptionValues[k] = (String)descriptions.get(k);
-              k++;
-            }
-            if (k > 0)
-              rd.addField("summary",descriptionValues);
-
-            // Loop through the sources to add those to the metadata
-            String[] sourceValues = new String[sources.size()];
-            k = 0;
-            while (k < sourceValues.length)
-            {
-              sourceValues[k] = (String)sources.get(k);
-              k++;
-            }
-            if (k > 0)
-              rd.addField("source",sourceValues);
-
-            // Add the categories now
-            String[] categoryValues = new String[categories.size()];
-            k = 0;
-            while (k < categoryValues.length)
-            {
-              categoryValues[k] = (String)categories.get(k);
-              k++;
-            }
-            if (k > 0)
-              rd.addField("category",categoryValues);
-
-            // The pubdates are a ms since epoch value; we want the minimum one for the origination time.
-            Long minimumOrigTime = null;
-            String[] pubDateValues = new String[pubDates.size()];
-            String[] pubDateValuesISO = new String[pubDates.size()];
-            TimeZone tz = TimeZone.getTimeZone("UTC");
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-            df.setTimeZone(tz);
-            k = 0;
-            while (k < pubDates.size())
-            {
-              String pubDate = (String)pubDates.get(k);
-              pubDateValues[k] = pubDate;
-              try
-              {
-                Long pubDateLong = new Long(pubDate);
-                if (minimumOrigTime == null || pubDateLong.longValue() < minimumOrigTime.longValue())
-                  minimumOrigTime = pubDateLong;
-                pubDateValuesISO[k] = df.format(new Date(pubDateLong.longValue()));
-              }
-              catch (NumberFormatException e)
-              {
-                // Do nothing; the version string seems to not mean anything
-              }
-              k++;
-            }
-            if (k > 0)
-            {
-              rd.addField("pubdate",pubDateValues);
-              rd.addField("pubdateiso",pubDateValuesISO);
-            }
-
-            if (minimumOrigTime != null)
-              activities.setDocumentOriginationTime(urlValue,minimumOrigTime);
-
-            InputStream is = cache.getData(urlValue);
-            if (is != null)
-            {
-              try
-              {
-                rd.setBinary(is,dataSize);
-                try
-                {
-                  activities.ingestDocumentWithException(urlValue,version,ingestURL,rd);
-                }
-                catch (IOException e)
-                {
-                  handleIOException(e,"reading data");
-                }
-              }
-              finally
-              {
-                try
-                {
-                  is.close();
-                }
-                catch (IOException e)
-                {
-                  handleIOException(e,"closing stream");
-                }
-              }
-            }
-          }
-        }
-        else
-        {
-          activities.noDocument(urlValue,version);
-
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("RSS: Skipping document '"+urlValue+"' because it cannot be indexed");
-        }
-      }
-      else
-      {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("RSS: Skipping document '"+urlValue+"' because it cannot have interesting links");
-      }
-      i++;
-    }
-
   }
 
   protected static void handleIOException(IOException e, String context)
@@ -1555,31 +1407,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throw new ManifoldCFException("IO error "+context+": "+e.getMessage(),e);
   }
   
-  /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
-  * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
-  * committed during the getDocumentVersions() method.  It is guaranteed to be called AFTER any calls to
-  * processDocuments() for the documents in question.
-  *@param documentIdentifiers is the set of document identifiers.
-  *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
-  */
-  @Override
-  public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws ManifoldCFException
-  {
-    int i = 0;
-    while (i < documentIdentifiers.length)
-    {
-      String version = versions[i];
-      if (version != null)
-
-      {
-        String urlValue = documentIdentifiers[i];
-        cache.deleteData(urlValue);
-      }
-      i++;
-    }
-  }
-
   // UI support methods.
   //
   // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
@@ -6047,7 +5874,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected ArrayList excludePatterns = new ArrayList();
 
     /** Constructor. */
-    public Filter(DocumentSpecification spec, boolean warnOnBadSeed)
+    public Filter(Specification spec, boolean warnOnBadSeed)
       throws ManifoldCFException
     {
       String excludes = "";
