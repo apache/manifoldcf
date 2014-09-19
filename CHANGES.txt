@@ -15,6 +15,9 @@ for document filtering.
 CONNECTORS-1038: Handle multiple pool closes properly.
 (Karl Wright)
 
+CONNECTORS-956: Change how Solr field name escaping is done.
+(Piergiorgio Lucidi, Shinichiro Abe, Edgardo Ambrosi, Karl Wright)
+
 CONNECTORS-1036: Zookeeper service handling also has
 ephemeral nodes which need to be tied to sessions.
 (Karl Wright)

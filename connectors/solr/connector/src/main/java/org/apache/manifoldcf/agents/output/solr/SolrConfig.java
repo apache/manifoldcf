@@ -113,6 +113,8 @@ public class SolrConfig
   public static final String PARAM_EXCLUDEDMIMETYPES="Excluded mime types";
   /** Parameter describing the use of Extract Update handler */
   public static final String PARAM_EXTRACTUPDATE = "Use extract update handler";
+  /** Parameter describing whether field names should be url encoded */
+  public static final String PARAM_URLENCODING = "Use url encoding for field names";
   /** Optional content field (if not using extract update handler) */
   public static final String PARAM_CONTENTFIELD = "Solr content field name";
   /** Node describing an argument */

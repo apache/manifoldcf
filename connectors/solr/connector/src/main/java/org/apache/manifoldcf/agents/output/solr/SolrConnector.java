@@ -92,6 +92,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   protected String contentAttributeName = null;
   /** Use extractiing update handler? */
   protected boolean useExtractUpdateHandler = true;
+  /** Use URL encoding for field names? */
+  protected boolean useUrlEncoding = true;
   
   /** Whether or not to commit */
   protected boolean doCommits = false;
@@ -184,6 +186,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     mimeTypeAttributeName = null;
     contentAttributeName = null;
     useExtractUpdateHandler = true;
+    useUrlEncoding = true;
     super.disconnect();
   }
 
@@ -240,6 +243,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         useExtractUpdateHandler = !useExtractUpdateHandlerValue.equals("false");
       if (contentAttributeName == null && !useExtractUpdateHandler)
         throw new ManifoldCFException("Content attribute name required for non-extract-update indexing");
+
+      String useUrlEncodingValue = params.getParameter(SolrConfig.PARAM_URLENCODING);
+      if (useUrlEncodingValue == null || useUrlEncodingValue.length() == 0)
+        useUrlEncoding = true;
+      else
+        useUrlEncoding = !useUrlEncodingValue.equals("false");
 
       String commits = params.getParameter(SolrConfig.PARAM_COMMITS);
       if (commits == null || commits.length() == 0)
@@ -350,7 +359,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             allowAttributeName,denyAttributeName,idAttributeName,
             modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
-            keystoreManager,maxDocumentLength,commitWithin,useExtractUpdateHandler);
+            keystoreManager,maxDocumentLength,commitWithin,useExtractUpdateHandler,
+            useUrlEncoding);
           
         }
         catch (NumberFormatException e)
@@ -405,7 +415,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             allowAttributeName,denyAttributeName,idAttributeName,
             modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
-            maxDocumentLength,commitWithin,useExtractUpdateHandler);
+            maxDocumentLength,commitWithin,useExtractUpdateHandler,
+            useUrlEncoding);
           
         }
         catch (NumberFormatException e)
@@ -1031,6 +1042,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (useExtractUpdate == null || useExtractUpdate.length() == 0)
       useExtractUpdate = "true";
 
+    String useUrlEncoding = parameters.getParameter(SolrConfig.PARAM_URLENCODING);
+    if (useUrlEncoding == null || useUrlEncoding.length() == 0)
+      useUrlEncoding = "true";
+
     String realm = parameters.getParameter(SolrConfig.PARAM_REALM);
     if (realm == null)
       realm = "";
@@ -1512,6 +1527,28 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "      <input name=\"contentfield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(contentField)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.UseURLEncodingForFieldNames") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"useurlencodingcheckbox\" type=\"hidden\" value=\"true\"/>\n"+
+"      <input name=\"useurlencodingpresent\" type=\"hidden\" value=\"true\"/>\n"
+      );
+      if (!useUrlEncoding.equals("false"))
+      {
+        out.print(
+"      <input name=\"useurlencoding\" type=\"checkbox\" value=\"true\" checked=\"true\"/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <input name=\"useurlencoding\" type=\"checkbox\" value=\"true\"/>\n"
+        );
+      }
+      out.print(
+"    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -1527,7 +1564,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input type=\"hidden\" name=\"contentfield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(contentField)+"\"/>\n"+
 "<input name=\"extractupdatecheckbox\" type=\"hidden\" value=\"false\"/>\n"+
 "<input type=\"hidden\" name=\"extractupdate\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(useExtractUpdate)+"\"/>\n"+
-"<input name=\"extractupdatepresent\" type=\"hidden\" value=\"true\"/>\n"
+"<input name=\"extractupdatepresent\" type=\"hidden\" value=\"true\"/>\n"+
+"<input type=\"hidden\" name=\"useurlencoding\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(useUrlEncoding)+"\"/>\n"+
+"<input name=\"useurlencodingpresent\" type=\"hidden\" value=\"true\"/>\n"
       );
     }
     
@@ -1838,6 +1877,15 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (extractUpdate == null || extractUpdate.length() == 0)
         extractUpdate = "false";
       parameters.setParameter(SolrConfig.PARAM_EXTRACTUPDATE,extractUpdate);
+    }
+
+    String useUrlEncodingPresent = variableContext.getParameter("useurlencodingpresent");
+    if (useUrlEncodingPresent != null)
+    {
+      String useUrlEncoding = variableContext.getParameter("useurlencoding");
+      if (useUrlEncoding == null || useUrlEncoding.length() == 0)
+        useUrlEncoding = "false";
+      parameters.setParameter(SolrConfig.PARAM_URLENCODING,useUrlEncoding);
     }
 
     String realm = variableContext.getParameter("realm");
@@ -2809,6 +2857,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         sb.append('-');
 
       if (useExtractUpdateHandler)
+        sb.append('+');
+      else
+        sb.append('-');
+
+      if (useUrlEncoding)
         sb.append('+');
       else
         sb.append('-');
