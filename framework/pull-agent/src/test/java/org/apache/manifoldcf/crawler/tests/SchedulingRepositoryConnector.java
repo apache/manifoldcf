@@ -60,22 +60,22 @@ public class SchedulingRepositoryConnector extends org.apache.manifoldcf.crawler
     System.out.println("Seeding completed at "+System.currentTimeMillis());
   }
   
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+  */
   @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    String[] rval = new String[documentIdentifiers.length];
-    for (int i = 0; i < rval.length; i++)
-    {
-      rval[i] = "";
-    }
-    return rval;
-  }
-
-  @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    DocumentSpecification spec, boolean[] scanOnly, int jobMode)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
     String documentsPerSeedString = params.getParameter("documentsperseed");
@@ -104,37 +104,34 @@ public class SchedulingRepositoryConnector extends org.apache.manifoldcf.crawler
       }
       else
       {
-        if (!scanOnly[i])
+        System.out.println("Fetching "+documentIdentifier);
+        // Find the bin
+        String bin = documentIdentifier.substring(0,documentIdentifier.indexOf("/"));
+        // For now they are all the same
+        long binTimePerDocument = timePerDocument;
+        long now = System.currentTimeMillis();
+        long whenFetch;
+        synchronized (nextFetchTime)
         {
-          System.out.println("Fetching "+documentIdentifier);
-          // Find the bin
-          String bin = documentIdentifier.substring(0,documentIdentifier.indexOf("/"));
-          // For now they are all the same
-          long binTimePerDocument = timePerDocument;
-          long now = System.currentTimeMillis();
-          long whenFetch;
-          synchronized (nextFetchTime)
+          Long time = nextFetchTime.get(bin);
+          if (time == null)
+            whenFetch = now;
+          else
+            whenFetch = time.longValue();
+          nextFetchTime.put(bin,new Long(whenFetch + binTimePerDocument));
+        }
+        if (whenFetch > now)
+        {
+          System.out.println("Waiting "+(whenFetch-now)+" to fetch "+documentIdentifier);
+          try
           {
-            Long time = nextFetchTime.get(bin);
-            if (time == null)
-              whenFetch = now;
-            else
-              whenFetch = time.longValue();
-            nextFetchTime.put(bin,new Long(whenFetch + binTimePerDocument));
+            ManifoldCF.sleep(whenFetch-now);
           }
-          if (whenFetch > now)
+          catch (InterruptedException e)
           {
-            System.out.println("Waiting "+(whenFetch-now)+" to fetch "+documentIdentifier);
-            try
-            {
-              ManifoldCF.sleep(whenFetch-now);
-            }
-            catch (InterruptedException e)
-            {
-              throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
-            }
-            System.out.println("Wait complete for "+documentIdentifier);
+            throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
           }
+          System.out.println("Wait complete for "+documentIdentifier);
         }
       }
     }

@@ -49,6 +49,9 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
 
 import javax.xml.soap.SOAPException;
 
@@ -68,10 +71,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   protected String urlVersionBase = null;
 
   /** Deny access token for Meridio */
-  private final static String denyToken = GLOBAL_DENY_TOKEN;
-
-  /** Deny access token for Active Directory, which is what we expect to be in place for forced acls */
-  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
   private static final long interruptionRetryTime = 60000L;
 
@@ -599,31 +599,24 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   }
 
 
-
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is
-  * therefore important to perform as little work as possible here.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
   */
   @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
-    Logging.connectors.debug("Meridio: Entering 'getDocumentVersions' method");
-
     // Get forced acls/security enable/disable
     String[] acls = getAcls(spec);
     // Sort it, in case it is needed.
@@ -632,7 +625,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
     // Look at the metadata attributes.
     // So that the version strings are comparable, we will put them in an array first, and sort them.
-    HashMap holder = new HashMap();
+    Set<String> holder = new HashSet<String>();
 
     String pathAttributeName = null;
     MatchMap matchMap = new MatchMap();
@@ -651,7 +644,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           metadataName = attributeName;
         else
           metadataName = category + "." + attributeName;
-        holder.put(metadataName,metadataName);
+        holder.add(metadataName);
       }
       else if (n.getType().equals("AllMetadata"))
       {
@@ -691,29 +684,48 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       try
       {
         // Put into an array
+        ReturnMetadata[] categoryPropertyValues;
+        String[] categoryPropertyStringValues;
         String[] sortArray;
         if (allMetadata)
         {
-          sortArray = getMeridioDocumentProperties();
+          categoryPropertyStringValues = getMeridioDocumentProperties();
         }
         else
         {
-          sortArray = new String[holder.size()];
+          categoryPropertyStringValues = new String[holder.size()];
           i = 0;
-          Iterator iter = holder.keySet().iterator();
-          while (iter.hasNext())
+          for (String value : holder)
           {
-            sortArray[i++] = (String)iter.next();
+            categoryPropertyStringValues[i++] = value;
           }
         }
         // Sort!
-        java.util.Arrays.sort(sortArray);
+        java.util.Arrays.sort(categoryPropertyStringValues);
+        categoryPropertyValues = new ReturnMetadata[categoryPropertyStringValues.length];
+        i = 0;
+        for (String value : categoryPropertyStringValues)
+        {
+          int dotIndex = value.indexOf(".");
+          String categoryName = null;
+          String propertyName;
+          if (dotIndex == -1)
+            propertyName = value;
+          else
+          {
+            categoryName = value.substring(0,dotIndex);
+            propertyName = value.substring(dotIndex+1);
+          }
 
+          categoryPropertyValues[i++] = new ReturnMetadata(categoryName,propertyName);
+        }
+        
         // Prepare the part of the version string that is decodeable
         StringBuilder decodeableString = new StringBuilder();
 
         // Add the metadata piece first
-        packList(decodeableString,sortArray,'+');
+        packList(decodeableString,categoryPropertyStringValues,'+');
+        
         // Now, put in the forced acls.
         // The version string needs only to contain the forced acls, since the version date captures changes
         // made to the acls that are actually associated with the document.
@@ -737,19 +749,12 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         else
           decodeableString.append("-");
 
-        String[] rval                                   = new String[documentIdentifiers.length];
-        long[] docIds                                   = new long[documentIdentifiers.length];
-        DMSearchResults searchResults   = null;
-
-        /*=================================================================
-        * Convert the string array of document identifiers to an array of
-        * integers
-        *================================================================*/
+        long[] docIds = new long[documentIdentifiers.length];
         for (i = 0; i < documentIdentifiers.length; i++)
         {
           docIds[i] = new Long(documentIdentifiers[i]).longValue();
         }
-
+        
         /*=================================================================
         * Call the search, with the document specification and the list of
         * document ids - the search will never return more than exactly
@@ -768,7 +773,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         * duplicating any logic which ensures that the document/records
         * in question match the search criteria or not.
         *================================================================*/
-        searchResults = documentSpecificationSearch(spec,
+        DMSearchResults searchResults = documentSpecificationSearch(spec,
           0, 0, 1, this.getMaxDocumentRequest(), docIds, null);
 
         if (Logging.connectors.isDebugEnabled())
@@ -781,7 +786,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         // should return a version string of null.
 
         // Let's go through the search results and build a hash based on the document identifier.
-        HashMap documentMap = new HashMap();
+        Map<Long,SEARCHRESULTS_DOCUMENTS> documentMap = new HashMap<Long,SEARCHRESULTS_DOCUMENTS>();
         if (searchResults.dsDM != null)
         {
           SEARCHRESULTS_DOCUMENTS [] srd = searchResults.dsDM.getSEARCHRESULTS_DOCUMENTS();
@@ -792,13 +797,14 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         }
 
         // Now, walk through the individual documents.
-        int j = 0;
-        while (j < docIds.length)
+        Map<Long,String> versionStrings = new HashMap<Long,String>();
+        for (int j = 0; j < docIds.length; j++)
         {
+          String documentIdentifier = documentIdentifiers[j];
           long docId = docIds[j];
           Long docKey = new Long(docId);
           // Look up the record.
-          SEARCHRESULTS_DOCUMENTS doc = (SEARCHRESULTS_DOCUMENTS)documentMap.get(docKey);
+          SEARCHRESULTS_DOCUMENTS doc = documentMap.get(docKey);
           if (doc != null)
           {
             // Set the version string.  The parseable stuff goes first, so parsing is easy.
@@ -809,23 +815,396 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
             // Added 9/7/2007
             composedVersion.append("_").append(urlVersionBase);
             //
-            rval[j] = composedVersion.toString();
+            String versionString = composedVersion.toString();
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Meridio: Document "+docKey+" has version "+rval[j]);
+              Logging.connectors.debug("Meridio: Document "+docKey+" has version "+versionString);
+            if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+              versionStrings.put(docKey,versionString);
           }
           else
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("Meridio: Document "+docKey+" is no longer in the search set, or has been deleted - removing.");
-            rval[j] = null;
+            activities.deleteDocument(documentIdentifier);
           }
-          j++;
         }
 
-        Logging.connectors.debug("Meridio: Exiting 'getDocumentVersions' method");
+        // Now submit search requests for all the documents requiring fetch.
+        
+        Map<Long,Map<String,String>> documentPropertyMap = new HashMap<Long,Map<String,String>>();
 
-        return rval;
+        // Only look up metadata if we need some!
+        if (versionStrings.size() > 0 && categoryPropertyValues.length > 0)
+        {
+          long[] fetchIds = new long[versionStrings.size()];
+          i = 0;
+          for (Long docKey : versionStrings.keySet())
+          {
+            fetchIds[i++] = docKey;
+          }
 
+          /*=================================================================
+          * Call the search, with the document specification and the list of
+          * document ids - the search will never return more than exactly
+          * one match per document id
+          *
+          * This call will return all the metadata that was specified in the
+          * document specification for all the documents and
+          * records in one call.
+          *================================================================*/
+          searchResults = documentSpecificationSearch(spec,
+            0, 0, 1, fetchIds.length,
+            fetchIds, categoryPropertyValues);
+
+          // If we ask for a document and it is no longer there, we should treat this as a deletion.
+          // The activity in that case is to delete the document.  A similar thing should happen if
+          // any of the other methods (like getting the document's content) also fail to find the
+          // document.
+
+          // Let's build a hash which contains all the document metadata returned.  The form of
+          // the hash will be: key = the document identifier, value = another hash, which is keyed
+          // by the metadata category/property, and which has a value that is the metadata value.
+
+          Map<Long,MutableInteger> counterMap = new HashMap<Long,MutableInteger>();
+
+          if (searchResults.dsDM != null)
+          {
+            SEARCHRESULTS_DOCUMENTS [] searchResultsDocuments = searchResults.dsDM.getSEARCHRESULTS_DOCUMENTS();
+            for (SEARCHRESULTS_DOCUMENTS searchResultsDocument : searchResultsDocuments)
+            {
+              long docId = searchResultsDocument.getDocId();
+              Long docKey = new Long(docId);
+              MutableInteger counterMapItem = counterMap.get(docKey);
+              if (counterMapItem == null)
+              {
+                counterMapItem = new MutableInteger();
+                counterMap.put(docKey,counterMapItem);
+              }
+
+              String propertyName = categoryPropertyStringValues[counterMapItem.getValue()];
+              counterMapItem.increment();
+              String propertyValue = searchResultsDocuments[i].getStr_value();
+              Map<String,String> propertyMap = documentPropertyMap.get(docKey);
+              if (propertyMap == null)
+              {
+                propertyMap = new HashMap<String,String>();
+                documentPropertyMap.put(docKey,propertyMap);
+              }
+              if (propertyValue != null && propertyValue.length() > 0)
+                propertyMap.put(propertyName,propertyValue);
+            }
+          }
+        }
+
+        // Okay, we are ready now to go through the individual documents and do the ingestion or deletion.
+        for (String documentIdentifier : documentIdentifiers)
+        {
+          Long docKey = new Long(documentIdentifier);
+          long docId = docKey.longValue();
+          String docVersion = versionStrings.get(docKey);
+          if (docVersion != null)
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("Processing document identifier '" + documentIdentifier + "' " +
+              "with version string '" + docVersion + "'");
+
+            // For each document, be sure the job is still allowed to run.
+            activities.checkJobStillActive();
+
+            RepositoryDocument repositoryDocument = new RepositoryDocument();
+
+            // Load the metadata items into the ingestion document object
+            Map<String,String> docMetadataMap = documentPropertyMap.get(docKey);
+            if (docMetadataMap != null)
+            {
+              for (String categoryPropertyName : categoryPropertyStringValues)
+              {
+                String propertyValue = docMetadataMap.get(categoryPropertyName);
+                if (propertyValue != null && propertyValue.length() > 0)
+                  repositoryDocument.addField(categoryPropertyName,propertyValue);
+              }
+            }
+
+            /*=================================================================
+            * Construct the URL to the object
+            *
+            * HTTP://HOST:PORT/meridio/browse/downloadcontent.aspx?documentId=<docId>&launchMode=1&launchAs=0
+            *
+            * I expect we need to add additional parameters to the configuration
+            * specification
+            *================================================================*/
+            String fileURL = urlBase + new Long(docId).toString();
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("URL for document '" + new Long(docId).toString() + "' is '" + fileURL + "'");
+
+            /*=================================================================
+            * Get the object's ACLs and owner information
+            *================================================================*/
+            DMDataSet documentData = null;
+            documentData = meridio_.getDocumentData((int)docId, true, true, false, false,
+              DmVersionInfo.LATEST, false, false, false);
+
+            if (null == documentData)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Meridio: Could not retrieve document data for document id '" +
+                new Long(docId).toString() + "' in processDocuments method - deleting document.");
+              activities.noDocument(documentIdentifier,docVersion);
+              continue;
+            }
+
+            if (null == documentData.getDOCUMENTS() ||
+              documentData.getDOCUMENTS().length != 1)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Meridio: Could not retrieve document owner for document id '" +
+                new Long(docId).toString() + "' in processDocuments method. No information or incorrect amount " +
+                "of information was returned");
+              activities.noDocument(documentIdentifier,docVersion);
+              continue;
+            }
+
+            // Do path metadata
+            if (pathAttributeName != null && pathAttributeName.length() > 0)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Meridio: Path attribute name is "+pathAttributeName);
+              RMDataSet partList;
+              int recordType = documentData.getDOCUMENTS()[0].getPROP_recordType();
+              if (recordType == 0 || recordType == 4 || recordType == 19)
+                partList = meridio_.getRecordPartList((int)docId, false, false);
+              else
+                partList = meridio_.getDocumentPartList((int)docId);
+              if (partList != null)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Meridio: Document '"+new Long(docId).toString()+"' has a part list with "+Integer.toString(partList.getRm2vPart().length)+" values");
+
+                for (int k = 0; k < partList.getRm2vPart().length; k++)
+                {
+                  repositoryDocument.addField(pathAttributeName,matchMap.translate(partList.getRm2vPart()[k].getParentTitlePath()));
+                }
+              }
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Meridio: Document '"+new Long(docId).toString()+"' has no part list, so no path attribute");
+              }
+            }
+
+            // Process acls.  If there are forced acls, use those, otherwise get them from Meridio.
+            String [] allowAcls;
+            String [] denyAcls;
+
+            // forcedAcls will be null if security is off, or nonzero length if security is on but hard-wired
+            if (acls != null && acls.length == 0)
+            {
+              ACCESSCONTROL [] documentAcls = documentData.getACCESSCONTROL();
+              List<String> allowAclsArrayList = new ArrayList<String>();
+              List<String> denyAclsArrayList = new ArrayList<String>();
+
+              // Allow a broken authority to disable all Meridio documents, even if the document is 'wide open', because
+              // Meridio does not permit viewing of the document if the user does not exist (at least, I don't know of a way).
+              denyAclsArrayList.add(defaultAuthorityDenyToken);
+
+              if (documentAcls != null)
+              {
+                for (int j = 0; j < documentAcls.length; j++)
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug(
+                    "Object Id '" + documentAcls[j].getObjectId() + "' " +
+                    "Object Type '" + documentAcls[j].getObjectType() + "' " +
+                    "Permission '" + documentAcls[j].getPermission() + "' " +
+                    "User Id '" + documentAcls[j].getUserId() + "' " +
+                    "Group Id '" + documentAcls[j].getGroupId() + "'");
+
+                  if (documentAcls[j].getPermission() == 0)  // prohibit permission
+                  {
+                    if (documentAcls[j].getGroupId() > 0)
+                    {
+                      denyAclsArrayList.add("G" + documentAcls[j].getGroupId());
+                    } else if (documentAcls[j].getUserId() > 0)
+                    {
+                      denyAclsArrayList.add("U" + documentAcls[j].getUserId());
+                    }
+                  }
+                  else                                       // read, amend or manage
+                  {
+                    if (documentAcls[j].getGroupId() > 0)
+                    {
+                      allowAclsArrayList.add("G" + documentAcls[j].getGroupId());
+                    } else if (documentAcls[j].getUserId() > 0)
+                    {
+                      allowAclsArrayList.add("U" + documentAcls[j].getUserId());
+                    }
+                  }
+                }
+              }
+
+              DOCUMENTS document = documentData.getDOCUMENTS()[0];
+
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Document id '" + new Long(docId).toString() + "' is owned by owner id '" +
+                document.getPROP_ownerId() + "' having the owner name '" +
+                document.getPROP_ownerName() + "' Record Type is '" +
+                document.getPROP_recordType() + "'");
+
+              if (document.getPROP_recordType() == 4 ||
+                document.getPROP_recordType() == 19)
+              {
+                RMDataSet rmds = meridio_.getRecord((int)docId, false, false, false);
+                Rm2vRecord record = rmds.getRm2vRecord()[0];
+
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Record User Id Owner is '" + record.getOwnerID() +
+                  "' Record Group Owner Id is '" + record.getGroupOwnerID() + "'");
+
+                /*=================================================================
+                * Either a group or a user owns a record, cannot be both and the
+                * group takes priority if it is set
+                *================================================================*/
+                if (record.getGroupOwnerID() > 0)
+                {
+                  allowAclsArrayList.add("G" + record.getGroupOwnerID());
+                } else if (record.getOwnerID() > 0)
+                {
+                  allowAclsArrayList.add("U" + record.getOwnerID());
+                }
+              }
+              else
+              {
+                allowAclsArrayList.add("U" + document.getPROP_ownerId());
+              }
+
+              /*=================================================================
+              * Set up the string arrays and then set the ACLs in the
+              * repository document
+              *================================================================*/
+              allowAcls = new String[allowAclsArrayList.size()];
+              for (int j = 0; j < allowAclsArrayList.size(); j++)
+              {
+                allowAcls[j] = allowAclsArrayList.get(j);
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Meridio: Adding '" + allowAcls[j] + "' to allow ACLs");
+              }
+
+              denyAcls = new String[denyAclsArrayList.size()];
+              for (int j = 0; j < denyAclsArrayList.size(); j++)
+              {
+                denyAcls[j] = denyAclsArrayList.get(j);
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Meridio: Adding '" + denyAcls[j] + "' to deny ACLs");
+              }
+            }
+            else
+            {
+              allowAcls = acls;
+              if (allowAcls == null)
+                denyAcls = null;
+              else
+                denyAcls = new String[]{defaultAuthorityDenyToken};
+            }
+
+            repositoryDocument.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,allowAcls,denyAcls);
+
+            /*=================================================================
+            * Get the object's content, and ingest the document
+            *================================================================*/
+            try
+            {
+              AttachmentPart ap = meridio_.getLatestVersionFile((int)docId);
+              if (null == ap)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Meridio: Failed to get content for document '" + new Long(docId).toString() + "'");
+                // No document.  Delete what's there
+                activities.noDocument(documentIdentifier,docVersion);
+                continue;
+              }
+              try
+              {
+                // Get the file name.
+                String fileName = ap.getDataHandler().getName();
+                // Log what we are about to do.
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Meridio: File data is supposedly in "+fileName);
+                File theTempFile = new File(fileName);
+                if (theTempFile.isFile())
+                {
+                  long fileSize = theTempFile.length();                   // ap.getSize();
+                  if (activities.checkLengthIndexable(fileSize))
+                  {
+                    InputStream is = new FileInputStream(theTempFile);      // ap.getDataHandler().getInputStream();
+                    try
+                    {
+                      repositoryDocument.setBinary(is, fileSize);
+
+                      if (null != activities)
+                      {
+                        activities.ingestDocumentWithException(documentIdentifier, docVersion,
+                          fileURL, repositoryDocument);
+                      }
+                    }
+                    finally
+                    {
+                      is.close();
+                    }
+                  }
+                  else
+                  {
+                    activities.noDocument(documentIdentifier, docVersion);
+                    continue;
+                  }
+                }
+                else
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("Meridio: Expected temporary file was not present - skipping document '"+new Long(docId).toString() + "'");
+                  activities.deleteDocument(documentIdentifier);
+                  continue;
+                }
+              }
+              finally
+              {
+                ap.dispose();
+              }
+
+            }
+            catch (java.net.SocketTimeoutException ioex)
+            {
+              throw new ManifoldCFException("Socket timeout exception: "+ioex.getMessage(), ioex);
+            }
+            catch (ConnectTimeoutException ioex)
+            {
+              throw new ManifoldCFException("Connect timeout exception: "+ioex.getMessage(), ioex);
+            }
+            catch (InterruptedIOException e)
+            {
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            }
+            catch (org.apache.axis.AxisFault e)
+            {
+              throw e;
+            }
+            catch (RemoteException e)
+            {
+              throw e;
+            }
+            catch (SOAPException soapEx)
+            {
+              throw new ManifoldCFException("SOAP Exception encountered while retrieving document content: "+soapEx.getMessage(),
+                soapEx);
+            }
+            catch (IOException ioex)
+            {
+              throw new ManifoldCFException("Input stream failure: "+ioex.getMessage(), ioex);
+            }
+          }
+        }
+
+        Logging.connectors.debug("Meridio: Exiting 'processDocuments' method");
+        return;
       }
       catch (org.apache.axis.AxisFault e)
       {
@@ -875,598 +1254,6 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
   }
 
-
-
-  /** Process a set of documents.
-  * This is the method that should cause each document to be fetched, processed, and the results either added
-  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
-  * The document specification allows this class to filter what is done based on the job.
-  *@param documentIdentifiers is the set of document identifiers to process.
-  *@param activities is the interface this method should use to queue up new document references
-  * and ingest documents.
-  *@param spec is the document specification.
-  *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-  * should only find other references, and should not actually call the ingestion methods.
-  */
-  @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    Logging.connectors.debug("Meridio: Entering 'processDocuments' method");
-
-    // First step: Come up with the superset of all the desired metadata.  This will be put together from
-    // the version strings that were passed in.
-    // I'm also going to use this loop to produce the actual set of document identifiers that we'll want to
-    // query on.
-
-    ArrayList neededQueryIDs = new ArrayList();
-    HashMap metadataSet = new HashMap();
-    ArrayList metadataItems = new ArrayList();
-
-    int i = 0;
-    while (i < versions.length)
-    {
-      boolean scanOnlyValue = scanOnly[i];
-      if (!scanOnlyValue)
-      {
-        neededQueryIDs.add(documentIdentifiers[i]);
-        String versionString = versions[i];
-        metadataItems.clear();
-        // The metadata spec is the first element of the version string.
-        unpackList(metadataItems,versionString,0,'+');
-        int j = 0;
-        while (j < metadataItems.size())
-        {
-          String categoryProperty = (String)metadataItems.get(j++);
-          metadataSet.put(categoryProperty,categoryProperty);
-        }
-      }
-      i++;
-    }
-
-    // Convert to a string array of category/property values
-    ReturnMetadata[] categoryPropertyValues = new ReturnMetadata[metadataSet.size()];
-    String[] categoryPropertyStringValues = new String[metadataSet.size()];
-    i = 0;
-    Iterator iter = metadataSet.keySet().iterator();
-    while (iter.hasNext())
-    {
-      String value = (String)iter.next();
-      categoryPropertyStringValues[i] = value;
-
-      int dotIndex = value.indexOf(".");
-      String categoryName = null;
-      String propertyName;
-      if (dotIndex == -1)
-        propertyName = value;
-      else
-      {
-        categoryName = value.substring(0,dotIndex);
-        propertyName = value.substring(dotIndex+1);
-      }
-
-      categoryPropertyValues[i++] = new ReturnMetadata(categoryName,propertyName);
-    }
-
-    while (true)
-    {
-      getSession();
-
-      // This method uses the search call to locate the document metadata, and associated methods to locate the document
-      // contents and acls.
-      //
-      // It looks like Meridio returns a distinct record from its search API for every specified piece of metadata.
-      // We can only specify one set of metadata for all records.  That means the basic algorithm here is going to have to be:
-      // 1) Find the superset of all the metadata records we want
-      // 2) Call the search API to get the metadata information
-      // 3) Look up the metadata information just prior to ingestion time, making SURE that each piece of metadata is
-      //    in fact specified for that document.
-      try
-      {
-
-        HashMap documentMap = new HashMap();
-
-        // Only look up metadata if we need some!
-        if (neededQueryIDs.size() > 0 && categoryPropertyValues.length > 0)
-        {
-          long[] docIds = new long[neededQueryIDs.size()];
-
-          /*=================================================================
-          * Convert the string array of document identifiers to an array of
-          * integers
-          *================================================================*/
-          for (i = 0; i < neededQueryIDs.size(); i++)
-          {
-            docIds[i] = new Long((String)neededQueryIDs.get(i)).longValue();
-          }
-
-          /*=================================================================
-          * Call the search, with the document specification and the list of
-          * document ids - the search will never return more than exactly
-          * one match per document id
-          *
-          * This call will return all the metadata that was specified in the
-          * document specification for all the documents and
-          * records in one call.
-          *================================================================*/
-          DMSearchResults searchResults = documentSpecificationSearch(spec,
-            0, 0, 1, docIds.length,
-            docIds, categoryPropertyValues);
-
-          // If we ask for a document and it is no longer there, we should treat this as a deletion.
-          // The activity in that case is to delete the document.  A similar thing should happen if
-          // any of the other methods (like getting the document's content) also fail to find the
-          // document.
-
-          // Let's build a hash which contains all the document metadata returned.  The form of
-          // the hash will be: key = the document identifier, value = another hash, which is keyed
-          // by the metadata category/property, and which has a value that is the metadata value.
-
-          HashMap counterMap = new HashMap();
-
-          if (searchResults.dsDM != null)
-          {
-            SEARCHRESULTS_DOCUMENTS [] searchResultsDocuments = searchResults.dsDM.getSEARCHRESULTS_DOCUMENTS();
-            i = 0;
-            while (i < searchResultsDocuments.length)
-            {
-              SEARCHRESULTS_DOCUMENTS searchResultsDocument = searchResultsDocuments[i];
-              long docId = searchResultsDocument.getDocId();
-              Long docKey = new Long(docId);
-              MutableInteger counterMapItem = (MutableInteger)counterMap.get(docKey);
-              if (counterMapItem == null)
-              {
-                counterMapItem = new MutableInteger();
-                counterMap.put(docKey,counterMapItem);
-              }
-
-              String propertyName = categoryPropertyStringValues[counterMapItem.getValue()];
-              counterMapItem.increment();
-              String propertyValue = searchResultsDocuments[i].getStr_value();
-              HashMap propertyMap = (HashMap)documentMap.get(docKey);
-              if (propertyMap == null)
-              {
-                propertyMap = new HashMap();
-                documentMap.put(docKey,propertyMap);
-              }
-              if (propertyValue != null && propertyValue.length() > 0)
-                propertyMap.put(propertyName,propertyValue);
-              i++;
-            }
-          }
-        }
-
-        // Okay, we are ready now to go through the individual documents and do the ingestion or deletion.
-        i = 0;
-        while (i < documentIdentifiers.length)
-        {
-          String documentIdentifier = documentIdentifiers[i];
-          Long docKey = new Long(documentIdentifier);
-          long docId = docKey.longValue();
-          String docVersion = versions[i];
-
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Processing document identifier '" + documentIdentifier + "' " +
-            "with version string '" + docVersion + "'");
-
-          if (scanOnly[i])
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Meridio: Scan only for document '" + documentIdentifier + "'");
-            i++;
-            continue;
-          }
-
-          // For each document, be sure the job is still allowed to run.
-          activities.checkJobStillActive();
-
-          RepositoryDocument repositoryDocument = new RepositoryDocument();
-
-          // Prepare to parse the version string for this individual document.  We'll want
-          // to produce a list of the actual properties we want.
-          int startPos = 0;
-
-          // Metadata items
-          ArrayList metadataItems0 = new ArrayList();
-          startPos = unpackList(metadataItems0,docVersion,startPos,'+');
-          // Forced acls
-          String[] forcedAcls;
-          String denyAcl = null;
-          if (startPos < docVersion.length())
-          {
-            char x = docVersion.charAt(startPos++);
-            if (x == '+')
-            {
-              ArrayList acls = new ArrayList();
-              startPos = unpackList(acls,docVersion,startPos,'+');
-              // Turn into acls and add into description
-              forcedAcls = new String[acls.size()];
-              int j = 0;
-              while (j < forcedAcls.length)
-              {
-                forcedAcls[j] = (String)acls.get(j);
-                j++;
-              }
-              if (startPos < docVersion.length())
-              {
-                x = docVersion.charAt(startPos++);
-                if (x == '+')
-                {
-                  StringBuilder denyAclBuffer = new StringBuilder();
-                  unpack(denyAclBuffer,docVersion,startPos,'+');
-                  denyAcl = denyAclBuffer.toString();
-                }
-              }
-            }
-            else
-            {
-              forcedAcls = null;
-            }
-          }
-          else
-          {
-            forcedAcls = new String[0];
-          }
-
-          // Path attribute name and mapping
-          String pathAttributeName = null;
-          MatchMap matchMap = null;
-          if (startPos < docVersion.length())
-          {
-            char x = docVersion.charAt(startPos++);
-            if (x == '+')
-            {
-              StringBuilder sb = new StringBuilder();
-              startPos = unpack(sb,docVersion,startPos,'+');
-              pathAttributeName = sb.toString();
-              sb.setLength(0);
-              startPos = unpack(sb,docVersion,startPos,'+');
-              // Initialize matchmap.
-              matchMap = new MatchMap(sb.toString());
-            }
-          }
-
-          // Load the metadata items into the ingestion document object
-          HashMap docMetadataMap = (HashMap)documentMap.get(docKey);
-          if (docMetadataMap != null)
-          {
-            int j = 0;
-            while (j < metadataItems0.size())
-            {
-              String categoryPropertyName = (String)metadataItems0.get(j++);
-              String propertyValue = (String)docMetadataMap.get(categoryPropertyName);
-              if (propertyValue != null && propertyValue.length() > 0)
-                repositoryDocument.addField(categoryPropertyName,propertyValue);
-            }
-          }
-
-          /*=================================================================
-          * Construct the URL to the object
-          *
-          * HTTP://HOST:PORT/meridio/browse/downloadcontent.aspx?documentId=<docId>&launchMode=1&launchAs=0
-          *
-          * I expect we need to add additional parameters to the configuration
-          * specification
-          *================================================================*/
-          String fileURL = urlBase + new Long(docId).toString();
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("URL for document '" + new Long(docId).toString() + "' is '" + fileURL + "'");
-
-          /*=================================================================
-          * Get the object's ACLs and owner information
-          *================================================================*/
-          DMDataSet documentData = null;
-          documentData = meridio_.getDocumentData((int)docId, true, true, false, false,
-            DmVersionInfo.LATEST, false, false, false);
-
-          if (null == documentData)
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Meridio: Could not retrieve document data for document id '" +
-              new Long(docId).toString() + "' in processDocuments method - deleting document.");
-            activities.noDocument(documentIdentifier,docVersion);
-            i++;
-            continue;
-          }
-
-          if (null == documentData.getDOCUMENTS() ||
-            documentData.getDOCUMENTS().length != 1)
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Meridio: Could not retrieve document owner for document id '" +
-              new Long(docId).toString() + "' in processDocuments method. No information or incorrect amount " +
-              "of information was returned");
-            activities.noDocument(documentIdentifier,docVersion);
-            i++;
-            continue;
-          }
-
-          // Do path metadata
-          if (pathAttributeName != null && pathAttributeName.length() > 0)
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Meridio: Path attribute name is "+pathAttributeName);
-            RMDataSet partList;
-            int recordType = documentData.getDOCUMENTS()[0].getPROP_recordType();
-            if (recordType == 0 || recordType == 4 || recordType == 19)
-              partList = meridio_.getRecordPartList((int)docId, false, false);
-            else
-              partList = meridio_.getDocumentPartList((int)docId);
-            if (partList != null)
-            {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Meridio: Document '"+new Long(docId).toString()+"' has a part list with "+Integer.toString(partList.getRm2vPart().length)+" values");
-
-              for (int k = 0; k < partList.getRm2vPart().length; k++)
-              {
-                repositoryDocument.addField(pathAttributeName,matchMap.translate(partList.getRm2vPart()[k].getParentTitlePath()));
-              }
-            }
-            else
-            {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Meridio: Document '"+new Long(docId).toString()+"' has no part list, so no path attribute");
-            }
-          }
-
-          // Process acls.  If there are forced acls, use those, otherwise get them from Meridio.
-          String [] allowAcls;
-          String [] denyAcls;
-
-          // forcedAcls will be null if security is off, or nonzero length if security is on but hard-wired
-          if (forcedAcls != null && forcedAcls.length == 0)
-          {
-            ACCESSCONTROL [] documentAcls = documentData.getACCESSCONTROL();
-            ArrayList allowAclsArrayList = new ArrayList();
-            ArrayList denyAclsArrayList = new ArrayList();
-
-            // Allow a broken authority to disable all Meridio documents, even if the document is 'wide open', because
-            // Meridio does not permit viewing of the document if the user does not exist (at least, I don't know of a way).
-            denyAclsArrayList.add(denyToken);
-
-            if (documentAcls != null)
-            {
-              for (int j = 0; j < documentAcls.length; j++)
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug(
-                  "Object Id '" + documentAcls[j].getObjectId() + "' " +
-                  "Object Type '" + documentAcls[j].getObjectType() + "' " +
-                  "Permission '" + documentAcls[j].getPermission() + "' " +
-                  "User Id '" + documentAcls[j].getUserId() + "' " +
-                  "Group Id '" + documentAcls[j].getGroupId() + "'");
-
-                if (documentAcls[j].getPermission() == 0)  // prohibit permission
-                {
-                  if (documentAcls[j].getGroupId() > 0)
-                  {
-                    denyAclsArrayList.add("G" + documentAcls[j].getGroupId());
-                  } else if (documentAcls[j].getUserId() > 0)
-                  {
-                    denyAclsArrayList.add("U" + documentAcls[j].getUserId());
-                  }
-                }
-                else                                       // read, amend or manage
-                {
-                  if (documentAcls[j].getGroupId() > 0)
-                  {
-                    allowAclsArrayList.add("G" + documentAcls[j].getGroupId());
-                  } else if (documentAcls[j].getUserId() > 0)
-                  {
-                    allowAclsArrayList.add("U" + documentAcls[j].getUserId());
-                  }
-                }
-              }
-            }
-
-            DOCUMENTS document = documentData.getDOCUMENTS()[0];
-
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Document id '" + new Long(docId).toString() + "' is owned by owner id '" +
-              document.getPROP_ownerId() + "' having the owner name '" +
-              document.getPROP_ownerName() + "' Record Type is '" +
-              document.getPROP_recordType() + "'");
-
-            if (document.getPROP_recordType() == 4 ||
-              document.getPROP_recordType() == 19)
-            {
-              RMDataSet rmds = meridio_.getRecord((int)docId, false, false, false);
-              Rm2vRecord record = rmds.getRm2vRecord()[0];
-
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Record User Id Owner is '" + record.getOwnerID() +
-                "' Record Group Owner Id is '" + record.getGroupOwnerID() + "'");
-
-              /*=================================================================
-              * Either a group or a user owns a record, cannot be both and the
-              * group takes priority if it is set
-              *================================================================*/
-              if (record.getGroupOwnerID() > 0)
-              {
-                allowAclsArrayList.add("G" + record.getGroupOwnerID());
-              } else if (record.getOwnerID() > 0)
-              {
-                allowAclsArrayList.add("U" + record.getOwnerID());
-              }
-            }
-            else
-            {
-              allowAclsArrayList.add("U" + document.getPROP_ownerId());
-            }
-
-            /*=================================================================
-            * Set up the string arrays and then set the ACLs in the
-            * repository document
-            *================================================================*/
-            allowAcls = new String[allowAclsArrayList.size()];
-            for (int j = 0; j < allowAclsArrayList.size(); j++)
-            {
-              allowAcls[j] = (String) allowAclsArrayList.get(j);
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Meridio: Adding '" + allowAcls[j] + "' to allow ACLs");
-            }
-
-            denyAcls = new String[denyAclsArrayList.size()];
-            for (int j = 0; j < denyAclsArrayList.size(); j++)
-            {
-              denyAcls[j] = (String) denyAclsArrayList.get(j);
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Meridio: Adding '" + denyAcls[j] + "' to deny ACLs");
-            }
-          }
-          else
-          {
-            allowAcls = forcedAcls;
-            if (denyAcl != null)
-              denyAcls = new String[]{denyAcl};
-            else
-              denyAcls = null;
-          }
-
-          repositoryDocument.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,allowAcls,denyAcls);
-
-          /*=================================================================
-          * Get the object's content, and ingest the document
-          *================================================================*/
-          try
-          {
-            AttachmentPart ap = meridio_.getLatestVersionFile((int)docId);
-            if (null == ap)
-            {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Meridio: Failed to get content for document '" + new Long(docId).toString() + "'");
-              // No document.  Delete what's there
-              activities.noDocument(documentIdentifier,docVersion);
-              i++;
-              continue;
-            }
-            try
-            {
-              // Get the file name.
-              String fileName = ap.getDataHandler().getName();
-              // Log what we are about to do.
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Meridio: File data is supposedly in "+fileName);
-              File theTempFile = new File(fileName);
-              if (theTempFile.isFile())
-              {
-                long fileSize = theTempFile.length();                   // ap.getSize();
-                if (activities.checkLengthIndexable(fileSize))
-                {
-                  InputStream is = new FileInputStream(theTempFile);      // ap.getDataHandler().getInputStream();
-                  try
-                  {
-                    repositoryDocument.setBinary(is, fileSize);
-
-                    if (null != activities)
-                    {
-                      activities.ingestDocumentWithException(documentIdentifier, docVersion,
-                        fileURL, repositoryDocument);
-                    }
-                  }
-                  finally
-                  {
-                    is.close();
-                  }
-                }
-                else
-                  activities.noDocument(documentIdentifier, docVersion);
-              }
-              else
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Meridio: Expected temporary file was not present - skipping document '"+new Long(docId).toString() + "'");
-                activities.deleteDocument(documentIdentifier);
-              }
-            }
-            finally
-            {
-              ap.dispose();
-            }
-
-          }
-          catch (java.net.SocketTimeoutException ioex)
-          {
-            throw new ManifoldCFException("Socket timeout exception: "+ioex.getMessage(), ioex);
-          }
-          catch (ConnectTimeoutException ioex)
-          {
-            throw new ManifoldCFException("Connect timeout exception: "+ioex.getMessage(), ioex);
-          }
-          catch (InterruptedIOException e)
-          {
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (org.apache.axis.AxisFault e)
-          {
-            throw e;
-          }
-          catch (RemoteException e)
-          {
-            throw e;
-          }
-          catch (SOAPException soapEx)
-          {
-            throw new ManifoldCFException("SOAP Exception encountered while retrieving document content: "+soapEx.getMessage(),
-              soapEx);
-          }
-          catch (IOException ioex)
-          {
-            throw new ManifoldCFException("Input stream failure: "+ioex.getMessage(), ioex);
-          }
-          i++;
-        }
-
-        Logging.connectors.debug("Meridio: Exiting 'processDocuments' method");
-        return;
-      }
-      catch (org.apache.axis.AxisFault e)
-      {
-        long currentTime = System.currentTimeMillis();
-        if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
-        {
-          org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
-          if (elem != null)
-          {
-            elem.normalize();
-            String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-            throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
-          }
-          throw new ManifoldCFException("Unknown http error occurred while processing docs: "+e.getMessage(),e);
-        }
-        if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
-        {
-          String exceptionName = e.getFaultString();
-          if (exceptionName.equals("java.lang.InterruptedException"))
-            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-        }
-        if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
-        {
-          if (e.getFaultString().indexOf(" 23031#") != -1)
-          {
-            // This means that the session has expired, so reset it and retry
-            meridio_ = null;
-            continue;
-          }
-        }
-
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Meridio: Got an unknown remote exception processing docs - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
-        throw new ServiceInterruption("Remote procedure exception: "+e.getMessage(),  e, currentTime + 300000L,
-          currentTime + 3 * 60 * 60000L,-1,false);
-      }
-      catch (RemoteException remoteException)
-      {
-        throw new ManifoldCFException("Meridio: A remote exception occurred while " +
-          "processing a Meridio document: "+remoteException.getMessage(), remoteException);
-      }
-      catch (MeridioDataSetException meridioDataSetException)
-      {
-        throw new ManifoldCFException("Meridio: A DataSet exception occurred while  " +
-          "processing a Meridio document", meridioDataSetException);
-      }
-    }
-  }
 
   // UI support methods.
   //
@@ -2492,25 +2279,22 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
 
     // Content Types tab
-    HashMap mimeTypeMap = new HashMap();
-    i = 0;
-    while (i < ds.getChildCount())
+    Set<String> mimeTypeMap = new HashSet<String>();
+    for (i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("MIMEType"))
       {
         String type = sn.getAttributeValue("type");
-        mimeTypeMap.put(type,type);
+        mimeTypeMap.add(type);
       }
     }
     // If there are none selected, then check them all, since no mime types would be nonsensical.
     if (mimeTypeMap.size() == 0)
     {
-      i = 0;
-      while (i < allowedMimeTypes.length)
+      for (String allowedMimeType : allowedMimeTypes)
       {
-        String allowedMimeType = allowedMimeTypes[i++];
-        mimeTypeMap.put(allowedMimeType,allowedMimeType);
+        mimeTypeMap.add(allowedMimeType);
       }
     }
 
@@ -2529,7 +2313,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         String mimeType = allowedMimeTypes[i++];
         out.print(
 "      <nobr>\n"+
-"        <input type=\"checkbox\" name=\""+seqPrefix+"specmimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeType)+"\" "+((mimeTypeMap.get(mimeType)!=null)?"checked=\"true\"":"")+">\n"+
+"        <input type=\"checkbox\" name=\""+seqPrefix+"specmimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeType)+"\" "+(mimeTypeMap.contains(mimeType)?"checked=\"true\"":"")+">\n"+
 "          "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mimeType)+"\n"+
 "        </input>\n"+
 "      </nobr>\n"+
@@ -2546,10 +2330,10 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       // Tab is not selected.  Submit a separate hidden for each value that was selected before.
-      Iterator iter = mimeTypeMap.keySet().iterator();
+      Iterator<String> iter = mimeTypeMap.iterator();
       while (iter.hasNext())
       {
-        String mimeType = (String)iter.next();
+        String mimeType = iter.next();
         out.print(
 "<input type=\"hidden\" name=\""+seqPrefix+"specmimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeType)+"\"/>\n"
         );
@@ -2558,15 +2342,14 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
     // Categories tab
 
-    HashMap categoriesMap = new HashMap();
-    i = 0;
-    while (i < ds.getChildCount())
+    Set<String> categoriesMap = new HashSet<String>();
+    for (i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("SearchCategory"))
       {
         String category = sn.getAttributeValue("category");
-        categoriesMap.put(category,category);
+        categoriesMap.add(category);
       }
     }
 
@@ -2592,7 +2375,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           String category = categoryList[k++];
           out.print(
 "      <nobr>\n"+
-"        <input type=\"checkbox\" name=\""+seqPrefix+"speccategories\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(category)+"\" "+((categoriesMap.get(category)!=null)?"checked=\"true\"":"")+">\n"+
+"        <input type=\"checkbox\" name=\""+seqPrefix+"speccategories\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(category)+"\" "+(categoriesMap.contains(category)?"checked=\"true\"":"")+">\n"+
 "        "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(category)+"\n"+
 "        </input>\n"+
 "      </nobr>\n"+
@@ -2626,10 +2409,10 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       // Tab is not selected.  Submit a separate hidden for each value that was selected before.
-      Iterator iter = categoriesMap.keySet().iterator();
+      Iterator<String> iter = categoriesMap.iterator();
       while (iter.hasNext())
       {
-        String category = (String)iter.next();
+        String category = iter.next();
         out.print(
 "<input type=\"hidden\" name=\""+seqPrefix+"speccategories\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(category)+"\"/>\n"
         );
@@ -3730,7 +3513,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param spec is the document specification.
   *@return the acls.
   */
-  protected static String[] getAcls(DocumentSpecification spec)
+  protected static String[] getAcls(Specification spec)
   {
     HashMap map = new HashMap();
     int i = 0;
@@ -3767,7 +3550,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   private static String [] getMIMETypes
   (
-    DocumentSpecification spec
+    Specification spec
   )
   {
     ArrayList al = new ArrayList ();
@@ -3804,7 +3587,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   */
   private DMSearchResults documentSpecificationSearch
   (
-    DocumentSpecification docSpec,      // The castor representation of the Document Specification
+    Specification docSpec,      // The castor representation of the Document Specification
     long startTime,
     long endTime,
     int startPositionOfHits,
@@ -3838,7 +3621,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   */
   private DMSearchResults documentSpecificationSearch
   (
-    DocumentSpecification docSpec,      // The castor representation of the Document Specification
+    Specification docSpec,      // The castor representation of the Document Specification
     long startTime,
     long endTime,
     int startPositionOfHits,
@@ -3882,7 +3665,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   */
   protected DMSearchResults documentSpecificationSearch
   (
-    DocumentSpecification docSpec,
+    Specification docSpec,
     long startTime,
     long endTime,
     int startPositionOfHits,

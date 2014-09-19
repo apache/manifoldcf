@@ -51,6 +51,7 @@ import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
+import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.log4j.Logger;
 
 /**
@@ -866,107 +867,113 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  /**
-   * Process a set of documents. This is the method that should cause each
-   * document to be fetched, processed, and the results either added to the
-   * queue of documents for the current job, and/or entered into the
-   * incremental ingestion manager. The document specification allows this
-   * class to filter what is done based on the job.
-   *
-   * @param documentIdentifiers is the set of document identifiers to process.
-   * @param versions is the corresponding document versions to process, as
-   * returned by getDocumentVersions() above. The implementation may choose to
-   * ignore this parameter and always process the current version.
-   * @param activities is the interface this method should use to queue up new
-   * document references and ingest documents.
-   * @param spec is the document specification.
-   * @param scanOnly is an array corresponding to the document identifiers. It
-   * is set to true to indicate when the processing should only find other
-   * references, and should not actually call the ingestion methods.
-   * @param jobMode is an integer describing how the job is being run, whether
-   * continuous or once-only.
-   */
-  @SuppressWarnings("unchecked")
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+  */
   @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions,
-    IProcessActivity activities, DocumentSpecification spec,
-    boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption {
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
+    throws ManifoldCFException, ServiceInterruption {
+      
       
     Logging.connectors.debug("DROPBOX: Inside processDocuments");
+
+    // Forced acls
+    String[] acls = getAcls(spec);
+    // Sort it,
+    java.util.Arrays.sort(acls);
+
+    for (String documentIdentifier : documentIdentifiers) {
       
-    for (int i = 0; i < documentIdentifiers.length; i++) {
-      long startTime = System.currentTimeMillis();
-      String errorCode = "FAILED";
-      String errorDesc = StringUtils.EMPTY;
-      Long fileSize = null;
-      boolean doLog = false;
-      String nodeId = documentIdentifiers[i];
-      String version = versions[i];
+      getSession();
       
+      String versionString;
+      GetObjectThread objt = new GetObjectThread(documentIdentifier);
       try {
-        if (Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug("DROPBOX: Processing document identifier '"
-              + nodeId + "'");
-        }
+        objt.start();
+        objt.finishUp();
+      } catch (InterruptedException e) {
+        objt.interrupt();
+        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+          ManifoldCFException.INTERRUPTED);
+      } catch (DropboxException e) {
+        Logging.connectors.warn("DROPBOX: Error getting object: " + e.getMessage(), e);
+        handleDropboxException(e);
+      }
 
-        getSession();
-        GetObjectThread objt = new GetObjectThread(nodeId);
-        try {
-          objt.start();
-          objt.finishUp();
-        } catch (InterruptedException e) {
-          objt.interrupt();
-          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-        } catch (DropboxException e) {
-          errorCode = "DROPBOX ERROR";
-          errorDesc = e.getMessage();
-          Logging.connectors.warn("DROPBOX: Error getting object: " + e.getMessage(), e);
-          handleDropboxException(e);
-        }
+      DropboxAPI.Entry dropboxObject = objt.getResponse();
 
-        DropboxAPI.Entry dropboxObject = objt.getResponse();
+      if (!dropboxObject.isDir) {
+        if (dropboxObject.isDeleted) {
+          activities.deleteDocument(documentIdentifier);
+          continue;
+        } else if (StringUtils.isNotEmpty(dropboxObject.rev)) {
+          StringBuilder sb = new StringBuilder();
 
-        if(dropboxObject.isDeleted){
+          // Acls
+          packList(sb,acls,'+');
+          if (acls.length > 0) {
+            sb.append('+');
+            pack(sb,defaultAuthorityDenyToken,'+');
+          }
+          else
+            sb.append('-');
+
+          sb.append(dropboxObject.rev);
+          versionString = sb.toString();
+        } else {
+          //a document that doesn't contain versioning information will never be processed
+          activities.deleteDocument(documentIdentifier);
           continue;
         }
+      } else {
+        //a folder will always be processed
+        versionString = StringUtils.EMPTY;
+      }
+    
+      if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+      {
+        long startTime = System.currentTimeMillis();
+        String errorCode = "FAILED";
+        String errorDesc = StringUtils.EMPTY;
+        Long fileSize = null;
+        boolean doLog = false;
+        String nodeId = documentIdentifier;
+        String version = versionString;
         
-        if (dropboxObject.isDir) {
+        try {
+          if (dropboxObject.isDir) {
 
-          // adding all the children + subdirs for a folder
+            // adding all the children + subdirs for a folder
 
-          List<DropboxAPI.Entry> children = dropboxObject.contents;
-          for (DropboxAPI.Entry child : children) {
-            activities.addDocumentReference(child.path, nodeId, RELATIONSHIP_CHILD);
-          }
-
-        } else {
-          // its a file
-          if (!scanOnly[i]) {
-            doLog = true;
-            
-            // Unpack the version string
-            ArrayList acls = new ArrayList();
-            StringBuilder denyAclBuffer = new StringBuilder();
-            int index = unpackList(acls,version,0,'+');
-            if (index < version.length() && version.charAt(index++) == '+') {
-              index = unpack(denyAclBuffer,version,index,'+');
+            List<DropboxAPI.Entry> children = dropboxObject.contents;
+            for (DropboxAPI.Entry child : children) {
+              activities.addDocumentReference(child.path, nodeId, RELATIONSHIP_CHILD);
             }
 
+          } else {
+            // its a file
+            doLog = true;
+              
             // content ingestion
             RepositoryDocument rd = new RepositoryDocument();
 
-            // Turn into acls and add into description
-            String[] aclArray = new String[acls.size()];
-            for (int j = 0; j < aclArray.length; j++) {
-              aclArray[j] = (String)acls.get(j);
-            }
-            rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray);
-            if (denyAclBuffer.length() > 0) {
-              String[] denyAclArray = new String[]{denyAclBuffer.toString()};
+            if (acls.length > 0) {
+              rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls);
+              String[] denyAclArray = new String[]{defaultAuthorityDenyToken};
               rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
             }
-
+            
             // Length in bytes
             long fileLength = dropboxObject.bytes;
             //documentURI
@@ -979,7 +986,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
             if (dropboxObject.modified != null)
               rd.setModifiedDate(com.dropbox.client2.RESTUtility.parseDate(dropboxObject.modified));
             // There doesn't appear to be a created date...
-              
+                
             rd.addField("Modified", dropboxObject.modified);
             rd.addField("Size", dropboxObject.size);
             rd.addField("Path", dropboxObject.path);
@@ -987,7 +994,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
             rd.addField("ClientMtime", dropboxObject.clientMtime);
             rd.addField("mimeType", dropboxObject.mimeType);
             rd.addField("rev", dropboxObject.rev);
-            
+              
             getSession();
             BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
             try {
@@ -1044,11 +1051,11 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
               handleDropboxException(e);
             }
           }
+        } finally {
+          if (doLog)
+            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+              fileSize, nodeId, errorCode, errorDesc, null);
         }
-      } finally {
-        if (doLog)
-          activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-            fileSize, nodeId, errorCode, errorDesc, null);
       }
     }
   }
@@ -1199,84 +1206,11 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
 
   }
 
-  /**
-   * The short version of getDocumentVersions. Get document versions given an
-   * array of document identifiers. This method is called for EVERY document
-   * that is considered. It is therefore important to perform as little work
-   * as possible here.
-   *
-   * @param documentIdentifiers is the array of local document identifiers, as
-   * understood by this connector.
-   * @param spec is the current document specification for the current job. If
-   * there is a dependency on this specification, then the version string
-   * should include the pertinent data, so that reingestion will occur when
-   * the specification changes. This is primarily useful for metadata.
-   * @return the corresponding version strings, with null in the places where
-   * the document no longer exists. Empty version strings indicate that there
-   * is no versioning ability for the corresponding document, and the document
-   * will always be processed.
-   */
-  @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers,
-    DocumentSpecification spec) throws ManifoldCFException, ServiceInterruption {
-
-    // Forced acls
-    String[] acls = getAcls(spec);
-    // Sort it,
-    java.util.Arrays.sort(acls);
-
-    String[] rval = new String[documentIdentifiers.length];
-    for (int i = 0; i < rval.length; i++) {
-      getSession();
-      GetObjectThread objt = new GetObjectThread(documentIdentifiers[i]);
-      try {
-        objt.start();
-        objt.finishUp();
-      } catch (InterruptedException e) {
-        objt.interrupt();
-        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-          ManifoldCFException.INTERRUPTED);
-      } catch (DropboxException e) {
-        Logging.connectors.warn("DROPBOX: Error getting object: " + e.getMessage(), e);
-        handleDropboxException(e);
-      }
-
-      DropboxAPI.Entry dropboxObject = objt.getResponse();
-
-      if (!dropboxObject.isDir) {
-        if (dropboxObject.isDeleted) {
-          rval[i] = null;
-        } else if (StringUtils.isNotEmpty(dropboxObject.rev)) {
-          StringBuilder sb = new StringBuilder();
-
-          // Acls
-          packList(sb,acls,'+');
-          if (acls.length > 0) {
-            sb.append('+');
-            pack(sb,defaultAuthorityDenyToken,'+');
-          }
-          else
-            sb.append('-');
-
-          sb.append(dropboxObject.rev);
-          rval[i] = sb.toString();
-        } else {
-          //a document that doesn't contain versioning information will never be processed
-          rval[i] = null;
-        }
-      } else {
-        //a folder will always be processed
-        rval[i] = StringUtils.EMPTY;
-      }
-    }
-    return rval;
-  }
-  
   /** Grab forced acl out of document specification.
   *@param spec is the document specification.
   *@return the acls.
   */
-  protected static String[] getAcls(DocumentSpecification spec) {
+  protected static String[] getAcls(Specification spec) {
     Set<String> map = new HashSet<String>();
     for (int i = 0; i < spec.getChildCount(); i++) {
       SpecificationNode sn = spec.getChild(i);

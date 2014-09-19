@@ -56,6 +56,8 @@ import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
+import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
+import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
@@ -847,32 +849,28 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   }
 
   /** Process a set of documents.
-   * This is the method that should cause each document to be fetched, processed, and the results either added
-   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
-   * The document specification allows this class to filter what is done based on the job.
-   *@param documentIdentifiers is the set of document identifiers to process.
-   *@param versions is the corresponding document versions to process, as returned by getDocumentVersions() above.
-   *       The implementation may choose to ignore this parameter and always process the current version.
-   *@param activities is the interface this method should use to queue up new document references
-   * and ingest documents.
-   *@param spec is the document specification.
-   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-   * should only find other references, and should not actually call the ingestion methods.
-   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
-   */
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
+  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+  */
   @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions,
-      IProcessActivity activities, DocumentSpecification spec,
-      boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption {
-
-    Logging.connectors.debug("Alfresco: Inside processDocuments");
-    int i = 0;
-
-    while (i < documentIdentifiers.length) {
-      long startTime = System.currentTimeMillis();
-      String nodeReference = documentIdentifiers[i];
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
+    throws ManifoldCFException, ServiceInterruption {
+      
+    for (String documentIdentifier : documentIdentifiers) {
+      // Prepare to access the document
+      String nodeReference = documentIdentifier;
       String uuid = NodeUtils.getUuidFromNodeReference(nodeReference);
-
+      
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Alfresco: Processing document identifier '"
             + nodeReference + "'");
@@ -880,35 +878,49 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       Reference reference = new Reference();
       reference.setStore(SearchUtils.STORE);
       reference.setUuid(uuid);
-
+      
       Predicate predicate = new Predicate();
       predicate.setStore(SearchUtils.STORE);
-      predicate.setNodes(new Reference[] { reference });
-
-      // getting properties
+      predicate.setNodes(new Reference[]{reference});
+      
       Node resultNode = null;
       try {
         resultNode = NodeUtils.get(endpoint, username, password, socketTimeout, session, predicate);
       } catch (IOException e) {
         Logging.connectors.warn(
-            "Alfresco: IOException closing file input stream: "
+            "Alfresco: IOException getting node: "
                 + e.getMessage(), e);
         handleIOException(e);
       }
       
-      String errorCode = "OK";
-      String errorDesc = StringUtils.EMPTY;
-
       NamedValue[] properties = resultNode.getProperties();
-      boolean isDocument = ContentModelUtils.isDocument(properties);
+      boolean isDocument;
+      String versionString = "";
+      if (properties != null)
+        isDocument = ContentModelUtils.isDocument(properties);
+      else
+        isDocument = false;
+      if (isDocument){
+        boolean isVersioned = NodeUtils.isVersioned(resultNode.getAspects());
+        if(isVersioned){
+          versionString = NodeUtils.getVersionLabel(properties);
+        }
+      }
+
+      if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)) {
+        // Need to (re)index
       
-      try{    
+        String errorCode = "OK";
+        String errorDesc = StringUtils.EMPTY;
+        long startTime = System.currentTimeMillis();
         
-        boolean isFolder = ContentModelUtils.isFolder(endpoint, username, password, socketTimeout, session, reference);
-        
-        //a generic node in Alfresco could have child-associations
-        if (isFolder) {
-            // ingest all the children of the folder
+        try{    
+          
+          boolean isFolder = ContentModelUtils.isFolder(endpoint, username, password, socketTimeout, session, reference);
+          
+          //a generic node in Alfresco could have child-associations
+          if (isFolder) {
+            // queue all the children of the folder
             QueryResult queryResult = SearchUtils.getChildren(endpoint, username, password, socketTimeout, session, reference);
             ResultSet resultSet = queryResult.getResultSet();
             ResultSetRow[] resultSetRows = resultSet.getRows();
@@ -917,18 +929,17 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
               String childNodeReference = PropertiesUtils.getNodeReference(childProperties);
               activities.addDocumentReference(childNodeReference, nodeReference, RELATIONSHIP_CHILD);
             }
-        } 
+          } 
 
-      }catch(IOException e){
-        Logging.connectors.warn(
-            "Alfresco: IOException closing file input stream: "
-                + e.getMessage(), e);
-        handleIOException(e);
-      }
-      
-      //a generic node in Alfresco could also have binaries content
-      if (isDocument) {
-        if (!scanOnly[i]) {
+        }catch(IOException e){
+          Logging.connectors.warn(
+              "Alfresco: IOException finding children: "
+                  + e.getMessage(), e);
+          handleIOException(e);
+        }
+        
+        //a generic node in Alfresco could also have binaries content
+        if (isDocument) {
           // this is a content to ingest
           InputStream is = null;
           long fileLength = 0;
@@ -945,28 +956,25 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
               fileLength = binary.getLength();
               is = ContentReader.getBinary(endpoint, binary, username, password, socketTimeout, session);
               rd.setBinary(is, fileLength);
-              
+                
               //id is the node reference only if the node has an unique content stream
               //For a node with a single d:content property: id = node reference
               String id = PropertiesUtils.getNodeReference(properties);
-              
+                
               //For a node with multiple d:content properties: id = node reference;QName
               //The QName of a property of type d:content will be appended to the node reference
               if(contentProperties.size()>1){
                 id = id + INGESTION_SEPARATOR_FOR_MULTI_BINARY + contentProperty.getName();
               }
-              
-              //version label
-              String version = PropertiesUtils.getVersionLabel(properties);
-              
+                
               //the document uri is related to the specific d:content property available in the node
               //we want to ingest each content stream that are nested in a single node
               String documentURI = binary.getUrl();
-              activities.ingestDocumentWithException(id, version, documentURI, rd);
+              activities.ingestDocumentWithException(documentIdentifier, id, versionString, documentURI, rd);
             }
-            
+              
             AuthenticationUtils.endSession();
-            
+              
           } catch (ParseException e) {
             errorCode = "IO ERROR";
             errorDesc = e.getMessage();
@@ -997,77 +1005,17 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
                       + e.getMessage(), e);
               handleIOException(e);
             }
-                      
+                        
             session = null;
-            
+              
             activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-                fileLength, nodeReference, errorCode, errorDesc, null);
+              fileLength, nodeReference, errorCode, errorDesc, null);
           }
-        }
-      }
-      i++;
-    }
-  }
 
-  /** The short version of getDocumentVersions.
-   * Get document versions given an array of document identifiers.
-   * This method is called for EVERY document that is considered. It is
-   * therefore important to perform as little work as possible here.
-   *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-   *@param spec is the current document specification for the current job.  If there is a dependency on this
-   * specification, then the version string should include the pertinent data, so that reingestion will occur
-   * when the specification changes.  This is primarily useful for metadata.
-   *@return the corresponding version strings, with null in the places where the document no longer exists.
-   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-   * will always be processed.
-   */
-  @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers,
-      DocumentSpecification spec) throws ManifoldCFException,
-      ServiceInterruption {
-    String[] rval = new String[documentIdentifiers.length];
-    int i = 0;
-    while (i < rval.length){
-      String nodeReference = documentIdentifiers[i];
-      String uuid = NodeUtils.getUuidFromNodeReference(nodeReference);
-      
-      Reference reference = new Reference();
-      reference.setStore(SearchUtils.STORE);
-      reference.setUuid(uuid);
-      
-      Predicate predicate = new Predicate();
-      predicate.setStore(SearchUtils.STORE);
-      predicate.setNodes(new Reference[]{reference});
-      
-      Node node = null;
-      try {
-        node = NodeUtils.get(endpoint, username, password, socketTimeout, session, predicate);
-      } catch (IOException e) {
-        Logging.connectors.warn(
-            "Alfresco: IOException closing file input stream: "
-                + e.getMessage(), e);
-        handleIOException(e);
-      }
-      
-      if(node.getProperties()!=null){
-        NamedValue[] properties = node.getProperties();
-        boolean isDocument = ContentModelUtils.isDocument(properties);
-        if(isDocument){
-          boolean isVersioned = NodeUtils.isVersioned(node.getAspects());
-          if(isVersioned){
-            rval[i] = NodeUtils.getVersionLabel(properties);
-          } else {
-            //a document that doesn't contain versioning information will always be processed
-            rval[i] = StringUtils.EMPTY;
-          }
-        } else {
-          //a space will always be processed
-          rval[i] = StringUtils.EMPTY;
         }
       }
-      i++;
     }
-    return rval;
+    
   }
   
   private static void handleIOException(IOException e)

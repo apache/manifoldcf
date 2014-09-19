@@ -133,9 +133,28 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws java.net.MalformedURLException, NotBoundException, RemoteException, FilenetException, InterruptedException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof java.net.MalformedURLException)
+          throw (java.net.MalformedURLException)thr;
+        else if (thr instanceof NotBoundException)
+          throw (NotBoundException)thr;
+        else if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof FilenetException)
+          throw (FilenetException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
   }
 
@@ -184,26 +203,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
       long currentTime;
       GetSessionThread t = new GetSessionThread();
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof java.net.MalformedURLException)
-            throw (java.net.MalformedURLException)thr;
-          else if (thr instanceof NotBoundException)
-            throw (NotBoundException)thr;
-          else if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
       }
       catch (InterruptedException e)
       {
@@ -272,9 +275,24 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws RemoteException, FilenetException, InterruptedException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof FilenetException)
+          throw (FilenetException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
 
   }
@@ -291,22 +309,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     if (currentTime >= lastSessionFetch + timeToRelease)
     {
       DestroySessionThread t = new DestroySessionThread();
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         session = null;
         lastSessionFetch = -1L;
       }
@@ -492,22 +498,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     if (session != null)
     {
       DestroySessionThread t = new DestroySessionThread();
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         session = null;
         lastSessionFetch = -1L;
       }
@@ -891,90 +885,47 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     return value - digit * divisor;
   }
 
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is
-  * therefore important to perform as little work as possible here.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activity is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
   */
   @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
-    Logging.connectors.debug("FileNet: Inside getDocumentVersions");
+    Logging.connectors.debug("FileNet: Inside processDocuments");
 
-    String[] acls = getAcls(spec);
-
-    String[] rval = new String[documentIdentifiers.length];
-
-    // Put together a set of the metadata fields, from the document specification
-    int i = 0;
-    HashMap docClassSpecs = new HashMap();
-    // Also calculate the fields we will need to retrieve from each document, on a document class basis
-    HashMap metadataFields = new HashMap();
-    while (i < spec.getChildCount())
-    {
-      SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals(SPEC_NODE_DOCUMENTCLASS))
-      {
-        String value = sn.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
-        DocClassSpec classSpec = new DocClassSpec(sn);
-        docClassSpecs.put(value,classSpec);
-        if (classSpec.getAllMetadata())
-          metadataFields.put(value,new Boolean(true));
-        else
-        {
-          HashMap sumMap = new HashMap();
-          int j = 0;
-          String[] fields = classSpec.getMetadataFields();
-          while (j < fields.length)
-          {
-            String field = fields[j++];
-            sumMap.put(field,field);
-          }
-          j = 0;
-          while (j < classSpec.getMatchCount())
-          {
-            String field = classSpec.getMatchField(j++);
-            sumMap.put(field,field);
-          }
-          // Convert to an array
-          String[] fieldArray = new String[sumMap.size()];
-          Iterator iter = sumMap.keySet().iterator();
-          j = 0;
-          while (iter.hasNext())
-          {
-            fieldArray[j++] = (String)iter.next();
-          }
-          metadataFields.put(value,fieldArray);
-        }
-      }
-    }
+    SpecInfo dSpec = new SpecInfo(spec);
+    
+    String[] acls = dSpec.getAcls();
 
 
-    for (i=0; i<documentIdentifiers.length; i++)
+    for (String documentIdentifier : documentIdentifiers)
     {
       // For each document, be sure to confirm job still active
-      activity.checkJobStillActive();
-
-      String documentIdentifier = documentIdentifiers[i];
+      activities.checkJobStillActive();
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Filenet: Getting version for identifier '"+documentIdentifier+"'");
 
       // Calculate the version id and the element number
+      String versionString;
+      String[] aclValues = null;
+      String[] denyAclValues = null;
+      String docClass = null;
+      String[] metadataFieldNames = null;
+      String[] metadataFieldValues = null;
+      
       int cIndex = documentIdentifier.indexOf(",");
       if (cIndex != -1)
       {
@@ -983,12 +934,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         long currentTime;
         try
         {
-          FileInfo fileInfo = doGetDocumentInformation(vId, metadataFields);
+          FileInfo fileInfo = doGetDocumentInformation(vId, dSpec.getMetadataFields());
           if (fileInfo == null)
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("FileNet: Skipping document '"+documentIdentifier+"' because not a current document");
-            rval[i] = null;
+            activities.deleteDocument(documentIdentifier);
+            continue;
           }
           else
           {
@@ -1002,8 +954,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             // (c) the url prefix to use
             StringBuilder versionBuffer = new StringBuilder();
 
-            String docClass = fileInfo.getDocClass();
-            DocClassSpec docclassspec = (DocClassSpec)docClassSpecs.get(docClass);
+            docClass = fileInfo.getDocClass();
+            DocClassSpec docclassspec = dSpec.getDocClassSpec(docClass);
 
             // First, verify that this document matches the match criteria
             boolean docMatches = true;
@@ -1033,7 +985,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
                 if (docclassspec.checkMetadataIncluded(field))
                   metadataCount++;
               }
-              String[] metadataFieldNames = new String[metadataCount];
+              metadataFieldNames = new String[metadataCount];
               int j = 0;
               iter = fileInfo.getMetadataIterator();
               while (iter.hasNext())
@@ -1046,7 +998,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
               // Pack field names and values
               // For sanity, pack the names first and then the values!
               packList(versionBuffer,metadataFieldNames,'+');
-              String[] metadataFieldValues = new String[metadataFieldNames.length];
+              metadataFieldValues = new String[metadataFieldNames.length];
               j = 0;
               while (j < metadataFieldValues.length)
               {
@@ -1059,8 +1011,6 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
               // Acl info
               // Future work will add "forced acls", so use a single character as a signal as to whether security is on or off.
-              String[] aclValues = null;
-              String[] denyAclValues = null;
               if (acls != null && acls.length == 0)
               {
                 // Security is on, so use the acls that came back from filenet
@@ -1104,13 +1054,14 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
               // Document URI
               pack(versionBuffer,docURIPrefix,'+');
 
-              rval[i] = versionBuffer.toString();
+              versionString = versionBuffer.toString();
             }
             else
             {
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("FileNet: Skipping document '"+documentIdentifier+"' because doesn't match field criteria");
-              rval[i] = null;
+              activities.deleteDocument(documentIdentifier);
+              continue;
             }
           }
         }
@@ -1124,8 +1075,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("FileNet: Skipping file '"+documentIdentifier+"' because: "+e.getMessage(),e);
-            rval[i] = null;
-
+            activities.deleteDocument(documentIdentifier);
+            continue;
           }
           else
             throw new ManifoldCFException(e.getMessage(),e);
@@ -1136,73 +1087,25 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         // This is a naked version identifier.
         // On every crawl, we need to convert this identifier to the individual identifiers for each bit of content.
         // There is no versioning available for this process.
-        rval[i] = "";
+        versionString = "";
       }
-    }
-    return rval;
-  }
-
-  /** Emulate the query matching for filenet sql expressions. */
-  protected static boolean performMatch(String matchType, String matchDocValue, String matchValue)
-  {
-    if (matchType.equals("="))
-      return matchDocValue.equalsIgnoreCase(matchValue);
-    else if (matchType.equals("!="))
-      return !matchDocValue.equalsIgnoreCase(matchValue);
-
-    // Do a LIKE comparison
-    return likeMatch(matchDocValue,0,matchValue,0);
-  }
-
-  /** Match a portion of a string with SQL wildcards (%) */
-  protected static boolean likeMatch(String matchDocValue, int matchDocPos, String matchValue, int matchPos)
-  {
-    if (matchPos == matchValue.length())
-    {
-      return matchDocPos == matchDocValue.length();
-    }
-    if (matchDocPos == matchDocValue.length())
-    {
-      return matchValue.charAt(matchPos) == '%' && likeMatch(matchDocValue,matchDocPos,matchValue,matchPos+1);
-    }
-    char x = matchDocValue.charAt(matchDocPos);
-    char y = matchValue.charAt(matchPos);
-    if (y != '%')
-      return Character.toLowerCase(x) == Character.toLowerCase(y) && likeMatch(matchDocValue,matchDocPos+1,matchValue,matchPos+1);
-
-    return likeMatch(matchDocValue,matchDocPos+1,matchValue,matchPos) ||
-      likeMatch(matchDocValue,matchDocPos,matchValue,matchPos+1);
-  }
-
-  /** Process documents whose versions indicate they need processing.
-  */
-  public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
-    IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    Logging.connectors.debug("FileNet: Inside processDocuments");
-
-    int i = 0;
-    while (i < documentIdentifiers.length)
-    {
-      // For each document, be sure to confirm job still active
-      activities.checkJobStillActive();
-
-      String documentIdentifier = documentIdentifiers[i];
-      String documentVersion = documentVersions[i];
-
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("FileNet: Processing document identifier '"+documentIdentifier+"'");
-
-      // Calculate the version id and the element number
-      int cIndex = documentIdentifier.indexOf(",");
-      if (cIndex != -1)
+      
+      if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
       {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("FileNet: Document identifier '"+documentIdentifier+"' is a document attachment");
+        // For each document, be sure to confirm job still active
+        activities.checkJobStillActive();
 
-        if (!scanOnly[i])
+        String documentVersion = versionString;
+
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("FileNet: Processing document identifier '"+documentIdentifier+"'");
+
+        // Calculate the version id and the element number
+        if (cIndex != -1)
         {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("FileNet: Document identifier '"+documentIdentifier+"' is a document attachment");
+
           String vId = documentIdentifier.substring(0,cIndex);
           int elementNumber;
           try
@@ -1213,30 +1116,6 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             throw new ManifoldCFException("Bad number in identifier: "+documentIdentifier,e);
           }
-
-          // Unpack the information in the document version
-          ArrayList metadataNames = new ArrayList();
-          ArrayList metadataValues = new ArrayList();
-          ArrayList aclValues = null;
-          ArrayList denyAclValues = null;
-          StringBuilder documentClass = new StringBuilder();
-          StringBuilder urlBase = new StringBuilder();
-          int position = 0;
-          position = unpackList(metadataNames, documentVersion, position, '+');
-          position = unpackList(metadataValues, documentVersion, position, '+');
-          //Logging.connectors.debug("Names length = "+Integer.toString(metadataNames.size()));
-          //Logging.connectors.debug("Values length = "+Integer.toString(metadataValues.size()));
-          if (documentVersion.length() > position && documentVersion.charAt(position++) == '+')
-          {
-            //Logging.connectors.debug("Acls found at position "+Integer.toString(position));
-            aclValues = new ArrayList();
-            position = unpackList(aclValues, documentVersion, position, '+');
-            denyAclValues = new ArrayList();
-            position = unpackList(denyAclValues, documentVersion, position, '+');
-            //Logging.connectors.debug("ACLs length = "+Integer.toString(aclValues.size()));
-          }
-          position = unpack(documentClass, documentVersion, position, '+');
-          position = unpack(urlBase, documentVersion, position, '+');
 
           //Logging.connectors.debug("Url base from version string = "+urlBase.toString());
           try
@@ -1268,7 +1147,6 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
                   if (Logging.connectors.isDebugEnabled())
                     Logging.connectors.debug("FileNet: Removing file '"+documentIdentifier+"' because: "+e.getMessage(),e);
                   activities.noDocument(documentIdentifier,documentVersion);
-                  i++;
                   continue;
                 }
                 else
@@ -1295,42 +1173,26 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
                   rd.setBinary(is, fileLength);
 
                   // Apply metadata
-                  int j = 0;
-                  while (j < metadataNames.size())
+                  for (int j = 0; j < metadataFieldNames.length; j++)
                   {
-                    String metadataName = (String)metadataNames.get(j);
-                    String metadataValue = (String)metadataValues.get(j);
+                    String metadataName = metadataFieldNames[j];
+                    String metadataValue = metadataFieldValues[j];
                     rd.addField(metadataName,metadataValue);
-                    j++;
                   }
 
                   // Apply acls
                   if (aclValues != null)
                   {
-                    String[] acls = new String[aclValues.size()];
-                    j = 0;
-                    while (j < aclValues.size())
-                    {
-                      acls[j] = (String)aclValues.get(j);
-                      j++;
-                    }
-                    rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls);
+                    rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclValues);
                   }
                   if (denyAclValues != null)
                   {
-                    String[] denyAcls = new String[denyAclValues.size()];
-                    j = 0;
-                    while (j < denyAclValues.size())
-                    {
-                      denyAcls[j] = (String)denyAclValues.get(j);
-                      j++;
-                    }
-                    rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAcls);
+                    rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclValues);
                   }
 
                   // Ingest
                   activities.ingestDocumentWithException(documentIdentifier,documentVersion,
-                    convertToURI(urlBase.toString(),vId,elementNumber,documentClass.toString()),rd);
+                    convertToURI(docURIPrefix,vId,elementNumber,docClass),rd);
 
                 }
                 finally
@@ -1368,6 +1230,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw new ManifoldCFException("IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
           }
         }
+        
       }
       else
       {
@@ -1384,8 +1247,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("FileNet: Removing version '"+documentIdentifier+"' because it seems to no longer exist");
 
-            activities.noDocument(documentIdentifier,documentVersion);
-            i++;
+            activities.noDocument(documentIdentifier,versionString);
             continue;
           }
 
@@ -1414,8 +1276,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("FileNet: Removing version '"+documentIdentifier+"' because: "+e.getMessage(),e);
-            activities.noDocument(documentIdentifier,documentVersion);
-            i++;
+            activities.noDocument(documentIdentifier,versionString);
             continue;
           }
           else
@@ -1424,23 +1285,40 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           }
         }
       }
-      i++;
+      
     }
-
   }
 
-  /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
-  * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
-  * committed during the getDocumentVersions() method.  It is guaranteed to be called AFTER any calls to
-  * processDocuments() for the documents in question.
-  *@param documentIdentifiers is the set of document identifiers.
-  *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
-  */
-  @Override
-  public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws ManifoldCFException
+  /** Emulate the query matching for filenet sql expressions. */
+  protected static boolean performMatch(String matchType, String matchDocValue, String matchValue)
   {
-    // Nothing to do
+    if (matchType.equals("="))
+      return matchDocValue.equalsIgnoreCase(matchValue);
+    else if (matchType.equals("!="))
+      return !matchDocValue.equalsIgnoreCase(matchValue);
+
+    // Do a LIKE comparison
+    return likeMatch(matchDocValue,0,matchValue,0);
+  }
+
+  /** Match a portion of a string with SQL wildcards (%) */
+  protected static boolean likeMatch(String matchDocValue, int matchDocPos, String matchValue, int matchPos)
+  {
+    if (matchPos == matchValue.length())
+    {
+      return matchDocPos == matchDocValue.length();
+    }
+    if (matchDocPos == matchDocValue.length())
+    {
+      return matchValue.charAt(matchPos) == '%' && likeMatch(matchDocValue,matchDocPos,matchValue,matchPos+1);
+    }
+    char x = matchDocValue.charAt(matchDocPos);
+    char y = matchValue.charAt(matchPos);
+    if (y != '%')
+      return Character.toLowerCase(x) == Character.toLowerCase(y) && likeMatch(matchDocValue,matchDocPos+1,matchValue,matchPos+1);
+
+    return likeMatch(matchDocValue,matchDocPos+1,matchValue,matchPos) ||
+      likeMatch(matchDocValue,matchDocPos,matchValue,matchPos+1);
   }
 
   @Override
@@ -3302,11 +3180,25 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws RemoteException, FilenetException, InterruptedException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof FilenetException)
+          throw (FilenetException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
-
   }
 
   /** Check connection, with appropriate retries */
@@ -3319,22 +3211,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       getSession();
       long currentTime;
       CheckConnectionThread t = new CheckConnectionThread();
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         return;
       }
       catch (InterruptedException e)
@@ -3382,13 +3262,24 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    public Throwable getException()
+    public DocumentClassDefinition[] finishUp()
+      throws RemoteException, FilenetException, InterruptedException
     {
-      return exception;
-    }
-
-    public DocumentClassDefinition[] getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof FilenetException)
+          throw (FilenetException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
   }
@@ -3403,23 +3294,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       getSession();
       long currentTime;
       GetDocumentClassesInfoThread t = new GetDocumentClassesInfoThread();
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
-        return t.getResponse();
+        return t.finishUp();
       }
       catch (InterruptedException e)
       {
@@ -3468,13 +3346,24 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    public Throwable getException()
+    public MetadataFieldDefinition[] finishUp()
+      throws RemoteException, FilenetException, InterruptedException
     {
-      return exception;
-    }
-
-    public MetadataFieldDefinition[] getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof FilenetException)
+          throw (FilenetException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
   }
@@ -3489,23 +3378,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       getSession();
       long currentTime;
       GetDocumentClassesMetadataFieldsInfoThread t = new GetDocumentClassesMetadataFieldsInfoThread(documentClassName);
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
-        return t.getResponse();
+        return t.finishUp();
       }
       catch (InterruptedException e)
       {
@@ -3531,7 +3407,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   protected class GetChildFoldersThread extends Thread
   {
-    protected String[] folderPath;
+    protected final String[] folderPath;
     protected String[] rval = null;
     protected Throwable exception = null;
 
@@ -3554,14 +3430,25 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    public String[] getResponse()
+    public String[] finishUp()
+      throws RemoteException, FilenetException, InterruptedException
     {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof FilenetException)
+          throw (FilenetException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
-    }
-
-    public Throwable getException()
-    {
-      return exception;
     }
 
   }
@@ -3577,23 +3464,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       getSession();
       long currentTime;
       GetChildFoldersThread t = new GetChildFoldersThread(folderPath);
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
-        return t.getResponse();
+        return t.finishUp();
       }
       catch (InterruptedException e)
       {
@@ -3642,16 +3516,26 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    public String[] getResponse()
+    public String[] finishUp()
+      throws RemoteException, FilenetException, InterruptedException
     {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof FilenetException)
+          throw (FilenetException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
     }
-
-    public Throwable getException()
-    {
-      return exception;
-    }
-
   }
   
   /** Get matching object id's for a given query */
@@ -3664,23 +3548,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       getSession();
       long currentTime;
       GetMatchingObjectIdsThread t = new GetMatchingObjectIdsThread(sql);
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
-        return t.getResponse();
+        return t.finishUp();
       }
       catch (InterruptedException e)
       {
@@ -3729,14 +3600,25 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    public Integer getResponse()
+    public Integer finishUp()
+      throws RemoteException, FilenetException, InterruptedException
     {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof FilenetException)
+          throw (FilenetException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
-    }
-
-    public Throwable getException()
-    {
-      return exception;
     }
 
   }
@@ -3750,23 +3632,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       getSession();
       long currentTime;
       GetDocumentContentCountThread t = new GetDocumentContentCountThread(documentIdentifier);
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
-        return t.getResponse();
+        return t.finishUp();
       }
       catch (InterruptedException e)
       {
@@ -3793,12 +3662,12 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   protected class GetDocumentInformationThread extends Thread
   {
-    protected String docId;
-    protected HashMap metadataFields;
+    protected final String docId;
+    protected final Map<String,Object> metadataFields;
     protected FileInfo rval = null;
     protected Throwable exception = null;
 
-    public GetDocumentInformationThread(String docId, HashMap metadataFields)
+    public GetDocumentInformationThread(String docId, Map<String,Object> metadataFields)
     {
       super();
       setDaemon(true);
@@ -3818,20 +3687,31 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    public FileInfo getResponse()
+    public FileInfo finishUp()
+      throws RemoteException, FilenetException, InterruptedException
     {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof FilenetException)
+          throw (FilenetException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
       return rval;
-    }
-
-    public Throwable getException()
-    {
-      return exception;
     }
 
   }
 
   /** Get document info */
-  protected FileInfo doGetDocumentInformation(String docId, HashMap metadataFields)
+  protected FileInfo doGetDocumentInformation(String docId, Map<String,Object> metadataFields)
     throws FilenetException, ManifoldCFException, ServiceInterruption
   {
     while (true)
@@ -3840,23 +3720,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       getSession();
       long currentTime;
       GetDocumentInformationThread t = new GetDocumentInformationThread(docId,metadataFields);
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
-        return t.getResponse();
+        return t.finishUp();
       }
       catch (InterruptedException e)
       {
@@ -3882,9 +3749,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   protected class GetDocumentContentsThread extends Thread
   {
-    protected String docId;
-    protected int elementNumber;
-    protected String tempFileName;
+    protected final String docId;
+    protected final int elementNumber;
+    protected final String tempFileName;
+    
     protected Throwable exception = null;
 
     public GetDocumentContentsThread(String docId, int elementNumber, String tempFileName)
@@ -3908,11 +3776,25 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws RemoteException, FilenetException, InterruptedException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof RemoteException)
+          throw (RemoteException)thr;
+        else if (thr instanceof FilenetException)
+          throw (FilenetException)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else if (thr instanceof Error)
+          throw (Error)thr;
+        else
+          throw new RuntimeException("Unexpected exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
     }
-
   }
 
   /** Get document contents */
@@ -3925,22 +3807,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       getSession();
       long currentTime;
       GetDocumentContentsThread t = new GetDocumentContentsThread(docId,elementNumber,tempFileName);
+      t.start();
       try
       {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RemoteException)
-            throw (RemoteException)thr;
-          else if (thr instanceof FilenetException)
-            throw (FilenetException)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         return;
       }
       catch (InterruptedException e)
@@ -3967,45 +3837,96 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   }
 
 
-  // Utility methods
+  // Utility classes/methods
 
-  /** Grab forced acl out of document specification.
-  *@param spec is the document specification.
-  *@return the acls.
-  */
-  protected static String[] getAcls(DocumentSpecification spec)
+  protected static class SpecInfo
   {
-    HashMap map = new HashMap();
-    int i = 0;
-    boolean securityOn = true;
-    while (i < spec.getChildCount())
-    {
-      SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals("access"))
-      {
-        String token = sn.getAttributeValue("token");
-        map.put(token,token);
-      }
-      else if (sn.getType().equals("security"))
-      {
-        String value = sn.getAttributeValue("value");
-        if (value.equals("on"))
-          securityOn = true;
-        else if (value.equals("off"))
-          securityOn = false;
-      }
-    }
-    if (!securityOn)
-      return null;
+    protected final Set<String> aclMap = new HashSet<String>();
+    protected final boolean securityOn;
+    protected final Map<String,DocClassSpec> docClassSpecs = new HashMap<String,DocClassSpec>();
+    protected final Map<String,Object> metadataFields = new HashMap<String,Object>();
 
-    String[] rval = new String[map.size()];
-    Iterator iter = map.keySet().iterator();
-    i = 0;
-    while (iter.hasNext())
+    public SpecInfo(Specification spec)
     {
-      rval[i++] = (String)iter.next();
+      boolean securityOn = true;
+      for (int i = 0; i < spec.getChildCount(); i++)
+      {
+        SpecificationNode sn = spec.getChild(i);
+        if (sn.getType().equals("access"))
+        {
+          String token = sn.getAttributeValue("token");
+          aclMap.add(token);
+        }
+        else if (sn.getType().equals("security"))
+        {
+          String value = sn.getAttributeValue("value");
+          if (value.equals("on"))
+            securityOn = true;
+          else if (value.equals("off"))
+            securityOn = false;
+        }
+        else if (sn.getType().equals(SPEC_NODE_DOCUMENTCLASS))
+        {
+          String value = sn.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
+          DocClassSpec classSpec = new DocClassSpec(sn);
+          docClassSpecs.put(value,classSpec);
+          if (classSpec.getAllMetadata())
+            metadataFields.put(value,new Boolean(true));
+          else
+          {
+            Set<String> sumMap = new HashSet<String>();
+            int j = 0;
+            String[] fields = classSpec.getMetadataFields();
+            for (String field : fields)
+            {
+              sumMap.add(field);
+            }
+            for (j = 0; j < classSpec.getMatchCount(); j++)
+            {
+              sumMap.add(classSpec.getMatchField(j));
+            }
+            // Convert to an array
+            String[] fieldArray = new String[sumMap.size()];
+            j = 0;
+            for (String field : sumMap)
+            {
+              fieldArray[j++] = field;
+            }
+            metadataFields.put(value,fieldArray);
+          }
+        }
+
+      }
+      
+      this.securityOn = securityOn;
+
     }
-    return rval;
+    
+    public String[] getAcls()
+    {
+      if (!securityOn)
+        return null;
+
+      String[] rval = new String[aclMap.size()];
+      int i = 0;
+      for (String acl : aclMap)
+      {
+        rval[i++] = acl;
+      }
+      return rval;
+    }
+    
+    public DocClassSpec getDocClassSpec(String docClass)
+    {
+      return docClassSpecs.get(docClass);
+    }
+
+    public Map<String,Object> getMetadataFields()
+    {
+      return metadataFields;
+    }
+  
+
   }
-
+  
 }

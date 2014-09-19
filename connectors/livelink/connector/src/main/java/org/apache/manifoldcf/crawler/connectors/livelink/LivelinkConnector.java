@@ -96,11 +96,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Deny access token for default authority */
   private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
-  // Livelink does not have "deny" permissions, and there is no such thing as a document with no tokens, so it is safe to not have a local "deny" token.
-  // However, people feel that a suspenders-and-belt approach is called for, so this restriction has been added.
-  // Livelink tokens are numbers, "SYSTEM", or "GUEST", so they can't collide with the standard form.
-  private static final String denyToken = "DEAD_AUTHORITY";
-
   // A couple of very important points.
   // First, the canonical document identifier has the following form:
   // <D|F>[<volume_id>:]<object_id>
@@ -1066,152 +1061,80 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   }
 
-
-  /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is
-  * therefore important to perform as little work as possible here.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
+  /** Process a set of documents.
+  * This is the method that should cause each document to be fetched, processed, and the results either added
+  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+  * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
+  *@param documentIdentifiers is the set of document identifiers to process.
+  *@param statuses are the currently-stored document versions for each document in the set of document identifiers
+  * passed in above.
+  *@param activities is the interface this method should use to queue up new document references
+  * and ingest documents.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
   */
   @Override
-  public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
-    DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+    IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
-    getSession();
-
+    
     // Initialize a "livelink context", to minimize the number of objects we have to fetch
     LivelinkContext llc = new LivelinkContext();
+    // Initialize the table of catid's.
+    // Keeping this around will allow us to benefit from batching of documents.
+    MetadataDescription desc = new MetadataDescription(llc);
     
     // First, process the spec to get the string we tack on
+    SystemMetadataDescription sDesc = new SystemMetadataDescription(llc,spec);
+
 
     // Read the forced acls.  A null return indicates that security is disabled!!!
     // A zero-length return indicates that the native acls should be used.
     // All of this is germane to how we ingest the document, so we need to note it in
     // the version string completely.
-    String[] acls = getAcls(spec);
+    String[] acls = sDesc.getAcls();
     // Sort it, in case it is needed.
     if (acls != null)
       java.util.Arrays.sort(acls);
 
-    // Look at the metadata attributes.
-    // So that the version strings are comparable, we will put them in an array first, and sort them.
-    String pathAttributeName = null;
-    String pathSeparator = null;
-    Set<String> holder = new HashSet<String>();
-    MatchMap matchMap = new MatchMap();
-    boolean includeAllMetadata = false;
-    int i = 0;
-    while (i < spec.getChildCount())
-    {
-      SpecificationNode n = spec.getChild(i++);
-      if (n.getType().equals("allmetadata"))
-      {
-        String isAll = n.getAttributeValue("all");
-        if (isAll != null && isAll.equals("true"))
-          includeAllMetadata = true;
-      }
-      else if (n.getType().equals("metadata"))
-      {
-        String category = n.getAttributeValue("category");
-        String attributeName = n.getAttributeValue("attribute");
-        String isAll = n.getAttributeValue("all");
-        if (isAll != null && isAll.equals("true"))
-        {
-          // Locate all metadata items for the specified category path,
-          // and enter them into the array
-          String[] attrs = getCategoryAttributes(llc,category);
-          if (attrs != null)
-          {
-            int j = 0;
-            while (j < attrs.length)
-            {
-              attributeName = attrs[j++];
-              String metadataName = packCategoryAttribute(category,attributeName);
-              holder.add(metadataName);
-            }
-          }
-        }
-        else
-        {
-          String metadataName = packCategoryAttribute(category,attributeName);
-          holder.add(metadataName);
-        }
-      }
-      else if (n.getType().equals("pathnameattribute"))
-      {
-        pathAttributeName = n.getAttributeValue("value");
-        pathSeparator = n.getAttributeValue("separator");
-        if (pathSeparator == null)
-          pathSeparator = "/";
-      }
-      else if (n.getType().equals("pathmap"))
-      {
-        // Path mapping info also needs to be looked at, because it affects what is
-        // ingested.
-        String pathMatch = n.getAttributeValue("match");
-        String pathReplace = n.getAttributeValue("replace");
-        matchMap.appendMatchPair(pathMatch,pathReplace);
-      }
-
-    }
-
     // Prepare the specified metadata
-    StringBuilder metadataString = null;
+    String metadataString = null;
+    String[] specifiedMetadataAttributes = null;
     CategoryPathAccumulator catAccum = null;
-    if (!includeAllMetadata)
+    if (!sDesc.includeAllMetadata())
     {
-      metadataString = new StringBuilder();
-      // Put into an array
-      String[] sortArray = new String[holder.size()];
-      i = 0;
-      for (String attrName : holder)
-      {
-        sortArray[i++] = attrName;
-      }
-
+      StringBuilder sb = new StringBuilder();
+      specifiedMetadataAttributes = sDesc.getMetadataAttributes();
       // Sort!
-      java.util.Arrays.sort(sortArray);
+      java.util.Arrays.sort(specifiedMetadataAttributes);
       // Build the metadata string piece now
-      packList(metadataString,sortArray,'+');
+      packList(sb,specifiedMetadataAttributes,'+');
+      metadataString = sb.toString();
     }
     else
       catAccum = new CategoryPathAccumulator(llc);
 
     // Calculate the part of the version string that comes from path name and mapping.
     // This starts with = since ; is used by another optional component (the forced acls)
-    StringBuilder pathNameAttributeVersion = new StringBuilder();
-    if (pathAttributeName != null)
-      pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(pathSeparator).append(":").append(matchMap);
+    String pathNameAttributeVersion;
+    StringBuilder sb2 = new StringBuilder();
+    if (sDesc.getPathAttributeName() != null)
+      sb2.append("=").append(sDesc.getPathAttributeName()).append(":").append(sDesc.getPathSeparator()).append(":").append(sDesc.getMatchMapString());
+    pathNameAttributeVersion = sb2.toString();
 
-    // The version string includes the following:
-    // 1) The modify date for the document
-    // 2) The rights for the document, ordered (which can change without changing the ModifyDate field)
-    // 3) The requested metadata fields (category and attribute, ordered) for the document
-    //
-    // The document identifiers are object id's.
+    // Since the identifier indicates it is a directory, then queue up all the current children which pass the filter.
+    String filterString = sDesc.getFilterString();
 
-    String[] rval = new String[documentIdentifiers.length];
-    i = 0;
-    while (i < documentIdentifiers.length)
+    for (String documentIdentifier : documentIdentifiers)
     {
       // Since each livelink access is time-consuming, be sure that we abort if the job has gone inactive
       activities.checkJobStillActive();
 
       // Read the document or folder metadata, which includes the ModifyDate
-      String docID = documentIdentifiers[i];
-
+      String docID = documentIdentifier;
+      
       boolean isFolder = docID.startsWith("F");
 
       int colonPos = docID.indexOf(":",1);
@@ -1230,7 +1153,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         vol = new Integer(docID.substring(1,colonPos)).intValue();
       }
 
-      rval[i] = null;
+      getSession();
       ObjectInformation value = llc.getObjectInformation(vol,objID);
       if (value.exists())
       {
@@ -1245,88 +1168,191 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           {
             // We were able to get rights, so object still exists.
 
-            // I rearranged this on 11/7/2006 so that it would be more parseable, since
-            // we want to pull the transient information out of the version string where
-            // possible (so there is no mismatch between version checking and ingestion).
-
-            StringBuilder sb = new StringBuilder();
-
-            // On 1/17/2008 I changed the version generation code to NOT include metadata, view info, etc. for folders, since
-            // folders make absolutely no use of this info.
-            if (!isFolder)
+            // Changed folder versioning for MCF 2.0
+            if (isFolder)
             {
-              if (includeAllMetadata)
+              // === Livelink folder ===
+              // I'm still not sure if Livelink folder modified dates are one-level or hierarchical.
+              // The code below assumes one-level only, so we always scan folders and there's no versioning
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Livelink: Processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
+
+              int sanityRetryCount = FAILURE_RETRY_COUNT;
+              while (true)
+              {
+                ListObjectsThread t = new ListObjectsThread(vol,objID,filterString);
+                try
+                {
+                  t.start();
+                  LLValue childrenDocs;
+                  try
+                  {
+                    childrenDocs = t.finishUp();
+                  }
+                  catch (ManifoldCFException e)
+                  {
+                    sanityRetryCount = assessRetry(sanityRetryCount,e);
+                    continue;
+                  }
+
+                  int size = 0;
+                  
+                  if (childrenDocs.isRecord())
+                    size = 1;
+                  if (childrenDocs.isTable())
+                    size = childrenDocs.size();
+
+                  // System.out.println("Total child count = "+Integer.toString(size));
+                  // Do the scan
+                  for (int j = 0; j < size; j++)
+                  {
+                    int childID = childrenDocs.toInteger(j, "ID");
+
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("Livelink: Found a child of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : ID="+Integer.toString(childID));
+
+                    int subtype = childrenDocs.toInteger(j, "SubType");
+                    boolean childIsFolder = (subtype == LAPI_DOCUMENTS.FOLDERSUBTYPE || subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE ||
+                      subtype == LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE);
+
+                    // If it's a folder, we just let it through for now
+                    if (!childIsFolder && checkInclude(childrenDocs.toString(j,"Name") + "." + childrenDocs.toString(j,"FileType"), spec) == false)
+                    {
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" was excluded by inclusion criteria");
+                      continue;
+                    }
+
+                    if (childIsFolder)
+                    {
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a folder, project, or compound document; adding a reference");
+                      if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
+                      {
+                        // If we pick up a project object, we need to describe the volume object (which
+                        // will be the root of all documents beneath)
+                        activities.addDocumentReference("F"+new Integer(childID).toString()+":"+new Integer(-childID).toString());
+                      }
+                      else
+                        activities.addDocumentReference("F"+new Integer(vol).toString()+":"+new Integer(childID).toString());
+                    }
+                    else
+                    {
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a simple document; adding a reference");
+
+                      activities.addDocumentReference("D"+new Integer(vol).toString()+":"+new Integer(childID).toString());
+                    }
+
+                  }
+                  break;
+                }
+                catch (InterruptedException e)
+                {
+                  t.interrupt();
+                  throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                }
+                catch (RuntimeException e)
+                {
+                  sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+                  continue;
+                }
+              }
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Livelink: Done processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
+            }
+            else
+            {
+              // === Livelink document ===
+              
+              // The version string includes the following:
+              // 1) The modify date for the document
+              // 2) The rights for the document, ordered (which can change without changing the ModifyDate field)
+              // 3) The requested metadata fields (category and attribute, ordered) for the document
+              //
+              // The document identifiers are object id's.
+      
+              StringBuilder sb = new StringBuilder();
+
+              String[] categoryPaths;
+              if (sDesc.includeAllMetadata())
               {
                 // Find all the metadata associated with this object, and then
                 // find the set of category pathnames that correspond to it.
                 int[] catIDs = getObjectCategoryIDs(vol,objID);
-                String[] categoryPaths = catAccum.getCategoryPathsAttributeNames(catIDs);
+                categoryPaths = catAccum.getCategoryPathsAttributeNames(catIDs);
                 // Sort!
                 java.util.Arrays.sort(categoryPaths);
                 // Build the metadata string piece now
                 packList(sb,categoryPaths,'+');
               }
               else
+              {
+                categoryPaths = specifiedMetadataAttributes;
                 sb.append(metadataString);
-            }
+              }
+              
+              String[] actualAcls;
+              String[] denyAcls;
+              
+              String denyAcl;
+              if (acls != null && acls.length == 0)
+              {
+                // No forced acls.  Read the actual acls from livelink, as a set of rights.
+                // We need also to add in support for the special rights objects.  These are:
+                // -1: RIGHT_WORLD
+                // -2: RIGHT_SYSTEM
+                // -3: RIGHT_OWNER
+                // -4: RIGHT_GROUP
+                //
+                // RIGHT_WORLD means guest access.
+                // RIGHT_SYSTEM is "Public Access".
+                // RIGHT_OWNER is access by the owner of the object.
+                // RIGHT_GROUP is access by a member of the base group containing the owner
+                //
+                // These objects are returned by the GetObjectRights() call made above, and NOT
+                // returned by LLUser.ListObjects().  We have to figure out how to map these to
+                // things that are
+                // the equivalent of acls.
 
-            String[] actualAcls;
-            String denyAcl;
-            if (acls != null && acls.length == 0)
-            {
-              // No forced acls.  Read the actual acls from livelink, as a set of rights.
-              // We need also to add in support for the special rights objects.  These are:
-              // -1: RIGHT_WORLD
-              // -2: RIGHT_SYSTEM
-              // -3: RIGHT_OWNER
-              // -4: RIGHT_GROUP
-              //
-              // RIGHT_WORLD means guest access.
-              // RIGHT_SYSTEM is "Public Access".
-              // RIGHT_OWNER is access by the owner of the object.
-              // RIGHT_GROUP is access by a member of the base group containing the owner
-              //
-              // These objects are returned by the GetObjectRights() call made above, and NOT
-              // returned by LLUser.ListObjects().  We have to figure out how to map these to
-              // things that are
-              // the equivalent of acls.
+                actualAcls = lookupTokens(rights, value);
+                java.util.Arrays.sort(actualAcls);
+                // If security is on, no deny acl is needed for the local authority, since the repository does not support "deny".  But this was added
+                // to be really really really sure.
+                denyAcl = defaultAuthorityDenyToken;
 
-              actualAcls = lookupTokens(rights, value);
-              java.util.Arrays.sort(actualAcls);
-              // If security is on, no deny acl is needed for the local authority, since the repository does not support "deny".  But this was added
-              // to be really really really sure.
-              denyAcl = denyToken;
+              }
+              else if (acls != null && acls.length > 0)
+              {
+                // Forced acls
+                actualAcls = acls;
+                denyAcl = defaultAuthorityDenyToken;
+              }
+              else
+              {
+                // Security is OFF
+                actualAcls = acls;
+                denyAcl = null;
+              }
 
-            }
-            else if (acls != null && acls.length > 0)
-            {
-              // Forced acls
-              actualAcls = acls;
-              denyAcl = defaultAuthorityDenyToken;
-            }
-            else
-            {
-              // Security is OFF
-              actualAcls = acls;
-              denyAcl = null;
-            }
+              // Now encode the acls.  If null, we write a special value.
+              if (actualAcls == null)
+              {
+                sb.append('-');
+                denyAcls = null;
+              }
+              else
+              {
+                sb.append('+');
+                packList(sb,actualAcls,'+');
+                // This was added on 4/21/2008 to support forced acls working with the global default authority.
+                pack(sb,denyAcl,'+');
+                denyAcls = new String[]{denyAcl};
+              }
 
-            // Now encode the acls.  If null, we write a special value.
-            if (actualAcls == null)
-              sb.append('-');
-            else
-            {
-              sb.append('+');
-              packList(sb,actualAcls,'+');
-              // This was added on 4/21/2008 to support forced acls working with the global default authority.
-              pack(sb,denyAcl,'+');
-            }
+              // The date does not need to be parseable
+              sb.append(dt.toString());
 
-            // The date does not need to be parseable
-            sb.append(dt.toString());
-
-            if (!isFolder)
-            {
               // PathNameAttributeVersion comes completely from the spec, so we don't
               // have to worry about it changing.  No need, therefore, to parse it during
               // processDocuments.
@@ -1334,33 +1360,60 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
               // Tack on ingestCgiPath, to insulate us against changes to the repository connection setup.  Added 9/7/07.
               sb.append("_").append(viewBasePath);
-            }
 
-            rval[i] = sb.toString();
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Livelink: Successfully calculated version string for object "+Integer.toString(vol)+":"+Integer.toString(objID)+" : '"+rval[i]+"'");
+              String versionString = sb.toString();
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Livelink: Successfully calculated version string for document "+Integer.toString(vol)+":"+Integer.toString(objID)+" : '"+versionString+"'");
+              
+              if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+              {
+                // Index the document
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Livelink: Processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
+                if (checkIngest(llc,objID,spec))
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("Livelink: Decided to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID));
+
+                  // Grab the access tokens for this file from the version string, inside ingest method.
+                  ingestFromLiveLink(llc,documentIdentifier,versionString,actualAcls,denyAcls,categoryPaths,activities,desc,sDesc);
+                }
+                else
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("Livelink: Decided not to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID)+" - Did not match ingestion criteria");
+                  activities.noDocument(documentIdentifier,versionString);
+                }
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Livelink: Done processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
+              }
+            }
           }
           else
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("Livelink: Could not get rights for object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
+            activities.deleteDocument(documentIdentifier);
+            continue;
           }
         }
         else
         {
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("Livelink: Crawl user cannot see contents of object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
+          activities.deleteDocument(documentIdentifier);
+          continue;
         }
       }
       else
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Object "+Integer.toString(vol)+":"+Integer.toString(objID)+" has no information - deleting");
+        activities.deleteDocument(documentIdentifier);
+        continue;
       }
-      i++;
 
     }
-    return rval;
   }
 
   protected class ListObjectsThread extends Thread
@@ -1415,186 +1468,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
       }
       return rval;
-    }
-  }
-
-  /** Process a set of documents.
-  * This is the method that should cause each document to be fetched, processed, and the results either added
-  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
-  * The document specification allows this class to filter what is done based on the job.
-  *@param documentIdentifiers is the set of document identifiers to process.
-  *@param activities is the interface this method should use to queue up new document references
-  * and ingest documents.
-  *@param spec is the document specification.
-  *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-  * should only find other references, and should not actually call the ingestion methods.
-  */
-  @Override
-  public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    getSession();
-
-    // Initialize livelink context
-    LivelinkContext llc = new LivelinkContext();
-    
-    // First, initialize the table of catid's.
-    // Keeping this around will allow us to benefit from batching of documents.
-    MetadataDescription desc = new MetadataDescription(llc);
-
-    // Build the node/path cache
-    SystemMetadataDescription sDesc = new SystemMetadataDescription(llc,spec);
-
-    int i = 0;
-    while (i < documentIdentifiers.length)
-    {
-      // Since each livelink access is time-consuming, be sure that we abort if the job has gone inactive
-      activities.checkJobStillActive();
-      
-      String documentIdentifier = documentIdentifiers[i];
-      String version = versions[i];
-      
-      boolean doScanOnly = scanOnly[i];
-
-      boolean isFolder = documentIdentifier.startsWith("F");
-      int colonPosition = documentIdentifier.indexOf(":",1);
-      int vol;
-      int objID;
-      if (colonPosition == -1)
-      {
-        vol = LLENTWK_VOL;
-        objID = new Integer(documentIdentifier.substring(1)).intValue();
-      }
-      else
-      {
-        vol = new Integer(documentIdentifier.substring(1,colonPosition)).intValue();
-        objID = new Integer(documentIdentifier.substring(colonPosition+1)).intValue();
-      }
-
-      if (isFolder)
-      {
-        // We don't know if LL will let us version folders properly, so ALWAYS process folders.
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
-
-        // Since the identifier indicates it is a directory, then queue up all the current children which pass the filter.
-        String filterString = buildFilterString(spec);
-
-        int sanityRetryCount = FAILURE_RETRY_COUNT;
-        while (true)
-        {
-          ListObjectsThread t = new ListObjectsThread(vol,objID,filterString);
-          try
-          {
-            t.start();
-            LLValue childrenDocs;
-            try
-            {
-              childrenDocs = t.finishUp();
-            }
-            catch (ManifoldCFException e)
-            {
-              sanityRetryCount = assessRetry(sanityRetryCount,e);
-              continue;
-            }
-
-            int size = 0;
-            
-            if (childrenDocs.isRecord())
-              size = 1;
-            if (childrenDocs.isTable())
-              size = childrenDocs.size();
-
-            // System.out.println("Total child count = "+Integer.toString(size));
-            // Do the scan
-            int j = 0;
-            while (j < size)
-            {
-              int childID = childrenDocs.toInteger(j, "ID");
-
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Livelink: Found a child of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : ID="+Integer.toString(childID));
-
-              int subtype = childrenDocs.toInteger(j, "SubType");
-              boolean childIsFolder = (subtype == LAPI_DOCUMENTS.FOLDERSUBTYPE || subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE ||
-                subtype == LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE);
-
-              // If it's a folder, we just let it through for now
-              if (!childIsFolder && checkInclude(childrenDocs.toString(j,"Name") + "." + childrenDocs.toString(j,"FileType"), spec) == false)
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" was excluded by inclusion criteria");
-                j++;
-                continue;
-              }
-
-              if (childIsFolder)
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a folder, project, or compound document; adding a reference");
-                if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
-                {
-                  // If we pick up a project object, we need to describe the volume object (which
-                  // will be the root of all documents beneath)
-                  activities.addDocumentReference("F"+new Integer(childID).toString()+":"+new Integer(-childID).toString());
-                }
-                else
-                  activities.addDocumentReference("F"+new Integer(vol).toString()+":"+new Integer(childID).toString());
-              }
-              else
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a simple document; adding a reference");
-
-                activities.addDocumentReference("D"+new Integer(vol).toString()+":"+new Integer(childID).toString());
-              }
-
-              j++;
-            }
-            break;
-          }
-          catch (InterruptedException e)
-          {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (RuntimeException e)
-          {
-            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
-            continue;
-          }
-        }
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Done processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
-      }
-      else
-      {
-        // It's a known file, and we've already checked whether it's allowed or not (except any
-        // checks based on the file data)
-
-        if (doScanOnly == false)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Livelink: Processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
-          if (checkIngest(llc,objID,spec))
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Livelink: Decided to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID));
-
-            // Grab the access tokens for this file from the version string, inside ingest method.
-            ingestFromLiveLink(llc,documentIdentifiers[i],version,activities,desc,sDesc);
-          }
-          else
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Livelink: Decided not to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID)+" - Did not match ingestion criteria");
-
-          }
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Livelink: Done processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
-        }
-      }
-      i++;
     }
   }
 
@@ -4269,6 +4142,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected void ingestFromLiveLink(LivelinkContext llc,
     String documentIdentifier, String version,
+    String[] actualAcls, String[] denyAcls,
+    String[] categoryPaths,
     IProcessActivity activities,
     MetadataDescription desc, SystemMetadataDescription sDesc)
     throws ManifoldCFException, ServiceInterruption
@@ -4373,16 +4248,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             // Iterate over the metadata items.  These are organized by category
             // for speed of lookup.
 
-            // Unpack version string
-            int startPos = 0;
-
-            // Metadata items first
-            ArrayList metadataItems = new ArrayList();
-            startPos = unpackList(metadataItems,version,startPos,'+');
-            Iterator catIter = desc.getItems(metadataItems);
+            Iterator<MetadataItem> catIter = desc.getItems(categoryPaths);
             while (catIter.hasNext())
             {
-              MetadataItem item = (MetadataItem)catIter.next();
+              MetadataItem item = catIter.next();
               MetadataPathItem pathItem = item.getPathItem();
               if (pathItem != null)
               {
@@ -4392,10 +4261,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                 if (catVersion != null)
                 {
                   // Go through attributes now
-                  Iterator attrIter = item.getAttributeNames();
+                  Iterator<String> attrIter = item.getAttributeNames();
                   while (attrIter.hasNext())
                   {
-                    String attrName = (String)attrIter.next();
+                    String attrName = attrIter.next();
                     // Create a unique metadata name
                     String metadataName = pathItem.getCatName()+":"+attrName;
                     // Fetch the metadata and stuff it into the RepositoryData structure
@@ -4410,32 +4279,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               }
             }
 
-            // Unpack acls (conditionally)
-            if (startPos < version.length())
-            {
-              char x = version.charAt(startPos++);
-              if (x == '+')
-              {
-                ArrayList acls = new ArrayList();
-                startPos = unpackList(acls,version,startPos,'+');
-                // Turn into acls and add into description
-                String[] aclArray = new String[acls.size()];
-                int j = 0;
-                while (j < aclArray.length)
-                {
-                  aclArray[j] = (String)acls.get(j);
-                  j++;
-                }
-
-                StringBuilder denyBuffer = new StringBuilder();
-                startPos = unpack(denyBuffer,version,startPos,'+');
-                String denyAcl = denyBuffer.toString();
-                String[] denyAclArray = new String[1];
-                denyAclArray[0] = denyAcl;
-                
-                rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclArray,denyAclArray);
-              }
-            }
+            if (actualAcls != null && denyAcls != null)
+              rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,actualAcls,denyAcls);
 
             // Add the path metadata item into the mix, if enabled
             String pathAttributeName = sDesc.getPathAttributeName();
@@ -5516,11 +5361,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected class LivelinkContext
   {
     /** Cache of ObjectInformation objects. */
-    protected Map<ObjectInformation,ObjectInformation> objectInfoMap = new HashMap<ObjectInformation,ObjectInformation>();
+    protected final Map<ObjectInformation,ObjectInformation> objectInfoMap = new HashMap<ObjectInformation,ObjectInformation>();
     /** Cache of VersionInformation objects. */
-    protected Map<VersionInformation,VersionInformation> versionInfoMap = new HashMap<VersionInformation,VersionInformation>();
+    protected final Map<VersionInformation,VersionInformation> versionInfoMap = new HashMap<VersionInformation,VersionInformation>();
     /** Cache of UserInformation objects */
-    protected Map<UserInformation,UserInformation> userInfoMap = new HashMap<UserInformation,UserInformation>();
+    protected final Map<UserInformation,UserInformation> userInfoMap = new HashMap<UserInformation,UserInformation>();
     
     public LivelinkContext()
     {
@@ -6706,101 +6551,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   // Protected static methods
 
-  /** Convert the document specification to a set of query clauses meant to match file names.
-  *@param spec is the specification string.
-  *@return the correct part of the filter string.  Empty string is returned if there is no filtering.
-  */
-  protected static String buildFilterString(DocumentSpecification spec)
-  {
-    StringBuilder rval = new StringBuilder();
-
-
-    boolean first = true;
-    int i = 0;
-    while (i < spec.getChildCount())
-    {
-      SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals("include"))
-      {
-        String includeMatch = sn.getAttributeValue("filespec");
-        if (includeMatch != null)
-        {
-          // Peel off the extension
-          int index = includeMatch.lastIndexOf(".");
-          if (index != -1)
-          {
-            String type = includeMatch.substring(index+1).toLowerCase().replace('*','%');
-            if (first)
-              first = false;
-            else
-              rval.append(" or ");
-            rval.append("lower(FileType) like '").append(type).append("'");
-          }
-        }
-      }
-    }
-    String filterStringPiece = rval.toString();
-    if (filterStringPiece.length() == 0)
-      return "0>1";
-    StringBuilder sb = new StringBuilder();
-    sb.append("SubType=").append(new Integer(LAPI_DOCUMENTS.FOLDERSUBTYPE).toString());
-    sb.append(" or SubType=").append(new Integer(LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE).toString());
-    sb.append(" or SubType=").append(new Integer(LAPI_DOCUMENTS.PROJECTSUBTYPE).toString());
-    sb.append(" or (SubType=").append(new Integer(LAPI_DOCUMENTS.DOCUMENTSUBTYPE).toString());
-    sb.append(" and (");
-    // Walk through the document spec to find the documents that match under the specified root
-    // include lower(column)=spec
-    sb.append(filterStringPiece);
-    sb.append("))");
-    return sb.toString();
-  }
-
-
-  /** Grab forced acl out of document specification.
-  *@param spec is the document specification.
-  *@return the acls.
-  */
-  protected static String[] getAcls(DocumentSpecification spec)
-  {
-    HashMap map = new HashMap();
-    int i = 0;
-    boolean securityOn = true;
-    while (i < spec.getChildCount())
-    {
-      SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals("access"))
-      {
-        String token = sn.getAttributeValue("token");
-        map.put(token,token);
-      }
-      else if (sn.getType().equals("security"))
-      {
-        String value = sn.getAttributeValue("value");
-        if (value.equals("on"))
-          securityOn = true;
-        else if (value.equals("off"))
-          securityOn = false;
-      }
-    }
-    if (!securityOn)
-      return null;
-
-    String[] rval = new String[map.size()];
-    Iterator iter = map.keySet().iterator();
-    i = 0;
-    while (iter.hasNext())
-    {
-      rval[i++] = (String)iter.next();
-    }
-    return rval;
-  }
-
   /** Check if a file or directory should be included, given a document specification.
   *@param filename is the name of the "file".
   *@param documentSpecification is the specification.
   *@return true if it should be included.
   */
-  protected static boolean checkInclude(String filename, DocumentSpecification documentSpecification)
+  protected static boolean checkInclude(String filename, Specification documentSpecification)
     throws ManifoldCFException
   {
     // Scan includes to insure we match
@@ -6844,7 +6600,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param objID is the file ID.
   *@param documentSpecification is the specification.
   */
-  protected boolean checkIngest(LivelinkContext llc, int objID, DocumentSpecification documentSpecification)
+  protected boolean checkIngest(LivelinkContext llc, int objID, Specification documentSpecification)
     throws ManifoldCFException
   {
     // Since the only exclusions at this point are not based on file contents, this is a no-op.
@@ -6932,8 +6688,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected static class VolumeAndId
   {
-    protected int volumeID;
-    protected int folderID;
+    protected final int volumeID;
+    protected final int folderID;
 
     public VolumeAndId(int volumeID, int folderID)
     {
@@ -6956,8 +6712,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected static class MetadataPathItem
   {
-    protected int catID;
-    protected String catName;
+    protected final int catID;
+    protected final String catName;
 
     /** Constructor.
     */
@@ -6989,8 +6745,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected static class MetadataItem
   {
-    protected MetadataPathItem pathItem;
-    protected Map attributeNames = new HashMap();
+    protected final MetadataPathItem pathItem;
+    protected final Set<String> attributeNames = new HashSet<String>();
 
     /** Constructor.
     */
@@ -7003,7 +6759,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     */
     public void addAttribute(String attributeName)
     {
-      attributeNames.put(attributeName,attributeName);
+      attributeNames.add(attributeName);
     }
 
     /** Get the path object.
@@ -7017,9 +6773,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     /** Get an iterator over the attribute names.
     *@return the iterator.
     */
-    public Iterator getAttributeNames()
+    public Iterator<String> getAttributeNames()
     {
-      return attributeNames.keySet().iterator();
+      return attributeNames.iterator();
     }
 
   }
@@ -7033,28 +6789,42 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected final LivelinkContext llc;
     
     // The path attribute name
-    protected String pathAttributeName;
+    protected final String pathAttributeName;
 
     // The path separator
-    protected String pathSeparator;
+    protected final String pathSeparator;
     
     // The node ID to path name mapping (which acts like a cache)
-    protected Map pathMap = new HashMap();
+    protected final Map<String,String> pathMap = new HashMap<String,String>();
 
     // The path name map
-    protected MatchMap matchMap = new MatchMap();
+    protected final MatchMap matchMap = new MatchMap();
+
+    // Acls
+    protected final Set<String> aclMap = new HashSet<String>();
+    protected final boolean securityOn;
+    
+    // Filter string
+    protected final String filterString;
+    
+    protected final Set<String> holder = new HashSet<String>();
+    protected final boolean includeAllMetadata;
 
     /** Constructor */
-    public SystemMetadataDescription(LivelinkContext llc, DocumentSpecification spec)
-      throws ManifoldCFException
+    public SystemMetadataDescription(LivelinkContext llc, Specification spec)
+      throws ManifoldCFException, ServiceInterruption
     {
       this.llc = llc;
-      pathAttributeName = null;
-      pathSeparator = null;
-      int i = 0;
-      while (i < spec.getChildCount())
+      String pathAttributeName = null;
+      String pathSeparator = null;
+      boolean securityOn = true;
+      StringBuilder fsb = new StringBuilder();
+      boolean first = true;
+      boolean includeAllMetadata = false;
+      
+      for (int i = 0; i < spec.getChildCount(); i++)
       {
-        SpecificationNode n = spec.getChild(i++);
+        SpecificationNode n = spec.getChild(i);
         if (n.getType().equals("pathnameattribute"))
         {
           pathAttributeName = n.getAttributeValue("value");
@@ -7068,9 +6838,133 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           String pathReplace = n.getAttributeValue("replace");
           matchMap.appendMatchPair(pathMatch,pathReplace);
         }
+        else if (n.getType().equals("access"))
+        {
+          String token = n.getAttributeValue("token");
+          aclMap.add(token);
+        }
+        else if (n.getType().equals("security"))
+        {
+          String value = n.getAttributeValue("value");
+          if (value.equals("on"))
+            securityOn = true;
+          else if (value.equals("off"))
+            securityOn = false;
+        }
+        else if (n.getType().equals("include"))
+        {
+          String includeMatch = n.getAttributeValue("filespec");
+          if (includeMatch != null)
+          {
+            // Peel off the extension
+            int index = includeMatch.lastIndexOf(".");
+            if (index != -1)
+            {
+              String type = includeMatch.substring(index+1).toLowerCase().replace('*','%');
+              if (first)
+                first = false;
+              else
+                fsb.append(" or ");
+              fsb.append("lower(FileType) like '").append(type).append("'");
+            }
+          }
+        }
+        else if (n.getType().equals("allmetadata"))
+        {
+          String isAll = n.getAttributeValue("all");
+          if (isAll != null && isAll.equals("true"))
+            includeAllMetadata = true;
+        }
+        else if (n.getType().equals("metadata"))
+        {
+          String category = n.getAttributeValue("category");
+          String attributeName = n.getAttributeValue("attribute");
+          String isAll = n.getAttributeValue("all");
+          if (isAll != null && isAll.equals("true"))
+          {
+            // Locate all metadata items for the specified category path,
+            // and enter them into the array
+            getSession();
+            String[] attrs = getCategoryAttributes(llc,category);
+            if (attrs != null)
+            {
+              int j = 0;
+              while (j < attrs.length)
+              {
+                attributeName = attrs[j++];
+                String metadataName = packCategoryAttribute(category,attributeName);
+                holder.add(metadataName);
+              }
+            }
+          }
+          else
+          {
+            String metadataName = packCategoryAttribute(category,attributeName);
+            holder.add(metadataName);
+          }
+
+        }
+      }
+      
+      this.includeAllMetadata = includeAllMetadata;
+      this.pathAttributeName = pathAttributeName;
+      this.pathSeparator = pathSeparator;
+      this.securityOn = securityOn;
+      String filterStringPiece = fsb.toString();
+      if (filterStringPiece.length() == 0)
+        this.filterString = "0>1";
+      else
+      {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SubType=").append(new Integer(LAPI_DOCUMENTS.FOLDERSUBTYPE).toString());
+        sb.append(" or SubType=").append(new Integer(LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE).toString());
+        sb.append(" or SubType=").append(new Integer(LAPI_DOCUMENTS.PROJECTSUBTYPE).toString());
+        sb.append(" or (SubType=").append(new Integer(LAPI_DOCUMENTS.DOCUMENTSUBTYPE).toString());
+        sb.append(" and (");
+        // Walk through the document spec to find the documents that match under the specified root
+        // include lower(column)=spec
+        sb.append(filterStringPiece);
+        sb.append("))");
+        this.filterString = sb.toString();
       }
     }
 
+    public boolean includeAllMetadata()
+    {
+      return includeAllMetadata;
+    }
+    
+    public String[] getMetadataAttributes()
+    {
+      // Put into an array
+      String[] specifiedMetadataAttributes = new String[holder.size()];
+      int i = 0;
+      for (String attrName : holder)
+      {
+        specifiedMetadataAttributes[i++] = attrName;
+      }
+      return specifiedMetadataAttributes;
+    }
+    
+    public String getFilterString()
+    {
+      return filterString;
+    }
+    
+    public String[] getAcls()
+    {
+      if (!securityOn)
+        return null;
+
+      String[] rval = new String[aclMap.size()];
+      int i = 0;
+      for (String token : aclMap)
+      {
+        rval[i++] = token;
+      }
+      return rval;
+    }
+  
     /** Get the path attribute name.
     *@return the path attribute name, or null if none specified.
     */
@@ -7079,6 +6973,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return pathAttributeName;
     }
 
+    /** Get the path separator.
+    */
+    public String getPathSeparator()
+    {
+      return pathSeparator;
+    }
+    
     /** Given an identifier, get the translated string that goes into the metadata.
     */
     public String getPathAttributeValue(String documentIdentifier)
@@ -7090,6 +6991,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return matchMap.translate(path);
     }
 
+    /** Get the matchmap string.
+    */
+    public String getMatchMapString()
+    {
+      return matchMap.toString();
+    }
+    
     /** For a given node, get its path.
     */
     public String getNodePathString(String documentIdentifier)
@@ -7097,7 +7005,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Looking up path for '"+documentIdentifier+"'");
-      String path = (String)pathMap.get(documentIdentifier);
+      String path = pathMap.get(documentIdentifier);
       if (path == null)
       {
         // Not yet present.  Look it up, recursively
@@ -7174,7 +7082,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected final LivelinkContext llc;
     
     // This is a map of category name to category ID and attributes
-    protected Map categoryMap = new HashMap();
+    protected final Map<String,MetadataPathItem> categoryMap = new HashMap<String,MetadataPathItem>();
 
     /** Constructor.
     */
@@ -7186,21 +7094,19 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     /** Iterate over the metadata items represented by the specified chunk of version string.
     *@return an iterator over MetadataItem objects.
     */
-    public Iterator getItems(ArrayList metadataItems)
+    public Iterator<MetadataItem> getItems(String[] metadataItems)
       throws ManifoldCFException, ServiceInterruption
     {
       // This is the map that will be iterated over for a return value.
       // It gets built out of (hopefully cached) data from categoryMap.
-      HashMap newMap = new HashMap();
+      Map<String,MetadataItem> newMap = new HashMap<String,MetadataItem>();
 
       // Start at root
       ObjectInformation rootValue = null;
 
       // Walk through string and process each metadata element in turn.
-      int i = 0;
-      while (i < metadataItems.size())
+      for (String metadataSpec : metadataItems)
       {
-        String metadataSpec = (String)metadataItems.get(i++);
         StringBuilder categoryBuffer = new StringBuilder();
         StringBuilder attributeBuffer = new StringBuilder();
         unpackCategoryAttribute(categoryBuffer,attributeBuffer,metadataSpec);
@@ -7208,12 +7114,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         String attributeName = attributeBuffer.toString();
 
         // If there's already an entry for this category in the return map, use it
-        MetadataItem mi = (MetadataItem)newMap.get(category);
+        MetadataItem mi = newMap.get(category);
         if (mi == null)
         {
           // Now, look up the node information
           // Convert category to cat id.
-          MetadataPathItem item = (MetadataPathItem)categoryMap.get(category);
+          MetadataPathItem item = categoryMap.get(category);
           if (item == null)
           {
             RootValue rv = new RootValue(llc,category);
@@ -7256,11 +7162,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     
     // This is the map from category ID to category path name.
     // It's keyed by an Integer formed from the id, and has String values.
-    protected HashMap categoryPathMap = new HashMap();
+    protected final Map<Integer,String> categoryPathMap = new HashMap<Integer,String>();
 
     // This is the map from category ID to attribute names.  Keyed
     // by an Integer formed from the id, and has a String[] value.
-    protected HashMap attributeMap = new HashMap();
+    protected final Map<Integer,String[]> attributeMap = new HashMap<Integer,String[]>();
 
     /** Constructor */
     public CategoryPathAccumulator(LivelinkContext llc)
@@ -7272,12 +7178,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     public String[] getCategoryPathsAttributeNames(int[] catIDs)
       throws ManifoldCFException, ServiceInterruption
     {
-      HashMap set = new HashMap();
-      int i = 0;
-      while (i < catIDs.length)
+      Set<String> set = new HashSet<String>();
+      for (int x : catIDs)
       {
-        Integer key = new Integer(catIDs[i++]);
-        String pathValue = (String)categoryPathMap.get(key);
+        Integer key = new Integer(x);
+        String pathValue = categoryPathMap.get(key);
         if (pathValue == null)
         {
           // Chase the path back up the chain
@@ -7286,7 +7191,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             continue;
           categoryPathMap.put(key,pathValue);
         }
-        String[] attributeNames = (String[])attributeMap.get(key);
+        String[] attributeNames = attributeMap.get(key);
         if (attributeNames == null)
         {
           // Get the attributes for this category
@@ -7296,20 +7201,18 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           attributeMap.put(key,attributeNames);
         }
         // Now, put the path and the attributes into the hash.
-        int j = 0;
-        while (j < attributeNames.length)
+        for (String attributeName : attributeNames)
         {
-          String metadataName = packCategoryAttribute(pathValue,attributeNames[j++]);
-          set.put(metadataName,metadataName);
+          String metadataName = packCategoryAttribute(pathValue,attributeName);
+          set.add(metadataName);
         }
       }
 
       String[] rval = new String[set.size()];
-      i = 0;
-      Iterator iter = set.keySet().iterator();
-      while (iter.hasNext())
+      int i = 0;
+      for (String value : set)
       {
-        rval[i++] = (String)iter.next();
+        rval[i++] = value;
       }
 
       return rval;
@@ -7380,9 +7283,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected class RootValue
   {
     protected final LivelinkContext llc;
-    protected String workspaceName;
+    protected final String workspaceName;
     protected ObjectInformation rootValue = null;
-    protected String remainderPath;
+    protected final String remainderPath;
 
     /** Constructor.
     *@param pathString is the path string.
