@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.net.URLEncoder;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -140,7 +141,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
             if( streams != null ) {
               throw new SolrException( SolrException.ErrorCode.BAD_REQUEST, "GET can't send streams!" );
             }
-            method = new HttpGet( baseUrl + path + ClientUtils.toQueryString( params, false ) );
+            method = new HttpGet( baseUrl + path + toQueryString( params, false ) );
           }
           else if( SolrRequest.METHOD.POST == request.getMethod() ) {
 
@@ -211,7 +212,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
             }
             // It is has one stream, it is the post body, put the params in the URL
             else {
-              String pstr = ClientUtils.toQueryString(params, false);
+              String pstr = toQueryString(params, false);
               HttpPost post = new HttpPost(url + pstr);
 
               // Single stream as body
@@ -364,4 +365,35 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
     this.followRedirects = followRedirects;
   }
 
+  public static String toQueryString( SolrParams params, boolean xml ) {
+    StringBuilder sb = new StringBuilder(128);
+    try {
+      String amp = xml ? "&amp;" : "&";
+      boolean first=true;
+      Iterator<String> names = params.getParameterNamesIterator();
+      while( names.hasNext() ) {
+        String key = names.next();
+        String[] valarr = params.getParams( key );
+        if( valarr == null ) {
+          sb.append( first?"?":amp );
+          sb.append( URLEncoder.encode(key, "UTF-8") );
+          first=false;
+        }
+        else {
+          for (String val : valarr) {
+            sb.append( first? "?":amp );
+            sb.append(key);
+            if( val != null ) {
+              sb.append('=');
+              sb.append( URLEncoder.encode( val, "UTF-8" ) );
+            }
+            first=false;
+          }
+        }
+      }
+    }
+    catch (IOException e) {throw new RuntimeException(e);}  // can't happen
+    return sb.toString();
+  }
+  
 }

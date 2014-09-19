@@ -102,6 +102,9 @@ public class HttpPoster
   // Whether we use extract/update handler or not
   private final boolean useExtractUpdateHandler;
   
+  // Use url encoding for field names
+  private final boolean useUrlEncoding;
+  
   // Document max length
   private final Long maxDocumentLength;
 
@@ -126,7 +129,8 @@ public class HttpPoster
     String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     Long maxDocumentLength,
-    String commitWithin, boolean useExtractUpdateHandler)
+    String commitWithin, boolean useExtractUpdateHandler,
+    boolean useUrlEncoding)
     throws ManifoldCFException
   {
     // These are the paths to the handlers in Solr that deal with the actions we need to do
@@ -146,7 +150,7 @@ public class HttpPoster
     this.mimeTypeAttributeName = mimeTypeAttributeName;
     this.contentAttributeName = contentAttributeName;
     this.useExtractUpdateHandler = useExtractUpdateHandler;
-    
+    this.useUrlEncoding = useUrlEncoding;
     this.maxDocumentLength = maxDocumentLength;
     
     try
@@ -174,7 +178,8 @@ public class HttpPoster
     String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     IKeystoreManager keystoreManager, Long maxDocumentLength,
-    String commitWithin, boolean useExtractUpdateHandler)
+    String commitWithin, boolean useExtractUpdateHandler,
+    boolean useUrlEncoding)
     throws ManifoldCFException
   {
     // These are the paths to the handlers in Solr that deal with the actions we need to do
@@ -194,6 +199,7 @@ public class HttpPoster
     this.mimeTypeAttributeName = mimeTypeAttributeName;
     this.contentAttributeName = contentAttributeName;
     this.useExtractUpdateHandler = useExtractUpdateHandler;
+    this.useUrlEncoding = useUrlEncoding;
     
     this.maxDocumentLength = maxDocumentLength;
 
@@ -763,26 +769,29 @@ public class HttpPoster
     return new String[0];
   }
 
-  /** Preprocess field name.
-  * SolrJ has a bug where it does not URL-escape field names.  This causes carnage for
-  * ManifoldCF, because it results in IllegalArgumentExceptions getting thrown deep in SolrJ.
-  * See CONNECTORS-630.
-  * In order to get around this, we need to URL-encode argument names, at least until the underlying
-  * SolrJ issue is fixed.
-  */
-  protected static String preEncode(String fieldName)
+  /** Conditionally encode */
+  protected String conditionallyEncode(String fieldName)
   {
-      return URLEncoder.encode(fieldName);
+    if (!useUrlEncoding)
+      return fieldName;
+    try
+    {
+      return java.net.URLEncoder.encode(fieldName, "UTF-8");
+    }
+    catch (IOException e)
+    {
+      throw new RuntimeException("Could not find utf-8 encoding!");
+    }
   }
   
   /** Write a field */
-  protected static void writeField(ModifiableSolrParams out, String fieldName, String[] fieldValues)
+  protected void writeField(ModifiableSolrParams out, String fieldName, String[] fieldValues)
   {
-    out.add(preEncode(fieldName), fieldValues);
+    out.add(conditionallyEncode(fieldName), fieldValues);
   }
   
   /** Write a field */
-  protected static void writeField(ModifiableSolrParams out, String fieldName, List<String> fieldValues)
+  protected void writeField(ModifiableSolrParams out, String fieldName, List<String> fieldValues)
   {
     String[] values = new String[fieldValues.size()];
     int i = 0;
@@ -793,9 +802,9 @@ public class HttpPoster
   }
   
   /** Write a field */
-  protected static void writeField(ModifiableSolrParams out, String fieldName, String fieldValue)
+  protected void writeField(ModifiableSolrParams out, String fieldName, String fieldValue)
   {
-    out.add(preEncode(fieldName), fieldValue);
+    out.add(conditionallyEncode(fieldName), fieldValue);
   }
 
   /** Output an acl level */
@@ -1154,7 +1163,7 @@ public class HttpPoster
         Iterator<String> iter = document.getFields();
         while (iter.hasNext())
         {
-          String fieldName = iter.next();
+          String fieldName = makeSafeLuceneField(iter.next());
           List<String> mappings = sourceTargets.get(fieldName);
           if (mappings != null)
             for (String newFieldName : mappings)
@@ -1182,7 +1191,7 @@ public class HttpPoster
         Iterator<String> iter = document.getFields();
         while (iter.hasNext())
         {
-          String fieldName = iter.next();
+          String fieldName = makeSafeLuceneField(iter.next());
           List<String> mappings = sourceTargets.get(fieldName);
           if (mappings != null)
             for (String newFieldName : mappings)
@@ -1611,5 +1620,38 @@ public class HttpPoster
     }
   }
 
+  /** See CONNECTORS-956.  Make a safe lucene field name from a possibly
+  * unsafe input field name from a repository connector.
+  */
+  protected String makeSafeLuceneField(String inputField)
+  {
+    if (useUrlEncoding)
+      return inputField;
+    StringBuilder sb = new StringBuilder();
+    boolean isFirst = true;
+    for (int i = 0; i < inputField.length(); i++)
+    {
+      char x = inputField.charAt(i);
+      if (isFirst && !Character.isJavaIdentifierStart(x) || !isFirst && !Character.isJavaIdentifierPart(x))
+      {
+        // Check for exceptions for Lucene
+        if (!isFirst && (x == '.' || x == '-'))
+          sb.append(x);
+        else
+          sb.append('_');
+      }
+      else
+      {
+        // Check for exceptions for Lucene
+        if (isFirst && x == '$')
+          sb.append('_');
+        else
+          sb.append(x);
+      }
+      isFirst = false;
+    }
+    return sb.toString();
+  }
+  
 }
 
