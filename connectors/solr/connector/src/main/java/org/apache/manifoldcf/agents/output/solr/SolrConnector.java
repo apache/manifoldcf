@@ -576,7 +576,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
-    SpecPacker sp = new SpecPacker(pipelineDescription.getVersionString());
+    SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
 
     // Establish a session
     getSession();
@@ -2677,59 +2677,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       }
       this.keepAllMetadata = keepAllMetadata;
     
-    }
-    
-    /** Packed string parser.
-    * This method unpacks a packed version string, and makes the formerly packed data available for use.
-    * Note that it is actually *not* a requirement for this method to do the unpacking; that can happen "on demand"
-    * for performance, if deemed helpful.
-    */
-    public SpecPacker(String packedString) {
-      // Build the argument map we'll send.
-      int index = 0;
-      List<String> nameValues = new ArrayList<String>();
-      index = unpackList(nameValues,packedString,index,'+');
-      List<String> sts = new ArrayList<String>();
-      index = unpackList(sts,packedString,index,'+');
-      // extract keep all metadata Flag
-      boolean keepAllMetadata = true;
-      if (index < packedString.length())
-      {
-        keepAllMetadata = (packedString.charAt(index++) == '+');
-      }
-      this.keepAllMetadata = keepAllMetadata;
-      
-      
-      String[] fixedBuffer = new String[2];
-      
-      // Do the name/value pairs
-      for (String x : nameValues)
-      {
-        unpackFixedList(fixedBuffer,x,0,'=');
-        String attrName = fixedBuffer[0];
-        List<String> list = args.get(attrName);
-        if (list == null)
-        {
-          list = new ArrayList<String>();
-          args.put(attrName,list);
-        }
-        list.add(fixedBuffer[1]);
-      }
-      
-      // Do the source/target pairs
-      for (String x : sts)
-      {
-        unpackFixedList(fixedBuffer,x,0,'=');
-        String source = fixedBuffer[0];
-        String target = fixedBuffer[1];
-        List<String> list = sourceTargets.get(source);
-        if (list == null) {
-          list = new ArrayList<String>();
-          sourceTargets.put(source, list);
-        }
-        list.add(target);
-      }
-
     }
     
     public String toPackedString() {

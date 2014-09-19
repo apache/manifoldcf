@@ -171,27 +171,26 @@ public class FileOutputConnector extends BaseOutputConnector {
 
     FileOutputConfig config = getConfigParameters(null);
 
-    FileOutputSpecs specs = null;
+    FileOutputSpecs specs = new FileOutputSpecs(getSpecNode(outputDescription.getSpecification()));;
     StringBuffer path = new StringBuffer();
-    try {
-      specs = new FileOutputSpecs(outputDescription.getVersionString());
 
+    try {
       /*
-       * make file path
-       */
+        * make file path
+        */
       if (specs.getRootPath() != null) {
         path.append(specs.getRootPath());
       }
-      
+        
       // If the path does not yet exist at the root level, it is dangerous to create it.
       File currentPath = new File(path.toString());
       if (!currentPath.exists())
         throw new ManifoldCFException("Root path does not yet exist: '"+currentPath+"'");
       if (!currentPath.isDirectory())
         throw new ManifoldCFException("Root path is not a directory: '"+currentPath+"'");
-      
+        
       String filePath = documentURItoFilePath(documentURI);
-      
+        
       // Build path one level at a time.  This is needed because there may be a collision at
       // every level.
       int index = 0;
@@ -226,7 +225,7 @@ public class FileOutputConnector extends BaseOutputConnector {
         currentPath = newPath;
         // Go on to the next one.
       }
-      
+        
       // Path successfully created.  Now create file.
       FileOutputStream output = null;
       String fileName = filePath.substring(index);
@@ -256,8 +255,8 @@ public class FileOutputConnector extends BaseOutputConnector {
 
       try {
         /*
-         * lock file
-         */
+          * lock file
+          */
         FileChannel channel = output.getChannel();
         FileLock lock = channel.tryLock();
         if (lock == null)
@@ -266,8 +265,8 @@ public class FileOutputConnector extends BaseOutputConnector {
         try {
 
           /*
-           * write file
-           */
+            * write file
+            */
           InputStream input = document.getBinaryStream();
           byte buf[] = new byte[65536];
           int len;
@@ -290,9 +289,6 @@ public class FileOutputConnector extends BaseOutputConnector {
         } catch (IOException e) {
         }
       }
-    } catch (JSONException e) {
-      handleJSONException(e);
-      return DOCUMENTSTATUS_REJECTED;
     } catch (URISyntaxException e) {
       handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
@@ -361,10 +357,8 @@ public class FileOutputConnector extends BaseOutputConnector {
 
     FileOutputConfig config = getConfigParameters(null);
 
-    FileOutputSpecs specs = null;
     StringBuffer path = new StringBuffer();
     try {
-      specs = new FileOutputSpecs(outputDescription);
 
       // We cannot remove documents, because it is unsafe to do so.
       // Paths that were created when the document existed will not
@@ -437,8 +431,6 @@ public class FileOutputConnector extends BaseOutputConnector {
       }
       // Just close it, to make a zero-length grave marker.
       output.close();
-    } catch (JSONException e) {
-      handleJSONException(e);
     } catch (URISyntaxException e) {
       handleURISyntaxException(e);
     } catch (FileNotFoundException e) {

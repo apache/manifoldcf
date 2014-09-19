@@ -189,9 +189,18 @@ public class GenericConnector extends BaseRepositoryConnector {
   }
 
   @Override
-  public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
-    long startTime, long endTime)
+  public String addSeedDocuments(ISeedingActivity activities, Specification spec,
+    String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption {
+
+    long startTime;
+    if (lastSeedVersion == null)
+      startTime = 0L;
+    else
+    {
+      // Unpack seed time from seed version string
+      startTime = new Long(lastSeedVersion).longValue();
+    }
 
     HttpClient client = getClient();
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -201,7 +210,7 @@ public class GenericConnector extends BaseRepositoryConnector {
     if (startTime > 0) {
       url.append("&startTime=").append(sdf.format(new Date(startTime)));
     }
-    url.append("&endTime=").append(sdf.format(new Date(endTime)));
+    url.append("&endTime=").append(sdf.format(new Date(seedTime)));
     for (int i = 0; i < spec.getChildCount(); i++) {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals("param")) {
@@ -245,6 +254,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
     }
+    return new Long(seedTime).toString();
   }
 
   @Override
