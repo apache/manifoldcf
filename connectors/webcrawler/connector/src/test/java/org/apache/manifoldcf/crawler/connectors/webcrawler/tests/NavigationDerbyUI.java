@@ -238,6 +238,20 @@ public class NavigationDerbyUI extends BaseUIDerby
     link.click();
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editjob"));
+    // URL Mapping tab
+    link = window.findLink(testerInstance.createStringDescription("URL Mappings tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    form.findTextarea(testerInstance.createStringDescription("s0_rssmatch")).setValue(testerInstance.createStringDescription("foo"));
+    form.findTextarea(testerInstance.createStringDescription("s0_rssmap")).setValue(testerInstance.createStringDescription("bar"));
+    button = window.findButton(testerInstance.createStringDescription("Add regular expression"));
+    button.click();
+    window = testerInstance.findWindow(null);
+    button = window.findButton(testerInstance.createStringDescription("Remove regular expression #0"));
+    button.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
     // Metadata tab
     link = window.findLink(testerInstance.createStringDescription("Metadata tab"));
     link.click();
