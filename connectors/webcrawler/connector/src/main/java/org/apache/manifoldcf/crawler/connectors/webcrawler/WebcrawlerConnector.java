@@ -3740,21 +3740,21 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
-"function SpecAddMetadata(anchorvalue)\n"+
+"function "+seqPrefix+"SpecAddMetadata(anchorvalue)\n"+
 "{\n"+
-"  if (editjob.specmetaname.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"specmetaname.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.TypeInMetadataName")+"\");\n"+
-"    editjob.specmetaname.focus();\n"+
+"    editjob."+seqPrefix+"specmetaname.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  if (editjob.specmetavalue.value == \"\")\n"+
+"  if (editjob."+seqPrefix+"specmetavalue.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.TypeInMetadataValue")+"\");\n"+
-"    editjob.specmetavalue.focus();\n"+
+"    editjob."+seqPrefix+"specmetavalue.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  SpecOp(\"metadataop\",\"Add\",anchorvalue);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"Add\",anchorvalue);\n"+
 "}\n"+
 "\n"+
 "//-->\n"+
@@ -4069,12 +4069,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     // Mappings tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.URLMappings")))
+    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.URLMappings")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
-"<input type=\"hidden\" name=\"rssop\" value=\"\"/>\n"+
-"<input type=\"hidden\" name=\"rssindex\" value=\"\"/>\n"+
-"<input type=\"hidden\" name=\"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"rssop\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"rssindex\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"+
 "\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
@@ -4083,12 +4083,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       i = 0;
       while (i < regexp.size())
       {
-        String prefix = "rssregexp_"+Integer.toString(i)+"_";
+        String prefix = seqPrefix+"rssregexp_"+Integer.toString(i)+"_";
         out.print(
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
-"      <a name=\"regexp_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" value=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.Remove")+"\" onclick='javascript:RemoveRegexp("+Integer.toString(i)+",\"regexp_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.RemoveRegexp")+Integer.toString(i)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"regexp_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" value=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.Remove")+"\" onclick='javascript:"+seqPrefix+"RemoveRegexp("+Integer.toString(i)+",\""+seqPrefix+"regexp_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.RemoveRegexp")+Integer.toString(i)+"\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\"><input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape((String)regexp.get(i))+"</td>\n"+
@@ -4119,10 +4119,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       }
       out.print(
 "  <tr>\n"+
-"    <td class=\"value\"><a name=\"regexp_"+Integer.toString(i)+"\"><input type=\"button\" value=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.Add")+"\" onclick='javascript:AddRegexp(\"regexp_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddRegexp")+"\"/></a></td>\n"+
-"    <td class=\"value\"><input type=\"text\" name=\"rssmatch\" size=\"16\" value=\"\"/></td>\n"+
+"    <td class=\"value\"><a name=\""+seqPrefix+"regexp_"+Integer.toString(i)+"\"><input type=\"button\" value=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.Add")+"\" onclick='javascript:"+seqPrefix+"AddRegexp(\""+seqPrefix+"regexp_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddRegexp")+"\"/></a></td>\n"+
+"    <td class=\"value\"><input type=\"text\" name=\""+seqPrefix+"rssmatch\" size=\"16\" value=\"\"/></td>\n"+
 "    <td class=\"value\">--&gt;</td>\n"+
-"    <td class=\"value\"><input type=\"text\" name=\"rssmap\" size=\"16\" value=\"\"/></td>\n"+
+"    <td class=\"value\"><input type=\"text\" name=\""+seqPrefix+"rssmap\" size=\"16\" value=\"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -4130,12 +4130,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"
       );
       i = 0;
       while (i < regexp.size())
       {
-        String prefix = "rssregexp_"+Integer.toString(i)+"_";
+        String prefix = seqPrefix+"rssregexp_"+Integer.toString(i)+"_";
         String match = matchStrings.get(i);
         out.print(
 "<input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp.get(i))+"\"/>\n"+
@@ -4331,17 +4331,17 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         if (sn.getType().equals(WebcrawlerConfig.NODE_METADATA))
         {
           String metadataDescription = "_"+Integer.toString(k);
-          String metadataOpName = "metadataop"+metadataDescription;
+          String metadataOpName = seqPrefix+"metadataop"+metadataDescription;
           String name = sn.getAttributeValue(WebcrawlerConfig.ATTR_NAME);
           String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <input type=\"hidden\" name=\""+metadataOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+Encoder.attributeEscape(name)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"+
-"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" onClick='Javascript:SpecOp(\""+metadataOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specmetaname"+metadataDescription+"\" value=\""+Encoder.attributeEscape(name)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"specmetavalue"+metadataDescription+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"+
+"      <a name=\""+seqPrefix+"metadata_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+metadataOpName+"\",\"Delete\",\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -4369,18 +4369,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"metadataop\" value=\"\"/>\n"+
-"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddMetadata") + "\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"metadataop\" value=\"\"/>\n"+
+"      <a name=\""+seqPrefix+"metadata_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" onClick='Javascript:"+seqPrefix+"SpecAddMetadata(\""+seqPrefix+"metadata_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddMetadata") + "\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"specmetaname\" value=\"\"/>\n"+
+"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"specmetaname\" value=\"\"/>\n"+
 "    </td>\n"+
 "    <td class=\"value\">==&gt;&nbsp;</td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"80\" name=\"specmetavalue\" value=\"\"/>\n"+
+"      <input type=\"text\" size=\"80\" name=\""+seqPrefix+"specmetavalue\" value=\"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -4410,14 +4410,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           String name = sn.getAttributeValue(WebcrawlerConfig.ATTR_NAME);
           String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
           out.print(
-"<input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+Encoder.attributeEscape(name)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specmetaname"+metadataDescription+"\" value=\""+Encoder.attributeEscape(name)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"specmetavalue"+metadataDescription+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"
           );
           k++;
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     
     }
