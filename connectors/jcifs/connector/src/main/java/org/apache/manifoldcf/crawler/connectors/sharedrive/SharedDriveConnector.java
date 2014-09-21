@@ -63,7 +63,6 @@ import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IFingerprintActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
-import org.apache.manifoldcf.crawler.interfaces.IVersionActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;

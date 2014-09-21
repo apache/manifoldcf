@@ -959,7 +959,7 @@ public class ThrottledFetcher
     * describing what was done.
     */
     @Override
-    public void doneFetch(IVersionActivity activities)
+    public void doneFetch(IProcessActivity activities)
       throws ManifoldCFException
     {
       if (fetchType != null)

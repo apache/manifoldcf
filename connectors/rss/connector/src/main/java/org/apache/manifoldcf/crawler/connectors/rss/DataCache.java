@@ -56,7 +56,7 @@ public class DataCache
   *@param dataStream is the data stream.
   *@return the checksum value.
   */
-  public long addData(IVersionActivity activities, String documentIdentifier, String contentType, InputStream dataStream)
+  public long addData(IProcessActivity activities, String documentIdentifier, String contentType, InputStream dataStream)
     throws ManifoldCFException, ServiceInterruption
   {
     // Create a temporary file; that's what we will cache

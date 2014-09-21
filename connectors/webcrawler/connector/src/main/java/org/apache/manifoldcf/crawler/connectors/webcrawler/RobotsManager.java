@@ -116,7 +116,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
   *@return null if the record needs to be fetched, true if fetch is allowed.
   */
   public Boolean checkFetchAllowed(String userAgent, String hostName, long currentTime, String pathString,
-    IVersionActivity activities)
+    IProcessActivity activities)
     throws ManifoldCFException
   {
     // Build description objects
@@ -237,7 +237,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
   /** Read robots data, if it exists.
   *@return null if the data doesn't exist at all.  Return robots data if it does.
   */
-  protected RobotsData readRobotsData(String hostName, IVersionActivity activities)
+  protected RobotsData readRobotsData(String hostName, IProcessActivity activities)
     throws ManifoldCFException
   {
     try
@@ -303,7 +303,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
     protected ArrayList records = null;
 
     /** Constructor. */
-    public RobotsData(InputStream is, long expiration, String hostName, IVersionActivity activities)
+    public RobotsData(InputStream is, long expiration, String hostName, IProcessActivity activities)
       throws IOException, ManifoldCFException
     {
       this.expiration = expiration;
@@ -410,7 +410,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
     /** Parse the robots.txt file using a reader.
     * Is NOT expected to close the stream.
     */
-    protected void parseRobotsTxt(BufferedReader r, String hostName, IVersionActivity activities)
+    protected void parseRobotsTxt(BufferedReader r, String hostName, IProcessActivity activities)
       throws IOException, ManifoldCFException
     {
       boolean parseCompleted = false;
@@ -764,13 +764,13 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
     protected RobotsManager thisManager;
     protected RobotsData returnValue;
     protected HostDescription thisHost;
-    protected IVersionActivity activities;
+    protected IProcessActivity activities;
 
     /** Constructor.
     *@param manager is the RobotsManager class instance.
     *@param objectDescription is the desired object description.
     */
-    public HostExecutor(RobotsManager manager, IVersionActivity activities, HostDescription objectDescription)
+    public HostExecutor(RobotsManager manager, IProcessActivity activities, HostDescription objectDescription)
     {
       super();
       thisManager = manager;

@@ -5135,7 +5135,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Look up an ipaddress given a non-canonical host name.
   *@return appropriate status.
   */
-  protected int lookupIPAddress(String documentIdentifier, IVersionActivity activities, String hostName, long currentTime, StringBuilder ipAddressBuffer)
+  protected int lookupIPAddress(String documentIdentifier, IProcessActivity activities, String hostName, long currentTime, StringBuilder ipAddressBuffer)
     throws ManifoldCFException, ServiceInterruption
   {
     String eventName = makeDNSEventName(activities,hostName);
@@ -5213,7 +5213,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@return appropriate resultstatus code.
   */
   protected int checkFetchAllowed(String documentIdentifier, String protocol, String hostIPAddress, int port, PageCredentials credential,
-    IKeystoreManager trustStore, String hostName, String[] binNames, long currentTime, String pathString, IVersionActivity versionActivities, int connectionLimit,
+    IKeystoreManager trustStore, String hostName, String[] binNames, long currentTime, String pathString, IProcessActivity versionActivities, int connectionLimit,
     String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
     throws ManifoldCFException, ServiceInterruption
   {
