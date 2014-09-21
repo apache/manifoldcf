@@ -3099,7 +3099,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Obtain document versions for a set of documents.
   */
-  protected void getTimestamps(String[] documentIdentifiers, Map<String,String> versions, IVersionActivity activities)
+  protected void getTimestamps(String[] documentIdentifiers, Map<String,String> versions, IProcessActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();

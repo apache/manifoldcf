@@ -116,7 +116,7 @@ public interface IThrottledConnection
   /** Done with the fetch.  Call this when the fetch has been completed.  A log entry will be generated
   * describing what was done.
   */
-  public void doneFetch(IVersionActivity activities)
+  public void doneFetch(IProcessActivity activities)
     throws ManifoldCFException;
 
   /** Close the connection.  Call this to return the connection to

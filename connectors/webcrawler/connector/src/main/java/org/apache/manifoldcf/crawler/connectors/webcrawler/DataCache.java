@@ -60,7 +60,7 @@ public class DataCache
   * cached.
   *@return a "checksum" value, to use as a version string.
   */
-  public String addData(IVersionActivity activities, String documentIdentifier, IThrottledConnection connection)
+  public String addData(IProcessActivity activities, String documentIdentifier, IThrottledConnection connection)
     throws ManifoldCFException, ServiceInterruption
   {
     // Grab the response code, and the content-type header

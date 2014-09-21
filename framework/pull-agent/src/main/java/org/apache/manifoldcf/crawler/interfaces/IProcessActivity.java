@@ -41,7 +41,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 * (4) In order to determine whether a document needs to be reindexed, the method checkDocumentNeedsReindexing()
 *    is available to return an opinion on that matter.
 */
-public interface IProcessActivity extends IVersionActivity
+public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbortActivity, IFingerprintActivity, ICarrydownActivity
 {
   public static final String _rcsid = "@(#)$Id: IProcessActivity.java 988245 2010-08-23 18:39:35Z kwright $";
 

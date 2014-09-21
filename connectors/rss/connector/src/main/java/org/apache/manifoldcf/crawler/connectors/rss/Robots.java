@@ -115,7 +115,7 @@ public class Robots
     String protocol, int port, String hostName, String pathString,
     String userAgent, String from,
     String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
-    IVersionActivity activities, int connectionLimit)
+    IProcessActivity activities, int connectionLimit)
     throws ManifoldCFException, ServiceInterruption
   {
     String identifyingString = protocol + "://" + hostName;
@@ -262,7 +262,7 @@ public class Robots
       long currentTime, String pathString,
       String userAgent, String from,
       String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
-      IVersionActivity activities, int connectionLimit)
+      IProcessActivity activities, int connectionLimit)
       throws ServiceInterruption, ManifoldCFException
     {
       synchronized (this)
@@ -436,7 +436,7 @@ public class Robots
     protected void makeValid(IThreadContext threadContext, String throttleGroupName,
       long currentTime, String userAgent, String from,
       String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
-      String hostName, IVersionActivity activities, int connectionLimit)
+      String hostName, IProcessActivity activities, int connectionLimit)
       throws ServiceInterruption, ManifoldCFException
     {
       invalidTime = currentTime + 24L * 60L * 60L * 1000L;
@@ -520,7 +520,7 @@ public class Robots
     /** Parse the robots.txt file using a reader.
     * Is NOT expected to close the stream.
     */
-    protected void parseRobotsTxt(BufferedReader r, String hostName, IVersionActivity activities)
+    protected void parseRobotsTxt(BufferedReader r, String hostName, IProcessActivity activities)
       throws IOException, ManifoldCFException
     {
       boolean parseCompleted = false;
