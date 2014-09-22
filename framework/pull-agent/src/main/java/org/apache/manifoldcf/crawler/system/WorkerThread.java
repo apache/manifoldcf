@@ -1449,32 +1449,6 @@ public class WorkerThread extends Thread
     }
 
     /** Ingest the current document.
-    *@param localIdentifier is the document's local identifier.
-    *@param version is the version of the document, as reported by the getDocumentVersions() method of the
-    *       corresponding repository connector.
-    *@param documentURI is the URI to use to retrieve this document from the search interface (and is
-    *       also the unique key in the index).
-    *@param data is the document data.  The data is closed after ingestion is complete.
-    * NOTE: Any data stream IOExceptions will be converted to ManifoldCFExceptions and ServiceInterruptions
-    * according to standard best practices.
-    */
-    @Override
-    @Deprecated
-    public void ingestDocument(String localIdentifier, String version, String documentURI, RepositoryDocument data)
-      throws ManifoldCFException, ServiceInterruption
-    {
-      try
-      {
-        ingestDocumentWithException(localIdentifier,version,documentURI,data);
-      }
-      catch (IOException e)
-      {
-        handleIOException(e,"fetching");
-      }
-    }
-
-
-    /** Ingest the current document.
     *@param documentIdentifier is the document's local identifier.
     *@param version is the version of the document, as reported by the getDocumentVersions() method of the
     *       corresponding repository connector.
@@ -1614,20 +1588,6 @@ public class WorkerThread extends Thread
       String componentIdentifierHash = computeComponentIDHash(componentIdentifier);
       checkMultipleDispositions(documentIdentifier,componentIdentifier,componentIdentifierHash);
       touchComponentSet(documentIdentifier,componentIdentifierHash);
-    }
-
-    /** Delete the current document from the search engine index, while keeping track of the version information
-    * for it (to reduce churn).
-    * Use noDocument() above instead.
-    *@param documentIdentifier is the document's local identifier.
-    *@param version is the version string to be recorded for the document.
-    */
-    @Override
-    @Deprecated
-    public void deleteDocument(String documentIdentifier, String version)
-      throws ManifoldCFException, ServiceInterruption
-    {
-      noDocument(documentIdentifier,version);
     }
 
     /** Delete the specified document from the search engine index, and from the status table.  This
@@ -2542,91 +2502,6 @@ public class WorkerThread extends Thread
     {
     }
 
-  }
-
-  protected final static long interruptionRetryTime = 5L*60L*1000L;
-  protected static void handleIOException(IOException e, String context)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    if ((e instanceof InterruptedIOException) && (!(e instanceof java.net.SocketTimeoutException)))
-      throw new ManifoldCFException(e.getMessage(), ManifoldCFException.INTERRUPTED);
-
-    long currentTime = System.currentTimeMillis();
-    
-    if (e instanceof java.net.ConnectException)
-    {
-      // Server isn't up at all.  Try for a brief time then give up.
-      String message = "Server could not be contacted during "+context+": "+e.getMessage();
-      Logging.connectors.warn(message,e);
-      throw new ServiceInterruption(message,
-        e,
-        currentTime + interruptionRetryTime,
-        -1L,
-        3,
-        true);
-    }
-    
-    if (e instanceof java.net.SocketTimeoutException)
-    {
-      String message2 = "Socket timeout exception during "+context+": "+e.getMessage();
-      Logging.connectors.warn(message2,e);
-      throw new ServiceInterruption(message2,
-        e,
-        currentTime + interruptionRetryTime,
-        currentTime + 20L * 60000L,
-        -1,
-        false);
-    }
-      
-    if (e.getClass().getName().equals("java.net.SocketException"))
-    {
-      // In the past we would have treated this as a straight document rejection, and
-      // treated it in the same manner as a 400.  The reasoning is that the server can
-      // perfectly legally send out a 400 and drop the connection immediately thereafter,
-      // this a race condition.
-      // However, Solr 4.0 (or the Jetty version that the example runs on) seems
-      // to have a bug where it drops the connection when two simultaneous documents come in
-      // at the same time.  This is the final version of Solr 4.0 so we need to deal with
-      // this.
-      if (e.getMessage().toLowerCase(Locale.ROOT).indexOf("broken pipe") != -1 ||
-        e.getMessage().toLowerCase(Locale.ROOT).indexOf("connection reset") != -1 ||
-        e.getMessage().toLowerCase(Locale.ROOT).indexOf("target server failed to respond") != -1)
-      {
-        // Treat it as a service interruption, but with a limited number of retries.
-        // In that way we won't burden the user with a huge retry interval; it should
-        // give up fairly quickly, and yet NOT give up if the error was merely transient
-        String message = "Server dropped connection during "+context+": "+e.getMessage();
-        Logging.connectors.warn(message,e);
-        throw new ServiceInterruption(message,
-          e,
-          currentTime + interruptionRetryTime,
-          -1L,
-          3,
-          false);
-      }
-      
-      // Other socket exceptions are service interruptions - but if we keep getting them, it means 
-      // that a socket timeout is probably set too low to accept this particular document.  So
-      // we retry for a while, then skip the document.
-      String message2 = "Socket exception during "+context+": "+e.getMessage();
-      Logging.connectors.warn(message2,e);
-      throw new ServiceInterruption(message2,
-        e,
-        currentTime + interruptionRetryTime,
-        currentTime + 20L * 60000L,
-        -1,
-        false);
-    }
-
-    // Otherwise, no idea what the trouble is, so presume that retries might fix it.
-    String message3 = "IO exception during "+context+": "+e.getMessage();
-    Logging.connectors.warn(message3,e);
-    throw new ServiceInterruption(message3,
-      e,
-      currentTime + interruptionRetryTime,
-      currentTime + 2L * 60L * 60000L,
-      -1,
-      true);
   }
 
 }

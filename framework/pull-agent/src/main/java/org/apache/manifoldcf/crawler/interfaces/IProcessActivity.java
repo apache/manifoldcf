@@ -171,20 +171,6 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
     String version, String documentURI, RepositoryDocument data)
     throws ManifoldCFException, ServiceInterruption, IOException;
 
-  /** Ingest the current document.
-  *@param documentIdentifier is the document's identifier.
-  *@param version is the version of the document, as reported by the getDocumentVersions() method of the
-  *       corresponding repository connector.
-  *@param documentURI is the URI to use to retrieve this document from the search interface (and is
-  *       also the unique key in the index).
-  *@param data is the document data.  The data is closed after ingestion is complete.
-  * NOTE: Any data stream IOExceptions will be converted to ManifoldCFExceptions and ServiceInterruptions
-  * according to standard best practices.
-  */
-  @Deprecated
-  public void ingestDocument(String documentIdentifier, String version, String documentURI, RepositoryDocument data)
-    throws ManifoldCFException, ServiceInterruption;
-
   /** Remove the specified document from the search engine index, and update the
   * recorded version information for the document.
   *@param documentIdentifier is the document's local identifier.
@@ -258,16 +244,6 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   */
   public void deleteDocument(String documentIdentifier)
     throws ManifoldCFException;
-
-  /** Delete the current document from the search engine index, while keeping track of the version information
-  * for it (to reduce churn).
-  * Deprecated; use noDocument() above instead.
-  *@param documentIdentifier is the document's local identifier.
-  *@param version is the version string to be recorded for the document.
-  */
-  @Deprecated
-  public void deleteDocument(String documentIdentifier, String version)
-    throws ManifoldCFException, ServiceInterruption;
 
   /** Override the schedule for the next time a document is crawled.
   * Calling this method allows you to set an upper recrawl bound, lower recrawl bound, upper expire bound, lower expire bound,
