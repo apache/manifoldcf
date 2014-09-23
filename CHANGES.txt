@@ -2,6 +2,9 @@ ManifoldCF Change Log
 $Id$
 
 
+CONNECTORS-1043: Fix list item URL.
+(Lalit Jangra, Karl Wright)
+
 ======================= Release 1.7.1 =====================
 
 CONNECTORS-1041: Livelink connector should force HTTPS off when

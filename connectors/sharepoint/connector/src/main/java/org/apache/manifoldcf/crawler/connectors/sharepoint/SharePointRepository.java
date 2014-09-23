@@ -1465,7 +1465,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 String encodedItemPath = encodePath(decodedListPath.substring(0,listCutoff) + "/Lists/" + decodedItemPath.substring(listCutoff+1));
                 
                 // Generate the URL we are going to use
-                String itemUrl = fileBaseUrl + relURL;  //fileBaseUrl + encodedItemPath;
+                String itemUrl = serverUrl + relURL;  //fileBaseUrl + encodedItemPath;
                 
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug( "SharePoint: Processing list item '"+documentIdentifier+"'; url: '" + itemUrl + "'" );
