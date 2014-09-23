@@ -39,29 +39,7 @@ public class ElasticSearchParam extends HashMap<ParameterEnum, String>
 
 		INDEXTYPE("generictype"),
 
-		FIELDLIST(""),
-
-		MAXFILESIZE("16777216"),
-
-		MIMETYPES(
-		    "application/msword\n"
-		        + "application/vnd.ms-excel\n"
-		        + "application/vnd.openxmlformats-officedocument.wordprocessingml.document\n"
-		        + "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\n"
-		        + "text/html\n"
-		        + "application/pdf\n"
-		        + "application/vnd.ms-powerpoint\n"
-		        + "application/vnd.openxmlformats-officedocument.presentationml.presentation\n"
-		        + "application/vnd.oasis.opendocument.text\n"
-		        + "application/vnd.oasis.opendocument.spreadsheet\n"
-		        + "application/vnd.oasis.opendocument.formula\n"
-		        + "application/rtf\n" + "text/plain\n" + "audio/mpeg\n"
-		        + "audio/x-wav\n" + "audio/ogg\n" + "audio/flac\n"
-		        + "application/x-bittorrent"),
-
-		EXTENSIONS("doc\n" + "docx\n" + "xls\n" + "xlsx\n" + "ppt\n" + "pptx\n"
-		    + "html\n" + "pdf\n" + "odt\n" + "ods\n" + "rtf\n" + "txt\n" + "mp3\n"
-		    + "mp4\n" + "wav\n" + "ogg\n" + "flac\n" + "torrent");
+		FIELDLIST("");
 
 		final protected String defaultValue;
 
