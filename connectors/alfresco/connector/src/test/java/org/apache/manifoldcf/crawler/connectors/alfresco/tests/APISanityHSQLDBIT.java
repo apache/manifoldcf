@@ -56,7 +56,7 @@ import org.junit.Test;
 /**
  * @author Piergiorgio Lucidi
  */
-public class APISanityDerbyIT extends BaseITDerby
+public class APISanityHSQLDBIT extends BaseITHSQLDB
 {
   
   private static final String REPLACER = "?";
