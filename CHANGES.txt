@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1043: Wrong url generated for SharePoint list items.
+(Lalit Jangra, Karl Wright)
+
 CONNECTORS-1041: Livelink connector should force HTTPS off when
 HTTP is selected.
 (Karl Wright)
