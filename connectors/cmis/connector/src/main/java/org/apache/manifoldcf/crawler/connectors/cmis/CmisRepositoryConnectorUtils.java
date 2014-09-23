@@ -27,6 +27,7 @@ import org.apache.chemistry.opencmis.client.bindings.spi.atompub.AbstractAtomPub
 import org.apache.chemistry.opencmis.client.bindings.spi.atompub.AtomPubParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.crawler.system.Logging;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /**
  * 
@@ -42,7 +43,8 @@ public class CmisRepositoryConnectorUtils {
   private static final String OBJECT_ID_TERM = "cmis:objectId,";
   private static final String SELECT_CLAUSE_TERM_SEP = ",";
   
-  public static final String getDocumentURL(final Document document, final Session session) {
+  public static final String getDocumentURL(final Document document, final Session session)
+    throws ManifoldCFException {
     String link = null;
     try {
         Method loadLink = AbstractAtomPubService.class.getDeclaredMethod(LOAD_LINK_METHOD_NAME, 
@@ -56,7 +58,9 @@ public class CmisRepositoryConnectorUtils {
       Logging.connectors.error(
           "CMIS: Error during getting the content stream url: "
               + e.getMessage(), e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
+
     return link;
   }
   
