@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-602: Finish implementation of preferred way to get content
+URL for CMIS.
+(Karl Wright)
+
 CONNECTORS-1041: Livelink connector should force HTTPS off when
 HTTP is selected.
 (Karl Wright)
