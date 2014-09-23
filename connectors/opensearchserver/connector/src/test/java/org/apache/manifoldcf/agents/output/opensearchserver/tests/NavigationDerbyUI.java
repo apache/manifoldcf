@@ -162,11 +162,6 @@ public class NavigationDerbyUI extends BaseUIDerby
     button.click();
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editjob"));
-    // OpenSearchServer
-    link = window.findLink(testerInstance.createStringDescription("OpenSearchServer tab"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
 
     // Save the job
     button = window.findButton(testerInstance.createStringDescription("Save this job"));

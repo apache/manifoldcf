@@ -82,15 +82,6 @@ public class OpenSearchServerConnector extends BaseOutputConnector
   /** Forward to the javascript to check the configuration parameters */
   private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration.js";
 
-  /** Forward to the template to view the specification parameters for the job */
-  private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
-
-  /** Forward to the template to edit the configuration parameters for the job */
-  private static final String EDIT_SPEC_FORWARD = "editSpecification.html";
-
-  /** Forward to the javascript to check the specification parameters for the job */
-  private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
-
   /** Connection expiration interval */
   private static final long EXPIRATION_INTERVAL = 60000L;
 
@@ -254,103 +245,6 @@ public class OpenSearchServerConnector extends BaseOutputConnector
   }
 
   /**
-  * Output the specification header section. This method is called in the head
-  * section of a job page which has selected a pipeline connection of the
-  * current type. Its purpose is to add the required tabs to the list, and to
-  * output any javascript methods that might be needed by the job editing HTML.
-  *
-  * @param out is the output to which any HTML should be sent.
-  * @param locale is the preferred local of the output.
-  * @param os is the current pipeline specification for this connection.
-  * @param connectionSequenceNumber is the unique number of this connection within the job.
-  * @param tabsArray is an array of tab names. Add to this array any tab names that are specific to the connector.
-  */
-  @Override
-  public void outputSpecificationHeader(IHTTPOutput out, Locale locale,
-      Specification os, int connectionSequenceNumber, List<String> tabsArray)
-      throws ManifoldCFException, IOException
-  {
-    super.outputSpecificationHeader(out, locale, os, connectionSequenceNumber,
-        tabsArray);
-    tabsArray.add(Messages.getString(locale, OPENSEARCHSERVER_TAB_MESSAGE));
-    outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, null, null,
-        new Integer(connectionSequenceNumber), null);
-  }
-
-  final private SpecificationNode getSpecNode(Specification os)
-  {
-    int l = os.getChildCount();
-    for (int i = 0; i < l; i++)
-    {
-      SpecificationNode node = os.getChild(i);
-      if (OpenSearchServerSpecs.OPENSEARCHSERVER_SPECS_NODE.equals(node
-          .getType()))
-      {
-        return node;
-      }
-    }
-    return null;
-  }
-
-  /**
-  * Output the specification body section. This method is called in the body
-  * section of a job page which has selected a pipeline connection of the
-  * current type. Its purpose is to present the required form elements for
-  * editing. The coder can presume that the HTML that is output from this
-  * configuration will be within appropriate <html>, <body>, and <form> tags.
-  * The name of the form is "editjob".
-  *
-  * @param out is the output to which any HTML should be sent.
-  * @param locale is the preferred local of the output.
-  * @param os is the current pipeline specification for this job.
-  * @param connectionSequenceNumber is the unique number of this connection within the job.
-  * @param actualSequenceNumber is the connection within the job that has currently been selected.
-  * @param tabName is the current tab name.
-  */
-  @Override
-  public void outputSpecificationBody(IHTTPOutput out, Locale locale,
-      Specification os, int connectionSequenceNumber, int actualSequenceNumber,
-      String tabName)
-      throws ManifoldCFException, IOException
-  {
-    OpenSearchServerSpecs specs = getSpecParameters(os);
-    outputResource(EDIT_SPEC_FORWARD, out, locale, specs, tabName, new Integer(
-        connectionSequenceNumber), new Integer(actualSequenceNumber));
-  }
-
-  /**
-   * Process a specification post. This method is called at the start of job's
-   * edit or view page, whenever there is a possibility that form data for a
-   * connection has been posted. Its purpose is to gather form information and
-   * modify the transformation specification accordingly. The name of the posted
-   * form is "editjob".
-   *
-   * @param variableContext contains the post data, including binary file-upload information.
-   * @param locale is the preferred local of the output.
-   * @param os is the current pipeline specification for this job.
-   * @param connectionSequenceNumber is the unique number of this connection within the job.
-   * @return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
-   */
-  @Override
-  public String processSpecificationPost(IPostParameters variableContext,
-      Locale locale, Specification os, int connectionSequenceNumber)
-      throws ManifoldCFException
-  {
-    ConfigurationNode specNode = getSpecNode(os);
-    boolean bAdd = (specNode == null);
-    if (bAdd)
-    {
-      specNode = new SpecificationNode(
-          OpenSearchServerSpecs.OPENSEARCHSERVER_SPECS_NODE);
-    }
-    OpenSearchServerSpecs.contextToSpecNode(variableContext, specNode,
-        connectionSequenceNumber);
-    if (bAdd)
-      os.addChild(os.getChildCount(), specNode);
-    return null;
-  }
-
-  /**
    * Build a Set of OpenSearchServer parameters. If configParams is null,
    * getConfiguration() is used.
    * 
@@ -364,56 +258,11 @@ public class OpenSearchServerConnector extends BaseOutputConnector
     return new OpenSearchServerConfig(configParams);
   }
 
-  final private OpenSearchServerSpecs getSpecParameters(Specification os)
-      throws ManifoldCFException
-  {
-    return new OpenSearchServerSpecs(getSpecNode(os));
-  }
-
   @Override
   public VersionContext getPipelineDescription(Specification os)
       throws ManifoldCFException
   {
-    OpenSearchServerSpecs specs = new OpenSearchServerSpecs(getSpecNode(os));
-    return new VersionContext(specs.toJson().toString(), params, os);
-  }
-
-  @Override
-  public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
-      throws ManifoldCFException, ServiceInterruption
-  {
-    OpenSearchServerSpecs specs = new OpenSearchServerSpecs(getSpecNode(outputDescription.getSpecification()));
-    long maxFileSize = specs.getMaxFileSize();
-    if (length > maxFileSize)
-      return false;
-    return true;
-  }
-
-  @Override
-  public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
-      throws ManifoldCFException, ServiceInterruption
-  {
-    OpenSearchServerSpecs specs = new OpenSearchServerSpecs(getSpecNode(outputDescription.getSpecification()));
-    return specs.checkMimeType(mimeType);
-  }
-
-  /**
-   * Pre-determine whether a document's URL is indexable by this connector. This
-   * method is used by participating repository connectors to help filter out
-   * documents that are not worth indexing.
-   *
-   * @param outputDescription
-   *          is the document's output version.
-   * @param url
-   *          is the URL of the document.
-   * @return true if the file is indexable.
-   */
-  @Override
-  public boolean checkURLIndexable(VersionContext outputDescription, String url, IOutputCheckActivity activities)
-      throws ManifoldCFException, ServiceInterruption
-  {
-    OpenSearchServerSpecs specs = new OpenSearchServerSpecs(getSpecNode(outputDescription.getSpecification()));
-    return specs.checkExtension(FilenameUtils.getExtension(url));
+    return new VersionContext("", params, os);
   }
 
   @Override
@@ -423,26 +272,6 @@ public class OpenSearchServerConnector extends BaseOutputConnector
   {
     outputResource(VIEW_CONFIG_FORWARD, out, locale,
         getConfigParameters(parameters), null, null, null);
-  }
-
-  /**
-   * View specification. This method is called in the body section of a job's
-   * view page. Its purpose is to present the pipeline specification information
-   * to the user. The coder can presume that the HTML that is output from this
-   * configuration will be within appropriate <html> and <body> tags.
-   *
-   * @param out is the output to which any HTML should be sent.
-   * @param locale is the preferred local of the output.
-   * @param connectionSequenceNumber is the unique number of this connection within the job.
-   * @param os is the current pipeline specification for this job.
-   */
-  @Override
-  public void viewSpecification(IHTTPOutput out, Locale locale,
-      Specification os, int connectionSequenceNumber)
-      throws ManifoldCFException, IOException
-  {
-    outputResource(VIEW_SPEC_FORWARD, out, locale, getSpecParameters(os), null,
-        new Integer(connectionSequenceNumber), null);
   }
 
   @Override
