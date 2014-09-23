@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-982: Remove all output connector tabs that are
+roughly equivalent to what the Document Filter transformation
+connector does.
+(Karl Wright)
+
 CONNECTORS-1043: Wrong url generated for SharePoint list items.
 (Lalit Jangra, Karl Wright)
 
