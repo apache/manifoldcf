@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1043: Wrong url generated for SharePoint list items.
+(Lalit Jangra, Karl Wright)
+
 CONNECTORS-418: Finish implementation of preferred way to get content
 URL for CMIS.
 (Karl Wright)
