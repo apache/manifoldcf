@@ -33,7 +33,7 @@ import static org.elasticsearch.node.NodeBuilder.*;
  *  @author Piergiorgio Lucidi
  * 
  * */
-public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
+public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB
 {
   protected Node node = null;
 

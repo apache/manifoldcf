@@ -18,14 +18,22 @@
 */
 package org.apache.manifoldcf.agents.output.elasticsearch.tests;
 
-
-/** This is a testing base class that is responsible for setting up/tearing down the agents framework. */
-public class BaseDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseDerby
+/** Tests that run the "agents daemon" should be derived from this */
+public class BaseUIHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIHSQLDB
 {
+  protected String[] getConnectorNames()
+  {
+    return new String[]{"Test Connector"};
+  }
+  
+  protected String[] getConnectorClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector"};
+  }
   
   protected String[] getOutputNames()
   {
-    return new String[]{"Elastic Search"};
+    return new String[]{"ElasticSearch"};
   }
   
   protected String[] getOutputClasses()
