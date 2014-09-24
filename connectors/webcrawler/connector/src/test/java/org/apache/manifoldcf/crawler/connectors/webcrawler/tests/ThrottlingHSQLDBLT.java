@@ -22,16 +22,16 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** Web connector session login test */
-public class SessionLoginDerbyIT extends BaseITDerby
+/** This is a very basic sanity check */
+public class ThrottlingHSQLDBLT extends BaseITHSQLDB
 {
 
-  protected SessionTester tester;
-  protected MockSessionWebService webService = null;
+  protected ThrottlingTester tester;
+  protected MockWebService webService = null;
   
-  public SessionLoginDerbyIT()
+  public ThrottlingHSQLDBLT()
   {
-    tester = new SessionTester(mcfInstance);
+    tester = new ThrottlingTester(mcfInstance);
   }
   
   // Setup and teardown the mock wiki service
@@ -40,7 +40,7 @@ public class SessionLoginDerbyIT extends BaseITDerby
   public void createWebService()
     throws Exception
   {
-    webService = new MockSessionWebService(100,"foo","bar");
+    webService = new MockWebService(10,2,true);
     webService.start();
   }
   
@@ -53,7 +53,7 @@ public class SessionLoginDerbyIT extends BaseITDerby
   }
 
   @Test
-  public void sessionCrawl()
+  public void bigCrawl()
     throws Exception
   {
     tester.executeTest();
