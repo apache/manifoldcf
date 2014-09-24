@@ -277,12 +277,6 @@
     </dependency>
 
     <!-- databases -->
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derby</artifactId>
-      <version>${derby.version}</version>
-      <scope>runtime</scope>
-    </dependency>
 
     <!-- jdbc connector databases -->
     <dependency>
