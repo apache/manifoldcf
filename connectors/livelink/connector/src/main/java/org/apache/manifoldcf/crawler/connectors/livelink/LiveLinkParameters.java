@@ -76,18 +76,9 @@ public class LiveLinkParameters
   
   
   // These parameters are for the LiveLink Authority
-  /** User name mapping description.  This replaces username regexp and username spec below. */
-  public final static String userNameMapping = "Livelink user name map";
   /** Cache time in seconds */
   public final static String cacheLifetime = "Cache lifetime minutes";
   /** Max LRU size */
   public final static String cacheLRUSize = "Max cache LRU size";
   
-  // These two are deprecated
-  /** Username regexp */
-  public final static String userNameRegexp = "User name regexp";
-  /** Livelink username spec */
-  public final static String livelinkNameSpec = "Livelink user spec";
-
-
 }
