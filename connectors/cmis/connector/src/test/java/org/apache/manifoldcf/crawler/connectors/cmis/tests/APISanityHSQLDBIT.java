@@ -51,7 +51,7 @@ import org.junit.Test;
 /**
  * @author Piergiorgio Lucidi
  */
-public class APISanityDerbyIT extends BaseITDerby
+public class APISanityHSQLDBIT extends BaseITHSQLDB
 {
   private static final String REPLACER = "?";
   private static final String CMIS_TEST_QUERY_CHANGE_DOC = "SELECT * FROM cmis:document WHERE cmis:name='"+REPLACER+"'";
