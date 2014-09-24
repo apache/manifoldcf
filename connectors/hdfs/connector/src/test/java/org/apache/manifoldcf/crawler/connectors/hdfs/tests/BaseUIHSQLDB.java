@@ -1,4 +1,4 @@
-/* $Id: Sanity.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id: BaseUIDerby.java 1231798 2012-01-15 23:58:22Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.agents.output.hdfs;
+package org.apache.manifoldcf.crawler.connectors.hdfs.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -27,16 +27,27 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a very basic sanity check */
-public class SanityDerbyTest extends BaseDerby
+/** Tests that run the "agents daemon" should be derived from this */
+public class BaseUIHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIHSQLDB
 {
-  
-  @Test
-  public void sanityCheck()
-    throws Exception
+  protected String[] getConnectorNames()
   {
-    // If we get this far, it must mean that the setup was successful, which is all that I'm shooting for in this test.
+    return new String[]{"HDFS Repository Connector"};
   }
   
+  protected String[] getConnectorClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.crawler.connectors.hdfs.HDFSRepositoryConnector"};
+  }
+  
+  protected String[] getOutputNames()
+  {
+    return new String[]{"Null Output"};
+  }
+  
+  protected String[] getOutputClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
+  }
 
 }

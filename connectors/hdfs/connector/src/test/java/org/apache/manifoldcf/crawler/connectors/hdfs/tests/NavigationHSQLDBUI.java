@@ -1,4 +1,4 @@
-/* $Id: Sanity.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id: NavigationDerbyUI.java 1422222 2012-12-15 11:29:02Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,16 +27,17 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a very basic sanity check */
-public class SanityDerbyTest extends BaseDerby
+import org.apache.manifoldcf.core.tests.HTMLTester;
+
+/** Basic UI navigation tests */
+public class NavigationHSQLDBUI extends BaseUIHSQLDB
 {
-  
+
   @Test
-  public void sanityCheck()
+  public void createConnectionsAndJob()
     throws Exception
   {
-    // If we get this far, it must mean that the setup was successful, which is all that I'm shooting for in this test.
+    new NavigationUITester(testerInstance,"http://localhost:8346/mcf-crawler-ui/index.jsp").createConnectionsAndJob();
   }
   
-
 }
