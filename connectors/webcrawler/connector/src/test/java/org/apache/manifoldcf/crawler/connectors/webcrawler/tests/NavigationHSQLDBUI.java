@@ -30,7 +30,7 @@ import org.junit.*;
 import org.apache.manifoldcf.core.tests.HTMLTester;
 
 /** Basic UI navigation tests */
-public class NavigationDerbyUI extends BaseUIDerby
+public class NavigationHSQLDBUI extends BaseUIHSQLDB
 {
 
   @Test

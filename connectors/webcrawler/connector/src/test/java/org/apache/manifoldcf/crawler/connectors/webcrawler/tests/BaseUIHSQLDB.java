@@ -28,7 +28,7 @@ import java.util.*;
 import org.junit.*;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
+public class BaseUIHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIHSQLDB
 {
   protected String[] getConnectorNames()
   {
@@ -49,5 +49,5 @@ public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
   {
     return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
   }
-  
+
 }
