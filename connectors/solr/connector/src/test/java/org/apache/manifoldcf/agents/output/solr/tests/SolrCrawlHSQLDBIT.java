@@ -18,35 +18,46 @@
 */
 package org.apache.manifoldcf.agents.output.solr.tests;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ManifoldCF;
-
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** Tests that run the "agents daemon" should be derived from this */
-public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
+/** This is a very basic sanity check */
+public class SolrCrawlHSQLDBIT extends BaseITHSQLDB
 {
-  protected String[] getConnectorNames()
+
+  protected SolrTester tester;
+  protected MockSolrService solrService = null;
+  
+  public SolrCrawlHSQLDBIT()
   {
-    return new String[]{"Test Connector"};
+    tester = new SolrTester(mcfInstance);
   }
   
-  protected String[] getConnectorClasses()
+  // Setup and teardown the mock wiki service
+  
+  @Before
+  public void createSolrService()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector"};
+    System.out.println("Creating mock service");
+    solrService = new MockSolrService();
+    solrService.start();
+    System.out.println("Mock service created");
   }
   
-  protected String[] getOutputNames()
+  @After
+  public void shutdownSolrService()
+    throws Exception
   {
-    return new String[]{"Solr Output"};
+    if (solrService != null)
+      solrService.stop();
   }
-  
-  protected String[] getOutputClasses()
+
+  @Test
+  public void simpleCrawl()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.agents.output.solr.SolrConnector"};
+    tester.executeTest();
   }
 }
