@@ -31,14 +31,14 @@
     
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
-        <available file="lib/derby.jar" property="derby-found"/>
+        <available file="lib/hsqldb.jar" property="hsqldb-found"/>
         <available file="lib/jetty-server.jar" property="jetty-found"/>
         <available file="lib/httpclient.jar" property="httpclient-found"/>
         <available file="lib/xercesImpl.jar" property="xerces-found"/>
         <available file="lib/fop.jar" property="fop-found"/>
         <condition property="downloaded">
             <and>
-                <isset property="derby-found"/>
+                <isset property="hsqldb-found"/>
                 <isset property="jetty-found"/>
                 <isset property="httpclient-found"/>
                 <isset property="xerces-found"/>
@@ -86,10 +86,6 @@
 
     <target name="run-tests-framework" depends="setup-framework" if="downloaded">
         <ant dir="framework" target="run-tests"/>
-    </target>
-
-    <target name="run-tests-derby-framework" depends="setup-framework" if="downloaded">
-        <ant dir="framework" target="run-tests-derby"/>
     </target>
 
     <target name="run-tests-postgresql-framework" depends="setup-framework" if="downloaded">
@@ -269,10 +265,6 @@
         <connectors-crawl target="run-tests"/>
     </target>
 
-    <target name="run-connectors-tests-derby" depends="deliver-framework" if="downloaded">
-        <connectors-crawl target="run-tests-derby"/>
-    </target>
-
     <target name="run-connectors-tests-HSQLDB" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-tests-HSQLDB"/>
     </target>
@@ -287,10 +279,6 @@
 
     <target name="run-connectors-tests-mysql" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-tests-mysql"/>
-    </target>
-
-    <target name="run-connectors-IT-derby" depends="deliver-framework" if="downloaded">
-        <connectors-crawl target="run-IT-derby"/>
     </target>
 
     <target name="run-connectors-IT-HSQLDB" depends="deliver-framework" if="downloaded">
@@ -309,10 +297,6 @@
         <connectors-crawl target="run-IT-mysql"/>
     </target>
 
-    <target name="run-connectors-UI-derby" depends="deliver-framework" if="downloaded">
-        <connectors-crawl target="run-UI-derby"/>
-    </target>
-
     <target name="run-connectors-UI-HSQLDB" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-UI-HSQLDB"/>
     </target>
@@ -327,10 +311,6 @@
 
     <target name="run-connectors-UI-mysql" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="run-UI-mysql"/>
-    </target>
-
-    <target name="run-connectors-LT-derby" depends="deliver-framework" if="downloaded">
-        <connectors-crawl target="run-LT-derby"/>
     </target>
 
     <target name="run-connectors-LT-HSQLDB" depends="deliver-framework" if="downloaded">
@@ -397,7 +377,6 @@
           <exclude name="framework/dist/"/>
           <exclude name="**/target/"/>
           <exclude name="**/test-output/"/>
-          <exclude name="**/test-derby-output/"/>
           <exclude name="**/test-postgresql-output/"/>
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
@@ -437,7 +416,6 @@
           <exclude name="framework/dist/"/>
           <exclude name="**/target/"/>
           <exclude name="**/test-output/"/>
-          <exclude name="**/test-derby-output/"/>
           <exclude name="**/test-postgresql-output/"/>
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
@@ -497,15 +475,11 @@
 
     <target name="image" depends="create-source-zip,create-source-tar,create-lib-zip,create-lib-tar,create-bin-zip,create-bin-tar"/>
     
-    <target name="test-dr" depends="run-tests-derby-framework,run-connectors-tests-derby,run-connectors-IT-derby"/>
-
     <target name="test-pg" depends="run-tests-postgresql-framework,run-connectors-tests-postgresql,run-connectors-IT-postgresql"/>
 
     <target name="test-my" depends="run-tests-mysql-framework,run-connectors-tests-mysql,run-connectors-IT-mysql"/>
 
     <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDBext-framework,run-connectors-tests-HSQLDB,run-connectors-tests-HSQLDBext,run-connectors-IT-HSQLDB,run-connectors-IT-HSQLDBext"/>
-
-    <target name="load-dr" depends="run-connectors-LT-derby"/>
 
     <target name="load-pg" depends="run-connectors-LT-postgresql"/>
 
@@ -513,13 +487,13 @@
 
     <target name="load-hs" depends="run-connectors-LT-HSQLDB,run-connectors-LT-HSQLDBext"/>
 
-    <target name="test" depends="run-tests-framework,run-connectors-tests,test-dr,test-hs"/>
+    <target name="test" depends="run-tests-framework,run-connectors-tests,test-hs"/>
 
-    <target name="ldtest" depends="run-connectors-LT-derby,run-connectors-LT-HSQLDB"/>
+    <target name="ldtest" depends="run-connectors-LT-HSQLDB"/>
 
-    <target name="uitest" depends="run-connectors-UI-derby,run-connectors-UI-HSQLDB"/>
+    <target name="uitest" depends="run-connectors-UI-HSQLDB"/>
     
-    <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
+    <target name="all" depends="build,javadoc,doc,image,test-hs"/>
 
     <target name="help">
       <echo level="info">
@@ -533,21 +507,19 @@ build    - Build executable code, jars, processes, and examples,
            under the 'dist' directory
 buildcln - Same as build, but clean up temp files
 javadoc  - Create the javadocs, under the 'dist/doc' directory
-test     - Compile and run all local tests (Derby and HSQLDB)
+test     - Compile and run all local tests (HSQLDB)
 uitest   - Compile and run all UI tests (needs Python)
-ldtest   - Compile and run all local load tests (Derby and HSQLDB)
+ldtest   - Compile and run all local load tests (HSQLDB)
 doc      - Build html site, under the 'dist/doc' directory
            (requires Apache Forrest)
 tmpclean - Clean up temporary files used during build and testing
 image    - Build release image, under the '.' directory (requires
            Apache Forrest)
 
-test-dr  - Compile and run Derby-based tests
 test-pg  - Compile and run postgresql-based tests (needs
            Postgresql)
 test-my  - Compile and run MySQL-based tests (needs MySQL)
 test-hs  - Compile and run HSQLDB-based tests
-load-dr  - Compile and run Derby-based load tests
 load-pg  - Compile and run postgresql-based load tests (needs
            Postgresql)
 load-my  - Compile and run MySQL-based load tests (needs MySQL)
@@ -585,7 +557,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
-          <exclude name="**/test-derby-output/"/>
           <exclude name="**/test-postgresql-output/"/>
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
@@ -605,7 +576,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
-          <exclude name="**/test-derby-output/"/>
           <exclude name="**/test-postgresql-output/"/>
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
@@ -694,76 +664,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-version" value="20090211"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="json"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-    </target>
-    
-    <target name="download-derby">
-        <mkdir dir="lib"/>
-        <property name="derby-version" value="10.10.2.0"/>
-        <property name="derby-package" value="org/apache/derby"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derby"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbytools"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbynet"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_it"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_de_DE"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_es"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_ja_JP"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_cs"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_zh_TW"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_zh_CN"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_pt_BR"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_fr"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_ru"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_ko_KR"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_hu"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${derby-package}"/><param name="artifact-version" value="${derby-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="derbyLocale_pl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -1810,7 +1710,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 	
-    <target name="make-core-deps" depends="download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
+    <target name="make-core-deps" depends="download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>

@@ -23,7 +23,6 @@
       <delete dir="build"/>
       <delete dir="dist"/>
       <delete dir="test-output"/>
-      <delete dir="test-derby-output"/>
       <delete dir="test-postgresql-output"/>
       <delete dir="test-mysql-output"/>
       <delete dir="test-HSQLDB-output"/>
@@ -74,7 +73,6 @@
         </fileset>
         <fileset dir="../lib">
             <include name="postgresql*.jar"/>
-            <include name="derby*.jar"/>
             <include name="hsqldb*.jar"/>
         </fileset>
         <fileset dir="../lib-proprietary">
@@ -360,7 +358,6 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
         </copy>
@@ -412,7 +409,6 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
             <fileset dir="../lib-proprietary">
@@ -469,7 +465,6 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
         </copy>
@@ -522,7 +517,6 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
             <fileset dir="../lib-proprietary">
@@ -582,7 +576,6 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
             <fileset dir="build/jar">
@@ -643,7 +636,6 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
             <fileset dir="../lib-proprietary">
@@ -711,7 +703,6 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
             <fileset dir="build/jar">
@@ -774,7 +765,6 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
             <fileset dir="../lib-proprietary">
@@ -914,7 +904,6 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
             <fileset dir="build/jar">
@@ -1173,22 +1162,6 @@
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="slf4j-simple.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="mail.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="postgresql.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derby.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbynet.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbytools.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_cs.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_de_DE.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_es.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_fr.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_hu.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_it.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_ja_JP.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_ko_KR.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_pl.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_pt_BR.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_ru.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_zh_CN.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
-        <antcall target="general-add-lib-classpath"><param name="lib-jar" value="derbyLocale_zh_TW.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="hsqldb.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="mcf-core.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
         <antcall target="general-add-lib-classpath"><param name="lib-jar" value="mcf-agents.jar"/><param name="processes-dir" value="${processes-dir}"/></antcall>
@@ -1379,24 +1352,7 @@
         <property name="manifest-cp-7" value="${manifest-cp-5} ../lib/commons-io.jar"/>
         <property name="manifest-cp-8" value="${manifest-cp-7} ../lib/commons-logging.jar"/>
         <property name="manifest-cp-9" value="${manifest-cp-8} ../lib/hsqldb.jar"/>
-        <property name="manifest-cp-10" value="${manifest-cp-9} ../lib/derbyclient.jar"/>
-        <property name="manifest-cp-11" value="${manifest-cp-10} ../lib/derby.jar"/>
-        <property name="manifest-cp-12" value="${manifest-cp-11} ../lib/derbyLocale_cs.jar"/>
-        <property name="manifest-cp-13" value="${manifest-cp-12} ../lib/derbyLocale_de_DE.jar"/>
-        <property name="manifest-cp-14" value="${manifest-cp-13} ../lib/derbyLocale_es.jar"/>
-        <property name="manifest-cp-15" value="${manifest-cp-14} ../lib/derbyLocale_fr.jar"/>
-        <property name="manifest-cp-16" value="${manifest-cp-15} ../lib/derbyLocale_hu.jar"/>
-        <property name="manifest-cp-17" value="${manifest-cp-16} ../lib/derbyLocale_it.jar"/>
-        <property name="manifest-cp-18" value="${manifest-cp-17} ../lib/derbyLocale_ja_JP"/>
-        <property name="manifest-cp-19" value="${manifest-cp-18} ../lib/derbyLocale_ko_KR.jar"/>
-        <property name="manifest-cp-20" value="${manifest-cp-19} ../lib/derbyLocale_pl.jar"/>
-        <property name="manifest-cp-21" value="${manifest-cp-20} ../lib/derbyLocale_pt_BR.jar"/>
-        <property name="manifest-cp-22" value="${manifest-cp-21} ../lib/derbyLocale_ru.jar"/>
-        <property name="manifest-cp-23" value="${manifest-cp-22} ../lib/derbyLocale_zh_CN.jar"/>
-        <property name="manifest-cp-24" value="${manifest-cp-23} ../lib/derbyLocale_zh_TW.jar"/>
-        <property name="manifest-cp-25" value="${manifest-cp-24} ../lib/derbyrun.jar"/>
-        <property name="manifest-cp-26" value="${manifest-cp-25} ../lib/derbytools.jar"/>
-        <property name="manifest-cp-27" value="${manifest-cp-26} ../lib/jasper.jar"/>
+        <property name="manifest-cp-27" value="${manifest-cp-9} ../lib/jasper.jar"/>
         <property name="manifest-cp-28" value="${manifest-cp-27} ../lib/jasper-el.jar"/>
         <property name="manifest-cp-30" value="${manifest-cp-28} ../lib/jetty-server.jar"/>
         <property name="manifest-cp-31" value="${manifest-cp-30} ../lib/jetty-util.jar"/>
@@ -1415,8 +1371,7 @@
         <property name="manifest-cp-45" value="${manifest-cp-44} ../lib/xalan.jar"/>
         <property name="manifest-cp-46" value="${manifest-cp-45} ../lib/xercesImpl.jar"/>
         <property name="manifest-cp-47" value="${manifest-cp-46} ../lib/xml-apis.jar"/>
-        <property name="manifest-cp-48" value="${manifest-cp-47} ../lib/derbynet.jar"/>
-        <property name="manifest-cp-49" value="${manifest-cp-48} ../lib/ecj.jar"/>
+        <property name="manifest-cp-49" value="${manifest-cp-47} ../lib/ecj.jar"/>
         <property name="manifest-cp-50" value="${manifest-cp-49} ../lib/jetty-webapp.jar"/>
         <property name="manifest-cp-51" value="${manifest-cp-50} ../lib/jetty-servlet.jar"/>
         <property name="manifest-cp-52" value="${manifest-cp-51} ../lib/velocity.jar"/>
@@ -1483,24 +1438,7 @@
         <property name="manifest-cp-proprietary-7" value="${manifest-cp-proprietary-5} ../lib/commons-io.jar"/>
         <property name="manifest-cp-proprietary-8" value="${manifest-cp-proprietary-7} ../lib/commons-logging.jar"/>
         <property name="manifest-cp-proprietary-9" value="${manifest-cp-proprietary-8} ../lib/hsqldb.jar"/>
-        <property name="manifest-cp-proprietary-10" value="${manifest-cp-proprietary-9} ../lib/derbyclient.jar"/>
-        <property name="manifest-cp-proprietary-11" value="${manifest-cp-proprietary-10} ../lib/derby.jar"/>
-        <property name="manifest-cp-proprietary-12" value="${manifest-cp-proprietary-11} ../lib/derbyLocale_cs.jar"/>
-        <property name="manifest-cp-proprietary-13" value="${manifest-cp-proprietary-12} ../lib/derbyLocale_de_DE.jar"/>
-        <property name="manifest-cp-proprietary-14" value="${manifest-cp-proprietary-13} ../lib/derbyLocale_es.jar"/>
-        <property name="manifest-cp-proprietary-15" value="${manifest-cp-proprietary-14} ../lib/derbyLocale_fr.jar"/>
-        <property name="manifest-cp-proprietary-16" value="${manifest-cp-proprietary-15} ../lib/derbyLocale_hu.jar"/>
-        <property name="manifest-cp-proprietary-17" value="${manifest-cp-proprietary-16} ../lib/derbyLocale_it.jar"/>
-        <property name="manifest-cp-proprietary-18" value="${manifest-cp-proprietary-17} ../lib/derbyLocale_ja_JP"/>
-        <property name="manifest-cp-proprietary-19" value="${manifest-cp-proprietary-18} ../lib/derbyLocale_ko_KR.jar"/>
-        <property name="manifest-cp-proprietary-20" value="${manifest-cp-proprietary-19} ../lib/derbyLocale_pl.jar"/>
-        <property name="manifest-cp-proprietary-21" value="${manifest-cp-proprietary-20} ../lib/derbyLocale_pt_BR.jar"/>
-        <property name="manifest-cp-proprietary-22" value="${manifest-cp-proprietary-21} ../lib/derbyLocale_ru.jar"/>
-        <property name="manifest-cp-proprietary-23" value="${manifest-cp-proprietary-22} ../lib/derbyLocale_zh_CN.jar"/>
-        <property name="manifest-cp-proprietary-24" value="${manifest-cp-proprietary-23} ../lib/derbyLocale_zh_TW.jar"/>
-        <property name="manifest-cp-proprietary-25" value="${manifest-cp-proprietary-24} ../lib/derbyrun.jar"/>
-        <property name="manifest-cp-proprietary-26" value="${manifest-cp-proprietary-25} ../lib/derbytools.jar"/>
-        <property name="manifest-cp-proprietary-27" value="${manifest-cp-proprietary-26} ../lib/jasper.jar"/>
+        <property name="manifest-cp-proprietary-27" value="${manifest-cp-proprietary-9} ../lib/jasper.jar"/>
         <property name="manifest-cp-proprietary-28" value="${manifest-cp-proprietary-27} ../lib/jasper-el.jar"/>
         <property name="manifest-cp-proprietary-30" value="${manifest-cp-proprietary-28} ../lib/jetty-server.jar"/>
         <property name="manifest-cp-proprietary-31" value="${manifest-cp-proprietary-30} ../lib/jetty-util.jar"/>
@@ -1520,8 +1458,7 @@
         <property name="manifest-cp-proprietary-45" value="${manifest-cp-proprietary-44} ../lib/xalan.jar"/>
         <property name="manifest-cp-proprietary-46" value="${manifest-cp-proprietary-45} ../lib/xercesImpl.jar"/>
         <property name="manifest-cp-proprietary-47" value="${manifest-cp-proprietary-46} ../lib/xml-apis.jar"/>
-        <property name="manifest-cp-proprietary-48" value="${manifest-cp-proprietary-47} ../lib/derbynet.jar"/>
-        <property name="manifest-cp-proprietary-49" value="${manifest-cp-proprietary-48} ../lib/ecj.jar"/>
+        <property name="manifest-cp-proprietary-49" value="${manifest-cp-proprietary-47} ../lib/ecj.jar"/>
         <property name="manifest-cp-proprietary-50" value="${manifest-cp-proprietary-49} ../lib-proprietary/ojdbc.jar"/>
         <property name="manifest-cp-proprietary-51" value="${manifest-cp-proprietary-50} ../lib-proprietary/jtds.jar"/>
         <property name="manifest-cp-proprietary-52" value="${manifest-cp-proprietary-51} ../lib/velocity.jar"/>
@@ -1727,29 +1664,6 @@
 
     <target name="run-tests" depends="compile-tests,run-core-tests,run-pull-agent-tests,run-script-engine-tests"/>
 
-    <target name="run-tests-derby" depends="compile-tests">
-        <mkdir dir="test-derby-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <path refid="framework-classpath"/>
-                <pathelement location="build/core/classes"/>
-                <pathelement location="build/ui-core/classes"/>
-                <pathelement location="build/agents/classes"/>
-                <pathelement location="build/pull-agent/classes"/>
-                <pathelement location="build/authority-servlet/classes"/>
-                <pathelement location="build/api-servlet/classes"/>
-                <pathelement location="build/core-tests/classes"/>
-                <pathelement location="build/agents-tests/classes"/>
-                <pathelement location="build/pull-agent-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.agents.tests.SanityDerbyTest" todir="test-derby-output"/>
-            <test name="org.apache.manifoldcf.crawler.tests.SanityDerbyTest" todir="test-derby-output"/>
-            <!-- MHL -->
-        </junit>
-    </target>
-
     <target name="run-tests-postgresql" depends="compile-tests">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -1813,8 +1727,10 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
+            <test name="org.apache.manifoldcf.core.throttler.TestThrottler" todir="test-HSQLDB-output"/>
             <test name="org.apache.manifoldcf.agents.tests.SanityHSQLDBTest" todir="test-HSQLDB-output"/>
             <test name="org.apache.manifoldcf.crawler.tests.SanityHSQLDBTest" todir="test-HSQLDB-output"/>
+
             <!-- MHL -->
         </junit>
     </target>
@@ -1854,6 +1770,6 @@
     
     <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,buildfiles,test-lib"/>
     
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB,run-tests-HSQLDBext"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-HSQLDB,run-tests-HSQLDBext"/>
     
 </project>

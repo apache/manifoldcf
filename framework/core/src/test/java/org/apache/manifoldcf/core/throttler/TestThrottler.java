@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.*;
 import org.junit.*;
 import static org.junit.Assert.*;
 
-public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseDerby
+public class TestThrottler extends org.apache.manifoldcf.core.tests.BaseHSQLDB
 {
   @Test
   public void multiThreadConnectionPoolTest()
