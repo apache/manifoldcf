@@ -76,9 +76,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   private long responseLifetime = 60000L;
   private int LRUsize = 1000;
 
-  // Match map for username
-  private MatchMap matchMap = null;
-
   // Retry count.  This is so we can try to install some measure of sanity into situations where LAPI gets confused communicating to the server.
   // So, for some kinds of errors, we just retry for a while hoping it will go away.
   private static final int FAILURE_RETRY_COUNT = 5;
@@ -141,23 +138,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       serverHTTPNTLMDomain = params.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
       serverHTTPNTLMUsername = params.getParameter(LiveLinkParameters.serverHTTPNTLMUsername);
       serverHTTPNTLMPassword = params.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
-
-      // These have been deprecated
-      String userNamePattern = params.getParameter(LiveLinkParameters.userNameRegexp);
-      String userEvalExpression = params.getParameter(LiveLinkParameters.livelinkNameSpec);
-      String userNameMapping = params.getParameter(LiveLinkParameters.userNameMapping);
-      if ((userNameMapping == null || userNameMapping.length() == 0) && userNamePattern != null && userEvalExpression != null)
-      {
-        // Create a matchmap using the old system
-        matchMap = new MatchMap();
-        matchMap.appendOldstyleMatchPair(userNamePattern,userEvalExpression);
-      }
-      else
-      {
-        if (userNameMapping == null)
-          userNameMapping = "(.*)\\\\@([A-Z|a-z|0-9|_|-]*)\\\\.(.*)=$(2)\\$(1l)";
-        matchMap = new MatchMap(userNameMapping);
-      }
 
       // Server parameter processing
 
@@ -343,7 +323,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       llServer = null;
     }
     LLUsers = null;
-    matchMap = null;
     
     serverProtocol = null;
     serverName = null;
@@ -426,8 +405,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         Logging.authorityConnectors.debug("Authentication user name = '"+userName+"'");
       }
 
-      // Use the matchMap object to do the translation
-      String domainAndUser = matchMap.translate(userName);
+      String domainAndUser = userName;
 
       if (Logging.authorityConnectors.isDebugEnabled())
       {
@@ -588,7 +566,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Server"));
-    tabsArray.add(Messages.getString(locale,"LivelinkConnector.UserMapping"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Cache"));
 
     out.print(
@@ -623,12 +600,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.usernameregexp.value != \"\" && !isRegularExpression(editconnection.usernameregexp.value))\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserNameRegularExpressionMustBeValidRegularExpression") + "\");\n"+
-"    editconnection.usernameregexp.focus();\n"+
-"    return false;\n"+
-"  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
@@ -646,13 +617,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.AServerPortNumberIsRequired") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
 "    editconnection.serverport.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.usernameregexp.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserNameRegularExpressionCannotBeNull") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserMapping") + "\");\n"+
-"    editconnection.usernameregexp.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.cachelifetime.value == \"\")\n"+
@@ -751,27 +715,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     String cacheLRUsize = parameters.getParameter(LiveLinkParameters.cacheLRUSize);
     if (cacheLRUsize == null)
       cacheLRUsize = "1000";    
-
-    MatchMap matchMap = null;
-    String usernameRegexp = parameters.getParameter(LiveLinkParameters.userNameRegexp);
-    String livelinkUserExpr = parameters.getParameter(LiveLinkParameters.livelinkNameSpec);
-    if (usernameRegexp != null && usernameRegexp.length() > 0 && livelinkUserExpr != null)
-    {
-      // Old-style configuration.  Convert to the new.
-      matchMap = new MatchMap();
-      matchMap.appendOldstyleMatchPair(usernameRegexp,livelinkUserExpr);
-    }
-    else
-    {
-      // New style configuration.
-      String userNameMapping = parameters.getParameter(LiveLinkParameters.userNameMapping);
-      if (userNameMapping == null)
-        userNameMapping = "^(.*)\\\\@([A-Z|a-z|0-9|_|-]*)\\\\.(.*)$=$(2)\\\\$(1l)";
-      matchMap = new MatchMap(userNameMapping);
-    }
-
-    usernameRegexp = matchMap.getMatchString(0);
-    livelinkUserExpr = matchMap.getReplaceString(0);
 
     // The "Server" tab
     // Always pass the whole keystore as a hidden.
@@ -900,32 +843,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       );
     }
 
-    // The "User Mapping" tab
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.UserMapping")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.UserNameRegularExpression") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"usernameregexp\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(usernameRegexp)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.LivelinkUserExpression") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"livelinkuserexpr\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(livelinkUserExpr)+"\"/></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for "User Mapping" tab
-      out.print(
-"<input type=\"hidden\" name=\"usernameregexp\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(usernameRegexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\"livelinkuserexpr\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(livelinkUserExpr)+"\"/>\n"
-      );
-    }
-    
     // "Cache" tab
     if(tabName.equals(Messages.getString(locale,"LivelinkConnector.Cache")))
     {
@@ -1053,19 +970,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         }
         parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,mgr.getString());
       }
-    }
-
-    // User name parameters
-    String usernameRegexp = variableContext.getParameter("usernameregexp");
-    String livelinkUserExpr = variableContext.getParameter("livelinkuserexpr");
-    if (usernameRegexp != null && livelinkUserExpr != null)
-    {
-      parameters.setParameter(LiveLinkParameters.userNameRegexp,null);
-      parameters.setParameter(LiveLinkParameters.livelinkNameSpec,null);
-
-      MatchMap matchMap = new MatchMap();
-      matchMap.appendMatchPair(usernameRegexp,livelinkUserExpr);
-      parameters.setParameter(LiveLinkParameters.userNameMapping,matchMap.toString());
     }
 
     // Cache parameters
