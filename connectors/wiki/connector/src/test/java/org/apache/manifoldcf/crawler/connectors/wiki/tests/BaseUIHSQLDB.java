@@ -27,16 +27,47 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a very basic sanity check */
-public class SanityDerbyTest extends BaseDerby
+/** Tests that run the "agents daemon" should be derived from this */
+public class BaseUIHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIHSQLDB
 {
+  protected MockWikiService wikiService = null;
   
-  @Test
-  public void sanityCheck()
-    throws Exception
+  protected String[] getConnectorNames()
   {
-    // If we get this far, it must mean that the setup was successful, which is all that I'm shooting for in this test.
+    return new String[]{"Wiki Connector"};
   }
   
-
+  protected String[] getConnectorClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.crawler.connectors.wiki.WikiConnector"};
+  }
+  
+  protected String[] getOutputNames()
+  {
+    return new String[]{"Null Output"};
+  }
+  
+  protected String[] getOutputClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
+  }
+  
+  // Setup and teardown the mock wiki service
+  
+  @Before
+  public void createWikiService()
+    throws Exception
+  {
+    wikiService = new MockWikiService(BaseUIHSQLDB.class);
+    wikiService.start();
+  }
+  
+  @After
+  public void shutdownWikiService()
+    throws Exception
+  {
+    if (wikiService != null)
+      wikiService.stop();
+  }
+  
 }
