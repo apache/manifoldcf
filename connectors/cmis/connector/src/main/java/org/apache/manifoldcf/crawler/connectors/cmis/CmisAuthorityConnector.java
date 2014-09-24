@@ -60,9 +60,6 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
   public static final String CONFIG_PARAM_ENDPOINT = "endpoint";
   public static final String CONFIG_PARAM_REPOSITORY_ID = "repositoryId";
   
-  /** User name mapping parameter */
-  protected static final String CONFIG_PARAM_USERMAPPING = "usermapping";
-  
   protected static final String CONFIG_PARAM_USERNAME_REGEXP = "usernameregexp";
   protected static final String CONFIG_PARAM_USER_TRANSLATION = "usertranslation";
   
@@ -76,9 +73,6 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
   
   /** The cache manager. */
   protected ICacheManager cacheManager = null;
-  
-  /** Match map for username mapping */
-  protected MatchMap matchMap = null;
   
   protected static long responseLifetime = 60000L;
   protected static int LRUsize = 1000;
@@ -147,17 +141,6 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
     if(StringUtils.isEmpty(repositoryId))
       repositoryId = DEFAULT_VALUE_REPOSITORY_ID;
     
-    String userMappingString = parameters.getParameter(CONFIG_PARAM_USERMAPPING);
-    MatchMap localMap;
-    if (StringUtils.isNotEmpty(userMappingString)){
-      localMap = new MatchMap(userMappingString);
-    } else {
-      localMap = new MatchMap();
-      localMap.appendMatchPair("(.*)","$(1)");
-    }
-    String usernameRegexp = localMap.getMatchString(0);
-    String userTranslation = localMap.getReplaceString(0);
-    
     if (tabName.equals(Messages.getString(locale,"CmisAuthorityConnector.Repository")))
     {
     out.print("<table class=\"displaytable\">\n"
@@ -176,33 +159,6 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
       out.print("<input type=\"hidden\" name=\""+CONFIG_PARAM_REPOSITORY_ID+"\" value=\""+Encoder.attributeEscape(repositoryId)+"\"/>\n");
     }
     
-    if (tabName.equals(Messages.getString(locale,"CmisAuthorityConnector.UserMapping")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"CmisAuthorityConnector.UserMapping") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\""+CONFIG_PARAM_USERNAME_REGEXP+"\" value=\""+
-  Encoder.attributeEscape(usernameRegexp)+"\"/> ==&gt; \n"+
-"      <input type=\"text\" size=\"32\" name=\""+CONFIG_PARAM_USER_TRANSLATION+"\" value=\""+
-  Encoder.attributeEscape(userTranslation)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\"usernameregexp\" value=\""+
-  Encoder.attributeEscape(usernameRegexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\"usertranslation\" value=\""+
-  Encoder.attributeEscape(userTranslation)+"\"/>\n"
-      );
-    }
-
   }
 
   /**
@@ -228,7 +184,6 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
       throws ManifoldCFException, IOException {
     
     tabsArray.add(Messages.getString(locale,"CmisAuthorityConnector.Repository"));
-    tabsArray.add(Messages.getString(locale,"CmisAuthorityConnector.UserMapping"));
     
     out.print("<script type=\"text/javascript\">\n" + "<!--\n"
         + "function checkConfig()\n" + "{\n"
@@ -281,16 +236,6 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
     if (StringUtils.isNotEmpty(repositoryId))
       parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
     
-    //User Mapping
-    String usernameRegexp = variableContext.getParameter(CONFIG_PARAM_USERNAME_REGEXP);
-    String userTranslation = variableContext.getParameter(CONFIG_PARAM_USER_TRANSLATION);
-    if (StringUtils.isNotEmpty(usernameRegexp) && StringUtils.isNotEmpty(userTranslation))
-    {
-      MatchMap localMap = new MatchMap();
-      localMap.appendMatchPair(usernameRegexp,userTranslation);
-      parameters.setParameter(CONFIG_PARAM_USERMAPPING,localMap.toString());
-    }
-
     return null;
 
   }
@@ -351,12 +296,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
         Logging.connectors.debug("CMIS: Calculating response access tokens for user '"+userName+"'");
 
       // Map the user to the final value
-      String verifiedUserName = StringUtils.EMPTY;
-      try {
-        verifiedUserName = matchMap.translate(userName);
-      } catch (Exception e) {
-          return userNotFoundResponse;
-      }
+      String verifiedUserName = userName;
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("CMIS: Mapped user name is '"+verifiedUserName+"'");
@@ -379,7 +319,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
      if (Logging.connectors.isDebugEnabled())
        Logging.connectors.debug("CMIS: Received request for user '"+userName+"'");
      
-     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,endpoint,repositoryId,matchMap.toString());
+     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,endpoint,repositoryId);
      
      // Enter the cache
      ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
@@ -416,24 +356,21 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
     protected static class AuthorizationResponseDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
     {
       /** The user name associated with the access tokens */
-      protected String userName;
+      protected final String userName;
       /** The repository endpoint */
-      protected String endpoint;
+      protected final String endpoint;
       /** The repository id */
-      protected String repositoryId;
-      /** The user mapping */
-      protected String userMapping;
+      protected final String repositoryId;
       /** The expiration time */
       protected long expirationTime = -1;
       
       /** Constructor. */
-      public AuthorizationResponseDescription(String userName, String endpoint, String repositoryId, String userMapping)
+      public AuthorizationResponseDescription(String userName, String endpoint, String repositoryId)
       {
         super("CMISAuthority",LRUsize);
         this.userName = userName;
         this.endpoint = endpoint;
         this.repositoryId = repositoryId;
-        this.userMapping = userMapping;
       }
 
       /** Return the invalidation keys for this object. */
@@ -446,7 +383,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
       public String getCriticalSectionName()
       {
         return getClass().getName() + "-" + userName + "-" + endpoint +
-          "-" + repositoryId + "_" + userMapping;
+          "-" + repositoryId;
       }
 
       /** Return the object expiration interval */
@@ -459,7 +396,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
 
       public int hashCode()
       {
-        return userName.hashCode() + endpoint.hashCode() + repositoryId.hashCode() + userMapping.hashCode();
+        return userName.hashCode() + endpoint.hashCode() + repositoryId.hashCode();
       }
       
       public boolean equals(Object o)
@@ -468,7 +405,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
           return false;
         AuthorizationResponseDescription ard = (AuthorizationResponseDescription)o;
         return ard.userName.equals(userName) && ard.endpoint.equals(endpoint) &&
-          repositoryId.equals(repositoryId) && ard.userMapping.equals(userMapping);
+          repositoryId.equals(repositoryId);
       }
       
     }
