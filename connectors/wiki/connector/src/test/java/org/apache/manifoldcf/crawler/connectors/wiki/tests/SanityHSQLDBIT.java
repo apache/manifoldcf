@@ -30,7 +30,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class SanityDerbyIT extends BaseITDerby
+public class SanityHSQLDBIT extends BaseITHSQLDB
 {
   protected static Map<String,String> initialCheckResources;
   protected static Map<String,String> initialListResources;
