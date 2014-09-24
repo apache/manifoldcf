@@ -18,44 +18,36 @@
 */
 package org.apache.manifoldcf.crawler.connectors.rss.tests;
 
+import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.crawler.interfaces.*;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
+
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a very basic sanity check */
-public class BigCrawlDerbyLT extends BaseITDerby
+/** Tests that run the "agents daemon" should be derived from this */
+public class BaseUIHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIHSQLDB
 {
-
-  protected BigCrawlTester tester;
-  protected MockRSSService rssService = null;
-  
-  public BigCrawlDerbyLT()
+  protected String[] getConnectorNames()
   {
-    tester = new BigCrawlTester(mcfInstance);
+    return new String[]{"RSS Connector"};
   }
   
-  // Setup and teardown the mock wiki service
-  
-  @Before
-  public void createRSSService()
-    throws Exception
+  protected String[] getConnectorClasses()
   {
-    rssService = new MockRSSService(10);
-    rssService.start();
+    return new String[]{"org.apache.manifoldcf.crawler.connectors.rss.RSSConnector"};
   }
   
-  @After
-  public void shutdownRSSService()
-    throws Exception
+  protected String[] getOutputNames()
   {
-    if (rssService != null)
-      rssService.stop();
+    return new String[]{"Null Output"};
+  }
+  
+  protected String[] getOutputClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
   }
 
-  @Test
-  public void bigCrawl()
-    throws Exception
-  {
-    tester.executeTest();
-  }
 }
