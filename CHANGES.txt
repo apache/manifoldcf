@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1044: Remove all support for Derby as an internally
+used database.
+(Karl Wright)
+
 CONNECTORS-982: Remove all output connector tabs that are
 roughly equivalent to what the Document Filter transformation
 connector does.

@@ -98,7 +98,6 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
-        <delete dir="test-derby-output"/>
         <delete dir="test-postgresql-output"/>
         <delete dir="test-mysql-output"/>
         <delete dir="test-HSQLDB-output"/>
@@ -169,7 +168,6 @@
         <fileset dir="${mcf-dist}/test-lib"/>
         <fileset dir="${mcf-dist}/lib">
             <include name="postgresql*.jar"/>
-            <include name="derby*.jar"/>
             <include name="hsqldb*.jar"/>
         </fileset>
         <fileset dir="${mcf-dist}/lib-proprietary">
@@ -874,29 +872,6 @@
     
     <target name="build-tests" depends="build,compile-tests"/>
 
-    <target name="run-IT-derby" depends="compile-tests,pretest-check" if="canTest">
-        <mkdir dir="test-derby-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
-            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
-            <classpath>
-                <fileset dir="${env.JAVA_HOME}/lib">
-                    <include name="tools.jar"/>
-                </fileset>
-                <path refid="connector-test-classpath"/>
-                <pathelement location="build/connector-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-            <batchtest todir="test-derby-output">
-                <fileset dir="build/connector-tests/classes">
-                    <include name="**/*DerbyIT.class"/>
-                </fileset>
-            </batchtest>
-        </junit>
-    </target>
-    
     <target name="run-IT-postgresql" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -989,29 +964,6 @@
         </junit>
     </target>
     
-    <target name="run-LT-derby" depends="compile-tests,pretest-check" if="canTest">
-        <mkdir dir="test-derby-output"/>
-        <junit fork="true" maxmemory="384m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
-            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
-            <classpath>
-                <fileset dir="${env.JAVA_HOME}/lib">
-                    <include name="tools.jar"/>
-                </fileset>
-                <path refid="connector-test-classpath"/>
-                <pathelement location="build/connector-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-            <batchtest todir="test-derby-output">
-                <fileset dir="build/connector-tests/classes">
-                    <include name="**/*DerbyLT.class"/>
-                </fileset>
-            </batchtest>
-        </junit>
-    </target>
-    
     <target name="run-LT-postgresql" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="384m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -1099,29 +1051,6 @@
             <batchtest todir="test-mysql-output">
                 <fileset dir="build/connector-tests/classes">
                     <include name="**/*MySQLLT.class"/>
-                </fileset>
-            </batchtest>
-        </junit>
-    </target>
-    
-    <target name="run-UI-derby" depends="compile-tests,pretest-check" if="canTest">
-        <mkdir dir="test-derby-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
-            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
-            <classpath>
-                <fileset dir="${env.JAVA_HOME}/lib">
-                    <include name="tools.jar"/>
-                </fileset>
-                <path refid="connector-test-classpath"/>
-                <pathelement location="build/connector-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-            <batchtest todir="test-derby-output">
-                <fileset dir="build/connector-tests/classes">
-                    <include name="**/*DerbyUI.class"/>
                 </fileset>
             </batchtest>
         </junit>
@@ -1230,7 +1159,6 @@
             <batchtest todir="test-output">
                 <fileset dir="build/connector-tests/classes">
                     <include name="**/*Test.class"/>
-                    <exclude name="**/*DerbyTest.class"/>
                     <exclude name="**/*PostgresqlTest.class"/>
                     <exclude name="**/*MySQLTest.class"/>
                     <exclude name="**/*HSQLDBTest.class"/>
@@ -1240,22 +1168,6 @@
         </junit>
     </target>
 
-    <target name="run-tests-derby" depends="compile-tests,has-tests-check" if="hasTests">
-        <mkdir dir="test-derby-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <path refid="connector-test-classpath"/>
-                <pathelement location="build/connector-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-            <batchtest todir="test-derby-output">
-                <fileset dir="build/connector-tests/classes">
-                    <include name="**/*DerbyTest.class"/>
-                </fileset>
-            </batchtest>
-        </junit>
-    </target>
-    
     <target name="run-tests-postgresql" depends="compile-tests,has-tests-check" if="hasTests">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" showoutput="true" haltonfailure="true">
@@ -1316,6 +1228,6 @@
         </junit>
     </target>
 
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-HSQLDB"/>
 
 </project>
