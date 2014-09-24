@@ -27,7 +27,7 @@ import org.junit.Before;
  *  @author Piergiorgio Lucidi
  * 
  * */
-public class BaseITDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
+public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB
 {
   protected CMISServer cmisServer = null;
 

@@ -18,19 +18,37 @@
 */
 package org.apache.manifoldcf.crawler.connectors.cmis.tests;
 
-
-/** This is a testing base class that is responsible for setting up/tearing down the agents framework. */
-public class BaseDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseDerby
+/** Tests that run the "agents daemon" should be derived from this */
+public class BaseUIHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIHSQLDB
 {
-  
   protected String[] getConnectorNames()
   {
-    return new String[]{"CMIS"};
+    return new String[]{"CMIS Connector"};
   }
   
   protected String[] getConnectorClasses()
   {
     return new String[]{"org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector"};
+  }
+  
+  protected String[] getOutputNames()
+  {
+    return new String[]{"Null Output"};
+  }
+  
+  protected String[] getOutputClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
+  }
+
+  protected String[] getAuthorityClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"};
+  }
+  
+  protected String[] getAuthorityNames()
+  {
+    return new String[]{"CMIS authority"};
   }
 
 }
