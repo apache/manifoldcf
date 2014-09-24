@@ -1,4 +1,4 @@
-
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.gridfs.tests;
+package org.apache.manifoldcf.agents.output.gts.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -27,18 +27,27 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a testing base class that is responsible for setting up/tearing down the agents framework. */
-public class BaseDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseDerby
+/** Tests that run the "agents daemon" should be derived from this */
+public class BaseUIHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIHSQLDB
 {
-  
   protected String[] getConnectorNames()
   {
-    return new String[]{"GridFS"};
+    return new String[]{"Test Connector"};
   }
   
   protected String[] getConnectorClasses()
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.gridfs.GridFSRepositoryConnector"};
+    return new String[]{"org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector"};
+  }
+  
+  protected String[] getOutputNames()
+  {
+    return new String[]{"GTS Output"};
+  }
+  
+  protected String[] getOutputClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.agents.output.gts.GTSConnector"};
   }
 
 }
