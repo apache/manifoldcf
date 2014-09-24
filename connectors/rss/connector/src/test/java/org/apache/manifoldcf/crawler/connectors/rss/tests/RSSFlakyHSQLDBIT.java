@@ -23,12 +23,12 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class RSSFlakyDerbyIT extends BaseITDerby
+public class RSSFlakyHSQLDBIT extends BaseITHSQLDB
 {
   protected RSSSimpleCrawlTester tester;
   protected MockRSSService rssService = null;
   
-  public RSSFlakyDerbyIT()
+  public RSSFlakyHSQLDBIT()
   {
     tester = new RSSSimpleCrawlTester(mcfInstance);
   }
@@ -63,7 +63,7 @@ public class RSSFlakyDerbyIT extends BaseITDerby
   protected String getDatabaseImplementationClass()
     throws Exception
   {
-    return FlakyDerbyInstance.class.getName();
+    return FlakyHSQLDBInstance.class.getName();
   }
 
   protected static class DBInterruptionNotification implements RSSSimpleCrawlTester.TestNotification
@@ -73,16 +73,16 @@ public class RSSFlakyDerbyIT extends BaseITDerby
     {
       // Wait 5 seconds, then turn of database access for 10 seconds.  Then, do it again.
       Thread.sleep(5000L);
-      FlakyDerbyInstance.setConnectionWorking(false);
+      FlakyHSQLDBInstance.setConnectionWorking(false);
       System.out.println("Database connectivity is OFF");
       Thread.sleep(10000L);
-      FlakyDerbyInstance.setConnectionWorking(true);
+      FlakyHSQLDBInstance.setConnectionWorking(true);
       System.out.println("Database connectivity restored");
       Thread.sleep(5000L);
-      FlakyDerbyInstance.setConnectionWorking(false);
+      FlakyHSQLDBInstance.setConnectionWorking(false);
       System.out.println("Database connectivity is OFF");
       Thread.sleep(10000L);
-      FlakyDerbyInstance.setConnectionWorking(true);
+      FlakyHSQLDBInstance.setConnectionWorking(true);
       System.out.println("Database connectivity restored");
     }
   }

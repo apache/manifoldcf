@@ -29,23 +29,25 @@ import javax.sql.*;
 import java.util.concurrent.atomic.*;
 
 /** This is a very basic sanity check */
-public class FlakyDerbyInstance extends org.apache.manifoldcf.core.database.DBInterfaceDerby
+public class FlakyHSQLDBInstance extends org.apache.manifoldcf.core.database.DBInterfaceHSQLDB
 {
 
   protected final static AtomicBoolean lostConnection = new AtomicBoolean(false);
   
-  public FlakyDerbyInstance(IThreadContext tc, String databaseName, String userName, String password)
+  public FlakyHSQLDBInstance(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
     super(tc,databaseName,userName,password);
   }
 
-  public FlakyDerbyInstance(IThreadContext tc, String databaseName)
+  /*
+  public FlakyHSQLDBInstance(IThreadContext tc, String databaseName)
     throws ManifoldCFException
   {
     super(tc,databaseName);
   }
-
+  */
+  
   @Override
   protected IResultSet execute(Connection connection, String query, List params, boolean bResults, int maxResults,
     ResultSpecification spec, ILimitChecker returnLimit)
