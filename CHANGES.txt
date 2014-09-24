@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1046: Remove user mapping support except for
+official regexp mapper.
+(Karl Wright)
+
 CONNECTORS-1044: Remove all support for Derby as an internally
 used database.
 (Karl Wright)
