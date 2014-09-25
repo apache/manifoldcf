@@ -38,6 +38,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   public static final String CONFIG_PARAM_USERNAME = "docbaseusername";
   public static final String CONFIG_PARAM_PASSWORD = "docbasepassword";
   public static final String CONFIG_PARAM_DOMAIN = "domain";
+  public static final String CONFIG_PARAM_CASEINSENSITIVE = "usernamecaseinsensitive";
   public static final String CONFIG_PARAM_USESYSTEMACLS = "usesystemacls";
   public static final String CONFIG_PARAM_CACHELIFETIME = "cachelifetimemins";
   public static final String CONFIG_PARAM_CACHELRUSIZE = "cachelrusize";
@@ -46,6 +47,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   protected String userName = null;
   protected String password = null;
   protected String domain = null;
+  protected boolean caseInsensitive = false;
   protected boolean useSystemAcls = true;
 
   // Documentum has no "deny" tokens, and its document acls cannot be empty, so no local authority deny token is required.
@@ -166,6 +168,11 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       }
       else
         Logging.authorityConnectors.debug("DCTM: Domain = '" + domain + "'");
+
+      if (caseInsensitive)
+      {
+        Logging.authorityConnectors.debug("DCTM: Case insensitivity enabled");
+      }
 
       if (useSystemAcls)
       {
@@ -509,9 +516,9 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
         try
         {
           if (hasLoginNameColumn)
-            object = getObjectByQualification("dm_user where "+insensitiveMatch(false,"user_login_name",strUserName));
+            object = getObjectByQualification("dm_user where "+insensitiveMatch(caseInsensitive,"user_login_name",strUserName));
           if (!object.exists())
-            object = getObjectByQualification("dm_user where "+insensitiveMatch(false,"user_os_name",strUserName));
+            object = getObjectByQualification("dm_user where "+insensitiveMatch(caseInsensitive,"user_os_name",strUserName));
           if (!object.exists())
           {
             if (Logging.authorityConnectors.isDebugEnabled())
@@ -635,7 +642,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(strUserNamePassedIn,docbaseName,userName,password,
-      domain,useSystemAcls,responseLifetime,LRUsize);
+      domain,caseInsensitive,useSystemAcls,responseLifetime,LRUsize);
     
     // Enter the cache
     ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
@@ -683,9 +690,9 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
         boolean noSession = (session==null);
         getSession();
         GetUserAccessIDThread t = new GetUserAccessIDThread(strUserName);
-        t.start();
         try
         {
+          t.start();
           t.join();
           Throwable thr = t.getException();
           if (thr != null)
@@ -754,9 +761,9 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
         getSession();
         ArrayList list =  new ArrayList();
         GetAccessTokensThread t = new GetAccessTokensThread(strDQL,list);
-        t.start();
         try
         {
+          t.start();
           t.join();
           Throwable thr = t.getException();
           if (thr != null)
@@ -837,7 +844,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       sb.append(field);
     sb.append("=");
     if (insensitive)
-      sb.append(quoteDQLString(value.toUpperCase(Locale.ROOT)));
+      sb.append(quoteDQLString(value.toUpperCase()));
     else
       sb.append(quoteDQLString(value));
     return sb.toString();
@@ -903,6 +910,14 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       // Empty domain is allowed
       domain = null;
     }
+
+    String strCaseInsensitive = configParams.getParameter(CONFIG_PARAM_CASEINSENSITIVE);
+    if (strCaseInsensitive != null && strCaseInsensitive.equals("true"))
+    {
+      caseInsensitive = true;
+    }
+    else
+      caseInsensitive = false;
 
     String strUseSystemAcls = configParams.getParameter(CONFIG_PARAM_USESYSTEMACLS);
     if (strUseSystemAcls == null || strUseSystemAcls.equals("true"))
@@ -1027,6 +1042,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"DCTM.Docbase"));
+    tabsArray.add(Messages.getString(locale,"DCTM.UserMapping"));
     tabsArray.add(Messages.getString(locale,"DCTM.SystemACLs"));
     tabsArray.add(Messages.getString(locale,"DCTM.Cache"));
 
@@ -1124,6 +1140,10 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     if (docbaseDomain == null)
       docbaseDomain = "";
 
+    String caseInsensitiveUser = parameters.getParameter(CONFIG_PARAM_CASEINSENSITIVE);
+    if (caseInsensitiveUser == null)
+      caseInsensitiveUser = "false";
+
     String useSystemAcls = parameters.getParameter(CONFIG_PARAM_USESYSTEMACLS);
     if (useSystemAcls == null)
       useSystemAcls = "true";
@@ -1169,6 +1189,38 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 "<input type=\"hidden\" name=\"docbaseusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseUserName)+"\"/>\n"+
 "<input type=\"hidden\" name=\"docbasepassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbasePassword)+"\"/>\n"+
 "<input type=\"hidden\" name=\"docbasedomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseDomain)+"\"/>\n"
+      );
+    }
+
+    // "User Mapping" tab
+    if (tabName.equals(Messages.getString(locale,"DCTM.UserMapping")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.AuthenticationUsernameMatching") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"displaytable\">\n"+
+"        <tr>\n"+
+"          <td class=\"description\"><input name=\"usernamecaseinsensitive\" type=\"radio\" value=\"true\" "+((caseInsensitiveUser.equals("true"))?"checked=\"true\"":"")+" /></td>\n"+
+"          <td class=\"value\"><nobr>" + Messages.getBodyString(locale,"DCTM.CaseInsensitive") + "</nobr></td>\n"+
+"        </tr>\n"+
+"        <tr>\n"+
+"          <td class=\"description\"><input name=\"usernamecaseinsensitive\" type=\"radio\" value=\"false\" "+((!caseInsensitiveUser.equals("true"))?"checked=\"true\"":"")+" /></td>\n"+
+"          <td class=\"value\"><nobr>" + Messages.getBodyString(locale,"DCTM.CaseSensitive") + "</nobr></td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "User Mapping" tab
+      out.print(
+"<input type=\"hidden\" name=\"usernamecaseinsensitive\" value=\""+caseInsensitiveUser+"\"/>\n"
       );
     }
 
@@ -1261,6 +1313,10 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     if (docbaseDomain != null)
       parameters.setParameter(CONFIG_PARAM_DOMAIN,docbaseDomain);
 
+    String caseInsensitiveUser = variableContext.getParameter("usernamecaseinsensitive");
+    if (caseInsensitiveUser != null)
+      parameters.setParameter(CONFIG_PARAM_CASEINSENSITIVE,caseInsensitiveUser);
+
     String useSystemAcls = variableContext.getParameter("usesystemacls");
     if (useSystemAcls != null)
       parameters.setParameter(CONFIG_PARAM_USESYSTEMACLS,useSystemAcls);
@@ -1334,21 +1390,22 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   protected static class AuthorizationResponseDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
   {
     // The parameters upon which the cached results are based.
-    protected final String userName;
-    protected final String docbaseName;
-    protected final String adminUserName;
-    protected final String adminPassword;
-    protected final String domain;
-    protected final boolean useSystemACLs;
+    protected String userName;
+    protected String docbaseName;
+    protected String adminUserName;
+    protected String adminPassword;
+    protected String domain;
+    protected boolean caseInsensitive;
+    protected boolean useSystemACLs;
     /** The expiration time */
     protected long expirationTime = -1;
     /** The response lifetime */
-    protected final long responseLifetime;
+    protected long responseLifetime;
     
     /** Constructor. */
     public AuthorizationResponseDescription(String userName, String docbaseName,
       String adminUserName, String adminPassword, String domain,
-      boolean useSystemACLs,
+      boolean caseInsensitive, boolean useSystemACLs,
       long responseLifetime, int LRUsize)
     {
       super("DocumentumDirectoryAuthority",LRUsize);
@@ -1357,6 +1414,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       this.adminUserName = adminUserName;
       this.adminPassword = adminPassword;
       this.domain = domain;
+      this.caseInsensitive = caseInsensitive;
       this.useSystemACLs = useSystemACLs;
       this.responseLifetime = responseLifetime;
     }
@@ -1372,7 +1430,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     {
       return getClass().getName() + "-" + userName + "-" + docbaseName +
         "-" + adminUserName + "-" + adminPassword + "-" + ((domain==null)?"NULL":domain) + "-" +
-        (useSystemACLs?"true":"false");
+        (caseInsensitive?"true":"false") + "-" + (useSystemACLs?"true":"false");
     }
 
     /** Return the object expiration interval */
@@ -1387,7 +1445,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     {
       return userName.hashCode() + docbaseName.hashCode() + adminUserName.hashCode() +
         adminPassword.hashCode() + ((domain==null)?0:domain.hashCode()) +
-        (useSystemACLs?1:0);
+        (caseInsensitive?1:0) + (useSystemACLs?1:0);
     }
     
     public boolean equals(Object o)
@@ -1398,7 +1456,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       return ard.userName.equals(userName) && ard.docbaseName.equals(docbaseName) &&
         ard.adminUserName.equals(adminUserName) && ard.adminPassword.equals(adminPassword) &&
         ((ard.domain==null||domain==null)?(ard.domain == domain):(ard.domain.equals(domain))) &&
-        ard.useSystemACLs == useSystemACLs;
+        ard.caseInsensitive == caseInsensitive && ard.useSystemACLs == useSystemACLs;
     }
     
   }
