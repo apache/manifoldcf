@@ -1045,25 +1045,11 @@ curl -XGET http://localhost:9200/index/_mapping
               <title>CMIS Authority Connection</title>
               <p>A CMIS authority connection is required for enforcing security for documents retrieved from CMIS repositories.</p>
               <p>The CMIS specification includes the concept of authorities only depending on a specific document, this authority connector is only based on a regular expression comparator.</p>
-              <p>A CMIS authority connection has the following special tabs you will need to configure: the "Repository" tab and the "User Mapping" tab. The "Repository" tab looks like this:</p>
+              <p>A CMIS authority connection has the following special tab that you will need to configure: the "Repository" tab. The "Repository" tab looks like this:</p>
               <br/><br/>
               <figure src="images/en_US/cmis-authority-connection-configuration-repository.png" alt="CMIS Authority, Repository configuration" width="80%"/>
               <br/><br/>
               <p>The repository configuration will be only used to track an ID for a specific CMIS repository. No calls will be performed against the CMIS repository.</p>
-              <br/><br/>
-              <p>The second tab that you need to configure is the "User Mapping" tab that allows you to define a regular expression to specify the user mapping.  This tab
-                    predates the addition of user mapping functionality to ManifoldCF.  Please create a user mapping instead.</p>
-              <p>The "User Mapping" tab looks like the following:</p>
-              <br/><br/>
-              <figure src="images/en_US/cmis-authority-connection-configuration-usermapping.png" alt="CMIS Authority, User Mapping configuration" width="80%"/>
-              <br/><br/>
-              <p>The purpose of the "User Mapping" tab is to allow you to map the incoming user name and domain (usually from Active Directory) to its CMIS user equivalent.
-                     The mapping consists of a match expression, which is a regular expression where parentheses ("("
-                     and ")") mark sections you are interested in, and a replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
-                     substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first match group
-                     mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
-              <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert an
-                   Active Directory username of <code>MyUserName@subdomain.domain.com</code> into the CMIS user name <code>subdomain\myusername</code>.</p>
               <p>When you are done, click the "Save" button.  You will then see a summary and status for the authority connection:</p>
               <br/><br/>
               <figure src="images/en_US/cmis-authority-connection-configuration-save.png" alt="CMIS Authority, saving configuration" width="80%"/>
@@ -1086,9 +1072,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <p>Enter the desired Content Server docbase name, and enter the appropriate credentials.  You may leave the "Domain" field blank if the Content Server you specify does not have
                     Active Directory support enabled.</p>
-                <p>The purpose of the User Mapping tab is to map an incoming user name to the form that Documentum requires.  This tab predates the addition of
-                      user mapping functionality to ManifoldCF, and is thus considered to be deprecated.  Please create a user mapping instead.</p>
-                <p>The "User Mapping" tab looks like this:</p>
+                <p>The purpose of the User Mapping tab is to control whether user lookups in Documentum are case sensitive or not.  The "User Mapping" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/documentum-authority-user-mapping.PNG" alt="Documentum Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
@@ -1254,7 +1238,7 @@ curl -XGET http://localhost:9200/index/_mapping
                     for retrieving a user's ACLs from that machine.  Since LiveLink operates with its own list of users, you may also want to specify a rule-based
                     mapping between an Active Directory user and the corresponding LiveLink user.  The authority type allows you to specify such a mapping using
                     regular expressions.</p>
-                <p>A LiveLink authority connection has three special tabs you will need to configure: the "Server" tab, the "User Mapping" tab, and the "Cache" tab.</p>
+                <p>A LiveLink authority connection has two special tabs you will need to configure: the "Server" tab and the "Cache" tab.</p>
                 <p>The "Server" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-authority-server.PNG" alt="LiveLink Authority, Server tab" width="80%"/>
@@ -1272,20 +1256,6 @@ curl -XGET http://localhost:9200/index/_mapping
                     "Server HTTP NTLM user name" and "Server HTTP NTLM password" fields.  For no web server authentication, leave these fields all blank.</p>
                 <p>For communication using HTTPS, you will also need to upload your authority certificate(s) on the "Server" tab, to tell the connection which certificates to
                     trust.  Upload your certificate using the browse button, and then click the "Add" button to add it to the trust store.</p>
-                <p>The "User Mapping" tab looks like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/livelink-authority-user-mapping.PNG" alt="LiveLink Authority, User Mapping tab" width="80%"/>
-                <br/><br/>
-                <p>The purpose of the "User Mapping" tab is to allow you to map the incoming user name and domain (usually from Active Directory) to its LiveLink equivalent.
-                      This tab predates the addition of the general user mapping functionality, and is provided only for backwards-compatibility reasons.  Please create a regular
-                      expression mapper instead.</p>
-                <p>The mapping consists of a match expression, which is a regular expression where parentheses ("(" and ")") mark sections you are interested in, and a
-                       replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
-                       substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first
-                       match group mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
-                <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert
-                      an Active Directory username of <code>MyUserName@subdomain.domain.com</code> into the LiveLink user name
-                      <code>subdomain\myusername</code>.</p>
                 <p>The "Cache" tab allows you to configure how the authority connection keeps an individual user's information around:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-authority-cache.PNG" alt="LiveLink Authority, Cache tab" width="80%"/>
