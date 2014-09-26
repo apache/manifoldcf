@@ -775,7 +775,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-codec"/>
-            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-version" value="1.9"/>
             <param name="artifact-name" value="commons-codec"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -935,7 +935,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
-            <param name="artifact-version" value="3.10.1"/>
+            <param name="artifact-version" value="3.11-beta2"/>
             <param name="artifact-name" value="poi"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1326,7 +1326,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="commons-codec"/>
-            <param name="artifact-version" value="1.8"/>
+            <param name="artifact-version" value="1.9"/>
             <param name="artifact-name" value="commons-codec"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1508,13 +1508,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/tika"/>
-            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-version" value="1.6"/>
             <param name="artifact-name" value="tika-core"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/tika"/>
-            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-version" value="1.6"/>
             <param name="artifact-name" value="tika-parsers"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1539,13 +1539,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/gagravarr"/>
             <param name="artifact-name" value="vorbis-java-tika"/>
-            <param name="artifact-version" value="0.1"/>
+            <param name="artifact-version" value="0.6"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
             <param name="artifact-name" value="poi-scratchpad"/>
-            <param name="artifact-version" value="3.10.1"/>
+            <param name="artifact-version" value="3.11-beta2"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -1557,7 +1557,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/aspectj"/>
             <param name="artifact-name" value="aspectjrt"/>
-            <param name="artifact-version" value="1.6.11"/>
+            <param name="artifact-version" value="1.8.0"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -1581,7 +1581,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/tukaani"/>
             <param name="artifact-name" value="xz"/>
-            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-version" value="1.5"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -1593,19 +1593,19 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/pdfbox"/>
             <param name="artifact-name" value="pdfbox"/>
-            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-version" value="1.8.6"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/pdfbox"/>
             <param name="artifact-name" value="fontbox"/>
-            <param name="artifact-version" value="1.8.4"/>
+            <param name="artifact-version" value="1.8.6"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/commons"/>
             <param name="artifact-name" value="commons-compress"/>
-            <param name="artifact-version" value="1.5"/>
+            <param name="artifact-version" value="1.8.1"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -1617,7 +1617,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="edu/ucar"/>
             <param name="artifact-name" value="netcdf"/>
-            <param name="artifact-version" value="4.2-min"/>
+            <param name="artifact-version" value="4.2.20"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -1647,19 +1647,19 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/gagravarr"/>
             <param name="artifact-name" value="vorbis-java-core"/>
-            <param name="artifact-version" value="0.1"/>
+            <param name="artifact-version" value="0.6"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
             <param name="artifact-name" value="poi-ooxml"/>
-            <param name="artifact-version" value="3.10.1"/>
+            <param name="artifact-version" value="3.11-beta2"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
             <param name="artifact-name" value="poi-ooxml-schemas"/>
-            <param name="artifact-version" value="3.10.1"/>
+            <param name="artifact-version" value="3.11-beta2"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -1675,21 +1675,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/apache/geronimo/specs"/>
-            <param name="artifact-name" value="geronimo-stax-api_1.0_spec"/>
-            <param name="artifact-version" value="1.0.1"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="rome"/>
             <param name="artifact-name" value="rome"/>
-            <param name="artifact-version" value="0.9"/>
+            <param name="artifact-version" value="1.0"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="com/googlecode/mp4parser"/>
             <param name="artifact-name" value="isoparser"/>
-            <param name="artifact-version" value="1.0-RC-1"/>
+            <param name="artifact-version" value="1.0.2"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>

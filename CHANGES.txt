@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1047: Upgrade to Tika 1.6.
+(Shinichiro Abe)
+
 CONNECTORS-1046: Remove user mapping support except for
 official regexp mapper.
 (Karl Wright)
