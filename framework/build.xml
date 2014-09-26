@@ -1324,9 +1324,9 @@
         <chmod dir="dist/script-engine" perm="a+x" includes="**/*.sh"/>
     </target>
     
-    <target name="single-process-start-jar" depends="lib">
-        <mkdir dir="build/example/lib"/>
-        <copy todir="build/example/lib">
+    <target name="process-start-lib" depends="lib">
+        <mkdir dir="build/process-start/lib"/>
+        <copy todir="build/process-start/lib">
             <fileset dir="../lib">
                 <include name="commons-lang*.jar"/>
                 <include name="commons-codec*.jar"/>
@@ -1375,15 +1375,19 @@
                 <include name="mcf-ui-core.jar"/>
             </fileset>
         </copy>
-        
-        <property name="liblocation" location="build/example/lib" />
+    </target>
+
+    <target name="process-start-lib-manifest" depends="process-start-lib">
+        <property name="liblocation" location="build/process-start/lib" />
         <pathconvert property="manifest-cp" dirsep="/" pathsep=" ">
             <path>
                 <fileset dir="${liblocation}" includes="*.jar"/>
             </path>
             <map from="${liblocation}" to="../lib"/>
         </pathconvert>
-        
+    </target>
+    
+    <target name="single-process-start-jar" depends="process-start-lib-manifest">
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1412,75 +1416,32 @@
 
     </target>
 
-    <target name="single-process-start-jar-proprietary" depends="lib,lib-proprietary">
-        <mkdir dir="build/example-proprietary/lib"/>
-        <copy todir="build/example-proprietary/lib">
-            <fileset dir="../lib">
-                <include name="commons-lang*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="hsqldb*.jar"/>
-                <include name="jasper*.jar"/>
-                <include name="jetty*.jar"/>
-                <include name="jsp-api-2.1-glassfish*.jar"/>
-                <include name="json*.jar"/>
-                <include name="log4j*.jar"/>
-                <include name="postgresql*.jar"/>
-                <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="juli*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="ecj*.jar"/>
-                <include name="velocity*.jar"/>
-                <include name="slf4j-api*.jar"/>
-                <include name="slf4j-simple*.jar"/>
-                <include name="httpcore*.jar"/>
-                <include name="httpclient*.jar"/>
-                <include name="mail*.jar"/>
-                <include name="zookeeper*.jar"/>
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="saaj-api*.jar"/>
-                <include name="saaj-impl*.jar"/>
-                <include name="activation*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-            </fileset>
+    <target name="process-start-lib-proprietary" depends="lib-proprietary">
+        <mkdir dir="build/process-start/lib-proprietary"/>
+        <copy todir="build/process-start/lib-proprietary">
             <fileset dir="../lib-proprietary">
                 <include name="mysql-connector-java*.jar"/>
                 <include name="ojdbc*.jar"/>
                 <include name="jtds*.jar"/>
             </fileset>
-            <fileset dir="build/jar">
-                <include name="mcf-core.jar"/>
-                <include name="mcf-agents.jar"/>
-                <include name="mcf-pull-agent.jar"/>
-                <include name="mcf-jetty-runner.jar"/>
-                <include name="mcf-ui-core.jar"/>
-            </fileset>
         </copy>
-        
-        <property name="liblocation-proprietary" location="build/example-proprietary/lib" />
+    </target>
+
+    <target name="process-start-lib-proprietary-manifest" depends="process-start-lib-proprietary">
+        <property name="liblocation-proprietary" location="build/process-start/lib-proprietary" />
         <pathconvert property="manifest-cp-proprietary" dirsep="/" pathsep=" ">
             <path>
                 <fileset dir="${liblocation-proprietary}" includes="*.jar"/>
             </path>
-            <map from="${liblocation-proprietary}" to="../lib"/>
+            <map from="${liblocation-proprietary}" to="../lib-proprietary"/>
         </pathconvert>
+    </target>
 
+    <target name="single-process-start-jar-proprietary" depends="process-start-lib-manifest,process-start-lib-proprietary-manifest">
         <mkdir dir="build/example-proprietary"/>
         <manifest file="build/example-proprietary/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
-            <attribute name="Class-Path" value="${manifest-cp-proprietary}"/>
+            <attribute name="Class-Path" value="${manifest-cp} ${manifest-cp-proprietary}"/>
         </manifest>
         <jar destfile="dist/example-proprietary/start.jar" manifest="build/example-proprietary/manifest"/>
     </target>
