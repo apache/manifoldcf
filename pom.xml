@@ -75,7 +75,7 @@
     <jaxb.version>2.2.6</jaxb.version>
     <zookeeper.version>3.4.6</zookeeper.version>
     <xmlbeans.version>2.6.0</xmlbeans.version>
-    <poi.version>3.11-beta2/poi.version>
+    <poi.version>3.11-beta2</poi.version>
   </properties>
 
   <modules>
