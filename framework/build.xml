@@ -1324,25 +1324,70 @@
         <chmod dir="dist/script-engine" perm="a+x" includes="**/*.sh"/>
     </target>
     
-    <target name="single-process-example" depends="lib">
-        <antcall target="setup-combined-processes">
-            <param name="processes-dir" value="dist/example"/>
-        </antcall>
-        <mkdir dir="dist/example/logs"/>
-        <copy todir="dist/example">
-            <fileset dir="example-singleprocess-common">
-                <include name="logging.ini"/>
-                <include name="*.sh"/>
-                <include name="*.bat"/>
+    <target name="single-process-start-jar" depends="lib">
+        <mkdir dir="build/example/lib"/>
+        <copy todir="build/example/lib">
+            <fileset dir="../lib">
+                <include name="commons-lang*.jar"/>
+                <include name="commons-codec*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="hsqldb*.jar"/>
+                <include name="jasper*.jar"/>
+                <include name="jetty*.jar"/>
+                <include name="jsp-api-2.1-glassfish*.jar"/>
+                <include name="json*.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="postgresql*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="juli*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl*.jar"/>
+                <include name="xml-apis*.jar"/>
+                <include name="ecj*.jar"/>
+                <include name="velocity*.jar"/>
+                <include name="slf4j-api*.jar"/>
+                <include name="slf4j-simple*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
+                <include name="mail*.jar"/>
+                <include name="zookeeper*.jar"/>
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="saaj-api*.jar"/>
+                <include name="saaj-impl*.jar"/>
+                <include name="activation*.jar"/>
+                <include name="wss4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
             </fileset>
-            <fileset dir="example-singleprocess">
-                <include name="properties.xml"/>
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-jetty-runner.jar"/>
+                <include name="mcf-ui-core.jar"/>
             </fileset>
         </copy>
         
+        <property name="liblocation" location="build/example/lib" />
+        <pathconvert property="manifest-cp" dirsep="/" pathsep=" ">
+            <path>
+                <fileset dir="${liblocation}" includes="*.jar"/>
+            </path>
+            <map from="${liblocation}" to="../lib"/>
+            <!-- map from="\" to="/"/ -->
+        </pathconvert>
+        
         <!-- Build a manifest file.  There doesn't seem to be any good way to do this automatically in ant without developing my own
         custom task, so I've hard coded all the class path libs. -->
-        <property name="manifest-cp-0" value=""/>
+        <!-- property name="manifest-cp-0" value=""/>
         
         <property name="manifest-cp-1" value="${manifest-cp-0} ../lib/commons-lang.jar"/>
         <property name="manifest-cp-2" value="${manifest-cp-1} ../lib/commons-codec.jar"/>
@@ -1399,33 +1444,36 @@
         <property name="manifest-cp-74" value="${manifest-cp-73} ../lib/xmlsec.jar"/>
         <property name="manifest-cp-75" value="${manifest-cp-74} ../lib/opensaml.jar"/>
 
-        <property name="manifest-cp" value="${manifest-cp-75}"/>
+        <property name="manifest-cp" value="${manifest-cp-75}"/ -->
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
             <attribute name="Class-Path" value="${manifest-cp}"/>
         </manifest>
         <jar destfile="dist/example/start.jar" manifest="build/example/manifest"/>
-        <chmod dir="dist/example" perm="a+x" includes="**/*.sh"/>
-
     </target>
-
-    <target name="single-process-example-proprietary" depends="lib,lib-proprietary">
-        <antcall target="setup-combined-processes-proprietary">
-            <param name="processes-dir" value="dist/example-proprietary"/>
+    
+    <target name="single-process-example" depends="single-process-start-jar">
+        <antcall target="setup-combined-processes">
+            <param name="processes-dir" value="dist/example"/>
         </antcall>
-        <mkdir dir="dist/example-proprietary/logs"/>
-        <copy todir="dist/example-proprietary">
+        <mkdir dir="dist/example/logs"/>
+        <copy todir="dist/example">
             <fileset dir="example-singleprocess-common">
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
             </fileset>
-            <fileset dir="example-singleprocess-proprietary">
+            <fileset dir="example-singleprocess">
                 <include name="properties.xml"/>
             </fileset>
         </copy>
         
+        <chmod dir="dist/example" perm="a+x" includes="**/*.sh"/>
+
+    </target>
+
+    <target name="single-process-start-jar-proprietary" depends="lib,lib-proprietary">
         <!-- Build a manifest file.  There doesn't seem to be any good way to do this automatically in ant without developing my own
         custom task, so I've hard coded all the class path libs. -->
         <property name="manifest-cp-proprietary-0" value=""/>
@@ -1495,6 +1543,24 @@
             <attribute name="Class-Path" value="${manifest-cp-proprietary}"/>
         </manifest>
         <jar destfile="dist/example-proprietary/start.jar" manifest="build/example-proprietary/manifest"/>
+    </target>
+    
+    <target name="single-process-example-proprietary" depends="single-process-start-jar-proprietary">
+        <antcall target="setup-combined-processes-proprietary">
+            <param name="processes-dir" value="dist/example-proprietary"/>
+        </antcall>
+        <mkdir dir="dist/example-proprietary/logs"/>
+        <copy todir="dist/example-proprietary">
+            <fileset dir="example-singleprocess-common">
+                <include name="logging.ini"/>
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-singleprocess-proprietary">
+                <include name="properties.xml"/>
+            </fileset>
+        </copy>
+        
         <chmod dir="dist/example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>
 
