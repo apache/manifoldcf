@@ -31,18 +31,18 @@
     
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
-        <available file="lib/hsqldb.jar" property="hsqldb-found"/>
+        <!--available file="lib/hsqldb.jar" property="hsqldb-found"/>
         <available file="lib/jetty-server.jar" property="jetty-found"/>
         <available file="lib/httpclient.jar" property="httpclient-found"/>
-        <available file="lib/xercesImpl.jar" property="xerces-found"/>
-        <available file="lib/fop.jar" property="fop-found"/>
+        <available file="lib/xercesImpl.jar" property="xerces-found"/ -->
+        <available file="lib/zookeeper-3.4.6.jar" property="zookeeper-found"/>
         <condition property="downloaded">
             <and>
-                <isset property="hsqldb-found"/>
+                <!--isset property="hsqldb-found"/>
                 <isset property="jetty-found"/>
                 <isset property="httpclient-found"/>
-                <isset property="xerces-found"/>
-                <isset property="fop-found"/>
+                <isset property="xerces-found"/ -->
+                <isset property="zookeeper-found"/>
             </and>
         </condition>
     </target>

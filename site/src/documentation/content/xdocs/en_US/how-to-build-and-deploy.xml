@@ -317,7 +317,7 @@
           <source>
 mvn clean install
           </source>
-          <p>This should generate all the necessary artifacts to run with, and also run the Apache Derby-based tests.</p>
+          <p>This should generate all the necessary artifacts to run with, and also run the Hsqldb-based tests.</p>
           <p>To build and skip only the integration tests, type:</p>
           <source>
 mvn clean install -DskipITs   
@@ -438,7 +438,7 @@ mvn clean package
         <section>
           <title>Quick-start single process model</title>
           <p></p>
-          <p>You can run most of ManifoldCF in a single process, for evaluation and convenience.  This single-process version uses Jetty to handle its web applications, and Derby as
+          <p>You can run most of ManifoldCF in a single process, for evaluation and convenience.  This single-process version uses Jetty to handle its web applications, and Hsqldb as
             an embedded database.  All you need to do to run this version of ManifoldCF is to follow the Ant-based build instructions above, and then:</p>
           <p></p>
           <source>
@@ -452,8 +452,8 @@ cd example
           <p></p>
           <p>You can stop the quick-start ManifoldCF at any time using ^C.</p>
           <p></p>
-          <p>Bear in mind that Derby is not as full-featured a database as is PostgreSQL.  This means that any performance testing you may do against the quick start example may
-            not be applicable to a full installation.  Furthermore, Derby only permits one process at a time to be connected to its databases, so you <strong>cannot</strong> use any
+          <p>Bear in mind that Hsqldb is not as full-featured a database as is PostgreSQL.  This means that any performance testing you may do against the quick start example may
+            not be applicable to a full installation.  Furthermore, embedded Hsqldb only permits one process at a time to be connected to its databases, so you <strong>cannot</strong> use any
             of the ManifoldCF commands (as described below) while the quick-start ManifoldCF is running.</p>
           <p></p>
           <p>Another caveat that you will need to be aware of with the quick-start version of ManifoldCF is that it in no way removes the need for you to run any separate processes
@@ -478,7 +478,7 @@ cd example
           <p>The combined web service presents the crawler UI at the root path for the web application, which is <em>http://&#60;host&#62;:8345/mcf/</em>.  The authority
             service functionality can be found at <em>http://&#60;host&#62;:8345/mcf/UserACLs</em>, similar to the quick-start example.  However, the programmatic API service has a path
             other than the root: <em>http://&#60;host&#62;:8345/mcf/api/</em>.</p>
-          <p>The script that starts the combined-service web application uses the same database instance (Derby by default) as does the quick-start, and the same <em>properties.xml</em>
+          <p>The script that starts the combined-service web application uses the same database instance (Hsqldb by default) as does the quick-start, and the same <em>properties.xml</em>
             file.  The same caveats about required individual connector processes also apply as they do for the quick-start example.</p>
           <p></p>
 
@@ -828,7 +828,6 @@ cd example
           <li>PostgreSQL (preferred)</li>
           <li>MySQL (preferred)</li>
           <li>HSQLDB</li>
-          <li>Derby (not recommended for production)</li>
         </ul>
         <p>You can select the database of your choice by setting the approprate properties in the applicable <em>properties.xml</em> file.  The choice of database is largely orthogonal
           to the choice of deployment model.  The ManifoldCF deployment examples provided can thus be readily altered to use the database you desire.  The details and caveats of
@@ -916,16 +915,6 @@ cd example
             process.  See the <em>properties.xml</em> property descriptions for configuration details.</p>
         </section>
         
-        <section>
-          <title>Configuring an Apache Derby database</title>
-          <p></p>
-          <p>Apache Derby can be used with ManifoldCF only as an embedded database, working with single-process deployments.  Its performance currently seems limited by
-            issues related to its planner and to its handling of deadlock conditions, but this situation could change any time there is a new release of the Derby software.  Nevertheless, even
-            when operating without any apparent stalls due to the above issues, Derby is still only about 1/4 as fast as PostgreSQL.  At the moment this limits Derby's utility for
-            ManifoldCF to demonstration and testing.</p>
-        </section>
-        
-        
       </section>
         
       <section>
@@ -971,7 +960,7 @@ cd example
             <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>The maximum number of documents ManifoldCF will try to count for the job status display.  Defaults to 500000.</td></tr>
             <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.
-                Default is a built-in Derby implementation.  Supported choices are: org.apache.manifoldcf.core.database.DBInterfaceDerby,
+                Default is a built-in Hsqldb implementation.  Supported choices are:
                 org.apache.manifoldcf.core.database.DBInterfacePostgreSQL, 
                 org.apache.manifoldcf.core.database.DBInterfaceMySQL,
                 org.apache.manifoldcf.core.database.DBInterfaceHSQLDB</td></tr>
@@ -980,7 +969,6 @@ cd example
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
             <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL server name.  Defaults to 'localhost'.</td></tr>
             <tr><td>org.apache.manifoldcf.mysql.client</td><td>No</td><td>The MySQL client property.  Defaults to 'localhost'.  You may want to set this to '%' for a multi-machine setup.</td></tr>
-            <tr><td>org.apache.manifoldcf.derbydatabasepath</td><td>No</td><td>Absolute or relative path to Derby database; default is '.'.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabasepath</td><td>No</td><td>Absolute or relative path to HSQLDB database; default is '.'.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseprotocol</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB JDBC protocol; choices are 'hsql', 'http', or 'https'. Default is blank (which means an embedded instance)</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseserver</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB remote server name.</td></tr>

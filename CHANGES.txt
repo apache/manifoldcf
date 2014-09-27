@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1048: Use full paths for all downloaded jars.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-1047: Upgrade to Tika 1.6.
 (Shinichiro Abe)
 

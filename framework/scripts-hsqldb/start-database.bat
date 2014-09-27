@@ -17,7 +17,10 @@ rem limitations under the License.
 rem check that JAVA_HOME is set, and that the current directory is correct
 if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
 if not exist ".\properties.xml" goto nolcfhome
-cmd /c ".\executecommand.bat org.apache.zookeeper.server.quorum.QuorumPeerMain zookeeper.cfg"
+set JAVAOPTIONS=
+for /f "delims=" %%a in ('type hsqldb-options.env.win') do call setjavaoption.bat "%%a"
+rem invoke java with the jetty class
+"%JAVA_HOME%\bin\java" %JAVAOPTIONS% org.hsqldb.Server -database.0 file:extdb;hsqldb.tx=mvcc;hsqldb.cache_file_scale=512 -dbname.0 xdb
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.
