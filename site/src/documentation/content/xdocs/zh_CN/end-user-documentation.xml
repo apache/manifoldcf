@@ -66,7 +66,7 @@
                 <p>从左侧菜单选择［权限列表］，会显示权限连接列表。权限连接，用来连接到具有特定安全环境的系统。比如，访问由ActiveDirectory管理的文件时，需定义ActiveDirectory权限连接。</p>
                 <p>仅爬去公开文档时，无需定义权限连接，比如爬去互联网上无需认证任何人均可参阅的Web网页, RSS, Wiki。相反，搜索公司内部文档时，多数需要用户认证，需定义权限连接。</p>
                 <p>在定义存储库连接之<b>前</b>先定义权限连接。虽过后也可以改变存储库连接和权限连接的关系，但有可能需要重新爬去文档。</p>
-                <p>要定义权限连接，从右側菜单から［权限列表］を选择请。选择如会显示如下页面:</p>
+                <p>要定义权限连接，从右側菜单选择［权限列表］。会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/list-authority-connections.PNG" alt="List Authority Connections" width="80%"/>
                 <br/><br/>
@@ -248,7 +248,7 @@
                     <br/><br/>
                     <figure src="images/zh_CN/queue-status-select-job.PNG" alt="Queue Status, select job" width="80%"/>
                     <br/><br/>
-                    <p>从右方下拉列表，选择作业，再一次［下一个］按钮を。会显示如下页面:</p>
+                    <p>从右方下拉列表，选择作业，再一次单击［下一个］按钮。会显示如下页面:</p>
                     <br/><br/>
                     <figure src="images/zh_CN/queue-status-example.PNG" alt="Queue Status, example" width="80%"/>
                     <br/><br/>
@@ -302,7 +302,7 @@
                 </section>
                 <section id="maxbandwidth">
                     <title>最大带宽报告</title>
-                    <p>最大带宽报告，表示在指定时间段活动的最大字节传送率。</p>
+                    <p>最大带宽报告，表示在指定时间段活动的最大字节传输率。</p>
                 </section>
                 <section id="resulthistogram">
                     <title>结果历史记录报告</title>
@@ -350,6 +350,11 @@
                 <figure src="images/zh_CN/solr-status.PNG" alt="Solr Status" width="80%"/>
                 <br/><br/>
                 <p>示例页面，显示因Solr连接无法正常运行而出错。</p>
+                <p>在作业选择Solr类型连接，显示［项目映射］标签。从此标签可将在作业连接类型中获取的元数据字段和Solr接收字段对应上。元数据字段名称由存储库设置，有可能和Solr模式不相配。在此标签，还可以设置将指定的元数据字段排除在索引生成对象之外。标签如下:</p>
+                <br/><br/>
+                <figure src="images/zh_CN/solr-job-field-mapping.PNG" alt="Solr Specification, Field Mapping tab" width="80%"/>
+                <br/><br/>
+                <p>添加新映射时，在［源］项输入元数据名，［目标］里输入Solr的输出字段名并单击［添加］按钮。关于不发送到Solr的字段，［目标］置为空。</p>
             </section>
 
             <section id="filesystemoutputconnector">
@@ -405,7 +410,7 @@
             	<title>ElasticSearch输出连接</title>
             	<p>ElasticSearch输出连接，通过HTTP API将XML文档送到ElasticSearch。设计此连接器时考虑到尽量方便使用。</p>
             	<p>选择ElasticSearch输出连接类型后，按照ElasticSearch设置输入［参数］标签项。各ElasticSearch输出连接对应着一个索引。使用一个以上索引时，请为每一个索引生成输出连接。</p>
-            	<figure src="images/zh_CN/elasticsearch-connection-parameters.PNG" alt="ElasticSearch, parameters tab" width="80%"/>
+            	<figure src="images/zh_CN/elasticsearch-connection-parameters.png" alt="ElasticSearch, parameters tab" width="80%"/>
             	<p>参数:</p><br/>
             	<ul>
             		<li>服务器地址:ElasticSearch实例的URL。缺省URL（http://localhost:8080）为当ElasticSearch和ManifoldCF运行在同一台服务器时的地址。</li>
@@ -418,9 +423,9 @@
             		<li>对象MIME类型。个别存储库连接无法正常处理。</li>
             		<li>对象文件扩展名。个别存储库连接无法正常处理。</li>
             	</ul>
-            	<figure src="images/zh_CN/elasticsearch-job-parameters.PNG" alt="ElasticSearch, job parameters" width="80%"/>
+            	<figure src="images/zh_CN/elasticsearch-job-parameters.png" alt="ElasticSearch, job parameters" width="80%"/>
             	<p>所有活动可从历史记录报告确认。连接器支持三种活动:读取文档（生成索引），删除文档，优化索引。结束作业索引被优化。</p>
-            	<figure src="images/zh_CN/elasticsearch-history-report.PNG" alt="ElasticSearch, history report" width="80%"/>
+            	<figure src="images/zh_CN/elasticsearch-history-report.png" alt="ElasticSearch, history report" width="80%"/>
              	<p>ElasticSearch的详情参阅<a href="http://www.elasticsearch.org/guide">ElasticSearch用户手册</a>。</p>
             </section>
             
@@ -499,7 +504,7 @@
                 <br/><br/>
                 <figure src="images/zh_CN/livelink-authority-status.PNG" alt="LiveLink Authority Status" width="80%"/>
                 <br/><br/>
-                <p>请确认内容を。示例页中因LiveLink服务器无法连接而显示出错信息。</p>
+                <p>请确认内容。示例页中因LiveLink服务器无法连接而显示出错信息。</p>
             </section>
             
             <section id="documentumauthority">
@@ -517,13 +522,13 @@
                 <br/><br/>
                 <figure src="images/zh_CN/documentum-authority-user-mapping.PNG" alt="Documentum Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
-                <p>在对应所输入用户名和文档服务器用户名时可指定是否区分大小写字符。其它对应未支持此功能。在很多场合，Documentum实例和ActiveDirectory连锁，Documentum用户名和ActiveDirectory的用户名一致，或ActiveDirectory用户名只使用小写字符。详细に付いては，Documentum系统管理员ガイドを参照请。</p>
+                <p>在对应所输入用户名和文档服务器用户名时可指定是否区分大小写字符。其它对应未支持此功能。在很多场合，Documentum实例和ActiveDirectory连锁，Documentum用户名和ActiveDirectory的用户名一致，或ActiveDirectory用户名只使用小写字符。详情参阅Documentum系统管理员向导。</p>
                 <p>选择［系统ACL］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/documentum-authority-system-acls.PNG" alt="Documentum Authority, System ACLs tab" width="80%"/>
                 <br/><br/>
-                <p>可指定忽略自动生成的ACL。建议现设置为忽略，根据需要改设为有效。请联系Documentum系统管理员询问正确设置。</p>
-                <p>输入后に［保存］按钮を单击如，如下概要及状态信息が会显示:</p>
+                <p>可指定忽略自动生成的ACL。建议先设置为忽略，根据需要改设为有效。请联系Documentum系统管理员询问正确设置。</p>
+                <p>输入后单击［保存］按钮，会显示如下概要及状态信息:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/documentum-authority-status.PNG" alt="Documentum Authority Status" width="80%"/>
                 <br/><br/>
@@ -570,8 +575,8 @@
                 <figure src="images/zh_CN/meridio-authority-records-server.PNG" alt="Meridio Authority, Records Server tab" width="80%"/>
                 <br/><br/>
                 <p>输入协议，服务器名，端口号，Meridio记录服务器的服务地址。使用代理服务器时，输入代理服务器主机和端口号。认证代理服务器在当前版本不受支持。</p>
-                <p>Meridio系统の时不同的服务每一个服务器を配备可が，通常多个の服务が同じ服务器で运行しています。但是，连接类型设置从不同的服务器を指定する还可以。</p>
-                <p>［用户服务服务器］标签を选择会显示如下页面:</p>
+                <p>Meridio系统虽可为每一个不同的服务配备服务器，通常多个服务运行在同一个服务器。但是，从连接类型设置可指定不同的服务器。</p>
+                <p>选择［用户服务服务器］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/meridio-authority-user-service-server.PNG" alt="Meridio Authority, User Service Server tab" width="80%"/>
                 <br/><br/>
@@ -605,21 +610,21 @@
               <p>CMIS规格可设置相关特定文档权限时、可递归地指定。</p>
               <p>选择CMIS权限连接，显示两个标签:［存储库］，［用户映射］。选择［存储库］标签会显示如下页面:</p>
               <br/><br/>
-              <figure src="images/zh_CN/cmis-authority-connection-configuration-repository.PNG" alt="CMIS Authority, Repository configuration" width="80%"/>
+              <figure src="images/zh_CN/cmis-authority-connection-configuration-repository.png" alt="CMIS Authority, Repository configuration" width="80%"/>
               <br/><br/>
               <p>存储库设置只为跟踪特定CMIS存储库ID而使用。不搜索CMIS存储库。</p>
               <br/><br/>
               <p>从［用户映射］标签指定用户的对应关系。</p>
               <p>选择［用户映射］标签会显示如下页面:</p>
               <br/><br/>
-              <figure src="images/zh_CN/cmis-authority-connection-configuration-usermapping.PNG" alt="CMIS Authority, User Mapping configuration" width="80%"/>
+              <figure src="images/zh_CN/cmis-authority-connection-configuration-usermapping.png" alt="CMIS Authority, User Mapping configuration" width="80%"/>
               <br/><br/>
               <p>从［用户映射］标签，可将来自用户名及域名（通常从ActiveDirectory）的信息和CMIS对应起来。对应由正则表达式定义。
 转换源和值用括弧（［(］和［)］）括上。由括弧括上的部分称为［组］。替换字符串由固定字符和替换组组成。比如，［$(1)］表示首个匹配组，［$(1l)］为首个小写字符匹配组。同样［$(1u)］为大写字符匹配组。</p>
                 <p>比如，匹配条件<code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code>和替换字符串<code>$(2)\$(1l)</code>将ActiveDirectory用户名<code>MyUserName@subdomain.domain.com</code>和LiveLink用户名<code>subdomain\myusername</code>对应上。</p>
               <p>输入对应信息后单击［保存］按钮，会显示如下概要及状态信息:</p>
               <br/><br/>
-              <figure src="images/zh_CN/cmis-authority-connection-configuration-save.PNG" alt="CMIS Authority, saving configuration" width="80%"/>
+              <figure src="images/zh_CN/cmis-authority-connection-configuration-save.png" alt="CMIS Authority, saving configuration" width="80%"/>
               <br/><br/>
             </section>
             
@@ -630,68 +635,68 @@
 
             <section id="filesystemrepository">
                 <title>通用文件系统存储库连接</title>
-                <p>通用文件系统存储库连接类型は主に例題，デモ，テスト工具のために开发されました。ManifoldCFがインストールされている服务器のローカル文件の索引生成。但是，权限设置を行うことはできません。</p>
-                <p>文件系统存储库连接类型固有の标签はありません。但是，性能のために［限流器ル链接］标签の［最大连接／JVM］值をワーカ线程每一个最低でも１つ，或30に设置请。</p>
-                <p>作业定义で文件系统类型存储库コネ</p>
-                <p>［跳过滤器］标签从，文件を获取するサブ目录の深さ指定することがでます。文件系统の时，使われる时少ないかも知れませんが，此设置はWeb连接类型でも指定できます。文件系统で此设置の运行を确认可以。</p>
+                <p>通用文件系统存储库连接类型主要为例题，演示，测试工具而开发。生成ManifoldCF所安装服务器的本地文件的索引。但是，不能设置权限。</p>
+                <p>文件系统存储库连接类型没有固有标签。但是，从性能考虑请将［限流器链接］标签的［最大连接／JVM］值设为每一个工作线程至少一个或30。</p>
+                <p>作业定义中的文件系统类型存储库</p>
+                <p>从［跳过滤器］标签，可指定获取文件的子目录深度。虽文件系统或许会很少使用此设置，但此设置还可为Web连接类型指定。在文件系统可确认该设置是否运行。</p>
                 <br/><br/>
                 <figure src="images/zh_CN/filesystem-job-hopcount.PNG" alt="File System Connection, Hop Filters tab" width="80%"/>
                 <br/><br/>
-                <p>文件系统连接类型の时，文档間の関係は［子］の一个に限られています。文档を获取するサブ目录の根目录からの深さを指定することが出来ます。空白の时，过滤器は无效と見なされます。</p>
-                <p>同じ页から，文档が存在するサブ目录の深さが変わった时の处理を指定可以。［读取めない文档を删除］を选择如，更改が発見され根，関係する可能性が所有文档の深さを再計算します。再計算如服务器に负荷が掛かります。再計算を行わないようにする时，一时的に行わないようにする设置と，永久に行わない设置があります。永久に行わないを选择如，信息を删除します。</p>
-                <p>［路径］标签を选择如，如下页面显示:</p>
+                <p>在文件系统连接类型，文档間关系仅限于一个［子］。可为获取文档对象的子目录设置从根目录深度。空白时，过滤器视为无效。</p>
+                <p>在同一页，还可指定当文档所在子目录深度发生变化时的动作。如选择［删除无法读取的文档］，如发现变化，会重新计算所有相关文档的深度。重计算会增加服务器的负荷。如不需重新计算，可设为临时无效或永久无效。如选择永久会删除信息。</p>
+                <p>如选择［路径］标签，显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/filesystem-job-paths.PNG" alt="File System Connection, Paths tab" width="80%"/>
                 <br/><br/>
-                <p>此页から文档を读取む路径を指定可以。路径を输入して［添加］按钮を单击如路径が列表に添加されます。路径の指定はManifoldCFが运行しているOSの格式で输入请。</p>
-                <p>根路径每一个，文档が作业に含まれているかを判断す规则ルがあります。根路径を列表に添加後に规则を定义可以。规则每一个，匹配条件式，文件或目录を对象にするかのフラグ，匹配时に文档を包含か排除かを指定可以。规则は从上下に评价されます。最初に文件名に匹配规则が使用。规则を添加するには，下拉菜单から类型を选择して，匹配する条件を输入请（例:*.txt）。输入後に［添加］按钮を单击请。</p>
+                <p>可从此页设置读取文档的路径。输入路径单击［添加］按钮，路径会添加到列表。输入路径请遵循ManifoldCF所运行的OS的格式。</p>
+                <p>每一个根路径，存在判断文档是否包含在作业中的规则。还可以在添加根路径到列表之后定义规则。每一个规则里可指定，匹配条件式，是否将文件或目录作为对象的标志，匹配时是包含还是排除文档。规则从上到下加以评价。首先使用文件名的匹配规则。为添加规则，从下拉菜单选择类型，并输入匹配条件（例:*.txt）。输入后单击［添加］按钮。</p>
             </section>
             
 
             <section id="rssrepository">
                 <title>通用RSS存储库连接</title>
-                <p>RSS连接类型は，RSS馈送から索引を生成する时に使います。Web连接类型を使用してRSS馈送から索引を生成する还可以が，RSS连接类型は以下の功能があります:</p>
+                <p>RSS连接类型用来从RSS馈送生成索引。还可以使用Web连接类型从RSS馈送生成索引，RSS连接类型有以下功能:</p>
                 <br/>
                 <ul>
-                    <li>馈送<b>のみ</b>から链接を抽出する</li>
-                    <li>馈送本体从索引を生成しない</li>
-                    <li>馈送を再获取する条件を細かく指定することができる。また，通常の文档を不同的方法で处理される</li>
-                    <li>RSS连接类型は特定の数据を元数据として馈送から文档に関連附上</li>
+                    <li><b>仅</b>从馈送提取链接</li>
+                    <li>不会从馈送本身生成索引</li>
+                    <li>可详细设置重获馈送条件。另，可用不同方法处理通常文档</li>
+                    <li>RSS连接类型可以将特定数据作为元数据从馈送附加在文档</li>
                 </ul>
                 <br/>
-                <p>多くの时，RSS连接类型を使用する作业は，继续に执行され，文档を再读取みしないように设置し，30日後に文档を无效にします。此设置はニュースのRSS馈送から索引を生成する时によく使われます。</p>
-                <p>RSS连接には4つの固有标签があります:［邮箱］，［机器人］，［带宽］，［代理服务器］。［邮箱］标签を选择会显示如下页面:</p>
+                <p>在很多场合，使用RSS连接类型的作业会连续执行，设为不重读取文档，30天后文档失效。此设置经常在新闻的RSS馈送生成索引时使用。</p>
+                <p>RSS连接有四个固有标签:［邮箱］，［机器人］，［带宽］，［代理服务器］。选择［邮箱］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/rss-configure-email.PNG" alt="RSS Connection, Email tab" width="80%"/>
                 <br/><br/>
-                <p>邮箱地址を输入请。输入された邮箱地址は，RSS连接の所有リクエストに含まれ，服务器管理员が見る可。もし，限流器链接设置が大きすぎる时で服务器负荷が大きすぎる时，服务器管理员から此邮箱地址に連絡がされる可能性があります。</p>
-                <p>此项目は必須です。RSS连接は邮箱地址は妥当性を検証しませんが，ウエブ住民として正しい地址を输入请。なお，服务器管理员は［悪い］リクエストを拒否するように设置を変える可ので，对方服务器のことも考えて限流器链接设置を行ってください。</p>
-                <p>［机器人］标签を选择会显示如下页面:</p>
+                <p>请输入邮箱地址。所输入的邮箱地址，会包含在RSS连接的所有请求，可由服务器管理员参阅。如果限流器链接设置过大而服务器负荷过大时，服务器管理员会利用此邮箱地址进行联络。</p>
+                <p>此项目为必填。虽RSS连接不验证邮箱地址，作为网民请输入正确地址。另，服务器管理员可以改变设置排除［恶意］请求，所以设置限流器链接时还请考虑对方的服务器。</p>
+                <p>选择［机器人］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/rss-configure-robots.PNG" alt="RSS Connection, Robots tab" width="80%"/>
                 <br/><br/>
-                <p>robots.txtをどのように处理するかを下拉菜单列表から选择请。对方服务器のことを考虑して选择请。</p>
-                <p>［带宽］标签を选择会显示如下页面:</p>
+                <p>从下拉菜单列表选择如何处理robots.txt。同时还请考虑对方服务器。</p>
+                <p>选择［带宽］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/rss-configure-bandwidth.PNG" alt="RSS Connection, Bandwidth tab" width="80%"/>
                 <br/><br/>
-                <p>服务器每一个，连接が数据を获取する<b>最大</b>传送率及服务器每一个１分毎の<b>最大</b>传送率を设置できます。服务器毎の最大ソケット连接数も指定できます。</p>
-                <p>页の设置例の值は<b>親切</b>な设置になっています。缺省では所有设置が空白ですので注意请。此缺省设置では，限流器链接がされず，服务器に负荷を掛け，迷惑を掛けます。</p>
-                <p>［限流器链接组］は，多个のRSS类型连接の限流器链接设置を１つに纏邮箱ための设置です。するっと链接组名が同じRSS类型连接は同じ限流器链接プールに纏められます。</p>
-                <p>［带宽］标签は［限流器链接］标签は如下違います:</p>
+                <p>每一个服务器可设置一个连接获取数据时的<b>最大</b>传输率以及每一个服务器在每一分钟内的<b>最大</b>传输率。还可指定每一个服务器的最大套接字连接数。</p>
+                <p>设置例中的值为<b>宽松</b>的设置。注意在缺省下所有设置为空。此缺省设置下，限流器链接设置为空，会给服务器增加负荷。</p>
+                <p>［限流器链接组］用来将多个RSS类型连接的限流器链接设置集中在一起。具有相同链接组名的RSS类型连接会管理在同一个限流器链接池。</p>
+                <p>［带宽］标签和［限流器链接］标签有如下区别:</p>
                 <br/>
                 <ul>
-                    <li>［带宽］标签从<b>最大</b>值を设置できます。［限流器链接］标签从<b>平均</b>值を设置可以。</li>
-                    <li>［带宽］标签从文档がどのように队列に调度されるかは设置できません。ただ，队列へのスケジュー链接を遅らせるだけです。此待ち时间の間でも线程は使われます。［限流器链接］标签は文档の作业スケジュー链接を行うため，待ち时间で线程を無駄に使いません。</li>
+                    <li>从［带宽］标签设置<b>最大</b>值。而从［限流器链接］标签设置<b>平均</b>值。</li>
+                    <li>从［带宽］标签无法设置文档如何调度到队列。只用来延迟向队列的调度链接。即使在此等待时间也会使用线程。［限流器链接］标签因进行文档作业的调度链接，所以不会因等待时间而浪费线程。</li>
                 </ul>
                 <br/>
-                <p>そのような理由のため，RSS连接には［带宽］标签と［限流器链接］标签の<b>両方</b>を设置することを推荐します。最大传送率を［带宽］标签で设置し，平均传送率を［限流器链接］标签で设置します。RSS连接の文档IDは文档のURLです。URLのbin名は服务器名です。なお，［最大连接数／JVM］は缺省では10です。此值は，RSS连接类型には最適ではない可能性が高いです。ワーカ线程每一个连接を1つ配备ことを推荐します。缺省ではワーカ线程数は30ですので，［最大连接数／JVM］を30に设置にすることを推荐します。</p>
-                <p>代理服务器を使用されている时，［代理服务器］标签から代理服务器信息を输入请。RSS连接类型はNTLM认证の代理服务器に对应しています。［代理服务器］标签を选择会显示如下页面:</p>
+                <p>由上述理由，建议<b>同时</b>设置RSS连接的［带宽］标签和［限流器链接］标签。在［带宽］标签设置最大传输率，在［限流器链接］标签平均传输率。RSS连接的文档ID为文档的URL。URL的bin名为服务器名。还有，［最大连接数／JVM］缺省为10。此值有时不适合于RSS连接类型。故建议为每一个工作线程配备连接。工作线程数缺省为30，建议将［最大连接数／JVM］设为30。</p>
+                <p>如使用代理服务器，从［代理服务器］标签输入代理服务器信息。RSS连接类型支持NTLM认证代理服务器。选择［代理服务器］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/rss-configure-proxy.PNG" alt="RSS Connection, Proxy tab" width="80%"/>
                 <br/><br/>
-                <p>［代理服务器主机］には代理服务器服务器地址を输入请。［代理服务器端口］には代理服务器の端口号を输入请。认证が需要な时，域名名，用户名，密码を输入请。代理服务器を使用されない时，代理服务器関連の所有项目を空にして置いてください。</p>
-                <p>信息を输入后に［保存］</p>
+                <p>在［代理服务器主机］输入代理服务器服务器地址。在［代理服务器端口］输入代理服务器的端口号。需要认证时，请输入域名，用户名，密码。不使用代理服务器时，请将代理服务器的所有相关项目置为空。</p>
+                <p>输入信息后［保存］</p>
                 <br/><br/>
                 <figure src="images/zh_CN/rss-status.PNG" alt="RSS Status" width="80%"/>
                 <br/><br/>
@@ -701,7 +706,7 @@
                 <figure src="images/zh_CN/rss-job-urls.PNG" alt="RSS job, URLs tab" width="80%"/>
                 <br/><br/>
                 <p>请输入要读取RSS馈送的URL，多个URL用换行符分隔。输入备注时，在行头输入［#］字符。</p>
-                <p>从［正规化］标签指定作业如何处理URL正规化。有时同一文档会附上不同URI。［正规化］功能，用来将这些URL视为同一个URI。比如，URI参数顺序不同也视为相同文档: <code>a=1&amp;b=2</code>と<code>b=2&amp;a=1</code>指同一个文档。另外，还可以指定URI里有无会话cookie信息。</p>
+                <p>从［正规化］标签指定作业如何处理URL正规化。有时同一文档会附上不同URI。［正规化］功能，用来将这些URL视为同一个URI。比如，URI参数顺序不同也视为相同文档: <code>a=1&amp;b=2</code>和<code>b=2&amp;a=1</code>指同一个文档。另外，还可以指定URI里有无会话cookie信息。</p>
                 <p>选择［正规化］标签，会显示下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/rss-job-canonicalization.PNG" alt="RSS job, Canonicalization tab" width="80%"/>
@@ -727,7 +732,7 @@
                     <tr><td>馈送超时</td><td>服务器连接等待时间（秒）</td></tr>
                     <tr><td>缺省馈送重获时间</td><td>馈送未设重获时间时所使用的时间（分）</td></tr>
                     <tr><td>最小重获时间</td><td>不考虑馈送设置时间，比设置时间还要短的时间内不重获馈送的时间（分）</td></tr>
-                    <tr><td>错误馈送再获取时间</td><td>解析错误になった馈送を再获取するまでの待ち时间（分，空の时無限）</td></tr>
+                    <tr><td>错误馈送重获时间</td><td>重获解析错误馈送的等待时间（分，置空为无限）</td></tr>
                 </table>
                 <p>从［安全］标签，可以设置作业使用的认证信息。使用前，需决定所使用的权限连接。选择［安全］标签会显示如下页面:</p>
                 <br/><br/>
@@ -742,7 +747,11 @@
                     <tr><td>Title</td><td>馈送内文档标题。</td></tr>
                     <tr><td>Category</td><td>馈送内文档种类。</td></tr>
                 </table>
-                <p>可从［元数据］标签添加任意元数据。</p>
+                <p>可从［元数据］标签添加任意元数据。选择［元数据］标签会显示如下页面:</p>
+                <br/><br/>
+                <figure src="images/zh_CN/rss-job-metadata.PNG" alt="RSS job, Metadata tab" width="80%"/>
+                <br/><br/>
+                <p>输入元数据名和值，单击［添加］按钮添加到列表。</p>
                 <p>从［索引对象］标签，可指定从馈送概要生成索引而非文档。这可以在内容为象链接列表的馈送，馈送概要生成索引。选择［索引对象］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/rss-job-dechromed-content.PNG" alt="RSS job, Dechromed Content tab" width="80%"/>
@@ -767,25 +776,25 @@
                     <li>输出连接收到馈送时，从馈送生成索引。</li>
                     <li>从所有文档提取链接。</li>
                     <li>馈送的处理和其它文档相同－不能仅对一个设置重获取设置。</li>
-                    <li>可配备跳数限制を配备可。</li>
+                    <li>可配备跳数限制。</li>
                     <li>可放进URI集或从中排除。</li>
                 </ul>
                 <br/>
                 <p>Web连接类型设置比RSS连接类型还要复杂，无法进行RSS馈送的详细设置。所以，建立RSS索引时，建议使用RSS连接类型。</p>
                 <p>使用Web连接类型的多数作业，会持续执行，设置为要么定期重获文档，要么仅获一次文档不再获取，经过指定期间后变为无效。</p>
-                <p>选择Web连接类型会显示如下标签:［邮箱］，［机器人］，［带宽］，［认证］，［证书］。［邮箱］标签を选择如会显示如下页面:</p>
+                <p>选择Web连接类型会显示如下标签:［邮箱］，［机器人］，［带宽］，［认证］，［证书］。选择［邮箱］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-configure-email.PNG" alt="Web Connection, Email tab" width="80%"/>
                 <br/><br/>
-                <p>请输入邮箱地址。所输入邮箱地址，包含在Web连接的所有请求，服务器管理员可以看到。如果，限流器链接设置过大而导致服务器负荷が大きすぎる时，服务器管理员から此邮箱地址に連絡がされる可能性があります。</p>
-                <p>此项目は必須です。Web连接は邮箱地址は妥当性を検証しませんが，ウエブ住民として正しい地址を输入请。なお，服务器管理员は［悪い］リクエストを拒否するように设置を変える可ので，对方服务器のことも考えて限流器链接设置を行ってください</p>
-                <p>［机器人］标签を选择会显示如下页面:</p>
+                <p>请输入邮箱地址。所输入的邮箱地址，会包含在RSS连接的所有请求，可由服务器管理员参阅。如果限流器链接设置过大而服务器负荷过大时，服务器管理员会利用此邮箱地址进行联络。</p>
+                <p>此项目为必填。虽RSS连接不验证邮箱地址，作为网民请输入正确地址。另，服务器管理员可以改变设置排除［恶意］请求，所以设置限流器链接时还请考虑对方的服务器。</p>
+                <p>选择［机器人］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-configure-robots.PNG" alt="Web Connection, Robots tab" width="80%"/>
                 <br/><br/>
-                <p>请从下拉菜单列表选择如何处理robots.txt。服务器のことを考虑して选择请。</p>
-                <p>［带宽］标签从带宽规则列表を设置可以。规则每一个URL限流器ルbinを选择する正则表达式を指定します。Web类型の限流器ルbinはURIの服务器名です。规则每一个最大带宽，连接数，读取み率を指定可以。任意の数だけ规则を生成可以。もしURLが多个の规则と匹配当，一番保守的な规则が使用されます。</p>
-                <p>选择［带宽］标签，显示如下页面:</p>
+                <p>从下拉菜单列表选择如何处理robots.txt。同时还请考虑对方服务器。</p>
+                <p>从［带宽］标签可设置带宽规则列表。每一个规则指定用来选择URL限流器bin的正则表达式。Web类型的限流器ルbin为URI的服务器名。每一个规则可指定最大带宽，连接数，读取率。可以生成任意数量的规则。若URL匹配于多个规则，会使用最为保守的规则。</p>
+                <p>选择［带宽］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-configure-bandwidth.PNG" alt="Web Connection, Bandwidth tab" width="80%"/>
                 <br/><br/>
@@ -800,7 +809,7 @@
                     <li>从［带宽］标签不能设置文档如何调度到队列。只会延迟队列调度。此等待时间内线程仍可使用。［限流器链接］标签用来调度文档作业，不会应等待时间而浪费线程。</li>
                 </ul>
                 <br/>
-                <p>由上述理由，在RSS连接建议同时设置［带宽］和［限流器链接］<b>两个</b>标签。最大传送率在［带宽］标签设置，平均传送率在［限流器链接］标签设置。RSS连接的文档ID为文档URL。URL的bin名为服务器名。还有，［最大连接数／JVM］缺省为10。此值，对RSS连接类型而言很有可能并非是最佳值。建议为每一个工作线程配备一个连接。缺省工作线程数为30，故推荐将［最大连接数／JVM］设置为30。</p>
+                <p>由上述理由，在RSS连接建议同时设置［带宽］和［限流器链接］<b>两个</b>标签。最大传输率在［带宽］标签设置，平均传输率在［限流器链接］标签设置。RSS连接的文档ID为文档URL。URL的bin名为服务器名。还有，［最大连接数／JVM］缺省为10。此值，对RSS连接类型而言很有可能并非是最佳值。建议为每一个工作线程配备一个连接。缺省工作线程数为30，故推荐将［最大连接数／JVM］设置为30。</p>
                 <p>从Web连接［认证］标签可指定页面认证方法。支持页面认证（例:基本认证，NTLM认证）及会话认证（登录会话）。［认证］标签的首页显示这两种认证方法:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-configure-access-credentials.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
@@ -835,59 +844,59 @@
                 <br/><br/>
                 <figure src="images/zh_CN/web-configure-access-credentials-session-form.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
                 <br/><br/>
-                <p>表单の项目に输入する值を设置请。输入内容を非显示にする时，［值］列の而不是［密码］列に值を输入请。表单の项目名は登录页のHTMLソース代码を显示して，調べてください。输入后に［添加］按钮を单击请。</p>
-                <p>指定未被表单项目は登录页の缺省值で送信されます。当前版本では，Javascriptは未对应です。登录表单にJavascriptが使用されている时，スクリプトの结果を事前に計算して，その结果を登録请。複雑なJavascriptを包含登录页の时，设置值を探すのに时间が掛かる时があります。</p>
-                <p>多个の登录页表单は网站の［登录页手順］です。Web连接は，登录页每一个次に获取する内容を登录页条件で決めます。比如，特定のURIへの重定向の时，重定向URIを获取します。表单の时，表单のactionで指定した页を获取します。目标への链接の时，目标URIを获取します。登录页手順の最后にはWeb连接が登录手順を开始する前に元々获取する页を获取します。</p>
-                <p>会话认证を调试するい时，Web连接の简易历史记录报告を参照することを推荐します。Web连接の事件历史记录を参照することで大体の运行が分かるはずです。如下事件があります:</p>
+                <p>请设置表单项目的输入值。不显示输入内容时，在［密码］列输入而不是［值］列。表单项目名可通过显示登录页HTML源代码来调查。输入后单击［添加］按钮。</p>
+                <p>未指定的表单项目被设为登录页的缺省值。当前版本不支持Javascript。在登录表单使用Javascript时，请事先计算脚本语言的结果登録之。包含复杂的Javascript时，寻找设置值有时需要很长时间。</p>
+                <p>多个登录页表单是网站的［登录页步骤］。Web连接，每一个登录页通过登录页条件决定下一个获取内容。比如，重定向到特定URI时，获取重定向URI。表单的话，通过表单action获取指定页。指向目标的链接时，获取目标URI。最后的登录页手順，获取在Web连接开始登录步骤之前应获取的页面。</p>
+                <p>调试会话认证时，建议参照Web连接的简易历史记录报告。可通过Web连接的事件历史记录了解大体的运行状况。存在如下事件:</p>
                 <br/>
                 <table>
                     <tr><td><b>事件类型</b></td><td><b>说明</b></td></tr>
-                    <tr><td>Fetch</td><td>URIの获取历史记录です。HTTPからの戻り值はレスポンス代码として记录されます。HTTP处理が失敗或不完了の事件は負の值で记录されます。</td></tr>
-                    <tr><td>Begin login</td><td>登录手順を执行する时に记录されます。登录手順が执行され根，登录が完了するまでは他の保護された网站から文档は获取されません。</td></tr>
-                    <tr><td>End login</td><td>登录手順から元の文档の获取に戻った时に记录されます。元の文档の获取に戻った时，网站から平行して文档の获取を重开します。</td></tr>
+                    <tr><td>Fetch</td><td>获取URI的历史记录。HTTP的返回值记录为相应代码。HTTP处理失败或不完整时事件记录为负值。</td></tr>
+                    <tr><td>Begin login</td><td>执行登录步骤时被记录。执行登录步骤时，直到登录结束为止无法从受保护网站获取文档。</td></tr>
+                    <tr><td>End login</td><td>从登录步骤手順回到获取元文档时被记录。回到获取元文档时，和网站并行重新获取文档。</td></tr>
                 </table>
                 <br/>
-                <p>［证书］标签はSSLと一緒に使用され，信用した正则表达式と匹配URIの证书信息を设置します。所有证书を信用する还可以。［证书］标签を选择会显示如下页面:</p>
+                <p>［证书］标签和SSL一起使用，设置可信赖正则表达式和匹配URI的证书信息。还可以信任所有证书。选择［证书］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-configure-certificates.PNG" alt="Web Connection, Certificates tab" width="80%"/>
                 <br/><br/>
-                <p>输入URI正则表达式，在［所有信用する］复选框をチェックするか，证书を参照请。（服务器の证书を信用する还可以が，证书が期限切れになる时もあります。）证书を列表に添加する时［添加］按钮を单击请。</p>
+                <p>输入URI正则表达式，选择［信任所有］复选框，或参阅证书。（虽可以信任服务器证书，但有时证书会过期）。添加证书到列表时单击［添加］按钮。</p>
                 <p>输入后单击［保存］按钮，将显示如下设置内容的概要:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-status.PNG" alt="Web Status" width="80%"/>
                 <br/><br/>
                 <p></p>
                 <p>在作业当选择Web类型存储库连接，会显示标签:［跳过滤器］，［种子］，［正规化］，［包含］，［排除］，［安全］，［元数据］。</p>
-                <p>［跳过滤器］标签从，种子文档からの最大跳数を指定可以。Web类型の连接には２種類の跳数があります:［链接］跳と［リダイレクション］跳。跳类型每一个最大数を设置可以。空白の时，無限と見なされます。</p>
-                <p>比如，最大［链接］跳数を5に设置して，［重定向］跳数を空白に当，种子文档から5跳より多い文档は对象外とされます。最大［链接］跳数を5に设置して，最大［重定向］跳数を2に设置当，种子文档から5跳より多くて<b>かつ</b>重定向の跳数が2より多い文档は对象外とされます。</p>
-                <p>［跳过滤器］标签を选择会显示如下页面:</p>
+                <p>从［跳过滤器］标签，可以指定从种子文档的最大跳数。Web类型连接有两种跳数:［链接］跳［重定向］跳。每一个跳类型可设置最大数。置空时，视为无限。</p>
+                <p>比如，将最大［链接］跳数设为5，［重定向］跳数置为空，从种子文档的跳数超过5的文档被排除在外。最大［链接］跳数设为5，最大［重定向］跳数为2时，从种子文档的跳数超过5跳<b>且</b>重定向跳数超过2的文档被排除在外。</p>
+                <p>选择［跳过滤器］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-job-hop-filters.PNG" alt="Web Job, Hop Filters tab" width="80%"/>
                 <br/><br/>
-                <p>此页から根から文档の跳数が更改された时に行う处理を指定可以。［读取めない文档を删除］を选择如，更改が発見され根，関係する可能性が所有文档の深さを再計算します。再計算如服务器に负荷が掛かります。再計算を行わないようにする时，一时的に行わないようにする设置と，永久に行わない设置があります。永久に行わないを选择如，信息を删除します。</p>
-                <p>［种子］标签から爬取を始邮箱文档を指定します。［种子］标签を选择会显示如下页面:</p>
+                <p>此页可指定当从根的文档跳数改变时的动作。如选择［删除无法读取的文档］，当发现变化时，会重新计算所有相关文档的深度。重计算会增加服务器的负荷。如不需重新计算，可设为临时无效或永久无效。如选择永久会删除信息。</p>
+                <p>从［种子］标签指定开始爬取的邮箱文档。选择［种子］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-job-seeds.PNG" alt="Web Job, Seeds tab" width="80%"/>
                 <br/><br/>
-                <p>种子を改行で区切って输入请。空行及［#］から始まる行は無視されます。</p>
-                <p>［正规化］标签からURIを标准格式に转换す规则ルを输入可以。［正规化］标签を选择会显示如下页面:</p>
+                <p>请将种子分行输入。空行及始于［#］的行被忽略。</p>
+                <p>从［正规化］标签还可输入将URI转换为标准格式的规则。选择［正规化］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-job-canonicalization.PNG" alt="Web Job, Canonicalization tab" width="80%"/>
                 <br/><br/>
-                <p>正规化す规则ル列表が显示。各规则は正则表达式（对象URIを搜索する）と条件项目由所构成。条件项目で参数順の有無や会话クッキ信息の排除などを指定可以。次の会话クッキ信息を排除することが出来ます:JSP（Java应用服务器），ASP（.NET），PHP，Broadvision（BV）。</p>
-                <p>规则が多个の规则に匹配する时，最初に匹配规则が使用。</p>
-                <p>规则を添加するには，正则表达式を输入して，条件项目の复选框をチェック后に，［添加］按钮を单击请。</p>
-                <p>［包含］标签からWeb作业に包含URI正则表达式列表を指定可以。［包含］标签を选择会显示如下页面:</p>
+                <p>显示正规化规则列表，各规则由正则表达式（搜索对象URI）和条件项构成。条件项还可指定有无参数顺序或排除会话cookie信息等。可排除如下会话cookie信息:JSP（Java应用服务器），ASP（.NET），PHP，Broadvision（BV）。</p>
+                <p>规则匹配多个规则时，使用第一个匹配规则。</p>
+                <p>添加规则时，输入正则表达式，选择条件项的复选框，单击［添加］按钮。</p>
+                <p>从［包含］标签指定包含在Web作业的URI正则表达式列表。选择［包含］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-job-inclusions.PNG" alt="Web Job, Inclusions tab" width="80%"/>
                 <br/><br/>
-                <p>改行区切りで0以上の正则表达式を指定请。</p>
-                <p>Web作业は缺省では，种子に链接されている互联网上の<b>所有</b>の文档を含みます。</p>
-                <p>对象にする文档を限制したい时，［排除］标签から指定请。［排除］标签を选择会显示如下页面:</p>
+                <p>请将0以上正则表达式分行指定。</p>
+                <p>Web作业在缺省情况下，包含和种子链接的互联网上<b>所有</b>文档。</p>
+                <p>如要限制对象文档，从［排除］标签指定。选择［排除］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-job-exclusions.PNG" alt="Web Job, Exclusions tab" width="80%"/>
                 <br/><br/>
-                <p>改行区切りで0以上の正则表达式を指定请。索引を生成できない文档は，索引をする需要がない文档を排除ことを推荐します。比如動画や映像など从索引を生成できないので排除の对象です。</p>
+                <p>请将0以上正则表达式分行指定。建议排除无法生成索引的文档，或无需索引的文档。比如动画或视频等无法生成索引的文档应排除在外。</p>
                 <p>可从［安全］标签为Web作业要建立索引的文档指定访问令牌。选择［安全］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/web-job-security.PNG" alt="Web Job, Security tab" width="80%"/>
@@ -904,13 +913,13 @@
             <section id="jcifsrepository">
                 <title>Windows Share/DFS存储库连接</title>
                 <p>Windows共享连接类型，用来为Windows共享文件夹中的文档建立索引。还可从Windows以外OS系统使用。支持Samba或第三方NAS服务器。</p>
-                <p>支持所有DFS节点和参照。但前提是，所参照服务器名必须可从ManifoldCF安装服务器所使用的DNS访问。Windows共享连接，为每一个文档生成索引ID。索引ID为［file:］IRI或［http:］URI。可灵活配置环境，但设置需要些许时间。特别是使用文件IRI时，请确认系统搜索组件是否正确配置。从象Internet Explorer的Web浏览器からWindows文件系统の文档を閲覧する时，<code>\\servername\sharename\dir1\filename.txt</code>のような地址を<code>file://///servername/sharename/dir1/filename.txt</code>のようなIRIに转换します。简单のようですが空白，［#］，英数以外の字符が文件名に含まれている时複雑になります。Internet Explorerの版本によって不同的方法で处理するため，一个方法でWindows共享文件路径をIRIに转换すること式はありません。而不是连接は标准正规化地址を使用して，系统が索引结果をWeb浏览器及客户端に正しい方法で转换することを期待します。</p>
-                <p>权限付きでWindows共享存储库连接で文档を爬取する时，事前にActiveDirectory权限连接器を生成请。</p>
-                <p>Windows共享连接は存储库连接编辑页で一个固有标签があります:［服务器］标签。［服务器］标签を选择会显示如下页面:</p>
+                <p>支持所有DFS节点和参照。但前提是，所参照服务器名必须可从ManifoldCF安装服务器所使用的DNS访问。Windows共享连接，为每一个文档生成索引ID。索引ID为［file:］IRI或［http:］URI。可灵活配置环境，但设置需要些许时间。特别是使用文件IRI时，请确认系统搜索组件是否正确配置。从象Internet Explorer的Web浏览器阅读Windows文件系统文档，将象<code>\\servername\sharename\dir1\filename.txt</code>的地址转换为<code>file://///servername/sharename/dir1/filename.txt</code>IRI。貌似简单，但文件名包含空白，［#］，英数以外字符时变为复杂。根据Internet Explorer版本会出现不同处理方法，故转换Windows共享文件路径为IRI的方法也并不唯一。理想的做法是，连接中使用标准正规化地址，系统为Web浏览器及客户端通过正确的方法转换索引结果。</p>
+                <p>在具有权限的Windows共享存储库连接爬取文档时，请事先生成ActiveDirectory权限连接器。</p>
+                <p>Windows共享连接在存储库连接编辑页有一个固有标签:［服务器］标签。选择［服务器］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/jcifs-configure-server.PNG" alt="Windows Share Connection, Server tab" width="80%"/>
                 <br/><br/>
-                <p>连接する服务器名を输入请。服务器名は，実服务器名或Windows域名DFS根に连接する时域名名で指定可以。実服务器名を输入する时，服务器名に未修飾名を输入して，［域名名］に完全修飾域名名を输入请。用户名は未修飾名を输入请（例:［Administrator@mydomain.com］ではなく，［Administrator］と输入请）。［域名名］を空白にして，［服务器］に完全修飾服务器名を输入する时もあります。但是，域名名と完全修飾服务器名の<b>両方</b>を输入しないでください。</p>
+                <p>请输入连接服务器名。服务器名，可以指定实际服务器名或域名（当连接到Windows域DFS根时）。输入实际服务器名时，服务器名输入未修饰名，［域名］输入完整修饰域名。用户名输入未修饰名（例:不是［Administrator@mydomain.com］，而是［Administrator］）。有时［域名］值为空，［服务器］输入完整修饰服务器名。但是，不要<b>同时</b>输入域名和完整修饰服务器名。</p>
                 <p>"Use SIDs"选择框，控制连接是否将SIDs使用为访问令牌（这适用于受Active Directory安全控制的Windows服务器或NAS服务器等），或是否使用用户/组名(适用于和Samba服务器，LDAP权限连接类型连动起来使用LDAP的CIFS服务器)。使用SIDs请打勾。</p>
                 <p>为减轻服务器方的负荷，推荐［限流器链接］标签的［最大连接数／JVM］修改为少于缺省值10。Windows的多线程性能并不高。设置为5以下其获取性能不会有太大变化。</p>
                 <p>输入后单击［保存］按钮。显示如下设置概要:</p>
@@ -942,15 +951,15 @@
                 <br/><br/>
                 <figure src="images/zh_CN/jcifs-job-metadata.PNG" alt="Windows Share Job, Metadata tab" width="80%"/>
                 <br/><br/>
-                <p>设置可将由正则表达式转换而成的文档路径作为文档元数据加以获取。输入元数据名到［路径属性名］后，添加规则到规则列表。各规则由相应正则表达式构成。转换源和值由括弧（［(］と［)］）括上。由括弧括上的部分称为［组］。替换字符串由固定字符和替换组构成。比如，［$(1)］表示首个匹配组，［$(1l)］表示首个小写字符匹配组。同样［$(1u)］表示大写字符匹配组。</p>
+                <p>设置可将由正则表达式转换而成的文档路径作为文档元数据加以获取。输入元数据名到［路径属性名］后，添加规则到规则列表。各规则由相应正则表达式构成。转换源和值由括弧（［(］和［)］）括上。由括弧括上的部分称为［组］。替换字符串由固定字符和替换组构成。比如，［$(1)］表示首个匹配组，［$(1l)］表示首个小写字符匹配组。同样［$(1u)］表示大写字符匹配组。</p>
                 <p>比如，规则<code>http://(.*)/(.*)/</code>和替换字符串<code>http://$(2)/</code>，将<code>http://Server/Folder_1/Filename</code>置换成<code>http://Folder_1/Filename</code>。</p>
                 <p>如存在一个以上规则，从上往下执行，上方规则结果由下方规则覆盖。</p>
                 <p>选择［Content Length］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/jcifs-job-content-length.PNG" alt="Windows Share Job, Content Length tab" width="80%"/>
                 <br/><br/>
-                <p>为使作业不生成长文档，可指定文档处理的最大长度。超过指定长的文档，在指定长度被切断。请输入最大长度。如不设最大长度を设置しない时，空白に请。</p>
-                <p>［文件映射］标签を选择如会显示如下页面:</p>
+                <p>为使作业不生成长文档，可指定文档处理的最大长度。超过指定长的文档，在指定长度被切断。请输入最大长度。如不设最大长度时，请置空。</p>
+                <p>选择［文件映射］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/jcifs-job-file-mapping.PNG" alt="Windows Share Job, File Mapping tab" width="80%"/>
                 <br/><br/>
@@ -1031,16 +1040,16 @@
                 <br/>
                 <table>
                     <tr><td><b>名称</b></td><td><b>说明</b></td></tr>
-                    <tr><td>IDCOLUMN</td><td>包含文档ID的结果集の列</td></tr>
-                    <tr><td>VERSIONCOLUMN</td><td>版本信息を包含结果集の列</td></tr>
-                    <tr><td>URLCOLUMN</td><td>URIを包含结果集の列</td></tr>
-                    <tr><td>DATACOLUMN</td><td>文档数据を包含结果集の列</td></tr>
-                    <tr><td>STARTTIME</td><td>开始时间を1970年1月1日からの经过时间（ミリ秒）</td></tr>
-                    <tr><td>ENDTIME</td><td>结束时间を1970年1月1日からの经过时间（ミリ秒）</td></tr>
-                    <tr><td>IDLIST</td><td>括弧で囲まれた文档ID列表</td></tr>
+                    <tr><td>IDCOLUMN</td><td>包含文档ID的结果集的列</td></tr>
+                    <tr><td>VERSIONCOLUMN</td><td>包含版本信息的结果集的列</td></tr>
+                    <tr><td>URLCOLUMN</td><td>包含URI的结果集的列</td></tr>
+                    <tr><td>DATACOLUMN</td><td>包含文档数据的结果集的列</td></tr>
+                    <tr><td>STARTTIME</td><td>开始时间。从1970年1月1日的经过时间（毫秒）</td></tr>
+                    <tr><td>ENDTIME</td><td>结束时间。从1970年1月1日的经过时间（毫秒）</td></tr>
+                    <tr><td>IDLIST</td><td>由括弧括上的文档ID列表</td></tr>
                 </table>
                 <br/>
-                <p>时间の替换字符串を包含查询を生成する时，［$(STARTTIME)］と［$(ENDTIME)］は1970年1月1日からの经过时间をミリ秒で表した值に替换られることに注意请。［$(STARTTIME)］と［$(ENDTIME)］を系统のタイムスタンプに替换ることを推荐します。</p>
+                <p>注意，当生成包含时间替换字符串的查询时，［$(STARTTIME)］和［$(ENDTIME)］被替换成从1970年1月1日所经过时间的毫秒值。建议将［$(STARTTIME)］和［$(ENDTIME)］替换成系统时间。</p>
                 <p>下面是将［$(STARTTIME)］和［$(ENDTIME)］转换为其它格式的日期和时间的样本查询部分。首列为查询语句支持的SQL数据库。第２列为查询输出数据类型。第３列为，［$(STARTTIME)］的使用例。这些是查询的例子。当所更改的数据类型不同于第2列数据类型时，会无法正确比較日期。</p>
                 <br/>
                 <table>
@@ -1110,7 +1119,7 @@
               <br/><br/>
               <figure src="images/zh_CN/dropbox-repository-create-application.PNG" alt="Dropbox create application" width="80%"/>
               <br/><br/>
-              <p>这里的用途是，为和Dropbox交流而使用REST服务を，作为应用类型需选择"Core"。另，选择"full access"。在此还存在些许争论。关于用来保存或获取信息的应用程序，通常通过应用程序的固有文件夹进行完全访问。这里假定用户仅访问用户的文件，而不拷贝到manifoldcf的固有文件夹。结果，选择"App folder"而不是"full access"。</p>
+              <p>这里的用途是，为和Dropbox交流而使用REST服务，作为应用类型需选择"Core"。另，选择"full access"。在此还存在些许争论。关于用来保存或获取信息的应用程序，通常通过应用程序的固有文件夹进行完全访问。这里假定用户仅访问用户的文件，而不拷贝到manifoldcf的固有文件夹。结果，选择"App folder"而不是"full access"。</p>
               <br/><br/>
               <figure src="images/zh_CN/dropbox-repository-application-secret-passwords.PNG" alt="Dropbox get key and secret passwords" width="80%"/>
               <br/><br/>
@@ -1182,8 +1191,8 @@
                 <br/><br/>
                 <p>当将LiveLink的所有元数据传给索引时，请在［所有元数据］单选框打勾。仅传给特定元数据是，把LiveLink元数据路径添加到元数据列表。选择如下元数据语句单击［+］按钮添加到路径。也可以添加文件夹信息，元数据种类。</p>
                 <p>到达元数据种类处，要么选择元数据属性，要么在［此种类所有属性］复选框打勾。输入完单击［添加］按钮来添加要包含在索引的元数据属性。</p>
-                <p>从［路径元数据］标签文档，指定将每一个路径信息作为元数据发送到索引。发送时，在［路径属性名］项输入元数据属性名，将规则添加到规则列表。各规则由响应正则表达式の式で构成されます。转换源と值は格好（［(］と［)］）で囲みます。括弧に囲まれた部分を［组］と言います。替换字符串は，固定字符と替换组由所构成。比如，［$(1)］は最初に匹配组を示し，［$(1l)］は最初に匹配小写字符の组を示します。同じように［$(1u)］は大写字符に映射した组を示します。</p>
-                <p>比如，规则の匹配条件が<code>.*/(.*)/(.*)/.*</code>で替换字符串<code>$(1) $(2)/</code>とした时，路径<code>Project/Folder_1/Folder_2/Filename</code>は<code>Folder_1 Folder_2</code>に转换されます。</p>
+                <p>从［路径元数据］标签文档，指定将每一个路径信息作为元数据发送到索引。发送时，在［路径属性名］项输入元数据属性名，将规则添加到规则列表。各规则由响应正则表达式构成。转换源和值用括号（［(］和［)］）括上。由括号括上的部分称为［组］。替换字符串，由固定字符和替换组构成。比如，［$(1)］表示首个匹配组，［$(1l)］表示首个匹配的小写字符的组。同样［$(1u)］表示和大写字符相配的组。</p>
+                <p>比如，规则的匹配条件为<code>.*/(.*)/(.*)/.*</code>，替换字符串为<code>$(1) $(2)/</code>时，路径<code>Project/Folder_1/Folder_2/Filename</code>将被转换成<code>Folder_1 Folder_2</code>。</p>
                 <p>存在一个或一个以上规则时，从上往下执行，上方规则的结果由下方规则覆盖。</p>
             </section>
             
@@ -1200,7 +1209,7 @@
                 <br/><br/>
                 <figure src="images/zh_CN/memex-connection-web-server.PNG" alt="Memex Connection, Web Server tab" width="80%"/>
                 <br/><br/>
-                <p>请给每一个Memex文档输入可生成唯一URL的信息を。选择协议，输入服务器名和端口号。</p>
+                <p>请给每一个Memex文档输入可生成唯一URL的信息。选择协议，输入服务器名和端口号。</p>
                 <p>输入后单击［保存］按钮。会显示如下状态页:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/memex-connection-status.PNG" alt="Memex Connection Status" width="80%"/>
@@ -1214,20 +1223,20 @@
                 <title>Meridio存储库连接</title>
                 <p>Autonomy Meridio连接，从Merido服务器的文档生成索引。Meridio的体系结构允许将服务分布于多个服务器（比如:文档服务和记录服务运行在不同的服务器）。因此，Meridio连接类型，可为每一个Meridio服务器进行设置。</p>
                 <p>Meridio连接所处理文档的安全使用Meridio权限。关于Meridio权限连接请参阅［Meridio权限连接］。</p>
-                <p>从存储库连接页选择Meridio连接选择如会显示如下标签:［文档服务器］，［记录服务器］，［Web客户端］，［认证］。［文档服务器］标签を选择会显示如下页面:</p>
+                <p>从存储库连接页选择Meridio连接选择如会显示如下标签:［文档服务器］，［记录服务器］，［Web客户端］，［认证］。选择［文档服务器］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/meridio-connection-document-server.PNG" alt="Meridio Connection, Document Server tab" width="80%"/>
                 <br/><br/>
-                <p>协议を选择して服务器名，端口号，Meridio文档服务器服务の地址を输入请。代理服务器を使用されている时，代理服务器主机地址と端口号を输入请。认证代理服务器は现有版本では未对应です。</p>
-                <p>Meridio系统の时不同的服务每一个服务器を配备可が，通常多个の服务が同じ服务器で运行しています。但是，连接类型设置从不同的服务器を指定する还可以。</p>
-                <p>［记录服务器］标签を选择如，会显示如下页面:</p>
+                <p>选择协议并输入服务器名，端口号，Meridio文档服务器服务地址。使用代理服务器时，输入代理服务器主机地址和端口号。当前版本不支持认证代理服务器。</p>
+                <p>Meridio系统时，虽可为每一个不同的服务配备服务器，通常多个服务运行在同一个服务器。但是，从连接类型设置还可以指定不同的服务器。</p>
+                <p>如选择［记录服务器］标签，会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/meridio-connection-records-server.PNG" alt="Meridio Connection, Records Server tab" width="80%"/>
                 <br/><br/>
                 <p>请输入协议，服务器名，端口号，Meridio记录服务器服务地址。使用代理服务器时，请输入代理服务器主机和端口号。当前版本不支持认证代理服务器。</p>
-                <p>虽Meridio系统可为每一个服务配备不同服务器，通常多个服务が同じ服务器で运行しています。但是，连接类型设置从不同的服务器を指定する还可以。</p>
+                <p>虽Meridio系统可为每一个服务配备不同服务器，通常多个服务运行在同一台服务器。但是，从连接类型设置还可以指定不同的服务器。</p>
 
-                <p>［Web客户端］标签を选择会显示如下页面:</p>
+                <p>选择［Web客户端］标签会显示如下页面:</p>
                 <br/><br/>
                 <figure src="images/zh_CN/meridio-connection-web-client.PNG" alt="Meridio Connection, Web Client tab" width="80%"/>
                 <br/><br/>
@@ -1242,12 +1251,12 @@
                 <figure src="images/zh_CN/meridio-connection-status.PNG" alt="Meridio Connection Status" width="80%"/>
                 <br/><br/>
                 <p>所显示画面中因Meridio权限服务器无法连接到Windows域名而出错。</p>
-                <p>Meridio使用Windows IIS的认证功能。IIS及Windows域名设置有误时，Meridio也会无法正常运行。如发生问题，请咨询Meridio技术负责人に咨询。また，如下调试工具使用还可以:</p>
+                <p>Meridio使用Windows IIS的认证功能。IIS及Windows域名设置有误时，Meridio也会无法正常运行。如发生问题，请咨询Meridio技术负责人。还可使用如下调试工具:</p>
                 <br/>
                 <ul>
                     <li>Windows安全事件日志</li>
                     <li>ManifoldCF日志（以参阅下述内容）</li>
-                    <li>数据包截取器（WireShark等工具を使用）</li>
+                    <li>数据包截取器（使用WireShark等工具）</li>
                 </ul>
                 <br/>
                 <p>需要其它ManifoldCF日志信息时需修改软件。</p>
@@ -1266,7 +1275,7 @@
                 <figure src="images/zh_CN/sharepoint-configure-server.PNG" alt="SharePoint Connection, Server tab" width="80%"/>
                 <br/><br/>
                 <p>请从下拉菜单选择SharePoint服务器版本。如版本选择有误，导致无法生成索引或无法正确获取权限信息。</p>
-                <p>选择服务器协议，参照从SharePoint网站记录下的URI，输入服务器名和端口号。［网站路径］项输入根网站URI的服务器地址和端口号以后的除最后［aspx］文件以外字符串。比如SharePoint URI为［http://myserver:81/sites/somewhere/index.asp］时，网站路径为［/sites/somewhere］です。</p>
+                <p>选择服务器协议，参照从SharePoint网站记录下的URI，输入服务器名和端口号。［网站路径］项输入根网站URI的服务器地址和端口号以后的除最后［aspx］文件以外字符串。比如SharePoint URI为［http://myserver:81/sites/somewhere/index.asp］时，网站路径为［/sites/somewhere］。</p>
                 <p>使用SharePoint认证登录到根网站。SharePoint连接类型的用户名必须以［domain\user］格式输入。</p>
                 <p>SharePoint服务器使用SSL时，请设置SharePoint服务器的SSL服务器认证服务器证书或来自认证局的证书。从参照选择证书，单击［添加］按钮。</p>
                 <p>单击［保存］按钮显示如下连接设置概要页面:</p>
@@ -1317,7 +1326,7 @@
               <br/>
               <p>从存储库连接编辑页选择CMIS连接，可以设置如下项目:</p>
               <br/><br/>
-              <figure src="images/zh_CN/cmis-repository-connection-configuration.PNG" alt="CMIS Repository Connection, configuration parameters" width="80%"/>
+              <figure src="images/zh_CN/cmis-repository-connection-configuration.png" alt="CMIS Repository Connection, configuration parameters" width="80%"/>
               <br/><br/>
               <p>选择CMIS绑定协议（AtomPub或Web Service），请输入用户名，密码，CMIS文档服务器服务端点。</p>
               <p>端点由CMIS服务的HTTP协议，主机名，端口号，上下文路径所构成:</p>
@@ -1335,17 +1344,17 @@
               <br/><br/>
               <p>如单击［保存］按钮，会显示如下连接概要页面:</p>
               <br/><br/>
-              <figure src="images/zh_CN/cmis-repository-connection-configuration-save.PNG" alt="CMIS Repository Connection, saving configuration" width="80%"/>
+              <figure src="images/zh_CN/cmis-repository-connection-configuration-save.png" alt="CMIS Repository Connection, saving configuration" width="80%"/>
               <br/><br/>
               <p>如在作业选择CMIS存储库连接，会看到［CMIS查询］标签。选择［CMIS查询］标签显示如下页面:</p>
               <br/><br/>
-              <figure src="images/zh_CN/cmis-repository-connection-job-cmisquery.PNG" alt="CMIS Repository Connection, CMIS Query" width="80%"/>
+              <figure src="images/zh_CN/cmis-repository-connection-job-cmisquery.png" alt="CMIS Repository Connection, CMIS Query" width="80%"/>
               <br/><br/>
               <p>从［CMIS查询］标签可用CMIS查询语言设置获取文档的查询语句。</p>
               <p>CMIS连接器在读取文档时如发现文件夹节点（baseType为cmis:folder的节点），还会读取文件夹内的文档。非文件夹时（baseType为cmis:document），读取文档并处理。</p>
               <p>输入后单击［保存］按钮。会显示如下设置概要:</p>
               <br/><br/>
-              <figure src="images/zh_CN/cmis-repository-connection-job-save.PNG" alt="CMIS Repository Connection, saving job" width="80%"/>
+              <figure src="images/zh_CN/cmis-repository-connection-job-save.png" alt="CMIS Repository Connection, saving job" width="80%"/>
               <br/><br/>
             </section>
             
