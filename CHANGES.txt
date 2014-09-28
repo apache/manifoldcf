@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1051: Elastic Search connector and CMIS connector
+should use the same paradigm for test wars.
+(Karl Wright)
+
 CONNECTORS-1048: Use full paths for all downloaded jars.
 (Shinichiro Abe, Karl Wright)
 

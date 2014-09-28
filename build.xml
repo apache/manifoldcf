@@ -439,19 +439,23 @@
           <exclude name="connectors/*/dist/"/>
           <exclude name="framework/dist/"/>
           <exclude name="**/target/"/>
+          <exclude name="**/test-materials/*.jar"/>
+          <exclude name="**/test-materials/*.war"/>
+          <exclude name="**/test-materials/*.wsdl"/>
+          <exclude name="**/test-materials/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/*.jar"/>
+          <exclude name="**/test-materials-proprietary/*.war"/>
+          <exclude name="**/test-materials-proprietary/*.wsdl"/>
+          <exclude name="**/test-materials-proprietary/*.xsd"/>
           <exclude name="**/test-output/"/>
           <exclude name="**/test-postgresql-output/"/>
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
           <exclude name="**/test-mysql-output/"/>
           <exclude name="**/lib-proprietary/*.jar"/>
-          <exclude name="**/test-materials-proprietary/*.jar"/>
           <exclude name="**/lib-proprietary/*.war"/>
-          <exclude name="**/test-materials-proprietary/*.war"/>
           <exclude name="**/lib-proprietary/*.wsdl"/>
-          <exclude name="**/test-materials-proprietary/*.wsdl"/>
           <exclude name="**/lib-proprietary/*.xsd"/>
-          <exclude name="**/test-materials-proprietary/*.xsd"/>
           <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
           <exclude name="legacy-*/"/>
           <exclude name="apache-manifoldcf-*/"/>        
@@ -483,14 +487,18 @@
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
           <exclude name="**/test-mysql-output/"/>
-          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="**/test-materials/*.jar"/>
+          <exclude name="**/test-materials/*.war"/>
+          <exclude name="**/test-materials/*.wsdl"/>
+          <exclude name="**/test-materials/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.jar"/>
-          <exclude name="**/lib-proprietary/*.war"/>
           <exclude name="**/test-materials-proprietary/*.war"/>
-          <exclude name="**/lib-proprietary/*.wsdl"/>
           <exclude name="**/test-materials-proprietary/*.wsdl"/>
-          <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.war"/>
+          <exclude name="**/lib-proprietary/*.wsdl"/>
+          <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
           <exclude name="legacy-*/"/>
           <exclude name="apache-manifoldcf-*/"/>
@@ -1117,10 +1125,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="chemistry-opencmis-commons-api"/>
             <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry.version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="chemistry-opencmis-server-inmemory"/>
-            <param name="artifact-type" value="war"/>
         </antcall>
     </target>
 
