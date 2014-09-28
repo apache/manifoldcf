@@ -29,19 +29,82 @@
     <defaultexcludes add="**/*.iml"/> 
     <defaultexcludes add="**/.idea/**"/> 
     
+    <property name="hsqldb.version" value="2.3.1"/>
+    <property name="jetty.version" value="7.5.4.v20111024"/>
+    <property name="httpclient.version" value="4.3.5"/>
+    <property name="httpmime.version" value="4.3.5"/>
+    <property name="httpcore.version" value="4.3.2"/>
+    <property name="xerces.version" value="2.10.0"/>
+    <property name="zookeeper.version" value="3.4.6"/>
+    <property name="mongodb.version" value="2.11.3"/>
+    <property name="json.version" value="20090211"/>
+    <property name="postgresql.version" value="9.1-901.jdbc4"/>
+    <property name="axis.version" value="1.4"/>
+    <property name="saaj-api.version" value="1.3"/>
+    <property name="saaj-impl.version" value="1.3.3"/>
+    <property name="castor.version" value="1.0.5"/>
+    <property name="wsdl4j.version" value="1.6.2"/>
+    <property name="commons-codec.version" value="1.9"/>
+    <property name="commons-collections.version" value="3.2.1"/>
+    <property name="commons-discovery.version" value="0.5"/>
+    <property name="commons-el.version" value="1.0"/>
+    <property name="commons-fileupload.version" value="1.2.2"/>
+    <property name="commons-io.version" value="2.1"/>
+    <property name="commons-lang.version" value="2.6"/>
+    <property name="commons-logging.version" value="1.1.3"/>
+    <property name="commons-configuration.version" value="1.6"/>
+    <property name="commons-cli.version" value="1.2"/>
+    <property name="slf4j.version" value="1.7.7"/>
+    <property name="xalan.version" value="2.7.1"/>
+    <property name="poi.version" value="3.11-beta2"/>
+    <property name="activation.version" value="1.1.1"/>
+    <property name="avalon.version" value="4.3.1"/>
+    <property name="ecj.version" value="4.3.1"/>
+    <property name="fop.version" value="1.0"/>
+    <property name="javamail-spec.version" value="1.7.1"/>
+    <property name="tomcat.version" value="6.0.35"/>
+    <property name="jaxb-api.version" value="2.1"/>
+    <property name="jaxb-impl.version" value="2.1.11"/>
+    <property name="jaxws.version" value="2.2.6"/>
+    <property name="chemistry.version" value="0.11.0"/>
+    <property name="glassfish.version" value="2.1.v20091210"/>
+    <property name="junit.version" value="4.8.2"/>
+    <property name="log4j.version" value="1.2.16"/>
+    <property name="mail.version" value="1.4.5"/>
+    <property name="mimepull.version" value="1.3"/>
+    <property name="opensaml.version" value="1.1"/>
+    <property name="osgi.version" value="1.0.0"/>
+    <property name="xml-resolver.version" value="1.2"/>
+    <property name="servlet-api.version" value="2.5-20081211"/>
+    <property name="stax-api.version" value="1.0.1"/>
+    <property name="stax-ex.version" value="1.2"/>
+    <property name="streambuffer.version" value="0.9"/>
+    <property name="velocity.version" value="1.7"/>
+    <property name="wss4j.version" value="1.5.12"/>
+    <property name="xmlgraphics-commons.version" value="1.4"/>
+    <property name="wstx-asl.version" value="3.2.9"/>
+    <property name="xmlsec.version" value="1.4.0"/>
+    <property name="xml-apis.version" value="1.4.01"/>
+    <property name="jstl.version" value="1.2"/>
+    <property name="dropbox-client.version" value="1.5.3"/>
+    <property name="json-simple.version" value="1.1"/>
+    <property name="google-api-client.version" value="v2-rev136-1.19.0"/>
+    <property name="google-http-client.version" value="1.19.0"/>
+    <property name="jackson-core.version" value="2.1.3"/>
+
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
-        <!--available file="lib/hsqldb.jar" property="hsqldb-found"/>
-        <available file="lib/jetty-server.jar" property="jetty-found"/>
-        <available file="lib/httpclient.jar" property="httpclient-found"/>
-        <available file="lib/xercesImpl.jar" property="xerces-found"/ -->
-        <available file="lib/zookeeper-3.4.6.jar" property="zookeeper-found"/>
+        <available file="lib/hsqldb-${hsqldb.version}.jar" property="hsqldb-found"/>
+        <available file="lib/jetty-server-${jetty.version}.jar" property="jetty-found"/>
+        <available file="lib/httpclient-${httpclient.version}.jar" property="httpclient-found"/>
+        <available file="lib/xercesImpl-${xerces.version}.jar" property="xerces-found"/>
+        <available file="lib/zookeeper-${zookeeper.version}.jar" property="zookeeper-found"/>
         <condition property="downloaded">
             <and>
-                <!--isset property="hsqldb-found"/>
+                <isset property="hsqldb-found"/>
                 <isset property="jetty-found"/>
                 <isset property="httpclient-found"/>
-                <isset property="xerces-found"/ -->
+                <isset property="xerces-found"/>
                 <isset property="zookeeper-found"/>
             </and>
         </condition>
@@ -624,7 +687,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
         <antcall target="download-via-maven">
             <param name="project-path" value="org/mongodb"/>
-            <param name="artifact-version" value="2.11.3"/>
+            <param name="artifact-version" value="${mongodb.version}"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="mongo-java-driver"/>
             <param name="artifact-type" value="jar"/>
@@ -636,14 +699,14 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
         <antcall target="download-via-maven">
             <param name="project-path" value="org/apache/httpcomponents"/>
-            <param name="artifact-version" value="4.3.2"/>
+            <param name="artifact-version" value="${httpcore.version}"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="httpcore"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="project-path" value="org/apache/httpcomponents"/>
-            <param name="artifact-version" value="4.3.5"/>
+            <param name="artifact-version" value="${httpclient.version}"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="httpclient"/>
             <param name="artifact-type" value="jar"/>
@@ -651,7 +714,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/httpcomponents"/>
-            <param name="artifact-version" value="4.3.5"/>
+            <param name="artifact-version" value="${httpmime.version}"/>
             <param name="artifact-name" value="httpmime"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -661,7 +724,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="project-path" value="org/json"/>
-            <param name="artifact-version" value="20090211"/>
+            <param name="artifact-version" value="${json.version}"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="json"/>
             <param name="artifact-type" value="jar"/>
@@ -670,34 +733,20 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-hsqldb">
         <mkdir dir="lib"/>
-        <!--mkdir dir="build/download"/>
-        <delete dir="build/download/hsqldb"/>
-        <antcall target="checkout-source-via-svn">
-            <param name="root-dir" value="build/download"/>
-            <param name="svn-url" value="https://hsqldb.svn.sourceforge.net/svnroot/hsqldb/base/trunk"/>
-            <param name="dir-name" value="hsqldb"/>
-        </antcall -->
-        <!-- Build it -->
-        <!--antcall target="build-via-ant">
-            <param name="root-dir" value="build/download/hsqldb/build"/>
-            <param name="target" value="hsqldb"/>
-        </antcall>
-        <copy todir="lib" file="build/download/hsqldb/lib/hsqldb.jar"/ -->
         <antcall target="download-via-maven">
             <param name="project-path" value="org/hsqldb"/>
-            <param name="artifact-version" value="2.3.1"/>
+            <param name="artifact-version" value="${hsqldb.version}"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="hsqldb"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <!-- get src="http://www.hsqldb.org/repos/org/hsqldb/hsqldb/2.2.9/hsqldb-2.2.9.jar" dest="lib/hsqldb.jar"/-->
     </target>
     
     <target name="download-postgresql">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="project-path" value="postgresql"/>
-            <param name="artifact-version" value="9.1-901.jdbc4"/>
+            <param name="artifact-version" value="${postgresql.version}"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="postgresql"/>
             <param name="artifact-type" value="jar"/>
@@ -706,33 +755,28 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
     <target name="download-axis">
         <mkdir dir="lib"/>
-        <property name="axis-version" value="1.4"/>
         <property name="axis-package" value="org/apache/axis"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${axis-package}"/><param name="artifact-version" value="${axis-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${axis-package}"/><param name="artifact-version" value="${axis.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="axis"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${axis-package}"/><param name="artifact-version" value="${axis-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${axis-package}"/><param name="artifact-version" value="${axis.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="axis-jaxrpc"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <!-- antcall target="download-via-maven"><param name="project-path" value="${axis-package}"/><param name="artifact-version" value="${axis-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="axis-saaj"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall -->
     </target>
 
     <target name="download-saaj">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="javax/xml/soap"/>
-            <param name="artifact-version" value="1.3"/>
+            <param name="artifact-version" value="${saaj-api.version}"/>
             <param name="artifact-name" value="saaj-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="com/sun/xml/messaging/saaj"/>
-            <param name="artifact-version" value="1.3.3"/>
+            <param name="artifact-version" value="${saaj-impl.version}"/>
             <param name="artifact-name" value="saaj-impl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -745,9 +789,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <!-- get src="http://mirrors.ibiblio.org/pub/mirrors/maven/castor/1.0.5/castor-1.0.5.jar" dest="lib/castor.jar"/ -->
         <!-- get src="http://mirrors.ibiblio.org/pub/mirrors/maven/castor/1.0.5/castor-1.0.5-xml.jar" dest="lib/castor-xml.jar"/ -->
         <!-- get src="http://mirrors.ibiblio.org/pub/mirrors/maven/castor/1.0.5/castor-1.0.5-commons.jar" dest="lib/castor-commons.jar"/ -->
-        <property name="castor-version" value="1.0.5"/>
         <property name="castor-path" value="org/codehaus/castor"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${castor-path}"/><param name="artifact-version" value="${castor-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${castor-path}"/><param name="artifact-version" value="${castor.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="castor"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -763,9 +806,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
   
     <target name="download-wsdl4j">
         <mkdir dir="lib"/>
-        <property name="wsdl4j-version" value="1.6.2"/>
         <property name="wsdl4j-package" value="wsdl4j"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${wsdl4j-package}"/><param name="artifact-version" value="${wsdl4j-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${wsdl4j-package}"/><param name="artifact-version" value="${wsdl4j.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="wsdl4j"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -775,61 +817,61 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-codec"/>
-            <param name="artifact-version" value="1.9"/>
+            <param name="artifact-version" value="${commons-codec.version}"/>
             <param name="artifact-name" value="commons-codec"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-collections"/>
-            <param name="artifact-version" value="3.2.1"/>
+            <param name="artifact-version" value="${commons-collections.version}"/>
             <param name="artifact-name" value="commons-collections"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-discovery"/>
-            <param name="artifact-version" value="0.5"/>
+            <param name="artifact-version" value="${commons-discovery.version}"/>
             <param name="artifact-name" value="commons-discovery"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-el"/>
-            <param name="artifact-version" value="1.0"/>
+            <param name="artifact-version" value="${commons-el.version}"/>
             <param name="artifact-name" value="commons-el"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-fileupload"/>
-            <param name="artifact-version" value="1.2.2"/>
+            <param name="artifact-version" value="${commons-fileupload.version}"/>
             <param name="artifact-name" value="commons-fileupload"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-io"/>
-            <param name="artifact-version" value="2.1"/>
+            <param name="artifact-version" value="${commons-io.version}"/>
             <param name="artifact-name" value="commons-io"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-lang"/>
-            <param name="artifact-version" value="2.6"/>
+            <param name="artifact-version" value="${commons-lang.version}"/>
             <param name="artifact-name" value="commons-lang"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-logging"/>
-            <param name="artifact-version" value="1.1.3"/>
+            <param name="artifact-version" value="${commons-logging.version}"/>
             <param name="artifact-name" value="commons-logging"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-configuration"/>
-            <param name="artifact-version" value="1.6"/>
+            <param name="artifact-version" value="${commons-configuration.version}"/>
             <param name="artifact-name" value="commons-configuration"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-cli"/>
-            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-version" value="${commons-cli.version}"/>
             <param name="artifact-name" value="commons-cli"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -837,17 +879,16 @@ Use Apache Forrest version forrest-0.9-dev or higher.
   
     <target name="download-slf4j">
         <mkdir dir="lib"/>
-        <property name="slf4j-version" value="1.7.7"/>
         <property name="slf4j-package" value="org/slf4j"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="slf4j-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="slf4j-simple"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jcl-over-slf4j"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -855,53 +896,52 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-jetty">
         <mkdir dir="lib"/>
-        <property name="jetty-version" value="7.5.4.v20111024"/>
         <property name="jetty-package" value="org/eclipse/jetty"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-jndi"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-server"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-webapp"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-servlet"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-plus"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-util"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-http"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-io"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-security"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-continuation"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-xml"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-jsp-2.1"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -909,9 +949,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-xerces">
         <mkdir dir="lib"/>
-        <property name="xerces-version" value="2.10.0"/>
         <property name="xerces-package" value="xerces"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${xerces-package}"/><param name="artifact-version" value="${xerces-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${xerces-package}"/><param name="artifact-version" value="${xerces.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="xercesImpl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -919,23 +958,23 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-xalan">
         <mkdir dir="lib"/>
-        <property name="xalan-version" value="2.7.1"/>
         <property name="xalan-package" value="xalan"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${xalan-package}"/><param name="artifact-version" value="${xalan-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${xalan-package}"/><param name="artifact-version" value="${xalan.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="xalan"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${xalan-package}"/><param name="artifact-version" value="${xalan-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${xalan-package}"/><param name="artifact-version" value="${xalan.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="serializer"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
 
+    
     <target name="download-poi">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/poi"/>
-            <param name="artifact-version" value="3.11-beta2"/>
+            <param name="artifact-version" value="${poi.version}"/>
             <param name="artifact-name" value="poi"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -945,7 +984,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="javax/activation"/>
-            <param name="artifact-version" value="1.1.1"/>
+            <param name="artifact-version" value="${activation.version}"/>
             <param name="artifact-name" value="activation"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -953,7 +992,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-avalon-framework">
         <property name="avalon.path" value="org/apache/avalon/framework"/>
-        <property name="avalon.version" value="4.3.1"/>
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/><param name="project-path" value="${avalon.path}"/><param name="artifact-version" value="${avalon.version}"/>
             <param name="artifact-name" value="avalon-framework-api"/>
@@ -969,7 +1007,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/eclipse/jdt/core/compiler"/>
-            <param name="artifact-version" value="4.3.1"/>
+            <param name="artifact-version" value="${ecj.version}"/>
             <param name="artifact-name" value="ecj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -979,7 +1017,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/xmlgraphics"/>
-            <param name="artifact-version" value="1.0"/>
+            <param name="artifact-version" value="${fop.version}"/>
             <param name="artifact-name" value="fop"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -989,7 +1027,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/geronimo/specs"/>
-            <param name="artifact-version" value="1.7.1"/>
+            <param name="artifact-version" value="${javamail-spec.version}"/>
             <param name="artifact-name" value="geronimo-javamail_1.4_spec"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1009,18 +1047,17 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-tomcat">
         <mkdir dir="lib"/>
-        <property name="tomcat-version" value="6.0.35"/>
         <property name="tomcat-package" value="org/apache/tomcat"/>
         
-        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jasper"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jasper-el"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="juli"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1030,13 +1067,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="javax/xml/bind"/>
-            <param name="artifact-version" value="2.1"/>
+            <param name="artifact-version" value="${jaxb-api.version}"/>
             <param name="artifact-name" value="jaxb-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="com/sun/xml/bind"/>
-            <param name="artifact-version" value="2.1.11"/>
+            <param name="artifact-version" value="${jaxb-impl.version}"/>
             <param name="artifact-name" value="jaxb-impl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1046,13 +1083,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="javax/xml/ws"/>
-            <param name="artifact-version" value="2.2.6"/>
+            <param name="artifact-version" value="${jaxws.version}"/>
             <param name="artifact-name" value="jaxws-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="com/sun/xml/ws"/>
-            <param name="artifact-version" value="2.2.6"/>
+            <param name="artifact-version" value="${jaxws.version}"/>
             <param name="artifact-name" value="jaxws-rt"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1060,29 +1097,28 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-chemistry">
         <mkdir dir="lib"/>
-        <property name="chemistry-version" value="0.11.0"/>
         <property name="chemistry-package" value="org/apache/chemistry/opencmis"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="chemistry-opencmis-client-impl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="chemistry-opencmis-client-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="chemistry-opencmis-client-bindings"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="chemistry-opencmis-commons-impl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="chemistry-opencmis-commons-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="chemistry-opencmis-server-inmemory"/>
             <param name="artifact-type" value="war"/>
         </antcall>
@@ -1090,13 +1126,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
     <target name="download-glassfish">
         <mkdir dir="lib"/>
-        <property name="glassfish-version" value="2.1.v20091210"/>
         <property name="glassfish-package" value="org/mortbay/jetty"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${glassfish-package}"/><param name="artifact-version" value="${glassfish-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${glassfish-package}"/><param name="artifact-version" value="${glassfish.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jsp-2.1-glassfish"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${glassfish-package}"/><param name="artifact-version" value="${glassfish-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${glassfish-package}"/><param name="artifact-version" value="${glassfish.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jsp-api-2.1-glassfish"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1106,7 +1141,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="junit"/>
-            <param name="artifact-version" value="4.8.2"/>
+            <param name="artifact-version" value="${junit.version}"/>
             <param name="artifact-name" value="junit"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1116,7 +1151,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="log4j"/>
-            <param name="artifact-version" value="1.2.16"/>
+            <param name="artifact-version" value="${log4j.version}"/>
             <param name="artifact-name" value="log4j"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1126,29 +1161,28 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="javax/mail"/>
-            <param name="artifact-version" value="1.4.5"/>
+            <param name="artifact-version" value="${mail.version}"/>
             <param name="artifact-name" value="mail"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
     
+
     <target name="download-mimepull">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/jvnet"/>
-            <param name="artifact-version" value="1.3"/>
+            <param name="artifact-version" value="${mimepull.version}"/>
             <param name="artifact-name" value="mimepull"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
     
     <target name="download-opensaml">
-        <!-- http://maven.alfresco.com/nexus/content/groups/public/opensaml/opensaml/1.1b/opensaml-1.1b.jar -->
-        <!-- This dependency is for alfresco, so we use the jar alfresco has -->
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/opensaml"/>
-            <param name="artifact-version" value="1.1"/>
+            <param name="artifact-version" value="${opensaml.version}"/>
             <param name="artifact-name" value="opensaml"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1158,7 +1192,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/felix"/>
-            <param name="artifact-version" value="1.0.0"/>
+            <param name="artifact-version" value="${osgi.version}"/>
             <param name="artifact-name" value="org.osgi.core"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1168,7 +1202,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="xml-resolver"/>
-            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-version" value="${xml-resolver.version}"/>
             <param name="artifact-name" value="xml-resolver"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1178,7 +1212,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/mortbay/jetty"/>
-            <param name="artifact-version" value="2.5-20081211"/>
+            <param name="artifact-version" value="${servlet-api.version}"/>
             <param name="artifact-name" value="servlet-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1188,13 +1222,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="stax"/>
-            <param name="artifact-version" value="1.0.1"/>
+            <param name="artifact-version" value="${stax-api.version}"/>
             <param name="artifact-name" value="stax-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/jvnet/staxex"/>
-            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-version" value="${stax-ex.version}"/>
             <param name="artifact-name" value="stax-ex"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1204,7 +1238,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="com/sun/xml/stream/buffer"/>
-            <param name="artifact-version" value="0.9"/>
+            <param name="artifact-version" value="${streambuffer.version}"/>
             <param name="artifact-name" value="streambuffer"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1214,7 +1248,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/velocity"/>
-            <param name="artifact-version" value="1.7"/>
+            <param name="artifact-version" value="${velocity.version}"/>
             <param name="artifact-name" value="velocity"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1224,7 +1258,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/ws/security"/>
-            <param name="artifact-version" value="1.5.12"/>
+            <param name="artifact-version" value="${wss4j.version}"/>
             <param name="artifact-name" value="wss4j"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1234,7 +1268,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/xmlgraphics"/>
-            <param name="artifact-version" value="1.4"/>
+            <param name="artifact-version" value="${xmlgraphics-commons.version}"/>
             <param name="artifact-name" value="xmlgraphics-commons"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1244,7 +1278,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/codehaus/woodstox"/>
-            <param name="artifact-version" value="3.2.9"/>
+            <param name="artifact-version" value="${wstx-asl.version}"/>
             <param name="artifact-name" value="wstx-asl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1255,7 +1289,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/santuario"/>
-            <param name="artifact-version" value="1.4.0"/>
+            <param name="artifact-version" value="${xmlsec.version}"/>
             <param name="artifact-name" value="xmlsec"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1266,7 +1300,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="xml-apis"/>
-            <param name="artifact-version" value="1.4.01"/>
+            <param name="artifact-version" value="${xml-apis.version}"/>
             <param name="artifact-name" value="xml-apis"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1275,11 +1309,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-jstl">
         <mkdir dir="lib"/>
         <property name="jstl-package" value="jstl"/>
-        <property name="jstl-version" value="1.2"/>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="${jstl-package}"/>
-            <param name="artifact-version" value="${jstl-version}"/>
+            <param name="artifact-version" value="${jstl.version}"/>
             <param name="artifact-name" value="jstl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1301,14 +1334,14 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/syncloud"/>
-            <param name="artifact-version" value="1.5.3"/>
+            <param name="artifact-version" value="${dropbox-client.version}"/>
             <param name="artifact-name" value="dropbox-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/googlecode/json-simple"/>
-            <param name="artifact-version" value="1.1"/>
+            <param name="artifact-version" value="${json-simple.version}"/>
             <param name="artifact-name" value="json-simple"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1319,15 +1352,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/googlecode/json-simple"/>
-            <param name="artifact-version" value="1.1"/>
+            <param name="artifact-version" value="${json-simple.version}"/>
             <param name="artifact-name" value="json-simple"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven">
-            <param name="target" value="lib"/>
-            <param name="project-path" value="commons-codec"/>
-            <param name="artifact-version" value="1.9"/>
-            <param name="artifact-name" value="commons-codec"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -1337,42 +1363,42 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/apis"/>
-            <param name="artifact-version" value="v2-rev136-1.19.0"/>
+            <param name="artifact-version" value="${google-api-client.version}"/>
             <param name="artifact-name" value="google-api-services-drive"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/http-client"/>
-            <param name="artifact-version" value="1.19.0"/>
+            <param name="artifact-version" value="${google-http-client.version}"/>
             <param name="artifact-name" value="google-http-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/http-client"/>
-            <param name="artifact-version" value="1.19.0"/>
+            <param name="artifact-version" value="${google-http-client.version}"/>
             <param name="artifact-name" value="google-http-client-jackson2"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/oauth-client"/>
-            <param name="artifact-version" value="1.19.0"/>
+            <param name="artifact-version" value="${google-http-client.version}"/>
             <param name="artifact-name" value="google-oauth-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/fasterxml/jackson/core/"/>
-            <param name="artifact-version" value="2.1.3"/>
+            <param name="artifact-version" value="${jackson-core.version}"/>
             <param name="artifact-name" value="jackson-core"/>
             <param name="artifact-type" value="jar"/>
         </antcall> 
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/api-client"/>
-            <param name="artifact-version" value="1.19.0"/>
+            <param name="artifact-version" value="${google-http-client.version}"/>
             <param name="artifact-name" value="google-api-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1498,7 +1524,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/zookeeper"/>
-            <param name="artifact-version" value="3.4.6"/>
+            <param name="artifact-version" value="${zookeeper.version}"/>
             <param name="artifact-name" value="zookeeper"/>
             <param name="artifact-type" value="jar"/>
         </antcall>

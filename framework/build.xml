@@ -1044,229 +1044,201 @@
         </copy>
     </target>
 
-    <target name="jetty-lib" depends="lib">
-        <mkdir dir="build/lib/jetty"/>
-        <copy todir="build/lib/jetty">
-            <fileset dir="../lib">
-                <include name="jetty*.jar"/>
-            </fileset>
-        </copy>
-    </target>
+    <!-- Paths, as used to construct script classpaths -->
     
-    <target name="database-lib" depends="lib">
-        <mkdir dir="build/lib/database"/>
-        <copy todir="build/lib/database">
-            <fileset dir="../lib">
-                <include name="hsqldb*.jar"/>
-                <include name="postgresql*.jar"/>
-            </fileset>
-        </copy>
-    </target>
+    <path id="jetty-lib">
+        <fileset dir="../lib">
+            <include name="jetty*.jar"/>
+        </fileset>
+    </path>
     
-    <target name="hsqldb-lib" depends="lib">
-        <mkdir dir="build/lib/hsqldb"/>
-        <copy todir="build/lib/hsqldb">
-            <fileset dir="../lib">
-                <include name="hsqldb*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
-    <target name="zookeeper-lib" depends="lib">
-        <mkdir dir="build/lib/zookeeper"/>
-        <copy todir="build/lib/zookeeper">
-            <fileset dir="../lib">
-                <include name="zookeeper*.jar"/>
-                <include name="slf4j-api*.jar"/>
-                <include name="slf4j-simple*.jar"/>
-                <include name="log4j*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
-    <target name="process-lib" depends="lib">
-        <mkdir dir="build/lib/process"/>
-        <copy todir="build/lib/process">
-            <fileset dir="../lib">
-                <include name="commons-lang*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="commons-collections*.jar"/>
-                <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="jasper*.jar"/>
-                <include name="jsp-api-2.1-glassfish*.jar"/>
-                <include name="json*.jar"/>
-                <include name="log4j*.jar"/>
-                <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="juli*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="ecj*.jar"/>
-                <include name="velocity*.jar"/>
-                <include name="slf4j-api*.jar"/>
-                <include name="slf4j-simple*.jar"/>
-                <include name="httpcore*.jar"/>
-                <include name="httpclient*.jar"/>
-                <include name="mail*.jar"/>
-                <include name="zookeeper*.jar"/>
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="saaj-api*.jar"/>
-                <include name="saaj-impl*.jar"/>
-                <include name="activation*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
-    <target name="process-lib-proprietary" depends="lib-proprietary">
-        <mkdir dir="build/lib-proprietary/process"/>
-        <copy todir="build/lib-proprietary/process">
-            <fileset dir="../lib-proprietary">
-                <include name="mysql-connector-java*.jar"/>
-                <include name="ojdbc*.jar"/>
-                <include name="jtds*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
-    <target name="engine-lib" depends="lib">
-        <mkdir dir="build/lib/engine"/>
-        <copy todir="build/lib/engine">
-            <fileset dir="../lib">
-                <include name="commons-lang*.jar"/>
-                <include name="commons-codec*.jar"/>
-                <include name="commons-collections*.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="json*.jar"/>
-                <include name="httpcore*.jar"/>
-                <include name="httpclient*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
-    <target name="jetty-lib-classpath" depends="jetty-lib">
-        <property name="jetty-lib-classpath" location="build/lib/jetty"/>
-        <pathconvert property="jetty-lib-classpath-win" dirsep="\" pathsep=";">
-            <path>
-                <fileset dir="${jetty-lib-classpath}" includes="*.jar"/>
-            </path>
+    <path id="database-lib">
+        <fileset dir="../lib">
+            <include name="hsqldb*.jar"/>
+            <include name="postgresql*.jar"/>
+        </fileset>
+    </path>
+    
+    <path id="hsqldb-lib">
+        <fileset dir="../lib">
+            <include name="hsqldb*.jar"/>
+        </fileset>
+    </path>
+    
+    <path id="zookeeper-lib">
+        <fileset dir="../lib">
+            <include name="zookeeper*.jar"/>
+            <include name="slf4j-api*.jar"/>
+            <include name="slf4j-simple*.jar"/>
+            <include name="log4j*.jar"/>
+        </fileset>
+    </path>
+    
+    <path id="process-lib">
+        <fileset dir="../lib">
+            <include name="commons-lang*.jar"/>
+            <include name="commons-codec*.jar"/>
+            <include name="commons-collections*.jar"/>
+            <include name="commons-el*.jar"/>
+            <include name="commons-fileupload*.jar"/>
+            <include name="commons-io*.jar"/>
+            <include name="commons-logging*.jar"/>
+            <include name="commons-discovery*.jar"/>
+            <include name="jasper*.jar"/>
+            <include name="jsp-api-2.1-glassfish*.jar"/>
+            <include name="json*.jar"/>
+            <include name="log4j*.jar"/>
+            <include name="serializer*.jar"/>
+            <include name="servlet-api*.jar"/>
+            <include name="juli*.jar"/>
+            <include name="xalan*.jar"/>
+            <include name="xercesImpl*.jar"/>
+            <include name="xml-apis*.jar"/>
+            <include name="ecj*.jar"/>
+            <include name="velocity*.jar"/>
+            <include name="slf4j-api*.jar"/>
+            <include name="slf4j-simple*.jar"/>
+            <include name="httpcore*.jar"/>
+            <include name="httpclient*.jar"/>
+            <include name="mail*.jar"/>
+            <include name="zookeeper*.jar"/>
+            <include name="castor*.jar"/>
+            <include name="geronimo-javamail_1.4_spec*.jar"/>
+            <include name="axis*.jar"/>
+            <include name="wsdl4j*.jar"/>
+            <include name="saaj-api*.jar"/>
+            <include name="saaj-impl*.jar"/>
+            <include name="activation*.jar"/>
+            <include name="wss4j*.jar"/>
+            <include name="xmlsec*.jar"/>
+            <include name="opensaml*.jar"/>
+        </fileset>
+    </path>
+    
+    <path id="process-lib-proprietary">
+        <fileset dir="../lib-proprietary">
+            <include name="mysql-connector-java*.jar"/>
+            <include name="ojdbc*.jar"/>
+            <include name="jtds*.jar"/>
+        </fileset>
+    </path>
+    
+    <path id="engine-lib">
+        <fileset dir="../lib">
+            <include name="commons-lang*.jar"/>
+            <include name="commons-codec*.jar"/>
+            <include name="commons-collections*.jar"/>
+            <include name="commons-io*.jar"/>
+            <include name="commons-logging*.jar"/>
+            <include name="json*.jar"/>
+            <include name="httpcore*.jar"/>
+            <include name="httpclient*.jar"/>
+        </fileset>
+    </path>
+    
+    <!-- Classpaths -->
+    
+    <target name="jetty-lib-classpath" depends="lib">
+        <property name="jetty-lib-classpath" location="../lib"/>
+        <pathconvert property="jetty-lib-classpath-win" refid="jetty-lib" dirsep="\" pathsep=";">
             <map from="${jetty-lib-classpath}" to="..\lib"/>
         </pathconvert>
-        <pathconvert property="jetty-lib-classpath-unix" dirsep="/" pathsep=":">
-            <path>
-                <fileset dir="${jetty-lib-classpath}" includes="*.jar"/>
-            </path>
+        <pathconvert property="jetty-lib-classpath-unix" refid="jetty-lib" dirsep="/" pathsep=":">
             <map from="${jetty-lib-classpath}" to="../lib"/>
         </pathconvert>
     </target>
 
-    <target name="hsqldb-lib-classpath" depends="hsqldb-lib">
-        <property name="hsqldb-lib-classpath" location="build/lib/hsqldb"/>
-        <pathconvert property="hsqldb-lib-classpath-win" dirsep="\" pathsep=";">
-            <path>
-                <fileset dir="${hsqldb-lib-classpath}" includes="*.jar"/>
-            </path>
+    <target name="hsqldb-lib-classpath" depends="lib">
+        <property name="hsqldb-lib-classpath" location="../lib"/>
+        <pathconvert property="hsqldb-lib-classpath-win" refid="hsqldb-lib" dirsep="\" pathsep=";">
             <map from="${hsqldb-lib-classpath}" to="..\lib"/>
         </pathconvert>
-        <pathconvert property="hsqldb-lib-classpath-unix" dirsep="/" pathsep=":">
-            <path>
-                <fileset dir="${hsqldb-lib-classpath}" includes="*.jar"/>
-            </path>
+        <pathconvert property="hsqldb-lib-classpath-unix" refid="hsqldb-lib" dirsep="/" pathsep=":">
             <map from="${hsqldb-lib-classpath}" to="../lib"/>
         </pathconvert>
     </target>
 
-    <target name="zookeeper-lib-classpath" depends="zookeeper-lib">
-        <property name="zookeeper-lib-classpath" location="build/lib/zookeeper"/>
-        <pathconvert property="zookeeper-lib-classpath-win" dirsep="\" pathsep=";">
-            <path>
-                <fileset dir="${zookeeper-lib-classpath}" includes="*.jar"/>
-            </path>
+    <target name="zookeeper-lib-classpath" depends="lib">
+        <property name="zookeeper-lib-classpath" location="../lib"/>
+        <pathconvert property="zookeeper-lib-classpath-win" refid="zookeeper-lib" dirsep="\" pathsep=";">
             <map from="${zookeeper-lib-classpath}" to="..\lib"/>
         </pathconvert>
-        <pathconvert property="zookeeper-lib-classpath-unix" dirsep="/" pathsep=":">
-            <path>
-                <fileset dir="${zookeeper-lib-classpath}" includes="*.jar"/>
-            </path>
+        <pathconvert property="zookeeper-lib-classpath-unix" refid="zookeeper-lib" dirsep="/" pathsep=":">
             <map from="${zookeeper-lib-classpath}" to="../lib"/>
         </pathconvert>
     </target>
 
-    <target name="database-lib-classpath" depends="database-lib">
-        <property name="database-lib-classpath" location="build/lib/database"/>
-        <pathconvert property="database-lib-classpath-win" dirsep="\" pathsep=";">
-            <path>
-                <fileset dir="${database-lib-classpath}" includes="*.jar"/>
-            </path>
+    <target name="database-lib-classpath" depends="lib">
+        <property name="database-lib-classpath" location="../lib"/>
+        <pathconvert property="database-lib-classpath-win" refid="database-lib" dirsep="\" pathsep=";">
             <map from="${database-lib-classpath}" to="..\lib"/>
         </pathconvert>
-        <pathconvert property="database-lib-classpath-unix" dirsep="/" pathsep=":">
-            <path>
-                <fileset dir="${database-lib-classpath}" includes="*.jar"/>
-            </path>
+        <pathconvert property="database-lib-classpath-unix" refid="database-lib" dirsep="/" pathsep=":">
             <map from="${database-lib-classpath}" to="../lib"/>
         </pathconvert>
     </target>
 
-    <target name="process-lib-classpath" depends="process-lib">
-        <property name="process-lib-classpath" location="build/lib/process"/>
-        <pathconvert property="process-lib-classpath-win" dirsep="\" pathsep=";">
-            <path>
-                <fileset dir="${process-lib-classpath}" includes="*.jar"/>
-            </path>
+    <target name="process-lib-classpath" depends="lib">
+        <property name="process-lib-classpath" location="../lib"/>
+        <pathconvert property="process-lib-classpath-win" refid="process-lib" dirsep="\" pathsep=";">
             <map from="${process-lib-classpath}" to="..\lib"/>
         </pathconvert>
-        <pathconvert property="process-lib-classpath-unix" dirsep="/" pathsep=":">
-            <path>
-                <fileset dir="${process-lib-classpath}" includes="*.jar"/>
-            </path>
+        <pathconvert property="process-lib-classpath-unix" refid="process-lib" dirsep="/" pathsep=":">
             <map from="${process-lib-classpath}" to="../lib"/>
         </pathconvert>
     </target>
 
-    <target name="process-lib-proprietary-classpath" depends="process-lib-proprietary">
-        <property name="process-lib-proprietary-classpath" location="build/lib-proprietary/process"/>
-        <pathconvert property="process-lib-proprietary-classpath-win" dirsep="\" pathsep=";">
-            <path>
-                <fileset dir="${process-lib-proprietary-classpath}" includes="*.jar"/>
-            </path>
+    <target name="process-lib-proprietary-classpath" depends="lib-proprietary">
+        <property name="process-lib-proprietary-classpath" location="../lib-proprietary"/>
+        <pathconvert property="process-lib-proprietary-classpath-win" refid="process-lib-proprietary" dirsep="\" pathsep=";">
             <map from="${process-lib-proprietary-classpath}" to="..\lib"/>
         </pathconvert>
-        <pathconvert property="process-lib-proprietary-classpath-unix" dirsep="/" pathsep=":">
-            <path>
-                <fileset dir="${process-lib-proprietary-classpath}" includes="*.jar"/>
-            </path>
+        <pathconvert property="process-lib-proprietary-classpath-unix" refid="process-lib-proprietary" dirsep="/" pathsep=":">
             <map from="${process-lib-proprietary-classpath}" to="../lib"/>
         </pathconvert>
     </target>
 
-    <target name="engine-lib-classpath" depends="engine-lib">
-        <property name="engine-lib-classpath" location="build/lib/engine"/>
-        <pathconvert property="engine-lib-classpath-win" dirsep="\" pathsep=";">
-            <path>
-                <fileset dir="${engine-lib-classpath}" includes="*.jar"/>
-            </path>
+    <target name="engine-lib-classpath" depends="lib">
+        <property name="engine-lib-classpath" location="../lib"/>
+        <pathconvert property="engine-lib-classpath-win" refid="engine-lib" dirsep="\" pathsep=";">
             <map from="${engine-lib-classpath}" to="..\lib"/>
         </pathconvert>
-        <pathconvert property="engine-lib-classpath-unix" dirsep="/" pathsep=":">
-            <path>
-                <fileset dir="${engine-lib-classpath}" includes="*.jar"/>
-            </path>
+        <pathconvert property="engine-lib-classpath-unix" refid="engine-lib" dirsep="/" pathsep=":">
             <map from="${engine-lib-classpath}" to="../lib"/>
         </pathconvert>
     </target>
 
+    <target name="jetty-lib-manifest" depends="lib">
+        <property name="jetty-lib-manifest" location="../lib"/>
+        <pathconvert property="jetty-manifest-cp" refid="jetty-lib" dirsep="/" pathsep=" ">
+            <map from="${jetty-lib-manifest}" to="../lib"/>
+        </pathconvert>
+    </target>
+
+    <target name="database-lib-manifest" depends="lib">
+        <property name="database-lib-manifest" location="../lib"/>
+        <pathconvert property="database-manifest-cp" refid="database-lib" dirsep="/" pathsep=" ">
+            <map from="${database-lib-manifest}" to="../lib"/>
+        </pathconvert>
+    </target>
+
+    <target name="process-lib-manifest" depends="lib">
+        <property name="process-lib-manifest" location="../lib"/>
+        <pathconvert property="process-manifest-cp" refid="process-lib" dirsep="/" pathsep=" ">
+            <map from="${process-lib-manifest}" to="../lib"/>
+        </pathconvert>
+    </target>
+
+    <target name="process-lib-proprietary-manifest" depends="lib-proprietary">
+        <property name="process-manifest-proprietary" location="../lib-proprietary" />
+        <pathconvert property="process-manifest-cp-proprietary" refid="process-lib-proprietary" dirsep="/" pathsep=" ">
+            <map from="${process-manifest-proprietary}" to="../lib-proprietary"/>
+        </pathconvert>
+    </target>
+
+
+    <!-- Apply classpaths to various scripts -->
+    
     <target name="setup-engine-processes" depends="preclean-engine-processes,scripts-engine,engine-lib-classpath">
         <antcall target="general-set-engine-classpath">
             <param name="processes-dir" value="${processes-dir}"/>
@@ -1335,6 +1307,8 @@
         </antcall>
     </target>
 
+    <!-- Set up example directories -->
+    
     <target name="example-common" depends="wars,wars-proprietary">
         <copy file="example-common/connectors.xml" tofile="dist/connectors.xml"/>
         <copy file="example-common/connectors.xml" tofile="dist/connectors-proprietary.xml"/>
@@ -1497,46 +1471,6 @@
         <chmod dir="dist/script-engine" perm="a+x" includes="**/*.sh"/>
     </target>
     
-    <target name="jetty-lib-manifest" depends="jetty-lib">
-        <property name="jetty-lib-manifest" location="build/lib/jetty"/>
-        <pathconvert property="jetty-manifest-cp" dirsep="/" pathsep=" ">
-            <path>
-                <fileset dir="${jetty-lib-manifest}" includes="*.jar"/>
-            </path>
-            <map from="${jetty-lib-manifest}" to="../lib"/>
-        </pathconvert>
-    </target>
-
-    <target name="database-lib-manifest" depends="database-lib">
-        <property name="database-lib-manifest" location="build/lib/database"/>
-        <pathconvert property="database-manifest-cp" dirsep="/" pathsep=" ">
-            <path>
-                <fileset dir="${database-lib-manifest}" includes="*.jar"/>
-            </path>
-            <map from="${database-lib-manifest}" to="../lib"/>
-        </pathconvert>
-    </target>
-
-    <target name="process-lib-manifest" depends="process-lib">
-        <property name="process-lib-manifest" location="build/lib/process"/>
-        <pathconvert property="process-manifest-cp" dirsep="/" pathsep=" ">
-            <path>
-                <fileset dir="${process-lib-manifest}" includes="*.jar"/>
-            </path>
-            <map from="${process-lib-manifest}" to="../lib"/>
-        </pathconvert>
-    </target>
-
-    <target name="process-lib-proprietary-manifest" depends="process-lib-proprietary">
-        <property name="process-manifest-proprietary" location="build/lib-proprietary/process" />
-        <pathconvert property="process-manifest-cp-proprietary" dirsep="/" pathsep=" ">
-            <path>
-                <fileset dir="${process-manifest-proprietary}" includes="*.jar"/>
-            </path>
-            <map from="${process-manifest-proprietary}" to="../lib-proprietary"/>
-        </pathconvert>
-    </target>
-
     <target name="single-process-start-jar" depends="process-lib-manifest,jetty-lib-manifest,database-lib-manifest">
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">

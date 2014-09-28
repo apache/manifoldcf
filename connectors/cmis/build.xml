@@ -30,6 +30,8 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
     
+    <property name="cmis.version" value="0.11.0"/>
+    
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
@@ -72,6 +74,35 @@
             <param name="connector-label" value="CMIS"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"/>
         </antcall>
+    </target>
+
+    <!-- Note: We need to fix the war path; it refers directly to the lib directory.
+         Instead, we need to have each connector be responsible for downloading its test materials,
+         so that the main framework dist does not need to include it.  MHL -->
+    <target name="run-IT-HSQLDB" depends="compile-tests,pretest-check" if="canTest">
+        <mkdir dir="test-HSQLDB-output"/>
+        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <jvmarg value="-DopenCmisServerWarPath=../../../lib/chemistry-opencmis-server-inmemory-${cmis.version}.war"/>
+            <jvmarg value="-Xms128m"/>
+            <jvmarg value="-Xmx256m"/>
+            <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-HSQLDB-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBIT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
     </target>
 
 </project>
