@@ -38,28 +38,28 @@
         <get src="http://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-${elasticsearch.version}.tar.gz" 
             dest="build/download/elasticsearch.tar.gz"/>
         <gunzip src="build/download/elasticsearch.tar.gz"/>
-        <untar src="build/download/elasticsearch.tar" dest="test-materials-proprietary"/>
+        <untar src="build/download/elasticsearch.tar" dest="test-materials"/>
         
         <!-- download and install the attachment plugin -->
-        <mkdir dir="test-materials-proprietary/elasticsearch-${elasticsearch.version}/plugins"/>
+        <mkdir dir="test-materials/elasticsearch-${elasticsearch.version}/plugins"/>
         
         <get src="https://github.com/elasticsearch/elasticsearch-mapper-attachments/archive/v2.0.0.RC1.zip" 
-            dest="test-materials-proprietary/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments.zip"/>
+            dest="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments.zip"/>
         
-        <unzip src="test-materials-proprietary/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments.zip" dest="test-materials-proprietary/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments"/>
+        <unzip src="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments.zip" dest="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments"/>
 
-        <chmod dir="test-materials-proprietary/elasticsearch-${elasticsearch.version}" perm="ugo+rxw">
+        <chmod dir="test-materials/elasticsearch-${elasticsearch.version}" perm="ugo+rxw">
             <fileset dir="**/*"/>
         </chmod>
-        <chmod file="test-materials-proprietary/elasticsearch-${elasticsearch.version}/bin/plugin" perm="ugo+rx"/>
-        <chmod file="test-materials-proprietary/elasticsearch-${elasticsearch.version}/bin/elasticsearch" perm="ugo+rx"/>
-        <chmod file="test-materials-proprietary/elasticsearch-${elasticsearch.version}/bin/elasticsearch.in.sh" perm="ugo+rx"/>
+        <chmod file="test-materials/elasticsearch-${elasticsearch.version}/bin/plugin" perm="ugo+rx"/>
+        <chmod file="test-materials/elasticsearch-${elasticsearch.version}/bin/elasticsearch" perm="ugo+rx"/>
+        <chmod file="test-materials/elasticsearch-${elasticsearch.version}/bin/elasticsearch.in.sh" perm="ugo+rx"/>
       
     </target>
 
     <target name="download-cleanup">
         <delete>
-            <fileset dir="test-materials-proprietary" excludes="README*.txt"/>
+            <fileset dir="test-materials" excludes="README*.txt"/>
         </delete>
     </target>
 
@@ -71,7 +71,7 @@
     </target>
 
     <target name="calculate-testcode-condition">
-        <available file="test-materials-proprietary/elasticsearch-${elasticsearch.version}" property="tests-present"/>
+        <available file="test-materials/elasticsearch-${elasticsearch.version}" property="tests-present"/>
     </target>
 
     <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
@@ -80,7 +80,7 @@
 
     <path id="connector-test-classpath">
         <path refid="mcf-connector-build.connector-test-classpath"/>
-        <fileset dir="test-materials-proprietary/elasticsearch-${elasticsearch.version}">
+        <fileset dir="test-materials/elasticsearch-${elasticsearch.version}">
             <include name="lib/*.jar"/>
         	  <include name="plugins/mapper-attachments/*.jar"/>
         </fileset>
