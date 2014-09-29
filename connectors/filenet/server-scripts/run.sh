@@ -27,19 +27,19 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
     
         # Build the classpath
         CLASSPATH=""
-        for filename in $(ls -1 "$MCF_HOME"/../filenet-server-process/lib) ; do
+        for filename in $(ls -1 "$MCF_HOME"/../processes/filenet-server/lib) ; do
             if [ -n "$CLASSPATH" ] ; then
-                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../filenet-server-process/lib/"$filename"
+                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../processes/filenet-server/lib/"$filename"
             else
-                CLASSPATH="$MCF_HOME"/../filenet-server-process/lib/"$filename"
+                CLASSPATH="$MCF_HOME"/../processes/filenet-server/lib/"$filename"
             fi
         done
 
-        for filename in $(ls -1 "$MCF_HOME"/../filenet-server-process/lib-proprietary | grep "\.jar$") ; do
+        for filename in $(ls -1 "$MCF_HOME"/../processes/filenet-server/lib-proprietary | grep "\.jar$") ; do
             if [ -n "$CLASSPATH" ] ; then
-                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../filenet-server-process/lib-proprietary/"$filename"
+                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../processes/filenet-server/lib-proprietary/"$filename"
             else
-                CLASSPATH="$MCF_HOME"/../filenet-server-process/lib-proprietary/"$filename"
+                CLASSPATH="$MCF_HOME"/../processes/filenet-server/lib-proprietary/"$filename"
             fi
         done
 

@@ -23,7 +23,7 @@ if not exist "%DOCUMENTUM%\dfc.properties" goto nodctmhome
 :dctmhomefound
 rem save existing path here
 set OLDDIR=%CD%
-cd "%MCF_HOME%\..\documentum-server-process"
+cd "%MCF_HOME%\..\processes\documentum-server"
 set CLASSPATH=.
 for %%f in (lib/*) do call setclasspath.bat %%f lib
 for %%f in (lib-proprietary/*.jar) do call setclasspath.bat %%f lib-proprietary

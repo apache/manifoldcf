@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1049: Put plugins under "plugins" in dist directory,
+and connector processes under "processes" in dist directory.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-1051: Elastic Search connector and CMIS connector
 should use the same paradigm for test wars.
 (Karl Wright)
