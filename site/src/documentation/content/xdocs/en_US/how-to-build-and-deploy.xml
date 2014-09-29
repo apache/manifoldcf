@@ -160,7 +160,7 @@
           <p>If you need to supply DFC classes during build time, copy the DFC and dependent jars to the source directory
               <em>connectors/documentum/lib-proprietary</em>, and build using "ant build".  The jars will be copied  into
               the right place in your <em>dist</em> directory automatically.</p>
-          <p>For a binary distribution, just copy the DFC jars to <em>documentum-server-process/lib-proprietary</em> instead.</p>
+          <p>For a binary distribution, just copy the DFC jars to <em>processes/documentum-server/lib-proprietary</em> instead.</p>
           <p>If you have done everything right, you should be able to start the Documentum connector's registry and server processes, as per the instructions.</p>
           <p></p>
         </section>
@@ -174,7 +174,7 @@
           <p>If you need to supply your own Jace.jar at build time, copy it to the source directory <em>connectors/filenet/lib-proprietary</em>,
               and build using "ant build".  The Jace.jar will be copied into the right place in your <em>dist</em> directory automatically.</p>
           <p>If you do not wish to build, simply copy your Jace.jar and the other dependent jars from that installation into the distribution directory
-              <em>filenet-server-process/lib-proprietary</em>.</p>
+              <em>processes/filenet-server/lib-proprietary</em>.</p>
           <p>If correctly done, you will be able to start the FileNet connector's registry and server processes, as per the instructions.</p>
           <p></p>
         </section>
@@ -378,7 +378,7 @@ mvn clean package
           <tr><td><em>connector-lib-proprietary</em></td><td>proprietary jars for all the connectors, referred to by properties.xml; not included in binary release</td></tr>
           <tr><td><em>lib</em></td><td>jars for all of the examples, referenced by the example scripts</td></tr>
           <tr><td><em>lib-proprietary</em></td><td>proprietary jars for all of the examples, referenced by the proprietary example scripts</td></tr>
-          <tr><td><em>xxx-process</em></td><td>scripts, classpath jars, and -D switch values needed for a required connector-specific process</td></tr>
+          <tr><td><em>processes</em></td><td>scripts, classpath jars, and -D switch values needed for the required connector-specific processes</td></tr>
           <tr><td><em>script-engine</em></td><td>jars and scripts for running the ManifoldCF script interpreter</td></tr>
           <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), excluding all proprietary libraries</td></tr>
           <tr><td><em>example-proprietary</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), including proprietary libraries; not included in binary release</td></tr>
@@ -389,7 +389,7 @@ mvn clean package
           <tr><td><em>web</em></td><td>app-server deployable web applications (wars), excluding all proprietary libraries</td></tr>
           <tr><td><em>web-proprietary</em></td><td>app-server deployable web applications (wars), including proprietary libraries; not included in binary release</td></tr>
           <tr><td><em>doc</em></td><td>javadocs for framework and all included connectors</td></tr>
-          <tr><td><em>xxx-integration</em></td><td>pre-built integration components to deploy on target system "xxx", e.g. Solr</td></tr>
+          <tr><td><em>plugins</em></td><td>pre-built integration components to deploy on target systems, e.g. for Solr</td></tr>
         </table>
         <p></p>
         <p>If you downloaded the binary distribution, you may notice that the <em>connector-lib-proprietary</em> directory contains only a number of 
@@ -402,19 +402,19 @@ mvn clean package
             distribution.  In order to use these JDBC drivers, you must build ManifoldCF yourself.  Start by downloading the drivers and placing them in the <em>lib-proprietary</em> directory.  The command
             <em>ant download-dependencies</em> will do most of this for you, with the exception of the Oracle JDBC driver.</p>
         <p></p>
-        <p>The directories titled <em>xxx-process</em> represent separate processes which must be started in order for the associated connector to function.
-            The number of produced <em>xxx-process</em> directories may vary, because optional individual connectors may or may not supply processes that
-            must be run to support the connector.  For each of the <em>xxx-process</em> subdirectories above, any scripts that pertain to that connector-supplied
+        <p>The directory titled <em>processes</em> include separate processes which must be started in order for the associated connector to function.
+            The number of produced <em>processes</em> subdirectories may vary, because optional individual connectors may or may not supply processes that
+            must be run to support the connector.  For each of the <em>processes</em> subdirectories above, any scripts that pertain to that connector-supplied
             process will be placed in the root level of the subdirectory.
             The supplied scripts for a process generally take care of building an appropriate classpath and setting necessary -D switches.  (Note: none of the current
             connectors require special -D switches at this time.)  If you need to construct a classpath by hand, it is important to remember that "more" is not necessarily
             "better".  The process deployment strategy implied by the build structure has
             been carefully thought out to avoid jar conflicts.  Indeed, several connectors are structured using multiple processes precisely for that reason.</p>
-        <p>The proprietary libraries required by the secondary process <em>xxx-process</em> should be in the directory <em>xxx-process/lib-proprietary</em>.
+        <p>The proprietary libraries required by the secondary process <em>processes</em> subdirectories should be in the directory <em>processes/xxx/lib-proprietary</em>.
             These jars are not included in the binary distribution, and you will need to supply them in order to make the process work.  A README.txt file is placed
             in each <em>lib-proprietary</em> directory describing what needs to be provided there.</p>
         <p></p>
-        <p>The <em>xxx-integration</em> directories contain components you may need to deploy on the target system to make the associated connector function correctly.  For example, the Solr
+        <p>The <em>plugins</em> directory contains components you may need to deploy on the target system to make the associated connector function correctly.  For example, the Solr
             connector includes plug-in classes for enforcing ManifoldCF security on Solr 3.x and 4.x.  See the README file in each directory for detailed instructions on how to deploy the components.</p>
         <p></p>
         <p>Inside the <em>example</em> directory, you will find everything you need to fire up ManifoldCF in a single-process model under Jetty.  Everything is included so that all you need to do is change
@@ -459,7 +459,7 @@ cd example
           <p>Another caveat that you will need to be aware of with the quick-start version of ManifoldCF is that it in no way removes the need for you to run any separate processes
             that individual connectors require.  Specifically, the Documentum and FileNet connectors require processes to be independently started in order to function.  You will need
             to read about these connector-specific processes below in order to use the corresponding connectors.  Scripts for running these processes can be found in the directories
-            named <em>xxx-process</em>.</p>
+            named <em>processes/xxx</em>.</p>
           <p></p>
         </section>
         
