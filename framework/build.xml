@@ -958,6 +958,10 @@
         <replace file="${processes-dir}/combined-options.env.unix" token=".:" value=".:${unix-classpath}:"/>
     </target>
 
+    <target name="general-set-start-classpath">
+        <replace file="${processes-dir}/start-options.env.win" token=".;" value=".;${win-classpath};"/>
+        <replace file="${processes-dir}/start-options.env.unix" token=".:" value=".:${unix-classpath}:"/>
+    </target>
 
     <target name="preclean-processes">
         <mkdir dir="${processes-dir}"/>
@@ -993,6 +997,12 @@
         <mkdir dir="${processes-dir}"/>
         <delete file="${processes-dir}/combined-options.env.win"/>
         <delete file="${processes-dir}/combined-options.env.unix"/>
+    </target>
+
+    <target name="preclean-start-processes">
+        <mkdir dir="${processes-dir}"/>
+        <delete file="${processes-dir}/start-options.env.win"/>
+        <delete file="${processes-dir}/start-options.env.unix"/>
     </target>
 
     <target name="scripts-common">
@@ -1034,6 +1044,13 @@
         <mkdir dir="${processes-dir}"/>
         <copy todir="${processes-dir}">
             <fileset dir="scripts-combined"/>
+        </copy>
+    </target>
+
+    <target name="scripts-start" depends="scripts-common">
+        <mkdir dir="${processes-dir}"/>
+        <copy todir="${processes-dir}">
+            <fileset dir="scripts-start"/>
         </copy>
     </target>
 
@@ -1279,6 +1296,14 @@
         </antcall>
     </target>
 
+    <target name="setup-start-processes" depends="preclean-start-processes,scripts-start,process-lib-classpath,database-lib-classpath,jetty-lib-classpath">
+        <antcall target="general-set-start-classpath">
+            <param name="processes-dir" value="${processes-dir}"/>
+            <param name="win-classpath" value="..\lib\mcf-core.jar;..\lib\mcf-agents.jar;..\lib\mcf-pull-agent.jar;..\lib\mcf-ui-core.jar;..\lib\mcf-jetty-runner.jar;${jetty-lib-classpath-win};${database-lib-classpath-win};${process-lib-classpath-win}"/>
+            <param name="unix-classpath" value="../lib/mcf-core.jar:../lib/mcf-agents.jar:../lib/mcf-pull-agent.jar:../lib/mcf-ui-core.jar:../lib/mcf-jetty-runner.jar:${jetty-lib-classpath-unix}:${database-lib-classpath-unix}:${process-lib-classpath-unix}"/>
+        </antcall>
+    </target>
+
     <target name="setup-processes" depends="preclean-processes,scripts,process-lib-classpath,database-lib-classpath">
         <antcall target="general-set-classpath">
             <param name="processes-dir" value="${processes-dir}"/>
@@ -1297,6 +1322,14 @@
     </target>
 
     <target name="setup-combined-processes-proprietary" depends="setup-combined-processes">
+    </target>
+
+    <target name="setup-start-processes-proprietary" depends="preclean-start-processes,scripts-start,process-lib-classpath,process-lib-proprietary-classpath,database-lib-classpath,jetty-lib-classpath">
+        <antcall target="general-set-start-classpath">
+            <param name="processes-dir" value="${processes-dir}"/>
+            <param name="win-classpath" value="..\lib\mcf-core.jar;..\lib\mcf-agents.jar;..\lib\mcf-pull-agent.jar;..\lib\mcf-ui-core.jar;..\lib\mcf-jetty-runner.jar;${jetty-lib-classpath-win};${database-lib-classpath-win};${process-lib-proprietary-classpath-win};${process-lib-classpath-win}"/>
+            <param name="unix-classpath" value="../lib/mcf-core.jar:../lib/mcf-agents.jar:../lib/mcf-pull-agent.jar:../lib/mcf-ui-core.jar:../lib/mcf-jetty-runner.jar:${jetty-lib-classpath-unix}:${database-lib-classpath-unix}:${process-lib-proprietary-classpath-unix}:${process-lib-classpath-unix}"/>
+        </antcall>
     </target>
 
     <target name="setup-processes-proprietary" depends="preclean-processes,scripts,process-lib-classpath,database-lib-classpath,process-lib-proprietary-classpath">
@@ -1484,6 +1517,9 @@
         <antcall target="setup-combined-processes">
             <param name="processes-dir" value="dist/example"/>
         </antcall>
+        <antcall target="setup-start-processes">
+            <param name="processes-dir" value="dist/example"/>
+        </antcall>
         <mkdir dir="dist/example/logs"/>
         <copy todir="dist/example">
             <fileset dir="example-singleprocess-common">
@@ -1511,6 +1547,9 @@
     
     <target name="single-process-example-proprietary" depends="single-process-start-jar-proprietary">
         <antcall target="setup-combined-processes-proprietary">
+            <param name="processes-dir" value="dist/example-proprietary"/>
+        </antcall>
+        <antcall target="setup-start-processes-proprietary">
             <param name="processes-dir" value="dist/example-proprietary"/>
         </antcall>
         <mkdir dir="dist/example-proprietary/logs"/>
