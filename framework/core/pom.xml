@@ -170,6 +170,10 @@
           <groupId>jakarta-regexp</groupId>
           <artifactId>jakarta-regexp</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -228,9 +232,8 @@
 
     <dependency>
       <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
+      <artifactId>javax.servlet-api</artifactId>
       <version>${servlet-api.version}</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>

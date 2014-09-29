@@ -30,7 +30,7 @@
     <defaultexcludes add="**/.idea/**"/> 
     
     <property name="hsqldb.version" value="2.3.1"/>
-    <property name="jetty.version" value="7.5.4.v20111024"/>
+    <property name="jetty.version" value="9.2.3.v20140905"/>
     <property name="httpclient.version" value="4.3.5"/>
     <property name="httpmime.version" value="4.3.5"/>
     <property name="httpcore.version" value="4.3.2"/>
@@ -949,8 +949,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="jetty-xml"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="jetty-jsp-2.1"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}/toolchain"/><param name="artifact-version" value="2.3.3"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-jsp-jdt"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -1215,9 +1215,9 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-servlet-api">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/mortbay/jetty"/>
-            <param name="artifact-version" value="${servlet-api.version}"/>
-            <param name="artifact-name" value="servlet-api"/>
+            <param name="project-path" value="javax/servlet"/>
+            <param name="artifact-version" value="3.1.0"/>
+            <param name="artifact-name" value="javax.servlet-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
