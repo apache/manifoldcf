@@ -20,6 +20,7 @@ package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
 
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
@@ -39,8 +40,10 @@ public class MockSessionWebService
     
   public MockSessionWebService(int numContentDocs, String userName, String password)
   {
-    server = new Server(8191);
-    server.setThreadPool(new QueuedThreadPool(100));
+    server = new Server(new QueuedThreadPool(100));
+    ServerConnector connector = new ServerConnector(server);
+    connector.setPort(8191);
+    server.addConnector(connector);
     servlet = new SessionWebServlet(numContentDocs,userName,password);
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setInitParameter("org.eclipse.jetty.servlet.SessionIdPathParameterName","none");

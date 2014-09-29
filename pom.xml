@@ -41,7 +41,7 @@
     <postgresql.version>9.1-901.jdbc4</postgresql.version>
     <mysql.version>5.1.18</mysql.version>
     <hsqldb.version>2.3.1</hsqldb.version>
-    <jetty.version>7.5.4.v20111024</jetty.version>
+    <jetty.version>9.2.3.v20140905</jetty.version>
     <mail.version>1.4.5</mail.version>
     <activation.version>1.1.1</activation.version>
     <axis.version>1.4</axis.version>
@@ -64,7 +64,7 @@
     <xerces.version>2.10.0</xerces.version>
     <xml-apis.version>1.4.01</xml-apis.version>
     <jtds.version>1.2.4</jtds.version>
-    <servlet-api.version>2.5</servlet-api.version>
+    <servlet-api.version>3.1.0</servlet-api.version>
     <jstl.version>1.2</jstl.version>
     <glassfish.version>2.1.v20091210</glassfish.version>
     <log4j.version>1.2.16</log4j.version>

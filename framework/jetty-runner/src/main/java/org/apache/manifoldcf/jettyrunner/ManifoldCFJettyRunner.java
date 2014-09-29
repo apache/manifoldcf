@@ -18,6 +18,7 @@
 package org.apache.manifoldcf.jettyrunner;
 
 import java.io.*;
+
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.system.*;
 import org.apache.manifoldcf.crawler.*;
@@ -33,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.server.Connector;
 
@@ -125,7 +127,7 @@ public class ManifoldCFJettyRunner
   public int getLocalPort()
     throws ManifoldCFException
   {
-    Connector[] conns = server.getConnectors();
+    ServerConnector[] conns = (ServerConnector[]) server.getConnectors();
     if (0 == conns.length) {
       throw new ManifoldCFException("Jetty Server has no Connectors");
     }
