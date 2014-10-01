@@ -20,13 +20,13 @@ package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
 
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 
 import java.io.*;
 import java.util.*;
@@ -44,8 +44,10 @@ public class MockWebService
   
   public MockWebService(int docsPerLevel, int maxLevels, boolean generateBadPages)
   {
-    server = new Server(8191);
-    server.setThreadPool(new QueuedThreadPool(100));
+    server = new Server(new QueuedThreadPool(100));
+    ServerConnector connector = new ServerConnector(server);
+    connector.setPort(8191);
+    server.addConnector(connector);
     servlet = new WebServlet(docsPerLevel, maxLevels, generateBadPages);
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setContextPath("/web");
