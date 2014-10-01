@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-345: Provide a jetty configuration XML file that can
+be used to alter the jetty configuration.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-1050: Upgrade to Jetty 9.
 (Shinichiro Abe)
 
