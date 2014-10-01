@@ -20,13 +20,13 @@ package org.apache.manifoldcf.agents.output.solr.tests;
 
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 
 import java.io.*;
 import java.util.*;
@@ -39,8 +39,10 @@ public class MockSolrService
     
   public MockSolrService()
   {
-    server = new Server(8188);
-    server.setThreadPool(new QueuedThreadPool(35));
+    server = new Server(new QueuedThreadPool(35));
+    ServerConnector connector = new ServerConnector(server);
+    connector.setPort(8188);
+    server.addConnector(connector);
     servlet = new SolrServlet();
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setInitParameter("org.eclipse.jetty.servlet.SessionIdPathParameterName","none");

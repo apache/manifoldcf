@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1050: Upgrade to Jetty 9.
+(Shinichiro Abe)
+
 CONNECTORS-1049: Put plugins under "plugins" in dist directory,
 and connector processes under "processes" in dist directory.
 (Shinichiro Abe, Karl Wright)

@@ -63,7 +63,7 @@
             <include name="junit*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
-            <include name="servlet-api*.jar"/>
+            <include name="javax.servlet-api*.jar"/>
             <include name="juli*.jar"/>
             <include name="xalan*.jar"/>
             <include name="xercesImpl*.jar"/>
@@ -886,7 +886,7 @@
                 <include name="commons-logging*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
+                <include name="javax.servlet-api*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
@@ -896,7 +896,7 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="jetty*.jar"/>
-                <include name="servlet-api*.jar"/>
+                <include name="javax.servlet-api*.jar"/>
                 <include name="ecj*.jar"/>
                 <include name="jasper*.jar"/>
                 <include name="juli*.jar"/>
@@ -1106,7 +1106,7 @@
             <include name="json*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
-            <include name="servlet-api*.jar"/>
+            <include name="javax.servlet-api*.jar"/>
             <include name="juli*.jar"/>
             <include name="xalan*.jar"/>
             <include name="xercesImpl*.jar"/>
