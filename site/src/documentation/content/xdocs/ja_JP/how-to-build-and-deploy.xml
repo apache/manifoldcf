@@ -954,7 +954,6 @@ cd example
             <tr><td>org.apache.manifoldcf.authorityservicewarpath</td><td>Yes, for Jetty</td><td>Location of Authority Service war</td></tr>
             <tr><td>org.apache.manifoldcf.apiservicewarpath</td><td>Yes, for Jetty</td><td>Location of API Service war</td></tr>
             <tr><td>org.apache.manifoldcf.usejettyparentclassloader</td><td>Yes, for Jetty</td><td>true for single-process example, false for multiprocess example.</td></tr>
-            <tr><td>org.apache.manifoldcf.jettyport</td><td>No</td><td>Port that Jetty will use; defaults to 8345.</td></tr>
             <tr><td>org.apache.manifoldcf.connectorsconfigurationfile</td><td>No</td><td>Location of connectors.xml file, for QuickStart, so ManifoldCF can register connectors.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperusername</td><td>No</td><td>Database superuser name, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
