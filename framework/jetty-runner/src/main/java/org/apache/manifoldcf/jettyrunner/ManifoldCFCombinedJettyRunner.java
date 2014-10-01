@@ -32,6 +32,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.xml.XmlConfiguration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.server.Connector;
 
@@ -49,9 +51,24 @@ public class ManifoldCFCombinedJettyRunner
   
   protected Server server;
   
+
+  public ManifoldCFCombinedJettyRunner( File configFile, String combinedWarPath )
+    throws Exception
+  {
+    Resource fileserverXml = Resource.newSystemResource(configFile.toString());
+    XmlConfiguration configuration = new XmlConfiguration(fileserverXml.getInputStream());
+    server = (Server)configuration.configure();
+    initializeServer( combinedWarPath );
+  }
+
   public ManifoldCFCombinedJettyRunner( int port, String combinedWarPath )
   {
-    server = new Server( port );    
+    server = new Server( port );
+    initializeServer( combinedWarPath );
+  }
+
+  protected void initializeServer( String combinedWarPath )
+  {
     server.setStopAtShutdown( true );
     
     // Initialize the servlets
@@ -61,7 +78,7 @@ public class ManifoldCFCombinedJettyRunner
     mcfCombined.setParentLoaderPriority(false);
     contexts.addHandler(mcfCombined);
   }
-
+  
   public void start()
     throws ManifoldCFException
   {

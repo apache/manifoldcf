@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.xml.XmlConfiguration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.server.Connector;
 
@@ -53,9 +55,23 @@ public class ManifoldCFJettyRunner
   
   protected Server server;
   
+  public ManifoldCFJettyRunner( File configFile, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath, boolean useParentLoader )
+    throws Exception
+  {
+    Resource fileserverXml = Resource.newSystemResource(configFile.toString());
+    XmlConfiguration configuration = new XmlConfiguration(fileserverXml.getInputStream());
+    server = (Server)configuration.configure();
+    initializeServer(crawlerWarPath, authorityServiceWarPath, apiWarPath, useParentLoader);
+  }
+  
   public ManifoldCFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath, boolean useParentLoader )
   {
-    server = new Server( port );    
+    Server server = new Server( port );
+    initializeServer(crawlerWarPath, authorityServiceWarPath, apiWarPath, useParentLoader);
+  }
+  
+  protected void initializeServer( String crawlerWarPath, String authorityServiceWarPath, String apiWarPath, boolean useParentLoader )
+  {
     server.setStopAtShutdown( true );
     
     // Initialize the servlets
