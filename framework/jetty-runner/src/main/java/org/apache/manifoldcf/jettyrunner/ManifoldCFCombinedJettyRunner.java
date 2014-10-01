@@ -49,7 +49,7 @@ public class ManifoldCFCombinedJettyRunner
   public static final String _rcsid = "@(#)$Id$";
 
   public static final String combinedWarPathProperty = "org.apache.manifoldcf.combinedwarpath";
-  public static final String jettyPortProperty = "org.apache.manifoldcf.jettyport";
+  public static final String jettyConfigFileProperty = "org.apache.manifoldcf.jettyconfigfile";
   
   protected Server server;
   
@@ -157,18 +157,9 @@ public class ManifoldCFCombinedJettyRunner
 
       // Grab the parameters which locate the wars and describe how we work with Jetty
       File combinedWarPath = ManifoldCF.getFileProperty(combinedWarPathProperty);
-      int jettyPort = ManifoldCF.getIntProperty(jettyPortProperty,8347);
-      if (args.length > 0)
-      {
-        try
-        {
-          jettyPort = Integer.parseInt(args[0]);
-        }
-        catch (NumberFormatException e)
-        {
-          throw new ManifoldCFException("Illegal value for jetty port argument: "+e.getMessage(),e);
-        }
-      }
+      File jettyConfigFile = ManifoldCF.getFileProperty(jettyConfigFileProperty);
+      if (jettyConfigFile == null)
+        jettyConfigFile = new File("./jetty.xml");
       if (args.length == 2)
       {
         combinedWarPath = new File(args[1]);
@@ -182,7 +173,7 @@ public class ManifoldCFCombinedJettyRunner
       System.err.println("Starting jetty...");
       
       // Create a jetty instance
-      ManifoldCFCombinedJettyRunner jetty = new ManifoldCFCombinedJettyRunner(jettyPort,combinedWarPath.toString());
+      ManifoldCFCombinedJettyRunner jetty = new ManifoldCFCombinedJettyRunner(jettyConfigFile,combinedWarPath.toString());
       // This will register a shutdown hook as well.
       jetty.start();
 
@@ -202,7 +193,7 @@ public class ManifoldCFCombinedJettyRunner
         }
       }
     }
-    catch (ManifoldCFException e)
+    catch (Exception e)
     {
       if (Logging.root != null)
         Logging.root.error("Exception: "+e.getMessage(),e);

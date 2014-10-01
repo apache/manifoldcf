@@ -1392,6 +1392,7 @@
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+                <include name="*.xml"/>
             </fileset>
             <fileset dir="example-multiprocess-file-common">
                 <include name="*.sh"/>
@@ -1419,6 +1420,7 @@
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+                <include name="*.xml"/>
             </fileset>
             <fileset dir="example-multiprocess-file-common">
                 <include name="*.sh"/>
@@ -1448,6 +1450,7 @@
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+                <include name="*.xml"/>
             </fileset>
             <fileset dir="example-multiprocess-zk-common">
                 <include name="*.sh"/>
@@ -1479,6 +1482,7 @@
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+                <include name="*.xml"/>
             </fileset>
             <fileset dir="example-multiprocess-zk-common">
                 <include name="*.sh"/>
@@ -1526,6 +1530,7 @@
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+                <include name="*.xml"/>
             </fileset>
             <fileset dir="example-singleprocess">
                 <include name="properties.xml"/>
@@ -1558,6 +1563,7 @@
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+                <include name="*.xml"/>
             </fileset>
             <fileset dir="example-singleprocess-proprietary">
                 <include name="properties.xml"/>

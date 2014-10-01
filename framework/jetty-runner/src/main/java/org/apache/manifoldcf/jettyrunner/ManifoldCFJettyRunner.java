@@ -53,7 +53,7 @@ public class ManifoldCFJettyRunner
   public static final String authorityServiceWarPathProperty = "org.apache.manifoldcf.authorityservicewarpath";
   public static final String apiServiceWarPathProperty = "org.apache.manifoldcf.apiservicewarpath";
   public static final String useJettyParentClassLoaderProperty = "org.apache.manifoldcf.usejettyparentclassloader";
-  public static final String jettyPortProperty = "org.apache.manifoldcf.jettyport";
+  public static final String jettyConfigFileProperty = "org.apache.manifoldcf.jettyconfigfile";
   
   protected Server server;
   
@@ -169,7 +169,7 @@ public class ManifoldCFJettyRunner
   {
     if (args.length != 4 && args.length != 1 && args.length != 0)
     {
-      System.err.println("Usage: ManifoldCFJettyRunner [<port> [<crawler-war-path> <authority-service-war-path> <api-war-path>]]");
+      System.err.println("Usage: ManifoldCFJettyRunner [<jetty-config-file> [<crawler-war-path> <authority-service-war-path> <api-war-path>]]");
       System.exit(1);
     }
 
@@ -187,18 +187,9 @@ public class ManifoldCFJettyRunner
       File authorityserviceWarPath = ManifoldCF.getFileProperty(authorityServiceWarPathProperty);
       File apiWarPath = ManifoldCF.getFileProperty(apiServiceWarPathProperty);
       boolean useParentClassLoader = ManifoldCF.getBooleanProperty(useJettyParentClassLoaderProperty,true);
-      int jettyPort = ManifoldCF.getIntProperty(jettyPortProperty,8345);
-      if (args.length > 0)
-      {
-        try
-        {
-          jettyPort = Integer.parseInt(args[0]);
-        }
-        catch (NumberFormatException e)
-        {
-          throw new ManifoldCFException("Illegal value for jetty port argument: "+e.getMessage(),e);
-        }
-      }
+      File jettyConfigFile = ManifoldCF.getFileProperty(jettyConfigFileProperty);
+      if (jettyConfigFile == null)
+        jettyConfigFile = new File("./jetty.xml");
       if (args.length == 4)
       {
         crawlerWarPath = new File(args[1]);
@@ -233,7 +224,7 @@ public class ManifoldCFJettyRunner
       System.err.println("Starting jetty...");
       
       // Create a jetty instance
-      ManifoldCFJettyRunner jetty = new ManifoldCFJettyRunner(jettyPort,crawlerWarPath.toString(),authorityserviceWarPath.toString(),apiWarPath.toString(),useParentClassLoader);
+      ManifoldCFJettyRunner jetty = new ManifoldCFJettyRunner(jettyConfigFile,crawlerWarPath.toString(),authorityserviceWarPath.toString(),apiWarPath.toString(),useParentClassLoader);
       // This will register a shutdown hook as well.
       jetty.start();
 
@@ -262,7 +253,7 @@ public class ManifoldCFJettyRunner
         }
       }
     }
-    catch (ManifoldCFException e)
+    catch (Exception e)
     {
       if (Logging.root != null)
         Logging.root.error("Exception: "+e.getMessage(),e);
