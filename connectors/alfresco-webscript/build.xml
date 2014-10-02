@@ -64,11 +64,11 @@
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-repository-connector">
             <param name="connector-label" value="Alfresco Webscript"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.alfresco.webscript.AlfrescoConnector"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.alfrescowebscript.AlfrescoConnector"/>
         </antcall>
         <antcall target="general-add-authority-connector">
             <param name="connector-label" value="Alfresco Webscript"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.alfresco.AlfrescoAuthorityConnector"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.alfresco.AlfrescoAuthorityConnector"/>
         </antcall>
     </target>
 
