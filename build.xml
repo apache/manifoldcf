@@ -94,7 +94,10 @@
     <property name="alfresco-indexer-client.version" value="0.6"/>
     <property name="gson.version" value="2.2.4"/>
     <property name="guava.version" value="15.0"/>
-
+    <property name="mockito.version" value="1.9.5"/>
+    <property name="wiremock.version" value="1.34"/>
+    <property name="objenesis.version" value="2.1"/>
+    
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
         <available file="lib/hsqldb-${hsqldb.version}.jar" property="hsqldb-found"/>
@@ -1172,6 +1175,28 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
+    <target name="download-mockito">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/mockito"/>
+            <param name="artifact-version" value="${mockito.version}"/>
+            <param name="artifact-name" value="mockito-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/github/tomakehurst"/>
+            <param name="artifact-version" value="${wiremock.version}"/>
+            <param name="artifact-name" value="wiremock"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/objenesis"/>
+            <param name="artifact-version" value="${objenesis.version}"/>
+            <param name="artifact-name" value="objenesis"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
     <target name="download-log4j">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -1755,7 +1780,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 	
-    <target name="make-core-deps" depends="download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
+    <target name="make-core-deps" depends="download-mockito,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>

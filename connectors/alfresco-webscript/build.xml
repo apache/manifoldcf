@@ -50,7 +50,7 @@
         </copy>
     </target>
 
-    <target name="calculate-testcode-condition">
+    <!-- target name="calculate-testcode-condition">
         <available file="test-materials-proprietary/alfresco.war" property="alfrescoTestcodeStatus"/>
         <condition property="tests-present">
             <isset property="alfrescoTestcodeStatus"/>
@@ -59,7 +59,7 @@
 
     <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
         <echo message="Alfresco Connector integration tests cannot be be performed without alfresco.war"/>
-    </target>
+    </target -->
 
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-repository-connector">
