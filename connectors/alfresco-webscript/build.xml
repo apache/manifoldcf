@@ -1,0 +1,90 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<project name="alfresco-webscript" default="all">
+
+    <import file="../connector-build.xml"/>
+
+    <target name="calculate-testcode-condition">
+        <available file="test-materials-proprietary/alfresco.war" property="alfrescoTestcodeStatus"/>
+        <condition property="tests-present">
+            <isset property="alfrescoTestcodeStatus"/>
+        </condition>
+    </target>
+
+    <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
+        <echo message="Alfresco Connector integration tests cannot be be performed without alfresco.war"/>
+    </target>
+
+    <path id="connector-classpath">
+        <path refid="mcf-connector-build.connector-classpath"/>
+        <fileset dir="lib-proprietary" includes="*.jar"/>
+        <fileset dir="../../lib">
+            <include name="axis*.jar"/>	
+            <include name="saaj*.jar"/>	
+            <include name="commons-discovery*.jar"/>
+            <include name="jaxrpc*.jar"/>
+            <include name="mail*.jar"/>
+            <include name="opensaml*.jar"/>
+            <include name="wsdl4j*.jar"/>
+            <include name="wss4j*.jar"/>
+            <!--include name="xalan*.jar"/-->
+            <!--include name="xercesImpl*.jar"/-->
+            <include name="xmlsec*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="connector-test-classpath">
+        <path refid="mcf-connector-build.connector-test-classpath"/>
+        <fileset file="../../lib/h2*.jar"/>
+    </path>
+    
+    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="../../lib">
+                <include name="axis*.jar"/>	
+                <include name="saaj*.jar"/>	
+                <include name="commons-discovery*.jar"/>
+                <include name="jaxrpc*.jar"/>
+                <include name="mail*.jar"/>
+                <include name="opensaml*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="wss4j*.jar"/>
+                <!--include name="xalan*.jar"/-->
+                <!--include name="xercesImpl*.jar"/-->
+                <include name="xmlsec*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="build-test-materials" depends="pretest-check" if="canTest">
+        <mkdir dir="build/alfresco-war"/>
+        <copy todir="build/alfresco-war">
+            <fileset dir="test-materials-proprietary">
+                <include name="alfresco*.war"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="download-cleanup">
+        <delete>
+            <fileset dir="lib-proprietary" excludes="README*.txt"/>
+        </delete>
+    </target>
+
+</project>
