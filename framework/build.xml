@@ -60,7 +60,6 @@
             <include name="slf4j*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
-            <include name="junit*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
             <include name="servlet-api*.jar"/>
@@ -74,6 +73,12 @@
         <fileset dir="../lib">
             <include name="postgresql*.jar"/>
             <include name="hsqldb*.jar"/>
+        </fileset>
+        <fileset dir="../lib">
+            <include name="junit*.jar"/>
+            <include name="mockito-core*.jar"/>
+            <include name="wiremock*.jar"/>
+            <include name="objenesis*.jar"/>
         </fileset>
         <fileset dir="../lib-proprietary">
             <include name="mysql*.jar"/>
@@ -1646,6 +1651,9 @@
         <copy todir="dist/test-lib">
             <fileset dir="../lib">
                 <include name="junit*.jar"/>
+                <include name="mockito-core*.jar"/>
+                <include name="wiremock*.jar"/>
+                <include name="objenesis*.jar"/>
                 <include name="juli*.jar"/>
             </fileset>
             <fileset dir="build/test-jar">
