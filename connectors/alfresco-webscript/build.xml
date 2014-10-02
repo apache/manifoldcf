@@ -17,7 +17,18 @@
 
 <project name="alfresco-webscript" default="all">
 
-    <import file="../connector-build.xml"/>
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <property name="abs-dist" location="../../dist"/>
+    <condition property="mcf-dist" value="${abs-dist}">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
 
     <target name="calculate-testcode-condition">
         <available file="test-materials-proprietary/alfresco.war" property="alfrescoTestcodeStatus"/>
