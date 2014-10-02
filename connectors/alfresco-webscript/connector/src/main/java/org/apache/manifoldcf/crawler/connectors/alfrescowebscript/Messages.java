@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.manifoldcf.crawler.connectors.alfresco.webscript;
+package org.apache.manifoldcf.crawler.connectors.alfrescowebscript;
 
 import java.util.Locale;
 import java.util.Map;
@@ -23,8 +23,8 @@ import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 
 public class Messages extends org.apache.manifoldcf.ui.i18n.Messages
 {
-    public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.crawler.connectors.alfresco.webscript.common";
-    public static final String DEFAULT_PATH_NAME="org.apache.manifoldcf.crawler.connectors.alfresco.webscript";
+    public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.crawler.connectors.alfrescowebscript.common";
+    public static final String DEFAULT_PATH_NAME="org.apache.manifoldcf.crawler.connectors.alfrescowebscript";
 
     /** Constructor - do no instantiate
      */
