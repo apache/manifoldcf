@@ -60,7 +60,7 @@ public class ManifoldCFJettyRunner
   public ManifoldCFJettyRunner( File configFile, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath, boolean useParentLoader )
     throws Exception
   {
-    Resource fileserverXml = Resource.newSystemResource(configFile.toString());
+    Resource fileserverXml = Resource.newResource(configFile.getCanonicalFile());
     XmlConfiguration configuration = new XmlConfiguration(fileserverXml.getInputStream());
     server = (Server)configuration.configure();
     initializeServer(crawlerWarPath, authorityServiceWarPath, apiWarPath, useParentLoader);
@@ -188,6 +188,7 @@ public class ManifoldCFJettyRunner
       File apiWarPath = ManifoldCF.getFileProperty(apiServiceWarPathProperty);
       boolean useParentClassLoader = ManifoldCF.getBooleanProperty(useJettyParentClassLoaderProperty,true);
       File jettyConfigFile = ManifoldCF.getFileProperty(jettyConfigFileProperty);
+
       if (jettyConfigFile == null)
         jettyConfigFile = new File("./jetty.xml");
       if (args.length == 4)

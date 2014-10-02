@@ -57,7 +57,7 @@ public class ManifoldCFCombinedJettyRunner
   public ManifoldCFCombinedJettyRunner( File configFile, String combinedWarPath )
     throws Exception
   {
-    Resource fileserverXml = Resource.newSystemResource(configFile.toString());
+    Resource fileserverXml = Resource.newResource(configFile.getCanonicalFile());
     XmlConfiguration configuration = new XmlConfiguration(fileserverXml.getInputStream());
     server = (Server)configuration.configure();
     initializeServer( combinedWarPath );

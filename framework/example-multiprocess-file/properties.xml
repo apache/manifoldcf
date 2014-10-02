@@ -22,6 +22,7 @@
   <property name="org.apache.manifoldcf.authorityservicewarpath" value="../web/war/mcf-authority-service.war"/>
   <property name="org.apache.manifoldcf.apiservicewarpath" value="../web/war/mcf-api-service.war"/>
   <property name="org.apache.manifoldcf.usejettyparentclassloader" value="false"/>
+  <property name="org.apache.manifoldcf.jettyconfigfile" value="./jetty.xml"/>
   <!-- Point to the synchronization area -->
   <property name="org.apache.manifoldcf.synchdirectory" value="./syncharea"/>
   <!-- Select HSQLDB as the database implementation, and specify multiprocess access -->
