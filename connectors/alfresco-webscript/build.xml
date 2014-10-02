@@ -30,6 +30,26 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
+    <path id="connector-classpath">
+        <path refid="mcf-connector-build.connector-classpath"/>
+        <fileset dir="../../lib">
+            <include name="alfresco-indexer-client*.jar"/>
+            <include name="gson*.jar"/>
+            <include name="guava*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="../../lib">
+                <include name="alfresco-indexer-client*.jar"/>
+                <include name="gson*.jar"/>
+                <include name="guava*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
     <target name="calculate-testcode-condition">
         <available file="test-materials-proprietary/alfresco.war" property="alfrescoTestcodeStatus"/>
         <condition property="tests-present">
@@ -41,13 +61,5 @@
         <echo message="Alfresco Connector integration tests cannot be be performed without alfresco.war"/>
     </target>
 
-    <target name="build-test-materials" depends="pretest-check" if="canTest">
-        <mkdir dir="build/alfresco-war"/>
-        <copy todir="build/alfresco-war">
-            <fileset dir="test-materials-proprietary">
-                <include name="alfresco*.war"/>
-            </fileset>
-        </copy>
-    </target>
 
 </project>

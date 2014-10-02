@@ -25,6 +25,14 @@
         <get src="${maven-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}-${artifact-version}.${artifact-type}"/>
     </target>
 
+    <target name="setup-alfresco-indexer-url">
+        <property name="alfresco-indexer-base-url" value="https://repository-maoo.forge.cloudbees.com/release"/>
+    </target>
+    
+    <target name="download-via-alfresco-indexer" depends="setup-alfresco-indexer-url">
+        <get src="${alfresco-indexer-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}-${artifact-version}.${artifact-type}"/>
+    </target>
+
     <target name="checkout-source-via-svn">
         <mkdir dir="${root-dir}"/>
         <exec dir="${root-dir}" executable="svn" failifexecutionfails="true" failonerror="true">
