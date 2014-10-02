@@ -41,48 +41,6 @@
         <echo message="Alfresco Connector integration tests cannot be be performed without alfresco.war"/>
     </target>
 
-    <path id="connector-classpath">
-        <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="lib-proprietary" includes="*.jar"/>
-        <fileset dir="../../lib">
-            <include name="axis*.jar"/>	
-            <include name="saaj*.jar"/>	
-            <include name="commons-discovery*.jar"/>
-            <include name="jaxrpc*.jar"/>
-            <include name="mail*.jar"/>
-            <include name="opensaml*.jar"/>
-            <include name="wsdl4j*.jar"/>
-            <include name="wss4j*.jar"/>
-            <!--include name="xalan*.jar"/-->
-            <!--include name="xercesImpl*.jar"/-->
-            <include name="xmlsec*.jar"/>
-        </fileset>
-    </path>
-
-    <path id="connector-test-classpath">
-        <path refid="mcf-connector-build.connector-test-classpath"/>
-        <fileset file="../../lib/h2*.jar"/>
-    </path>
-    
-    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-            <fileset dir="../../lib">
-                <include name="axis*.jar"/>	
-                <include name="saaj*.jar"/>	
-                <include name="commons-discovery*.jar"/>
-                <include name="jaxrpc*.jar"/>
-                <include name="mail*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="wss4j*.jar"/>
-                <!--include name="xalan*.jar"/-->
-                <!--include name="xercesImpl*.jar"/-->
-                <include name="xmlsec*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
     <target name="build-test-materials" depends="pretest-check" if="canTest">
         <mkdir dir="build/alfresco-war"/>
         <copy todir="build/alfresco-war">
@@ -90,12 +48,6 @@
                 <include name="alfresco*.war"/>
             </fileset>
         </copy>
-    </target>
-
-    <target name="download-cleanup">
-        <delete>
-            <fileset dir="lib-proprietary" excludes="README*.txt"/>
-        </delete>
     </target>
 
 </project>
