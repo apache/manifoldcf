@@ -31,13 +31,9 @@ import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.manifoldcf.authorities.system.Logging;
 
 public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
-  private static final Logger logger = LoggerFactory.getLogger(AlfrescoAuthorityConnector.class);
-  
   
   private AlfrescoClient alfrescoClient;
   
@@ -78,13 +74,13 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
    */
   @Override
   public String check() throws ManifoldCFException {
-	  try{
-		  alfrescoClient.fetchUserAuthorities("admin");
-		  return "Connection Working!";
-	  }catch(AlfrescoDownException e){
-		  logger.error(e.getMessage());
-		  return "Connection not Working!. Check the configuration";
-	  }
+    try{
+      alfrescoClient.fetchUserAuthorities("admin");
+      return super.check();
+    }catch(AlfrescoDownException e){
+      Logging.authorityConnectors.warn(e.getMessage(),e);
+      return "Connection failed: "+e.getMessage();
+    }
   }
 
   /*
@@ -103,7 +99,7 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
   @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
-      return denied;
+    return denied;
   }
   
   /*
@@ -113,19 +109,20 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
   @Override
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException {
-	  try{
-		  AlfrescoUser permissions = alfrescoClient.fetchUserAuthorities(userName);
-		  if(permissions.getUsername() == null 
+    try{
+      AlfrescoUser permissions = alfrescoClient.fetchUserAuthorities(userName);
+      if(permissions.getUsername() == null 
 				  || permissions.getUsername().isEmpty()
 				  || permissions.getAuthorities().isEmpty())
-			  return new AuthorizationResponse(null, AuthorizationResponse.RESPONSE_USERNOTFOUND);
-		  else
-			  return new AuthorizationResponse(
+        return new AuthorizationResponse(null, AuthorizationResponse.RESPONSE_USERNOTFOUND);
+      else
+        return new AuthorizationResponse(
 					  permissions.getAuthorities().toArray(new String[permissions.getAuthorities().size()]), 
 					  AuthorizationResponse.RESPONSE_OK);
-	  }catch(AlfrescoDownException e){
-		  return new AuthorizationResponse(null, AuthorizationResponse.RESPONSE_UNREACHABLE);
-	  }
+    }catch(AlfrescoDownException e){
+      Logging.authorityConnectors.warn(e.getMessage(),e);
+      return new AuthorizationResponse(null, AuthorizationResponse.RESPONSE_UNREACHABLE);
+    }
   }
 
   @Override
