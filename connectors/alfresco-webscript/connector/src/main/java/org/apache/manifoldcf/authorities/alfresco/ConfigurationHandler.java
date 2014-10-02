@@ -49,7 +49,7 @@ public class ConfigurationHandler {
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_PROTOCOL, "http");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_HOSTNAME, "localhost");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_ENDPOINT, "/alfresco/service");
-     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_USERNAME, "");
+    DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_USERNAME, "");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_PASSWORD, "");
   }
 
@@ -60,6 +60,7 @@ public class ConfigurationHandler {
       IHTTPOutput out, Locale locale, ConfigParams parameters,
       List<String> tabsArray) throws ManifoldCFException, IOException {
     tabsArray.add("Server");
+    // KDW - This should be using Velocity templates!  See functionality provided by Messages class in almost every connector
     InputStream inputStream = ConfigurationHandler.class.getResourceAsStream("/org/apache/manifoldcf/authorities/alfresco/" + EDIT_CONFIG_HEADER);
     StringWriter writer = new StringWriter();
     IOUtils.copy(inputStream, writer, "UTF-8");
