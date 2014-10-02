@@ -61,5 +61,15 @@
         <echo message="Alfresco Connector integration tests cannot be be performed without alfresco.war"/>
     </target>
 
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="Alfresco Webscript"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.alfresco.webscript.AlfrescoConnector"/>
+        </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-label" value="Alfresco Webscript"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.alfresco.AlfrescoAuthorityConnector"/>
+        </antcall>
+    </target>
 
 </project>
