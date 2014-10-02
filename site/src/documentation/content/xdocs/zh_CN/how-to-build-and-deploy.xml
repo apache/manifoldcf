@@ -86,6 +86,7 @@
           <li>WGET-compatible filesystem connector</li>
           <li>Generic XML repository connector</li>
           <li>Google Drive connector</li>
+          <li>GridFS connector (mongoDB)</li>
           <li>HDFS connector</li>
           <li>JDBC connector, with just the PostgreSQL jdbc driver</li>
           <li>Atlassian Jira connector</li>
@@ -128,7 +129,10 @@
         <p>The following transformation connectors will be built:</p>
         <p></p>
         <ul>
+          <li>Field mapping transformation connector</li>
+          <li>Document filter transformation connector</li>
           <li>Null transformation connector</li>
+          <li>Tika extractor transformation connector</li>
         </ul>
         <p></p>
         <p>The following mapping connectors will be built:</p>
@@ -227,7 +231,7 @@
         </section>
         
         <section>
-          <title>Building the SharePoint connector</title>
+          <title>Building and running the SharePoint connector</title>
           <p></p>
           <p>The SharePoint connector generates interface classes using checked-in wsdls originally obtained
             from an installed Microsoft SharePoint instance using <strong>disco.exe</strong>.  The <strong>disco.exe</strong> utility is installed as part of
@@ -243,10 +247,12 @@
              <li>http[s]://&#60;server_name&#62;/_vti_bin/webs.asmx</li>
           </ul>
           <p></p>
-          <p>Note well: For SharePoint instances version 3.0 (2007) or higher, in order to support file and folder level security, you also must deploy a custom SharePoint web service
-            on the SharePoint instance you intend to connect to.  This is because Microsoft apparently overlooked support for web-service-based access to such security information
+          <p><strong>Important:</strong> For SharePoint instances version 3.0 (2007) or higher, in order to run the connector, you also must deploy a custom SharePoint web service
+            on the SharePoint instance you intend to connect to.  This is required because Microsoft overlooked support for web-service-based access to file and folder security information
             when SharePoint 2007 was released.  For SharePoint version 4.0 (2010), the service is even more critical, because backwards compatibility was not maintained and without
-            this service no crawling can occur.  Two versions of this service can be found in the distribution directory <em>sharepoint-integration</em>.
+            this service no crawling can occur.  SharePoint version 5.0 (2013) also requires a plugin; although its functionality is the same as for SharePoint 4.0, the binary you install
+            is built against SharePoint 2013 resources rather than SharePoint 2010 resources, so there is a different distribution.</p>
+          <p>The versions of this service can be found in the distribution directory <em>plugins/sharepoint</em>.
             Pick the version appropriate for your SharePoint installation, and install it following the instructions in the file <strong>Installation Readme.txt</strong>, found in the
             corresponding directory.</p>
           <p></p>
@@ -259,7 +265,7 @@
               document security, you must install and properly configure a plugin for Solr.  This plugin is available for both Solr 3.x and for Solr 4.x, and can be used either
               as a query parser plugin, or as a search component.  Additional index fields are also required to contain the necessary security information.  Much more
               information can be found in the README.txt file in the plugins themselves.</p>
-          <p>The correct versions of the plugins are included in the solr-integration directory of the main ManifoldCF distribution.  You can also download updated versions
+          <p>The correct versions of the plugins are included in the <em>plugins/solr</em> directory of the main ManifoldCF distribution.  You can also download updated versions
               of the plugins from the ManifoldCF download page.  The compatibility matrix is as follows:</p>
           <p></p>
           <table>
@@ -281,7 +287,7 @@
               document security, you must install, properly configure, and code against a toolkit plugin for ElasticSearch.
               Additional index fields are also required to contain the necessary security information.  Much more information can be found in the README.txt file in the
               plugin itself.</p>
-          <p>The correct versions of the plugin is included in the elasticsearch-integration directory of the main ManifoldCF distribution.  You can also download updated versions
+          <p>The correct versions of the plugin is included in the <em>plugins/elasticsearch</em> directory of the main ManifoldCF distribution.  You can also download updated versions
               of the plugin from the ManifoldCF download page.  The compatibility matrix is as follows:</p>
           <p></p>
           <table>
@@ -797,15 +803,15 @@ cd example
         <title>Running connector-specific processes</title>
         <p></p>
         <p>Connector-specific processes require the classpath for their invocation to include all the jars that are in the corresponding
-          <em>&#60;process_name&#62;-process</em> directory.  The Documentum and FileNet connectors are the only two connectors that currently require additional processes. 
+          <em>processes/&#60;process_name&#62;</em> directory.  The Documentum and FileNet connectors are the only two connectors that currently require additional processes. 
           Start these processes using the commands listed below, and stop them with SIGTERM (or ^C, if they are running in a shell).</p>
         <p></p>
         <table>
           <tr><th>Connector</th><th>Process</th><th>Main class</th><th>Script name (relative to <em>dist</em>)</th></tr>
-          <tr><td>Documentum</td><td>documentum-server-process</td><td>org.apache.manifoldcf.crawler.server.DCTM.DCTM</td><td>documentum-server-process/run[.sh|.bat]</td></tr>
-          <tr><td>Documentum</td><td>documentum-registry-process</td><td>org.apache.manifoldcf.crawler.registry.DCTM.DCTM</td><td>documentum-registry-process/run[.sh|.bat]</td></tr>
-          <tr><td>FileNet</td><td>filenet-server-process</td><td>org.apache.manifoldcf.crawler.server.filenet.Filenet</td><td>filenet-server-process/run[.sh|.bat]</td></tr>
-          <tr><td>FileNet</td><td>filenet-registry-process</td><td>org.apache.manifoldcf.crawler.registry.filenet.Filenet</td><td>filenet-registry-process/run[.sh|.bat]</td></tr>
+          <tr><td>Documentum</td><td>processes/documentum-server</td><td>org.apache.manifoldcf.crawler.server.DCTM.DCTM</td><td>processes/documentum-server/run[.sh|.bat]</td></tr>
+          <tr><td>Documentum</td><td>processes/documentum-registry</td><td>org.apache.manifoldcf.crawler.registry.DCTM.DCTM</td><td>processes/documentum-registry/run[.sh|.bat]</td></tr>
+          <tr><td>FileNet</td><td>processes/filenet-server</td><td>org.apache.manifoldcf.crawler.server.filenet.Filenet</td><td>processes/filenet-server/run[.sh|.bat]</td></tr>
+          <tr><td>FileNet</td><td>processes/filenet-registry</td><td>org.apache.manifoldcf.crawler.registry.filenet.Filenet</td><td>processes/filenet-registry/run[.sh|.bat]</td></tr>
         </table>
         <p>The registry process in all cases must be started before the corresponding server process, or the server process will report an error.  (It will, however, retry after some period of time.)
             The scripts all require an MCF_HOME environment variable pointing to the place where properties.xml is found, as well as a JAVA_HOME environment variable pointing the JDK.
@@ -846,7 +852,7 @@ cd example
              <li>PostgreSQL has a high degree of parallelism and lack of internal single-threadedness.</li>
           </ul>
           <p></p>
-          <p>ManifoldCF has been tested against version 8.3.7, 8.4.5 and 9.1 of PostgreSQL.  We recommend the following configuration parameter settings to work optimally with ManifoldCF:</p>
+          <p>ManifoldCF has been tested against version 8.3.7, 8.4.5, 9.1, 9.2, and 9.3 of PostgreSQL.  We recommend the following configuration parameter settings to work optimally with ManifoldCF:</p>
           <p></p>
           <ul>
              <li>A default database encoding of UTF-8</li>

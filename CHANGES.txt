@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1054: Document plugins for SharePoint more completely.
+(Karl Wright)
+
 CONNECTORS-345: Provide a jetty configuration XML file that can
 be used to alter the jetty configuration.
 (Shinichiro Abe, Karl Wright)
