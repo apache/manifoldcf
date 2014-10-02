@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.manifoldcf.authorities.authorities.alfresco;
+package org.apache.manifoldcf.authorities.authorities.alfrescowebscript;
 
 import java.util.Locale;
 import java.util.Map;
@@ -23,8 +23,8 @@ import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 
 public class Messages extends org.apache.manifoldcf.ui.i18n.Messages
 {
-    public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.authorities.authorities.alfresco.common";
-    public static final String DEFAULT_PATH_NAME="org.apache.manifoldcf.authorities.authorities.alfresco";
+    public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.authorities.authorities.alfrescowebscript.common";
+    public static final String DEFAULT_PATH_NAME="org.apache.manifoldcf.authorities.authorities.alfrescowebscript";
 
     /** Constructor - do no instantiate
      */

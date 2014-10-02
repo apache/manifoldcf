@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.manifoldcf.authorities.authorities.alfresco.tests;
+package org.apache.manifoldcf.authorities.authorities.alfrescowebscript;
 
 import org.alfresco.consulting.indexer.client.AlfrescoClient;
 import org.junit.Before;
