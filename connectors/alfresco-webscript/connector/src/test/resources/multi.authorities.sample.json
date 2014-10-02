@@ -1,0 +1,24 @@
+[
+    {
+        username:"guest",
+        authorities:[
+            "ROLE_GUEST"
+        ]
+    },
+    {
+        username:"abeecher",
+        authorities:[
+            "GROUP_EVERYONE",
+            "GROUP_site_swsdp",
+            "GROUP_site_swsdp_SiteCollaborator"
+        ]
+    },
+    {
+        username:"mjackson",
+        authorities:[
+            "GROUP_EVERYONE",
+            "GROUP_site_swsdp",
+            "GROUP_site_swsdp_SiteManager"
+        ]
+    }
+]

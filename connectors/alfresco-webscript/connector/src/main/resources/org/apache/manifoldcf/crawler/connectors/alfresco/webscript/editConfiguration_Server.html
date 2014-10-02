@@ -1,0 +1,77 @@
+#if($tabName == "Server")
+<table class="displaytable">
+	<tr>
+		<td class="description">
+			<nobr>Protocol</nobr>
+		</td>
+		<td class="value">
+			<input name="protocol" type="text" size="32" value="$protocol" />
+		</td>
+	</tr>
+	<tr>
+		<td class="description">
+			<nobr>Hostname</nobr>
+		</td>
+		<td class="value">
+			<input name="hostname" type="text" size="32" value="$hostname"/>
+		</td>
+	</tr>
+	<tr>
+		<td class="description">
+			<nobr>Endpoint</nobr>
+		</td>
+		<td class="value">
+			<input name="endpoint" type="text" size="32" value="$endpoint" />
+		</td>
+	</tr>
+	<tr>
+		<td class="description">
+			<nobr>Store protocol</nobr>
+		</td>
+		<td class="value">
+			<input name="storeprotocol" type="text" size="32" value="$storeprotocol"/>
+		</td>
+	</tr>
+    <tr>
+        <td class="description">
+            <nobr>Enable Document Processing</nobr>
+        </td>
+        <td class="value">
+            <input name="enabledocumentprocessing" type="checkbox" value="$enabledocumentprocessing"/>
+        </td>
+    </tr>
+	<tr>
+		<td class="description">
+			<nobr>Store id</nobr>
+		</td>
+		<td class="value">
+			<input name="storeid" type="text" size="32" value="$storeid"/>
+		</td>
+	</tr>
+	<tr>
+		<td class="description">
+			<nobr>Username</nobr>
+		</td>
+		<td class="value">
+			<input name="username" type="text" size="32" value="$username"/>
+		</td>
+	</tr>
+	<tr>
+		<td class="description">
+			<nobr>Password</nobr>
+		</td>
+		<td class="value">
+			<input name="password" type="password" size="32" value="$password"/>
+		</td>
+	</tr>
+</table>
+#else
+<input type="hidden" name="protocol" value="$protocol" />
+<input type="hidden" name="hostname" value="$hostname" />
+<input type="hidden" name="endpoint" value="$endpoint" />
+<input type="hidden" name="storeprotocol" value="$storeprotocol" />
+<input type="hidden" name="enabledocumentprocessing" value="$enabledocumentprocessing" />
+<input type="hidden" name="storeid" value="$storeid" />
+<input type="hidden" name="username" value="$username" />
+<input type="hidden" name="password" value="$password" />
+#end

@@ -34,6 +34,7 @@
   <modules>
     <!-- common modules -->
     <module>activedirectory</module>
+    <module>alfresco-webscript</module>
     <module>filesystem</module>
     <module>gts</module>
     <module>hdfs</module>
