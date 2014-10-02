@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.manifoldcf.authorities.alfresco;
+package org.apache.manifoldcf.authorities.authorities.alfresco;
 
 import java.io.IOException;
 import java.io.InputStream;
