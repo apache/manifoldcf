@@ -68,7 +68,7 @@
         </antcall>
         <antcall target="general-add-authority-connector">
             <param name="connector-label" value="Alfresco Webscript"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.alfresco.AlfrescoAuthorityConnector"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.alfrescowebscript.AlfrescoAuthorityConnector"/>
         </antcall>
     </target>
 
