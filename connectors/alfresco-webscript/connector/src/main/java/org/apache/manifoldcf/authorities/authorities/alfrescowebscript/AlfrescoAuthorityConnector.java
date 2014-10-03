@@ -16,30 +16,26 @@
  */
 package org.apache.manifoldcf.authorities.authorities.alfrescowebscript;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-
 import org.alfresco.consulting.indexer.client.AlfrescoClient;
 import org.alfresco.consulting.indexer.client.AlfrescoDownException;
 import org.alfresco.consulting.indexer.client.AlfrescoUser;
 import org.alfresco.consulting.indexer.client.WebScriptsAlfrescoClient;
 import org.apache.manifoldcf.authorities.authorities.BaseAuthorityConnector;
 import org.apache.manifoldcf.authorities.interfaces.AuthorizationResponse;
-import org.apache.manifoldcf.core.interfaces.ConfigParams;
-import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
-import org.apache.manifoldcf.core.interfaces.IPostParameters;
-import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.authorities.system.Logging;
+import org.apache.manifoldcf.core.interfaces.*;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
-  
+
   private AlfrescoClient alfrescoClient;
-  
+
   private static final AuthorizationResponse denied = new AuthorizationResponse(
-          new String[] { "DEAD_AUTHORITY" }, AuthorizationResponse.RESPONSE_UNREACHABLE);
-  
+      new String[]{"DEAD_AUTHORITY"}, AuthorizationResponse.RESPONSE_UNREACHABLE);
+
   public void setClient(AlfrescoClient client) {
     alfrescoClient = client;
   }
@@ -55,7 +51,7 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
     String password = getConfig(config, "password", null);
 
     alfrescoClient = new WebScriptsAlfrescoClient(protocol, hostname, endpoint,
-            null, null, username, password);
+        null, null, username, password);
   }
 
   private static String getConfig(ConfigParams config,
@@ -74,12 +70,14 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
    */
   @Override
   public String check() throws ManifoldCFException {
-    try{
+    try {
       alfrescoClient.fetchUserAuthorities("admin");
       return super.check();
-    }catch(AlfrescoDownException e){
-      Logging.authorityConnectors.warn(e.getMessage(),e);
-      return "Connection failed: "+e.getMessage();
+    } catch (AlfrescoDownException e) {
+      if (Logging.authorityConnectors != null) {
+        Logging.authorityConnectors.warn(e.getMessage(), e);
+      }
+      return "Connection failed: " + e.getMessage();
     }
   }
 
@@ -91,36 +89,34 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
   public void disconnect() throws ManifoldCFException {
     super.disconnect();
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.manifoldcf.authorities.authorities.BaseAuthorityConnector#getDefaultAuthorizationResponse(java.lang.String)
    */
   @Override
-  public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
-  {
+  public AuthorizationResponse getDefaultAuthorizationResponse(String userName) {
     return denied;
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.manifoldcf.authorities.authorities.BaseAuthorityConnector#getAuthorizationResponse(java.lang.String)
    */
   @Override
   public AuthorizationResponse getAuthorizationResponse(String userName)
-    throws ManifoldCFException {
-    try{
+      throws ManifoldCFException {
+    try {
       AlfrescoUser permissions = alfrescoClient.fetchUserAuthorities(userName);
-      if(permissions.getUsername() == null 
-				  || permissions.getUsername().isEmpty()
-				  || permissions.getAuthorities().isEmpty())
+      if (permissions.getUsername() == null
+          || permissions.getUsername().isEmpty()
+          || permissions.getAuthorities().isEmpty())
         return new AuthorizationResponse(null, AuthorizationResponse.RESPONSE_USERNOTFOUND);
       else
         return new AuthorizationResponse(
-					  permissions.getAuthorities().toArray(new String[permissions.getAuthorities().size()]), 
-					  AuthorizationResponse.RESPONSE_OK);
-    }catch(AlfrescoDownException e){
-      Logging.authorityConnectors.warn(e.getMessage(),e);
+            permissions.getAuthorities().toArray(new String[permissions.getAuthorities().size()]),
+            AuthorizationResponse.RESPONSE_OK);
+    } catch (AlfrescoDownException e) {
       return new AuthorizationResponse(null, AuthorizationResponse.RESPONSE_UNREACHABLE);
     }
   }
@@ -130,30 +126,30 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
                                         IHTTPOutput out, Locale locale, ConfigParams parameters,
                                         List<String> tabsArray) throws ManifoldCFException, IOException {
     ConfigurationHandler.outputConfigurationHeader(threadContext, out, locale,
-            parameters, tabsArray);
+        parameters, tabsArray);
   }
 
   @Override
   public void outputConfigurationBody(IThreadContext threadContext,
                                       IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
-          throws ManifoldCFException, IOException {
+      throws ManifoldCFException, IOException {
     ConfigurationHandler.outputConfigurationBody(threadContext, out, locale,
-            parameters, tabName);
+        parameters, tabName);
   }
 
   @Override
   public String processConfigurationPost(IThreadContext threadContext,
                                          IPostParameters variableContext, Locale locale, ConfigParams parameters)
-          throws ManifoldCFException {
+      throws ManifoldCFException {
     return ConfigurationHandler.processConfigurationPost(threadContext,
-            variableContext, locale, parameters);
+        variableContext, locale, parameters);
   }
 
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
                                 Locale locale, ConfigParams parameters) throws ManifoldCFException,
-          IOException {
+      IOException {
     ConfigurationHandler.viewConfiguration(threadContext, out, locale,
-            parameters);
-  }  
+        parameters);
+  }
 }

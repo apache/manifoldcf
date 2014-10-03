@@ -16,6 +16,11 @@
  */
 package org.apache.manifoldcf.authorities.authorities.alfrescowebscript;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -24,27 +29,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.manifoldcf.core.interfaces.ConfigParams;
-import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
-import org.apache.manifoldcf.core.interfaces.IPostParameters;
-import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
-
 public class ConfigurationHandler {
   private static final String PARAM_PROTOCOL = "protocol";
   private static final String PARAM_HOSTNAME = "hostname";
   private static final String PARAM_ENDPOINT = "endpoint";
   private static final String PARAM_USERNAME = "username";
   private static final String PARAM_PASSWORD = "password";
-  
+
   private static final String EDIT_CONFIG_HEADER = "editConfiguration.js";
   private static final String EDIT_CONFIG_SERVER = "editConfiguration_Server.html";
   private static final String VIEW_CONFIG = "viewConfiguration.html";
 
   private static final Map<String, String> DEFAULT_CONFIGURATION_PARAMETERS = new HashMap<String, String>();
+
   static {
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_PROTOCOL, "http");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_HOSTNAME, "localhost");
@@ -57,8 +54,9 @@ public class ConfigurationHandler {
   }
 
   public static void outputConfigurationHeader(IThreadContext threadContext,
-      IHTTPOutput out, Locale locale, ConfigParams parameters,
-      List<String> tabsArray) throws ManifoldCFException, IOException {
+                                               IHTTPOutput out, Locale locale,
+                                               ConfigParams parameters,
+                                               List<String> tabsArray) throws ManifoldCFException, IOException {
     tabsArray.add("Server");
     Map<String, Object> paramMap = new HashMap<String, Object>();
     fillInParameters(paramMap, parameters);
@@ -66,7 +64,7 @@ public class ConfigurationHandler {
   }
 
   private static void fillInParameters(Map<String, Object> paramMap,
-      ConfigParams parameters) {
+                                       ConfigParams parameters) {
     for (Map.Entry<String, String> parameter : DEFAULT_CONFIGURATION_PARAMETERS
         .entrySet()) {
       String paramValue = parameters.getParameter(parameter.getKey());
@@ -78,7 +76,8 @@ public class ConfigurationHandler {
   }
 
   public static void outputConfigurationBody(IThreadContext threadContext,
-      IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
+                                             IHTTPOutput out, Locale locale,
+                                             ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("tabName", tabName);
@@ -86,16 +85,9 @@ public class ConfigurationHandler {
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_SERVER, paramMap);
   }
 
-  private static VelocityContext createVelocityContext(Map<String, String> paramMap) {
-    VelocityContext context = new VelocityContext();
-    for (Map.Entry<String, String> entry : paramMap.entrySet()) {
-      context.put(entry.getKey(), entry.getValue());
-    }
-    return context;
-  }
-
   public static String processConfigurationPost(IThreadContext threadContext,
-      IPostParameters variableContext, Locale locale, ConfigParams parameters)
+                                                IPostParameters variableContext,
+                                                Locale locale, ConfigParams parameters)
       throws ManifoldCFException {
     for (String paramName : DEFAULT_CONFIGURATION_PARAMETERS.keySet()) {
       String paramValue = variableContext.getParameter(paramName);
@@ -107,7 +99,8 @@ public class ConfigurationHandler {
   }
 
   public static void viewConfiguration(IThreadContext threadContext,
-      IHTTPOutput out, Locale locale, ConfigParams parameters)
+                                       IHTTPOutput out, Locale locale,
+                                       ConfigParams parameters)
       throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     fillInParameters(paramMap, parameters);
