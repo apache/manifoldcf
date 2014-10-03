@@ -1,36 +1,36 @@
 <table class="displaytable">
-	<tr>
-		<td class="description" colspan="1">
-			<nobr>Protocol:</nobr>
-		</td>
-		<td class="value" colspan="3">
-			<nobr>$protocol</nobr><br/>
-		</td>
-	</tr>
-	<tr>
-		<td class="description" colspan="1">
-			<nobr>Hostname:</nobr>
-		</td>
-		<td class="value" colspan="3">
-			<nobr>$hostname</nobr><br/>
-		</td>
-	</tr>
-	<tr>
-		<td class="description" colspan="1">
-			<nobr>Endpoint:</nobr>
-		</td>
-		<td class="value" colspan="3">
-			<nobr>$endpoint</nobr><br/>
-		</td>
-	</tr>
-	<tr>
-		<td class="description" colspan="1">
-			<nobr>Store protocol:</nobr>
-		</td>
-		<td class="value" colspan="3">
-			<nobr>$storeprotocol</nobr><br/>
-		</td>
-	</tr>
+  <tr>
+    <td class="description" colspan="1">
+      <nobr>Protocol:</nobr>
+    </td>
+    <td class="value" colspan="3">
+      <nobr>$Encoder.bodyEscape($protocol)</nobr><br/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description" colspan="1">
+      <nobr>Hostname:</nobr>
+    </td>
+    <td class="value" colspan="3">
+      <nobr>$Encoder.bodyEscape($hostname)</nobr><br/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description" colspan="1">
+      <nobr>Endpoint:</nobr>
+    </td>
+    <td class="value" colspan="3">
+      <nobr>$Encoder.bodyEscape($endpoint)</nobr><br/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description" colspan="1">
+      <nobr>Store protocol:</nobr>
+    </td>
+    <td class="value" colspan="3">
+      <nobr>$Encoder.bodyEscape($storeprotocol)</nobr><br/>
+    </td>
+  </tr>
     <tr>
         <td class="description" colspan="1">
             <nobr>Enable Document Processing:</nobr>
@@ -39,28 +39,28 @@
             <nobr>$enabledocumentprocessing</nobr><br/>
         </td>
     </tr>
-	<tr>
-		<td class="description" colspan="1">
-			<nobr>Store id:</nobr>
-		</td>
-		<td class="value" colspan="3">
-			<nobr>$storeid</nobr><br/>
-		</td>
-	</tr>
-	<tr>
-		<td class="description" colspan="1">
-			<nobr>Username:</nobr>
-		</td>
-		<td class="value" colspan="3">
-			<nobr>$username</nobr><br/>
-		</td>
-	</tr>
-	<tr>
-		<td class="description" colspan="1">
-			<nobr>Password:</nobr>
-		</td>
-		<td class="value" colspan="3">
-			<nobr>********</nobr><br/>
-		</td>
-	</tr>
+  <tr>
+    <td class="description" colspan="1">
+      <nobr>Store id:</nobr>
+    </td>
+    <td class="value" colspan="3">
+      <nobr>$Encoder.bodyEscape($storeid)</nobr><br/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description" colspan="1">
+      <nobr>Username:</nobr>
+    </td>
+    <td class="value" colspan="3">
+      <nobr>$Encoder.bodyEscape($username)</nobr><br/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description" colspan="1">
+      <nobr>Password:</nobr>
+    </td>
+    <td class="value" colspan="3">
+      <nobr>********</nobr><br/>
+    </td>
+  </tr>
 </table>
