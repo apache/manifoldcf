@@ -60,15 +60,12 @@ public class ConfigurationHandler {
       IHTTPOutput out, Locale locale, ConfigParams parameters,
       List<String> tabsArray) throws ManifoldCFException, IOException {
     tabsArray.add("Server");
-    // KDW - This should be using Velocity templates!  See functionality provided by Messages class in almost every connector
-    InputStream inputStream = ConfigurationHandler.class.getResourceAsStream("/org/apache/manifoldcf/authorities/alfresco/" + EDIT_CONFIG_HEADER);
-    StringWriter writer = new StringWriter();
-    IOUtils.copy(inputStream, writer, "UTF-8");
-    inputStream.close();
-    out.print(writer.toString());
+    Map<String, Object> paramMap = new HashMap<String, Object>();
+    fillInParameters(paramMap, parameters);
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_HEADER, paramMap);
   }
 
-  private static void fillInParameters(Map<String, String> paramMap,
+  private static void fillInParameters(Map<String, Object> paramMap,
       ConfigParams parameters) {
     for (Map.Entry<String, String> parameter : DEFAULT_CONFIGURATION_PARAMETERS
         .entrySet()) {
@@ -83,14 +80,10 @@ public class ConfigurationHandler {
   public static void outputConfigurationBody(IThreadContext threadContext,
       IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("tabName", tabName);
     fillInParameters(paramMap, parameters);
-    VelocityEngine velocityEngine = Messages.createVelocityEngine(ConfigurationHandler.class);
-    VelocityContext context = createVelocityContext(paramMap);
-    StringWriter w = new StringWriter();
-    velocityEngine.mergeTemplate(EDIT_CONFIG_SERVER, "UTF-8", context, w);
-    out.print(w.toString());
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_SERVER, paramMap);
   }
 
   private static VelocityContext createVelocityContext(Map<String, String> paramMap) {
@@ -116,12 +109,8 @@ public class ConfigurationHandler {
   public static void viewConfiguration(IThreadContext threadContext,
       IHTTPOutput out, Locale locale, ConfigParams parameters)
       throws ManifoldCFException, IOException {
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
     fillInParameters(paramMap, parameters);
-    VelocityEngine velocityEngine = Messages.createVelocityEngine(ConfigurationHandler.class);
-    VelocityContext context = createVelocityContext(paramMap);
-    StringWriter w = new StringWriter();
-    velocityEngine.mergeTemplate(VIEW_CONFIG, "UTF-8", context, w);
-    out.print(w.toString());
+    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIG, paramMap);
   }
 }
