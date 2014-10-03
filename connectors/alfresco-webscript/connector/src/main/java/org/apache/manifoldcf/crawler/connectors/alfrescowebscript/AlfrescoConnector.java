@@ -40,12 +40,10 @@ import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.manifoldcf.crawler.system.Logging;
+import java.text.MessageFormat;
 
 public class AlfrescoConnector extends BaseRepositoryConnector {
-  private static final Logger logger = LoggerFactory.getLogger(AlfrescoConnector.class);
   private static final String ACTIVITY_FETCH = "fetch document";
   private static final String[] activitiesList = new String[]{ACTIVITY_FETCH};
   private AlfrescoClient alfrescoClient;
@@ -124,15 +122,15 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
       long lastAclChangesetId = 0;
       
       if(lastSeedVersion != null && !lastSeedVersion.isEmpty()){
-    	  StringTokenizer tokenizer = new StringTokenizer(lastSeedVersion,"|");
+        StringTokenizer tokenizer = new StringTokenizer(lastSeedVersion,"|");
 
-    	  if (tokenizer.countTokens() == 2) {
-    		  lastTransactionId = new Long(tokenizer.nextToken());
-    		  lastAclChangesetId = new Long(tokenizer.nextToken());
-    	  }
+        if (tokenizer.countTokens() == 2) {
+          lastTransactionId = new Long(tokenizer.nextToken());
+          lastAclChangesetId = new Long(tokenizer.nextToken());
+        }
       }
       
-      logger.info("Starting from transaction id: {} and acl changeset id: {}", lastTransactionId, lastAclChangesetId);
+      Logging.connectors.debug(MessageFormat.format("Starting from transaction id: {0} and acl changeset id: {1}", new Object[]{lastTransactionId, lastAclChangesetId}));
       
       long transactionIdsProcessed;
       long aclChangesetsProcessed;
@@ -149,7 +147,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           activities.addSeedDocument(uuid);
           count++;
         }
-        logger.info("Fetched and added {} seed documents", count);
+        Logging.connectors.debug(MessageFormat.format("Fetched and added {0} seed documents", new Object[]{new Integer(count)}));
 
         transactionIdsProcessed = response.getLastTransactionId() - lastTransactionId;
         aclChangesetsProcessed = response.getLastAclChangesetId() - lastAclChangesetId;
@@ -157,18 +155,18 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         lastTransactionId = response.getLastTransactionId();
         lastAclChangesetId = response.getLastAclChangesetId();
 
-        logger.info("transaction_id={}, acl_changeset_id={}", lastTransactionId, lastAclChangesetId);
+        Logging.connectors.debug(MessageFormat.format("transaction_id={0}, acl_changeset_id={1}", new Object[]{lastTransactionId, lastAclChangesetId}));
       } while (transactionIdsProcessed > 0 || aclChangesetsProcessed > 0);
 
-      logger.info("Recording {} as last transaction id and {} as last changeset id", lastTransactionId, lastAclChangesetId);
+      Logging.connectors.debug(MessageFormat.format("Recording {0} as last transaction id and {1} as last changeset id", new Object[]{lastTransactionId, lastAclChangesetId}));
       return lastTransactionId + "|" + lastAclChangesetId;
     } catch (AlfrescoDownException e) {
       throw new ManifoldCFException(e);
     }
   }
 
-@Override
-public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
+  @Override
+  public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
                              IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
         throws ManifoldCFException, ServiceInterruption {
 
@@ -178,9 +176,9 @@ public void processDocuments(String[] documentIdentifiers, IExistingVersions sta
       // Calling again Alfresco API because Document's actions are lost from seeding method
       AlfrescoResponse response = alfrescoClient.fetchNode(doc);
       if(response.getDocumentList().isEmpty()){ // Not found seeded document. Could reflect an error in Alfresco
-    	  logger.error("Invalid Seeded Document from Alfresco with ID {}", doc);
-    	  activities.noDocument(doc, nextVersion);
-    	  continue;
+        Logging.connectors.warn(MessageFormat.format("Invalid Seeded Document from Alfresco with ID {0}", new Object[]{doc}));
+        activities.noDocument(doc, nextVersion);
+        continue;
       }
       Map<String, Object> map = response.getDocumentList().get(0); // Should be only one
       RepositoryDocument rd = new RepositoryDocument();
@@ -197,24 +195,24 @@ public void processDocuments(String[] documentIdentifiers, IExistingVersions sta
       } else {
         if (this.enableDocumentProcessing) {
           try{
-          	processMetaData(rd,uuid);
+            processMetaData(rd,uuid);
           }catch(AlfrescoDownException e){
-        	  logger.error("Invalid Document from Alfresco with ID {}", uuid, e);
-        	  activities.noDocument(doc, nextVersion);
-        	  continue; // No Metadata, No Content....skip document
+            Logging.connectors.warn(MessageFormat.format("Invalid Document from Alfresco with ID {0}", new Object[]{uuid}), e);
+            activities.noDocument(doc, nextVersion);
+            continue; // No Metadata, No Content....skip document
           }
         }
         try {
-        	if(rd.getBinaryStream() == null){
-        		byte[] empty = new byte[0];
-        		rd.setBinary(new ByteArrayInputStream(empty), 0L);
-        	}
-        	logger.info("Ingesting with id: {}, URI {} and rd {}", uuid, nodeRef, rd.getFileName());
-			activities.ingestDocumentWithException(uuid, "", uuid, rd);
-		} catch (IOException e) {
-			throw new ManifoldCFException(
+          if(rd.getBinaryStream() == null){
+            byte[] empty = new byte[0];
+            rd.setBinary(new ByteArrayInputStream(empty), 0L);
+          }
+          Logging.connectors.debug(MessageFormat.format("Ingesting with id: {0}, URI {1} and rd {2}", new Object[]{uuid, nodeRef, rd.getFileName()}));
+          activities.ingestDocumentWithException(uuid, "", uuid, rd);
+        } catch (IOException e) {
+          throw new ManifoldCFException(
 					"Error Ingesting Document with ID " + String.valueOf(uuid), e);
-		}
+        }
       }
     }
   }
@@ -230,16 +228,16 @@ public void processDocuments(String[] documentIdentifiers, IExistingVersions sta
     // Document Binary Content
     String contentUrlPath = (String) properties.get(CONTENT_URL_PROPERTY);
     if(contentUrlPath != null && !contentUrlPath.isEmpty()){
-    	InputStream binaryContent = alfrescoClient.fetchContent(contentUrlPath);
-    	if(binaryContent != null) // Content-based Alfresco Document
-    		rd.setBinary(binaryContent, 0L);
+      InputStream binaryContent = alfrescoClient.fetchContent(contentUrlPath);
+      if(binaryContent != null) // Content-based Alfresco Document
+        rd.setBinary(binaryContent, 0L);
     }
     
     // Indexing Permissions
     @SuppressWarnings("unchecked")
-	List<String> permissions = (List<String>) properties.remove(AUTHORITIES_PROPERTY);
+    List<String> permissions = (List<String>) properties.remove(AUTHORITIES_PROPERTY);
     if(permissions != null){
-    	rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,
+      rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,
     		permissions.toArray(new String[permissions.size()]));
     }
   }
@@ -277,29 +275,29 @@ public void processDocuments(String[] documentIdentifiers, IExistingVersions sta
   }
   
   
-   @Override
-   public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
-     int connectionSequenceNumber, List<String> tabsArray)
-     throws ManifoldCFException, IOException{
-	   ConfigurationHandler.outputSpecificationHeader(out, locale, os, connectionSequenceNumber, tabsArray);
-   }
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, List<String> tabsArray)
+    throws ManifoldCFException, IOException{
+    ConfigurationHandler.outputSpecificationHeader(out, locale, os, connectionSequenceNumber, tabsArray);
+  }
    
-   @Override
-   public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
-		    int connectionSequenceNumber, int actualSequenceNumber, String tabName) throws ManifoldCFException, IOException{
-	   ConfigurationHandler.outputSpecificationBody(out, locale, os, connectionSequenceNumber, actualSequenceNumber, tabName);
-   }
+  @Override
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification os,
+    int connectionSequenceNumber, int actualSequenceNumber, String tabName) throws ManifoldCFException, IOException{
+    ConfigurationHandler.outputSpecificationBody(out, locale, os, connectionSequenceNumber, actualSequenceNumber, tabName);
+  }
    
-   @Override
-   public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
+  @Override
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
 			  int connectionSequenceNumber) throws ManifoldCFException{
-	   return ConfigurationHandler.processSpecificationPost(variableContext, locale, os, connectionSequenceNumber);
-   }
+    return ConfigurationHandler.processSpecificationPost(variableContext, locale, os, connectionSequenceNumber);
+  }
    
-   @Override
-   public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
+  @Override
+  public void viewSpecification(IHTTPOutput out, Locale locale, Specification os,
 			  int connectionSequenceNumber) throws ManifoldCFException, IOException{
-	   ConfigurationHandler.viewSpecification(out, locale, os, connectionSequenceNumber);
-   }
+  ConfigurationHandler.viewSpecification(out, locale, os, connectionSequenceNumber);
+  }
   
 }
