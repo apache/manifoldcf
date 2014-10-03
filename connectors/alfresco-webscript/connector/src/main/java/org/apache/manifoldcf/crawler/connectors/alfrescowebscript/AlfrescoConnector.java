@@ -191,125 +191,139 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         continue;
       }
 
-      // This should at least be the modified date
-      // MHL
-      String documentVersion = "";
-
-      if(!activities.checkDocumentNeedsReindexing(doc, documentVersion))
-          continue;
-
-
-      RepositoryDocument rd = new RepositoryDocument();
+      // From the map, get the things we know about
       String uuid = map.containsKey(FIELD_UUID) ? map.get(FIELD_UUID).toString() : doc;
       String nodeRef = map.containsKey(FIELD_NODEREF) ? map.get(FIELD_NODEREF).toString() : "";
-      rd.addField(FIELD_NODEREF, nodeRef);
       String type = map.containsKey(FIELD_TYPE) ? map.get(FIELD_TYPE).toString() : "";
-      rd.addField(FIELD_TYPE, type);
       String name =  map.containsKey(FIELD_NAME) ? map.get(FIELD_NAME).toString() : "";
-      rd.setFileName(name);
 
-      InputStream stream = null;
-      if (this.enableDocumentProcessing) {
-        try{
-          stream = processMetaData(rd,uuid);
-        }catch(AlfrescoDownException e){
-          if (Logging.connectors != null)
-            Logging.connectors.warn(MessageFormat.format("Invalid Document from Alfresco with ID {0}", new Object[]{uuid}), e);
-          activities.noDocument(doc, documentVersion);
-          continue; // No Metadata, No Content....skip document
+      // Fetch document metadata
+      Map<String,Object> properties = alfrescoClient.fetchMetadata(uuid);
+
+      // Process various special fields
+      Object mdObject;
+
+      // Size
+      Long lSize = null;
+      mdObject = properties.get(SIZE_PROPERTY);
+      if (mdObject != null) {
+        String size = mdObject.toString();
+        lSize = new Long(size);
+      }
+      
+      // Modified Date
+      Date modifiedDate = null;
+      mdObject = properties.get(MODIFIED_DATE_PROPERTY);
+      if (mdObject != null) {
+        SimpleDateFormat f = new SimpleDateFormat("YYYY-MM-DDThh:mm:ss.sTZD");
+        try {
+          modifiedDate = f.parse(mdObject.toString());
+        } catch (ParseException e) {
+          // Nothing to do
         }
       }
-      try {
-        if(stream == null){
-          byte[] empty = new byte[0];
-          rd.setBinary(new ByteArrayInputStream(empty), 0L);
+
+      // Created Date
+      Date createdDate = null;
+      mdObject = properties.get(CREATED_DATE_PROPERTY);
+      if (mdObject != null) {
+        SimpleDateFormat f = new SimpleDateFormat("YYYY-MM-DDThh:mm:ss.sTZD");
+        try {
+          createdDate = f.parse(mdObject.toString());
+        } catch (ParseException e) {
+          // Nothing to do
         }
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug(MessageFormat.format("Ingesting with id: {0}, URI {1} and rd {2}", new Object[]{uuid, nodeRef, rd.getFileName()}));
-        activities.ingestDocumentWithException(doc, documentVersion, uuid, rd);
-      } catch (IOException e) {
-        throw new ManifoldCFException(
-                                      "Error Ingesting Document with ID " + String.valueOf(uuid), e);
       }
+
+
+      // Establish the document version.
+      if (modifiedDate == null) {
+        activities.deleteDocument(doc);
+        continue;
+      }
+      
+      String documentVersion = modifiedDate.toString();
+
+      if(!activities.checkDocumentNeedsReindexing(doc, documentVersion))
+        continue;
+
+      RepositoryDocument rd = new RepositoryDocument();
+      rd.addField(FIELD_NODEREF, nodeRef);
+      rd.addField(FIELD_TYPE, type);
+      rd.setFileName(name);
+      
+      if (modifiedDate != null)
+        rd.setModifiedDate(modifiedDate);
+
+      if (createdDate != null)
+        rd.setCreatedDate(createdDate);
+
+      for(String property : properties.keySet()) {
+        Object propertyValue = properties.get(property);
+        rd.addField(property,propertyValue.toString());
+      }
+
+      Object mimetypeObject = properties.get(MIMETYPE_PROPERTY);
+      if (mimetypeObject != null) {
+        String mimetype = mimetypeObject.toString();
+        if (mimetype != null && !mimetype.isEmpty())
+          rd.setMimeType(mimetype);
+      }
+
+      // Indexing Permissions
+      @SuppressWarnings("unchecked")
+      List<String> permissions = (List<String>) properties.remove(AUTHORITIES_PROPERTY);
+      if(permissions != null){
+        rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,
+                          permissions.toArray(new String[permissions.size()]));
+      }
+
+      // Document Binary Content
+      InputStream stream;
+      long length;
+      String contentUrlPath = (String) properties.get(CONTENT_URL_PROPERTY);
+      if (contentUrlPath != null && !contentUrlPath.isEmpty()) {
+        byte[] empty = new byte[0];
+        if (this.enableDocumentProcessing) {
+          if (lSize != null) {
+            stream = alfrescoClient.fetchContent(contentUrlPath);
+            length = lSize.longValue();
+          } else {
+            stream = new ByteArrayInputStream(empty);
+            length = 0L;
+          }
+        } else {
+          stream = new ByteArrayInputStream(empty);
+          length = 0L;
+        }
+        
+        try {
+          rd.setBinary(stream, length);
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug(MessageFormat.format("Ingesting with id: {0}, URI {1} and rd {2}", new Object[]{uuid, nodeRef, rd.getFileName()}));
+          activities.ingestDocumentWithException(doc, documentVersion, uuid, rd);
+        } catch (IOException e) {
+          handleIOException(e);
+        } finally {
+          try {
+            stream.close();
+          } catch (IOException e) {
+            handleIOException(e);
+          }
+        }
+      }
+
     }
   }
   
-  private InputStream processMetaData(RepositoryDocument rd,
-                                      String uuid) throws ManifoldCFException, AlfrescoDownException {
-    InputStream stream = null;
+  protected static void handleIOException(IOException e)
+    throws ManifoldCFException, ServiceInterruption {
+    // MHL
+    throw new ManifoldCFException(
+                                      "Error Ingesting Document:" +e.getMessage(), e);
 
-    Map<String,Object> properties = alfrescoClient.fetchMetadata(uuid);
-    for(String property : properties.keySet()) {
-      Object propertyValue = properties.get(property);
-      rd.addField(property,propertyValue.toString());
-    }
-
-
-    Object mimetypeObject = properties.get(MIMETYPE_PROPERTY);
-    if (mimetypeObject != null) {
-      String mimetype = mimetypeObject.toString();
-      if (mimetype != null && !mimetype.isEmpty())
-        rd.setMimeType(mimetype);
-    }
-
-    long lSize = 0L;
-    Object sizeObject = properties.get(SIZE_PROPERTY);
-    if (sizeObject != null) {
-      String size = sizeObject.toString();
-      try {
-        lSize = Long.parseLong(size);
-      } catch (NumberFormatException e) {
-        // Nothing to do
-      }
-    }
-
-    // Modified Date
-    Object mdObject = properties.get(MODIFIED_DATE_PROPERTY);
-    if (mdObject != null) {
-      SimpleDateFormat f = new SimpleDateFormat("YYYY-MM-DDThh:mm:ss.sTZD");
-      Date d;
-      try {
-        d = f.parse(mdObject.toString());
-        rd.setModifiedDate(d);
-      } catch (ParseException e) {
-        // Nothing to do
-      }
-    }
-
-    // Created Date
-    mdObject = properties.get(CREATED_DATE_PROPERTY);
-    if (mdObject != null) {
-      SimpleDateFormat f = new SimpleDateFormat("YYYY-MM-DDThh:mm:ss.sTZD");
-      Date d;
-      try {
-        d = f.parse(mdObject.toString());
-        rd.setCreatedDate(d);
-      } catch (ParseException e) {
-        // Nothing to do
-      }
-    }
-
-    // Indexing Permissions
-    @SuppressWarnings("unchecked")
-    List<String> permissions = (List<String>) properties.remove(AUTHORITIES_PROPERTY);
-    if(permissions != null){
-      rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,
-                        permissions.toArray(new String[permissions.size()]));
-    }
-
-    // Document Binary Content
-    String contentUrlPath = (String) properties.get(CONTENT_URL_PROPERTY);
-    if (contentUrlPath != null && !contentUrlPath.isEmpty()) {
-      InputStream binaryContent = alfrescoClient.fetchContent(contentUrlPath);
-      if (binaryContent != null) { // Content-based Alfresco Document
-        rd.setBinary(binaryContent, lSize);
-        stream = binaryContent;
-      }
-    }
-
-    return stream;
   }
-
+  
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext,
                                         IHTTPOutput out, Locale locale, ConfigParams parameters,
