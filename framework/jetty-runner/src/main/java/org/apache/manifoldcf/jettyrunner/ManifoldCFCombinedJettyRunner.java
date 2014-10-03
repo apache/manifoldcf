@@ -38,9 +38,11 @@ import org.eclipse.jetty.xml.XmlConfiguration;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ShutdownHandler;
+import org.eclipse.jetty.server.Handler;
 
-/**
- * Run ManifoldCF with jetty.
+ /* Run ManifoldCF with jetty.
  * 
  */
 public class ManifoldCFCombinedJettyRunner
@@ -75,10 +77,23 @@ public class ManifoldCFCombinedJettyRunner
     
     // Initialize the servlets
     ContextHandlerCollection contexts = new ContextHandlerCollection();
-    server.setHandler(contexts);
     WebAppContext mcfCombined = new WebAppContext(combinedWarPath,"/mcf");
     mcfCombined.setParentLoaderPriority(false);
     contexts.addHandler(mcfCombined);
+    
+    HandlerList handlers = new HandlerList();
+    handlers.addHandler(contexts);
+    
+    // Pick up shutdown token
+    String shutdownToken = System.getProperty("org.apache.manifoldcf.jettyshutdowntoken");
+    if (shutdownToken != null)
+    {
+      ShutdownHandler shutdown = new ShutdownHandler(shutdownToken);
+      shutdown.setExitJvm(true);
+
+      handlers.addHandler(shutdown);
+    }
+    server.setHandler(handlers);
   }
   
   public void start()

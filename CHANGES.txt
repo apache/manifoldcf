@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1053: Provide stop scripts for single-process examples.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-1054: Document plugins for SharePoint more completely.
 (Karl Wright)
 

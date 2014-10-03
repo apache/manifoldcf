@@ -39,6 +39,9 @@ import org.eclipse.jetty.xml.XmlConfiguration;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ShutdownHandler;
+import org.eclipse.jetty.server.Handler;
 
 /**
  * Run ManifoldCF with jetty.
@@ -78,7 +81,6 @@ public class ManifoldCFJettyRunner
     
     // Initialize the servlets
     ContextHandlerCollection contexts = new ContextHandlerCollection();
-    server.setHandler(contexts);
     WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
     // This can cause jetty to ignore all of the framework and jdbc jars in the war, which is what we
     // want in the single-process case.
@@ -94,6 +96,21 @@ public class ManifoldCFJettyRunner
     // want in the single-process case.
     lcfApi.setParentLoaderPriority(useParentLoader);
     contexts.addHandler(lcfApi);
+    
+    HandlerList handlers = new HandlerList();
+    handlers.addHandler(contexts);
+    
+    // Pick up shutdown token
+    String shutdownToken = System.getProperty("org.apache.manifoldcf.jettyshutdowntoken");
+    if (shutdownToken != null)
+    {
+      ShutdownHandler shutdown = new ShutdownHandler(shutdownToken);
+      shutdown.setExitJvm(true);
+
+      handlers.addHandler(shutdown);
+    }
+    server.setHandler(handlers);
+
   }
 
   public void start()
