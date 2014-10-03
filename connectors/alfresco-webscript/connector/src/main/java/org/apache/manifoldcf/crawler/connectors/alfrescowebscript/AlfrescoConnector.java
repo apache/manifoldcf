@@ -130,7 +130,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         }
       }
       
-      Logging.connectors.debug(MessageFormat.format("Starting from transaction id: {0} and acl changeset id: {1}", new Object[]{lastTransactionId, lastAclChangesetId}));
+      if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug(MessageFormat.format("Starting from transaction id: {0} and acl changeset id: {1}", new Object[]{lastTransactionId, lastAclChangesetId}));
       
       long transactionIdsProcessed;
       long aclChangesetsProcessed;
@@ -147,7 +148,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           activities.addSeedDocument(uuid);
           count++;
         }
-        Logging.connectors.debug(MessageFormat.format("Fetched and added {0} seed documents", new Object[]{new Integer(count)}));
+        if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug(MessageFormat.format("Fetched and added {0} seed documents", new Object[]{new Integer(count)}));
 
         transactionIdsProcessed = response.getLastTransactionId() - lastTransactionId;
         aclChangesetsProcessed = response.getLastAclChangesetId() - lastAclChangesetId;
@@ -155,10 +157,12 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         lastTransactionId = response.getLastTransactionId();
         lastAclChangesetId = response.getLastAclChangesetId();
 
-        Logging.connectors.debug(MessageFormat.format("transaction_id={0}, acl_changeset_id={1}", new Object[]{lastTransactionId, lastAclChangesetId}));
+        if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug(MessageFormat.format("transaction_id={0}, acl_changeset_id={1}", new Object[]{lastTransactionId, lastAclChangesetId}));
       } while (transactionIdsProcessed > 0 || aclChangesetsProcessed > 0);
 
-      Logging.connectors.debug(MessageFormat.format("Recording {0} as last transaction id and {1} as last changeset id", new Object[]{lastTransactionId, lastAclChangesetId}));
+      if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug(MessageFormat.format("Recording {0} as last transaction id and {1} as last changeset id", new Object[]{lastTransactionId, lastAclChangesetId}));
       return lastTransactionId + "|" + lastAclChangesetId;
     } catch (AlfrescoDownException e) {
       throw new ManifoldCFException(e);
@@ -176,7 +180,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
       // Calling again Alfresco API because Document's actions are lost from seeding method
       AlfrescoResponse response = alfrescoClient.fetchNode(doc);
       if(response.getDocumentList().isEmpty()){ // Not found seeded document. Could reflect an error in Alfresco
-        Logging.connectors.warn(MessageFormat.format("Invalid Seeded Document from Alfresco with ID {0}", new Object[]{doc}));
+        if (Logging.connectors != null)
+          Logging.connectors.warn(MessageFormat.format("Invalid Seeded Document from Alfresco with ID {0}", new Object[]{doc}));
         activities.noDocument(doc, nextVersion);
         continue;
       }
@@ -197,7 +202,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           try{
             processMetaData(rd,uuid);
           }catch(AlfrescoDownException e){
-            Logging.connectors.warn(MessageFormat.format("Invalid Document from Alfresco with ID {0}", new Object[]{uuid}), e);
+            if (Logging.connectors != null)
+              Logging.connectors.warn(MessageFormat.format("Invalid Document from Alfresco with ID {0}", new Object[]{uuid}), e);
             activities.noDocument(doc, nextVersion);
             continue; // No Metadata, No Content....skip document
           }
@@ -207,7 +213,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
             byte[] empty = new byte[0];
             rd.setBinary(new ByteArrayInputStream(empty), 0L);
           }
-          Logging.connectors.debug(MessageFormat.format("Ingesting with id: {0}, URI {1} and rd {2}", new Object[]{uuid, nodeRef, rd.getFileName()}));
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug(MessageFormat.format("Ingesting with id: {0}, URI {1} and rd {2}", new Object[]{uuid, nodeRef, rd.getFileName()}));
           activities.ingestDocumentWithException(uuid, "", uuid, rd);
         } catch (IOException e) {
           throw new ManifoldCFException(
