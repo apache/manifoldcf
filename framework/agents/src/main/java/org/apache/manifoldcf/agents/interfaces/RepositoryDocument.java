@@ -264,7 +264,11 @@ public class RepositoryDocument
   }
   
   /** Set the binary field.
+  * Data is described by a binary stream (which is expected to be processed),
+  * This stream MUST BE CLOSED BY THE CALLER when the repository document instance has been ingested.
+  * The stream also WILL NOT ever be reset; it is read to the end once only.
   *@param binaryFieldData is the input stream containing binary data.
+  *@param binaryLength is the length of the stream, in bytes.  This is a REQUIRED parameter.
   */
   public void setBinary(InputStream binaryFieldData, long binaryLength)
   {
@@ -342,6 +346,9 @@ public class RepositoryDocument
   }
 
   /** Add/remove a multivalue character field.
+  * Data is described here by an array of Readers (which are expected to be processed),
+  * These Readers MUST BE CLOSED BY THE CALLER when the repository document instance has been ingested.
+  * The Readers also WILL NOT ever be reset; they are read to the end once only.
   *@param fieldName is the field name.
   *@param fieldData is the multi-valued data (as an array of Readers).  Null means
   * to remove the entry from the document.
@@ -366,6 +373,9 @@ public class RepositoryDocument
   }
 
   /** Add/remove a character field.
+  * Data is described here by a Reader (which is expected to be processed),
+  * This Reader MUST BE CLOSED BY THE CALLER when the repository document instance has been ingested.
+  * The Reader also WILL NOT ever be reset; it is read to the end once only.
   *@param fieldName is the field name.
   *@param fieldData is the single-valued data (as a Reader).  Null means "no value".
   */
