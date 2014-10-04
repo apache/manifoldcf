@@ -1,0 +1,20 @@
+{
+    "username" : "admin",
+    "authorities" : [
+    "GROUP_ALFRESCO_ADMINISTRATORS"
+    ,
+    "GROUP_EMAIL_CONTRIBUTORS"
+    ,
+    "GROUP_EVERYONE"
+    ,
+    "GROUP_site_konner"
+    ,
+    "GROUP_site_konner_SiteManager"
+    ,
+    "GROUP_site_swsdp"
+    ,
+    "GROUP_site_swsdp_SiteManager"
+    ,
+    "ROLE_ADMINISTRATOR"
+    ]
+}
