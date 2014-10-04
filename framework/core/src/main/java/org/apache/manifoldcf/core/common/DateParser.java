@@ -51,7 +51,10 @@ public class DateParser
       if (isoDateValue.indexOf(".") != -1)
         isoFormatString.append(".SSS");
       if (isoDateValue.endsWith("Z"))
-        isoFormatString.append("'Z'");
+      {
+        isoDateValue = isoDateValue.substring(0,isoDateValue.length()-1) + "-0000";
+        isoFormatString.append("Z");
+      }
       else
       {
         // We need to be able to parse either "-08:00" or "-0800".  The 'Z' specifier only handles

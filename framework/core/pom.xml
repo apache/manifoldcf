@@ -55,7 +55,7 @@
   </build>
 
   <dependencies>
-      <dependency>
+    <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>${httpcomponent.httpclient.version}</version>
