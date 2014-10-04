@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1055: Fix Zulu date parsing.
+(Karl Wright)
+
 CONNECTORS-1043: Wrong url generated for SharePoint list items.
 (Lalit Jangra, Karl Wright)
 
