@@ -1,0 +1,50 @@
+#if($tabName == "Server")
+<table class="displaytable">
+  <tr>
+    <td class="description">
+      <nobr>Protocol</nobr>
+    </td>
+    <td class="value">
+      <input name="protocol" type="text" size="32" value="$Encoder.attributeEscape($protocol)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>Hostname</nobr>
+    </td>
+    <td class="value">
+      <input name="hostname" type="text" size="32" value="$Encoder.attributeEscape($hostname)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>Endpoint</nobr>
+    </td>
+    <td class="value">
+      <input name="endpoint" type="text" size="32" value="$Encoder.attributeEscape($endpoint)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>Username</nobr>
+    </td>
+    <td class="value">
+      <input name="username" type="text" size="32" value="$Encoder.attributeEscape($username)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>Password</nobr>
+    </td>
+    <td class="value">
+      <input name="password" type="password" size="32" value="$Encoder.attributeEscape($password)"/>
+    </td>
+  </tr>
+</table>
+#else
+<input type="hidden" name="protocol" value="$Encoder.attributeEscape($protocol)" />
+<input type="hidden" name="hostname" value="$Encoder.attributeEscape($hostname)" />
+<input type="hidden" name="endpoint" value="$Encoder.attributeEscape($endpoint)" />
+<input type="hidden" name="username" value="$Encoder.attributeEscape($username)" />
+<input type="hidden" name="password" value="$Encoder.attributeEscape($password)" />
+#end
