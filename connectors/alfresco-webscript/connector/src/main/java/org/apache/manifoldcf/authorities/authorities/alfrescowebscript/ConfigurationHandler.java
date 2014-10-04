@@ -59,19 +59,28 @@ public class ConfigurationHandler {
                                                List<String> tabsArray) throws ManifoldCFException, IOException {
     tabsArray.add("Server");
     Map<String, Object> paramMap = new HashMap<String, Object>();
-    fillInParameters(paramMap, parameters);
+    fillInParameters(paramMap, out, parameters);
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_HEADER, paramMap);
   }
 
   private static void fillInParameters(Map<String, Object> paramMap,
-                                       ConfigParams parameters) {
+                                       IHTTPOutput out, ConfigParams parameters) {
     for (Map.Entry<String, String> parameter : DEFAULT_CONFIGURATION_PARAMETERS
         .entrySet()) {
-      String paramValue = parameters.getParameter(parameter.getKey());
-      if (paramValue == null) {
-        paramValue = parameter.getValue();
+      String paramName = parameter.getKey();
+      if (paramName.endsWith("password")) {
+        String paramValue = parameters.getObfuscatedParameter(paramName);
+        if (paramValue == null) {
+          paramValue = parameter.getValue();
+        }
+        paramMap.put(paramName, out.mapPasswordToKey(paramValue));
+      } else {
+        String paramValue = parameters.getParameter(paramName);
+        if (paramValue == null) {
+          paramValue = parameter.getValue();
+        }
+        paramMap.put(paramName, paramValue);
       }
-      paramMap.put(parameter.getKey(), paramValue);
     }
   }
 
@@ -81,7 +90,7 @@ public class ConfigurationHandler {
       throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("tabName", tabName);
-    fillInParameters(paramMap, parameters);
+    fillInParameters(paramMap, out, parameters);
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_SERVER, paramMap);
   }
 
@@ -92,7 +101,10 @@ public class ConfigurationHandler {
     for (String paramName : DEFAULT_CONFIGURATION_PARAMETERS.keySet()) {
       String paramValue = variableContext.getParameter(paramName);
       if (paramValue != null) {
-        parameters.setParameter(paramName, paramValue);
+        if (paramName.endsWith("password"))
+          parameters.setObfuscatedParameter(paramName,variableContext.mapKeyToPassword(paramValue));
+        else
+          parameters.setParameter(paramName, paramValue);
       }
     }
     return null;
@@ -103,7 +115,7 @@ public class ConfigurationHandler {
                                        ConfigParams parameters)
       throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
-    fillInParameters(paramMap, parameters);
+    fillInParameters(paramMap, out, parameters);
     Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIG, paramMap);
   }
 }
