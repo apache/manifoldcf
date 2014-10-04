@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1037: Add Alfresco webscript connector and authority.
+(Maurizio Pillitu, Rafa Haro, Karl Wright)
+
 CONNECTORS-1055: Fix Zulu date parsing.
 (Karl Wright)
 
