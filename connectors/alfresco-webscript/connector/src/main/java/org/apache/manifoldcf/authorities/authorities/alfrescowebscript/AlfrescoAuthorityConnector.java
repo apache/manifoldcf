@@ -48,7 +48,7 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
     String hostname = getConfig(config, "hostname", "localhost");
     String endpoint = getConfig(config, "endpoint", "/alfresco/service");
     String username = getConfig(config, "username", null);
-    String password = getConfig(config, "password", null);
+    String password = getObfuscatedConfig(config, "password", null);
 
     alfrescoClient = new WebScriptsAlfrescoClient(protocol, hostname, endpoint,
         null, null, username, password);
@@ -58,6 +58,16 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
                                   String parameter,
                                   String defaultValue) {
     final String protocol = config.getParameter(parameter);
+    if (protocol == null) {
+      return defaultValue;
+    }
+    return protocol;
+  }
+
+  private static String getObfuscatedConfig(ConfigParams config,
+                                  String parameter,
+                                  String defaultValue) {
+    final String protocol = config.getObfuscatedParameter(parameter);
     if (protocol == null) {
       return defaultValue;
     }

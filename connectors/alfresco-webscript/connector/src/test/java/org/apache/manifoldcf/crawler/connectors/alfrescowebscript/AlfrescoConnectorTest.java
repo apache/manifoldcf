@@ -18,6 +18,7 @@ package org.apache.manifoldcf.crawler.connectors.alfrescowebscript;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -116,12 +117,24 @@ public class AlfrescoConnectorTest {
   @Test
   public void whenProcessingDocumentsNodeRefsAreUsedAsDocumentURI() throws Exception {
     TestDocument testDocument = new TestDocument();
+    testDocument.put("cm:modified","2014-10-02T16:15:25.124Z");
+    testDocument.put("size","115");
+    testDocument.put("mimetype","text/plain");
     IProcessActivity activities = mock(IProcessActivity.class);
+    when(activities.checkDocumentNeedsReindexing(anyString(),anyString()))
+      .thenReturn(true);
+    when(activities.checkLengthIndexable(anyLong()))
+      .thenReturn(true);
+    when(activities.checkMimeTypeIndexable(anyString()))
+      .thenReturn(true);
     IExistingVersions statuses = mock(IExistingVersions.class);
     
     when(client.fetchNode(anyString()))
     .thenReturn(new AlfrescoResponse(0, 0, "", "",
             Arrays.<Map<String, Object>>asList(testDocument)));
+
+    when(client.fetchMetadata(anyString()))
+      .thenReturn(testDocument);
     
 //    processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
 //            IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
@@ -129,13 +142,24 @@ public class AlfrescoConnectorTest {
 
     ArgumentCaptor<RepositoryDocument> rd = ArgumentCaptor.forClass(RepositoryDocument.class);
     verify(activities)
+            .checkDocumentNeedsReindexing(eq(TestDocument.uuid), eq("1412266525124"));
+    verify(activities)
+            .checkLengthIndexable(eq(115L));
+    verify(activities)
+            .checkMimeTypeIndexable(eq("text/plain"));
+    verify(activities)
             .ingestDocumentWithException(eq(TestDocument.uuid), anyString(),
-                    eq(TestDocument.uuid), rd.capture());
-
+                    eq(TestDocument.nodeRef), rd.capture());
+    
     Iterator<String> i = rd.getValue().getFields();
     while(i.hasNext()) {
       String fieldName = i.next();
       Object value1 = rd.getValue().getField(fieldName)[0];
+      Object[] values = testDocument.getRepositoryDocument().getField(fieldName);
+      if (values == null) {
+        System.out.println("field "+fieldName+"has no value in testDocument");
+        continue;
+      }
       Object value2 = testDocument.getRepositoryDocument().getField(fieldName)[0];
       assert value1.equals(value2);
     }
@@ -147,8 +171,8 @@ public class AlfrescoConnectorTest {
     testDocument.setDeleted(true);
 
     when(client.fetchNode(anyString()))
-    .thenReturn(new AlfrescoResponse(0, 0, "", "",
-            Arrays.<Map<String, Object>>asList(testDocument)));
+      .thenReturn(new AlfrescoResponse(0, 0, "", "",
+              Arrays.<Map<String, Object>>asList(testDocument)));
     
     IProcessActivity activities = mock(IProcessActivity.class);
     IExistingVersions statuses = mock(IExistingVersions.class);
