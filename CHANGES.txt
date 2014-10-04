@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1055: Fix Zulu date parsing.
+(Karl Wright)
+
 CONNECTORS-1053: Provide stop scripts for single-process examples.
 (Shinichiro Abe, Karl Wright)
 

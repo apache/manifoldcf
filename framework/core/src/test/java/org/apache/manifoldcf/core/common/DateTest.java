@@ -31,8 +31,9 @@ public class DateTest
   {
     Date d = DateParser.parseISO8601Date("96-11-15T01:32:33.344GMT");
     assertNotNull(d);
-    d = DateParser.parseISO8601Date("2012-11-15T01:32:33.344Z");
-    assertNotNull(d);
+    Date d2 = DateParser.parseISO8601Date("1996-11-15T01:32:33.344Z");
+    assertNotNull(d2);
+    assertEquals(d,d2);
     d = DateParser.parseISO8601Date("2012-11-15T01:32:33Z");
     assertNotNull(d);
     d = DateParser.parseISO8601Date("2012-11-15T01:32:33+0100");
