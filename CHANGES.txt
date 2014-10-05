@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1056: Use ContentUrlPath attribute for actual URI for
+the document in Alfresco.
+(Maurizio Pillitu, Karl Wright)
+
 CONNECTORS-1062: Livelink connector date stamps etc should be in
 ms since epoch, not in human-readable timezone-dependent dates.
 (Karl Wright)

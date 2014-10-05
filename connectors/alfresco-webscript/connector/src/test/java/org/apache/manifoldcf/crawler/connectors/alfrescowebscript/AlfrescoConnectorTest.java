@@ -120,6 +120,7 @@ public class AlfrescoConnectorTest {
     testDocument.put("cm:modified","2014-10-02T16:15:25.124Z");
     testDocument.put("size","115");
     testDocument.put("mimetype","text/plain");
+    testDocument.put("contentUrlPath","http://localhost:8080/foo");
     IProcessActivity activities = mock(IProcessActivity.class);
     when(activities.checkDocumentNeedsReindexing(anyString(),anyString()))
       .thenReturn(true);
@@ -130,12 +131,15 @@ public class AlfrescoConnectorTest {
     IExistingVersions statuses = mock(IExistingVersions.class);
     
     when(client.fetchNode(anyString()))
-    .thenReturn(new AlfrescoResponse(0, 0, "", "",
+      .thenReturn(new AlfrescoResponse(0, 0, "", "",
             Arrays.<Map<String, Object>>asList(testDocument)));
 
     when(client.fetchMetadata(anyString()))
       .thenReturn(testDocument);
     
+    when(client.fetchContent(anyString()))
+      .thenReturn(new java.io.ByteArrayInputStream(new byte[0]));
+
 //    processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
 //            IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     connector.processDocuments(new String[]{TestDocument.uuid}, statuses, new Specification(), activities, 0, true);
@@ -149,7 +153,7 @@ public class AlfrescoConnectorTest {
             .checkMimeTypeIndexable(eq("text/plain"));
     verify(activities)
             .ingestDocumentWithException(eq(TestDocument.uuid), anyString(),
-                    eq(TestDocument.nodeRef), rd.capture());
+                    eq((String)testDocument.get("contentUrlPath")), rd.capture());
     
     Iterator<String> i = rd.getValue().getFields();
     while(i.hasNext()) {
