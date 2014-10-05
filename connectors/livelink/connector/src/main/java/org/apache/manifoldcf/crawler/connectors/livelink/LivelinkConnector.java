@@ -1371,7 +1371,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               }
 
               // The date does not need to be parseable
-              sb.append(dt.toString());
+              sb.append(new Long(dt.getTime()).toString());
 
               // PathNameAttributeVersion comes completely from the spec, so we don't
               // have to worry about it changing.  No need, therefore, to parse it during
@@ -4228,9 +4228,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             rd.addField(GENERAL_NAME_FIELD,objInfo.getName());
             rd.addField(GENERAL_DESCRIPTION_FIELD,objInfo.getComments());
             if (creationDate != null)
-              rd.addField(GENERAL_CREATIONDATE_FIELD,creationDate.toString());
+              rd.addField(GENERAL_CREATIONDATE_FIELD,new Long(creationDate.getTime()).toString());
             if (modifyDate != null)
-              rd.addField(GENERAL_MODIFYDATE_FIELD,modifyDate.toString());
+              rd.addField(GENERAL_MODIFYDATE_FIELD,new Long(modifyDate.getTime()).toString());
             if (parentID != null)
               rd.addField(GENERAL_PARENTID,parentID.toString());
             UserInformation owner = llc.getUserInformation(objInfo.getOwnerId().intValue());
