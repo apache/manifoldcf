@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1062: Livelink connector date stamps etc should be in
+ms since epoch, not in human-readable timezone-dependent dates.
+(Karl Wright)
+
 CONNECTORS-1037: Add Alfresco webscript connector and authority.
 (Maurizio Pillitu, Rafa Haro, Karl Wright)
 
