@@ -308,15 +308,19 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         long length;
         byte[] empty = new byte[0];
         String contentUrlPath = (String) properties.get(CONTENT_URL_PROPERTY);
-        if (contentUrlPath != null && !contentUrlPath.isEmpty()) {
-          if (this.enableDocumentProcessing) {
-            if (lSize != null) {
-              stream = alfrescoClient.fetchContent(contentUrlPath);
-              length = lSize.longValue();
-            } else {
-              stream = new ByteArrayInputStream(empty);
-              length = 0L;
+        if (contentUrlPath == null || contentUrlPath.isEmpty()) {
+          activities.noDocument(doc, documentVersion);
+          continue;
+        }
+        
+        if (this.enableDocumentProcessing) {
+          if (lSize != null) {
+            stream = alfrescoClient.fetchContent(contentUrlPath);
+            if (stream == null) {
+              activities.noDocument(doc, documentVersion);
+              continue;
             }
+            length = lSize.longValue();
           } else {
             stream = new ByteArrayInputStream(empty);
             length = 0L;
@@ -330,7 +334,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           rd.setBinary(stream, length);
           if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
             Logging.connectors.debug(MessageFormat.format("Ingesting with id: {0}, URI {1} and rd {2}", new Object[]{uuid, nodeRef, rd.getFileName()}));
-          activities.ingestDocumentWithException(doc, documentVersion, nodeRef/*was uuid*/, rd);
+          activities.ingestDocumentWithException(doc, documentVersion, contentUrlPath, rd);
         } catch (IOException e) {
           handleIOException(e,"reading stream");
         } finally {
