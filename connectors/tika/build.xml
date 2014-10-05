@@ -41,9 +41,10 @@
             <include name="tika-parsers*.jar"/>
             <include name="tagsoup*.jar"/>
             <include name="poi*.jar"/>
-            <include name="vorbis-java-tika*.jar"/>
-            <include name="vorbis-java-core*.jar"/>
+            <include name="vorbis-java*.jar"/>
             <include name="netcdf*.jar"/>
+            <include name="unidataCommon*.jar"/>
+            <include name="commons-httpclient*.jar"/>
             <include name="apache-mime4j-core*.jar"/>
             <include name="apache-mime4j-dom*.jar"/>
             <include name="commons-compress*.jar"/>
@@ -60,7 +61,7 @@
             <include name="xmlbeans*.jar"/>
             <include name="dom4j*.jar"/>
             <include name="geronimo-stax-api_1.0_spec*.jar"/>
-            <include name="asm-debug-all*.jar"/>
+            <include name="asm*.jar"/>
             <include name="isoparser*.jar"/>
             <include name="aspectjrt*.jar"/>
             <include name="metadata-extractor*.jar"/>
@@ -73,6 +74,8 @@
             <include name="vorbis-java-core*.jar"/>
             <include name="juniversalchardet*.jar"/>
             <include name="jhighlight*.jar"/>
+            <include name="jmatio*.jar"/>
+            <include name="java-libpst*.jar"/>
         </fileset>
     </path>
 
@@ -88,9 +91,10 @@
                 <include name="tika-parsers*.jar"/>
                 <include name="tagsoup*.jar"/>
                 <include name="poi*.jar"/>
-                <include name="vorbis-java-tika*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
+                <include name="vorbis-java*.jar"/>
                 <include name="netcdf*.jar"/>
+                <include name="unidataCommon*.jar"/>
+                <include name="commons-httpclient*.jar"/>
                 <include name="apache-mime4j-core*.jar"/>
                 <include name="apache-mime4j-dom*.jar"/>
                 <include name="commons-compress*.jar"/>
@@ -107,7 +111,7 @@
                 <include name="xmlbeans*.jar"/>
                 <include name="dom4j*.jar"/>
                 <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm-debug-all*.jar"/>
+                <include name="asm*.jar"/>
                 <include name="isoparser*.jar"/>
                 <include name="aspectjrt*.jar"/>
                 <include name="metadata-extractor*.jar"/>
@@ -120,6 +124,8 @@
                 <include name="vorbis-java-core*.jar"/>
                 <include name="juniversalchardet*.jar"/>
                 <include name="jhighlight*.jar"/>
+                <include name="jmatio*.jar"/>
+                <include name="java-libpst*.jar"/>
             </fileset>
         </copy>
     </target>
