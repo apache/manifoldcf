@@ -161,7 +161,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
     selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
-    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"));
+    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.authorities.authorities.cmis.CmisAuthorityConnector"));
     selectbox = form.findSelectbox(testerInstance.createStringDescription("authoritygroup"));
     selectbox.selectValue(testerInstance.createStringDescription("MyAuthorityConnection"));
     button = window.findButton(testerInstance.createStringDescription("Continue to next page"));

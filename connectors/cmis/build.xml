@@ -94,7 +94,7 @@
         </antcall>
         <antcall target="general-add-authority-connector">
             <param name="connector-label" value="CMIS"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.cmis.CmisAuthorityConnector"/>
         </antcall>
     </target>
 
