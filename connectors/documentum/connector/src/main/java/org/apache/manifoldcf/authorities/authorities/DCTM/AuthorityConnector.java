@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.authorities.DCTM;
+package org.apache.manifoldcf.authorities.authorities.DCTM;
 
 import org.apache.log4j.*;
 import org.apache.manifoldcf.core.interfaces.*;

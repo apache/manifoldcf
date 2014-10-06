@@ -78,7 +78,7 @@
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-authority-connector">
             <param name="connector-label" value="Documentum"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.DCTM.AuthorityConnector"/>
         </antcall>
         <antcall target="general-add-repository-connector">
             <param name="connector-label" value="Documentum"/>
