@@ -43,7 +43,7 @@ public class BaseUIHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorB
 
   protected String[] getAuthorityClasses()
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"};
+    return new String[]{"org.apache.manifoldcf.authorities.authorities.cmis.CmisAuthorityConnector"};
   }
   
   protected String[] getAuthorityNames()
