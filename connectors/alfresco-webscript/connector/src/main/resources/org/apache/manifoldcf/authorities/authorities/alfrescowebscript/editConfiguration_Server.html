@@ -1,8 +1,8 @@
-#if($tabName == "Server")
+#if($tabName == "$ResourceBundle.getString('Alfresco.Server')")
 <table class="displaytable">
   <tr>
     <td class="description">
-      <nobr>Protocol</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.ProtocolColon'))</nobr>
     </td>
     <td class="value">
       <input name="protocol" type="text" size="32" value="$Encoder.attributeEscape($protocol)" />
@@ -10,7 +10,7 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>Hostname</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.HostnameColon'))</nobr>
     </td>
     <td class="value">
       <input name="hostname" type="text" size="32" value="$Encoder.attributeEscape($hostname)"/>
@@ -18,7 +18,7 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>Endpoint</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.EndpointColon'))</nobr>
     </td>
     <td class="value">
       <input name="endpoint" type="text" size="32" value="$Encoder.attributeEscape($endpoint)" />
@@ -26,7 +26,7 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>Username</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.UsernameColon'))</nobr>
     </td>
     <td class="value">
       <input name="username" type="text" size="32" value="$Encoder.attributeEscape($username)"/>
@@ -34,7 +34,7 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>Password</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.PasswordColon'))</nobr>
     </td>
     <td class="value">
       <input name="password" type="password" size="32" value="$Encoder.attributeEscape($password)"/>

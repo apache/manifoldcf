@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1057: Implement full internationalization for alfresco-webscript
+connector.
+(Karl Wright)
+
 CONNECTORS-1037: Add Alfresco webscript connector and authority.
 (Maurizio Pillitu, Rafa Haro, Karl Wright)
 

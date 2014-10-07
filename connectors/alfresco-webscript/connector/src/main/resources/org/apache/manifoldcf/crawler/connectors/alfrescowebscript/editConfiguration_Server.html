@@ -2,7 +2,7 @@
 <table class="displaytable">
   <tr>
     <td class="description">
-      <nobr>Protocol</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.ProtocolColon'))</nobr>
     </td>
     <td class="value">
       <input name="protocol" type="text" size="32" value="$Encoder.attributeEscape($protocol)" />
@@ -10,7 +10,7 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>Hostname</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.HostnameColon'))</nobr>
     </td>
     <td class="value">
       <input name="hostname" type="text" size="32" value="$Encoder.attributeEscape($hostname)"/>
@@ -18,7 +18,7 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>Endpoint</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.EndpointColon'))</nobr>
     </td>
     <td class="value">
       <input name="endpoint" type="text" size="32" value="$Encoder.attributeEscape($endpoint)" />
@@ -26,23 +26,15 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>Store protocol</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.StoreProtocolColon'))</nobr>
     </td>
     <td class="value">
       <input name="storeprotocol" type="text" size="32" value="$Encoder.attributeEscape($storeprotocol)"/>
     </td>
   </tr>
-    <tr>
-        <td class="description">
-            <nobr>Enable Document Processing</nobr>
-        </td>
-        <td class="value">
-            <input name="enabledocumentprocessing" type="checkbox" value="$enabledocumentprocessing"/>
-        </td>
-    </tr>
   <tr>
     <td class="description">
-      <nobr>Store id</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.StoreIDColon'))</nobr>
     </td>
     <td class="value">
       <input name="storeid" type="text" size="32" value="$Encoder.attributeEscape($storeid)"/>
@@ -50,7 +42,7 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>Username</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.UsernameColon'))</nobr>
     </td>
     <td class="value">
       <input name="username" type="text" size="32" value="$Encoder.attributeEscape($username)"/>
@@ -58,10 +50,18 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>Password</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.PasswordColon'))</nobr>
     </td>
     <td class="value">
       <input name="password" type="password" size="32" value="$Encoder.attributeEscape($password)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+        <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.EnableDocumentProcessingQuestion'))</nobr>
+    </td>
+    <td class="value">
+      <input name="enabledocumentprocessing" type="checkbox" value="$enabledocumentprocessing"/>
     </td>
   </tr>
 </table>
