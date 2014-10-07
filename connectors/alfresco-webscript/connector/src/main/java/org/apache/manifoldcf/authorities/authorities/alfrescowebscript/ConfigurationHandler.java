@@ -57,7 +57,7 @@ public class ConfigurationHandler {
                                                IHTTPOutput out, Locale locale,
                                                ConfigParams parameters,
                                                List<String> tabsArray) throws ManifoldCFException, IOException {
-    tabsArray.add("Server");
+    tabsArray.add(Messages.getString(locale,"Alfresco.Server"));
     Map<String, Object> paramMap = new HashMap<String, Object>();
     fillInParameters(paramMap, out, parameters);
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_HEADER, paramMap);
