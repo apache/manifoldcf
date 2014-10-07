@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1057: Implement full internationalization for alfresco-webscript
+connector.
+(Karl Wright)
+
 CONNECTORS-1065: Reorganize authority packages to be consistent
 with the standard.
 (Karl Wright)

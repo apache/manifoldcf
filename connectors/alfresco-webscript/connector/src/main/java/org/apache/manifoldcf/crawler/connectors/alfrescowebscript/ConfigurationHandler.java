@@ -110,7 +110,7 @@ public class ConfigurationHandler {
   public static void outputConfigurationHeader(IThreadContext threadContext,
                                                IHTTPOutput out, Locale locale, ConfigParams parameters,
                                                List<String> tabsArray) throws ManifoldCFException, IOException {
-    tabsArray.add("Server");
+    tabsArray.add(Messages.getString(locale,"Alfresco.Server"));
     Map<String, Object> paramMap = new HashMap<String, Object>();
     fillInParameters(paramMap, out, parameters);
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_HEADER, paramMap);
@@ -202,21 +202,21 @@ public class ConfigurationHandler {
                   );
       }
           
-      out.print("editjob."+seqPrefix+node+"_op.value=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Add") + "\";\n"+
+      out.print("editjob."+seqPrefix+node+"_op.value=\"Add\";\n"+
                 "  postFormSetAnchor(\""+seqPrefix+"+"+node+"\");\n"+
                 "}\n"+
                 "\n"+
                 "function "+seqPrefix+"delete"+node+"(i)\n"+
                 "{\n"+
                 "  // Set the operation\n"+
-                "  eval(\"editjob."+seqPrefix+node+"_\"+i+\"_op.value=\\\"" + Messages.getBodyJavascriptString(locale, "Alfresco.Delete") + "\\\"\");\n"+
+                "  eval(\"editjob."+seqPrefix+node+"_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
                 "  // Submit\n"+
                 "  if (editjob."+seqPrefix+node+"_count.value==i)\n"+
                 "    postFormSetAnchor(\""+seqPrefix+node+"\");\n"+
                 "  else\n"+
                 "    postFormSetAnchor(\""+seqPrefix+node+"_\"+i)\n"+
                 "  // Undo, so we won't get two deletes next time\n"+
-                "  eval(\"editjob."+seqPrefix+node+"_\"+i+\"_op.value=\\\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Continue") + "\\\"\");\n"+
+                "  eval(\"editjob."+seqPrefix+node+"_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
                 "}\n"+
                 "\n");
     }
@@ -242,14 +242,14 @@ public class ConfigurationHandler {
                   "<table class=\"displaytable\">\n"+
                   "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
                   "  <tr>\n"+
-                  "    <td class=\"description\"><nobr>" + node + " filtering:</nobr></td>\n"+
+                  "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "Alfresco.SpecificFilteringConfiguration",new String[]{Messages.getString(locale,"Alfresco."+node)}) + "</nobr></td>\n"+
                   "    <td class=\"boxcell\">\n"+
                   "      <table class=\"formtable\">\n"+
                   "        <tr class=\"formheaderrow\">\n"+
                   "          <td class=\"formcolumnheader\"></td>\n");
         Collection<String> vars = SPECIFICATION_MAP.get(node);
         for(String var:vars){
-          out.print("<td class=\"formcolumnheader\"><nobr>" + var + "</nobr></td>\n");
+          out.print("<td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"Alfresco."+var) + "</nobr></td>\n");
         }
         out.print("</tr>\n");
         
@@ -264,7 +264,7 @@ public class ConfigurationHandler {
                       "          <td class=\"formcolumncell\">\n"+
                       "            <a name=\""+prefix+"\">\n"+
                       "              <input type=\"button\" value=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Delete") + "\" alt=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Delete") + ""+Integer.toString(fieldCounter+1)+"\" onclick='javascript:"+seqPrefix+"delete"+node+"("+Integer.toString(fieldCounter)+");'/>\n"+
-                      "              <input type=\"hidden\" name=\""+prefix+"_op\" value=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Continue") + "\"/>\n");
+                      "              <input type=\"hidden\" name=\""+prefix+"_op\" value=\"Continue\"/>\n");
             for(String var:vars){
               out.print("<input type=\"hidden\" name=\""+prefix+"_"+var+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue(var))+"\"/>\n");
             }
@@ -292,10 +292,10 @@ public class ConfigurationHandler {
                   "        <tr class=\"formrow\">\n"+
                   "          <td class=\"formcolumncell\">\n"+
                   "            <a name=\""+seqPrefix+node+"\">\n"+
-                  "              <input type=\"button\" value=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Add") + "\" alt=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Add") + " " + node + "\" onclick=\"javascript:"+seqPrefix+"add"+node+"();\"/>\n"+
+                  "              <input type=\"button\" value=\""+ Messages.getAttributeString(locale, "Alfresco.Add") + "\" alt=\""+ Messages.getAttributeString(locale, "Alfresco.Add") + " " + node + "\" onclick=\"javascript:"+seqPrefix+"add"+node+"();\"/>\n"+
                   "            </a>\n"+
                   "            <input type=\"hidden\" name=\""+seqPrefix+node+"_count\" value=\""+fieldCounter+"\"/>\n"+
-                  "            <input type=\"hidden\" name=\""+seqPrefix+node+"_op\" value=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Continue") +"\"/>\n"+
+                  "            <input type=\"hidden\" name=\""+seqPrefix+node+"_op\" value=\"Continue\"/>\n"+
                   "          </td>\n");
         for(String var:vars){
           out.print("          <td class=\"formcolumncell\">\n"+
@@ -303,7 +303,7 @@ public class ConfigurationHandler {
                     "          </td>\n");
         }
 
-       out.print("</tr>\n"+
+        out.print("</tr>\n"+
                  "      </table>\n"+
                  "    </td>\n"+
                  "  </tr>\n");
@@ -362,7 +362,7 @@ public class ConfigurationHandler {
         {
           String prefix = seqPrefix+node+"_"+Integer.toString(i);
           String op = variableContext.getParameter(prefix+"_op");
-          if (op == null || !op.equals(Messages.getBodyJavascriptString(locale, "Alfresco.Delete")))
+          if (op == null || !op.equals("Delete"))
           {
             SpecificationNode specNode = new SpecificationNode(node);
             for(String var:vars){
@@ -377,7 +377,7 @@ public class ConfigurationHandler {
         }
 
         String addop = variableContext.getParameter(seqPrefix+node+"_op");
-        if (addop != null && addop.equals(Messages.getBodyJavascriptString(locale, "Alfresco.Add")))
+        if (addop != null && addop.equals("Add"))
         {
           SpecificationNode specNode = new SpecificationNode(node);
           for(String var:vars){
@@ -409,13 +409,13 @@ public class ConfigurationHandler {
                 "\n"+
                 "<table class=\"displaytable\">\n"+
                 "  <tr>\n"+
-                "    <td class=\"description\"><nobr>"+ Messages.getBodyJavascriptString(locale, "Alfresco.SpecificFilteringConfiguration",new String[]{node}) +"</nobr></td>\n"+
+                "    <td class=\"description\"><nobr>"+ Messages.getBodyString(locale, "Alfresco.SpecificFilteringConfiguration",new String[]{Messages.getString(locale,"Alfresco."+node)}) +"</nobr></td>\n"+
                 "    <td class=\"boxcell\">\n"+
                 "      <table class=\"formtable\">\n"+
                 "        <tr class=\"formheaderrow\">\n");
       for(String var:vars)
         out.print(
-                  "          <td class=\"formcolumnheader\"><nobr>" + var + "</nobr></td>\n");
+                  "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale, "Alfresco."+var) + "</nobr></td>\n");
               
      out.print("        </tr>\n");
      
