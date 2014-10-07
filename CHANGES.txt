@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1065: Reorganize authority packages to be consistent
+with the standard.
+(Karl Wright)
+
 CONNECTORS-1056: Use ContentUrlPath attribute for actual URI for
 the document in Alfresco.
 (Maurizio Pillitu, Karl Wright)
