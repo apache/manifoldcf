@@ -16,13 +16,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.livelink;
+package org.apache.manifoldcf.authorities.authorities.livelink;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
+
+import org.apache.manifoldcf.livelink.*;
 
 import java.io.*;
 import java.util.*;
