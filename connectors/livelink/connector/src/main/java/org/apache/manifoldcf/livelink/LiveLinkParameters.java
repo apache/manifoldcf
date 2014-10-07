@@ -16,9 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.livelink;
-
-import org.apache.manifoldcf.crawler.interfaces.*;
+package org.apache.manifoldcf.livelink;
 
 /** This class describes live link connection parameters.
 */

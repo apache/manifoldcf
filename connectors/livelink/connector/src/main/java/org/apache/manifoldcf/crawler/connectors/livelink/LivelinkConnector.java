@@ -27,6 +27,8 @@ import org.apache.manifoldcf.core.common.XThreadInputStream;
 import org.apache.manifoldcf.core.common.XThreadOutputStream;
 import org.apache.manifoldcf.core.common.InterruptibleSocketFactory;
 
+import org.apache.manifoldcf.livelink.*;
+
 import java.io.*;
 import java.util.*;
 import java.net.*;
