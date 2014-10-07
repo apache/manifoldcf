@@ -6,20 +6,20 @@ function checkConfig() {
 
 function checkConfigForSave() {
   if (editconnection.protocol.value == "") {
-    alert("Protocol must not be empty!");
-    SelectTab("Server");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.ProtocolMustNotBeEmpty'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.Server'))");
     editconnection.protocol.focus();
     return false;
   }
   if (editconnection.hostname.value == "") {
-    alert("Hostname must not be empty!");
-    SelectTab("Server");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.HostNameMustNotBeEmpty'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.Server'))");
     editconnection.hostname.focus();
     return false;
   }
   if (editconnection.endpoint.value == "") {
-    alert("Endpoint must not be empty!");
-    SelectTab("Server");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.EndpointMustNotBeEmpty'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.Server'))");
     editconnection.endpoint.focus();
     return false;
   }
