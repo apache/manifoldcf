@@ -104,7 +104,7 @@
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-authority-connector">
             <param name="connector-label" value="Meridio"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.meridio.MeridioAuthority"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.meridio.MeridioAuthority"/>
         </antcall>
         <antcall target="general-add-repository-connector">
             <param name="connector-label" value="Meridio"/>
