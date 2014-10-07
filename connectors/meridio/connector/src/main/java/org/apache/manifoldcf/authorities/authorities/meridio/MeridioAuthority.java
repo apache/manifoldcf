@@ -16,12 +16,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.meridio;
+package org.apache.manifoldcf.authorities.authorities.meridio;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.connectors.meridio.DMDataSet.DMDataSet;
-import org.apache.manifoldcf.crawler.connectors.meridio.meridiowrapper.MeridioDataSetException;
-import org.apache.manifoldcf.crawler.connectors.meridio.meridiowrapper.MeridioWrapper;
+import org.apache.manifoldcf.meridio.MeridioDataSetException;
+import org.apache.manifoldcf.meridio.MeridioWrapper;
 import org.apache.manifoldcf.crawler.connectors.meridio.RMDataSet.RMDataSet;
 import org.tempuri.GroupResult;
 import org.apache.manifoldcf.authorities.system.Logging;

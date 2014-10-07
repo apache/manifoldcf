@@ -15,24 +15,13 @@
 * limitations under the License.
 */
 
-package org.apache.manifoldcf.crawler.connectors.meridio.meridiowrapper;
+package org.apache.manifoldcf.meridio;
 
-public class MeridioWrapperException extends Exception
+import org.apache.manifoldcf.crawler.connectors.meridio.DMDataSet.*;
+
+public class DMSearchResults
 {
-
-  public MeridioWrapperException(Throwable cause)
-  {
-    super(cause);
-  }
-
-  public MeridioWrapperException(String errString, Throwable cause)
-  {
-    super(errString, cause);
-  }
-
-  public MeridioWrapperException(String errString)
-  {
-    super(errString);
-  }
-
+  public DMDataSet dsDM;
+  public int totalHitsCount;
+  public int returnedHitsCount;
 }

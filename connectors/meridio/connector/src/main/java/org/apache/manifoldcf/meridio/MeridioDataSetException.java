@@ -15,7 +15,7 @@
 * limitations under the License.
 */
 
-package org.apache.manifoldcf.crawler.connectors.meridio.meridiowrapper;
+package org.apache.manifoldcf.meridio;
 
 public class MeridioDataSetException extends Exception
 {
