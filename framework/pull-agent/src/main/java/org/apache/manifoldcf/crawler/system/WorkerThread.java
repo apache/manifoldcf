@@ -2028,6 +2028,19 @@ public class WorkerThread extends Thread
       abortSet.add(localIdentifier);
     }
 
+    /** Detect if a date is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
+    * unusable documents that will be passed to this output connector.
+    *@param date is the date of the document; may be null
+    *@return true if a document with that date is indexable by this connector.
+    */
+    public boolean checkDateIndexable(Date date)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return ingester.checkDateIndexable(
+        pipelineSpecification,date,
+        ingestLogger);
+    }
+
     /** Check whether a mime type is indexable by the currently specified output connector.
     *@param mimeType is the mime type to check, not including any character set specification.
     *@return true if the mime type is indexable.
@@ -2437,6 +2450,18 @@ public class WorkerThread extends Thread
   {
     public CheckActivity()
     {
+    }
+
+    /** Detect if a date is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param date is the document's date
+    *@return true if the document with that date can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkDateIndexable(Date date)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return false;
     }
 
     /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document

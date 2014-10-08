@@ -21,12 +21,21 @@ package org.apache.manifoldcf.crawler.interfaces;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import java.io.*;
+import java.util.*;
 
 /** This interface abstracts from the activities that handle document fingerprinting and mime type acceptance.
 */
 public interface IFingerprintActivity
 {
   public static final String _rcsid = "@(#)$Id: IFingerprintActivity.java 988245 2010-08-23 18:39:35Z kwright $";
+
+  /** Detect if a date is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
+  * unusable documents that will be passed to this output connector.
+  *@param date is the date of the document; may be null
+  *@return true if a document with that date is indexable by this connector.
+  */
+  public boolean checkDateIndexable(Date date)
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.

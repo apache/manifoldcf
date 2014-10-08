@@ -1114,18 +1114,51 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               Logging.connectors.debug("GOOGLEDRIVE: its a file");
             }
 
-            // We always direct to the PDF except for Spreadsheets
-            String documentURI = null;
-            if (!googleFile.getMimeType().equals("application/vnd.google-apps.spreadsheet")) {
-              documentURI = getUrl(googleFile, "application/pdf");
-            } else {
-              documentURI = getUrl(googleFile, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            }
-
             // Get the file length
-            Long fileLength = Objects.firstNonNull(googleFile.getFileSize(), 0L);
-            if (fileLength != null) {
+            Long fileLengthLong = Objects.firstNonNull(googleFile.getFileSize(), 0L);
+            if (fileLengthLong != null) {
 
+              // Now do standard stuff
+              long fileLength = fileLengthLong.longValue();
+              String mimeType = googleFile.getMimeType();
+              DateTime createdDateObject = googleFile.getCreatedDate();
+              DateTime modifiedDateObject = googleFile.getModifiedDate();
+              String extension = googleFile.getFileExtension();
+              String title = googleFile.getTitle();
+              Date createdDate = (createdDateObject==null)?null:new Date(createdDateObject.getValue());
+              Date modifiedDate = (modifiedDateObject==null)?null:new Date(modifiedDateObject.getValue());
+              // We always direct to the PDF except for Spreadsheets
+              String documentURI = null;
+              if (!mimeType.equals("application/vnd.google-apps.spreadsheet")) {
+                documentURI = getUrl(googleFile, "application/pdf");
+              } else {
+                documentURI = getUrl(googleFile, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+              }
+
+              if (!activities.checkLengthIndexable(fileLength))
+              {
+                activities.noDocument(nodeId,version);
+                continue;
+              }
+              
+              if (!activities.checkURLIndexable(documentURI))
+              {
+                activities.noDocument(nodeId,version);
+                continue;
+              }
+              
+              if (!activities.checkMimeTypeIndexable(mimeType))
+              {
+                activities.noDocument(nodeId,version);
+                continue;
+              }
+              
+              if (!activities.checkDateIndexable(modifiedDate))
+              {
+                activities.noDocument(nodeId,version);
+                continue;
+              }
+              
               RepositoryDocument rd = new RepositoryDocument();
 
               if (acls != null) {
@@ -1136,19 +1169,12 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                 }
               }
               
-              // Now do standard stuff
-              String mimeType = googleFile.getMimeType();
-              DateTime createdDate = googleFile.getCreatedDate();
-              DateTime modifiedDate = googleFile.getModifiedDate();
-              String extension = googleFile.getFileExtension();
-              String title = googleFile.getTitle();
-              
               if (mimeType != null)
                 rd.setMimeType(mimeType);
               if (createdDate != null)
-                rd.setCreatedDate(new Date(createdDate.getValue()));
+                rd.setCreatedDate(createdDate);
               if (modifiedDate != null)
-                rd.setModifiedDate(new Date(modifiedDate.getValue()));
+                rd.setModifiedDate(modifiedDate);
               if (extension != null)
               {
                 if (title == null)

@@ -271,11 +271,16 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           continue;
         }
         
-        if (mimeType != null && !activities.checkMimeTypeIndexable(mimeType)) {
+        if (!activities.checkMimeTypeIndexable(mimeType)) {
           activities.noDocument(doc, documentVersion);
           continue;
         }
 
+        if (!activities.checkDateIndexable(modifiedDate)) {
+          activities.noDocument(doc, documentVersion);
+          continue;
+        }
+        
         RepositoryDocument rd = new RepositoryDocument();
         rd.addField(FIELD_NODEREF, nodeRef);
         rd.addField(FIELD_TYPE, type);

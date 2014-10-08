@@ -3888,13 +3888,39 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
               String comment = t.getComment();
               String title = t.getTitle();
               String lastModified = t.getLastModified();
+              Date modifiedDate = (lastModified==null)?null:DateParser.parseISO8601Date(lastModified);
+              String contentType = "text/plain";
+              dataSize = contentFile.length();
+
+              if (!activities.checkURLIndexable(fullURL))
+              {
+                activities.noDocument(documentIdentifier,documentVersion);
+                return;
+              }
+              
+              if (!activities.checkLengthIndexable(dataSize))
+              {
+                activities.noDocument(documentIdentifier,documentVersion);
+                return;
+              }
+              
+              if (!activities.checkMimeTypeIndexable(contentType))
+              {
+                activities.noDocument(documentIdentifier,documentVersion);
+                return;
+              }
+              
+              if (!activities.checkDateIndexable(modifiedDate))
+              {
+                activities.noDocument(documentIdentifier,documentVersion);
+                return;
+              }
               
               RepositoryDocument rd = new RepositoryDocument();
               
               // For wiki, type is always text/plain
-              rd.setMimeType("text/plain");
+              rd.setMimeType(contentType);
               
-              dataSize = contentFile.length();
               InputStream is = new FileInputStream(contentFile);
               try
               {
@@ -3908,7 +3934,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 if (lastModified != null)
                 {
                   rd.addField("last-modified",lastModified);
-                  rd.setModifiedDate(DateParser.parseISO8601Date(lastModified));
+                  rd.setModifiedDate(modifiedDate);
                 }
 
                 if (allowACL != null && allowACL.length > 0) {

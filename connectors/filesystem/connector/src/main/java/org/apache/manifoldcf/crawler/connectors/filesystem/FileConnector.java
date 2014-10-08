@@ -330,6 +330,45 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
             // We still need to check based on file data.
             if (checkIngest(file,spec))
             {
+              String fileName = file.getName();
+              Date modifiedDate = new Date(file.lastModified());
+              String mimeType = mapExtensionToMimeType(fileName);
+              String uri;
+              if (convertPath != null) {
+                // WGET-compatible input; convert back to external URI
+                uri = convertToWGETURI(convertPath);
+              } else {
+                uri = convertToURI(documentIdentifier);
+              }
+
+              if (!activities.checkLengthIndexable(fileLength))
+              {
+                Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because length was excluded by output connector.");
+                activities.noDocument(documentIdentifier,versionString);
+                continue;
+              }
+              
+              if (!activities.checkURLIndexable(uri))
+              {
+                Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because URL was excluded by output connector.");
+                activities.noDocument(documentIdentifier,versionString);
+                continue;
+              }
+              
+              if (!activities.checkDateIndexable(modifiedDate))
+              {
+                Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because date ("+modifiedDate+") was excluded by output connector.");
+                activities.noDocument(documentIdentifier,versionString);
+                continue;
+              }
+              
+              if (!activities.checkMimeTypeIndexable(mimeType))
+              {
+                Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because mime type ('"+mimeType+"') was excluded by output connector.");
+                activities.noDocument(documentIdentifier,versionString);
+                continue;
+              }
+              
               long startTime = System.currentTimeMillis();
               String errorCode = "OK";
               String errorDesc = null;
@@ -345,17 +384,13 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
                   {
                     RepositoryDocument data = new RepositoryDocument();
                     data.setBinary(is,fileLength);
-                    String fileName = file.getName();
                     data.setFileName(fileName);
-                    data.setMimeType(mapExtensionToMimeType(fileName));
-                    data.setModifiedDate(new Date(file.lastModified()));
-                    String uri;
+                    data.setMimeType(mimeType);
+                    data.setModifiedDate(modifiedDate);
                     if (convertPath != null) {
                       // WGET-compatible input; convert back to external URI
-                      uri = convertToWGETURI(convertPath);
                       data.addField("uri",uri);
                     } else {
-                      uri = convertToURI(documentIdentifier);
                       data.addField("uri",file.toString());
                     }
                     // MHL for other metadata
