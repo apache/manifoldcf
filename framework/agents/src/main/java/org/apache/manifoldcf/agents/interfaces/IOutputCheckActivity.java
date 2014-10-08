@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 
 import java.io.*;
+import java.util.*;
 
 /** This interface abstracts from the activities that a transformation connector can do
 when checking a document.
@@ -29,6 +30,14 @@ when checking a document.
 public interface IOutputCheckActivity
 {
   public static final String _rcsid = "@(#)$Id$";
+
+  /** Detect if a document date is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+  * in the first place.
+  *@param date is the date of the document.
+  *@return true if the document with that date can be accepted by the downstream connection.
+  */
+  public boolean checkDateIndexable(Date date)
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
   * in the first place.

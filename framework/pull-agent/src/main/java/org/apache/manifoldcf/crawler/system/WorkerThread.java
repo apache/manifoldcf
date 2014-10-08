@@ -2318,6 +2318,18 @@ public class WorkerThread extends Thread
     {
     }
 
+    /** Detect if a date is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param date is the document's date
+    *@return true if the document with that date can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkDateIndexable(Date date)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return false;
+    }
+
     /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
     * in the first place.
     *@param mimeType is the mime type of the document.
