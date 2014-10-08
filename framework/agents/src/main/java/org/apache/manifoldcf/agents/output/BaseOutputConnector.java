@@ -81,6 +81,20 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
     // The base implementation does nothing here.
   }
 
+  /** Detect if a document date is acceptable or not.  This method is used to determine whether it makes sense to fetch a document
+  * in the first place.
+  *@param pipelineDescription is the document's pipeline version string, for this connection.
+  *@param date is the date of the document.
+  *@param checkActivity is an object including the activities that can be performed by this method.
+  *@return true if the document with that date can be accepted by this connector.
+  */
+  @Override
+  public boolean checkDateIndexable(VersionContext pipelineDescription, Date date, IOutputCheckActivity checkActivity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return true;
+  }
+
   /** Detect if a mime type is acceptable or not.  This method is used to determine whether it makes sense to fetch a document
   * in the first place.
   *@param pipelineDescription is the document's pipeline version string, for this connection.
