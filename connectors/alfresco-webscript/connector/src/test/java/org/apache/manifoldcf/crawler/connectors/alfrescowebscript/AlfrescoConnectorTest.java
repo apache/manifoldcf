@@ -20,6 +20,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -32,6 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Date;
 
 import org.alfresco.consulting.indexer.client.AlfrescoClient;
 import org.alfresco.consulting.indexer.client.AlfrescoFilters;
@@ -127,6 +129,8 @@ public class AlfrescoConnectorTest {
       .thenReturn(true);
     when(activities.checkMimeTypeIndexable(anyString()))
       .thenReturn(true);
+    when(activities.checkDateIndexable((Date)anyObject()))
+      .thenReturn(true);
     IExistingVersions statuses = mock(IExistingVersions.class);
     
     when(client.fetchNode(anyString()))
@@ -147,6 +151,8 @@ public class AlfrescoConnectorTest {
             .checkLengthIndexable(eq(115L));
     verify(activities)
             .checkMimeTypeIndexable(eq("text/plain"));
+    verify(activities)
+            .checkDateIndexable(eq(org.apache.manifoldcf.core.common.DateParser.parseISO8601Date((String)testDocument.get("cm:modified"))));
     verify(activities)
             .ingestDocumentWithException(eq(TestDocument.uuid), anyString(),
                     eq(TestDocument.nodeRef), rd.capture());

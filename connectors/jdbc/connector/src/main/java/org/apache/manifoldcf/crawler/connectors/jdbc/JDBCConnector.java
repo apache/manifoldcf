@@ -526,154 +526,167 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                   if (o != null)
                     contentType = JDBCConnection.readAsString(o);
                   else
-                    contentType = null;
-                  
-                  if (contentType == null || activities.checkMimeTypeIndexable(contentType))
                   {
                     if (contents instanceof BinaryInput)
-                    {
-                      // An ingestion will take place for this document.
-                      RepositoryDocument rd = new RepositoryDocument();
-
-                      // Default content type is application/octet-stream for binary data
-                      if (contentType == null)
-                        rd.setMimeType("application/octet-stream");
-                      else
-                        rd.setMimeType(contentType);
-                      
-                      applyAccessTokens(rd,ts);
-                      applyMetadata(rd,row);
-
-                      BinaryInput bi = (BinaryInput)contents;
-                      try
-                      {
-                        // Read the stream
-                        InputStream is = bi.getStream();
-                        try
-                        {
-                          rd.setBinary(is,bi.getLength());
-                          activities.ingestDocumentWithException(id, version, url, rd);
-                        }
-                        finally
-                        {
-                          is.close();
-                        }
-                      }
-                      catch (java.net.SocketTimeoutException e)
-                      {
-                        throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
-                      }
-                      catch (InterruptedIOException e)
-                      {
-                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                      }
-                      catch (IOException e)
-                      {
-                        throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
-                      }
-                    }
+                      contentType = "application/octet-stream";
                     else if (contents instanceof CharacterInput)
-                    {
-                      // An ingestion will take place for this document.
-                      RepositoryDocument rd = new RepositoryDocument();
+                      contentType = "text/plain; charset=utf-8";
+                    else
+                      contentType = "text/plain";
+                  }
+                  
+                  if (!activities.checkMimeTypeIndexable(contentType))
+                  {
+                    Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of mime type - skipping");
+                    activities.noDocument(id,version);
+                    continue;
+                  }
+                  
+                  if (!activities.checkURLIndexable(url))
+                  {
+                    Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of url - skipping");
+                    activities.noDocument(id,version);
+                    continue;
+                  }
 
-                      // Default content type is application/octet-stream for binary data
-                      if (contentType == null)
-                        rd.setMimeType("text/plain; charset=utf-8");
-                      else
-                        rd.setMimeType(contentType);
+                  // An ingestion will take place for this document.
+                  RepositoryDocument rd = new RepositoryDocument();
+                  rd.setMimeType(contentType);
                       
-                      applyAccessTokens(rd,ts);
-                      applyMetadata(rd,row);
+                  applyAccessTokens(rd,ts);
+                  applyMetadata(rd,row);
 
-                      CharacterInput ci = (CharacterInput)contents;
+                  if (contents instanceof BinaryInput)
+                  {
+
+                    BinaryInput bi = (BinaryInput)contents;
+                    long fileLength = bi.getLength();
+                    
+                    if (!activities.checkLengthIndexable(fileLength))
+                    {
+                      Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of length - skipping");
+                      activities.noDocument(id, version);
+                      continue;
+                    }
+
+                    try
+                    {
+                      // Read the stream
+                      InputStream is = bi.getStream();
                       try
                       {
-                        // Read the stream
-                        InputStream is = ci.getUtf8Stream();
-                        try
-                        {
-                          rd.setBinary(is,ci.getUtf8StreamLength());
-                          activities.ingestDocumentWithException(id, version, url, rd);
-                        }
-                        finally
-                        {
-                          is.close();
-                        }
+                        rd.setBinary(is,fileLength);
+                        activities.ingestDocumentWithException(id, version, url, rd);
                       }
-                      catch (java.net.SocketTimeoutException e)
+                      finally
                       {
-                        throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
-                      }
-                      catch (InterruptedIOException e)
-                      {
-                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                      }
-                      catch (IOException e)
-                      {
-                        throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                        is.close();
                       }
                     }
-                    else
+                    catch (java.net.SocketTimeoutException e)
                     {
-                      // Turn it into a string, and then into a stream
-                      String value = contents.toString();
+                      throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IOException e)
+                    {
+                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                    }
+                  }
+                  else if (contents instanceof CharacterInput)
+                  {
+                    CharacterInput ci = (CharacterInput)contents;
+                    long fileLength = ci.getUtf8StreamLength();
+                    
+                    if (!activities.checkLengthIndexable(fileLength))
+                    {
+                      Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of length - skipping");
+                      activities.noDocument(id, version);
+                      continue;
+                    }
+                    
+                    try
+                    {
+                      // Read the stream
+                      InputStream is = ci.getUtf8Stream();
                       try
                       {
-                        byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
-                        RepositoryDocument rd = new RepositoryDocument();
-
-                        // Default content type is text/plain for character data
-                        if (contentType == null)
-                          rd.setMimeType("text/plain");
-                        else
-                          rd.setMimeType(contentType);
-                        
-                        applyAccessTokens(rd,ts);
-                        applyMetadata(rd,row);
-
-                        InputStream is = new ByteArrayInputStream(bytes);
-                        try
-                        {
-                          rd.setBinary(is,bytes.length);
-                          activities.ingestDocumentWithException(id, version, url, rd);
-                        }
-                        finally
-                        {
-                          is.close();
-                        }
+                        rd.setBinary(is,fileLength);
+                        activities.ingestDocumentWithException(id, version, url, rd);
                       }
-                      catch (InterruptedIOException e)
+                      finally
                       {
-                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                        is.close();
                       }
-                      catch (IOException e)
-                      {
-                        throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
-                      }
+                    }
+                    catch (java.net.SocketTimeoutException e)
+                    {
+                      throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IOException e)
+                    {
+                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
                     }
                   }
                   else
                   {
-                    Logging.connectors.warn("JDBC: Document '"+id+"' excluded because of mime type - skipping");
-                    activities.noDocument(id,version);
+                    // Turn it into a string, and then into a stream
+                    String value = contents.toString();
+                    byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+                    long fileLength = bytes.length;
+
+                    if (!activities.checkLengthIndexable(fileLength))
+                    {
+                      Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of length - skipping");
+                      activities.noDocument(id, version);
+                      continue;
+                    }
+
+                    try
+                    {
+                      InputStream is = new ByteArrayInputStream(bytes);
+                      try
+                      {
+                        rd.setBinary(is,fileLength);
+                        activities.ingestDocumentWithException(id, version, url, rd);
+                      }
+                      finally
+                      {
+                        is.close();
+                      }
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IOException e)
+                    {
+                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                    }
                   }
                 }
                 else
                 {
-                  Logging.connectors.warn("JDBC: Document '"+id+"' seems to have null data - skipping");
+                  Logging.connectors.debug("JDBC: Document '"+id+"' seems to have null data - skipping");
                   activities.noDocument(id,version);
                 }
               }
               else
               {
-                Logging.connectors.warn("JDBC: Document '"+id+"' has an illegal url: '"+url+"' - skipping");
+                Logging.connectors.debug("JDBC: Document '"+id+"' has an illegal url: '"+url+"' - skipping");
                 activities.noDocument(id,version);
               }
             }
             else
             {
-              Logging.connectors.warn("JDBC: Document '"+id+"' has a null url - skipping");
+              Logging.connectors.debug("JDBC: Document '"+id+"' has a null url - skipping");
               activities.noDocument(id,version);
             }
           }

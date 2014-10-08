@@ -1167,171 +1167,198 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             activities.addDocumentReference(child.getId(), documentIdentifier,
                 RELATIONSHIP_CHILD);
           }
-      } else if(baseTypeId.equals(CMIS_DOCUMENT_BASE_TYPE)){
-        // content ingestion
+        } else if(baseTypeId.equals(CMIS_DOCUMENT_BASE_TYPE)) {
+          // content ingestion
 
-        Document document = (Document) cmisObject;
-        long fileLength;
-        InputStream is;
-        try {
-          fileLength = document.getContentStreamLength();
-          if (fileLength > 0)
-            is = document.getContentStream().getStream();
-          else
-            is = null;
-        } catch (CmisObjectNotFoundException e) {
-          // Document gone
-          activities.deleteDocument(documentIdentifier);
-          continue;
-        }
+          Document document = (Document) cmisObject;
           
-        try {
-          RepositoryDocument rd = new RepositoryDocument();
           Date createdDate = document.getCreationDate().getTime();
           Date modifiedDate = document.getLastModificationDate().getTime();
-            
-          rd.setFileName(document.getContentStreamFileName());
-          rd.setMimeType(document.getContentStreamMimeType());
-          rd.setCreatedDate(createdDate);
-          rd.setModifiedDate(modifiedDate);
-            
-          //binary
-          if(is != null) {
-            rd.setBinary(is, fileLength);
-          } else {
-            rd.setBinary(new NullInputStream(0),0);
-          }
-
-          //properties
-          List<Property<?>> properties = document.getProperties();
-          String id = StringUtils.EMPTY;
-          for (Property<?> property : properties) {
-            String propertyId = property.getId();
-              
-            if(CmisRepositoryConnectorUtils.existsInSelectClause(cmisQuery, propertyId)){
-                
-              if (propertyId.endsWith(Constants.PARAM_OBJECT_ID)) {
-                id = (String) property.getValue();
-    
-                if (property.getValue() !=null 
-                    || property.getValues() != null) {
-                  PropertyType propertyType = property.getType();
-      
-                  switch (propertyType) {
-      
-                  case STRING:
-                  case ID:
-                  case URI:
-                  case HTML:
-                    if(property.isMultiValued()){
-                      List<String> htmlPropertyValues = (List<String>) property.getValues();
-                      for (String htmlPropertyValue : htmlPropertyValues) {
-                        rd.addField(propertyId, htmlPropertyValue);
-                      }
-                    } else {
-                      String stringValue = (String) property.getValue();
-                      if(StringUtils.isNotEmpty(stringValue)){
-                        rd.addField(propertyId, stringValue);
-                      }
-                    }
-                    break;
-           
-                  case BOOLEAN:
-                    if(property.isMultiValued()){
-                      List<Boolean> booleanPropertyValues = (List<Boolean>) property.getValues();
-                      for (Boolean booleanPropertyValue : booleanPropertyValues) {
-                        rd.addField(propertyId, booleanPropertyValue.toString());
-                      }
-                    } else {
-                      Boolean booleanValue = (Boolean) property.getValue();
-                      if(booleanValue!=null){
-                        rd.addField(propertyId, booleanValue.toString());
-                      }
-                    }
-                    break;
-      
-                  case INTEGER:
-                    if(property.isMultiValued()){
-                      List<BigInteger> integerPropertyValues = (List<BigInteger>) property.getValues();
-                      for (BigInteger integerPropertyValue : integerPropertyValues) {
-                        rd.addField(propertyId, integerPropertyValue.toString());
-                      }
-                    } else {
-                      BigInteger integerValue = (BigInteger) property.getValue();
-                      if(integerValue!=null){
-                        rd.addField(propertyId, integerValue.toString());
-                      }
-                    }
-                    break;
-      
-                  case DECIMAL:
-                    if(property.isMultiValued()){
-                      List<BigDecimal> decimalPropertyValues = (List<BigDecimal>) property.getValues();
-                      for (BigDecimal decimalPropertyValue : decimalPropertyValues) {
-                        rd.addField(propertyId, decimalPropertyValue.toString());
-                      }
-                    } else {
-                      BigDecimal decimalValue = (BigDecimal) property.getValue();
-                      if(decimalValue!=null){
-                        rd.addField(propertyId, decimalValue.toString());
-                      }
-                    }
-                    break;
-      
-                  case DATETIME:
-                    if(property.isMultiValued()){
-                      List<GregorianCalendar> datePropertyValues = (List<GregorianCalendar>) property.getValues();
-                      for (GregorianCalendar datePropertyValue : datePropertyValues) {
-                        rd.addField(propertyId,
-                            ISO8601_DATE_FORMATTER.format(datePropertyValue.getTime()));
-                      }
-                    } else {
-                      GregorianCalendar dateValue = (GregorianCalendar) property.getValue();
-                      if(dateValue!=null){
-                        rd.addField(propertyId, ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
-                      }
-                    }
-                    break;
-      
-                  default:
-                    break;
-                  }
-                }
-                  
-              }
-              
-            }
-          }
-          
-          //ingestion
-            
+          long fileLength = document.getContentStreamLength();
+          String fileName = document.getContentStreamFileName();
+          String mimeType = document.getContentStreamMimeType();
           //documentURI
           String documentURI = CmisRepositoryConnectorUtils.getDocumentURL(document, session);
+          
+          // Do any filtering (which will save us work)
+          if (!activities.checkURLIndexable(documentURI))
+          {
+            activities.noDocument(documentIdentifier,versionString);
+            continue;
+          }
+          
+          if (!activities.checkMimeTypeIndexable(mimeType))
+          {
+            activities.noDocument(documentIdentifier,versionString);
+            continue;
+          }
+
+          if (!activities.checkLengthIndexable(fileLength))
+          {
+            activities.noDocument(documentIdentifier,versionString);
+            continue;
+          }
+          
+          if (!activities.checkDateIndexable(modifiedDate))
+          {
+            activities.noDocument(documentIdentifier,versionString);
+            continue;
+          }
+          
+          RepositoryDocument rd = new RepositoryDocument();
+          rd.setFileName(fileName);
+          rd.setMimeType(mimeType);
+          rd.setCreatedDate(createdDate);
+          rd.setModifiedDate(modifiedDate);
+              
+          InputStream is;
+          try {
+            if (fileLength > 0)
+              is = document.getContentStream().getStream();
+            else
+              is = null;
+          } catch (CmisObjectNotFoundException e) {
+            // Document gone
+            activities.deleteDocument(documentIdentifier);
+            continue;
+          }
             
           try {
-            activities.ingestDocumentWithException(documentIdentifier, versionString, documentURI, rd);
-          } catch (IOException e) {
-            errorCode = "IO ERROR";
-            errorDesc = e.getMessage();
-            handleIOException(e, "reading file input stream");
-          }
-        } finally {
-          try {
-            if(is!=null){
-              is.close();
+            //binary
+            if(is != null) {
+              rd.setBinary(is, fileLength);
+            } else {
+              rd.setBinary(new NullInputStream(0),0);
             }
-          } catch (IOException e) {
-            errorCode = "IO ERROR";
-            errorDesc = e.getMessage();
-            handleIOException(e, "closing file input stream");
+
+            //properties
+            List<Property<?>> properties = document.getProperties();
+            String id = StringUtils.EMPTY;
+            for (Property<?> property : properties) {
+              String propertyId = property.getId();
+                
+              if(CmisRepositoryConnectorUtils.existsInSelectClause(cmisQuery, propertyId)){
+                  
+                if (propertyId.endsWith(Constants.PARAM_OBJECT_ID)) {
+                  id = (String) property.getValue();
+      
+                  if (property.getValue() !=null 
+                      || property.getValues() != null) {
+                    PropertyType propertyType = property.getType();
+        
+                    switch (propertyType) {
+        
+                    case STRING:
+                    case ID:
+                    case URI:
+                    case HTML:
+                      if(property.isMultiValued()){
+                        List<String> htmlPropertyValues = (List<String>) property.getValues();
+                        for (String htmlPropertyValue : htmlPropertyValues) {
+                          rd.addField(propertyId, htmlPropertyValue);
+                        }
+                      } else {
+                        String stringValue = (String) property.getValue();
+                        if(StringUtils.isNotEmpty(stringValue)){
+                          rd.addField(propertyId, stringValue);
+                        }
+                      }
+                      break;
+             
+                    case BOOLEAN:
+                      if(property.isMultiValued()){
+                        List<Boolean> booleanPropertyValues = (List<Boolean>) property.getValues();
+                        for (Boolean booleanPropertyValue : booleanPropertyValues) {
+                          rd.addField(propertyId, booleanPropertyValue.toString());
+                        }
+                      } else {
+                        Boolean booleanValue = (Boolean) property.getValue();
+                        if(booleanValue!=null){
+                          rd.addField(propertyId, booleanValue.toString());
+                        }
+                      }
+                      break;
+        
+                    case INTEGER:
+                      if(property.isMultiValued()){
+                        List<BigInteger> integerPropertyValues = (List<BigInteger>) property.getValues();
+                        for (BigInteger integerPropertyValue : integerPropertyValues) {
+                          rd.addField(propertyId, integerPropertyValue.toString());
+                        }
+                      } else {
+                        BigInteger integerValue = (BigInteger) property.getValue();
+                        if(integerValue!=null){
+                          rd.addField(propertyId, integerValue.toString());
+                        }
+                      }
+                      break;
+        
+                    case DECIMAL:
+                      if(property.isMultiValued()){
+                        List<BigDecimal> decimalPropertyValues = (List<BigDecimal>) property.getValues();
+                        for (BigDecimal decimalPropertyValue : decimalPropertyValues) {
+                          rd.addField(propertyId, decimalPropertyValue.toString());
+                        }
+                      } else {
+                        BigDecimal decimalValue = (BigDecimal) property.getValue();
+                        if(decimalValue!=null){
+                          rd.addField(propertyId, decimalValue.toString());
+                        }
+                      }
+                      break;
+        
+                    case DATETIME:
+                      if(property.isMultiValued()){
+                        List<GregorianCalendar> datePropertyValues = (List<GregorianCalendar>) property.getValues();
+                        for (GregorianCalendar datePropertyValue : datePropertyValues) {
+                          rd.addField(propertyId,
+                              ISO8601_DATE_FORMATTER.format(datePropertyValue.getTime()));
+                        }
+                      } else {
+                        GregorianCalendar dateValue = (GregorianCalendar) property.getValue();
+                        if(dateValue!=null){
+                          rd.addField(propertyId, ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
+                        }
+                      }
+                      break;
+        
+                    default:
+                      break;
+                    }
+                  }
+                    
+                }
+                
+              }
+            }
+            
+            //ingestion
+              
+              
+            try {
+              activities.ingestDocumentWithException(documentIdentifier, versionString, documentURI, rd);
+            } catch (IOException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              handleIOException(e, "reading file input stream");
+            }
           } finally {
-            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-              fileLength, documentIdentifier, errorCode, errorDesc, null);
+            try {
+              if(is!=null){
+                is.close();
+              }
+            } catch (IOException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              handleIOException(e, "closing file input stream");
+            } finally {
+              activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+                fileLength, documentIdentifier, errorCode, errorDesc, null);
+            }
           }
         }
-      }
-      else
-        activities.deleteDocument(documentIdentifier);
+        else
+          activities.noDocument(documentIdentifier,versionString);
       }
     }
     
