@@ -386,27 +386,49 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
               continue;
             }
 
-            long fileLength = fileStatus.getLen();
-            if (!activities.checkLengthIndexable(fileLength)) {
-              activities.noDocument(documentIdentifier,versionString);
-              continue;
-            }
-
             // It is a file to be indexed.
-            
-            // Prepare the metadata part of RepositoryDocument
-            RepositoryDocument data = new RepositoryDocument();
-
-            data.setFileName(fileStatus.getPath().getName());
-            data.setMimeType(mapExtensionToMimeType(fileStatus.getPath().getName()));
-            data.setModifiedDate(new Date(fileStatus.getModificationTime()));
-
+            long fileLength = fileStatus.getLen();
+            String fileName = fileStatus.getPath().getName();
+            String mimeType = mapExtensionToMimeType(fileStatus.getPath().getName());
+            Date modifiedDate = new Date(fileStatus.getModificationTime());
             String uri;
             if (convertPath != null) {
               uri = convertToWGETURI(convertPath);
             } else {
               uri = fileStatus.getPath().toUri().toString();
             }
+            
+            if (!activities.checkLengthIndexable(fileLength))
+            {
+              activities.noDocument(documentIdentifier,versionString);
+              continue;
+            }
+            
+            if (!activities.checkURLIndexable(uri))
+            {
+              activities.noDocument(documentIdentifier,versionString);
+              continue;
+            }
+            
+            if (!activities.checkMimeTypeIndexable(mimeType))
+            {
+              activities.noDocument(documentIdentifier,versionString);
+              continue;
+            }
+            
+            if (!activities.checkDateIndexable(modifiedDate))
+            {
+              activities.noDocument(documentIdentifier,versionString);
+              continue;
+            }
+            
+            // Prepare the metadata part of RepositoryDocument
+            RepositoryDocument data = new RepositoryDocument();
+
+            data.setFileName(fileName);
+            data.setMimeType(mimeType);
+            data.setModifiedDate(modifiedDate);
+
             data.addField("uri",uri);
 
             // We will record document fetch as an activity
