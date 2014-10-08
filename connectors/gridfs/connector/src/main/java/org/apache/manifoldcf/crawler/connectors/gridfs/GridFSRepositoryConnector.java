@@ -415,8 +415,6 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                 String errorDesc = null;
                 String version = versionString;
 
-                RepositoryDocument rd = new RepositoryDocument();
-
                 if (Logging.connectors.isDebugEnabled()) {
                     Logging.connectors.debug("GridFS: Processing document _id = " + _id);
                 }
@@ -441,44 +439,77 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                     }
                     if (validURL) {
                         long fileLenght = document.getLength();
+                        Date createdDate = document.getUploadDate();
+                        String fileName = document.getFilename();
+                        String mimeType = document.getContentType();
+                      
+                        if (!activities.checkURLIndexable(urlValue))
+                        {
+                          Logging.connectors.warn("GridFS: Document " + _id + " has a URL excluded by the output connector ('" + urlValue + "') - skipping.");
+                          activities.noDocument(_id, version);
+                          continue;
+                        }
+                        
+                        if (!activities.checkLengthIndexable(fileLenght))
+                        {
+                          Logging.connectors.warn("GridFS: Document " + _id + " has a length excluded by the output connector (" + fileLenght + ") - skipping.");
+                          activities.noDocument(_id, version);
+                          continue;
+                        }
+                        
+                        if (!activities.checkMimeTypeIndexable(mimeType))
+                        {
+                          Logging.connectors.warn("GridFS: Document " + _id + " has a mime type excluded by the output connector ('" + mimeType + "') - skipping.");
+                          activities.noDocument(_id, version);
+                          continue;
+                        }
+                        
+                        if (!activities.checkDateIndexable(createdDate))
+                        {
+                          Logging.connectors.warn("GridFS: Document " + _id + " has a date excluded by the output connector (" + createdDate + ") - skipping.");
+                          activities.noDocument(_id, version);
+                          continue;
+                        }
+                        
+                        RepositoryDocument rd = new RepositoryDocument();
+                        rd.setCreatedDate(createdDate);
+                        rd.setModifiedDate(createdDate);
+                        rd.setFileName(fileName);
+                        rd.setMimeType(mimeType);
+                        String[] aclsArray = null;
+                        String[] denyAclsArray = null;
+                        if (acl != null) {
+                            try {
+                                Object aclObject = document.getMetaData().get(acl);
+                                if (aclObject != null) {
+                                    List<String> acls = (List<String>) aclObject;
+                                    aclsArray = (String[]) acls.toArray();
+                                }
+                            } catch (ClassCastException e) {
+                                // This is bad because security will fail
+                                Logging.connectors.warn("GridFS: Document " + _id + " metadata ACL field doesn't contain List<String> type.");
+                                throw new ManifoldCFException("Security decoding error: "+e.getMessage(),e);
+                            }
+                        }
+                        if (denyAcl != null) {
+                            try {
+                                Object denyAclObject = document.getMetaData().get(denyAcl);
+                                if (denyAclObject != null) {
+                                    List<String> denyAcls = (List<String>) denyAclObject;
+                                    denyAcls.add(GLOBAL_DENY_TOKEN);
+                                    denyAclsArray = (String[]) denyAcls.toArray();
+                                }
+                            } catch (ClassCastException e) {
+                                // This is bad because security will fail
+                                Logging.connectors.warn("GridFS: Document " + _id + " metadata DenyACL field doesn't contain List<String> type.");
+                                throw new ManifoldCFException("Security decoding error: "+e.getMessage(),e);
+                            }
+                        }
+                        rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclsArray,denyAclsArray);
+
                         InputStream is = document.getInputStream();
                         try {
-                            Date indexingDate = new Date();
                             rd.setBinary(is, fileLenght);
-                            rd.setCreatedDate(document.getUploadDate());
-                            rd.setFileName(document.getFilename());
-                            rd.setIndexingDate(indexingDate);
-                            rd.setMimeType(document.getContentType());
-                            String[] aclsArray = null;
-                            String[] denyAclsArray = null;
-                            if (acl != null) {
-                                try {
-                                    Object aclObject = document.getMetaData().get(acl);
-                                    if (aclObject != null) {
-                                        List<String> acls = (List<String>) aclObject;
-                                        aclsArray = (String[]) acls.toArray();
-                                    }
-                                } catch (ClassCastException e) {
-                                    // This is bad because security will fail
-                                    Logging.connectors.warn("GridFS: Document " + _id + " metadata ACL field doesn't contain List<String> type.");
-                                    throw new ManifoldCFException("Security decoding error: "+e.getMessage(),e);
-                                }
-                            }
-                            if (denyAcl != null) {
-                                try {
-                                    Object denyAclObject = document.getMetaData().get(denyAcl);
-                                    if (denyAclObject != null) {
-                                        List<String> denyAcls = (List<String>) denyAclObject;
-                                        denyAcls.add(GLOBAL_DENY_TOKEN);
-                                        denyAclsArray = (String[]) denyAcls.toArray();
-                                    }
-                                } catch (ClassCastException e) {
-                                    // This is bad because security will fail
-                                    Logging.connectors.warn("GridFS: Document " + _id + " metadata DenyACL field doesn't contain List<String> type.");
-                                    throw new ManifoldCFException("Security decoding error: "+e.getMessage(),e);
-                                }
-                            }
-                            rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclsArray,denyAclsArray);
                             try {
                                 activities.ingestDocumentWithException(_id, version, urlValue, rd);
                             } catch (IOException e) {
