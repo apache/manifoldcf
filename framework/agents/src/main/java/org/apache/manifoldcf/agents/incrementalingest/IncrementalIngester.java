@@ -227,6 +227,34 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     return pipelineSpecificationBasic.getStageConnectionName(pipelineSpecificationBasic.getOutputStage(0));
   }
 
+  /** Check if a date is indexable.
+  *@param pipelineSpecification is the pipeline specification.
+  *@param date is the date to check.
+  *@param activity are the activities available to this method.
+  *@return true if the mimeType is indexable.
+  */
+  @Override
+  public boolean checkDateIndexable(
+    IPipelineSpecification pipelineSpecification,
+    Date date,
+    IOutputCheckActivity activity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    PipelineObject pipeline = pipelineGrab(
+      new PipelineConnections(pipelineSpecification));
+    if (pipeline == null)
+      // A connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("One or more connectors are not installed",0L);
+    try
+    {
+      return pipeline.checkDateIndexable(date,activity);
+    }
+    finally
+    {
+      pipeline.release();
+    }
+  }
+
   /** Check if a mime type is indexable.
   *@param pipelineSpecification is the pipeline specification.
   *@param mimeType is the mime type to check.
@@ -2485,6 +2513,18 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       addActivities.noDocument();
     }
 
+    /** Detect if a date is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param date is the mime type of the document.
+    *@return true if the date can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkDateIndexable(Date date)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return addActivities.checkDateIndexable(date);
+    }
+
     /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
     * in the first place.
     *@param mimeType is the mime type of the document.
@@ -2562,7 +2602,14 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       this.transformationConnectors = transformationConnectors;
       this.outputConnectors = outputConnectors;
     }
-    
+
+    public boolean checkDateIndexable(Date date, IOutputCheckActivity finalActivity)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      PipelineCheckFanout entryPoint = buildCheckPipeline(finalActivity);
+      return entryPoint.checkDateIndexable(date);
+    }
+
     public boolean checkMimeTypeIndexable(String mimeType, IOutputCheckActivity finalActivity)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -2824,6 +2871,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     
     @Override
+    public boolean checkDateIndexable(Date date)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      // OR all results
+      for (PipelineCheckEntryPoint p : entryPoints)
+      {
+        if (p.checkDateIndexable(date))
+          return true;
+      }
+      return false;
+    }
+
+    @Override
     public boolean checkMimeTypeIndexable(String mimeType)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -2894,6 +2954,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       this.checkActivity = checkActivity;
     }
     
+    public boolean checkDateIndexable(Date date)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return pipelineConnector.checkDateIndexable(pipelineDescriptionString,date,checkActivity);
+    }
+
     public boolean checkMimeTypeIndexable(String mimeType)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -2947,6 +3013,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       return false;
     }
     
+    @Override
+    public boolean checkDateIndexable(Date date)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      // OR all results
+      for (PipelineAddEntryPoint p : entryPoints)
+      {
+        if (p.checkDateIndexable(date))
+          return true;
+      }
+      return false;
+    }
+
     @Override
     public boolean checkMimeTypeIndexable(String mimeType)
       throws ManifoldCFException, ServiceInterruption
@@ -3136,6 +3215,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     public boolean isActive()
     {
       return isActive;
+    }
+
+    public boolean checkDateIndexable(Date date)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return pipelineConnector.checkDateIndexable(pipelineDescriptionString,date,addActivity);
     }
     
     public boolean checkMimeTypeIndexable(String mimeType)
@@ -3780,6 +3865,18 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throws ManifoldCFException
     {
       activities.recordActivity(startTime,activityType,dataSize,entityURI,resultCode,resultDescription);
+    }
+
+    /** Detect if a date is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document
+    * in the first place.
+    *@param date is the date of the document.
+    *@return true if the document described by the date can be accepted by the downstream connection.
+    */
+    @Override
+    public boolean checkDateIndexable(Date date)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return activities.checkDateIndexable(date);
     }
 
     /** Detect if a mime type is acceptable downstream or not.  This method is used to determine whether it makes sense to fetch a document

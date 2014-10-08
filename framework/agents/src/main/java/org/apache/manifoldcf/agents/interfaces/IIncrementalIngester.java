@@ -90,6 +90,18 @@ public interface IIncrementalIngester
   public VersionContext getTransformationDescription(String transformationConnectionName, Specification spec)
     throws ManifoldCFException, ServiceInterruption;
 
+  /** Check if a document date is indexable.
+  *@param pipelineSpecification is the pipeline specification.
+  *@param date is the date to check
+  *@param activity are the activities available to this method.
+  *@return true if the document with that date is indexable.
+  */
+  public boolean checkDateIndexable(
+    IPipelineSpecification pipelineSpecification,
+    Date date,
+    IOutputCheckActivity activity)
+    throws ManifoldCFException, ServiceInterruption;
+
   /** Check if a mime type is indexable.
   *@param pipelineSpecification is the pipeline specification.
   *@param mimeType is the mime type to check.
