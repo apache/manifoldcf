@@ -990,6 +990,31 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
                   + documentIdentifier + "'");
             }
 
+            // Now do standard stuff
+              
+            String mimeType = "text/plain";
+            Date createdDate = jiraFile.getCreatedDate();
+            Date modifiedDate = jiraFile.getUpdatedDate();
+            String documentURI = composeDocumentURI(getBaseUrl(session), jiraFile.getKey());
+
+            if (!activities.checkURLIndexable(documentURI))
+            {
+              activities.noDocument(documentIdentifier, versionString);
+              continue;
+            }
+            
+            if (!activities.checkMimeTypeIndexable(mimeType))
+            {
+              activities.noDocument(documentIdentifier, versionString);
+              continue;
+            }
+            
+            if (!activities.checkDateIndexable(modifiedDate))
+            {
+              activities.noDocument(documentIdentifier, versionString);
+              continue;
+            }
+            
             //otherwise process
             RepositoryDocument rd = new RepositoryDocument();
               
@@ -1000,12 +1025,6 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
             else
               denyAclsToUse = new String[0];
             rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclsToUse,denyAclsToUse);
-
-            // Now do standard stuff
-              
-            String mimeType = "text/plain";
-            Date createdDate = jiraFile.getCreatedDate();
-            Date modifiedDate = jiraFile.getUpdatedDate();
 
             rd.setMimeType(mimeType);
             if (createdDate != null)
@@ -1024,13 +1043,20 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
               rd.addField(entry.getKey(), entry.getValue());
             }
 
-            String documentURI = composeDocumentURI(getBaseUrl(session), jiraFile.getKey());
             String document = getJiraBody(jiraFile);
             try {
               byte[] documentBytes = document.getBytes(StandardCharsets.UTF_8);
+              long fileLength = documentBytes.length;
+              
+              if (!activities.checkLengthIndexable(fileLength))
+              {
+                activities.noDocument(documentIdentifier, versionString);
+                continue;
+              }
+                
               InputStream is = new ByteArrayInputStream(documentBytes);
               try {
-                rd.setBinary(is, documentBytes.length);
+                rd.setBinary(is, fileLength);
                 activities.ingestDocumentWithException(documentIdentifier, versionString, documentURI, rd);
                 // No errors.  Record the fact that we made it.
                 errorCode = "OK";
