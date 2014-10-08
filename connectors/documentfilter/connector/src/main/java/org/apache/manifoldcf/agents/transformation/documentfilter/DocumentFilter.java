@@ -63,6 +63,29 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     return new VersionContext(sp.toPackedString(),params,os);
   }
 
+  /** Detect if a document date is acceptable or not.  This method is used to determine whether it makes sense to fetch a document
+  * in the first place.
+  *@param outputDescription is the document's output version.
+  *@param date is the date of the document.
+  *@param activities is an object including the activities that can be performed by this method.
+  *@return true if the document with that date can be accepted by this connector.
+  */
+  @Override
+  public boolean checkDateIndexable(VersionContext outputDescription, Date date, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    return checkDateIndexable(sp, outputDescription, date, activities);
+  }
+  
+  protected boolean checkDateIndexable(SpecPacker sp, VersionContext outputDescription, Date date, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption {
+    if (sp.checkDate(date))
+      return super.checkDateIndexable(outputDescription, date, activities);
+    else
+      return false;
+  }
+
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.
   *@param outputDescription is the document's output version.
@@ -74,6 +97,11 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     throws ManifoldCFException, ServiceInterruption
   {
     SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    return checkMimeTypeIndexable(sp, outputDescription, mimeType, activities);
+  }
+  
+  protected boolean checkMimeTypeIndexable(SpecPacker sp, VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption {
     if (sp.checkMimeType(mimeType))
       return super.checkMimeTypeIndexable(outputDescription, mimeType, activities);
     else
@@ -84,6 +112,11 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption {
     SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    return checkLengthIndexable(sp, outputDescription, length, activities);
+  }
+  
+  protected boolean checkLengthIndexable(SpecPacker sp, VersionContext outputDescription, long length, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption {
     if (sp.checkLengthIndexable(length))
       return super.checkLengthIndexable(outputDescription, length, activities);
     else
@@ -94,6 +127,11 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   public boolean checkURLIndexable(VersionContext outputDescription, String url, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption {
     SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    return checkURLIndexable(sp, outputDescription, url, activities);
+  }
+  
+  protected boolean checkURLIndexable(SpecPacker sp, VersionContext outputDescription, String url, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption {
     if (sp.checkURLIndexable(url))
       return super.checkURLIndexable(outputDescription, url, activities);
     else
@@ -103,9 +141,6 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   /** Add (or replace) a document in the output data store using the connector.
   * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
   * necessary.
-  * The OutputSpecification is *not* provided to this method, because the goal is consistency, and if output is done it must be consistent with the
-  * output description, since that was what was partly used to determine if output should be taking place.  So it may be necessary for this method to decode
-  * an output description string in order to determine what should be done.
   *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
   * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
   *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
@@ -118,6 +153,15 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
+    // Hard filtering (in case connectors don't call check methods above)
+    SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    if (!checkURLIndexable(sp, outputDescription, documentURI, activities) ||
+      !checkLengthIndexable(sp, outputDescription, document.getBinaryLength(), activities) ||
+      !checkMimeTypeIndexable(sp, outputDescription, document.getMimeType(), activities) ||
+      !checkDateIndexable(sp, outputDescription, document.getModifiedDate(), activities)) {
+      activities.noDocument();
+      return DOCUMENTSTATUS_REJECTED;
+    }
     return activities.sendDocument(documentURI, document);
   }
   
@@ -430,6 +474,11 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
         return false;
       if (lengthCutoff != null && length > lengthCutoff.longValue())
         return false;
+      return true;
+    }
+    
+    public boolean checkDate(Date date) {
+      // MHL
       return true;
     }
     
