@@ -171,6 +171,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     String maxFileSize = DocumentFilterConfig.MAXLENGTH_DEFAULT;
     String allowedMimeTypes = DocumentFilterConfig.MIMETYPES_DEFAULT;
     String allowedFileExtensions = DocumentFilterConfig.EXTENSIONS_DEFAULT;
+    Long minDate = null;
     for (int i = 0; i < os.getChildCount(); i++)
     {
       SpecificationNode sn = os.getChild(i);
@@ -182,11 +183,21 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
         allowedMimeTypes = sn.getValue();
       else if (sn.getType().equals(DocumentFilterConfig.NODE_EXTENSIONS))
         allowedFileExtensions = sn.getValue();
+      else if (sn.getType().equals(DocumentFilterConfig.NODE_MINDATE))
+        minDate = new Long(sn.getAttributeValue(DocumentFilterConfig.ATTRIBUTE_VALUE));
     }
     paramMap.put("MINFILESIZE",minFileSize);
     paramMap.put("MAXFILESIZE",maxFileSize);
     paramMap.put("MIMETYPES",allowedMimeTypes);
     paramMap.put("EXTENSIONS",allowedFileExtensions);
+    
+    Calendar c = new GregorianCalendar();
+    c.setTimeInMillis((minDate==null)?0L:minDate.longValue());
+    paramMap.put("MINDATEYEAR",Integer.toString(c.get(Calendar.YEAR)));
+    paramMap.put("MINDATEMONTH",Integer.toString(c.get(Calendar.MONTH)));
+    paramMap.put("MINDATEDAY",Integer.toString(c.get(Calendar.DAY_OF_MONTH)));
+    paramMap.put("MINDATEHOUR",Integer.toString(c.get(Calendar.HOUR_OF_DAY)));
+    paramMap.put("MINDATEMINUTE",String.format("%02d",c.get(Calendar.MINUTE)));
   }
   
   /** Obtain the name of the form check javascript method to call.
