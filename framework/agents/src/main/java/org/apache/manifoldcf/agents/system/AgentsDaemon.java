@@ -217,6 +217,12 @@ public class AgentsDaemon
           {
             if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
               break;
+            if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
+            {
+              System.err.println("Misconfigured ManifoldCF agents - shutting down");
+              Logging.agents.fatal("AgentThread configuration exception tossed: "+e.getMessage(),e);
+              System.exit(-200);
+            }
             Logging.agents.error("Exception tossed: "+e.getMessage(),e);
           }
           catch (OutOfMemoryError e)
@@ -263,11 +269,11 @@ public class AgentsDaemon
         {
           // Start this agent
           IAgent agent = AgentFactory.make(className);
+          String serviceType = getAgentsClassServiceType(className);
           agent.initialize(threadContext);
           try
           {
             // Throw a lock, so that cleanup processes and startup processes don't collide.
-            String serviceType = getAgentsClassServiceType(className);
             lockManager.registerServiceBeginServiceActivity(serviceType, processID, new CleanupAgent(threadContext, agent, processID));
             // There is a potential race condition where the agent has been started but hasn't yet appeared in runningHash.
             // But having runningHash be the synchronizer for this activity will prevent any problems.
@@ -278,7 +284,10 @@ public class AgentsDaemon
           catch (ManifoldCFException e)
           {
             if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
+            {
               agent.cleanUp(threadContext);
+              lockManager.endServiceActivity(serviceType, processID);
+            }
             throw e;
           }
         }
