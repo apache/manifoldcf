@@ -105,6 +105,12 @@
 
 #else
 
+<input type="hidden" name="s${SEQNUM}_mindateyear" value="$MINDATEYEAR" />
+<input type="hidden" name="s${SEQNUM}_mindatemonth" value="$MINDATEMONTH" />
+<input type="hidden" name="s${SEQNUM}_mindateday" value="$MINDATEDAY" />
+<input type="hidden" name="s${SEQNUM}_mindatehour" value="$MINDATEHOUR" />
+<input type="hidden" name="s${SEQNUM}_mindateminute" value="$MINDATEMINUTE" />
+
 <input type="hidden" name="s${SEQNUM}_minfilesize" value="$Encoder.attributeEscape($MINFILESIZE)" />
 <input type="hidden" name="s${SEQNUM}_maxfilesize" value="$Encoder.attributeEscape($MAXFILESIZE)" />
 <input type="hidden" name="s${SEQNUM}_mimetypes" value="$Encoder.attributeEscape($MIMETYPES)" />
