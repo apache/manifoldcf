@@ -15,7 +15,15 @@
  limitations under the License.
 -->
 
+#set ($month = "DocumentFilter.Month_${MINDATEMONTH}")
 <table class="displaytable">
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('DocumentFilter.MinDateColon'))</nobr></td>
+    <td class="value">
+      <nobr>
+        $MINDATEYEAR $Encoder.bodyEscape($ResourceBundle.getString($month)) $MINDATEDAY $MINDATEHOUR:$MINDATEMINUTE
+      </nobr></td>
+  </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('DocumentFilter.MinFileSizeBytesColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($MINFILESIZE)</td>
