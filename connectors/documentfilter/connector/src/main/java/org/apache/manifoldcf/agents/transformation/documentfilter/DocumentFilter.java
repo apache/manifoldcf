@@ -407,8 +407,10 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     private final Set<String> mimeTypes;
     private final Long minLength;
     private final Long lengthCutoff;
+    private final Long minDate;
     
     public SpecPacker(Specification os) {
+      Long minDate = null;
       Long minLength = null;
       Long lengthCutoff = null;
       String extensions = null;
@@ -426,8 +428,12 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
         } else if (sn.getType().equals(DocumentFilterConfig.NODE_MINLENGTH)) {
           String value = sn.getAttributeValue(DocumentFilterConfig.ATTRIBUTE_VALUE);
           minLength = new Long(value);
+        } else if (sn.getType().equals(DocumentFilterConfig.NODE_MINDATE)) {
+          String value = sn.getAttributeValue(DocumentFilterConfig.ATTRIBUTE_VALUE);
+          minDate = new Long(value);
         }
       }
+      this.minDate = minDate;
       this.minLength = minLength;
       this.lengthCutoff = lengthCutoff;
       this.extensions = fillSet(extensions);
@@ -484,6 +490,14 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
         pack(sb,minLength.toString(),'+');
       }
       
+      // Min date
+      if (minDate == null)
+        sb.append('-');
+      else {
+        sb.append('+');
+        pack(sb,minDate.toString(),'+');
+      }
+
       return sb.toString();
     }
     
@@ -496,7 +510,8 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     }
     
     public boolean checkDate(Date date) {
-      // MHL
+      if (minDate != null && date != null && date.getTime() < minDate)
+        return false;
       return true;
     }
     
