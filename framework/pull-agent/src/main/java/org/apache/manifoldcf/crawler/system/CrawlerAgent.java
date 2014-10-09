@@ -341,22 +341,22 @@ public class CrawlerAgent implements IAgent
     // Now, start all the threads
     numWorkerThreads = ManifoldCF.getMaxWorkerThreads(threadContext);
     if (numWorkerThreads < 1 || numWorkerThreads > 300)
-      throw new ManifoldCFException("Illegal value for the number of worker threads");
+      throw new ManifoldCFException("Illegal value for the number of worker threads", ManifoldCFException.SETUP_ERROR);
     numDeleteThreads = ManifoldCF.getMaxDeleteThreads(threadContext);
     numCleanupThreads = ManifoldCF.getMaxCleanupThreads(threadContext);
     numExpireThreads = ManifoldCF.getMaxExpireThreads(threadContext);
     if (numDeleteThreads < 1 || numDeleteThreads > 300)
-      throw new ManifoldCFException("Illegal value for the number of delete threads");
+      throw new ManifoldCFException("Illegal value for the number of delete threads", ManifoldCFException.SETUP_ERROR);
     if (numCleanupThreads < 1 || numCleanupThreads > 300)
-      throw new ManifoldCFException("Illegal value for the number of cleanup threads");
+      throw new ManifoldCFException("Illegal value for the number of cleanup threads", ManifoldCFException.SETUP_ERROR);
     if (numExpireThreads < 1 || numExpireThreads > 300)
-      throw new ManifoldCFException("Illegal value for the number of expire threads");
+      throw new ManifoldCFException("Illegal value for the number of expire threads", ManifoldCFException.SETUP_ERROR);
     lowWaterFactor = (float)LockManagerFactory.getDoubleProperty(threadContext,ManifoldCF.lowWaterFactorProperty,5.0);
     if (lowWaterFactor < 1.0 || lowWaterFactor > 1000.0)
-      throw new ManifoldCFException("Illegal value for the low water factor");
+      throw new ManifoldCFException("Illegal value for the low water factor", ManifoldCFException.SETUP_ERROR);
     stuffAmtFactor = (float)LockManagerFactory.getDoubleProperty(threadContext,ManifoldCF.stuffAmtFactorProperty,2.0);
     if (stuffAmtFactor < 0.1 || stuffAmtFactor > 1000.0)
-      throw new ManifoldCFException("Illegal value for the stuffing amount factor");
+      throw new ManifoldCFException("Illegal value for the stuffing amount factor", ManifoldCFException.SETUP_ERROR);
 
 
     // Create the threads and objects.  This MUST be completed before there is any chance of "shutdownSystem" getting called.
