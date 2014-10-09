@@ -375,7 +375,8 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     
   }
   
-  protected static void fillSet(Set<String> set, String input) {
+  protected static Set<String> fillSet(String input) {
+    Set<String> rval = new HashSet<String>();
     try
     {
       StringReader sr = new StringReader(input);
@@ -384,8 +385,10 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       while ((line = br.readLine()) != null)
       {
         line = line.trim();
-        if (line.length() > 0)
-          set.add(line.toLowerCase(Locale.ROOT));
+        if (line.equals("*"))
+          rval = null;
+        else if (rval != null && line.length() > 0)
+          rval.add(line.toLowerCase(Locale.ROOT));
       }
     }
     catch (IOException e)
@@ -393,12 +396,15 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       // Should never happen
       throw new RuntimeException("IO exception reading strings: "+e.getMessage(),e);
     }
+    return rval;
   }
   
   protected static class SpecPacker {
     
-    private final Set<String> extensions = new HashSet<String>();
-    private final Set<String> mimeTypes = new HashSet<String>();
+    // null means "match everything"
+    private final Set<String> extensions;
+    // null means "match everything"
+    private final Set<String> mimeTypes;
     private final Long minLength;
     private final Long lengthCutoff;
     
@@ -424,8 +430,8 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       }
       this.minLength = minLength;
       this.lengthCutoff = lengthCutoff;
-      fillSet(this.extensions, extensions);
-      fillSet(this.mimeTypes, mimeTypes);
+      this.extensions = fillSet(extensions);
+      this.mimeTypes = fillSet(mimeTypes);
     }
     
     public String toPackedString() {
@@ -441,22 +447,34 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       }
       
       // Mime types
-      String[] mimeTypes = new String[this.mimeTypes.size()];
-      i = 0;
-      for (String mimeType : this.mimeTypes) {
-        mimeTypes[i++] = mimeType;
+      if (this.mimeTypes == null)
+        sb.append('-');
+      else
+      {
+        sb.append('+');
+        String[] mimeTypes = new String[this.mimeTypes.size()];
+        i = 0;
+        for (String mimeType : this.mimeTypes) {
+          mimeTypes[i++] = mimeType;
+        }
+        java.util.Arrays.sort(mimeTypes);
+        packList(sb,mimeTypes,'+');
       }
-      java.util.Arrays.sort(mimeTypes);
-      packList(sb,mimeTypes,'+');
       
       // Extensions
-      String[] extensions = new String[this.extensions.size()];
-      i = 0;
-      for (String extension : this.extensions) {
-        extensions[i++] = extension;
+      if (this.extensions == null)
+        sb.append('-');
+      else
+      {
+        sb.append('+');
+        String[] extensions = new String[this.extensions.size()];
+        i = 0;
+        for (String extension : this.extensions) {
+          extensions[i++] = extension;
+        }
+        java.util.Arrays.sort(extensions);
+        packList(sb,extensions,'+');
       }
-      java.util.Arrays.sort(extensions);
-      packList(sb,extensions,'+');
 
       // Min length
       if (minLength == null)
@@ -485,6 +503,8 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     public boolean checkMimeType(String mimeType) {
       if (mimeType == null)
         mimeType = "application/unknown";
+      if (mimeTypes == null)
+        return true;
       return mimeTypes.contains(mimeType.toLowerCase(Locale.ROOT));
     }
     
@@ -502,6 +522,8 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       }
       if (extension == null || extension.length() == 0)
         extension = ".";
+      if (extensions == null)
+        return true;
       return extensions.contains(extension.toLowerCase(Locale.ROOT));
     }
     

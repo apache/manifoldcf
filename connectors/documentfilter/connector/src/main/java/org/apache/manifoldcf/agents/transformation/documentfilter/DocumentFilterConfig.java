@@ -29,10 +29,11 @@ public class DocumentFilterConfig {
   public static final String NODE_MINLENGTH = "minlength";
   public static final String MINLENGTH_DEFAULT = "0";
   public static final String NODE_MAXLENGTH = "maxlength";
-  public static final String MAXLENGTH_DEFAULT = "16777216";
+  public static final String MAXLENGTH_DEFAULT = "1000000000";
   public static final String NODE_MIMETYPES = "mimetypes";
   public static final String MIMETYPES_DEFAULT =
-                        "application/msword\n"
+                        "*\n"
+                        + "application/msword\n"
 		        + "application/vnd.ms-excel\n"
 		        + "application/vnd.openxmlformats-officedocument.wordprocessingml.document\n"
 		        + "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\n"
@@ -48,7 +49,7 @@ public class DocumentFilterConfig {
 		        + "application/x-bittorrent";
   public static final String NODE_EXTENSIONS = "extensions";
   public static final String EXTENSIONS_DEFAULT =
-                    "doc\n" + "docx\n" + "xls\n" + "xlsx\n" + "ppt\n" + "pptx\n"
+                    "*\n" + "log\n" + "doc\n" + "docx\n" + "xls\n" + "xlsx\n" + "ppt\n" + "pptx\n"
 		    + "html\n" + "pdf\n" + "odt\n" + "ods\n" + "rtf\n" + "txt\n" + "mp3\n"
 		    + "mp4\n" + "wav\n" + "ogg\n" + "flac\n" + "torrent";
   public static final String ATTRIBUTE_VALUE = "value";
