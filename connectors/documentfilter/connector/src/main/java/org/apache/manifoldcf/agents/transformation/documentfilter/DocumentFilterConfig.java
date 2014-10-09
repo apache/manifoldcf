@@ -52,5 +52,6 @@ public class DocumentFilterConfig {
                     "*\n" + "log\n" + "doc\n" + "docx\n" + "xls\n" + "xlsx\n" + "ppt\n" + "pptx\n"
 		    + "html\n" + "pdf\n" + "odt\n" + "ods\n" + "rtf\n" + "txt\n" + "mp3\n"
 		    + "mp4\n" + "wav\n" + "ogg\n" + "flac\n" + "torrent";
+  public static final String NODE_MINDATE = "mindate";
   public static final String ATTRIBUTE_VALUE = "value";
 }
