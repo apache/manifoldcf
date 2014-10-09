@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1070: Exit immediately upon finding a misconfigured
+ManifoldCF.
+(Kamil Żyta, Karl Wright)
+
 CONNECTORS-1067: Allow document filtering on modification date,
 and also hook this up in all repository connectors where it makes sense.
 (Karl Wright)
