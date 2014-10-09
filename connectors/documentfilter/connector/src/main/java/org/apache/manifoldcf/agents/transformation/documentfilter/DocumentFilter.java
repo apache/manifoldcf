@@ -289,6 +289,36 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     throws ManifoldCFException {
     String seqPrefix = "s"+connectionSequenceNumber+"_";
 
+    String minDateYear = variableContext.getParameter(seqPrefix+"mindateyear");
+    String minDateMonth = variableContext.getParameter(seqPrefix+"mindatemonth");
+    String minDateDay = variableContext.getParameter(seqPrefix + "mindateday");
+    String minDateHour = variableContext.getParameter(seqPrefix + "mindatehour");
+    String minDateMinute = variableContext.getParameter(seqPrefix + "mindateminute");
+    if (minDateYear != null && minDateMonth != null && minDateDay != null && minDateHour != null && minDateMinute != null)
+    {
+      Calendar c = new GregorianCalendar();
+      try
+      {
+        c.set(Integer.parseInt(minDateYear),Integer.parseInt(minDateMonth),Integer.parseInt(minDateDay),Integer.parseInt(minDateHour),Integer.parseInt(minDateMinute));
+      }
+      catch (Exception e)
+      {
+      }
+      long theTime = c.getTimeInMillis();
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(DocumentFilterConfig.NODE_MINDATE))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode sn = new SpecificationNode(DocumentFilterConfig.NODE_MINDATE);
+      sn.setAttribute(DocumentFilterConfig.ATTRIBUTE_VALUE,new Long(theTime).toString());
+      os.addChild(os.getChildCount(),sn);
+    }
+    
     String x;
 
     x = variableContext.getParameter(seqPrefix+"minfilesize");
