@@ -298,31 +298,23 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
           String versionString;
           String convertPath;
           long fileLength = file.length();
-          if (activities.checkLengthIndexable(fileLength))
-          {
-            // Get the file's modified date.
-            long lastModified = file.lastModified();
+          // Get the file's modified date.
+          long lastModified = file.lastModified();
             
-            // Check if the path is to be converted.  We record that info in the version string so that we'll reindex documents whose
-            // URI's change.
-            convertPath = findConvertPath(spec, file);
-            StringBuilder sb = new StringBuilder();
-            if (convertPath != null)
-            {
-              // Record the path.
-              sb.append("+");
-              pack(sb,convertPath,'+');
-            }
-            else
-              sb.append("-");
-            sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString());
-            versionString = sb.toString();
+          // Check if the path is to be converted.  We record that info in the version string so that we'll reindex documents whose
+          // URI's change.
+          convertPath = findConvertPath(spec, file);
+          StringBuilder sb = new StringBuilder();
+          if (convertPath != null)
+          {
+            // Record the path.
+            sb.append("+");
+            pack(sb,convertPath,'+');
           }
           else
-          {
-            activities.deleteDocument(documentIdentifier);
-            continue;
-          }
+            sb.append("-");
+          sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString());
+          versionString = sb.toString();
     
           if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
           {
@@ -345,6 +337,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
               {
                 Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because length was excluded by output connector.");
                 activities.noDocument(documentIdentifier,versionString);
+                activities.recordActivity(null,ACTIVITY_READ,null,documentIdentifier,"FILETOOLONG","Document rejected because of length",null);
                 continue;
               }
               
@@ -352,6 +345,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
               {
                 Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because URL was excluded by output connector.");
                 activities.noDocument(documentIdentifier,versionString);
+                activities.recordActivity(null,ACTIVITY_READ,null,documentIdentifier,"URLREJECTED","Document rejected because of URL",null);
                 continue;
               }
               
@@ -359,6 +353,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
               {
                 Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because date ("+modifiedDate+") was excluded by output connector.");
                 activities.noDocument(documentIdentifier,versionString);
+                activities.recordActivity(null,ACTIVITY_READ,null,documentIdentifier,"DATEREJECTED","Document rejected because of date",null);
                 continue;
               }
               
@@ -366,6 +361,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
               {
                 Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because mime type ('"+mimeType+"') was excluded by output connector.");
                 activities.noDocument(documentIdentifier,versionString);
+                activities.recordActivity(null,ACTIVITY_READ,null,documentIdentifier,"MIMETYPEREJECTED","Document rejected because of mime type",null);
                 continue;
               }
               
