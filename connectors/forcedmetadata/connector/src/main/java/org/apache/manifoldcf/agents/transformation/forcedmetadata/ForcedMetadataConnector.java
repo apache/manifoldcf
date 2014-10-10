@@ -38,6 +38,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   public static final String ATTRIBUTE_PARAMETER = "parameter";
   public static final String NODE_FIELDMAP = "fieldmap";
   public static final String NODE_KEEPMETADATA = "keepAllMetadata";
+  public static final String NODE_FILTEREMPTY = "filterEmpty";
   public static final String ATTRIBUTE_SOURCE = "source";
   public static final String ATTRIBUTE_TARGET = "target";
   public static final String ATTRIBUTE_VALUE = "value";
@@ -98,27 +99,16 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     while (fields.hasNext())
     {
       String field = fields.next();
-      Object[] fieldData = document.getField(field);
       String target = sp.getMapping(field);
       if (target != null)
       {
-        if (fieldData instanceof Date[])
-          docCopy.addField(target,(Date[])fieldData);
-        else if (fieldData instanceof Reader[])
-          docCopy.addField(target,(Reader[])fieldData);
-        else if (fieldData instanceof String[])
-          docCopy.addField(target,(String[])fieldData);
+        moveData(docCopy,target,document,field,sp.filterEmpty());
       }
       else
       {
         if (sp.keepAllMetadata())
         {
-          if (fieldData instanceof Date[])
-            docCopy.addField(field,(Date[])fieldData);
-          else if (fieldData instanceof Reader[])
-            docCopy.addField(field,(Reader[])fieldData);
-          else if (fieldData instanceof String[])
-            docCopy.addField(field,(String[])fieldData);
+          moveData(docCopy,field,document,field,sp.filterEmpty());
         }
       }
     }
@@ -135,6 +125,76 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     return activities.sendDocument(documentURI,docCopy);
   }
 
+  protected static void moveData(RepositoryDocument docCopy, String target, RepositoryDocument document, String field, boolean filterEmpty)
+    throws ManifoldCFException, IOException
+  {
+    Object[] fieldData = document.getField(field);
+    if (fieldData instanceof Date[])
+      docCopy.addField(target,(Date[])conditionallyRemoveNulls(fieldData,filterEmpty));
+    else if (fieldData instanceof Reader[])
+    {
+      // To strip out empty fields, we will need to convert readers to strings
+      if (filterEmpty)
+        docCopy.addField(target,removeEmpties(document.getFieldAsStrings(field)));
+      else
+        docCopy.addField(target,(Reader[])fieldData);
+    }
+    else if (fieldData instanceof String[])
+    {
+      String[] processedFieldData;
+      if (filterEmpty)
+        processedFieldData = removeEmpties((String[])fieldData);
+      else
+        processedFieldData = (String[])fieldData;
+      docCopy.addField(target,processedFieldData);
+    }
+  }
+
+  protected static String[] removeEmpties(String[] input)
+  {
+    int count = 0;
+    for (String s : input)
+    {
+      if (s != null && s.length() > 0)
+        count++;
+    }
+    if (count == input.length)
+      return input;
+    
+    String[] rval = new String[count];
+    count = 0;
+    for (String s : input)
+    {
+      if (s != null && s.length() > 0)
+        rval[count++] = s;
+    }
+    return rval;
+
+  }
+  
+  protected static Object[] conditionallyRemoveNulls(Object[] input, boolean filterEmpty)
+  {
+    if (!filterEmpty)
+      return input;
+    int count = 0;
+    for (Object o : input)
+    {
+      if (o != null)
+        count++;
+    }
+    if (count == input.length)
+      return input;
+    
+    Object[] rval = new Object[count];
+    count = 0;
+    for (Object o : input)
+    {
+      if (o != null)
+        rval[count++] = o;
+    }
+    return rval;
+  }
+  
   // UI support methods.
   //
   // These support methods come in two varieties.  The first bunch (inherited from IConnector) is involved in setting up connection configuration information.
@@ -323,18 +383,52 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
         node.setAttribute(ATTRIBUTE_TARGET,target);
         os.addChild(os.getChildCount(),node);
       }
-      
+    }
+    
+    x = variableContext.getParameter(seqPrefix+"keepallmetadata_present");
+    if (x != null && x.length() > 0)
+    {
+      String keepAll = variableContext.getParameter(seqPrefix+"keepallmetadata");
+      if (keepAll == null)
+        keepAll = "false";
+      // About to gather the fieldmapping nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(NODE_KEEPMETADATA))
+          os.removeChild(i);
+        else
+          i++;
+      }
+
       // Gather the keep all metadata parameter to be the last one
       SpecificationNode node = new SpecificationNode(NODE_KEEPMETADATA);
-      String keepAll = variableContext.getParameter(seqPrefix+"keepallmetadata");
-      if (keepAll != null)
+      node.setAttribute(ATTRIBUTE_VALUE, keepAll);
+      // Add the new keepallmetadata config parameter 
+      os.addChild(os.getChildCount(), node);
+    }
+
+    x = variableContext.getParameter(seqPrefix+"filterempty_present");
+    if (x != null && x.length() > 0)
+    {
+      String filterEmpty = variableContext.getParameter(seqPrefix+"filterempty");
+      if (filterEmpty == null)
+        filterEmpty = "false";
+      // About to gather the fieldmapping nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < os.getChildCount())
       {
-        node.setAttribute(ATTRIBUTE_VALUE, keepAll);
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(NODE_KEEPMETADATA))
+          os.removeChild(i);
+        else
+          i++;
       }
-      else
-      {
-        node.setAttribute(ATTRIBUTE_VALUE, "false");
-      }
+
+      // Gather the keep all metadata parameter to be the last one
+      SpecificationNode node = new SpecificationNode(NODE_FILTEREMPTY);
+      node.setAttribute(ATTRIBUTE_VALUE, filterEmpty);
       // Add the new keepallmetadata config parameter 
       os.addChild(os.getChildCount(), node);
     }
@@ -371,6 +465,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     // Prep for field mappings
     List<Map<String,String>> fieldMappings = new ArrayList<Map<String,String>>();
     String keepAllMetadataValue = "true";
+    String filterEmptyValue = "true";
     for (int i = 0; i < os.getChildCount(); i++)
     {
       SpecificationNode sn = os.getChild(i);
@@ -395,9 +490,14 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
       {
         keepAllMetadataValue = sn.getAttributeValue(ATTRIBUTE_VALUE);
       }
+      else if (sn.getType().equals(NODE_FILTEREMPTY))
+      {
+        filterEmptyValue = sn.getAttributeValue(ATTRIBUTE_VALUE);
+      }
     }
     paramMap.put("FIELDMAPPINGS",fieldMappings);
     paramMap.put("KEEPALLMETADATA",keepAllMetadataValue);
+    paramMap.put("FILTEREMPTY",filterEmptyValue);
   }
 
   protected static void fillInForcedMetadataTab(Map<String,Object> paramMap, Specification os)
@@ -460,16 +560,21 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     
     private final Map<String,String> sourceTargets = new HashMap<String,String>();
     private final boolean keepAllMetadata;
+    private final boolean filterEmpty;
     private final Map<String,Set<String>> parameters = new HashMap<String,Set<String>>();
 
     public SpecPacker(Specification os) {
       boolean keepAllMetadata = true;
+      boolean filterEmpty = true;
       for (int i = 0; i < os.getChildCount(); i++) {
         SpecificationNode sn = os.getChild(i);
         
         if(sn.getType().equals(NODE_KEEPMETADATA)) {
           String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
           keepAllMetadata = Boolean.parseBoolean(value);
+        } else if (sn.getType().equals(NODE_FILTEREMPTY)) {
+          String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
+          filterEmpty = Boolean.parseBoolean(value);
         } else if (sn.getType().equals(NODE_FIELDMAP)) {
           String source = sn.getAttributeValue(ATTRIBUTE_SOURCE);
           String target = sn.getAttributeValue(ATTRIBUTE_TARGET);
@@ -493,6 +598,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
         }
       }
       this.keepAllMetadata = keepAllMetadata;
+      this.filterEmpty = filterEmpty;
     }
     
     public String toPackedString() {
@@ -549,6 +655,12 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
         packList(sb,valueArray,'+');
       }
 
+      // Filter empty
+      if (filterEmpty)
+        sb.append('+');
+      else
+        sb.append('-');
+
       return sb.toString();
     }
     
@@ -558,6 +670,10 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     
     public boolean keepAllMetadata() {
       return keepAllMetadata;
+    }
+    
+    public boolean filterEmpty() {
+      return filterEmpty;
     }
     
     public Iterator<String> getParameterKeys()
