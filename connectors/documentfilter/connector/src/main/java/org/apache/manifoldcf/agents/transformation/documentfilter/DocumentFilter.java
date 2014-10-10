@@ -63,6 +63,29 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     return new VersionContext(sp.toPackedString(),params,os);
   }
 
+  /** Detect if a document date is acceptable or not.  This method is used to determine whether it makes sense to fetch a document
+  * in the first place.
+  *@param outputDescription is the document's output version.
+  *@param date is the date of the document.
+  *@param activities is an object including the activities that can be performed by this method.
+  *@return true if the document with that date can be accepted by this connector.
+  */
+  @Override
+  public boolean checkDateIndexable(VersionContext outputDescription, Date date, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    return checkDateIndexable(sp, outputDescription, date, activities);
+  }
+  
+  protected boolean checkDateIndexable(SpecPacker sp, VersionContext outputDescription, Date date, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption {
+    if (sp.checkDate(date))
+      return super.checkDateIndexable(outputDescription, date, activities);
+    else
+      return false;
+  }
+
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.
   *@param outputDescription is the document's output version.
@@ -74,6 +97,11 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     throws ManifoldCFException, ServiceInterruption
   {
     SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    return checkMimeTypeIndexable(sp, outputDescription, mimeType, activities);
+  }
+  
+  protected boolean checkMimeTypeIndexable(SpecPacker sp, VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption {
     if (sp.checkMimeType(mimeType))
       return super.checkMimeTypeIndexable(outputDescription, mimeType, activities);
     else
@@ -84,6 +112,11 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption {
     SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    return checkLengthIndexable(sp, outputDescription, length, activities);
+  }
+  
+  protected boolean checkLengthIndexable(SpecPacker sp, VersionContext outputDescription, long length, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption {
     if (sp.checkLengthIndexable(length))
       return super.checkLengthIndexable(outputDescription, length, activities);
     else
@@ -94,6 +127,11 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   public boolean checkURLIndexable(VersionContext outputDescription, String url, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption {
     SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    return checkURLIndexable(sp, outputDescription, url, activities);
+  }
+  
+  protected boolean checkURLIndexable(SpecPacker sp, VersionContext outputDescription, String url, IOutputCheckActivity activities)
+    throws ManifoldCFException, ServiceInterruption {
     if (sp.checkURLIndexable(url))
       return super.checkURLIndexable(outputDescription, url, activities);
     else
@@ -103,9 +141,6 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   /** Add (or replace) a document in the output data store using the connector.
   * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
   * necessary.
-  * The OutputSpecification is *not* provided to this method, because the goal is consistency, and if output is done it must be consistent with the
-  * output description, since that was what was partly used to determine if output should be taking place.  So it may be necessary for this method to decode
-  * an output description string in order to determine what should be done.
   *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
   * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
   *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
@@ -118,6 +153,15 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
+    // Hard filtering (in case connectors don't call check methods above)
+    SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    if (!checkURLIndexable(sp, outputDescription, documentURI, activities) ||
+      !checkLengthIndexable(sp, outputDescription, document.getBinaryLength(), activities) ||
+      !checkMimeTypeIndexable(sp, outputDescription, document.getMimeType(), activities) ||
+      !checkDateIndexable(sp, outputDescription, document.getModifiedDate(), activities)) {
+      activities.noDocument();
+      return DOCUMENTSTATUS_REJECTED;
+    }
     return activities.sendDocument(documentURI, document);
   }
   
@@ -127,6 +171,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     String maxFileSize = DocumentFilterConfig.MAXLENGTH_DEFAULT;
     String allowedMimeTypes = DocumentFilterConfig.MIMETYPES_DEFAULT;
     String allowedFileExtensions = DocumentFilterConfig.EXTENSIONS_DEFAULT;
+    Long minDate = null;
     for (int i = 0; i < os.getChildCount(); i++)
     {
       SpecificationNode sn = os.getChild(i);
@@ -138,11 +183,21 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
         allowedMimeTypes = sn.getValue();
       else if (sn.getType().equals(DocumentFilterConfig.NODE_EXTENSIONS))
         allowedFileExtensions = sn.getValue();
+      else if (sn.getType().equals(DocumentFilterConfig.NODE_MINDATE))
+        minDate = new Long(sn.getAttributeValue(DocumentFilterConfig.ATTRIBUTE_VALUE));
     }
     paramMap.put("MINFILESIZE",minFileSize);
     paramMap.put("MAXFILESIZE",maxFileSize);
     paramMap.put("MIMETYPES",allowedMimeTypes);
     paramMap.put("EXTENSIONS",allowedFileExtensions);
+    
+    Calendar c = new GregorianCalendar();
+    c.setTimeInMillis((minDate==null)?0L:minDate.longValue());
+    paramMap.put("MINDATEYEAR",Integer.toString(c.get(Calendar.YEAR)));
+    paramMap.put("MINDATEMONTH",Integer.toString(c.get(Calendar.MONTH)));
+    paramMap.put("MINDATEDAY",Integer.toString(c.get(Calendar.DAY_OF_MONTH)));
+    paramMap.put("MINDATEHOUR",Integer.toString(c.get(Calendar.HOUR_OF_DAY)));
+    paramMap.put("MINDATEMINUTE",String.format("%02d",c.get(Calendar.MINUTE)));
   }
   
   /** Obtain the name of the form check javascript method to call.
@@ -234,6 +289,36 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     throws ManifoldCFException {
     String seqPrefix = "s"+connectionSequenceNumber+"_";
 
+    String minDateYear = variableContext.getParameter(seqPrefix+"mindateyear");
+    String minDateMonth = variableContext.getParameter(seqPrefix+"mindatemonth");
+    String minDateDay = variableContext.getParameter(seqPrefix + "mindateday");
+    String minDateHour = variableContext.getParameter(seqPrefix + "mindatehour");
+    String minDateMinute = variableContext.getParameter(seqPrefix + "mindateminute");
+    if (minDateYear != null && minDateMonth != null && minDateDay != null && minDateHour != null && minDateMinute != null)
+    {
+      Calendar c = new GregorianCalendar();
+      try
+      {
+        c.set(Integer.parseInt(minDateYear),Integer.parseInt(minDateMonth),Integer.parseInt(minDateDay),Integer.parseInt(minDateHour),Integer.parseInt(minDateMinute));
+      }
+      catch (Exception e)
+      {
+      }
+      long theTime = c.getTimeInMillis();
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(DocumentFilterConfig.NODE_MINDATE))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode sn = new SpecificationNode(DocumentFilterConfig.NODE_MINDATE);
+      sn.setAttribute(DocumentFilterConfig.ATTRIBUTE_VALUE,new Long(theTime).toString());
+      os.addChild(os.getChildCount(),sn);
+    }
+    
     String x;
 
     x = variableContext.getParameter(seqPrefix+"minfilesize");
@@ -331,7 +416,8 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     
   }
   
-  protected static void fillSet(Set<String> set, String input) {
+  protected static Set<String> fillSet(String input) {
+    Set<String> rval = new HashSet<String>();
     try
     {
       StringReader sr = new StringReader(input);
@@ -340,8 +426,10 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       while ((line = br.readLine()) != null)
       {
         line = line.trim();
-        if (line.length() > 0)
-          set.add(line.toLowerCase(Locale.ROOT));
+        if (line.equals("*"))
+          rval = null;
+        else if (rval != null && line.length() > 0)
+          rval.add(line.toLowerCase(Locale.ROOT));
       }
     }
     catch (IOException e)
@@ -349,16 +437,21 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       // Should never happen
       throw new RuntimeException("IO exception reading strings: "+e.getMessage(),e);
     }
+    return rval;
   }
   
   protected static class SpecPacker {
     
-    private final Set<String> extensions = new HashSet<String>();
-    private final Set<String> mimeTypes = new HashSet<String>();
+    // null means "match everything"
+    private final Set<String> extensions;
+    // null means "match everything"
+    private final Set<String> mimeTypes;
     private final Long minLength;
     private final Long lengthCutoff;
+    private final Long minDate;
     
     public SpecPacker(Specification os) {
+      Long minDate = null;
       Long minLength = null;
       Long lengthCutoff = null;
       String extensions = null;
@@ -376,12 +469,16 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
         } else if (sn.getType().equals(DocumentFilterConfig.NODE_MINLENGTH)) {
           String value = sn.getAttributeValue(DocumentFilterConfig.ATTRIBUTE_VALUE);
           minLength = new Long(value);
+        } else if (sn.getType().equals(DocumentFilterConfig.NODE_MINDATE)) {
+          String value = sn.getAttributeValue(DocumentFilterConfig.ATTRIBUTE_VALUE);
+          minDate = new Long(value);
         }
       }
+      this.minDate = minDate;
       this.minLength = minLength;
       this.lengthCutoff = lengthCutoff;
-      fillSet(this.extensions, extensions);
-      fillSet(this.mimeTypes, mimeTypes);
+      this.extensions = fillSet(extensions);
+      this.mimeTypes = fillSet(mimeTypes);
     }
     
     public String toPackedString() {
@@ -397,22 +494,34 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       }
       
       // Mime types
-      String[] mimeTypes = new String[this.mimeTypes.size()];
-      i = 0;
-      for (String mimeType : this.mimeTypes) {
-        mimeTypes[i++] = mimeType;
+      if (this.mimeTypes == null)
+        sb.append('-');
+      else
+      {
+        sb.append('+');
+        String[] mimeTypes = new String[this.mimeTypes.size()];
+        i = 0;
+        for (String mimeType : this.mimeTypes) {
+          mimeTypes[i++] = mimeType;
+        }
+        java.util.Arrays.sort(mimeTypes);
+        packList(sb,mimeTypes,'+');
       }
-      java.util.Arrays.sort(mimeTypes);
-      packList(sb,mimeTypes,'+');
       
       // Extensions
-      String[] extensions = new String[this.extensions.size()];
-      i = 0;
-      for (String extension : this.extensions) {
-        extensions[i++] = extension;
+      if (this.extensions == null)
+        sb.append('-');
+      else
+      {
+        sb.append('+');
+        String[] extensions = new String[this.extensions.size()];
+        i = 0;
+        for (String extension : this.extensions) {
+          extensions[i++] = extension;
+        }
+        java.util.Arrays.sort(extensions);
+        packList(sb,extensions,'+');
       }
-      java.util.Arrays.sort(extensions);
-      packList(sb,extensions,'+');
 
       // Min length
       if (minLength == null)
@@ -422,6 +531,14 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
         pack(sb,minLength.toString(),'+');
       }
       
+      // Min date
+      if (minDate == null)
+        sb.append('-');
+      else {
+        sb.append('+');
+        pack(sb,minDate.toString(),'+');
+      }
+
       return sb.toString();
     }
     
@@ -433,9 +550,17 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       return true;
     }
     
+    public boolean checkDate(Date date) {
+      if (minDate != null && date != null && date.getTime() < minDate)
+        return false;
+      return true;
+    }
+    
     public boolean checkMimeType(String mimeType) {
       if (mimeType == null)
         mimeType = "application/unknown";
+      if (mimeTypes == null)
+        return true;
       return mimeTypes.contains(mimeType.toLowerCase(Locale.ROOT));
     }
     
@@ -453,6 +578,8 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
       }
       if (extension == null || extension.length() == 0)
         extension = ".";
+      if (extensions == null)
+        return true;
       return extensions.contains(extension.toLowerCase(Locale.ROOT));
     }
     
