@@ -58,6 +58,7 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.common.SolrInputDocument;
 
+import org.apache.commons.lang.StringUtils;
 
 /**
 * Posts an input stream to SOLR
@@ -1034,7 +1035,7 @@ public class HttpPoster
       if ( fileNameAttributeName != null )
       {
         String fileName = document.getFileName();
-        if ( fileName != null )
+        if ( !StringUtils.isBlank(fileName) )
         {
           outputDoc.addField( fileNameAttributeName, fileName );
         }
@@ -1042,7 +1043,7 @@ public class HttpPoster
       if ( mimeTypeAttributeName != null )
       {
         String mimeType = document.getMimeType();
-        if ( mimeType != null )
+        if ( !StringUtils.isBlank(mimeType) )
         {
           outputDoc.addField( mimeTypeAttributeName, mimeType );
         }
@@ -1102,13 +1103,13 @@ public class HttpPoster
       if (fileNameAttributeName != null)
       {
         String fileName = document.getFileName();
-        if (fileName != null)
+        if (!StringUtils.isBlank(fileName))
           writeField(out,LITERAL+fileNameAttributeName,fileName);
       }
       if (mimeTypeAttributeName != null)
       {
         String mimeType = document.getMimeType();
-        if (mimeType != null)
+        if (!StringUtils.isBlank(mimeType))
           writeField(out,LITERAL+mimeTypeAttributeName,mimeType);
       }
           
@@ -1136,7 +1137,7 @@ public class HttpPoster
       //writeField(out,LITERAL+"stream_name",document.getFileName());
           
       // General hint for Tika
-      if (document.getFileName() != null)
+      if (!StringUtils.isBlank(document.getFileName()))
         writeField(out,"resource.name",document.getFileName());
           
       // Write the commitWithin parameter
