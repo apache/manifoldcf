@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1068: Enhancements for Document Filter transformation
+connector.
+(Karl Wright)
+
 CONNECTORS-1070: Exit immediately upon finding a misconfigured
 ManifoldCF.
 (Kamil Żyta, Karl Wright)
