@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1066: Do not include blank or null fixed fields in Solr
+documents; also, provide facility to strip empty fields from general
+metadata in Metadata Adjuster.
+(Alessandro Benedetti, Shinichiro Abe, Karl Wright)
+
 CONNECTORS-1068: Enhancements for Document Filter transformation
 connector.
 (Karl Wright)
