@@ -38,7 +38,21 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   private static final String EDIT_SPECIFICATION_CONTENTS_HTML = "editSpecification_Contents.html";
   
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
+
+  protected static final String ACTIVITY_FILTER = "filter";
+
+  protected static final String[] activitiesList = new String[]{ACTIVITY_FILTER};
   
+  /** Return a list of activities that this connector generates.
+  * The connector does NOT need to be connected before this method is called.
+  *@return the set of activities.
+  */
+  @Override
+  public String[] getActivitiesList()
+  {
+    return activitiesList;
+  }
+
   /** Constructor.
    */
   public DocumentFilter(){
@@ -155,13 +169,42 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
   {
     // Hard filtering (in case connectors don't call check methods above)
     SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
-    if (!checkURLIndexable(sp, outputDescription, documentURI, activities) ||
-      !checkLengthIndexable(sp, outputDescription, document.getBinaryLength(), activities) ||
-      !checkMimeTypeIndexable(sp, outputDescription, document.getMimeType(), activities) ||
-      !checkDateIndexable(sp, outputDescription, document.getModifiedDate(), activities)) {
+    if (!checkURLIndexable(sp, outputDescription, documentURI, activities))
+    {
       activities.noDocument();
+      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, "FILTEREDURL", "Rejected due to URL ('"+documentURI+"')");
+      if (Logging.ingest.isDebugEnabled())
+        Logging.ingest.debug("Document filter: Rejected document "+documentURI+" due to URL ('"+documentURI+"')");
       return DOCUMENTSTATUS_REJECTED;
     }
+
+    if (!checkLengthIndexable(sp, outputDescription, document.getBinaryLength(), activities))
+    {
+      activities.noDocument();
+      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, "FILTEREDLENGTH", "Rejected due to length ("+document.getBinaryLength()+")");
+      if (Logging.ingest.isDebugEnabled())
+        Logging.ingest.debug("Document filter: Rejected document "+documentURI+" due to length ("+document.getBinaryLength()+")");
+      return DOCUMENTSTATUS_REJECTED;
+    }
+    
+    if (!checkMimeTypeIndexable(sp, outputDescription, document.getMimeType(), activities))
+    {
+      activities.noDocument();
+      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, "FILTEREDMIMETYPE", "Rejected due to mime type ('"+document.getMimeType()+"')");
+      if (Logging.ingest.isDebugEnabled())
+        Logging.ingest.debug("Document filter: Rejected document "+documentURI+" due to mime type ('"+document.getMimeType()+"')");
+      return DOCUMENTSTATUS_REJECTED;
+    }
+    
+    if (!checkDateIndexable(sp, outputDescription, document.getModifiedDate(), activities))
+    {
+      activities.noDocument();
+      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, "FILTEREDDATE", "Rejected due to date ('"+document.getModifiedDate()+"')");
+      if (Logging.ingest.isDebugEnabled())
+        Logging.ingest.debug("Document filter: Rejected document "+documentURI+" due to date ('"+document.getModifiedDate()+"')");
+      return DOCUMENTSTATUS_REJECTED;
+    }
+    
     return activities.sendDocument(documentURI, document);
   }
   
