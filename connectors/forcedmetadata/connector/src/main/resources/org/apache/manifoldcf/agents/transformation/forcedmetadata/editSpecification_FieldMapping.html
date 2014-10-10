@@ -84,6 +84,7 @@
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.KeepAllMetadata'))</nobr></td>
     <td class="value">
+      <input type="hidden" name="s${SEQNUM}_keepallmetadata_present" value="true"/>
   #if($KEEPALLMETADATA == 'true')
        <input type="checkbox" checked="true" name="s${SEQNUM}_keepallmetadata" value="true"/>
   #else
@@ -91,6 +92,19 @@
   #end
     </td>
   </tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.FilterEmpty'))</nobr></td>
+    <td class="value">
+      <input type="hidden" name="s${SEQNUM}_filterempty_present" value="true"/>
+  #if($FILTEREMPTY == 'true')
+       <input type="checkbox" checked="true" name="s${SEQNUM}_filterempty" value="true"/>
+  #else
+       <input type="checkbox" name="s${SEQNUM}_filterempty" value="true"/>
+  #end
+    </td>
+  </tr>
+
 </table>
       
 #else
@@ -102,6 +116,9 @@
     #set($fieldcounter = $fieldcounter + 1)
   #end
 <input type="hidden" name="s${SEQNUM}_fieldmapping_count" value="$fieldcounter"/>
-<input type="hidden" name="s${SEQNUM}_keepallmetadata" value="$Encoder.bodyEscape($KEEPALLMETADATA)"/>
+<input type="hidden" name="s${SEQNUM}_keepallmetadata_present" value="true"/>
+<input type="hidden" name="s${SEQNUM}_keepallmetadata" value="$Encoder.bodyEscape($FILTEREMPTY)"/>
+<input type="hidden" name="s${SEQNUM}_filterempty_present" value="true"/>
+<input type="hidden" name="s${SEQNUM}_filterempty" value="$Encoder.bodyEscape($FILTEREMPTY)"/>
 
 #end
