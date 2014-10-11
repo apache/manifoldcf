@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1061: More fixes for the Alfresco webscript connector
+UI, and create a UI test.
+(Karl Wright)
+
 CONNECTORS-1066: Do not include blank or null fixed fields in Solr
 documents; also, provide facility to strip empty fields from general
 metadata in Metadata Adjuster.
