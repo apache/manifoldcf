@@ -1,11 +1,40 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
 #if($tabName == "Server")
 <table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.ProtocolColon'))</nobr>
     </td>
     <td class="value">
-      <input name="protocol" type="text" size="32" value="$Encoder.attributeEscape($protocol)" />
+      <select id="protocol" name="protocol">
+  #if($protocol == "http")
+        <option value="http" selected="selected">http</option>
+  #else
+        <option value="http">http</option>
+  #end
+  #if($protocol == "https")
+        <option value="https" selected="selected">https</option>
+  #else
+        <option value="https">https</option>
+  #end
+      </select>
     </td>
   </tr>
   <tr>
@@ -24,12 +53,29 @@
       <input name="endpoint" type="text" size="32" value="$Encoder.attributeEscape($endpoint)" />
     </td>
   </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.StoreProtocolColon'))</nobr>
     </td>
     <td class="value">
-      <input name="storeprotocol" type="text" size="32" value="$Encoder.attributeEscape($storeprotocol)"/>
+      <select id="storeprotocol" name="protocol">
+  #if($storeprotocol == "http")
+        <option value="http" selected="selected">http</option>
+  #else
+        <option value="http">http</option>
+  #end
+  #if($storeprotocol == "https")
+        <option value="https" selected="selected">https</option>
+  #else
+        <option value="https">https</option>
+  #end
+  #if($storeprotocol == "https")
+        <option value="workspace" selected="selected">workspace</option>
+  #else
+        <option value="workspace">workspace</option>
+  #end
+      </select>
     </td>
   </tr>
   <tr>
@@ -40,6 +86,7 @@
       <input name="storeid" type="text" size="32" value="$Encoder.attributeEscape($storeid)"/>
     </td>
   </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.UsernameColon'))</nobr>
@@ -56,6 +103,7 @@
       <input name="password" type="password" size="32" value="$Encoder.attributeEscape($password)"/>
     </td>
   </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
         <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Alfresco.EnableDocumentProcessingQuestion'))</nobr>
