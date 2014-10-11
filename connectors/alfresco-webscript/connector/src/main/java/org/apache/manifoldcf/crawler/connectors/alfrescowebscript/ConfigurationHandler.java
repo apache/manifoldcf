@@ -237,9 +237,11 @@ public class ConfigurationHandler {
     // Field Mapping tab
     if (tabName.equals(Messages.getString(locale, "Alfresco.FilteringConfiguration")) && connectionSequenceNumber == actualSequenceNumber)
     {
+      out.print(
+                  "<table class=\"displaytable\">\n"
+      );
       for(String node:SPECIFICATION_MAP.keySet()){
         out.print(
-                  "<table class=\"displaytable\">\n"+
                   "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
                   "  <tr>\n"+
                   "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "Alfresco.SpecificFilteringConfiguration",new String[]{Messages.getString(locale,"Alfresco."+node)}) + "</nobr></td>\n"+
@@ -249,9 +251,13 @@ public class ConfigurationHandler {
                   "          <td class=\"formcolumnheader\"></td>\n");
         Collection<String> vars = SPECIFICATION_MAP.get(node);
         for(String var:vars){
-          out.print("<td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"Alfresco."+var) + "</nobr></td>\n");
+          out.print(
+                  "          <td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"Alfresco."+var) + "</nobr></td>\n"
+          );
         }
-        out.print("</tr>\n");
+        out.print(
+                  "        </tr>\n"
+        );
         
         int fieldCounter = 0;
         i = 0;
@@ -260,23 +266,30 @@ public class ConfigurationHandler {
           if (sn.getType().equals(node)) {
             String prefix = seqPrefix+node+"_" + Integer.toString(fieldCounter);
             out.print(
-                      "        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-                      "          <td class=\"formcolumncell\">\n"+
-                      "            <a name=\""+prefix+"\">\n"+
-                      "              <input type=\"button\" value=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Delete") + "\" alt=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Delete") + ""+Integer.toString(fieldCounter+1)+"\" onclick='javascript:"+seqPrefix+"delete"+node+"("+Integer.toString(fieldCounter)+");'/>\n"+
-                      "              <input type=\"hidden\" name=\""+prefix+"_op\" value=\"Continue\"/>\n");
-            for(String var:vars){
-              out.print("<input type=\"hidden\" name=\""+prefix+"_"+var+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue(var))+"\"/>\n");
-            }
-
-            out.print("            </a>\n"+
-                      "          </td>\n");
+                  "        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+                  "          <td class=\"formcolumncell\">\n"+
+                  "            <a name=\""+prefix+"\">\n"+
+                  "              <input type=\"button\" value=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Delete") + "\" alt=\""+ Messages.getBodyJavascriptString(locale, "Alfresco.Delete") + ""+Integer.toString(fieldCounter+1)+"\" onclick='javascript:"+seqPrefix+"delete"+node+"("+Integer.toString(fieldCounter)+");'/>\n"+
+                  "              <input type=\"hidden\" name=\""+prefix+"_op\" value=\"Continue\"/>\n");
             for(String var:vars){
               out.print(
-                        "       <td class=\"formcolumncell\">\n"+
-                        "            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue(var))+"</nobr>\n"+
-                        "          </td>\n");
+                  "              <input type=\"hidden\" name=\""+prefix+"_"+var+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue(var))+"\"/>\n"
+              );
             }
+
+            out.print(
+                  "            </a>\n"+
+                  "          </td>\n"
+            );
+            for(String var:vars){
+              out.print(
+                  "          <td class=\"formcolumncell\">\n"+
+                  "            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue(var))+"</nobr>\n"+
+                  "          </td>\n");
+            }
+            out.print(
+                  "        </tr>\n"
+            );
             fieldCounter++;
 
           }
@@ -284,11 +297,11 @@ public class ConfigurationHandler {
         if (fieldCounter == 0)
           {
             out.print(
-                      "<tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">"+ Messages.getBodyJavascriptString(locale, "Alfresco.NoFilteringConfiguration") + "</td></tr>\n");
+                  "        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\""+(vars.size()+1)+"\">"+ Messages.getBodyJavascriptString(locale, "Alfresco.NoFilteringConfiguration") + "</td></tr>\n");
           }
         
         out.print(
-                  "        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
+                  "        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\""+(vars.size()+1)+"\"><hr/></td></tr>\n"+
                   "        <tr class=\"formrow\">\n"+
                   "          <td class=\"formcolumncell\">\n"+
                   "            <a name=\""+seqPrefix+node+"\">\n"+
@@ -298,18 +311,25 @@ public class ConfigurationHandler {
                   "            <input type=\"hidden\" name=\""+seqPrefix+node+"_op\" value=\"Continue\"/>\n"+
                   "          </td>\n");
         for(String var:vars){
-          out.print("          <td class=\"formcolumncell\">\n"+
-                    "            <nobr><input type=\"text\" size=\"15\" name=\""+seqPrefix+var+"\" value=\"\"/></nobr>\n"+
-                    "          </td>\n");
+          out.print(
+                  "          <td class=\"formcolumncell\">\n"+
+                  "            <nobr><input type=\"text\" size=\"15\" name=\""+seqPrefix+var+"\" value=\"\"/></nobr>\n"+
+                  "          </td>\n");
         }
 
-        out.print("</tr>\n"+
-                 "      </table>\n"+
-                 "    </td>\n"+
-                 "  </tr>\n");
+        out.print(
+                  "        </tr>\n"+
+                  "      </table>\n"+
+                  "    </td>\n"+
+                  "  </tr>\n"
+        );
             
 
       }
+      out.print(
+                  "</table>\n"
+      );
+
     }
     else{
         for(String node:SPECIFICATION_MAP.keySet()){
@@ -400,9 +420,6 @@ public class ConfigurationHandler {
   {
     int i = 0;
 
-
-
-
     for(String node:SPECIFICATION_MAP.keySet()){
       Collection<String> vars = SPECIFICATION_MAP.get(node);
       out.print(
@@ -415,25 +432,31 @@ public class ConfigurationHandler {
                 "        <tr class=\"formheaderrow\">\n");
       for(String var:vars)
         out.print(
-                  "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale, "Alfresco."+var) + "</nobr></td>\n");
+                "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale, "Alfresco."+var) + "</nobr></td>\n"
+        );
               
-     out.print("        </tr>\n");
+      out.print(
+                "        </tr>\n"
+      );
      
-     int fieldCounter = 0;
+      int fieldCounter = 0;
       i = 0;
      
       while (i < os.getChildCount()) {
         SpecificationNode sn = os.getChild(i++);
         if (sn.getType().equals(node)) {
           out.print(
-                    "        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n");
+                "        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"
+          );
           for(String var:vars)
             out.print(
-                      "          <td class=\"formcolumncell\">\n"+
-                      "            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue(var))+"</nobr>\n"+
-                      "          </td>\n");
+                "          <td class=\"formcolumncell\">\n"+
+                "            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue(var))+"</nobr>\n"+
+                "          </td>\n"
+            );
           out.print(
-                    "        </tr>\n");
+                "        </tr>\n"
+          );
           fieldCounter++;
         }
       }
@@ -441,13 +464,12 @@ public class ConfigurationHandler {
       if (fieldCounter == 0)
       {
         out.print(
-                  "        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">"+ Messages.getBodyJavascriptString(locale, "Alfresco.NoSpecificFilteringConfiguration",new String[]{node}) + "</td></tr>\n"
-            );
+                "        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\""+vars.size()+"\">"+ Messages.getBodyJavascriptString(locale, "Alfresco.NoSpecificFilteringConfiguration",new String[]{node}) + "</td></tr>\n"
+        );
       }
       out.print(
                 "      </table>\n"+
                 "    </td>\n"+
-                "  </tr>\n"+
                 "  </tr>\n"+
                 "</table>\n");
     }
