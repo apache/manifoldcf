@@ -48,9 +48,6 @@ import java.util.Map.Entry;
  */
 public class JiraAuthorityConnector extends BaseAuthorityConnector {
 
-  /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
-
   // Configuration tabs
   private static final String JIRA_SERVER_TAB_PROPERTY = "JiraAuthorityConnector.Server";
   private static final String JIRA_PROXY_TAB_PROPERTY = "JiraAuthorityConnector.Proxy";
