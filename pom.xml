@@ -38,10 +38,13 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- dependency versions -->
     <junit.version>4.8.2</junit.version>
+    <mockito.version>1.9.5</mockito.version>
+    <wiremock.version>1.34</wiremock.version>
     <postgresql.version>9.1-901.jdbc4</postgresql.version>
     <mysql.version>5.1.18</mysql.version>
     <hsqldb.version>2.3.1</hsqldb.version>
     <jetty.version>9.2.3.v20140905</jetty.version>
+    <jetty-schemas.version>3.1.M0</jetty-schemas.version>
     <mail.version>1.4.5</mail.version>
     <activation.version>1.1.1</activation.version>
     <axis.version>1.4</axis.version>

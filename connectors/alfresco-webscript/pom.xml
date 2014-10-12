@@ -134,62 +134,201 @@
             <version>0.6.2</version>
         </dependency>
 
-
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>mcf-core</artifactId>
-            <version>${project.version}</version>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>mcf-core</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>mcf-agents</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>mcf-pull-agent</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>mcf-ui-core</artifactId>
+          <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>mcf-pull-agent</artifactId>
-            <version>${project.version}</version>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>mcf-core</artifactId>
+          <version>${project.version}</version>
+          <type>test-jar</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>mcf-agents</artifactId>
+          <version>${project.version}</version>
+          <type>test-jar</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>mcf-pull-agent</artifactId>
+          <version>${project.version}</version>
+          <type>test-jar</type>
+          <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>mcf-agents</artifactId>
-            <version>${project.version}</version>
+          <groupId>postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>${postgresql.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
+          <version>${hsqldb.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>${mysql.version}</version>
+          <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>mcf-ui-core</artifactId>
-            <version>${project.version}</version>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>mcf-api-service</artifactId>
+          <version>${project.version}</version>
+          <type>war</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>mcf-authority-service</artifactId>
+          <version>${project.version}</version>
+          <type>war</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>mcf-crawler-ui</artifactId>
+          <version>${project.version}</version>
+          <type>war</type>
+          <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.5</version>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-server</artifactId>
+          <version>${jetty.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
+          <version>${jetty.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-plus</artifactId>
+          <version>${jetty.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-webapp</artifactId>
+          <version>${jetty.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-servlet</artifactId>
+          <version>${jetty.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-http</artifactId>
+          <version>${jetty.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-io</artifactId>
+          <version>${jetty.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-security</artifactId>
+          <version>${jetty.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-continuation</artifactId>
+          <version>${jetty.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-xml</artifactId>
+          <version>${jetty.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.jetty.toolchain</groupId>
+          <artifactId>jetty-schemas</artifactId>
+          <version>${jetty-schemas.version}</version>
+          <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-nop</artifactId>
-            <version>1.7.5</version>
-            <scope>test</scope>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jsp-api-2.1-glassfish</artifactId>
+          <version>${glassfish.version}</version>
+          <scope>test</scope>
+        </dependency>    
+        <dependency>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jsp-2.1-glassfish</artifactId>
+          <version>${glassfish.version}</version>
+          <scope>test</scope>
+        </dependency>
+    
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+          <version>${slf4j.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-simple</artifactId>
+          <version>${slf4j.version}</version>
+          <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>1.9.5</version>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
-            <version>1.34</version>
+            <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.8.1</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
