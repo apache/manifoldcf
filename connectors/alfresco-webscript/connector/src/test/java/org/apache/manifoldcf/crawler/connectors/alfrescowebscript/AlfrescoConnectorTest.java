@@ -150,7 +150,7 @@ public class AlfrescoConnectorTest {
 
     ArgumentCaptor<RepositoryDocument> rd = ArgumentCaptor.forClass(RepositoryDocument.class);
     verify(activities)
-            .checkDocumentNeedsReindexing(eq(TestDocument.uuid), eq("1412266525124"));
+            .checkDocumentNeedsReindexing(eq(TestDocument.uuid), eq("+1412266525124"));
     verify(activities)
             .checkLengthIndexable(eq(115L));
     verify(activities)
