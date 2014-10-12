@@ -28,8 +28,32 @@ function checkConfigForSave() {
     editconnection.hostname.focus();
     return false;
   }
+  if (editconnection.hostname.value.indexOf(":") != -1 || editconnection.hostname.value.indexOf("/") != -1) {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.HostNameCannotContainColonOrSlash'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.Server'))");
+    editconnection.hostname.focus();
+    return false;
+  }
+  if (editconnection.port.value == "") {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.PortMustNotBeEmpty'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.Server'))");
+    editconnection.port.focus();
+    return false;
+  }
+  if (!isInteger(editconnection.port.value)) {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.PortMustBeAnInteger'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.Server'))");
+    editconnection.port.focus();
+    return false;
+  }
   if (editconnection.endpoint.value == "") {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.EndpointMustNotBeEmpty'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.Server'))");
+    editconnection.endpoint.focus();
+    return false;
+  }
+  if (editconnection.endpoint.value.substring(0,1) != "/") {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.EndpointMustStartWithSlash'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('Alfresco.Server'))");
     editconnection.endpoint.focus();
     return false;

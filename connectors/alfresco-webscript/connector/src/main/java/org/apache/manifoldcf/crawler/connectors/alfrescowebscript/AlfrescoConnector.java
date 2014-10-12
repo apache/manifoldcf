@@ -44,7 +44,6 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
   private static final String ACTIVITY_FETCH = "fetch document";
   private static final String[] activitiesList = new String[]{ACTIVITY_FETCH};
   private AlfrescoClient alfrescoClient;
-  private Boolean enableDocumentProcessing = Boolean.TRUE;
 
   private static final String CONTENT_URL_PROPERTY = "contentUrlPath";
   private static final String AUTHORITIES_PROPERTY = "readableAuthorities";
@@ -74,14 +73,14 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
 
     String protocol = getConfig(config, "protocol", "http");
     String hostname = getConfig(config, "hostname", "localhost");
+    String port = getConfig(config, "port", "8080");
     String endpoint = getConfig(config, "endpoint", "/alfresco/service");
     String storeProtocol = getConfig(config, "storeprotocol", "workspace");
     String storeId = getConfig(config, "storeid", "SpacesStore");
     String username = getConfig(config, "username", null);
     String password = getObfuscatedConfig(config, "password", null);
-    this.enableDocumentProcessing = new Boolean(getConfig(config, "enabledocumentprocessing", "false"));
 
-    alfrescoClient = new WebScriptsAlfrescoClient(protocol, hostname, endpoint,
+    alfrescoClient = new WebScriptsAlfrescoClient(protocol, hostname + ":" + port, endpoint,
         storeProtocol, storeId, username, password);
   }
 
@@ -121,6 +120,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
 
   @Override
   public void disconnect() throws ManifoldCFException {
+    alfrescoClient = null;
     super.disconnect();
   }
 
@@ -195,8 +195,9 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
                                IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption {
 
-    try {
-      for (String doc : documentIdentifiers) {
+    boolean enableDocumentProcessing = ConfigurationHandler.getEnableDocumentProcessing(spec);
+    for (String doc : documentIdentifiers) {
+      try {
 
         String nextVersion = statuses.getIndexedVersionString(doc);	
           
@@ -255,7 +256,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           continue;
         }
         
-        String documentVersion = new Long(modifiedDate.getTime()).toString();
+        String documentVersion = (enableDocumentProcessing?"+":"-") + new Long(modifiedDate.getTime()).toString();
 
         if(!activities.checkDocumentNeedsReindexing(doc, documentVersion))
           continue;
@@ -313,15 +314,19 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         long length;
         byte[] empty = new byte[0];
         String contentUrlPath = (String) properties.get(CONTENT_URL_PROPERTY);
-        if (contentUrlPath != null && !contentUrlPath.isEmpty()) {
-          if (this.enableDocumentProcessing) {
-            if (lSize != null) {
-              stream = alfrescoClient.fetchContent(contentUrlPath);
-              length = lSize.longValue();
-            } else {
-              stream = new ByteArrayInputStream(empty);
-              length = 0L;
+        if (contentUrlPath == null || contentUrlPath.isEmpty()) {
+          activities.noDocument(doc, documentVersion);
+          continue;
+        }
+        
+        if (enableDocumentProcessing) {
+          if (lSize != null) {
+            stream = alfrescoClient.fetchContent(contentUrlPath);
+            if (stream == null) {
+              activities.noDocument(doc, documentVersion);
+              continue;
             }
+            length = lSize.longValue();
           } else {
             stream = new ByteArrayInputStream(empty);
             length = 0L;
@@ -346,9 +351,9 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           }
         }
 
+      } catch (AlfrescoDownException e) {
+        handleAlfrescoDownException(e,"processing");
       }
-    } catch (AlfrescoDownException e) {
-      handleAlfrescoDownException(e,"processing");
     }
   }
 

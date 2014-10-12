@@ -32,6 +32,7 @@ import java.util.Map;
 public class ConfigurationHandler {
   private static final String PARAM_PROTOCOL = "protocol";
   private static final String PARAM_HOSTNAME = "hostname";
+  private static final String PARAM_PORT = "port";
   private static final String PARAM_ENDPOINT = "endpoint";
   private static final String PARAM_USERNAME = "username";
   private static final String PARAM_PASSWORD = "password";
@@ -45,6 +46,7 @@ public class ConfigurationHandler {
   static {
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_PROTOCOL, "http");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_HOSTNAME, "localhost");
+    DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_PORT, "8080");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_ENDPOINT, "/alfresco/service");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_USERNAME, "");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_PASSWORD, "");
