@@ -340,7 +340,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           rd.setBinary(stream, length);
           if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
             Logging.connectors.debug(MessageFormat.format("Ingesting with id: {0}, URI {1} and rd {2}", new Object[]{uuid, nodeRef, rd.getFileName()}));
-          activities.ingestDocumentWithException(doc, documentVersion, nodeRef/*was uuid*/, rd);
+          activities.ingestDocumentWithException(doc, documentVersion, contentUrlPath, rd);
         } catch (IOException e) {
           handleIOException(e,"reading stream");
         } finally {
