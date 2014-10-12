@@ -33,9 +33,6 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
 
   private AlfrescoClient alfrescoClient;
 
-  private static final AuthorizationResponse denied = new AuthorizationResponse(
-      new String[]{"DEAD_AUTHORITY"}, AuthorizationResponse.RESPONSE_UNREACHABLE);
-
   public void setClient(AlfrescoClient client) {
     alfrescoClient = client;
   }
@@ -46,11 +43,12 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
 
     String protocol = getConfig(config, "protocol", "http");
     String hostname = getConfig(config, "hostname", "localhost");
+    String port = getConfig(config, "port", "8080");
     String endpoint = getConfig(config, "endpoint", "/alfresco/service");
     String username = getConfig(config, "username", null);
     String password = getObfuscatedConfig(config, "password", null);
 
-    alfrescoClient = new WebScriptsAlfrescoClient(protocol, hostname, endpoint,
+    alfrescoClient = new WebScriptsAlfrescoClient(protocol, hostname + ":" + port, endpoint,
         null, null, username, password);
   }
 
@@ -97,6 +95,7 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
    */
   @Override
   public void disconnect() throws ManifoldCFException {
+    alfrescoClient = null;
     super.disconnect();
   }
 
@@ -106,7 +105,7 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
    */
   @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName) {
-    return denied;
+    return RESPONSE_UNREACHABLE;
   }
 
   /*
@@ -121,13 +120,13 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
       if (permissions.getUsername() == null
           || permissions.getUsername().isEmpty()
           || permissions.getAuthorities().isEmpty())
-        return new AuthorizationResponse(null, AuthorizationResponse.RESPONSE_USERNOTFOUND);
+        return RESPONSE_USERNOTFOUND;
       else
         return new AuthorizationResponse(
             permissions.getAuthorities().toArray(new String[permissions.getAuthorities().size()]),
             AuthorizationResponse.RESPONSE_OK);
     } catch (AlfrescoDownException e) {
-      return new AuthorizationResponse(null, AuthorizationResponse.RESPONSE_UNREACHABLE);
+      return RESPONSE_UNREACHABLE;
     }
   }
 

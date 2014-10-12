@@ -31,14 +31,24 @@ import java.util.*;
 public class ConfigurationHandler {
   private static final String PARAM_PROTOCOL = "protocol";
   private static final String PARAM_HOSTNAME = "hostname";
+  private static final String PARAM_PORT = "port";
   private static final String PARAM_ENDPOINT = "endpoint";
   private static final String PARAM_STORE_PROTOCOL = "storeprotocol";
-  private static final String PARAM_ENABLE_DOCUMENT_PROCESSING = "enabledocumentprocessing";
   private static final String PARAM_STORE_ID = "storeid";
   private static final String PARAM_USERNAME = "username";
   private static final String PARAM_PASSWORD = "password";
 
-  // Output Specification for Filtering
+  // Output Specification
+  
+  /**
+   * Node describing document processing
+   */
+  public static final String NODE_ENABLEDOCUMENTPROCESSING = "enabledocumentprocessing";
+  /**
+   * Attribute value
+   */
+  public static final String ATTRIBUTE_VALUE = "value";
+
   /**
    * Node describing a Site
    */
@@ -96,9 +106,9 @@ public class ConfigurationHandler {
   static {
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_PROTOCOL, "http");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_HOSTNAME, "localhost");
+    DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_PORT, "8080");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_ENDPOINT, "/alfresco/service");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_STORE_PROTOCOL, "workspace");
-    DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_ENABLE_DOCUMENT_PROCESSING, "true");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_STORE_ID, "SpacesStore");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_USERNAME, "");
     DEFAULT_CONFIGURATION_PARAMETERS.put(PARAM_PASSWORD, "");
@@ -240,6 +250,18 @@ public class ConfigurationHandler {
       out.print(
                   "<table class=\"displaytable\">\n"
       );
+      
+      out.print(
+                  "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+                  "  <tr>\n"+
+                  "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "Alfresco.EnableDocumentProcessingQuestion") + "</nobr></td>\n"+
+                  "    <td class=\"value\">\n"+
+                  "      <input name=\""+seqPrefix+"enabledocumentprocessing_present\" type=\"hidden\" value=\"true\"/>\n"+
+                  "      <input name=\""+seqPrefix+"enabledocumentprocessing\" type=\"checkbox\" "+(getEnableDocumentProcessing(os)?"checked=\"true\" ":"")+"value=\"true\"/>\n"+
+                  "    </td>\n"+
+                  "  </tr>\n"
+      );
+
       for(String node:SPECIFICATION_MAP.keySet()){
         out.print(
                   "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
@@ -332,33 +354,56 @@ public class ConfigurationHandler {
 
     }
     else{
-        for(String node:SPECIFICATION_MAP.keySet()){
-          i = 0;
-          int fieldCounter = 0;  
-          while (i < os.getChildCount()) {
-            SpecificationNode sn = os.getChild(i++);
-            if(sn.getType().equals(node)){
-            String prefix = seqPrefix+node+"_" + Integer.toString(fieldCounter);  
-            for(String var:SPECIFICATION_MAP.get(node)){
-              out.print(
-                        "<input type=\"hidden\" name=\""+prefix+"_"+var+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue(var))+"\"/>\n");
-            }
-            fieldCounter++;
-            }
+      out.print(
+                  "<input type=\"hidden\" name=\""+seqPrefix+"enabledocumentprocessing_present\" value=\"true\"/>\n"+
+                  "<input type=\"hidden\" name=\""+seqPrefix+"enabledocumentprocessing\" value=\""+getEnableDocumentProcessing(os)+"\"/>\n"
+      );
+      for(String node:SPECIFICATION_MAP.keySet()){
+        i = 0;
+        int fieldCounter = 0;  
+        while (i < os.getChildCount()) {
+          SpecificationNode sn = os.getChild(i++);
+          if(sn.getType().equals(node)){
+          String prefix = seqPrefix+node+"_" + Integer.toString(fieldCounter);  
+          for(String var:SPECIFICATION_MAP.get(node)){
+            out.print(
+                    "<input type=\"hidden\" name=\""+prefix+"_"+var+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue(var))+"\"/>\n"
+            );
           }
-          
-          out.print("<input type=\"hidden\" name=\""+seqPrefix+node+"_count\" value=\""+Integer.toString(fieldCounter)+"\"/>\n");
+          fieldCounter++;
+          }
         }
+          
+        out.print("<input type=\"hidden\" name=\""+seqPrefix+node+"_count\" value=\""+Integer.toString(fieldCounter)+"\"/>\n");
       }
     }
+  }
       
   public static String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification os,
       int connectionSequenceNumber) throws ManifoldCFException {
-    // Remove old Nodes
     int i;
 
     String seqPrefix = "s"+connectionSequenceNumber+"_";
-          
+    
+    String enablePresent = variableContext.getParameter(seqPrefix+"enabledocumentprocessing_present");
+    if (enablePresent != null) {
+      String enableValue = variableContext.getParameter(seqPrefix+"enabledocumentprocessing");
+      if (enableValue == null)
+        enableValue = "false";
+      i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode specNode = os.getChild(i);
+        if (specNode.getType().equals(NODE_ENABLEDOCUMENTPROCESSING))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode sn = new SpecificationNode(NODE_ENABLEDOCUMENTPROCESSING);
+      sn.setAttribute(ATTRIBUTE_VALUE,enableValue);
+      os.addChild(os.getChildCount(),sn);
+    }
+    
     for(String node:SPECIFICATION_MAP.keySet()){
       
       String x = variableContext.getParameter(seqPrefix+node+"_count");
@@ -418,13 +463,29 @@ public class ConfigurationHandler {
                                        int connectionSequenceNumber)
       throws ManifoldCFException, IOException
   {
+    out.print(
+                "\n"+
+                "<table class=\"displaytable\">\n"
+    );
+    
+    out.print(
+                "  <tr>\n"+
+                "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "Alfresco.EnableDocumentProcessingQuestion") + "</nobr></td>\n"+
+                "    <td class=\"value\">\n"+
+                "      "+getEnableDocumentProcessing(os)+"\n"+
+                "    </td>\n"+
+                "  </tr>\n"
+    );
+
+    out.print(
+                "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+
     int i = 0;
 
     for(String node:SPECIFICATION_MAP.keySet()){
       Collection<String> vars = SPECIFICATION_MAP.get(node);
       out.print(
-                "\n"+
-                "<table class=\"displaytable\">\n"+
                 "  <tr>\n"+
                 "    <td class=\"description\"><nobr>"+ Messages.getBodyString(locale, "Alfresco.SpecificFilteringConfiguration",new String[]{Messages.getString(locale,"Alfresco."+node)}) +"</nobr></td>\n"+
                 "    <td class=\"boxcell\">\n"+
@@ -470,9 +531,12 @@ public class ConfigurationHandler {
       out.print(
                 "      </table>\n"+
                 "    </td>\n"+
-                "  </tr>\n"+
-                "</table>\n");
+                "  </tr>\n"
+      );
     }
+    out.print(
+                "</table>\n"
+    );
   }
   
   public static String getSpecificationVersion(Specification os){
@@ -507,4 +571,15 @@ public class ConfigurationHandler {
     
     return filters;
   }
+  
+  public static boolean getEnableDocumentProcessing(Specification spec) {
+    boolean rval = true;
+    for(int i = 0; i < spec.getChildCount(); i++){
+      SpecificationNode node = spec.getChild(i);
+      if(node.getType().equals(NODE_ENABLEDOCUMENTPROCESSING))
+        rval = new Boolean(node.getAttributeValue(ATTRIBUTE_VALUE)).booleanValue();
+    }
+    return rval;
+  }
+  
 }
