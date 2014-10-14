@@ -1627,7 +1627,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/solr"/>
-            <param name="artifact-version" value="4.7.0"/>
+            <param name="artifact-version" value="4.10.0"/>
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1645,7 +1645,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/zookeeper"/>
-            <param name="artifact-version" value="3.4.5"/>
+            <param name="artifact-version" value="3.4.6"/>
             <param name="artifact-name" value="zookeeper"/>
             <param name="artifact-type" value="jar"/>
         </antcall>

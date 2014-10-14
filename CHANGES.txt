@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1042: Upgrade solrj and zookeeper versions.
+(Karl Wright)
+
 CONNECTORS-1061: More fixes for the Alfresco webscript connector
 UI, and create a UI test.
 (Karl Wright)

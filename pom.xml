@@ -59,7 +59,7 @@
     <httpcomponent.httpclient.version>4.3.5</httpcomponent.httpclient.version>
     <httpcomponent.httpcore.version>4.3.2</httpcomponent.httpcore.version>
     <httpcomponent.httpmime.version>4.3.5</httpcomponent.httpmime.version>
-    <solr.version>4.7.0</solr.version>
+    <solr.version>4.10.0</solr.version>
     <noggit.version>0.5</noggit.version>
     <commons-el.version>1.0</commons-el.version>
     <commons-lang.version>2.6</commons-lang.version>
@@ -76,7 +76,7 @@
     <velocity.version>1.7</velocity.version>
     <slf4j.version>1.7.7</slf4j.version>
     <jaxb.version>2.2.6</jaxb.version>
-    <zookeeper.version>3.4.5</zookeeper.version>
+    <zookeeper.version>3.4.6</zookeeper.version>
     <xmlbeans.version>2.6.0</xmlbeans.version>
     <poi.version>3.10.1</poi.version>
   </properties>
