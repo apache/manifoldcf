@@ -22,7 +22,7 @@
     </target>
     
     <target name="download-via-maven" depends="setup-maven-url">
-        <get src="${maven-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}.${artifact-type}"/>
+        <get src="${maven-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}-${artifact-version}.${artifact-type}"/>
     </target>
 
     <target name="setup-alfresco-indexer-url">

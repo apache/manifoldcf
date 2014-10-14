@@ -3,6 +3,30 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1053: Provide stop scripts for single-process examples.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-345: Provide a jetty configuration XML file that can
+be used to alter the jetty configuration.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-1050: Upgrade to Jetty 9.
+(Shinichiro Abe)
+
+CONNECTORS-1049: Put plugins under "plugins" in dist directory,
+and connector processes under "processes" in dist directory.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-1051: Elastic Search connector and CMIS connector
+should use the same paradigm for test wars.
+(Karl Wright)
+
+CONNECTORS-1048: Use full paths for all downloaded jars.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-1047: Upgrade to Tika 1.6.
+(Shinichiro Abe)
+
 CONNECTORS-1042: Upgrade solrj and zookeeper versions.
 (Karl Wright)
 

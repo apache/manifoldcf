@@ -20,6 +20,7 @@ package org.apache.manifoldcf.crawler.connectors.wiki.tests;
 
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
@@ -38,8 +39,10 @@ public class MockWikiService
     
   public MockWikiService(Class theResourceClass)
   {
-    server = new Server(8089);
-    server.setThreadPool(new QueuedThreadPool(35));
+    server = new Server(new QueuedThreadPool(35));
+    ServerConnector connector = new ServerConnector(server);
+    connector.setPort(8089);
+    server.addConnector(connector);
     servlet = new WikiAPIServlet(theResourceClass);
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setContextPath("/w");
