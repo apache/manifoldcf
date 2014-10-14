@@ -68,6 +68,17 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jsp-api-2.1-glassfish</artifactId>
+      <version>${glassfish.version}</version>
+    </dependency>    
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jsp-2.1-glassfish</artifactId>
+      <version>${glassfish.version}</version>
+    </dependency>
+
     <!-- other dependencies -->
      <dependency>
         <groupId>commons-lang</groupId>

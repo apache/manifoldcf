@@ -19,7 +19,7 @@ if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
 if not exist "%MCF_HOME%\properties.xml" goto nolcfhome
 rem save existing path here
 set OLDDIR=%CD%
-cd "%MCF_HOME%\..\filenet-server-process"
+cd "%MCF_HOME%\..\processes\filenet-server"
 set CLASSPATH=.
 for %%f in (lib/*) do call setclasspath.bat %%f lib
 for %%f in (lib-proprietary/*.jar) do call setclasspath.bat %%f lib-proprietary

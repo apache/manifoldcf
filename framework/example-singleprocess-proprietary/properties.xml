@@ -22,7 +22,7 @@
   <property name="org.apache.manifoldcf.authorityservicewarpath" value="../web-proprietary/war/mcf-authority-service.war"/>
   <property name="org.apache.manifoldcf.apiservicewarpath" value="../web-proprietary/war/mcf-api-service.war"/>
   <property name="org.apache.manifoldcf.usejettyparentclassloader" value="true"/>
-  <property name="org.apache.manifoldcf.jettyport" value="8345"/>
+  <property name="org.apache.manifoldcf.jettyconfigfile" value="./jetty.xml"/>
   <!-- Point to the combined war in case we start the single-process example that way -->
   <property name="org.apache.manifoldcf.combinedwarpath" value="../web-proprietary/war/mcf-combined-service.war"/>
   <!-- Select Derby as the database implementation, and specify where the database will be stored -->

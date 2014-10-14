@@ -15,17 +15,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if [[ $OSTYPE == "cygwin" ]] ; then
+    OPTIONSFILE="combined-options.env.win"
+else
+    OPTIONSFILE="combined-options.env.unix"
+fi
+
 #Make sure environment variables are properly set
 if [ -e "$JAVA_HOME"/bin/java ] ; then
     if [ -f ./properties.xml ] ; then
-        ./executecommand.sh org.apache.zookeeper.server.quorum.QuorumPeerMain zookeeper.cfg
+        # Build the global options
+        OPTIONS=$(cat "$OPTIONSFILE")
+        
+        "$JAVA_HOME/bin/java" $OPTIONS org.apache.manifoldcf.jettyrunner.ManifoldCFJettyShutdown "http://localhost:8345"
         exit $?
         
     else
         echo "Working directory contains no properties.xml file." 1>&2
         exit 1
     fi
-    
+
 else
     echo "Environment variable JAVA_HOME is not properly set." 1>&2
     exit 1

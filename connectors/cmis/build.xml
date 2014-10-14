@@ -30,6 +30,30 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
     
+    <property name="chemistry.version" value="0.11.0"/>
+    
+    <target name="download-dependencies">
+        <property name="chemistry-package" value="org/apache/chemistry/opencmis"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${chemistry-package}"/><param name="artifact-version" value="${chemistry.version}"/><param name="target" value="test-materials"/>
+            <param name="artifact-name" value="chemistry-opencmis-server-inmemory"/>
+            <param name="artifact-type" value="war"/>
+        </antcall>
+    </target>
+
+    <target name="download-cleanup">
+        <delete>
+            <fileset dir="test-materials" excludes="README*.txt"/>
+        </delete>
+    </target>
+
+    <target name="calculate-testcode-condition">
+        <available file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}.war" property="tests-present"/>
+    </target>
+
+    <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
+        <echo message="Need Apache Chemistry in-memory war download in order to run tests - run ant make-deps"/>
+    </target>
+
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
@@ -72,6 +96,32 @@
             <param name="connector-label" value="CMIS"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"/>
         </antcall>
+    </target>
+
+    <target name="run-IT-HSQLDB" depends="compile-tests,pretest-check" if="canTest">
+        <mkdir dir="test-HSQLDB-output"/>
+        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <jvmarg value="-DopenCmisServerWarPath=../test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}.war"/>
+            <jvmarg value="-Xms128m"/>
+            <jvmarg value="-Xmx256m"/>
+            <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-HSQLDB-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBIT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
     </target>
 
 </project>

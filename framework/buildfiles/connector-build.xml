@@ -24,7 +24,7 @@
     </target>
     
     <target name="download-via-maven" depends="setup-maven-url">
-        <get src="${maven-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}.${artifact-type}"/>
+        <get src="${maven-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}-${artifact-version}.${artifact-type}"/>
     </target>
 
     <target name="checkout-source-via-svn">
@@ -133,7 +133,7 @@
             <include name="junit*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
-            <include name="servlet-api*.jar"/>
+            <include name="javax.servlet-api*.jar"/>
             <include name="tomcat-juli*.jar"/>
             <include name="xalan*.jar"/>
             <include name="xercesImpl*.jar"/>
@@ -686,22 +686,22 @@
     </target>
 
     <target name="general-connector-delivery-integration" depends="general-connector-integration-check" if="has-integration">
-        <mkdir dir="${mcf-dist}/${ant.project.name}-integration"/>
-        <copy todir="${mcf-dist}/${ant.project.name}-integration">
+        <mkdir dir="${mcf-dist}/plugins/${ant.project.name}"/>
+        <copy todir="${mcf-dist}/plugins/${ant.project.name}">
             <fileset dir="dist/integration"/>
         </copy>
     </target>
 
     <target name="general-delivery-server-process" depends="general-server-process-check" if="has-server-process">
-        <mkdir dir="${mcf-dist}/${ant.project.name}-server-process"/>
-        <copy todir="${mcf-dist}/${ant.project.name}-server-process">
+        <mkdir dir="${mcf-dist}/processes/${ant.project.name}-server"/>
+        <copy todir="${mcf-dist}/processes/${ant.project.name}-server">
             <fileset dir="dist/server-process"/>
         </copy>
     </target>
 
     <target name="general-delivery-registry-process" depends="general-registry-process-check" if="has-registry-process">
-        <mkdir dir="${mcf-dist}/${ant.project.name}-registry-process"/>
-        <copy todir="${mcf-dist}/${ant.project.name}-registry-process">
+        <mkdir dir="${mcf-dist}/processes/${ant.project.name}-registry"/>
+        <copy todir="${mcf-dist}/processes/${ant.project.name}-registry">
             <fileset dir="dist/registry-process"/>
         </copy>
     </target>

@@ -1,13 +1,11 @@
-#!/bin/bash -e
-
 # Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
+# contributor license agreements. See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
 # The ASF licenses this file to You under the Apache License, Version 2.0
 # (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# the License. You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,12 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#Make sure environment variables are properly set
-if [ -e "$JAVA_HOME"/bin/java ] ; then
-    "$JAVA_HOME"/bin/java -cp ../lib/hsqldb.jar org.hsqldb.Server -database.0 "file:extdb;hsqldb.tx=mvcc;hsqldb.cache_file_scale=512" -dbname.0 xdb
-    exit $?
-        
-else
-    echo "Environment variable JAVA_HOME is not properly set." 1>&2
-    exit 1
-fi
+To test this connector, copy the Apache Chemistry in-memory war file into
+lthis directory, and use the "ant test" target for the standard ant build.
+You can read more about the process on the "how-to-build-and-deploy.html"
+documentation page.

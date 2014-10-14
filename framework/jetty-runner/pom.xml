@@ -136,6 +136,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Compile-time dependencies -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpcomponent.httpclient.version}</version>
+    </dependency>
+
     <!-- output connectors -->
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -205,7 +212,7 @@
     <!-- web dependencies -->
     <dependency>
       <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
+      <artifactId>javax.servlet-api</artifactId>
       <version>${servlet-api.version}</version>
     </dependency>
     <dependency>
@@ -334,12 +341,6 @@
           <artifactId>commons-logging</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${httpcomponent.httpclient.version}</version>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>commons-collections</groupId>
