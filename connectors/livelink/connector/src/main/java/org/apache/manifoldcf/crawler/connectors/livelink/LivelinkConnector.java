@@ -26,6 +26,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.core.common.XThreadInputStream;
 import org.apache.manifoldcf.core.common.XThreadOutputStream;
 import org.apache.manifoldcf.core.common.InterruptibleSocketFactory;
+import org.apache.manifoldcf.core.common.DateParser;
 
 import org.apache.manifoldcf.livelink.*;
 
@@ -4279,9 +4280,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       rd.addField(GENERAL_NAME_FIELD,objInfo.getName());
       rd.addField(GENERAL_DESCRIPTION_FIELD,objInfo.getComments());
       if (creationDate != null)
-        rd.addField(GENERAL_CREATIONDATE_FIELD,new Long(creationDate.getTime()).toString());
+        rd.addField(GENERAL_CREATIONDATE_FIELD,DateParser.formatISO8601Date(creationDate));
       if (modifyDate != null)
-        rd.addField(GENERAL_MODIFYDATE_FIELD,new Long(modifyDate.getTime()).toString());
+        rd.addField(GENERAL_MODIFYDATE_FIELD,DateParser.formatISO8601Date(modifyDate));
       if (parentID != null)
         rd.addField(GENERAL_PARENTID,parentID.toString());
       UserInformation owner = llc.getUserInformation(objInfo.getOwnerId().intValue());
