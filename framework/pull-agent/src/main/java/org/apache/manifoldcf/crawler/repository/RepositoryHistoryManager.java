@@ -102,13 +102,6 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
       else
       {
         // Upgrade code.
-	ColumnDescription cd = (ColumnDescription)existing.get(activityTypeField);
-	if (cd.getTypeString().toUpperCase().equals("VARCHAR(32)"))
-	{
-	  HashMap alterMap = new HashMap();
-	  alterMap.put(activityTypeField,new ColumnDescription("VARCHAR(64)",false,false,null,null,false));
-	  performAlter(null,alterMap,null,null);
-	}
       }
 
       // Index management

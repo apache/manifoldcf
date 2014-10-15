@@ -107,12 +107,6 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       else
       {
         // Perform upgrade, if needed.
-        if (existing.get(processIDField) == null)
-        {
-          Map insertMap = new HashMap();
-          insertMap.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
-          performAlter(insertMap,null,null,null);
-        }
       }
 
       // Indexes

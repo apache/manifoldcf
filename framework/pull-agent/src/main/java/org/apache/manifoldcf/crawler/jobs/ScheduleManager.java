@@ -103,26 +103,6 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
       else
       {
         // Upgrade code goes here, if needed.
-        if (existing.get(yearField) == null)
-        {
-          // Need to rename the "year" column as the "yearlist" column.
-          HashMap map = new HashMap();
-          map.put(yearField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
-          performAlter(map,null,null,null);
-          performModification("UPDATE "+getTableName()+" SET "+yearField+"=year",null,null);
-          ArrayList list = new ArrayList();
-          list.add("year");
-          performAlter(null,null,list,null);
-
-        }
-        
-        if (existing.get(requestMinimumField) == null)
-        {
-          HashMap map = new HashMap();
-          map.put(requestMinimumField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
-          performAlter(map,null,null,null);
-        }
-        
       }
 
       // Index management

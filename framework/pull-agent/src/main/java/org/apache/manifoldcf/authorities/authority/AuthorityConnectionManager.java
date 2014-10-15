@@ -109,78 +109,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       }
       else
       {
-        // Add the mappingField column
-        ColumnDescription cd = (ColumnDescription)existing.get(mappingField);
-        if (cd == null)
-        {
-          Map addMap = new HashMap();
-          addMap.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
-          performAlter(addMap,null,null,null);
-        }
-        // Add the authDomainField column
-        cd = (ColumnDescription)existing.get(authDomainField);
-        if (cd == null)
-        {
-          Map addMap = new HashMap();
-          addMap.put(authDomainField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
-          performAlter(addMap,null,null,null);
-        }
-        cd = (ColumnDescription)existing.get(groupNameField);
-        if (cd == null)
-        {
-          Map addMap = new HashMap();
-          addMap.put(groupNameField,new ColumnDescription("VARCHAR(32)",false,true,
-            authMgr.getTableName(),authMgr.getGroupNameColumn(),false));
-          performAlter(addMap,null,null,null);
-          boolean revert = true;
-          try
-          {
-            ArrayList params = new ArrayList();
-            IResultSet set = performQuery("SELECT "+nameField+","+descriptionField+" FROM "+getTableName(),null,null,null);
-            for (int i = 0 ; i < set.getRowCount() ; i++)
-            {
-              IResultRow row = set.getRow(i);
-              String authName = (String)row.getValue(nameField);
-              String authDescription = (String)row.getValue(descriptionField);
-              // Attempt to create a matching auth group.  This will fail if the group
-              // already exists
-              IAuthorityGroup grp = authMgr.create();
-              grp.setName(authName);
-              grp.setDescription(authDescription);
-              try
-              {
-                authMgr.save(grp);
-              }
-              catch (ManifoldCFException e)
-              {
-                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                  throw e;
-                // Fall through; the row exists already
-              }
-              Map<String,String> map = new HashMap<String,String>();
-              map.put(groupNameField,authName);
-              params.clear();
-              String query = buildConjunctionClause(params,new ClauseDescription[]{
-                new UnitaryClause(nameField,authName)});
-              performUpdate(map," WHERE "+query,params,null);
-            }
-            Map modifyMap = new HashMap();
-            modifyMap.put(groupNameField,new ColumnDescription("VARCHAR(32)",false,false,
-              authMgr.getTableName(),authMgr.getGroupNameColumn(),false));
-            performAlter(null,modifyMap,null,null);
-            revert = false;
-          }
-          finally
-          {
-            if (revert)
-            {
-              // Upgrade failed; back out our changes
-              List<String> deleteList = new ArrayList<String>();
-              deleteList.add(groupNameField);
-              performAlter(null,null,deleteList,null);
-            }
-          }
-        }
+        // Upgrade goes here if any
       }
 
       // Index management goes here

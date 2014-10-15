@@ -76,7 +76,11 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
 
         performCreate(map,null);
       }
-
+      else
+      {
+        // Upgrade goes here if needed
+      }
+      
       // Index management
       IndexDescription descriptionIndex = new IndexDescription(true,new String[]{descriptionField});
 

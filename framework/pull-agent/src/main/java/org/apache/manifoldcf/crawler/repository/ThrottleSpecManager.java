@@ -82,17 +82,6 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
       else
       {
         // Upgrade code goes here, if needed.
-        if (existing.get(matchField) == null)
-        {
-          // Need to rename the "match" column as the "matchstring" column.
-          HashMap map = new HashMap();
-          map.put(matchField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
-          performAlter(map,null,null,null);
-          performModification("UPDATE "+getTableName()+" SET "+matchField+"=match",null,null);
-          ArrayList list = new ArrayList();
-          list.add("match");
-          performAlter(null,null,list,null);
-        }
       }
 
       // Index management

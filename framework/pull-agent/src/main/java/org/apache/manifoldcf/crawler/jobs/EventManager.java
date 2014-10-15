@@ -75,12 +75,6 @@ public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
       else
       {
         // Upgrade goes here if needed
-        if (existing.get(processIDField) == null)
-        {
-          Map insertMap = new HashMap();
-          insertMap.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
-          performAlter(insertMap,null,null,null);
-        }
       }
 
       // Index management goes here
