@@ -71,6 +71,24 @@ public class ManifoldCFConfiguration extends Configuration
     return rval;
   }
 
+  /** Read a possibly obfuscated string property, either from the system properties, or from the local configuration file.
+  *@param s is the property name.
+  *@param defaultValue is the default value for the property.
+  *@return the property value, as a string.
+  */
+  public String getPossiblyObfuscatedStringProperty(String s, String defaultValue)
+    throws ManifoldCFException
+  {
+    String obfuscatedPropertyName = s + ".obfuscated";
+    String rval = getProperty(obfuscatedPropertyName);
+    if (rval != null)
+      return org.apache.manifoldcf.core.system.ManifoldCF.deobfuscate(rval);
+    rval = getProperty(s);
+    if (rval == null)
+      rval = defaultValue;
+    return rval;
+  }
+
   /** Read a boolean property
   */
   public boolean getBooleanProperty(String s, boolean defaultValue)
