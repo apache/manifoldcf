@@ -121,7 +121,7 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,4);
+    ManifoldCF.writeDword(os,5);
     // Get the job list
     IJobDescription[] list = getAllJobs();
     // Write the number of authorities
@@ -169,9 +169,6 @@ public class JobManager implements IJobManager
         ManifoldCF.writeLong(os,hopcount);
       }
       
-      // Write forced metadata information
-      ManifoldCF.writeDword(os,0);
-      
       // Write pipeline information
       ManifoldCF.writeDword(os,job.countPipelineStages());
       for (int j = 0; j < job.countPipelineStages(); j++)
@@ -208,19 +205,14 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     int version = ManifoldCF.readDword(is);
-    if (version != 2 && version != 3 && version != 4)
+    if (version != 5)
       throw new java.io.IOException("Unknown job configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
     for (int i = 0; i < count; i++)
     {
       IJobDescription job = createJob();
 
-      String outputConnectionName = null;
-      String outputSpecification = null;
-      
       job.setConnectionName(ManifoldCF.readString(is));
-      if (version < 4)
-        outputConnectionName = ManifoldCF.readString(is);
       job.setDescription(ManifoldCF.readString(is));
       job.setType(ManifoldCF.readDword(is));
       job.setStartMethod(ManifoldCF.readDword(is));
@@ -230,8 +222,6 @@ public class JobManager implements IJobManager
       job.setPriority(ManifoldCF.readDword(is));
       job.setHopcountMode(ManifoldCF.readDword(is));
       job.getSpecification().fromXML(ManifoldCF.readString(is));
-      if (version < 4)
-        outputSpecification = ManifoldCF.readString(is);
 
       // Read schedule
       int recCount = ManifoldCF.readDword(is);
@@ -245,11 +235,7 @@ public class JobManager implements IJobManager
         EnumeratedValues minutesOfHour = readEnumeratedValues(is);
         String timezone = ManifoldCF.readString(is);
         Long duration = ManifoldCF.readLong(is);
-        boolean requestMinimum;
-        if (version >= 3)
-          requestMinimum = (ManifoldCF.readByte(is) != 0);
-        else
-          requestMinimum = false;
+        boolean requestMinimum = (ManifoldCF.readByte(is) != 0);
 
         ScheduleRecord sr = new ScheduleRecord(dayOfWeek, monthOfYear, dayOfMonth, year,
           hourOfDay, minutesOfHour, timezone, duration, requestMinimum);
@@ -265,38 +251,16 @@ public class JobManager implements IJobManager
         job.addHopCountFilter(linkType,hopcount);
       }
 
-      if (version >= 4)
+      // Read pipeline information
+      int pipelineCount = ManifoldCF.readDword(is);
+      for (int j = 0; j < pipelineCount; j++)
       {
-        // Read forced metadata information
-        int paramCount = ManifoldCF.readDword(is);
-        for (int j = 0; j < paramCount; j++)
-        {
-          String key = ManifoldCF.readString(is);
-          int valueCount = ManifoldCF.readDword(is);
-          for (int k = 0; k < valueCount; k++)
-          {
-            String value = ManifoldCF.readString(is);
-            // Discard it; we don't support this anymore
-          }
-        }
-        
-        // Read pipeline information
-        int pipelineCount = ManifoldCF.readDword(is);
-        for (int j = 0; j < pipelineCount; j++)
-        {
-          int prerequisite = ManifoldCF.readSdword(is);
-          int isOutput = ManifoldCF.readByte(is);
-          String connectionName = ManifoldCF.readString(is);
-          String description = ManifoldCF.readString(is);
-          String specification = ManifoldCF.readString(is);
-          job.addPipelineStage(prerequisite,isOutput == 0x1,connectionName,description).fromXML(specification);
-        }
-      }
-      
-      if (outputConnectionName != null)
-      {
-        // Add a single pipeline stage for the output connection
-        job.addPipelineStage(-1,true,outputConnectionName,"").fromXML(outputSpecification);
+        int prerequisite = ManifoldCF.readSdword(is);
+        int isOutput = ManifoldCF.readByte(is);
+        String connectionName = ManifoldCF.readString(is);
+        String description = ManifoldCF.readString(is);
+        String specification = ManifoldCF.readString(is);
+        job.addPipelineStage(prerequisite,isOutput == 0x1,connectionName,description).fromXML(specification);
       }
       
       // Attempt to save this job
