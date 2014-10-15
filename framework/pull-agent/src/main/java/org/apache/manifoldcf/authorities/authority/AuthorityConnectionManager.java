@@ -256,7 +256,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   {
     IAuthorityGroupManager authMgr = AuthorityGroupManagerFactory.make(threadContext);
     int version = ManifoldCF.readDword(is);
-    if (version < 1 || version > 2)
+    if (version < 1 || version > 3)
       throw new java.io.IOException("Unknown authority configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
     int i = 0;
