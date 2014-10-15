@@ -86,6 +86,12 @@ public class LockManagerFactory
     return make(tc).getSharedConfiguration().getStringProperty(s, defaultValue);
   }
   
+  public static String getPossiblyObfuscatedStringProperty(IThreadContext tc, String s, String defaultValue)
+    throws ManifoldCFException
+  {
+    return make(tc).getSharedConfiguration().getPossiblyObfuscatedStringProperty(s, defaultValue);
+  }
+  
   public static int getIntProperty(IThreadContext tc, String s, int defaultValue)
     throws ManifoldCFException
   {

@@ -954,6 +954,11 @@
         <replace file="${processes-dir}/options.env.unix" token=".:" value=".:${unix-classpath}:"/>
     </target>
 
+    <target name="general-set-obfuscate-classpath">
+        <replace file="${processes-dir}/options.env.win" token=".;" value=".;${win-classpath};"/>
+        <replace file="${processes-dir}/options.env.unix" token=".:" value=".:${unix-classpath}:"/>
+    </target>
+
     <target name="general-set-jetty-classpath">
         <replace file="${processes-dir}/jetty-options.env.win" token=".;" value=".;${win-classpath};"/>
         <replace file="${processes-dir}/jetty-options.env.unix" token=".:" value=".:${unix-classpath}:"/>
@@ -980,6 +985,12 @@
     </target>
 
     <target name="preclean-processes">
+        <mkdir dir="${processes-dir}"/>
+        <delete file="${processes-dir}/options.env.win"/>
+        <delete file="${processes-dir}/options.env.unix"/>
+    </target>
+
+    <target name="preclean-obfuscate-processes">
         <mkdir dir="${processes-dir}"/>
         <delete file="${processes-dir}/options.env.win"/>
         <delete file="${processes-dir}/options.env.unix"/>
@@ -1077,6 +1088,13 @@
         </copy>
     </target>
 
+    <target name="scripts-obfuscate" depends="scripts-common">
+        <mkdir dir="${processes-dir}"/>
+        <copy todir="${processes-dir}">
+            <fileset dir="obfuscate-scripts"/>
+        </copy>
+    </target>
+
     <!-- Paths, as used to construct script classpaths -->
     
     <path id="jetty-lib">
@@ -1169,7 +1187,13 @@
             <include name="httpclient*.jar"/>
         </fileset>
     </path>
-    
+
+    <path id="obfuscate-lib">
+        <fileset dir="../lib">
+            <include name="commons-logging*.jar"/>
+        </fileset>
+    </path>
+
     <!-- Classpaths -->
     
     <target name="jetty-lib-classpath" depends="lib">
@@ -1242,6 +1266,16 @@
         </pathconvert>
     </target>
 
+    <target name="obfuscate-lib-classpath" depends="lib">
+        <property name="obfuscate-lib-classpath" location="../lib"/>
+        <pathconvert property="obfuscate-lib-classpath-win" refid="obfuscate-lib" dirsep="\" pathsep=";">
+            <map from="${obfuscate-lib-classpath}" to="..\lib"/>
+        </pathconvert>
+        <pathconvert property="obfuscate-lib-classpath-unix" refid="obfuscate-lib" dirsep="/" pathsep=":">
+            <map from="${obfuscate-lib-classpath}" to="../lib"/>
+        </pathconvert>
+    </target>
+
     <target name="jetty-lib-manifest" depends="lib">
         <property name="jetty-lib-manifest" location="../lib"/>
         <pathconvert property="jetty-manifest-cp" refid="jetty-lib" dirsep="/" pathsep=" ">
@@ -1273,6 +1307,14 @@
 
     <!-- Apply classpaths to various scripts -->
     
+    <target name="setup-obfuscate-processes" depends="preclean-obfuscate-processes,scripts-obfuscate,obfuscate-lib-classpath">
+        <antcall target="general-set-obfuscate-classpath">
+            <param name="processes-dir" value="${processes-dir}"/>
+            <param name="win-classpath" value="..\lib\mcf-core.jar;${obfuscate-lib-classpath-win}"/>
+            <param name="unix-classpath" value="../lib/mcf-core.jar:${obfuscate-lib-classpath-unix}"/>
+        </antcall>
+    </target>
+
     <target name="setup-engine-processes" depends="preclean-engine-processes,scripts-engine,engine-lib-classpath">
         <antcall target="general-set-engine-classpath">
             <param name="processes-dir" value="${processes-dir}"/>
@@ -1515,6 +1557,13 @@
         <chmod dir="dist/multiprocess-zk-example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>
 
+    <target name="obfuscation-utility" depends="lib">
+        <antcall target="setup-obfuscate-processes">
+            <param name="processes-dir" value="dist/obfuscation-utility"/>
+        </antcall>
+        <chmod dir="dist/obfuscation-utility" perm="a+x" includes="**/*.sh"/>
+    </target>
+    
     <target name="script-engine" depends="lib">
         <antcall target="setup-engine-processes">
             <param name="processes-dir" value="dist/script-engine"/>
@@ -1882,7 +1931,7 @@
         </java>
     </target>
     
-    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,buildfiles,test-lib"/>
+    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,obfuscation-utility,buildfiles,test-lib"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB,run-tests-HSQLDBext"/>
     

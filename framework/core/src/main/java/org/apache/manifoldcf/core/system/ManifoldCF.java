@@ -248,11 +248,11 @@ public class ManifoldCF
           Logging.setLogLevels(threadContext);
 
           loginUserName = LockManagerFactory.getStringProperty(threadContext,loginUserNameProperty,"admin");
-          loginPassword = LockManagerFactory.getStringProperty(threadContext,loginPasswordProperty,"admin");
+          loginPassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,loginPasswordProperty,"admin");
 
           masterDatabaseName = LockManagerFactory.getStringProperty(threadContext,masterDatabaseNameProperty,"dbname");
           masterDatabaseUsername = LockManagerFactory.getStringProperty(threadContext,masterDatabaseUsernameProperty,"manifoldcf");
-          masterDatabasePassword = LockManagerFactory.getStringProperty(threadContext,masterDatabasePasswordProperty,"local_pg_passwd");
+          masterDatabasePassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,masterDatabasePasswordProperty,"local_pg_passwd");
 
           // Register the throttler for cleanup on shutdown
           addShutdownHook(new ThrottlerShutdown());
