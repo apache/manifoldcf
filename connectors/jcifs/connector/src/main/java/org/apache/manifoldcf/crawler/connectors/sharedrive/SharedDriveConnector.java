@@ -70,6 +70,7 @@ import org.apache.manifoldcf.crawler.interfaces.IVersionActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
+import org.apache.manifoldcf.core.common.DateParser;
 
 /** This is the "repository connector" for a smb/cifs shared drive file system.  It's a relative of the share crawler, and should have
 * comparable basic functionality.
@@ -826,10 +827,12 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                 if (contentType != null)
                   rd.setMimeType(contentType);
                 rd.addField("lastModified", lastModifiedDate.toString());
+                rd.addField("fileLastModified",DateParser.formatISO8601Date(lastModifiedDate));
                 rd.setModifiedDate(lastModifiedDate);
                 
                 // Add extra obtainable fields to the field map
                 rd.addField("createdOn", creationDate.toString());
+                rd.addField("fileCreatedOn",DateParser.formatISO8601Date(creationDate));
                 rd.setCreatedDate(creationDate);
 
                 //rd.addField("lastAccess", lastModifiedDate.toString());

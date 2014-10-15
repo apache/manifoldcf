@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1071: JCIFS connector should provide date metadata in
+standard ISO8601 format with names that don't conflict with what
+Tika extractor generates.
+(Antonio David Pérez Morales, Karl Wright)
+
 CONNECTORS-1053: Provide stop scripts for single-process examples.
 (Shinichiro Abe, Karl Wright)
 
