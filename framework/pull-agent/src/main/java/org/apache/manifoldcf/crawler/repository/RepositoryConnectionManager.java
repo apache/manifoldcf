@@ -118,54 +118,6 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       else
       {
         // Upgrade code
-        ColumnDescription cd = (ColumnDescription)existing.get(groupNameField);
-        if (cd == null)
-        {
-          Map addMap = new HashMap();
-          addMap.put(groupNameField,new ColumnDescription("VARCHAR(32)",false,true,
-            authMgr.getTableName(),authMgr.getGroupNameColumn(),false));
-          performAlter(addMap,null,null,null);
-        }
-        // Get rid of the authorityName field.  When we do this we need to copy into the group name
-        // field, adding groups if they don't yet exist first
-        cd = (ColumnDescription)existing.get(authorityNameField);
-        if (cd != null)
-        {
-          ArrayList params = new ArrayList();
-          IResultSet set = performQuery("SELECT "+nameField+","+authorityNameField+" FROM "+getTableName(),null,null,null);
-          for (int i = 0 ; i < set.getRowCount() ; i++)
-          {
-            IResultRow row = set.getRow(i);
-            String repoName = (String)row.getValue(nameField);
-            String authName = (String)row.getValue(authorityNameField);
-            if (authName != null && authName.length() > 0)
-            {
-              // Attempt to create a matching auth group.  This will fail if the group
-              // already exists
-              IAuthorityGroup grp = authMgr.create();
-              grp.setName(authName);
-              try
-              {
-                authMgr.save(grp);
-              }
-              catch (ManifoldCFException e)
-              {
-                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                  throw e;
-                // Fall through; the row exists already
-              }
-              Map<String,String> map = new HashMap<String,String>();
-              map.put(groupNameField,authName);
-              params.clear();
-              String query = buildConjunctionClause(params,new ClauseDescription[]{
-                new UnitaryClause(nameField,repoName)});
-              performUpdate(map," WHERE "+query,params,null);
-            }
-          }
-          List<String> deleteList = new ArrayList<String>();
-          deleteList.add(authorityNameField);
-          performAlter(null,null,deleteList,null);
-        }
       }
 
       // Install dependent tables.

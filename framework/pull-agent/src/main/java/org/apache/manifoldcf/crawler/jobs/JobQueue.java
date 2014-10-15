@@ -214,25 +214,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       else
       {
         // Upgrade; null docpriority fields bashed to 'infinity', so they don't slow down MySQL
-        Map map = new HashMap();
-        map.put(docPriorityField,nullDocPriority);
-        performUpdate(map,"WHERE "+docPriorityField+" IS NULL",null,null);
-        
-        // Also, add processIDField
-        if (existing.get(processIDField) == null)
-        {
-          Map insertMap = new HashMap();
-          insertMap.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
-          performAlter(insertMap,null,null,null);
-        }
-        
-        // Add seedingProcessID field too
-        if (existing.get(seedingProcessIDField) == null)
-        {
-          Map insertMap = new HashMap();
-          insertMap.put(seedingProcessIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
-          performAlter(insertMap,null,null,null);
-        }
       }
 
       // Secondary table installation

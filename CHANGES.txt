@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1073: Remove 1.x-related upgrade code, since schema
+for 2.0 is not backwards compatible with 1.x anyhow.
+(Karl Wright)
+
 CONNECTORS-1075: Provide a means of obfuscating passwords in
 properties.xml and global-properties.xml.  Also include an obfuscation
 utility in the distribution, for generating obfuscated passwords.
