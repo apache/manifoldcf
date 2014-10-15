@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1071: JCIFS connector should provide date metadata in
+standard ISO8601 format with names that don't conflict with what
+Tika extractor generates.
+(Antonio David Pérez Morales, Karl Wright)
+
 CONNECTORS-1061: More fixes for the Alfresco webscript connector
 UI, and create a UI test.
 (Karl Wright)
