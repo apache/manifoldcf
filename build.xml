@@ -294,6 +294,10 @@
         <copy todir="dist/script-engine">
             <fileset dir="framework/dist/script-engine"/>
         </copy>
+        <mkdir dir="dist/obfuscation-utility"/>
+        <copy todir="dist/obfuscation-utility">
+            <fileset dir="framework/dist/obfuscation-utility"/>
+        </copy>
         <mkdir dir="dist"/>
         <copy todir="dist">
             <fileset dir="framework/dist">

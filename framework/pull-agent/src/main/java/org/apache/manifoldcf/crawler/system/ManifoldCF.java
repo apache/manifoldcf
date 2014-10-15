@@ -123,7 +123,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     // Get the specified superuser name and password, in case this isn't Derby we're using
     String superuserName = LockManagerFactory.getStringProperty(threadContext, databaseSuperuserNameProperty, "");
-    String superuserPassword = LockManagerFactory.getStringProperty(threadContext, databaseSuperuserPasswordProperty, "");
+    String superuserPassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext, databaseSuperuserPasswordProperty, "");
     createSystemDatabase(threadContext,superuserName,superuserPassword);
   }
   
