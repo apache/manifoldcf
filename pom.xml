@@ -79,6 +79,7 @@
     <zookeeper.version>3.4.6</zookeeper.version>
     <xmlbeans.version>2.6.0</xmlbeans.version>
     <poi.version>3.11-beta2</poi.version>
+    <tika.version>1.6</tika.version>
   </properties>
 
   <modules>

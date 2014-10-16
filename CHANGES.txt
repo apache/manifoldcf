@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1074: Use Tika to map extensions to mime types.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-1075: Provide a means of obfuscating passwords in
 properties.xml and global-properties.xml.  Also include an obfuscation
 utility in the distribution, for generating obfuscated passwords.
