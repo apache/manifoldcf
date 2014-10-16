@@ -140,6 +140,9 @@
             <include name="velocity*.jar"/>
         </fileset>
         <fileset dir="${mcf-dist}/lib">
+            <include name="tika-core*.jar"/>
+        </fileset>
+        <fileset dir="${mcf-dist}/lib">
             <include name="axis*.jar"/>
             <include name="saaj*.jar"/>
             <include name="wsdl4j*.jar"/>
