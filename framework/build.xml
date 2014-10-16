@@ -31,6 +31,9 @@
     
     <path id="framework-classpath">
         <fileset dir="../lib">
+            <include name="tika-core*.jar"/>
+        </fileset>
+        <fileset dir="../lib">
             <include name="castor*.jar"/>
             <include name="geronimo-javamail_1.4_spec*.jar"/>
             <include name="commons-discovery*.jar"/>
@@ -330,6 +333,9 @@
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="tika-core*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="castor*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
                 <include name="commons-discovery*.jar"/>
@@ -380,6 +386,9 @@
     <target name="webapp-authority-service-proprietary" depends="jar-core,jar-agents,jar-pull-agent,jar-authority-servlet,compile-authority-service">
         <mkdir dir="build/webapp/authority-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="tika-core*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
@@ -437,6 +446,9 @@
         <mkdir dir="build/webapp/api-service/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="tika-core*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="castor*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
                 <include name="commons-discovery*.jar"/>
@@ -488,6 +500,9 @@
     <target name="webapp-api-service-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,compile-api-service">
         <mkdir dir="build/webapp/api-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="tika-core*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
@@ -545,6 +560,9 @@
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="tika-core*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
@@ -605,6 +623,9 @@
       <target name="webapp-crawler-ui-proprietary" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="tika-core*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
@@ -673,6 +694,9 @@
         <mkdir dir="build/webapp/combined-service/WEB-INF/lib"/>
         <copy todir="build/webapp/combined-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="tika-core*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="castor*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
                 <include name="commons-discovery*.jar"/>
@@ -734,6 +758,9 @@
       <target name="webapp-combined-service-proprietary" depends="compile-combined-service,jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,jar-authority-servlet">
         <mkdir dir="build/webapp/combined-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/combined-service-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="tika-core*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
@@ -865,6 +892,9 @@
     <target name="lib" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,jar-script-engine">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
+            <fileset dir="../lib">
+                <include name="tika-core*.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
@@ -1116,6 +1146,7 @@
     
     <path id="process-lib">
         <fileset dir="../lib">
+            <include name="tika-core*.jar"/>
             <include name="commons-lang*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections*.jar"/>

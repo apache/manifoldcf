@@ -110,6 +110,11 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-core</artifactId>
+      <version>${tika.version}</version>
+    </dependency>
+    <dependency>
       <groupId>javax.activation</groupId>
       <artifactId>activation</artifactId>
       <version>${activation.version}</version>

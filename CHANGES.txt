@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1074: Use Tika to map extensions to mime types.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-1072: Remove 1.x-related import fallback code, since
 2.0 is not backwards compatible with 1.x.
 (Karl Wright)
