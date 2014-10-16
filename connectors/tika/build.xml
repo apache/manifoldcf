@@ -36,7 +36,6 @@
             <include name="jackson-core*.jar"/>
             <include name="jackson-databind*.jar"/>
             <include name="jackson-annotations*.jar"/>
-            <include name="tika-core*.jar"/>
             <include name="tika-parsers*.jar"/>
             <include name="tagsoup*.jar"/>
             <include name="poi*.jar"/>
@@ -80,7 +79,6 @@
                 <include name="jackson-core*.jar"/>
                 <include name="jackson-databind*.jar"/>
                 <include name="jackson-annotations*.jar"/>
-                <include name="tika-core*.jar"/>
                 <include name="tika-parsers*.jar"/>
                 <include name="tagsoup*.jar"/>
                 <include name="poi*.jar"/>
