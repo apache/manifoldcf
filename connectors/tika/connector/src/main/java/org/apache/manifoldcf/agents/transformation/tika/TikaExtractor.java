@@ -157,6 +157,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     if (!activities.checkMimeTypeIndexable("text/plain;charset=utf-8"))
     {
       activities.noDocument();
+      activities.recordActivity(null, ACTIVITY_EXTRACT, null, documentURI,
+        "MIMETYPEREJECTION", "Downstream pipeline rejected mime type 'text/plain;charset=utf-8'");
       return DOCUMENTSTATUS_REJECTED;
     }
 
@@ -263,6 +265,16 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
           os.close();
           length = new Long(ds.getBinaryLength());
         }
+        
+        // Check to be sure downstream pipeline will accept document of specified length
+        if (!activities.checkLengthIndexable(ds.getBinaryLength()))
+        {
+          activities.noDocument();
+          resultCode = "LENGTHREJECTION";
+          description = "Downstream pipeline rejected document with length "+ds.getBinaryLength();
+          return DOCUMENTSTATUS_REJECTED;
+        }
+
       }
       finally
       {
@@ -271,13 +283,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
           resultCode, description);
       }
       
-      // Check to be sure downstream pipeline will accept document of specified length
-      if (!activities.checkLengthIndexable(ds.getBinaryLength()))
-      {
-        activities.noDocument();
-        return DOCUMENTSTATUS_REJECTED;
-      }
-        
       // Parsing complete!
       // Create a copy of Repository Document
       RepositoryDocument docCopy = document.duplicate();
