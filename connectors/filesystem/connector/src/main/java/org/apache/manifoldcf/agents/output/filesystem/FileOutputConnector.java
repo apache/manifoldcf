@@ -292,16 +292,20 @@ public class FileOutputConnector extends BaseOutputConnector {
         }
       }
     } catch (URISyntaxException e) {
-      handleURISyntaxException(e,activities);
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to URISyntaxException");
+      handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (FileNotFoundException e) {
-      handleFileNotFoundException(e,activities);
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to FileNotFoundException");
+      handleFileNotFoundException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (SecurityException e) {
-      handleSecurityException(e,activities);
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to SecurityException");
+      handleSecurityException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (IOException e) {
-      handleIOException(e,activities);
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI ,activities.EXCEPTION,"Rejected due to IOException.");
+      handleIOException(e);
       return DOCUMENTSTATUS_REJECTED;
     }
 
@@ -315,26 +319,26 @@ public class FileOutputConnector extends BaseOutputConnector {
     throw new ManifoldCFException(e.getMessage(),e);
   }
 
-  protected static void handleURISyntaxException(URISyntaxException e, IOutputHistoryActivity activities)
+  protected static void handleURISyntaxException(URISyntaxException e)
     throws ManifoldCFException, ServiceInterruption {
     Logging.agents.error("FileSystem: URISyntaxException: "+e.getMessage(),e);
     throw new ManifoldCFException(e.getMessage(),e);
   }
 
-  protected static void handleSecurityException(SecurityException e, IOutputHistoryActivity activities)
+  protected static void handleSecurityException(SecurityException e)
     throws ManifoldCFException, ServiceInterruption {
     Logging.agents.error("FileSystem: SecurityException: "+e.getMessage(),e);
     throw new ManifoldCFException(e.getMessage(),e);
   }
 
-  protected static void handleFileNotFoundException(FileNotFoundException e, IOutputHistoryActivity activities)
+  protected static void handleFileNotFoundException(FileNotFoundException e)
     throws ManifoldCFException, ServiceInterruption {
     Logging.agents.error("FileSystem: Path is illegal: "+e.getMessage(),e);
     throw new ManifoldCFException(e.getMessage(),e);
   }
 
   /** Handle IOException */
-  protected static void handleIOException(IOException e, IOutputHistoryActivity activities)
+  protected static void handleIOException(IOException e)
     throws ManifoldCFException, ServiceInterruption
   {
     if (!(e instanceof java.net.SocketTimeoutException) && (e instanceof InterruptedIOException)) {
@@ -435,13 +439,17 @@ public class FileOutputConnector extends BaseOutputConnector {
       // Just close it, to make a zero-length grave marker.
       output.close();
     } catch (URISyntaxException e) {
-      handleURISyntaxException(e,activities);
+      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Rejected due to URISyntaxException");
+      handleURISyntaxException(e);
     } catch (FileNotFoundException e) {
-      handleFileNotFoundException(e,activities);
+      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Rejected due to FileNotFoundException");
+      handleFileNotFoundException(e);
     } catch (SecurityException e) {
-      handleSecurityException(e,activities);
+      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Rejected due to SecurityException");
+      handleSecurityException(e);
     } catch (IOException e) {
-      handleIOException(e,activities);
+      activities.recordActivity(null,INGEST_ACTIVITY,null, documentURI ,activities.EXCEPTION,"Rejected due to IOException.");
+      handleIOException(e);
     }
 
     activities.recordActivity(null, REMOVE_ACTIVITY, null, documentURI, "OK", null);
