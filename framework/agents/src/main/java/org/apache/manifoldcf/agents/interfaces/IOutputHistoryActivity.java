@@ -27,6 +27,9 @@ public interface IOutputHistoryActivity
 {
   public static final String _rcsid = "@(#)$Id: IOutputHistoryActivity.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  public static final String EXCEPTION = "EXCEPTION";
+  public static final String CREATED_DIRECTORY = "CREATEDDIRECTORY";
+
   /** Record time-stamped information about the activity of the output connector.
   *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
   *       activity has an associated time; the startTime field records when the activity began.  A null value
