@@ -30,6 +30,8 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
+    <property name="alfresco.version" value="0.6.4"/>
+
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
@@ -50,8 +52,30 @@
         </copy>
     </target>
 
-    <!-- target name="calculate-testcode-condition">
-        <available file="test-materials-proprietary/alfresco.war" property="alfrescoTestcodeStatus"/>
+    <target name="setup-alfresco-indexer-url">
+        <property name="alfresco-indexer-base-url" value="https://repository-maoo.forge.cloudbees.com/release"/>
+    </target>
+    
+    <target name="download-via-alfresco-indexer" depends="setup-alfresco-indexer-url">
+        <get src="${alfresco-indexer-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}-${artifact-version}.${artifact-type}"/>
+    </target>
+
+    <target name="download-dependencies">
+        <property name="alfresco-package" value="org/alfresco/consulting/indexer"/>
+        <antcall target="download-via-alfresco-indexer"><param name="project-path" value="${alfresco-package}"/><param name="artifact-version" value="${alfresco.version}"/><param name="target" value="test-materials-proprietary"/>
+            <param name="artifact-name" value="alfresco-indexer-webscripts-war"/>
+            <param name="artifact-type" value="war"/>
+        </antcall>
+    </target>
+
+    <target name="download-cleanup">
+        <delete>
+            <fileset dir="test-materials-proprietary" excludes="README*.txt"/>
+        </delete>
+    </target>
+
+    <target name="calculate-testcode-condition">
+        <available file="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco.version}.war" property="alfrescoTestcodeStatus"/>
         <condition property="tests-present">
             <isset property="alfrescoTestcodeStatus"/>
         </condition>
@@ -59,7 +83,7 @@
 
     <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
         <echo message="Alfresco Connector integration tests cannot be be performed without alfresco.war"/>
-    </target -->
+    </target>
 
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-repository-connector">
@@ -70,6 +94,35 @@
             <param name="connector-label" value="Alfresco Webscript"/>
             <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.alfrescowebscript.AlfrescoAuthorityConnector"/>
         </antcall>
+    </target>
+
+    <target name="run-IT-HSQLDB" depends="compile-tests,pretest-check" if="canTest">
+        <mkdir dir="test-HSQLDB-output"/>
+        <junit fork="true" maxmemory="1024m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
+            <jvmarg value="-DalfrescoServerWarPath=../test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco.version}.war"/>
+            <jvmarg value="-Xms512m"/>
+            <jvmarg value="-Xmx1024m"/>
+            <jvmarg value="-Xss1024k"/>
+            <jvmarg value="-XX:MaxPermSize=256m"/>
+            <jvmarg value="-XX:NewSize=256m"/>
+            <classpath>
+                <fileset dir="${env.JAVA_HOME}/lib">
+                    <include name="tools.jar"/>
+                </fileset>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-HSQLDB-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBIT.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
     </target>
 
 </project>
