@@ -131,7 +131,7 @@
         <dependency>
             <groupId>org.alfresco.consulting.indexer</groupId>
             <artifactId>alfresco-indexer-client</artifactId>
-            <version>0.6.2</version>
+            <version>0.6.4</version>
         </dependency>
 
         <dependency>
