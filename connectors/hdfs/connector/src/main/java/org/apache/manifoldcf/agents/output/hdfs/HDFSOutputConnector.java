@@ -286,10 +286,11 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       Path path = new Path(strBuff.toString());
 
       Long startTime = new Long(System.currentTimeMillis());
-      createFile(path, document.getBinaryStream());
+      createFile(path, document.getBinaryStream(),activities,documentURI);
       activities.recordActivity(startTime, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, "OK", null);
       return DOCUMENTSTATUS_ACCEPTED;
     } catch (URISyntaxException e) {
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,activities.EXCEPTION,"Rejected due to URISyntaxException");
       handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
     }
@@ -320,11 +321,13 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       strBuff.append(documentURItoFilePath(documentURI));
       Path path = new Path(strBuff.toString());
       Long startTime = new Long(System.currentTimeMillis());
-      deleteFile(path);
+      deleteFile(path,activities,documentURI);
       activities.recordActivity(startTime, REMOVE_ACTIVITY, null, documentURI, "OK", null);
     } catch (JSONException e) {
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to JSONException.");
       handleJSONException(e);
     } catch (URISyntaxException e) {
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to URISyntaxException.");
       handleURISyntaxException(e);
     }
   }
@@ -669,7 +672,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     }
   }
 
-  protected void createFile(Path path, InputStream input)
+  protected void createFile(Path path, InputStream input,IOutputAddActivity activities, String documentURI)
     throws ManifoldCFException, ServiceInterruption {
     CreateFileThread t = new CreateFileThread(getSession(), path, input);
     try {
@@ -677,13 +680,17 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       t.finishUp();
     } catch (InterruptedException e) {
       t.interrupt();
+      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to InterruptedException.");
       throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     } catch (java.net.SocketTimeoutException e) {
+      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to SocketTimeoutException.");
       handleIOException(e);
     } catch (InterruptedIOException e) {
       t.interrupt();
+      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to InterruptedIOException.");
       handleIOException(e);
     } catch (IOException e) {
+      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to IOException.");
       handleIOException(e);
     }
   }
@@ -723,7 +730,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     }
   }
 
-  protected void deleteFile(Path path)
+  protected void deleteFile(Path path,IOutputRemoveActivity activities,String documentURI)
     throws ManifoldCFException, ServiceInterruption {
     // Establish a session
     DeleteFileThread t = new DeleteFileThread(getSession(),path);
@@ -732,13 +739,17 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       t.finishUp();
     } catch (InterruptedException e) {
       t.interrupt();
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to InterruptedException.");
       throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     } catch (java.net.SocketTimeoutException e) {
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to SocketTimeoutException.");
       handleIOException(e);
     } catch (InterruptedIOException e) {
       t.interrupt();
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to InterruptedIOException.");
       handleIOException(e);
     } catch (IOException e) {
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to IOException.");
       handleIOException(e);
     }
   }
