@@ -19,7 +19,6 @@
 package org.apache.manifoldcf.agents.output.filesystem;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,10 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
-import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
-import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
-import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
 import org.apache.manifoldcf.agents.system.Logging;
 import org.apache.manifoldcf.core.interfaces.Specification;
@@ -48,7 +44,6 @@ import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
-import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
@@ -219,7 +214,10 @@ public class FileOutputConnector extends BaseOutputConnector {
             suffix++;
           }
           else
-            throw new ManifoldCFException("Could not create directory '"+newPath+"'.  Permission issue?");
+          {
+              activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.CREATED_DIRECTORY,"Couldn't create directory ("+newPath+").");
+              throw new ManifoldCFException("Could not create directory '"+newPath+"'.  Permission issue?");
+          }
         }
         // Directory successfully created!
         currentPath = newPath;
@@ -249,6 +247,7 @@ public class FileOutputConnector extends BaseOutputConnector {
             continue;
           }
           // Probably some other error
+          activities.recordActivity(null, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, activities.EXCEPTION, "Rejected due to FileNotFoundException.");
           throw new ManifoldCFException("Could not create file '"+outputPath+"': "+e.getMessage(),e);
         }
       }
@@ -259,8 +258,11 @@ public class FileOutputConnector extends BaseOutputConnector {
           */
         FileChannel channel = output.getChannel();
         FileLock lock = channel.tryLock();
-        if (lock == null)
+        if (lock == null){
+          activities.recordActivity(null,INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to ServiceInterruptionException.");
           throw new ServiceInterruption("Could not lock file: '"+outputPath+"'",null,1000L,-1L,10,false);
+        }
+
 
         try {
 
@@ -290,15 +292,19 @@ public class FileOutputConnector extends BaseOutputConnector {
         }
       }
     } catch (URISyntaxException e) {
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to URISyntaxException");
       handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (FileNotFoundException e) {
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to FileNotFoundException");
       handleFileNotFoundException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (SecurityException e) {
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to SecurityException");
       handleSecurityException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (IOException e) {
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI ,activities.EXCEPTION,"Rejected due to IOException.");
       handleIOException(e);
       return DOCUMENTSTATUS_REJECTED;
     }
@@ -426,18 +432,23 @@ public class FileOutputConnector extends BaseOutputConnector {
         catch (FileNotFoundException e)
         {
           // Probably some other error
+          activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Couldn't deleted due to FileNotFoundException");
           throw new ManifoldCFException("Could not zero out file '"+outputPath+"': "+e.getMessage(),e);
         }
       }
       // Just close it, to make a zero-length grave marker.
       output.close();
     } catch (URISyntaxException e) {
+      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Rejected due to URISyntaxException");
       handleURISyntaxException(e);
     } catch (FileNotFoundException e) {
+      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Rejected due to FileNotFoundException");
       handleFileNotFoundException(e);
     } catch (SecurityException e) {
+      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Rejected due to SecurityException");
       handleSecurityException(e);
     } catch (IOException e) {
+      activities.recordActivity(null,INGEST_ACTIVITY,null, documentURI ,activities.EXCEPTION,"Rejected due to IOException.");
       handleIOException(e);
     }
 
