@@ -18,6 +18,7 @@
 */
 package org.apache.manifoldcf.crawler.connectors.alfrescowebscript.tests;
 
+import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -60,10 +61,15 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
 
     if (System.getProperty("alfrescoServerWarPath") != null)
       alfrescoServerWarPath = System.getProperty("alfrescoServerWarPath");
-    
+
     ContextHandlerCollection contexts = new ContextHandlerCollection();
     alfrescoServer.setHandler(contexts);
+
     WebAppContext alfrescoServerApi = new WebAppContext(alfrescoServerWarPath,"/alfresco");
+    alfrescoServerApi.setParentLoaderPriority(false);
+    HashLoginService dummyLoginService = new HashLoginService("TEST-SECURITY-REALM");
+    alfrescoServerApi.getSecurityHandler().setLoginService(dummyLoginService);
+    contexts.addHandler(alfrescoServerApi);
 
     alfrescoServer.start();
     boolean entered = false;
