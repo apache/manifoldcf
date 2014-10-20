@@ -215,7 +215,87 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
           throw new Exception(resultNode.getValue());
       }
 
-      //@TODO - Test Job execution
+
+      // Create a job.
+      ConfigurationNode jobObject = new ConfigurationNode("job");
+
+      child = new ConfigurationNode("description");
+      child.setValue("Test Job");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("repository_connection");
+      child.setValue("Alfresco Connection");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      // Revamped way of adding output connection
+      child = new ConfigurationNode("pipelinestage");
+      ConfigurationNode pipelineChild = new ConfigurationNode("stage_id");
+      pipelineChild.setValue("0");
+      child.addChild(child.getChildCount(),pipelineChild);
+      pipelineChild = new ConfigurationNode("stage_isoutput");
+      pipelineChild.setValue("true");
+      child.addChild(child.getChildCount(),pipelineChild);
+      pipelineChild = new ConfigurationNode("stage_connectionname");
+      pipelineChild.setValue("Null Connection");
+      child.addChild(child.getChildCount(),pipelineChild);
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("run_mode");
+      child.setValue("scan once");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("start_mode");
+      child.setValue("manual");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("hopcount_mode");
+      child.setValue("accurate");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("document_specification");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+//Job configuration
+//      ConfigurationNode sn = new ConfigurationNode("startpoint");
+//      sn.setAttribute("luceneQuery",ALFRESCO_TEST_QUERY);
+//
+//      child.addChild(child.getChildCount(),sn);
+
+
+      requestObject = new Configuration();
+      requestObject.addChild(0,jobObject);
+
+      result = performAPIPostOperationViaNodes("jobs",200,requestObject);
+
+      String jobIDString = null;
+      i = 0;
+      while (i < result.getChildCount())
+      {
+        ConfigurationNode resultNode = result.findChild(i++);
+
+        System.out.println("Type: "+resultNode.getType());
+        System.out.println("Value: "+resultNode.getValue());
+        System.out.println("Attributes: "+resultNode.getAttributes());
+
+        if (resultNode.getType().equals("error"))
+          throw new Exception(resultNode.getValue());
+        else if (resultNode.getType().equals("job_id"))
+          jobIDString = resultNode.getValue();
+      }
+      if (jobIDString == null)
+        throw new Exception("Missing job_id from return!");
+
+      // Now, start the job, and wait until it completes.
+      startJob(jobIDString);
+      waitJobInactive(jobIDString, 360000L);
+
+      // Check to be sure we actually processed the right number of documents.
+      // The test data area has 3 documents and one directory, and we have to count the root directory too.
+      long count;
+      count = getJobDocumentsProcessed(jobIDString);
+
+      if (count != 67)
+        throw new ManifoldCFException("Wrong number of documents processed - expected 67, got "+new Long(count).toString());
     }
     catch (Exception e)
     {
