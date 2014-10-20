@@ -290,7 +290,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       activities.recordActivity(startTime, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, "OK", null);
       return DOCUMENTSTATUS_ACCEPTED;
     } catch (URISyntaxException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,activities.EXCEPTION,"Rejected due to URISyntaxException");
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
       handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
     }
@@ -324,10 +324,10 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       deleteFile(path,activities,documentURI);
       activities.recordActivity(startTime, REMOVE_ACTIVITY, null, documentURI, "OK", null);
     } catch (JSONException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to JSONException.");
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
       handleJSONException(e);
     } catch (URISyntaxException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to URISyntaxException.");
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
       handleURISyntaxException(e);
     }
   }
@@ -680,17 +680,17 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       t.finishUp();
     } catch (InterruptedException e) {
       t.interrupt();
-      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to InterruptedException.");
+      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
       throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     } catch (java.net.SocketTimeoutException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to SocketTimeoutException.");
+      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
       handleIOException(e);
     } catch (InterruptedIOException e) {
       t.interrupt();
-      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to InterruptedIOException.");
+      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
       handleIOException(e);
     } catch (IOException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to IOException.");
+      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
       handleIOException(e);
     }
   }
@@ -739,17 +739,17 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       t.finishUp();
     } catch (InterruptedException e) {
       t.interrupt();
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to InterruptedException.");
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
       throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     } catch (java.net.SocketTimeoutException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to SocketTimeoutException.");
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
       handleIOException(e);
     } catch (InterruptedIOException e) {
       t.interrupt();
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to InterruptedIOException.");
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
       handleIOException(e);
     } catch (IOException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Rejected due to IOException.");
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
       handleIOException(e);
     }
   }
