@@ -241,6 +241,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-client-impl</artifactId>
+            <version>0.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
           <groupId>${project.groupId}</groupId>
           <artifactId>mcf-core</artifactId>
           <version>${project.version}</version>
@@ -375,14 +381,14 @@
           <artifactId>jsp-api-2.1-glassfish</artifactId>
           <version>${glassfish.version}</version>
           <scope>test</scope>
-        </dependency>    
+        </dependency>
         <dependency>
           <groupId>org.mortbay.jetty</groupId>
           <artifactId>jsp-2.1-glassfish</artifactId>
           <version>${glassfish.version}</version>
           <scope>test</scope>
         </dependency>
-    
+
         <dependency>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-api</artifactId>

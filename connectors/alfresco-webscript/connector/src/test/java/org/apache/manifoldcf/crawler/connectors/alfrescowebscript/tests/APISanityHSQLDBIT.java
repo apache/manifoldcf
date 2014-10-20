@@ -27,21 +27,31 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class APISanityHSQLDBIT extends BaseITHSQLDB
 {
-  
-  private static final String REPLACER = "?";
-  private static final String ALFRESCO_TEST_QUERY = "PATH:\"/app:company_home/cm:testdata\"";
-  
-  private static final String ALFRESCO_USERNAME = "admin"; 
-  private static final String ALFRESCO_PASSWORD = "admin";
-  private static final String ALFRESCO_PROTOCOL = "http";
-  private static final String ALFRESCO_HOST = "localhost";
-  private static final String ALFRESCO_PORT = "9090";
-  private static final String ALFRESCO_CONTEXT = "/alfresco";
-  private static final int SOCKET_TIMEOUT = 120000;
-  private static final String ALFRESCO_ENDPOINT_TEST_SERVER = 
-      ALFRESCO_PROTOCOL+"://"+ALFRESCO_HOST+":"+ALFRESCO_PORT+ALFRESCO_CONTEXT;
+  private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHss");
+
+  //@TODO - Should be moved into AlfrescoConnector.java
+  public static final String ALFRESCO_PROTOCOL_PARAM = "protocol";
+  public static final String ALFRESCO_HOSTNAME_PARAM = "hostname";
+  public static final String ALFRESCO_PORT_PARAM = "port";
+  public static final String ALFRESCO_ENDPOINT_PARAM = "/alfresco/service";
+  public static final String ALFRESCO_STOREPROTOCOL_PARAM = "storeprotocol";
+  public static final String ALFRESCO_STOREID_PARAM = "storeid";
+  public static final String ALFRESCO_USERNAME_PARAM = "username";
+  public static final String ALFRESCO_PASSWORD_PARAM = "password";
+
+  public static final String ALFRESCO_PROTOCOL = "http";
+  public static final String ALFRESCO_HOSTNAME = "localhost";
+  public static final String ALFRESCO_PORT = "9090";
+  public static final String ALFRESCO_ENDPOINT = "/alfresco/service";
+  public static final String ALFRESCO_STOREPROTOCOL = "workspace";
+  public static final String ALFRESCO_STOREID = "SpacesStore";
+  public static final String ALFRESCO_USERNAME = "admin";
+  public static final String ALFRESCO_PASSWORD = "admin";
 
   @Before
   public void createTestArea()
@@ -51,7 +61,14 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
     
     try
     {
-      //@TODO - Add cmis client logic to push some documents into Alfresco
+      //Adding a document in Alfresco via CMIS
+      CMISUtils cdc = new CMISUtils();
+      cdc.setServiceUrl(ALFRESCO_PROTOCOL+"://"+ALFRESCO_HOSTNAME+":"+ALFRESCO_PORT + "/alfresco/api/-default-/public/cmis/versions/1.1/atom");
+      cdc.setUser("admin");
+      cdc.setPassword("admin");
+      cdc.createDocument("test" + "." + sdf.format(new Date()), "cmis:document");
+
+      //@TODO - Add more logic to push documents into Alfresco
     }
     catch (Exception e)
     {
@@ -92,7 +109,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("description");
-      child.setValue("An Alfresco Repository Connector");
+      child.setValue("Alfresco Repository Connector");
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       child = new ConfigurationNode("max_connections");
@@ -102,29 +119,17 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       child = new ConfigurationNode("configuration");
       
       //Alfresco Repository Connector parameters
-      
-      //username
-      ConfigurationNode alfrescoUsernameNode = new ConfigurationNode("_PARAMETER_");
-      alfrescoUsernameNode.setAttribute("name", ALFRESCO_USERNAME);
-      alfrescoUsernameNode.setValue(ALFRESCO_USERNAME);
-      child.addChild(child.getChildCount(), alfrescoUsernameNode);
-      
-      //password
-      ConfigurationNode alfrescoPasswordNode = new ConfigurationNode("_PARAMETER_");
-      alfrescoPasswordNode.setAttribute("name", ALFRESCO_PASSWORD);
-      alfrescoPasswordNode.setValue(ALFRESCO_PASSWORD);
-      child.addChild(child.getChildCount(), alfrescoPasswordNode);
-      
+
       //protocol
       ConfigurationNode alfrescoProtocolNode = new ConfigurationNode("_PARAMETER_");
-      alfrescoProtocolNode.setAttribute("name", ALFRESCO_PROTOCOL);
+      alfrescoProtocolNode.setAttribute("name", ALFRESCO_PROTOCOL_PARAM);
       alfrescoProtocolNode.setValue(ALFRESCO_PROTOCOL);
       child.addChild(child.getChildCount(), alfrescoProtocolNode);
       
       //server
       ConfigurationNode alfrescoServerNode = new ConfigurationNode("_PARAMETER_");
-      alfrescoServerNode.setAttribute("name", ALFRESCO_HOST);
-      alfrescoServerNode.setValue(ALFRESCO_HOST);
+      alfrescoServerNode.setAttribute("name", ALFRESCO_HOSTNAME_PARAM);
+      alfrescoServerNode.setValue(ALFRESCO_HOSTNAME);
       child.addChild(child.getChildCount(), alfrescoServerNode);
       
       //port
@@ -133,18 +138,36 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       alfrescoPortNode.setValue(ALFRESCO_PORT);
       child.addChild(child.getChildCount(), alfrescoPortNode);
       
-      //path
-      ConfigurationNode alfrescoPathNode = new ConfigurationNode("_PARAMETER_");
-      alfrescoPathNode.setAttribute("name", ALFRESCO_CONTEXT);
-      alfrescoPathNode.setValue(ALFRESCO_CONTEXT);
-      child.addChild(child.getChildCount(), alfrescoPathNode);
-      
-      //socketTimeout
-      ConfigurationNode socketTimeoutNode = new ConfigurationNode("_PARAMETER_");
-      socketTimeoutNode.setAttribute("name", "60000");
-      socketTimeoutNode.setValue(String.valueOf(SOCKET_TIMEOUT));
-      child.addChild(child.getChildCount(), socketTimeoutNode);
-      
+      //endpoint
+      ConfigurationNode alfrescoEndpointNode = new ConfigurationNode("_PARAMETER_");
+      alfrescoEndpointNode.setAttribute("name", ALFRESCO_ENDPOINT_PARAM);
+      alfrescoEndpointNode.setValue(ALFRESCO_ENDPOINT);
+      child.addChild(child.getChildCount(), alfrescoEndpointNode);
+
+      //storeProtocol
+      ConfigurationNode alfrescoStoreProtocol = new ConfigurationNode("_PARAMETER_");
+      alfrescoStoreProtocol.setAttribute("name", ALFRESCO_STOREPROTOCOL_PARAM);
+      alfrescoStoreProtocol.setValue(ALFRESCO_STOREPROTOCOL);
+      child.addChild(child.getChildCount(), alfrescoStoreProtocol);
+
+      //storeId
+      ConfigurationNode alfrescoStoreId = new ConfigurationNode("_PARAMETER_");
+      alfrescoStoreId.setAttribute("name", ALFRESCO_STOREID_PARAM);
+      alfrescoStoreId.setValue(ALFRESCO_STOREID);
+      child.addChild(child.getChildCount(), alfrescoStoreId);
+
+      //username
+      ConfigurationNode alfrescoUsernameNode = new ConfigurationNode("_PARAMETER_");
+      alfrescoUsernameNode.setAttribute("name", ALFRESCO_USERNAME_PARAM);
+      alfrescoUsernameNode.setValue(ALFRESCO_USERNAME);
+      child.addChild(child.getChildCount(), alfrescoUsernameNode);
+
+      //password
+      ConfigurationNode alfrescoPasswordNode = new ConfigurationNode("_PARAMETER_");
+      alfrescoPasswordNode.setAttribute("name", ALFRESCO_PASSWORD_PARAM);
+      alfrescoPasswordNode.setValue(ALFRESCO_PASSWORD);
+      child.addChild(child.getChildCount(), alfrescoPasswordNode);
+
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       requestObject = new Configuration();
