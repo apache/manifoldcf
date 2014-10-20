@@ -4113,7 +4113,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       catch (Throwable e)
       {
-        statusCode = IProcessActivity.EXCEPTION;
+        statusCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
         errorMessage = e.getMessage();
         this.exception = e;
       }

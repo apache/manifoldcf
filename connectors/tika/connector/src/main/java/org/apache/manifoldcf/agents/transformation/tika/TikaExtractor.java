@@ -226,7 +226,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             {
               if (sp.ignoreTikaException())
               {
-                resultCode = "TIKAEXCEPTION";
+                resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
                 description = e.getMessage();
               }
               else
@@ -241,7 +241,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             }
             catch (SAXException e)
             {
-              resultCode = "SAXEXCEPTION";
+              resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
               description = e.getMessage();
               int rval = handleSaxException(e);
               if (rval == DOCUMENTSTATUS_REJECTED)
@@ -250,7 +250,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             }
             catch (IOException e)
             {
-              resultCode = activities.IOEXCEPTION;
+              resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
               description = e.getMessage();
               throw e;
             }
