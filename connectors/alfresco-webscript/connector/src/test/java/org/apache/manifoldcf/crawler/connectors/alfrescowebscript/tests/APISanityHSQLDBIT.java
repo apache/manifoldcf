@@ -173,7 +173,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       requestObject = new Configuration();
       requestObject.addChild(0,connectionObject);
       
-      result = performAPIPutOperationViaNodes("repositoryconnections/Alfresco%20Connector",201,requestObject);
+      result = performAPIPutOperationViaNodes("repositoryconnections/Alfresco%20Connection",201,requestObject);
 
       i = 0;
       while (i < result.getChildCount())
