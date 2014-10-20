@@ -41,6 +41,22 @@
         </fileset>
     </path>
 
+    <path id="connector-test-classpath">
+        <path refid="mcf-connector-build.connector-test-classpath"/>
+        <fileset dir="../../lib">
+            <include name="chemistry*.jar"/>
+            <include name="stax*.jar"/>
+            <include name="streambuffer*.jar"/>
+            <include name="jaxb*.jar"/>
+            <include name="jaxws*.jar"/>
+            <include name="wstx-asl*.jar"/>
+            <include name="mimepull*.jar"/>
+            <include name="resolver*.jar"/>
+            <include name="org.osgi.core*.jar"/>
+            <include name="commons-lang*.jar"/>
+        </fileset>
+    </path>
+
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
