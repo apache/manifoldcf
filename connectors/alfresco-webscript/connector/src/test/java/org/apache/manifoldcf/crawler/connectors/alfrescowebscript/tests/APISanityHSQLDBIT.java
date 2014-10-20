@@ -101,7 +101,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       connectionObject = new ConfigurationNode("repositoryconnection");
       
       child = new ConfigurationNode("name");
-      child.setValue("Alfresco Connector");
+      child.setValue("Alfresco Connection");
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("class_name");
@@ -265,7 +265,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       requestObject = new Configuration();
       requestObject.addChild(0,jobObject);
 
-      result = performAPIPostOperationViaNodes("jobs",200,requestObject);
+      result = performAPIPostOperationViaNodes("jobs",201,requestObject);
 
       String jobIDString = null;
       i = 0;
