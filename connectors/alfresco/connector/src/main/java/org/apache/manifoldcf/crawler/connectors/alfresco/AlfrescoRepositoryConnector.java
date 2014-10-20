@@ -916,7 +916,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
             if (e instanceof java.io.InterruptedIOException && !(e instanceof java.net.SocketTimeoutException))
               errorCode = null;
             else {
-              errorCode = activities.IOEXCEPTION;
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
               errorDesc = e.getMessage();
             }
             Logging.connectors.warn(
@@ -974,7 +974,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
               if (e instanceof java.io.InterruptedIOException && !(e instanceof java.net.SocketTimeoutException))
                 errorCode = null;
               else {
-                errorCode = activities.IOEXCEPTION;
+                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
                 errorDesc = e.getMessage();
               }
               Logging.connectors.warn(
@@ -992,7 +992,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
                 throw new ManifoldCFException(e.getMessage(), e,
                     ManifoldCFException.INTERRUPTED);
               } catch (IOException e) {
-                errorCode = activities.IOEXCEPTION;
+                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
                 errorDesc = e.getMessage();
                 Logging.connectors.warn(
                     "Alfresco: IOException closing file input stream: "
