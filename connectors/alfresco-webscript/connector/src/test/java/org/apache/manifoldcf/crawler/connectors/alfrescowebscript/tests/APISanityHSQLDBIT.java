@@ -134,7 +134,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       
       //port
       ConfigurationNode alfrescoPortNode = new ConfigurationNode("_PARAMETER_");
-      alfrescoPortNode.setAttribute("name", ALFRESCO_PORT);
+      alfrescoPortNode.setAttribute("name", ALFRESCO_PORT_PARAM);
       alfrescoPortNode.setValue(ALFRESCO_PORT);
       child.addChild(child.getChildCount(), alfrescoPortNode);
       
