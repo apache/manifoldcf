@@ -172,7 +172,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     if (!checkURLIndexable(sp, outputDescription, documentURI, activities))
     {
       activities.noDocument();
-      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, "FILTEREDURL", "Rejected due to URL ('"+documentURI+"')");
+      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, activities.EXCLUDED_URL, "Rejected due to URL ('"+documentURI+"')");
       if (Logging.ingest.isDebugEnabled())
         Logging.ingest.debug("Document filter: Rejected document "+documentURI+" due to URL ('"+documentURI+"')");
       return DOCUMENTSTATUS_REJECTED;
@@ -181,7 +181,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     if (!checkLengthIndexable(sp, outputDescription, document.getBinaryLength(), activities))
     {
       activities.noDocument();
-      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, "FILTEREDLENGTH", "Rejected due to length ("+document.getBinaryLength()+")");
+      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, activities.EXCLUDED_LENGTH, "Rejected due to length ("+document.getBinaryLength()+")");
       if (Logging.ingest.isDebugEnabled())
         Logging.ingest.debug("Document filter: Rejected document "+documentURI+" due to length ("+document.getBinaryLength()+")");
       return DOCUMENTSTATUS_REJECTED;
@@ -190,7 +190,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     if (!checkMimeTypeIndexable(sp, outputDescription, document.getMimeType(), activities))
     {
       activities.noDocument();
-      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, "FILTEREDMIMETYPE", "Rejected due to mime type ('"+document.getMimeType()+"')");
+      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, activities.EXCLUDED_MIMETYPE, "Rejected due to mime type ('"+document.getMimeType()+"')");
       if (Logging.ingest.isDebugEnabled())
         Logging.ingest.debug("Document filter: Rejected document "+documentURI+" due to mime type ('"+document.getMimeType()+"')");
       return DOCUMENTSTATUS_REJECTED;
@@ -199,7 +199,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     if (!checkDateIndexable(sp, outputDescription, document.getModifiedDate(), activities))
     {
       activities.noDocument();
-      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, "FILTEREDDATE", "Rejected due to date ('"+document.getModifiedDate()+"')");
+      activities.recordActivity(null, ACTIVITY_FILTER, null, documentURI, activities.EXCLUDED_DATE, "Rejected due to date ('"+document.getModifiedDate()+"')");
       if (Logging.ingest.isDebugEnabled())
         Logging.ingest.debug("Document filter: Rejected document "+documentURI+" due to date ('"+document.getModifiedDate()+"')");
       return DOCUMENTSTATUS_REJECTED;
