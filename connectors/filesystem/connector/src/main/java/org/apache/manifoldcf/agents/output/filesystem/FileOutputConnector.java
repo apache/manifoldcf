@@ -215,7 +215,7 @@ public class FileOutputConnector extends BaseOutputConnector {
           }
           else
           {
-              activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.CREATED_DIRECTORY,"Couldn't create directory ("+newPath+").");
+              activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.CREATED_DIRECTORY,"Couldn't create directory. '"+newPath+"'");
               throw new ManifoldCFException("Could not create directory '"+newPath+"'.  Permission issue?");
           }
         }
@@ -247,7 +247,7 @@ public class FileOutputConnector extends BaseOutputConnector {
             continue;
           }
           // Probably some other error
-          activities.recordActivity(null, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, activities.EXCEPTION, "Rejected due to FileNotFoundException.");
+          activities.recordActivity(null, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, activities.EXCEPTION, "Unexpected exception while creating the file.'" + outputPath + "'");
           throw new ManifoldCFException("Could not create file '"+outputPath+"': "+e.getMessage(),e);
         }
       }
@@ -259,7 +259,7 @@ public class FileOutputConnector extends BaseOutputConnector {
         FileChannel channel = output.getChannel();
         FileLock lock = channel.tryLock();
         if (lock == null){
-          activities.recordActivity(null,INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to ServiceInterruptionException.");
+          activities.recordActivity(null,INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Could not lock file: '" + outputPath + "'");
           throw new ServiceInterruption("Could not lock file: '"+outputPath+"'",null,1000L,-1L,10,false);
         }
 
@@ -292,19 +292,19 @@ public class FileOutputConnector extends BaseOutputConnector {
         }
       }
     } catch (URISyntaxException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to URISyntaxException");
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
       handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (FileNotFoundException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to FileNotFoundException");
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
       handleFileNotFoundException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (SecurityException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Rejected due to SecurityException");
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
       handleSecurityException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (IOException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI ,activities.EXCEPTION,"Rejected due to IOException.");
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI ,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
       handleIOException(e);
       return DOCUMENTSTATUS_REJECTED;
     }
@@ -432,23 +432,23 @@ public class FileOutputConnector extends BaseOutputConnector {
         catch (FileNotFoundException e)
         {
           // Probably some other error
-          activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Couldn't deleted due to FileNotFoundException");
+          activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Couldn't delete the file due to FileNotFoundException '"+outputPath+"':" + e.getMessage());
           throw new ManifoldCFException("Could not zero out file '"+outputPath+"': "+e.getMessage(),e);
         }
       }
       // Just close it, to make a zero-length grave marker.
       output.close();
     } catch (URISyntaxException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Rejected due to URISyntaxException");
+      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
       handleURISyntaxException(e);
     } catch (FileNotFoundException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Rejected due to FileNotFoundException");
+      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
       handleFileNotFoundException(e);
     } catch (SecurityException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Rejected due to SecurityException");
+      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
       handleSecurityException(e);
     } catch (IOException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,null, documentURI ,activities.EXCEPTION,"Rejected due to IOException.");
+      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI ,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
       handleIOException(e);
     }
 
