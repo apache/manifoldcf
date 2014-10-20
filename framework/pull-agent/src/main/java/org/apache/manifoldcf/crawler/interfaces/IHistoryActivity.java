@@ -32,8 +32,6 @@ public interface IHistoryActivity
   public static final String EXCLUDED_LENGTH = IOutputHistoryActivity.EXCLUDED_LENGTH;
   public static final String EXCLUDED_MIMETYPE = IOutputHistoryActivity.EXCLUDED_MIMETYPE;
   public static final String EXCLUDED_DATE = IOutputHistoryActivity.EXCLUDED_DATE;
-  public static final String EXCEPTION = IOutputHistoryActivity.EXCEPTION;
-  public static final String IOEXCEPTION = IOutputHistoryActivity.IOEXCEPTION;
 
   /** Record time-stamped information about the activity of the connector.
   *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
