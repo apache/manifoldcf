@@ -17,9 +17,11 @@
 
 package org.apache.manifoldcf.agents.output.opensearchserver;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
+import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.util.URLEncoder;
 
@@ -35,6 +37,6 @@ public class OpenSearchServerDelete extends OpenSearchServerConnection {
     call(method);
     if ("OK".equals(checkXPath(xPathStatus)))
       return;
-    setResult(Result.ERROR, checkXPath(xPathException));
+    setResult(IOutputHistoryActivity.XPATH_EXCEPTION,Result.ERROR, checkXPath(xPathException));
   }
 }

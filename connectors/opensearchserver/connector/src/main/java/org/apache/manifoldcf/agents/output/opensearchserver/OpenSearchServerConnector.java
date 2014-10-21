@@ -540,7 +540,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector
             documentURI, config, document, authorityNameString, activities);
         activities.recordActivity(startTime,
             OPENSEARCHSERVER_INDEXATION_ACTIVITY, document.getBinaryLength(),
-            documentURI, oi.getResult().name(), oi.getResultDescription());
+            documentURI, oi.getResultCode(), oi.getResultDescription());
         if (oi.getResult() != Result.OK)
           return DOCUMENTSTATUS_REJECTED;
       }
@@ -562,7 +562,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector
     OpenSearchServerDelete od = new OpenSearchServerDelete(client, documentURI,
         getConfigParameters(null));
     activities.recordActivity(startTime, OPENSEARCHSERVER_DELETION_ACTIVITY,
-        null, documentURI, od.getResult().name(), od.getResultDescription());
+        null, documentURI, od.getResultCode(), od.getResultDescription());
   }
 
   @Override
@@ -588,7 +588,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector
       OpenSearchServerScheduler oo = new OpenSearchServerScheduler(client,
           getConfigParameters(null), schedulerJob.trim());
       activities.recordActivity(startTime, OPENSEARCHSERVER_SCHEDULER_ACTIVITY,
-          null, oo.getCallUrlSnippet(), oo.getResult().name(),
+          null, oo.getCallUrlSnippet(), oo.getResultCode(),
           oo.getResultDescription());
     }
   }
