@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
@@ -51,6 +52,7 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
 import org.apache.http.ParseException;
 
+import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.util.URLEncoder;
@@ -70,6 +72,8 @@ public class ElasticSearchConnection
   private String callUrlSnippet;
 
   private String response;
+
+  private String resultCode;
 
   protected final static String jsonException = "\"error\"";
 
@@ -225,22 +229,22 @@ public class ElasticSearchConnection
   {
     if (code == 200 || code == 201)
     {
-      setResult(Result.OK, null);
+      setResult("OK",Result.OK, null);
       return true;
     }
     else if (code == 404)
     {
-      setResult(Result.ERROR, "Page not found: " + response);
+      setResult(IOutputHistoryActivity.HTTP_ERROR,Result.ERROR, "Page not found: " + response);
       throw new ManifoldCFException("Server/page not found");
     }
     else if (code >= 400 && code < 500)
     {
-      setResult(Result.ERROR, "HTTP code = "+code+", Response = "+response);
+      setResult(IOutputHistoryActivity.HTTP_ERROR,Result.ERROR, "HTTP code = "+code+", Response = "+response);
       return false;
     }
     else if (code >= 500 && code < 600)
     {
-      setResult(Result.ERROR, "Server exception: "+response);
+      setResult(IOutputHistoryActivity.HTTP_ERROR,Result.ERROR, "Server exception: "+response);
       long currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Server exception: "+response,
         new ManifoldCFException(response),
@@ -249,13 +253,13 @@ public class ElasticSearchConnection
         -1,
         false);
     }
-    setResult(Result.UNKNOWN, "HTTP code = "+code+", Response = "+response);
+    setResult(IOutputHistoryActivity.HTTP_ERROR,Result.UNKNOWN, "HTTP code = "+code+", Response = "+response);
     throw new ManifoldCFException("Unexpected HTTP result code: "+code+": "+response);
   }
 
   protected void handleHttpException(HttpException e)
     throws ManifoldCFException, ServiceInterruption {
-    setResult(Result.ERROR, e.getMessage());
+    setResult(e.getClass().getSimpleName().toUpperCase(Locale.ROOT),Result.ERROR, e.getMessage());
     throw new ManifoldCFException(e);
   }
   
@@ -263,7 +267,7 @@ public class ElasticSearchConnection
     throws ManifoldCFException, ServiceInterruption {
     if (e instanceof java.io.InterruptedIOException && !(e instanceof java.net.SocketTimeoutException))
       throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
-    setResult(Result.ERROR, e.getMessage());
+    setResult(e.getClass().getSimpleName().toUpperCase(Locale.ROOT),Result.ERROR, e.getMessage());
     long currentTime = System.currentTimeMillis();
     // All IO exceptions are treated as service interruptions, retried for an hour
     throw new ServiceInterruption("IO exception: "+e.getMessage(),e,
@@ -334,13 +338,14 @@ public class ElasticSearchConnection
     return result;
   }
 
-  protected void setResult(Result res, String desc)
+  protected void setResult(String resultCode, Result res, String desc)
   {
     if (res != null)
       result = res;
     if (desc != null)
       if (desc.length() > 0)
         resultDescription = desc;
+    setResultCode(resultCode);
   }
 
   public String getResultDescription()
@@ -363,4 +368,8 @@ public class ElasticSearchConnection
   {
     return callUrlSnippet;
   }
+
+  public String getResultCode(){ return resultCode; }
+
+  public void setResultCode(String resultCode){ this.resultCode = resultCode; }
 }
