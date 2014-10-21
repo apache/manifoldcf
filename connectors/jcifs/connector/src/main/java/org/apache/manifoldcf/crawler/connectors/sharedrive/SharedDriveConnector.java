@@ -739,364 +739,384 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       
       if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
       {
-        byte[] transferBuffer = null;
-
+        String errorCode = null;
+        String errorDesc = null;
+        Long fileLengthLong = null;
+        long startFetchTime = System.currentTimeMillis();
         try
         {
+          byte[] transferBuffer = null;
 
-          if (fileExists(file))
+          try
           {
-            if (fileIsDirectory(file))
+
+            if (fileExists(file))
             {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("JCIFS: '"+documentIdentifier+"' is a directory");
-
-              // Queue up stuff for directory
-              // DFS special support no longer needed, because JCifs now does the right thing.
-
-              // This is the string we replace in the child canonical paths.
-              // String matchPrefix = "";
-              // This is what we replace it with, to get back to a DFS path.
-              // String matchReplace = "";
-
-              // DFS resolved.
-
-              // Use a filter to actually do the work here.  This prevents large arrays from being
-              // created when there are big directories.
-              ProcessDocumentsFilter filter = new ProcessDocumentsFilter(activities,spec);
-              fileListFiles(file,filter);
-              filter.checkAndThrow();
-            }
-            else
-            {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("JCIFS: '"+documentIdentifier+"' is a file");
-
-              // We've already avoided queuing documents that we
-              // don't want, based on file specifications.
-              // We still need to check based on file data.
-
-              // DFS support is now implicit in JCifs.
-
-              long startFetchTime = System.currentTimeMillis();
-              String fileName = getFileCanonicalPath(file);
-              if (fileName != null && !file.isHidden())
+              if (fileIsDirectory(file))
               {
-                String uri = ingestionURI;
-                String fileNameString = file.getName();
-                Date lastModifiedDate = new Date(file.lastModified());
-                Date creationDate = new Date(file.createTime());
-                String contentType = mapExtensionToMimeType(fileNameString);
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("JCIFS: '"+documentIdentifier+"' is a directory");
 
-                if (!activities.checkURLIndexable(uri))
+                // Queue up stuff for directory
+                // DFS special support no longer needed, because JCifs now does the right thing.
+
+                // This is the string we replace in the child canonical paths.
+                // String matchPrefix = "";
+                // This is what we replace it with, to get back to a DFS path.
+                // String matchReplace = "";
+
+                // DFS resolved.
+
+                // Use a filter to actually do the work here.  This prevents large arrays from being
+                // created when there are big directories.
+                ProcessDocumentsFilter filter = new ProcessDocumentsFilter(activities,spec);
+                fileListFiles(file,filter);
+                filter.checkAndThrow();
+              }
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("JCIFS: '"+documentIdentifier+"' is a file");
+
+                // We've already avoided queuing documents that we
+                // don't want, based on file specifications.
+                // We still need to check based on file data.
+
+                // DFS support is now implicit in JCifs.
+
+                String fileName = getFileCanonicalPath(file);
+                if (fileName != null && !file.isHidden())
                 {
-                  Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept URL ('"+uri+"')");
-                  activities.recordActivity(null,ACTIVITY_ACCESS,
-                    null,documentIdentifier,"Skip","Output connector refused URL",null);
-                  activities.noDocument(documentIdentifier,versionString);
-                  continue;
-                }
+                  String uri = ingestionURI;
+                  String fileNameString = file.getName();
+                  Date lastModifiedDate = new Date(file.lastModified());
+                  Date creationDate = new Date(file.createTime());
+                  String contentType = mapExtensionToMimeType(fileNameString);
 
-                if (!activities.checkMimeTypeIndexable(contentType))
-                {
-                  Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept content type ('"+contentType+"')");
-                  activities.recordActivity(null,ACTIVITY_ACCESS,
-                    null,documentIdentifier,"Skip","Output connector refused mime type",null);
-                  activities.noDocument(documentIdentifier,versionString);
-                  continue;
-                }
-
-                if (!activities.checkDateIndexable(lastModifiedDate))
-                {
-                  Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept date ("+lastModifiedDate+")");
-                  activities.recordActivity(null,ACTIVITY_ACCESS,
-                    null,documentIdentifier,"Skip","Output connector refused date",null);
-                  activities.noDocument(documentIdentifier,versionString);
-                  continue;
-                }
-
-                // Initialize repository document with common stuff, and find the URI
-                RepositoryDocument rd = new RepositoryDocument();
-                
-                //If using the lastAccess patched/Google version of jcifs then this can be uncommented
-                //Date lastAccessDate = new Date(file.lastAccess());
-                Integer attributes = file.getAttributes();
-                String shareName = file.getShare();
-
-                rd.setFileName(fileNameString);
-                if (contentType != null)
-                  rd.setMimeType(contentType);
-                rd.addField("lastModified", lastModifiedDate.toString());
-                rd.addField("fileLastModified",DateParser.formatISO8601Date(lastModifiedDate));
-                rd.setModifiedDate(lastModifiedDate);
-                
-                // Add extra obtainable fields to the field map
-                rd.addField("createdOn", creationDate.toString());
-                rd.addField("fileCreatedOn",DateParser.formatISO8601Date(creationDate));
-                rd.setCreatedDate(creationDate);
-
-                //rd.addField("lastAccess", lastModifiedDate.toString());
-                rd.addField("attributes", Integer.toString(attributes));
-                rd.addField("shareName", shareName);
-
-                setDocumentSecurity(rd,shareAllow,shareDeny,parentAllow,parentDeny,documentAllow,documentDeny);
-                setPathMetadata(rd,pathAttributeName,pathAttributeValue);
-
-                // manipulate path to include the DFS alias, not the literal path
-                // String newPath = matchPrefix + fileName.substring(matchReplace.length());
-                String newPath = fileName;
-                if (checkNeedFileData(newPath, spec))
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("JCIFS: Local file data needed for '"+documentIdentifier+"'");
-
-                  // Create a temporary file, and use that for the check and then the ingest
-                  File tempFile = File.createTempFile("_sdc_",null);
-                  try
+                  if (!activities.checkURLIndexable(uri))
                   {
-                    FileOutputStream os = new FileOutputStream(tempFile);
-                    try
-                    {
-
-                      // Now, make a local copy so we can fingerprint
-                      InputStream inputStream = getFileInputStream(file);
-                      try
-                      {
-                        // Copy!
-                        if (transferBuffer == null)
-                          transferBuffer = new byte[65536];
-                        while (true)
-                        {
-                          int amt = inputStream.read(transferBuffer,0,transferBuffer.length);
-                          if (amt == -1)
-                            break;
-                          os.write(transferBuffer,0,amt);
-                        }
-                      }
-                      finally
-                      {
-                        inputStream.close();
-                      }
-                    }
-                    finally
-                    {
-                      os.close();
-                    }
-
-                    if (checkIngest(tempFile, newPath, spec, activities))
-                    {
-                      long fileLength = tempFile.length();
-                      if (!activities.checkLengthIndexable(fileLength))
-                      {
-                        Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept length ("+fileLength+")");
-                        activities.recordActivity(null,ACTIVITY_ACCESS,
-                          null,documentIdentifier,"Skip","Output connector refused length",null);
-                        activities.noDocument(documentIdentifier,versionString);
-                        continue;
-                      }
-
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("JCIFS: Decided to ingest '"+documentIdentifier+"'");
-                      // OK, do ingestion itself!
-                      InputStream inputStream = new FileInputStream(tempFile);
-                      try
-                      {
-                        rd.setBinary(inputStream, fileLength);
-                          
-                        activities.ingestDocumentWithException(documentIdentifier, versionString, uri, rd);
-                      }
-                      finally
-                      {
-                        inputStream.close();
-                      }
-
-                      // I put this record here deliberately for two reasons:
-                      // (1) the other path includes ingestion time, and
-                      // (2) if anything fails up to and during ingestion, I want THAT failure record to be written, not this one.
-                      // So, really, ACTIVITY_ACCESS is a bit more than just fetch for JCIFS...
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
-                        new Long(tempFile.length()),documentIdentifier,"Success",null,null);
-
-                    }
-                    else
-                    {
-                      // We must actively remove the document here, because the getDocumentVersions()
-                      // method has no way of signalling this, since it does not do the fingerprinting.
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("JCIFS: Decided to remove '"+documentIdentifier+"'");
-                      activities.noDocument(documentIdentifier, versionString);
-                      // We should record the access here as well, since this is a non-exception way through the code path.
-                      // (I noticed that this was not being recorded in the history while fixing 25477.)
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
-                        new Long(tempFile.length()),documentIdentifier,"Success",null,null);
-                    }
-                  }
-                  finally
-                  {
-                    tempFile.delete();
-                  }
-                }
-                else
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("JCIFS: Local file data not needed for '"+documentIdentifier+"'");
-
-                  long fileLength = fileLength(file);
-                  if (!activities.checkLengthIndexable(fileLength))
-                  {
-                    Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept length ("+fileLength+")");
-                    activities.recordActivity(null,ACTIVITY_ACCESS,
-                      null,documentIdentifier,"Skip","Output connector refused length",null);
+                    Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept URL ('"+uri+"')");
+                    errorCode = activities.EXCLUDED_URL;
+                    errorDesc = "Rejected due to URL ('"+uri+"')";
                     activities.noDocument(documentIdentifier,versionString);
                     continue;
                   }
 
-                  // Presume that since the file was queued that it fulfilled the needed criteria.
-                  // Go off and ingest the fast way.
+                  if (!activities.checkMimeTypeIndexable(contentType))
+                  {
+                    Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept content type ('"+contentType+"')");
+                    errorCode = activities.EXCLUDED_MIMETYPE;
+                    errorDesc = "Rejected due to mime type ("+contentType+")";
+                    activities.noDocument(documentIdentifier,versionString);
+                    continue;
+                  }
+
+                  if (!activities.checkDateIndexable(lastModifiedDate))
+                  {
+                    Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept date ("+lastModifiedDate+")");
+                    errorCode = activities.EXCLUDED_DATE;
+                    errorDesc = "Rejected due to date ("+lastModifiedDate+")";
+                    activities.noDocument(documentIdentifier,versionString);
+                    continue;
+                  }
+
+                  // Initialize repository document with common stuff, and find the URI
+                  RepositoryDocument rd = new RepositoryDocument();
                   
-                  // Ingest the document.
-                  InputStream inputStream = getFileInputStream(file);
-                  try
+                  //If using the lastAccess patched/Google version of jcifs then this can be uncommented
+                  //Date lastAccessDate = new Date(file.lastAccess());
+                  Integer attributes = file.getAttributes();
+                  String shareName = file.getShare();
+
+                  rd.setFileName(fileNameString);
+                  if (contentType != null)
+                    rd.setMimeType(contentType);
+                  rd.addField("lastModified", lastModifiedDate.toString());
+                  rd.addField("fileLastModified",DateParser.formatISO8601Date(lastModifiedDate));
+                  rd.setModifiedDate(lastModifiedDate);
+                  
+                  // Add extra obtainable fields to the field map
+                  rd.addField("createdOn", creationDate.toString());
+                  rd.addField("fileCreatedOn",DateParser.formatISO8601Date(creationDate));
+                  rd.setCreatedDate(creationDate);
+
+                  //rd.addField("lastAccess", lastModifiedDate.toString());
+                  rd.addField("attributes", Integer.toString(attributes));
+                  rd.addField("shareName", shareName);
+
+                  setDocumentSecurity(rd,shareAllow,shareDeny,parentAllow,parentDeny,documentAllow,documentDeny);
+                  setPathMetadata(rd,pathAttributeName,pathAttributeValue);
+
+                  // manipulate path to include the DFS alias, not the literal path
+                  // String newPath = matchPrefix + fileName.substring(matchReplace.length());
+                  String newPath = fileName;
+                  if (checkNeedFileData(newPath, spec))
                   {
-                    rd.setBinary(inputStream, fileLength);
-                      
-                    activities.ingestDocumentWithException(documentIdentifier, versionString, uri, rd);
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("JCIFS: Local file data needed for '"+documentIdentifier+"'");
+
+                    // Create a temporary file, and use that for the check and then the ingest
+                    File tempFile = File.createTempFile("_sdc_",null);
+                    try
+                    {
+                      FileOutputStream os = new FileOutputStream(tempFile);
+                      try
+                      {
+
+                        // Now, make a local copy so we can fingerprint
+                        InputStream inputStream = getFileInputStream(file);
+                        try
+                        {
+                          // Copy!
+                          if (transferBuffer == null)
+                            transferBuffer = new byte[65536];
+                          while (true)
+                          {
+                            int amt = inputStream.read(transferBuffer,0,transferBuffer.length);
+                            if (amt == -1)
+                              break;
+                            os.write(transferBuffer,0,amt);
+                          }
+                        }
+                        finally
+                        {
+                          inputStream.close();
+                        }
+                      }
+                      finally
+                      {
+                        os.close();
+                      }
+
+                      if (checkIngest(tempFile, newPath, spec, activities))
+                      {
+                        long fileLength = tempFile.length();
+                        if (!activities.checkLengthIndexable(fileLength))
+                        {
+                          Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept length ("+fileLength+")");
+                          errorCode = activities.EXCLUDED_LENGTH;
+                          errorDesc = "Rejected due to length ("+fileLength+")";
+                          activities.noDocument(documentIdentifier,versionString);
+                          continue;
+                        }
+
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("JCIFS: Decided to ingest '"+documentIdentifier+"'");
+                        // OK, do ingestion itself!
+                        InputStream inputStream = new FileInputStream(tempFile);
+                        try
+                        {
+                          rd.setBinary(inputStream, fileLength);
+                            
+                          activities.ingestDocumentWithException(documentIdentifier, versionString, uri, rd);
+                          errorCode = "OK";
+                          fileLengthLong = new Long(tempFile.length());
+                        }
+                        finally
+                        {
+                          inputStream.close();
+                        }
+
+                      }
+                      else
+                      {
+                        // We must actively remove the document here, because the getDocumentVersions()
+                        // method has no way of signalling this, since it does not do the fingerprinting.
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("JCIFS: Decided to remove '"+documentIdentifier+"'");
+                        activities.noDocument(documentIdentifier, versionString);
+                        errorCode = "NOWORKNEEDED";
+                        errorDesc = "No indexing needed for document at this time";
+                      }
+                    }
+                    finally
+                    {
+                      tempFile.delete();
+                    }
                   }
-                  finally
+                  else
                   {
-                    inputStream.close();
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("JCIFS: Local file data not needed for '"+documentIdentifier+"'");
+
+                    long fileLength = fileLength(file);
+                    if (!activities.checkLengthIndexable(fileLength))
+                    {
+                      Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept length ("+fileLength+")");
+                      errorCode = activities.EXCLUDED_LENGTH;
+                      errorDesc = "Rejected because of length ("+fileLength+")";
+                      activities.noDocument(documentIdentifier,versionString);
+                      continue;
+                    }
+
+                    // Presume that since the file was queued that it fulfilled the needed criteria.
+                    // Go off and ingest the fast way.
+                    
+                    // Ingest the document.
+                    InputStream inputStream = getFileInputStream(file);
+                    try
+                    {
+                      rd.setBinary(inputStream, fileLength);
+                        
+                      activities.ingestDocumentWithException(documentIdentifier, versionString, uri, rd);
+                      errorCode = "OK";
+                      fileLengthLong = new Long(fileLength(file));
+                    }
+                    finally
+                    {
+                      inputStream.close();
+                    }
                   }
-                  activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
-                    new Long(fileLength(file)),documentIdentifier,"Success",null,null);
                 }
-              }
-              else
-              {
-                Logging.connectors.debug("JCIFS: Skipping file because canonical path is null, or because file is hidden");
-                activities.recordActivity(null,ACTIVITY_ACCESS,
-                  null,documentIdentifier,"Skip","Null canonical path or hidden file",null);
-                activities.noDocument(documentIdentifier,versionString);
+                else
+                {
+                  Logging.connectors.debug("JCIFS: Skipping file because canonical path is null, or because file is hidden");
+                  errorCode = "NULLORHIDDEN";
+                  errorDesc = "Null canonical path or hidden file";
+                  activities.noDocument(documentIdentifier,versionString);
+                  continue;
+                }
               }
             }
           }
-        }
-        catch (MalformedURLException mue)
-        {
-          Logging.connectors.error("MalformedURLException tossed",mue);
-          activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Error","Malformed URL: "+mue.getMessage(),null);
-          throw new ManifoldCFException("MalformedURLException tossed: "+mue.getMessage(),mue);
-        }
-        catch (jcifs.smb.SmbAuthException e)
-        {
-          Logging.connectors.warn("JCIFS: Authorization exception reading document/directory "+documentIdentifier+" - skipping");
-          activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Skip","Authorization: "+e.getMessage(),null);
-          // We call the delete even if it's a directory; this is harmless.
-          activities.noDocument(documentIdentifier, versionString);
-        }
-        catch (SmbException se)
-        {
-          // At least some of these are transport errors, and should be treated as service
-          // interruptions.
-          long currentTime = System.currentTimeMillis();
-          Throwable cause = se.getRootCause();
-          if (cause != null && (cause instanceof jcifs.util.transport.TransportException))
+          catch (MalformedURLException mue)
           {
-            // See if it's an interruption
-            jcifs.util.transport.TransportException te = (jcifs.util.transport.TransportException)cause;
-            if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
-              throw new ManifoldCFException(te.getRootCause().getMessage(),te.getRootCause(),ManifoldCFException.INTERRUPTED);
+            Logging.connectors.error("MalformedURLException tossed: "+mue.getMessage(),mue);
+            errorCode = mue.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = "Malformed URL: "+mue.getMessage();
+            throw new ManifoldCFException("MalformedURLException tossed: "+mue.getMessage(),mue);
+          }
+          catch (jcifs.smb.SmbAuthException e)
+          {
+            Logging.connectors.warn("JCIFS: Authorization exception reading document/directory "+documentIdentifier+" - skipping");
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = "Authorization: "+e.getMessage();
+            // We call the delete even if it's a directory; this is harmless.
+            activities.noDocument(documentIdentifier, versionString);
+            continue;
+          }
+          catch (SmbException se)
+          {
+            // At least some of these are transport errors, and should be treated as service
+            // interruptions.
+            long currentTime = System.currentTimeMillis();
+            Throwable cause = se.getRootCause();
+            if (cause != null && (cause instanceof jcifs.util.transport.TransportException))
+            {
+              // See if it's an interruption
+              jcifs.util.transport.TransportException te = (jcifs.util.transport.TransportException)cause;
+              if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
+                throw new ManifoldCFException(te.getRootCause().getMessage(),te.getRootCause(),ManifoldCFException.INTERRUPTED);
 
-            Logging.connectors.warn("JCIFS: Timeout processing document/directory "+documentIdentifier+": retrying...",se);
-            activities.recordActivity(null,ACTIVITY_ACCESS,
-              null,documentIdentifier,"Retry","Transport: "+cause.getMessage(),null);
-            throw new ServiceInterruption("Timeout or other service interruption: "+cause.getMessage(),cause,currentTime + 300000L,
-              currentTime + 12 * 60 * 60000L,-1,false);
+              Logging.connectors.warn("JCIFS: Timeout processing document/directory "+documentIdentifier+": retrying...",se);
+              errorCode = cause.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Transport: "+cause.getMessage();
+              throw new ServiceInterruption("Timeout or other service interruption: "+cause.getMessage(),cause,currentTime + 300000L,
+                currentTime + 12 * 60 * 60000L,-1,false);
+            }
+            if (se.getMessage().indexOf("busy") != -1)
+            {
+              Logging.connectors.warn("JCIFS: 'Busy' response when processing document/directory for "+documentIdentifier+": retrying...",se);
+              errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Busy: "+se.getMessage();
+              throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+                currentTime + 3 * 60 * 60000L,-1,false);
+            }
+            else if (se.getMessage().indexOf("handle is invalid") != -1)
+            {
+              Logging.connectors.warn("JCIFS: 'Handle is invalid' response when processing document/directory for "+documentIdentifier+": retrying...",se);
+              errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Expiration: "+se.getMessage();
+              throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+                currentTime + 3 * 60 * 60000L,-1,false);
+            }
+            else if (se.getMessage().indexOf("parameter is incorrect") != -1)
+            {
+              Logging.connectors.warn("JCIFS: 'Parameter is incorrect' response when processing document/directory for "+documentIdentifier+": retrying...",se);
+              errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Expiration: "+se.getMessage();
+              throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+                currentTime + 3 * 60 * 60000L,-1,false);
+            }
+            else if (se.getMessage().indexOf("no longer available") != -1)
+            {
+              Logging.connectors.warn("JCIFS: 'No longer available' response when processing document/directory for "+documentIdentifier+": retrying...",se);
+              errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Expiration: "+se.getMessage();
+              throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+                currentTime + 3 * 60 * 60000L,-1,false);
+            }
+            else if (se.getMessage().indexOf("cannot find") != -1 || se.getMessage().indexOf("cannot be found") != -1)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("JCIFS: Skipping document/directory "+documentIdentifier+" because it cannot be found");
+              errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Not found: "+se.getMessage();
+              activities.noDocument(documentIdentifier, versionString);
+            }
+            else if (se.getMessage().indexOf("is denied") != -1)
+            {
+              Logging.connectors.warn("JCIFS: Access exception reading document/directory "+documentIdentifier+" - skipping");
+              // We call the delete even if it's a directory; this is harmless and it cleans up the jobqueue row.
+              errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Authorization: "+se.getMessage();
+              activities.noDocument(documentIdentifier, versionString);
+            }
+            else
+            {
+              Logging.connectors.error("JCIFS: SmbException tossed processing "+documentIdentifier,se);
+              errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Unknown: "+se.getMessage();
+              throw new ManifoldCFException("SmbException tossed: "+se.getMessage(),se);
+            }
           }
-          if (se.getMessage().indexOf("busy") != -1)
+          catch (IOException e)
           {
-            Logging.connectors.warn("JCIFS: 'Busy' response when processing document/directory for "+documentIdentifier+": retrying...",se);
-            activities.recordActivity(null,ACTIVITY_ACCESS,
-              null,documentIdentifier,"Retry","Busy: "+se.getMessage(),null);
-            throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
-              currentTime + 3 * 60 * 60000L,-1,false);
-          }
-          else if (se.getMessage().indexOf("handle is invalid") != -1)
-          {
-            Logging.connectors.warn("JCIFS: 'Handle is invalid' response when processing document/directory for "+documentIdentifier+": retrying...",se);
-            activities.recordActivity(null,ACTIVITY_ACCESS,
-              null,documentIdentifier,"Retry","Expiration: "+se.getMessage(),null);
-            throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
-              currentTime + 3 * 60 * 60000L,-1,false);
-          }
-          else if (se.getMessage().indexOf("parameter is incorrect") != -1)
-          {
-            Logging.connectors.warn("JCIFS: 'Parameter is incorrect' response when processing document/directory for "+documentIdentifier+": retrying...",se);
-            activities.recordActivity(null,ACTIVITY_ACCESS,
-              null,documentIdentifier,"Retry","Expiration: "+se.getMessage(),null);
-            throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
-              currentTime + 3 * 60 * 60000L,-1,false);
-          }
-          else if (se.getMessage().indexOf("no longer available") != -1)
-          {
-            Logging.connectors.warn("JCIFS: 'No longer available' response when processing document/directory for "+documentIdentifier+": retrying...",se);
-            activities.recordActivity(null,ACTIVITY_ACCESS,
-              null,documentIdentifier,"Retry","Expiration: "+se.getMessage(),null);
-            throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
-              currentTime + 3 * 60 * 60000L,-1,false);
-          }
-          else if (se.getMessage().indexOf("cannot find") != -1 || se.getMessage().indexOf("cannot be found") != -1)
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("JCIFS: Skipping document/directory "+documentIdentifier+" because it cannot be found");
-            activities.recordActivity(null,ACTIVITY_ACCESS,
-              null,documentIdentifier,"Not found",null,null);
-            activities.noDocument(documentIdentifier, versionString);
-          }
-          else if (se.getMessage().indexOf("is denied") != -1)
-          {
-            Logging.connectors.warn("JCIFS: Access exception reading document/directory "+documentIdentifier+" - skipping");
-            // We call the delete even if it's a directory; this is harmless and it cleans up the jobqueue row.
-            activities.recordActivity(null,ACTIVITY_ACCESS,
-              null,documentIdentifier,"Skip","Authorization: "+se.getMessage(),null);
-            activities.noDocument(documentIdentifier, versionString);
-          }
-          else
-          {
-            Logging.connectors.error("JCIFS: SmbException tossed processing "+documentIdentifier,se);
-            activities.recordActivity(null,ACTIVITY_ACCESS,
-              null,documentIdentifier,"Error","Unknown: "+se.getMessage(),null);
-            throw new ManifoldCFException("SmbException tossed: "+se.getMessage(),se);
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
+            handleIOException(documentIdentifier,e);
           }
         }
-        catch (java.net.SocketTimeoutException e)
+        catch (ManifoldCFException e)
         {
-          long currentTime = System.currentTimeMillis();
-          Logging.connectors.warn("JCIFS: Socket timeout processing "+documentIdentifier+": "+e.getMessage(),e);
-          activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Retry","Socket timeout: "+e.getMessage(),null);
-          throw new ServiceInterruption("Timeout or other service interruption: "+e.getMessage(),e,currentTime + 300000L,
-            currentTime + 3 * 60 * 60000L,-1,false);
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+            errorCode = null;
+          throw e;
         }
-        catch (InterruptedIOException e)
+        finally
         {
-          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          if (errorCode != null)
+            activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
+              fileLengthLong,documentIdentifier,errorCode,errorDesc,null);
         }
-        catch (IOException e)
-        {
-          long currentTime = System.currentTimeMillis();
-          Logging.connectors.warn("JCIFS: IO error processing "+documentIdentifier+": "+e.getMessage(),e);
-          activities.recordActivity(null,ACTIVITY_ACCESS,
-            null,documentIdentifier,"Retry","IO Error: "+e.getMessage(),null);
-          throw new ServiceInterruption("Timeout or other service interruption: "+e.getMessage(),e,currentTime + 300000L,
-            currentTime + 3 * 60 * 60000L,-1,false);
-        }
+        
       }
     }
   }
 
-
+  protected static void handleIOException(String documentIdentifier, IOException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (e instanceof java.net.SocketTimeoutException)
+    {
+      long currentTime = System.currentTimeMillis();
+      Logging.connectors.warn("JCIFS: Socket timeout processing "+documentIdentifier+": "+e.getMessage(),e);
+            throw new ServiceInterruption("Timeout or other service interruption: "+e.getMessage(),e,currentTime + 300000L,
+              currentTime + 3 * 60 * 60000L,-1,false);
+    }
+    else if (e instanceof InterruptedIOException)
+    {
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+    else
+    {
+      long currentTime = System.currentTimeMillis();
+      Logging.connectors.warn("JCIFS: IO error processing "+documentIdentifier+": "+e.getMessage(),e);
+      throw new ServiceInterruption("Timeout or other service interruption: "+e.getMessage(),e,currentTime + 300000L,
+        currentTime + 3 * 60 * 60000L,-1,false);
+    }
+  }
+  
   /** Map an extension to a mime type */
   protected static String mapExtensionToMimeType(String fileName)
   {
