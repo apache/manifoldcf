@@ -23,7 +23,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.HttpClient;
 
 import java.io.IOException;
+import java.util.Locale;
 
+import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.crawler.system.Logging;
@@ -51,7 +53,7 @@ public class ElasticSearchAction extends ElasticSearchConnection
     String error = checkJson(jsonException);
     if (getResult() == Result.OK && error == null)
       return;
-    setResult(Result.ERROR, error);
+    setResult(IOutputHistoryActivity.JSON_ERROR,Result.ERROR, error);
     Logging.connectors.warn("ES: Commit failed: "+getResponse());
   }
   
@@ -61,7 +63,7 @@ public class ElasticSearchAction extends ElasticSearchConnection
     // We want a quicker failure here!!
     if (e instanceof java.io.InterruptedIOException && !(e instanceof java.net.SocketTimeoutException))
       throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
-    setResult(Result.ERROR, e.getMessage());
+    setResult(e.getClass().getSimpleName().toUpperCase(Locale.ROOT),Result.ERROR, e.getMessage());
     long currentTime = System.currentTimeMillis();
     // One notification attempt, then we're done.
     throw new ServiceInterruption("IO exception: "+e.getMessage(),e,
