@@ -530,7 +530,7 @@ public class HttpPoster
 
     // If the document is too long, reject it.
     if (maxDocumentLength != null && document.getBinaryLength() > maxDocumentLength.longValue()){
-      activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.EXCLUDED_LENGTH,"Solr connector rejected document due to its big size. ('"+document.getBinaryLength()+"')");
+      activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.EXCLUDED_LENGTH,"Solr connector rejected document due to its big size: ('"+document.getBinaryLength()+"')");
       return false;
     }
 
@@ -551,7 +551,7 @@ public class HttpPoster
       if (!aclType.equals(RepositoryDocument.SECURITY_TYPE_DOCUMENT) &&
         !aclType.equals(RepositoryDocument.SECURITY_TYPE_SHARE) &&
         !aclType.startsWith(RepositoryDocument.SECURITY_TYPE_PARENT)){
-          activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.UNKNOWN_SECURITY,"Solr connector rejected document that has security info which is unknown.");
+          activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.UNKNOWN_SECURITY,"Solr connector rejected document that has security info which Solr does not recognize: '"+aclType + "'");
           return false;
       }
 
