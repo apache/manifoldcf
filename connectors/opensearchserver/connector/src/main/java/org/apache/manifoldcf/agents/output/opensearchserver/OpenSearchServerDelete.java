@@ -17,7 +17,6 @@
 
 package org.apache.manifoldcf.agents.output.opensearchserver;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
