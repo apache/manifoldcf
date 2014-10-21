@@ -290,7 +290,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       activities.recordActivity(startTime, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, "OK", null);
       return DOCUMENTSTATUS_ACCEPTED;
     } catch (URISyntaxException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
+      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,e.getClass().getSimpleName().toUpperCase(Locale.ROOT),"Failed to write document due to: " + e.getMessage());
       handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
     }
@@ -324,10 +324,10 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       deleteFile(path,activities,documentURI);
       activities.recordActivity(startTime, REMOVE_ACTIVITY, null, documentURI, "OK", null);
     } catch (JSONException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,e.getClass().getSimpleName().toUpperCase(Locale.ROOT),"Failed to delete document due to: " + e.getMessage());
       handleJSONException(e);
     } catch (URISyntaxException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
+      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,e.getClass().getSimpleName().toUpperCase(Locale.ROOT),"Failed to delete document due to: " + e.getMessage());
       handleURISyntaxException(e);
     }
   }
@@ -655,23 +655,33 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   protected void createFile(Path path, InputStream input,IOutputAddActivity activities, String documentURI)
     throws ManifoldCFException, ServiceInterruption {
     CreateFileThread t = new CreateFileThread(getSession(), path, input);
+    String errorCode = null;
+    String errorDesc = null;
     try {
       t.start();
       t.finishUp();
     } catch (InterruptedException e) {
       t.interrupt();
-      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to write document due to: " + e.getMessage();
       throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     } catch (java.net.SocketTimeoutException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to write document due to: " + e.getMessage();
       handleIOException(e);
     } catch (InterruptedIOException e) {
       t.interrupt();
-      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to write document due to: " + e.getMessage();
       handleIOException(e);
     } catch (IOException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to write document due to: " + e.getMessage();
       handleIOException(e);
+    } finally {
+      if(errorCode != null & errorDesc != null){
+        activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,errorCode,errorDesc);
+      }
     }
   }
 
@@ -714,23 +724,33 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     throws ManifoldCFException, ServiceInterruption {
     // Establish a session
     DeleteFileThread t = new DeleteFileThread(getSession(),path);
+    String errorCode = null;
+    String errorDesc = null;
     try {
       t.start();
       t.finishUp();
     } catch (InterruptedException e) {
-      t.interrupt();
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        t.interrupt();
+        errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+        errorDesc = "Failed to write document due to: " + e.getMessage();
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     } catch (java.net.SocketTimeoutException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
-      handleIOException(e);
+        errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+        errorDesc = "Failed to write document due to: " + e.getMessage();
+        handleIOException(e);
     } catch (InterruptedIOException e) {
-      t.interrupt();
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
-      handleIOException(e);
+        t.interrupt();
+        errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+        errorDesc = "Failed to write document due to: " + e.getMessage();
+        handleIOException(e);
     } catch (IOException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
-      handleIOException(e);
+        errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+        errorDesc = "Failed to write document due to: " + e.getMessage();
+        handleIOException(e);
+    } finally {
+        if(errorCode != null & errorDesc != null){
+            activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,errorCode,errorDesc);
+        }
     }
   }
 

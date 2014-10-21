@@ -169,6 +169,9 @@ public class FileOutputConnector extends BaseOutputConnector {
     FileOutputSpecs specs = new FileOutputSpecs(getSpecNode(outputDescription.getSpecification()));;
     StringBuffer path = new StringBuffer();
 
+    String errorCode = "OK";
+    String errorDesc = null;
+
     try {
       /*
         * make file path
@@ -215,8 +218,9 @@ public class FileOutputConnector extends BaseOutputConnector {
           }
           else
           {
-              activities.recordActivity(null,INGEST_ACTIVITY,null,documentURI,activities.CREATED_DIRECTORY,"Couldn't create directory. '"+newPath+"'");
-              throw new ManifoldCFException("Could not create directory '"+newPath+"'.  Permission issue?");
+              errorCode = activities.CREATED_DIRECTORY;
+              errorDesc = "Could not create directory '\"+newPath+\"'.  Permission issue?";
+              throw new ManifoldCFException(errorDesc);
           }
         }
         // Directory successfully created!
@@ -247,8 +251,9 @@ public class FileOutputConnector extends BaseOutputConnector {
             continue;
           }
           // Probably some other error
-          activities.recordActivity(null, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, activities.EXCEPTION, "Unexpected exception while creating the file.'" + outputPath + "'");
-          throw new ManifoldCFException("Could not create file '"+outputPath+"': "+e.getMessage(),e);
+          errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+          errorDesc = "Could not create file '" + outputPath + "': " +e.getMessage();
+          throw new ManifoldCFException(errorDesc,e);
         }
       }
 
@@ -259,8 +264,9 @@ public class FileOutputConnector extends BaseOutputConnector {
         FileChannel channel = output.getChannel();
         FileLock lock = channel.tryLock();
         if (lock == null){
-          activities.recordActivity(null,INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Could not lock file: '" + outputPath + "'");
-          throw new ServiceInterruption("Could not lock file: '"+outputPath+"'",null,1000L,-1L,10,false);
+          errorCode = ServiceInterruption.class.getSimpleName().toUpperCase(Locale.ROOT);
+          errorDesc = "Could not lock file: '"+outputPath+"'";
+          throw new ServiceInterruption(errorDesc,null,1000L,-1L,10,false);
         }
 
 
@@ -292,24 +298,29 @@ public class FileOutputConnector extends BaseOutputConnector {
         }
       }
     } catch (URISyntaxException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to write document due to: " + e.getMessage();
       handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (FileNotFoundException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to write document due to: " + e.getMessage();
       handleFileNotFoundException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (SecurityException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to write document due to: " + e.getMessage();
       handleSecurityException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (IOException e) {
-      activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()), documentURI ,activities.EXCEPTION,"Failed to write document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to write document due to: " + e.getMessage();
       handleIOException(e);
       return DOCUMENTSTATUS_REJECTED;
+    } finally {
+        activities.recordActivity(null, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, errorCode, errorDesc);
     }
 
-    activities.recordActivity(null, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, "OK", null);
     return DOCUMENTSTATUS_ACCEPTED;
   }
 
@@ -360,6 +371,9 @@ public class FileOutputConnector extends BaseOutputConnector {
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities) throws ManifoldCFException, ServiceInterruption {
     // Establish a session
     getSession();
+
+    String errorCode = "OK";
+    String errorDesc = null;
 
     FileOutputConfig config = getConfigParameters(null);
 
@@ -432,27 +446,32 @@ public class FileOutputConnector extends BaseOutputConnector {
         catch (FileNotFoundException e)
         {
           // Probably some other error
-          activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,activities.EXCEPTION,"Couldn't delete the file due to FileNotFoundException '"+outputPath+"':" + e.getMessage());
+          errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+          errorDesc = "Couldn't delete the file due to:" + e.getMessage();
           throw new ManifoldCFException("Could not zero out file '"+outputPath+"': "+e.getMessage(),e);
         }
       }
       // Just close it, to make a zero-length grave marker.
       output.close();
     } catch (URISyntaxException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to delete document due to: " + e.getMessage();
       handleURISyntaxException(e);
     } catch (FileNotFoundException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to delete document due to: " + e.getMessage();
       handleFileNotFoundException(e);
     } catch (SecurityException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to delete document due to: " + e.getMessage();
       handleSecurityException(e);
     } catch (IOException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null, documentURI ,activities.EXCEPTION,"Failed to delete document due to: " + e.getMessage());
+      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+      errorDesc = "Failed to delete document due to: " + e.getMessage();
       handleIOException(e);
+    } finally {
+        activities.recordActivity(null, REMOVE_ACTIVITY, null, documentURI, errorCode, errorDesc);
     }
-
-    activities.recordActivity(null, REMOVE_ACTIVITY, null, documentURI, "OK", null);
   }
 
   /** Output the specification header section.
