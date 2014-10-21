@@ -178,6 +178,7 @@ public class HttpPoster
       }
       else
         // Can't accept the document, because we don't know how to secure it
+        activities.recordActivity(null,GTSConnector.INGEST_ACTIVITY,null,documentURI,activities.UNKNOWN_SECURITY,"Rejected document that has security info which GTS does not recognize: '"+ securityType + "'");
         return false;
     }
 
@@ -209,7 +210,7 @@ public class HttpPoster
 
           // Log the activity, if any, regardless of any exception
           if (t.getActivityCode() != null)
-            activities.recordActivity(t.getActivityStart(),GTSConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+            activities.recordActivity(t.getActivityStart(),GTSConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getException().getClass().getSimpleName().toUpperCase(Locale.ROOT),t.getActivityDetails());
 
           readFromDocumentStreamYet = (readFromDocumentStreamYet || t.getReadFromDocumentStreamYet());
 
@@ -410,7 +411,7 @@ public class HttpPoster
 
           // Log the activity, if any, regardless of any exception
           if (t.getActivityCode() != null)
-            activities.recordActivity(t.getActivityStart(),GTSConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+            activities.recordActivity(t.getActivityStart(),GTSConnector.REMOVE_ACTIVITY,null,documentURI,t.getException().getClass().getSimpleName().toUpperCase(Locale.ROOT),t.getActivityDetails());
 
           Throwable thr = t.getException();
           if (thr != null)
