@@ -914,9 +914,9 @@ public class HttpPoster
               (activityDetails.toLowerCase(Locale.ROOT).indexOf("broken pipe") != -1 ||
                 activityDetails.toLowerCase(Locale.ROOT).indexOf("connection reset") != -1 ||
                 activityDetails.toLowerCase(Locale.ROOT).indexOf("target server failed to respond") != -1))
-              activityCode = "SOLR REJECT";
+              activityCode = "SOLRREJECT";
             else
-              activityCode = "FAILED";
+              activityCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
 
             // Rethrow; will interpret at a higher level
             throw e;
@@ -940,7 +940,7 @@ public class HttpPoster
             return;
           
           activityStart = new Long(fullStartTime);
-          activityCode = "IO ERROR";
+          activityCode = ioe.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           activityDetails = ioe.getMessage();
 
           // Log the error
@@ -1269,7 +1269,7 @@ public class HttpPoster
         catch (SolrServerException e)
         {
           activityStart = new Long(fullStartTime);
-          activityCode = "FAILED";
+          activityCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           activityDetails = e.getMessage() +
             ((e.getCause() != null)?": "+e.getCause().getMessage():"");
 
@@ -1278,7 +1278,7 @@ public class HttpPoster
         catch (SolrException e)
         {
           activityStart = new Long(fullStartTime);
-          activityCode = "FAILED";
+          activityCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           activityDetails = e.getMessage() +
             ((e.getCause() != null)?": "+e.getCause().getMessage():"");
 
@@ -1290,7 +1290,7 @@ public class HttpPoster
           Logging.ingest.warn("Error deleting document: "+ioe.getMessage(),ioe);
 
           activityStart = new Long(fullStartTime);
-          activityCode = "IO ERROR";
+          activityCode = ioe.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           activityDetails = ioe.getMessage();
 
           throw ioe;
