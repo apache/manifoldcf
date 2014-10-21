@@ -41,8 +41,10 @@ import java.util.*;
 
 
 public class AlfrescoConnector extends BaseRepositoryConnector {
+	
   private static final String ACTIVITY_FETCH = "fetch document";
   private static final String[] activitiesList = new String[]{ACTIVITY_FETCH};
+  
   private AlfrescoClient alfrescoClient;
 
   private static final String CONTENT_URL_PROPERTY = "contentUrlPath";
@@ -197,6 +199,12 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
 
     boolean enableDocumentProcessing = ConfigurationHandler.getEnableDocumentProcessing(spec);
     for (String doc : documentIdentifiers) {
+      
+      String errorCode = null;
+      String errorDesc = null;
+      Long fileLengthLong = null;
+      long startTime = System.currentTimeMillis();
+
       try {
 
         String nextVersion = statuses.getIndexedVersionString(doc);	
@@ -269,19 +277,40 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
 
         if (lSize != null && !activities.checkLengthIndexable(lSize.longValue())) {
           activities.noDocument(doc, documentVersion);
+          errorCode = activities.EXCLUDED_LENGTH;
+          errorDesc = "Excluding document because of length ("+lSize+")";
           continue;
         }
         
         if (!activities.checkMimeTypeIndexable(mimeType)) {
           activities.noDocument(doc, documentVersion);
+          errorCode = activities.EXCLUDED_MIMETYPE;
+          errorDesc = "Excluding document because of mime type ("+mimeType+")";
           continue;
         }
 
         if (!activities.checkDateIndexable(modifiedDate)) {
           activities.noDocument(doc, documentVersion);
+          errorCode = activities.EXCLUDED_DATE;
+          errorDesc = "Excluding document because of date ("+modifiedDate+")";
           continue;
         }
         
+        String contentUrlPath = (String) properties.get(CONTENT_URL_PROPERTY);
+        if (contentUrlPath == null || contentUrlPath.isEmpty()) {
+          activities.noDocument(doc, documentVersion);
+          errorCode = "NOURL";
+          errorDesc = "Excluding document because no URL found";
+          continue;
+        }
+        
+        if (!activities.checkURLIndexable(contentUrlPath)) {
+          activities.noDocument(doc, documentVersion);
+          errorCode = activities.EXCLUDED_URL;
+          errorDesc = "Excluding document because of URL ('"+contentUrlPath+"')";
+          continue;
+        }
+
         RepositoryDocument rd = new RepositoryDocument();
         rd.addField(FIELD_NODEREF, nodeRef);
         rd.addField(FIELD_TYPE, type);
@@ -313,17 +342,14 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         InputStream stream;
         long length;
         byte[] empty = new byte[0];
-        String contentUrlPath = (String) properties.get(CONTENT_URL_PROPERTY);
-        if (contentUrlPath == null || contentUrlPath.isEmpty()) {
-          activities.noDocument(doc, documentVersion);
-          continue;
-        }
         
         if (enableDocumentProcessing) {
           if (lSize != null) {
             stream = alfrescoClient.fetchContent(contentUrlPath);
             if (stream == null) {
               activities.noDocument(doc, documentVersion);
+              errorCode = "NOSTREAM";
+              errorDesc = "Excluding document because no content stream found";
               continue;
             }
             length = lSize.longValue();
@@ -341,6 +367,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
             Logging.connectors.debug(MessageFormat.format("Ingesting with id: {0}, URI {1} and rd {2}", new Object[]{uuid, nodeRef, rd.getFileName()}));
           activities.ingestDocumentWithException(doc, documentVersion, contentUrlPath, rd);
+          errorCode = "OK";
+          fileLengthLong = new Long(length);
         } catch (IOException e) {
           handleIOException(e,"reading stream");
         } finally {
@@ -353,6 +381,14 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
 
       } catch (AlfrescoDownException e) {
         handleAlfrescoDownException(e,"processing");
+      } catch (ManifoldCFException e) {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          errorCode = null;
+        throw e;
+      } finally {
+        if (errorCode != null)
+          activities.recordActivity(new Long(startTime), ACTIVITY_FETCH,
+            fileLengthLong, doc, errorCode, errorDesc, null);
       }
     }
   }
