@@ -22,6 +22,7 @@ package org.apache.manifoldcf.agents.output.elasticsearch;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 
+import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.util.URLEncoder;
@@ -48,7 +49,7 @@ public class ElasticSearchDelete extends ElasticSearchConnection
         return;
       // We thought we needed to delete, but ElasticSearch disagreed.
       // Log the result as an error, but proceed anyway.
-      setResult(Result.ERROR, error);
+      setResult(IOutputHistoryActivity.JSON_ERROR,Result.ERROR, error);
       Logging.connectors.warn("ES: Delete failed: "+getResponse());
   }
 }

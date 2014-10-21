@@ -365,6 +365,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
       else
       {
         // Don't know how to deal with it
+        activities.recordActivity(null,ELASTICSEARCH_INDEXATION_ACTIVITY,document.getBinaryLength(),documentURI,activities.UNKNOWN_SECURITY,"Rejected document that has security info which ElasticSearch does not recognize: '"+ securityType + "'");
         return DOCUMENTSTATUS_REJECTED;
       }
     }
@@ -381,7 +382,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
     finally
     {
       activities.recordActivity(startTime, ELASTICSEARCH_INDEXATION_ACTIVITY,
-        document.getBinaryLength(), documentURI, oi.getResult().name(), oi.getResultDescription());
+        document.getBinaryLength(), documentURI, oi.getResultCode(), oi.getResultDescription());
     }
   }
 
@@ -400,7 +401,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
     finally
     {
       activities.recordActivity(startTime, ELASTICSEARCH_DELETION_ACTIVITY, null,
-          documentURI, od.getResult().name(), od.getResultDescription());
+          documentURI, od.getResultCode(), od.getResultDescription());
     }
   }
 
@@ -437,7 +438,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
     finally
     {
       activities.recordActivity(startTime, ELASTICSEARCH_OPTIMIZE_ACTIVITY, null,
-          oo.getCallUrlSnippet(), oo.getResult().name(),
+          oo.getCallUrlSnippet(), oo.getResultCode(),
           oo.getResultDescription());
     }
   }
