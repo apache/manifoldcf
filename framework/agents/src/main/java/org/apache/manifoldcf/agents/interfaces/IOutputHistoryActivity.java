@@ -35,7 +35,9 @@ public interface IOutputHistoryActivity
   public static final String EXCLUDED_LENGTH = "EXCLUDEDLENGTH";
   public static final String EXCLUDED_MIMETYPE = "EXCLUDEDMIMETYPE";
   public static final String EXCLUDED_DATE = "EXCLUDEDDATE";
-  
+  public static final String UNKNOWN_SECURITY = "UNKNOWNSECURITY";
+  public static final String HTTP_ERROR = "HTTPERROR";
+  public static final String JSON_ERROR = "JSONERROR";
   /** Record time-stamped information about the activity of the output connector.
   *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
   *       activity has an associated time; the startTime field records when the activity began.  A null value

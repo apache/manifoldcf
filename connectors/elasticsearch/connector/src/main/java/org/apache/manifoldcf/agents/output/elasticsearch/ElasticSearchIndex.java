@@ -35,6 +35,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.Header;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnection.Result;
@@ -280,7 +281,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     String error = checkJson(jsonException);
     if (getResult() == Result.OK && error == null)
       return true;
-    setResult(Result.ERROR, error);
+    setResult(IOutputHistoryActivity.JSON_ERROR,Result.ERROR, error);
     Logging.connectors.warn("ES: Index failed: "+getResponse());
     return true;
   }
