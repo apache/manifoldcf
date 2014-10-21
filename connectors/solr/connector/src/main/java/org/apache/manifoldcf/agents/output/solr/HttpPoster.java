@@ -536,8 +536,11 @@ public class HttpPoster
       Logging.ingest.debug("indexPost(): '" + documentURI + "'");
 
     // If the document is too long, reject it.
-    if (maxDocumentLength != null && document.getBinaryLength() > maxDocumentLength.longValue())
+    if (maxDocumentLength != null && document.getBinaryLength() > maxDocumentLength.longValue()){
+      activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.EXCLUDED_LENGTH,"Solr connector rejected document due to its big size. ('"+document.getBinaryLength()+"')");
       return false;
+    }
+
     
     // Convert the incoming acls that we know about to qualified forms, and reject the document if
     // we don't know how to deal with its acls
@@ -554,8 +557,11 @@ public class HttpPoster
       // Reject documents that have security we don't know how to deal with in the Solr plugin!!  Only safe thing to do.
       if (!aclType.equals(RepositoryDocument.SECURITY_TYPE_DOCUMENT) &&
         !aclType.equals(RepositoryDocument.SECURITY_TYPE_SHARE) &&
-        !aclType.startsWith(RepositoryDocument.SECURITY_TYPE_PARENT))
-        return false;
+        !aclType.startsWith(RepositoryDocument.SECURITY_TYPE_PARENT)){
+          activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.UNKNOWN_SECURITY,"Solr connector rejected document that has security info which is unknown.");
+          return false;
+      }
+
     }
 
     try
@@ -940,9 +946,9 @@ public class HttpPoster
               (activityDetails.toLowerCase(Locale.ROOT).indexOf("broken pipe") != -1 ||
                 activityDetails.toLowerCase(Locale.ROOT).indexOf("connection reset") != -1 ||
                 activityDetails.toLowerCase(Locale.ROOT).indexOf("target server failed to respond") != -1))
-              activityCode = "SOLR REJECT";
+              activityCode = "SOLRREJECT";
             else
-              activityCode = "FAILED";
+              activityCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
 
             // Rethrow; will interpret at a higher level
             throw e;
@@ -966,7 +972,7 @@ public class HttpPoster
             return;
           
           activityStart = new Long(fullStartTime);
-          activityCode = "IO ERROR";
+          activityCode = ioe.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           activityDetails = ioe.getMessage();
 
           // Log the error
@@ -1331,7 +1337,7 @@ public class HttpPoster
         catch (SolrServerException e)
         {
           activityStart = new Long(fullStartTime);
-          activityCode = "FAILED";
+          activityCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           activityDetails = e.getMessage() +
             ((e.getCause() != null)?": "+e.getCause().getMessage():"");
 
@@ -1340,7 +1346,7 @@ public class HttpPoster
         catch (SolrException e)
         {
           activityStart = new Long(fullStartTime);
-          activityCode = "FAILED";
+          activityCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           activityDetails = e.getMessage() +
             ((e.getCause() != null)?": "+e.getCause().getMessage():"");
 
@@ -1352,7 +1358,7 @@ public class HttpPoster
           Logging.ingest.warn("Error deleting document: "+ioe.getMessage(),ioe);
 
           activityStart = new Long(fullStartTime);
-          activityCode = "IO ERROR";
+          activityCode = ioe.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           activityDetails = ioe.getMessage();
 
           throw ioe;
