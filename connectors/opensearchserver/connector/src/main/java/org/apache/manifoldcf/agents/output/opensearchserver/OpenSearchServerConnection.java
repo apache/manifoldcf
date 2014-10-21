@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -50,6 +51,7 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
 import org.apache.http.ParseException;
 
+import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.util.URLEncoder;
 import org.w3c.dom.Document;
@@ -84,6 +86,8 @@ public class OpenSearchServerConnection {
   }
 
   private Result result;
+
+  private String resultCode;
     
   protected OpenSearchServerConnection(HttpClient client, OpenSearchServerConfig config) {
     this.httpClient = client;
@@ -231,22 +235,22 @@ public class OpenSearchServerConnection {
     }
     catch (java.net.SocketTimeoutException e)
     {
-      setResult(Result.ERROR, e.getMessage());
+      setResult(e.getClass().getSimpleName().toUpperCase(Locale.ROOT),Result.ERROR, e.getMessage());
       throw new ManifoldCFException("SocketTimeoutException while calling " + method.getURI() +": " + e.getMessage(), e);
     }
     catch (InterruptedIOException e)
     {
-      setResult(Result.ERROR, e.getMessage());
+      setResult(e.getClass().getSimpleName().toUpperCase(Locale.ROOT),Result.ERROR, e.getMessage());
       throw new ManifoldCFException("Interrupted: "+e.getMessage(), e, ManifoldCFException.INTERRUPTED);
     }
     catch (HttpException e)
     {
-      setResult(Result.ERROR, e.getMessage());
+      setResult(e.getClass().getSimpleName().toUpperCase(Locale.ROOT),Result.ERROR, e.getMessage());
       throw new ManifoldCFException("HttpException while calling " + method.getURI() +": " + e.getMessage(), e);
     }
     catch (IOException e)
     {
-      setResult(Result.ERROR, e.getMessage());
+      setResult(e.getClass().getSimpleName().toUpperCase(Locale.ROOT),Result.ERROR, e.getMessage());
       throw new ManifoldCFException("IOException while calling " + method.getURI() +": " + e.getMessage(), e);
     }
   }
@@ -287,12 +291,13 @@ public class OpenSearchServerConnection {
     }
   }
 
-  protected void setResult(Result res, String desc) {
+  protected void setResult(String resultCode,Result res, String desc) {
     if (res != null)
       result = res;
     if (desc != null)
       if (desc.length() > 0)
         resultDescription = desc;
+    setResultCode(resultCode);
   }
 
   public String getResultDescription() {
@@ -306,16 +311,16 @@ public class OpenSearchServerConnection {
   private boolean checkResultCode(int code) {
     switch (code) {
     case 0:
-      setResult(Result.UNKNOWN, null);
+      setResult(IOutputHistoryActivity.HTTP_ERROR,Result.UNKNOWN, null);
       return false;
     case 200:
-      setResult(Result.OK, null);
+      setResult("OK",Result.OK, null);
       return true;
     case 404:
-      setResult(Result.ERROR, "Server/page not found");
+      setResult(IOutputHistoryActivity.HTTP_ERROR,Result.ERROR, "Server/page not found");
       return false;
     default:
-      setResult(Result.ERROR, null);
+      setResult(IOutputHistoryActivity.HTTP_ERROR,Result.ERROR, null);
       return false;
     }
   }
@@ -327,4 +332,8 @@ public class OpenSearchServerConnection {
   public String getCallUrlSnippet() {
     return callUrlSnippet;
   }
+
+  public void setResultCode(String resultCode){ this.resultCode = resultCode; }
+
+  public String getResultCode(){ return resultCode; }
 }

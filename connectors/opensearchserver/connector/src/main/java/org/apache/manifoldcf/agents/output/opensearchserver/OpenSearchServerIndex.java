@@ -38,6 +38,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
+import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -302,7 +303,7 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection
         else
         {
           // Don't know how to deal with it
-          setResult(Result.ERROR, "Unhandled security type: " + securityType);
+          setResult(activities.UNKNOWN_SECURITY,Result.ERROR, "Unhandled security type: " + securityType);
           return;
         }
       }
@@ -315,7 +316,7 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection
     if ("OK".equals(checkXPath(xPathStatus)))
       return;
     String error = checkXPath(xPathException);
-    setResult(Result.ERROR, error);
+    setResult(activities.XPATH_EXCEPTION,Result.ERROR, error);
     throw new ManifoldCFException("Error, unexpected response: " + error);
   }
 

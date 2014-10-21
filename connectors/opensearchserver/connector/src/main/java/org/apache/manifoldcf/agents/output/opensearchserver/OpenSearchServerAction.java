@@ -20,6 +20,7 @@ package org.apache.manifoldcf.agents.output.opensearchserver;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
+import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class OpenSearchServerAction extends OpenSearchServerConnection {
@@ -38,6 +39,6 @@ public class OpenSearchServerAction extends OpenSearchServerConnection {
     call(method);
     if ("OK".equals(checkXPath(xPathStatus)))
       return;
-    setResult(Result.ERROR, checkXPath(xPathException));
+    setResult(IOutputHistoryActivity.JSON_ERROR,Result.ERROR, checkXPath(xPathException));
   }
 }
