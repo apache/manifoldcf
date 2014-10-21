@@ -1326,10 +1326,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                 fileLengthLong = new Long(fileLength);
                 errorCode = "OK";
               } catch (IOException e) {
-                if (e instanceof InterruptedIOException && !(e instanceof java.net.SocketTimeoutException))
-                  errorCode = null;
-                else
-                  errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
                 errorDesc = e.getMessage();
                 handleIOException(e, "reading file input stream");
               }
@@ -1339,10 +1336,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                   is.close();
                 }
               } catch (IOException e) {
-                if (e instanceof InterruptedIOException && !(e instanceof java.net.SocketTimeoutException))
-                  errorCode = null;
-                else
-                  errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
                 errorDesc = e.getMessage();
                 handleIOException(e, "closing file input stream");
               }
@@ -1353,6 +1347,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             errorCode = "UNKNOWNTYPE";
             errorDesc = "Document type is unrecognized: '"+baseTypeId+"'";
           }
+        } catch (ManifoldCFException e) {
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+            errorCode = null;
+          throw e;
         } finally {
           if (errorCode != null)
             activities.recordActivity(new Long(startTime), ACTIVITY_READ,

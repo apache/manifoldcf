@@ -913,12 +913,8 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
             } 
 
           }catch(IOException e){
-            if (e instanceof java.io.InterruptedIOException && !(e instanceof java.net.SocketTimeoutException))
-              errorCode = null;
-            else {
-              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-              errorDesc = e.getMessage();
-            }
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
             Logging.connectors.warn(
                 "Alfresco: IOException finding children: "
                     + e.getMessage(), e);
@@ -971,12 +967,8 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
                       + e.getMessage(), e);
               handleParseException(e);
             } catch (IOException e) {
-              if (e instanceof java.io.InterruptedIOException && !(e instanceof java.net.SocketTimeoutException))
-                errorCode = null;
-              else {
-                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-                errorDesc = e.getMessage();
-              }
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
               Logging.connectors.warn(
                   "Alfresco: IOException: "
                       + e.getMessage(), e);
@@ -1002,6 +994,10 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
             }
 
           }
+        } catch (ManifoldCFException e) {
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+            errorCode = null;
+          throw e;
         } finally {
           if (errorCode != null)
             activities.recordActivity(new Long(startTime), ACTIVITY_READ,
