@@ -529,8 +529,11 @@ public class HttpPoster
       Logging.ingest.debug("indexPost(): '" + documentURI + "'");
 
     // If the document is too long, reject it.
-    if (maxDocumentLength != null && document.getBinaryLength() > maxDocumentLength.longValue())
+    if (maxDocumentLength != null && document.getBinaryLength() > maxDocumentLength.longValue()){
+      activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.EXCLUDED_LENGTH,"Solr connector rejected document due to its big size. ('"+document.getBinaryLength()+"')");
       return false;
+    }
+
     
     // Convert the incoming acls that we know about to qualified forms, and reject the document if
     // we don't know how to deal with its acls
@@ -547,8 +550,11 @@ public class HttpPoster
       // Reject documents that have security we don't know how to deal with in the Solr plugin!!  Only safe thing to do.
       if (!aclType.equals(RepositoryDocument.SECURITY_TYPE_DOCUMENT) &&
         !aclType.equals(RepositoryDocument.SECURITY_TYPE_SHARE) &&
-        !aclType.startsWith(RepositoryDocument.SECURITY_TYPE_PARENT))
-        return false;
+        !aclType.startsWith(RepositoryDocument.SECURITY_TYPE_PARENT)){
+          activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.UNKNOWN_SECURITY,"Solr connector rejected document that has security info which is unknown.");
+          return false;
+      }
+
     }
 
     try
