@@ -20,6 +20,7 @@ package org.apache.manifoldcf.agents.output.opensearchserver;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
+import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class OpenSearchServerSchema extends OpenSearchServerConnection {
@@ -35,6 +36,6 @@ public class OpenSearchServerSchema extends OpenSearchServerConnection {
     call(method);
     if ("1".equals(checkXPath(xpath)))
       return;
-    setResult(Result.ERROR, "Index not found");
+    setResult(IOutputHistoryActivity.INDEX_NOT_FOUND,Result.ERROR, "Index not found");
   }
 }
