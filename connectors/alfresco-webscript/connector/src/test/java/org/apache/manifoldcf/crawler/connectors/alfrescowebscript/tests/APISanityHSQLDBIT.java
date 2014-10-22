@@ -134,7 +134,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       
       //port
       ConfigurationNode alfrescoPortNode = new ConfigurationNode("_PARAMETER_");
-      alfrescoPortNode.setAttribute("name", ALFRESCO_PORT);
+      alfrescoPortNode.setAttribute("name", ALFRESCO_PORT_PARAM);
       alfrescoPortNode.setValue(ALFRESCO_PORT);
       child.addChild(child.getChildCount(), alfrescoPortNode);
       
@@ -266,10 +266,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       {
         ConfigurationNode resultNode = result.findChild(i++);
 
-        System.out.println("Type: "+resultNode.getType());
-        System.out.println("Value: "+resultNode.getValue());
-        System.out.println("Attributes: "+resultNode.getAttributes());
-
         if (resultNode.getType().equals("error"))
           throw new Exception(resultNode.getValue());
         else if (resultNode.getType().equals("job_id"))
@@ -332,12 +328,18 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
     Configuration result = performAPIGetOperationViaNodes("jobstatuses/"+jobIDString,200);
     String status = null;
     int i = 0;
-    while (i < result.getChildCount())
-    {
+    while (i < result.getChildCount()) {
       ConfigurationNode resultNode = result.findChild(i++);
-      if (resultNode.getType().equals("error"))
+
+      System.out.println("!!! value: " + resultNode.getValue());
+      while (resultNode.getAttributes().hasNext()) {
+        String str = resultNode.getAttributes().next();
+        System.out.println("!!! attr: " + str);
+      }
+
+      if (resultNode.getType().equals("error")) {
         throw new Exception(resultNode.getValue());
-      else if (resultNode.getType().equals("jobstatus"))
+      } else if (resultNode.getType().equals("jobstatus"))
       {
         int j = 0;
         while (j < resultNode.getChildCount())
