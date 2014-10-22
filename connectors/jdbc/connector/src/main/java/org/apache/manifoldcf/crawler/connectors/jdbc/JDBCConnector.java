@@ -742,6 +742,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           // This means we did not see it (or data for it) in the result set.  Delete it!
           activities.noDocument(documentIdentifier,documentVersion);
+          activities.recordActivity(null, ACTIVITY_FETCH,
+            null, documentIdentifier, "NOTFETCHED", "Document was not seen by processing query", null);
         }
       }
     }
