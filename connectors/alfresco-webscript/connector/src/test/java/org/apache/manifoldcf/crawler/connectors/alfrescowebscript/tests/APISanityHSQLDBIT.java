@@ -101,7 +101,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       connectionObject = new ConfigurationNode("repositoryconnection");
       
       child = new ConfigurationNode("name");
-      child.setValue("Alfresco Connection");
+      child.setValue("Alfresco Connector");
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("class_name");
@@ -134,7 +134,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       
       //port
       ConfigurationNode alfrescoPortNode = new ConfigurationNode("_PARAMETER_");
-      alfrescoPortNode.setAttribute("name", ALFRESCO_PORT_PARAM);
+      alfrescoPortNode.setAttribute("name", ALFRESCO_PORT);
       alfrescoPortNode.setValue(ALFRESCO_PORT);
       child.addChild(child.getChildCount(), alfrescoPortNode);
       
@@ -173,7 +173,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       requestObject = new Configuration();
       requestObject.addChild(0,connectionObject);
       
-      result = performAPIPutOperationViaNodes("repositoryconnections/Alfresco%20Connection",201,requestObject);
+      result = performAPIPutOperationViaNodes("repositoryconnections/Alfresco%20Connector",201,requestObject);
 
       i = 0;
       while (i < result.getChildCount())
@@ -224,7 +224,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       jobObject.addChild(jobObject.getChildCount(),child);
 
       child = new ConfigurationNode("repository_connection");
-      child.setValue("Alfresco Connection");
+      child.setValue("Alfresco Connector");
       jobObject.addChild(jobObject.getChildCount(),child);
 
       // Revamped way of adding output connection
@@ -254,13 +254,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
 
       child = new ConfigurationNode("document_specification");
       jobObject.addChild(jobObject.getChildCount(),child);
-
-//Job configuration
-//      ConfigurationNode sn = new ConfigurationNode("startpoint");
-//      sn.setAttribute("luceneQuery",ALFRESCO_TEST_QUERY);
-//
-//      child.addChild(child.getChildCount(),sn);
-
 
       requestObject = new Configuration();
       requestObject.addChild(0,jobObject);
