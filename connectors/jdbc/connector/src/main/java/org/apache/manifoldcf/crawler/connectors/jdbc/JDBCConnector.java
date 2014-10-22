@@ -44,9 +44,10 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   // Activities that we know about
   protected final static String ACTIVITY_EXTERNAL_QUERY = "external query";
-
+  protected final static String ACTIVITY_FETCH = "fetch";
+  
   // Activities list
-  protected static final String[] activitiesList = new String[]{ACTIVITY_EXTERNAL_QUERY};
+  protected static final String[] activitiesList = new String[]{ACTIVITY_EXTERNAL_QUERY, ACTIVITY_FETCH};
 
   /** Deny access token for default authority */
   private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
@@ -488,207 +489,234 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           if (o == null)
             throw new ManifoldCFException("Bad document query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
           String id = JDBCConnection.readAsString(o);
-          String version = map.get(id);
-          if (version != null)
+          
+          String errorCode = null;
+          String errorDesc = null;
+          Long fileLengthLong = null;
+          long fetchStartTime = System.currentTimeMillis();
+          
+          try
           {
+            String version = map.get(id);
+            if (version == null)
+              // Does not need refetching
+              continue;
+
             // This document was marked as "not scan only", so we expect to find it.
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("JDBC: Document data result found for '"+id+"'");
             o = row.getValue(JDBCConstants.urlReturnColumnName);
-            if (o != null)
+            if (o == null)
             {
-              // This is not right - url can apparently be a BinaryInput
-              String url = JDBCConnection.readAsString(o);
-              boolean validURL;
+              Logging.connectors.debug("JDBC: Document '"+id+"' has a null url - skipping");
+              errorCode = "NULLURL";
+              errorDesc = "Excluded because document had a null URL";
+              activities.noDocument(id,version);
+              continue;
+            }
+            
+            // This is not right - url can apparently be a BinaryInput
+            String url = JDBCConnection.readAsString(o);
+            boolean validURL;
+            try
+            {
+              // Check to be sure url is valid
+              new java.net.URI(url);
+              validURL = true;
+            }
+            catch (java.net.URISyntaxException e)
+            {
+              validURL = false;
+            }
+
+            if (!validURL)
+            {
+              Logging.connectors.debug("JDBC: Document '"+id+"' has an illegal url: '"+url+"' - skipping");
+              errorCode = "BADURL";
+              errorDesc = "Excluded because document had illegal URL ('"+url+"')";
+              activities.noDocument(id,version);
+              continue;
+            }
+            
+            // Process the document itself
+            Object contents = row.getValue(JDBCConstants.dataReturnColumnName);
+            // Null data is allowed; we just ignore these
+            if (contents == null)
+            {
+              Logging.connectors.debug("JDBC: Document '"+id+"' seems to have null data - skipping");
+              errorCode = "NULLDATA";
+              errorDesc = "Excluded because document had null data";
+              activities.noDocument(id,version);
+              continue;
+            }
+            
+            // We will ingest something, so remove this id from the map in order that we know what we still
+            // need to delete when all done.
+            map.remove(id);
+            String contentType;
+            o = row.getValue(JDBCConstants.contentTypeReturnColumnName);
+            if (o != null)
+              contentType = JDBCConnection.readAsString(o);
+            else
+            {
+              if (contents instanceof BinaryInput)
+                contentType = "application/octet-stream";
+              else if (contents instanceof CharacterInput)
+                contentType = "text/plain; charset=utf-8";
+              else
+                contentType = "text/plain";
+            }
+                    
+            if (!activities.checkMimeTypeIndexable(contentType))
+            {
+              Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of mime type - skipping");
+              errorCode = activities.EXCLUDED_MIMETYPE;
+              errorDesc = "Excluded because of mime type ("+contentType+")";
+              activities.noDocument(id,version);
+              continue;
+            }
+                    
+            if (!activities.checkURLIndexable(url))
+            {
+              Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of url - skipping");
+              errorCode = activities.EXCLUDED_URL;
+              errorDesc = "Excluded because of URL ('"+url+"')";
+              activities.noDocument(id,version);
+              continue;
+            }
+
+            // An ingestion will take place for this document.
+            RepositoryDocument rd = new RepositoryDocument();
+            rd.setMimeType(contentType);
+                        
+            applyAccessTokens(rd,ts);
+            applyMetadata(rd,row);
+
+            if (contents instanceof BinaryInput)
+            {
+
+              BinaryInput bi = (BinaryInput)contents;
+              long fileLength = bi.getLength();
+                      
+              if (!activities.checkLengthIndexable(fileLength))
+              {
+                Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of length - skipping");
+                errorCode = activities.EXCLUDED_LENGTH;
+                errorDesc = "Excluded because of length ("+fileLength+")";
+                activities.noDocument(id, version);
+                continue;
+              }
+
               try
               {
-                // Check to be sure url is valid
-                new java.net.URI(url);
-                validURL = true;
-              }
-              catch (java.net.URISyntaxException e)
-              {
-                validURL = false;
-              }
-
-              if (validURL)
-              {
-                // Process the document itself
-                Object contents = row.getValue(JDBCConstants.dataReturnColumnName);
-                // Null data is allowed; we just ignore these
-                if (contents != null)
+                // Read the stream
+                InputStream is = bi.getStream();
+                try
                 {
-                  // We will ingest something, so remove this id from the map in order that we know what we still
-                  // need to delete when all done.
-                  map.remove(id);
-                  String contentType;
-                  o = row.getValue(JDBCConstants.contentTypeReturnColumnName);
-                  if (o != null)
-                    contentType = JDBCConnection.readAsString(o);
-                  else
-                  {
-                    if (contents instanceof BinaryInput)
-                      contentType = "application/octet-stream";
-                    else if (contents instanceof CharacterInput)
-                      contentType = "text/plain; charset=utf-8";
-                    else
-                      contentType = "text/plain";
-                  }
-                  
-                  if (!activities.checkMimeTypeIndexable(contentType))
-                  {
-                    Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of mime type - skipping");
-                    activities.noDocument(id,version);
-                    continue;
-                  }
-                  
-                  if (!activities.checkURLIndexable(url))
-                  {
-                    Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of url - skipping");
-                    activities.noDocument(id,version);
-                    continue;
-                  }
-
-                  // An ingestion will take place for this document.
-                  RepositoryDocument rd = new RepositoryDocument();
-                  rd.setMimeType(contentType);
+                  rd.setBinary(is,fileLength);
+                  activities.ingestDocumentWithException(id, version, url, rd);
+                  errorCode = "OK";
+                  fileLengthLong = new Long(fileLength);
+                }
+                finally
+                {
+                  is.close();
+                }
+              }
+              catch (IOException e)
+              {
+                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                errorDesc = e.getMessage();
+                handleIOException(id,e);
+              }
+            }
+            else if (contents instanceof CharacterInput)
+            {
+              CharacterInput ci = (CharacterInput)contents;
+              long fileLength = ci.getUtf8StreamLength();
+              
+              if (!activities.checkLengthIndexable(fileLength))
+              {
+                Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of length - skipping");
+                errorCode = activities.EXCLUDED_LENGTH;
+                errorDesc = "Excluded because of length ("+fileLength+")";
+                activities.noDocument(id, version);
+                continue;
+              }
                       
-                  applyAccessTokens(rd,ts);
-                  applyMetadata(rd,row);
-
-                  if (contents instanceof BinaryInput)
-                  {
-
-                    BinaryInput bi = (BinaryInput)contents;
-                    long fileLength = bi.getLength();
-                    
-                    if (!activities.checkLengthIndexable(fileLength))
-                    {
-                      Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of length - skipping");
-                      activities.noDocument(id, version);
-                      continue;
-                    }
-
-                    try
-                    {
-                      // Read the stream
-                      InputStream is = bi.getStream();
-                      try
-                      {
-                        rd.setBinary(is,fileLength);
-                        activities.ingestDocumentWithException(id, version, url, rd);
-                      }
-                      finally
-                      {
-                        is.close();
-                      }
-                    }
-                    catch (java.net.SocketTimeoutException e)
-                    {
-                      throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
-                    }
-                    catch (InterruptedIOException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (IOException e)
-                    {
-                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
-                    }
-                  }
-                  else if (contents instanceof CharacterInput)
-                  {
-                    CharacterInput ci = (CharacterInput)contents;
-                    long fileLength = ci.getUtf8StreamLength();
-                    
-                    if (!activities.checkLengthIndexable(fileLength))
-                    {
-                      Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of length - skipping");
-                      activities.noDocument(id, version);
-                      continue;
-                    }
-                    
-                    try
-                    {
-                      // Read the stream
-                      InputStream is = ci.getUtf8Stream();
-                      try
-                      {
-                        rd.setBinary(is,fileLength);
-                        activities.ingestDocumentWithException(id, version, url, rd);
-                      }
-                      finally
-                      {
-                        is.close();
-                      }
-                    }
-                    catch (java.net.SocketTimeoutException e)
-                    {
-                      throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
-                    }
-                    catch (InterruptedIOException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (IOException e)
-                    {
-                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
-                    }
-                  }
-                  else
-                  {
-                    // Turn it into a string, and then into a stream
-                    String value = contents.toString();
-                    byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
-                    long fileLength = bytes.length;
-
-                    if (!activities.checkLengthIndexable(fileLength))
-                    {
-                      Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of length - skipping");
-                      activities.noDocument(id, version);
-                      continue;
-                    }
-
-                    try
-                    {
-                      InputStream is = new ByteArrayInputStream(bytes);
-                      try
-                      {
-                        rd.setBinary(is,fileLength);
-                        activities.ingestDocumentWithException(id, version, url, rd);
-                      }
-                      finally
-                      {
-                        is.close();
-                      }
-                    }
-                    catch (InterruptedIOException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (IOException e)
-                    {
-                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
-                    }
-                  }
-                }
-                else
+              try
+              {
+                // Read the stream
+                InputStream is = ci.getUtf8Stream();
+                try
                 {
-                  Logging.connectors.debug("JDBC: Document '"+id+"' seems to have null data - skipping");
-                  activities.noDocument(id,version);
+                  rd.setBinary(is,fileLength);
+                  activities.ingestDocumentWithException(id, version, url, rd);
+                  errorCode = "OK";
+                  fileLengthLong = new Long(fileLength);
+                }
+                finally
+                {
+                  is.close();
                 }
               }
-              else
+              catch (IOException e)
               {
-                Logging.connectors.debug("JDBC: Document '"+id+"' has an illegal url: '"+url+"' - skipping");
-                activities.noDocument(id,version);
+                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                errorDesc = e.getMessage();
+                handleIOException(id,e);
               }
             }
             else
             {
-              Logging.connectors.debug("JDBC: Document '"+id+"' has a null url - skipping");
-              activities.noDocument(id,version);
+              // Turn it into a string, and then into a stream
+              String value = contents.toString();
+              byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+              long fileLength = bytes.length;
+              
+              if (!activities.checkLengthIndexable(fileLength))
+              {
+                Logging.connectors.debug("JDBC: Document '"+id+"' excluded because of length - skipping");
+                errorCode = activities.EXCLUDED_LENGTH;
+                errorDesc = "Excluded because of length ("+fileLength+")";
+                activities.noDocument(id, version);
+                continue;
+              }
+
+              try
+              {
+                InputStream is = new ByteArrayInputStream(bytes);
+                try
+                {
+                  rd.setBinary(is,fileLength);
+                  activities.ingestDocumentWithException(id, version, url, rd);
+                  errorCode = "OK";
+                  fileLengthLong = new Long(fileLength);
+                }
+                finally
+                {
+                  is.close();
+                }
+              }
+              catch (IOException e)
+              {
+                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                errorDesc = e.getMessage();
+                handleIOException(id,e);
+              }
             }
+          }
+          catch (ManifoldCFException e)
+          {
+            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+              errorCode = null;
+            throw e;
+          }
+          finally
+          {
+            if (errorCode != null)
+              activities.recordActivity(new Long(fetchStartTime), ACTIVITY_FETCH,
+                fileLengthLong, id, errorCode, errorDesc, null);
           }
         }
         finally
@@ -718,6 +746,20 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
+  }
+  
+  protected static void handleIOException(String id, IOException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (e instanceof java.net.SocketTimeoutException)
+    {
+      throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
+    }
+    if (e instanceof InterruptedIOException)
+    {
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+    throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
   }
   
   // UI support methods.
