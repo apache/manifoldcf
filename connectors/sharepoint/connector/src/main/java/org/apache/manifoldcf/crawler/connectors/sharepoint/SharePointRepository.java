@@ -1027,6 +1027,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   // Item has vanished
                   if (Logging.connectors.isDebugEnabled())
                     Logging.connectors.debug("SharePoint: Item metadata fetch failure indicated that item is gone: '"+documentIdentifier+"' - removing");
+                  activities.recordActivity(null,ACTIVITY_FETCH,null,documentIdentifier,"NOMETADATA","List item metadata is missing",null);
                   activities.noDocument(documentIdentifier,versionString);
                   continue;
                 }
@@ -1035,6 +1036,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               if (!activities.checkLengthIndexable(0L))
               {
                 // Document too long (should never happen; length is 0)
+                activities.recordActivity(null,ACTIVITY_FETCH,null,documentIdentifier,activities.EXCLUDED_LENGTH,"List item excluded due to content length (0)",null);
                 activities.noDocument( documentIdentifier, versionString );
                 continue;
               }
@@ -1189,6 +1191,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               {
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("SharePoint: Skipping attachment '"+documentIdentifier+"' because no parent guid found");
+                activities.recordActivity(null,ACTIVITY_FETCH,null,documentIdentifier,"NOGUID","List item attachment GUID is missing",null);
                 activities.noDocument(documentIdentifier,versionString);
                 continue;
               }
@@ -1199,13 +1202,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // Fetch and index.  This also filters documents based on output connector restrictions.
               String fileUrl = serverUrl + encodePath(url);
               String fetchUrl = fileUrl;
-              if (!fetchAndIndexFile(activities, documentIdentifier, versionString, fileUrl, fetchUrl,
-                accessTokens, denyTokens, createdDateValue, modifiedDateValue, null, guid, sDesc))
-              {
-                // Document not indexed for whatever reason
-                activities.noDocument(documentIdentifier,versionString);
-                continue;
-              }
+              fetchAndIndexFile(activities, documentIdentifier, versionString, fileUrl, fetchUrl,
+                accessTokens, denyTokens, createdDateValue, modifiedDateValue, null, guid, sDesc);
             }
           }
         }
@@ -1462,19 +1460,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 // Document has vanished
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
+                activities.recordActivity(null,ACTIVITY_FETCH,null,documentIdentifier,"NOMETADATA","Document metadata is missing",null);
                 activities.noDocument(documentIdentifier,versionString);
                 continue;
               }
             }
 
             // Fetch and index.  This also filters documents based on output connector restrictions.
-            if (!fetchAndIndexFile(activities, documentIdentifier, versionString, fileUrl, serverUrl + encodedServerLocation + encodedDocumentPath,
-              accessTokens, denyTokens, createdDateValue, modifiedDateValue, metadataValues, guid, sDesc))
-            {
-              // Document not indexed for whatever reason
-              activities.noDocument(documentIdentifier,versionString);
-              continue;
-            }
+            fetchAndIndexFile(activities, documentIdentifier, versionString, fileUrl, serverUrl + encodedServerLocation + encodedDocumentPath,
+              accessTokens, denyTokens, createdDateValue, modifiedDateValue, metadataValues, guid, sDesc);
           }
         }
         else
@@ -1628,235 +1622,265 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   /** Method that fetches and indexes a file fetched from a SharePoint URL, with appropriate error handling
   * etc.
   */
-  protected boolean fetchAndIndexFile(IProcessActivity activities, String documentIdentifier, String version,
+  protected void fetchAndIndexFile(IProcessActivity activities, String documentIdentifier, String version,
     String fileUrl, String fetchUrl, String[] accessTokens, String[] denyTokens, Date createdDate, Date modifiedDate,
     Map<String,String> metadataValues, String guid, SystemMetadataDescription sDesc)
     throws ManifoldCFException, ServiceInterruption
   {
-    // Before we fetch, confirm that the output connector will accept the document
-    if (!activities.checkURLIndexable(fileUrl))
-    {
-      // URL failed
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says URL '"+fileUrl+"' is not indexable");
-      return false;
-    }
+    String errorCode = null;
+    String errorDesc = null;
+    long startTime = System.currentTimeMillis();
+    Long fileLengthLong = null;
     
-    // Also check mime type
-    String contentType = mapExtensionToMimeType(documentIdentifier);
-    if (!activities.checkMimeTypeIndexable(contentType))
-    {
-      // Mime type failed
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says mime type '"+((contentType==null)?"null":contentType)+"' is not indexable");
-      return false;
-    }
-    
-    // Now check date stamp
-    if (!activities.checkDateIndexable(modifiedDate))
-    {
-      // Date failed
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says date '"+((modifiedDate==null)?"null":modifiedDate)+"' is not indexable");
-      return false;
-    }
-    
-    // Set stuff up for fetch activity logging
-    long startFetchTime = System.currentTimeMillis();
     try
     {
-      // Read the document into a local temporary file, so I get a reliable length.
-      File tempFile = File.createTempFile("__shp__",".tmp");
+      // Before we fetch, confirm that the output connector will accept the document
+      if (!activities.checkURLIndexable(fileUrl))
+      {
+        // URL failed
+        errorCode = activities.EXCLUDED_URL;
+        errorDesc = "Document rejected because of URL ("+fileUrl+")";
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says URL '"+fileUrl+"' is not indexable");
+        activities.noDocument(documentIdentifier, version);
+        return;
+      }
+      
+      // Also check mime type
+      String contentType = mapExtensionToMimeType(documentIdentifier);
+      if (!activities.checkMimeTypeIndexable(contentType))
+      {
+        // Mime type failed
+        errorCode = activities.EXCLUDED_MIMETYPE;
+        errorDesc = "Document rejected because of mime type ("+contentType+")";
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says mime type '"+((contentType==null)?"null":contentType)+"' is not indexable");
+        activities.noDocument(documentIdentifier, version);
+        return;
+      }
+      
+      // Now check date stamp
+      if (!activities.checkDateIndexable(modifiedDate))
+      {
+        // Date failed
+        errorCode = activities.EXCLUDED_DATE;
+        errorDesc = "Document rejected because of date ("+modifiedDate+")";
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says date '"+((modifiedDate==null)?"null":modifiedDate)+"' is not indexable");
+        activities.noDocument(documentIdentifier, version);
+        return;
+      }
+      
+      // Set stuff up for fetch activity logging
       try
       {
-        // Open the output stream
-        OutputStream os = new FileOutputStream(tempFile);
+        // Read the document into a local temporary file, so I get a reliable length.
+        File tempFile = File.createTempFile("__shp__",".tmp");
         try
         {
-          // Catch all exceptions having to do with reading the document
+          // Open the output stream
+          OutputStream os = new FileOutputStream(tempFile);
           try
           {
-            ExecuteMethodThread emt = new ExecuteMethodThread(httpClient, fetchUrl, os);
-            emt.start();
-            int returnCode = emt.finishUp();
-                  
-            if (returnCode == 404 || returnCode == 401 || returnCode == 400 || returnCode == 415)
+            // Catch all exceptions having to do with reading the document
+            try
             {
-              // Well, sharepoint thought the document was there, but it really isn't, so delete it.
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("SharePoint: Document at '"+fileUrl+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
-              activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                null,documentIdentifier,"Not found",Integer.toString(returnCode),null);
-              return false;
+              ExecuteMethodThread emt = new ExecuteMethodThread(httpClient, fetchUrl, os);
+              emt.start();
+              int returnCode = emt.finishUp();
+                    
+              if (returnCode == 404 || returnCode == 401 || returnCode == 400 || returnCode == 415)
+              {
+                // Well, sharepoint thought the document was there, but it really isn't, so delete it.
+                errorCode = "DOCUMENTNOTFOUND";
+                errorDesc = "Document not found; HTTP code "+returnCode;
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: Document at '"+fileUrl+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
+                activities.noDocument(documentIdentifier, version);
+                return;
+              }
+              else if (returnCode != 200)
+              {
+                errorCode = "UNKNOWNHTTPCODE";
+                errorDesc = "Unknown HTTP return code "+returnCode;
+                throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
+              }
+
             }
-            else if (returnCode != 200)
+            catch (InterruptedException e)
             {
-              activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
-              throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
             }
-
-            // Log the normal fetch activity
-            activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-              new Long(tempFile.length()),documentIdentifier,"Success",null,null);
-                
+            catch (java.net.SocketTimeoutException e)
+            {
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
+              Logging.connectors.warn("SharePoint: SocketTimeoutException thrown: "+e.getMessage(),e);
+              long currentTime = System.currentTimeMillis();
+              throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                currentTime + 12 * 60 * 60000L,-1,true);
+            }
+            catch (org.apache.http.conn.ConnectTimeoutException e)
+            {
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
+              Logging.connectors.warn("SharePoint: ConnectTimeoutException thrown: "+e.getMessage(),e);
+              long currentTime = System.currentTimeMillis();
+              throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                currentTime + 12 * 60 * 60000L,-1,true);
+            }
+            catch (InterruptedIOException e)
+            {
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            }
+            catch (IllegalArgumentException e)
+            {
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
+              Logging.connectors.error("SharePoint: Illegal argument: "+e.getMessage(), e);
+              throw new ManifoldCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
+            }
+            catch (org.apache.http.HttpException e)
+            {
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
+              Logging.connectors.warn("SharePoint: HttpException thrown: "+e.getMessage(),e);
+              long currentTime = System.currentTimeMillis();
+              throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                currentTime + 12 * 60 * 60000L,-1,true);
+            }
+            catch (IOException e)
+            {
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
+              Logging.connectors.warn("SharePoint: IOException thrown: "+e.getMessage(),e);
+              long currentTime = System.currentTimeMillis();
+              throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                currentTime + 12 * 60 * 60000L,-1,true);
+            }
           }
-          catch (InterruptedException e)
+          finally
           {
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            os.close();
           }
-          catch (java.net.SocketTimeoutException e)
+                        
+          // Ingest the document
+          long documentLength = tempFile.length();
+          if (!activities.checkLengthIndexable(documentLength))
           {
-            activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-              new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-            Logging.connectors.warn("SharePoint: SocketTimeoutException thrown: "+e.getMessage(),e);
-            long currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-              currentTime + 12 * 60 * 60000L,-1,true);
+            // Document too long
+            errorCode = activities.EXCLUDED_LENGTH;
+            errorDesc = "Document excluded due to length ("+documentLength+")";
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("SharePoint: Document '"+documentIdentifier+"' was too long, according to output connector");
+            activities.noDocument(documentIdentifier, version);
+            return;
           }
-          catch (org.apache.http.conn.ConnectTimeoutException e)
-          {
-            activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-              new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-            Logging.connectors.warn("SharePoint: ConnectTimeoutException thrown: "+e.getMessage(),e);
-            long currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-              currentTime + 12 * 60 * 60000L,-1,true);
-          }
-          catch (InterruptedIOException e)
-          {
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (IllegalArgumentException e)
-          {
-            Logging.connectors.error("SharePoint: Illegal argument", e);
-            activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-              new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-            throw new ManifoldCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
-          }
-          catch (org.apache.http.HttpException e)
-          {
-            Logging.connectors.warn("SharePoint: HttpException thrown",e);
-            activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-              new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-            long currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-              currentTime + 12 * 60 * 60000L,-1,true);
-          }
-          catch (IOException e)
-          {
-            activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-              new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-            Logging.connectors.warn("SharePoint: IOException thrown: "+e.getMessage(),e);
-            long currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-              currentTime + 12 * 60 * 60000L,-1,true);
-          }
-        }
-        finally
-        {
-          os.close();
-        }
-                      
-        // Ingest the document
-        long documentLength = tempFile.length();
-        if (!activities.checkLengthIndexable(documentLength))
-        {
-          // Document too long
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("SharePoint: Document '"+documentIdentifier+"' was too long, according to output connector");
-          return false;
-        }
-        
-        InputStream is = new FileInputStream(tempFile);
-        try
-        {
-          RepositoryDocument data = new RepositoryDocument();
-          data.setBinary( is, documentLength );
-                
-          data.setFileName(mapToFileName(documentIdentifier));
-                          
-          if (contentType != null)
-            data.setMimeType(contentType);
-                
-          setDataACLs(data,accessTokens,denyTokens);
-
-          setPathAttribute(data,sDesc,documentIdentifier);
           
-          if (modifiedDate != null)
-            data.setModifiedDate(modifiedDate);
-          if (createdDate != null)
-            data.setCreatedDate(createdDate);
-
-          if (metadataValues != null)
-          {
-            Iterator<String> iter = metadataValues.keySet().iterator();
-            while (iter.hasNext())
-            {
-              String fieldName = iter.next();
-              String fieldData = metadataValues.get(fieldName);
-              data.addField(fieldName,fieldData);
-            }
-          }
-          data.addField("GUID",guid);
-                
+          InputStream is = new FileInputStream(tempFile);
           try
           {
-            activities.ingestDocumentWithException( documentIdentifier, version, fileUrl , data );
+            RepositoryDocument data = new RepositoryDocument();
+            data.setBinary( is, documentLength );
+                  
+            data.setFileName(mapToFileName(documentIdentifier));
+                            
+            if (contentType != null)
+              data.setMimeType(contentType);
+                  
+            setDataACLs(data,accessTokens,denyTokens);
+
+            setPathAttribute(data,sDesc,documentIdentifier);
+            
+            if (modifiedDate != null)
+              data.setModifiedDate(modifiedDate);
+            if (createdDate != null)
+              data.setCreatedDate(createdDate);
+
+            if (metadataValues != null)
+            {
+              Iterator<String> iter = metadataValues.keySet().iterator();
+              while (iter.hasNext())
+              {
+                String fieldName = iter.next();
+                String fieldData = metadataValues.get(fieldName);
+                data.addField(fieldName,fieldData);
+              }
+            }
+            data.addField("GUID",guid);
+                  
+            try
+            {
+              activities.ingestDocumentWithException( documentIdentifier, version, fileUrl , data );
+              errorCode = "OK";
+              fileLengthLong = new Long(documentLength);
+            }
+            catch (IOException e)
+            {
+              handleIOException(e,"reading document");
+            }
+            return;
           }
-          catch (IOException e)
+          finally
           {
-            handleIOException(e,"reading document");
+            try
+            {
+              is.close();
+            }
+            catch (java.net.SocketTimeoutException e)
+            {
+              // This is not fatal
+              Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+            }
+            catch (org.apache.http.conn.ConnectTimeoutException e)
+            {
+              // This is not fatal
+              Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+            }
+            catch (InterruptedIOException e)
+            {
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            }
+            catch (IOException e)
+            {
+              // This is not fatal
+              Logging.connectors.debug("SharePoint: Server closed connection before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+            }
           }
-          return true;
         }
         finally
         {
-          try
-          {
-            is.close();
-          }
-          catch (java.net.SocketTimeoutException e)
-          {
-            // This is not fatal
-            Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-          }
-          catch (org.apache.http.conn.ConnectTimeoutException e)
-          {
-            // This is not fatal
-            Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-          }
-          catch (InterruptedIOException e)
-          {
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (IOException e)
-          {
-            // This is not fatal
-            Logging.connectors.debug("SharePoint: Server closed connection before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-          }
+          tempFile.delete();
         }
       }
-      finally
+      catch (java.net.SocketTimeoutException e)
       {
-        tempFile.delete();
+        throw new ManifoldCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+      }
+      catch (org.apache.http.conn.ConnectTimeoutException e)
+      {
+        throw new ManifoldCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+      }
+      catch (InterruptedIOException e)
+      {
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+      catch (IOException e)
+      {
+        throw new ManifoldCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
       }
     }
-    catch (java.net.SocketTimeoutException e)
+    catch (ManifoldCFException e)
     {
-      throw new ManifoldCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+        errorCode = null;
+      throw e;
     }
-    catch (org.apache.http.conn.ConnectTimeoutException e)
+    finally
     {
-      throw new ManifoldCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
-    }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
-    catch (IOException e)
-    {
-      throw new ManifoldCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+      if (errorCode != null)
+        activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
+          fileLengthLong,documentIdentifier,errorCode,errorDesc,null);
     }
   }
 
