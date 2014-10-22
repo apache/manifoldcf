@@ -1178,264 +1178,258 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
       getSession();
       ObjectInformation value = llc.getObjectInformation(vol,objID);
-      if (value.exists())
-      {
-        // Make sure we have permission to see the object's contents
-        int permissions = value.getPermissions().intValue();
-        if ((permissions & LAPI_DOCUMENTS.PERM_SEECONTENTS) != 0)
-        {
-          Date dt = value.getModifyDate();
-          // The rights don't change when the object changes, so we have to include those too.
-          int[] rights = getObjectRights(vol,objID);
-          if (rights != null)
-          {
-            // We were able to get rights, so object still exists.
-
-            // Changed folder versioning for MCF 2.0
-            if (isFolder)
-            {
-              // === Livelink folder ===
-              // I'm still not sure if Livelink folder modified dates are one-level or hierarchical.
-              // The code below assumes one-level only, so we always scan folders and there's no versioning
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Livelink: Processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
-
-              int sanityRetryCount = FAILURE_RETRY_COUNT;
-              while (true)
-              {
-                ListObjectsThread t = new ListObjectsThread(vol,objID,filterString);
-                try
-                {
-                  t.start();
-                  LLValue childrenDocs;
-                  try
-                  {
-                    childrenDocs = t.finishUp();
-                  }
-                  catch (ManifoldCFException e)
-                  {
-                    sanityRetryCount = assessRetry(sanityRetryCount,e);
-                    continue;
-                  }
-
-                  int size = 0;
-                  
-                  if (childrenDocs.isRecord())
-                    size = 1;
-                  if (childrenDocs.isTable())
-                    size = childrenDocs.size();
-
-                  // System.out.println("Total child count = "+Integer.toString(size));
-                  // Do the scan
-                  for (int j = 0; j < size; j++)
-                  {
-                    int childID = childrenDocs.toInteger(j, "ID");
-
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("Livelink: Found a child of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : ID="+Integer.toString(childID));
-
-                    int subtype = childrenDocs.toInteger(j, "SubType");
-                    boolean childIsFolder = (subtype == LAPI_DOCUMENTS.FOLDERSUBTYPE || subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE ||
-                      subtype == LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE);
-
-                    // If it's a folder, we just let it through for now
-                    if (!childIsFolder && checkInclude(childrenDocs.toString(j,"Name") + "." + childrenDocs.toString(j,"FileType"), spec) == false)
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" was excluded by inclusion criteria");
-                      continue;
-                    }
-
-                    if (childIsFolder)
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a folder, project, or compound document; adding a reference");
-                      if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
-                      {
-                        // If we pick up a project object, we need to describe the volume object (which
-                        // will be the root of all documents beneath)
-                        activities.addDocumentReference("F"+new Integer(childID).toString()+":"+new Integer(-childID).toString());
-                      }
-                      else
-                        activities.addDocumentReference("F"+new Integer(vol).toString()+":"+new Integer(childID).toString());
-                    }
-                    else
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a simple document; adding a reference");
-
-                      activities.addDocumentReference("D"+new Integer(vol).toString()+":"+new Integer(childID).toString());
-                    }
-
-                  }
-                  break;
-                }
-                catch (InterruptedException e)
-                {
-                  t.interrupt();
-                  throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                }
-                catch (RuntimeException e)
-                {
-                  sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
-                  continue;
-                }
-              }
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Livelink: Done processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
-            }
-            else
-            {
-              // === Livelink document ===
-              
-              // The version string includes the following:
-              // 1) The modify date for the document
-              // 2) The rights for the document, ordered (which can change without changing the ModifyDate field)
-              // 3) The requested metadata fields (category and attribute, ordered) for the document
-              //
-              // The document identifiers are object id's.
-      
-              StringBuilder sb = new StringBuilder();
-
-              String[] categoryPaths;
-              if (sDesc.includeAllMetadata())
-              {
-                // Find all the metadata associated with this object, and then
-                // find the set of category pathnames that correspond to it.
-                int[] catIDs = getObjectCategoryIDs(vol,objID);
-                categoryPaths = catAccum.getCategoryPathsAttributeNames(catIDs);
-                // Sort!
-                java.util.Arrays.sort(categoryPaths);
-                // Build the metadata string piece now
-                packList(sb,categoryPaths,'+');
-              }
-              else
-              {
-                categoryPaths = specifiedMetadataAttributes;
-                sb.append(metadataString);
-              }
-              
-              String[] actualAcls;
-              String[] denyAcls;
-              
-              String denyAcl;
-              if (acls != null && acls.length == 0)
-              {
-                // No forced acls.  Read the actual acls from livelink, as a set of rights.
-                // We need also to add in support for the special rights objects.  These are:
-                // -1: RIGHT_WORLD
-                // -2: RIGHT_SYSTEM
-                // -3: RIGHT_OWNER
-                // -4: RIGHT_GROUP
-                //
-                // RIGHT_WORLD means guest access.
-                // RIGHT_SYSTEM is "Public Access".
-                // RIGHT_OWNER is access by the owner of the object.
-                // RIGHT_GROUP is access by a member of the base group containing the owner
-                //
-                // These objects are returned by the GetObjectRights() call made above, and NOT
-                // returned by LLUser.ListObjects().  We have to figure out how to map these to
-                // things that are
-                // the equivalent of acls.
-
-                actualAcls = lookupTokens(rights, value);
-                java.util.Arrays.sort(actualAcls);
-                // If security is on, no deny acl is needed for the local authority, since the repository does not support "deny".  But this was added
-                // to be really really really sure.
-                denyAcl = defaultAuthorityDenyToken;
-
-              }
-              else if (acls != null && acls.length > 0)
-              {
-                // Forced acls
-                actualAcls = acls;
-                denyAcl = defaultAuthorityDenyToken;
-              }
-              else
-              {
-                // Security is OFF
-                actualAcls = acls;
-                denyAcl = null;
-              }
-
-              // Now encode the acls.  If null, we write a special value.
-              if (actualAcls == null)
-              {
-                sb.append('-');
-                denyAcls = null;
-              }
-              else
-              {
-                sb.append('+');
-                packList(sb,actualAcls,'+');
-                // This was added on 4/21/2008 to support forced acls working with the global default authority.
-                pack(sb,denyAcl,'+');
-                denyAcls = new String[]{denyAcl};
-              }
-
-              // The date does not need to be parseable
-              sb.append(new Long(dt.getTime()).toString());
-
-              // PathNameAttributeVersion comes completely from the spec, so we don't
-              // have to worry about it changing.  No need, therefore, to parse it during
-              // processDocuments.
-              sb.append("=").append(pathNameAttributeVersion);
-
-              // Tack on ingestCgiPath, to insulate us against changes to the repository connection setup.  Added 9/7/07.
-              sb.append("_").append(viewBasePath);
-
-              String versionString = sb.toString();
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Livelink: Successfully calculated version string for document "+Integer.toString(vol)+":"+Integer.toString(objID)+" : '"+versionString+"'");
-              
-              if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
-              {
-                // Index the document
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
-                if (checkIngest(llc,objID,spec))
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("Livelink: Decided to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID));
-
-                  // Grab the access tokens for this file from the version string, inside ingest method.
-                  ingestFromLiveLink(llc,documentIdentifier,versionString,actualAcls,denyAcls,categoryPaths,activities,desc,sDesc);
-                }
-                else
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("Livelink: Decided not to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID)+" - Did not match ingestion criteria");
-                  activities.noDocument(documentIdentifier,versionString);
-                }
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Done processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
-              }
-            }
-          }
-          else
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Livelink: Could not get rights for object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
-            activities.deleteDocument(documentIdentifier);
-            continue;
-          }
-        }
-        else
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Livelink: Crawl user cannot see contents of object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
-          activities.deleteDocument(documentIdentifier);
-          continue;
-        }
-      }
-      else
+      if (!value.exists())
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Object "+Integer.toString(vol)+":"+Integer.toString(objID)+" has no information - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
+        
+      // Make sure we have permission to see the object's contents
+      int permissions = value.getPermissions().intValue();
+      if ((permissions & LAPI_DOCUMENTS.PERM_SEECONTENTS) == 0)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Livelink: Crawl user cannot see contents of object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
+        activities.deleteDocument(documentIdentifier);
+        continue;
+      }
+        
+        
+      Date dt = value.getModifyDate();
+      // The rights don't change when the object changes, so we have to include those too.
+      int[] rights = getObjectRights(vol,objID);
+      if (rights == null)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Livelink: Could not get rights for object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
+        activities.deleteDocument(documentIdentifier);
+        continue;
+      }
+        
+      // We were able to get rights, so object still exists.
+          
+      // Changed folder versioning for MCF 2.0
+      if (isFolder)
+      {
+        // === Livelink folder ===
+        // I'm still not sure if Livelink folder modified dates are one-level or hierarchical.
+        // The code below assumes one-level only, so we always scan folders and there's no versioning
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Livelink: Processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
 
+        int sanityRetryCount = FAILURE_RETRY_COUNT;
+        while (true)
+        {
+          ListObjectsThread t = new ListObjectsThread(vol,objID,filterString);
+          try
+          {
+            t.start();
+            LLValue childrenDocs;
+            try
+            {
+              childrenDocs = t.finishUp();
+            }
+            catch (ManifoldCFException e)
+            {
+              sanityRetryCount = assessRetry(sanityRetryCount,e);
+              continue;
+            }
+
+            int size = 0;
+            
+            if (childrenDocs.isRecord())
+              size = 1;
+            if (childrenDocs.isTable())
+              size = childrenDocs.size();
+
+            // System.out.println("Total child count = "+Integer.toString(size));
+            // Do the scan
+            for (int j = 0; j < size; j++)
+            {
+              int childID = childrenDocs.toInteger(j, "ID");
+
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Livelink: Found a child of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : ID="+Integer.toString(childID));
+
+              int subtype = childrenDocs.toInteger(j, "SubType");
+              boolean childIsFolder = (subtype == LAPI_DOCUMENTS.FOLDERSUBTYPE || subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE ||
+                subtype == LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE);
+
+              // If it's a folder, we just let it through for now
+              if (!childIsFolder && checkInclude(childrenDocs.toString(j,"Name") + "." + childrenDocs.toString(j,"FileType"), spec) == false)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" was excluded by inclusion criteria");
+                continue;
+              }
+
+              if (childIsFolder)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a folder, project, or compound document; adding a reference");
+                if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
+                {
+                  // If we pick up a project object, we need to describe the volume object (which
+                  // will be the root of all documents beneath)
+                  activities.addDocumentReference("F"+new Integer(childID).toString()+":"+new Integer(-childID).toString());
+                }
+                else
+                  activities.addDocumentReference("F"+new Integer(vol).toString()+":"+new Integer(childID).toString());
+              }
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a simple document; adding a reference");
+
+                activities.addDocumentReference("D"+new Integer(vol).toString()+":"+new Integer(childID).toString());
+              }
+
+            }
+            break;
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RuntimeException e)
+          {
+            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            continue;
+          }
+        }
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Livelink: Done processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
+      }
+      else
+      {
+        // === Livelink document ===
+              
+        // The version string includes the following:
+        // 1) The modify date for the document
+        // 2) The rights for the document, ordered (which can change without changing the ModifyDate field)
+        // 3) The requested metadata fields (category and attribute, ordered) for the document
+        //
+        // The document identifiers are object id's.
+  
+        StringBuilder sb = new StringBuilder();
+
+        String[] categoryPaths;
+        if (sDesc.includeAllMetadata())
+        {
+          // Find all the metadata associated with this object, and then
+          // find the set of category pathnames that correspond to it.
+          int[] catIDs = getObjectCategoryIDs(vol,objID);
+          categoryPaths = catAccum.getCategoryPathsAttributeNames(catIDs);
+          // Sort!
+          java.util.Arrays.sort(categoryPaths);
+          // Build the metadata string piece now
+          packList(sb,categoryPaths,'+');
+        }
+        else
+        {
+          categoryPaths = specifiedMetadataAttributes;
+          sb.append(metadataString);
+        }
+              
+        String[] actualAcls;
+        String[] denyAcls;
+              
+        String denyAcl;
+        if (acls != null && acls.length == 0)
+        {
+          // No forced acls.  Read the actual acls from livelink, as a set of rights.
+          // We need also to add in support for the special rights objects.  These are:
+          // -1: RIGHT_WORLD
+          // -2: RIGHT_SYSTEM
+          // -3: RIGHT_OWNER
+          // -4: RIGHT_GROUP
+          //
+          // RIGHT_WORLD means guest access.
+          // RIGHT_SYSTEM is "Public Access".
+          // RIGHT_OWNER is access by the owner of the object.
+          // RIGHT_GROUP is access by a member of the base group containing the owner
+          //
+          // These objects are returned by the GetObjectRights() call made above, and NOT
+          // returned by LLUser.ListObjects().  We have to figure out how to map these to
+          // things that are
+          // the equivalent of acls.
+
+          actualAcls = lookupTokens(rights, value);
+          java.util.Arrays.sort(actualAcls);
+          // If security is on, no deny acl is needed for the local authority, since the repository does not support "deny".  But this was added
+          // to be really really really sure.
+          denyAcl = defaultAuthorityDenyToken;
+              
+        }
+        else if (acls != null && acls.length > 0)
+        {
+          // Forced acls
+          actualAcls = acls;
+          denyAcl = defaultAuthorityDenyToken;
+        }
+        else
+        {
+          // Security is OFF
+          actualAcls = acls;
+          denyAcl = null;
+        }
+
+        // Now encode the acls.  If null, we write a special value.
+        if (actualAcls == null)
+        {
+          sb.append('-');
+          denyAcls = null;
+        }
+        else
+        {
+          sb.append('+');
+          packList(sb,actualAcls,'+');
+          // This was added on 4/21/2008 to support forced acls working with the global default authority.
+          pack(sb,denyAcl,'+');
+          denyAcls = new String[]{denyAcl};
+        }
+
+        // The date does not need to be parseable
+        sb.append(new Long(dt.getTime()).toString());
+
+        // PathNameAttributeVersion comes completely from the spec, so we don't
+        // have to worry about it changing.  No need, therefore, to parse it during
+        // processDocuments.
+        sb.append("=").append(pathNameAttributeVersion);
+          
+        // Tack on ingestCgiPath, to insulate us against changes to the repository connection setup.  Added 9/7/07.
+        sb.append("_").append(viewBasePath);
+
+        String versionString = sb.toString();
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Livelink: Successfully calculated version string for document "+Integer.toString(vol)+":"+Integer.toString(objID)+" : '"+versionString+"'");
+              
+        if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+          continue;
+        
+        // Index the document
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Livelink: Processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
+        if (!checkIngest(llc,objID,spec))
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("Livelink: Decided not to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID)+" - Did not match ingestion criteria");
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Livelink: Decided to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID));
+
+        // Grab the access tokens for this file from the version string, inside ingest method.
+        ingestFromLiveLink(llc,documentIdentifier,versionString,actualAcls,denyAcls,categoryPaths,activities,desc,sDesc);
+          
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Livelink: Done processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
+      }
     }
   }
 
@@ -4152,20 +4146,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     String contextMsg = "for '"+documentIdentifier+"'";
 
-    String viewHttpAddress = convertToViewURI(documentIdentifier);
-    if (viewHttpAddress == null)
-    {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("Livelink: No view URI "+contextMsg+" - not ingesting");
-      return;
-    }
 
     // Fetch logging
     long startTime = System.currentTimeMillis();
-    String resultCode = "FAILED";
+    String resultCode = null;
     String resultDescription = null;
     Long readSize = null;
-    boolean wasInterrupted = false;
     int objID;
     int vol;
 
@@ -4185,14 +4171,25 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // Try/finally for fetch logging
     try
     {
+      String viewHttpAddress = convertToViewURI(documentIdentifier);
+      if (viewHttpAddress == null)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Livelink: No view URI "+contextMsg+" - not ingesting");
+        resultCode = "NOVIEWURI";
+        resultDescription = "Document had no view URI";
+        activities.noDocument(documentIdentifier,version);
+        return;
+      }
+      
       // Check URL first
       if (!activities.checkURLIndexable(viewHttpAddress))
       {
         // Document not ingestable due to URL
+        resultCode = activities.EXCLUDED_URL;
         resultDescription = "URL ("+viewHttpAddress+") was rejected by output connector";
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its URL ("+viewHttpAddress+") was rejected by output connector");
-        resultCode = "URLEXCLUSION";
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -4203,13 +4200,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (!objInfo.exists())
       {
         resultCode = "OBJECTNOTFOUND";
+        resultDescription = "Object was not found in Livelink";
         Logging.connectors.debug("Livelink: No object "+contextMsg+": not ingesting");
+        activities.noDocument(documentIdentifier,version);
         return;
       }
       if (!versInfo.exists())
       {
         resultCode = "VERSIONNOTFOUND";
+        resultDescription = "Version was not found in Livelink";
         Logging.connectors.debug("Livelink: No version data "+contextMsg+": not ingesting");
+        activities.noDocument(documentIdentifier,version);
         return;
       }
 
@@ -4217,10 +4218,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (!activities.checkMimeTypeIndexable(mimeType))
       {
         // Document not indexable because of its mime type
+        resultCode = activities.EXCLUDED_MIMETYPE;
         resultDescription = "Mime type ("+mimeType+") was rejected by output connector";
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its mime type ("+mimeType+") was rejected by output connector");
-        resultCode = "MIMETYPEEXCLUSION";
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -4229,10 +4230,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (dataSize == null)
       {
         // Document had no length
-        resultDescription = "Document had no length";
+        resultCode = "DOCUMENTNOLENGTH";
+        resultDescription = "Document had no length in Livelink";
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because it had no length");
-        resultCode = "DOCUMENTNOLENGTH";
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -4240,10 +4241,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (!activities.checkLengthIndexable(dataSize.longValue()))
       {
         // Document not indexable because of its length
+        resultCode = activities.EXCLUDED_LENGTH;
         resultDescription = "Document length ("+dataSize+") was rejected by output connector";
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its length ("+dataSize+") was rejected by output connector");
-        resultCode = "DOCUMENTTOOLONG";
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -4252,10 +4253,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (!activities.checkDateIndexable(modifyDate))
       {
         // Document not indexable because of its date
+        resultCode = activities.EXCLUDED_DATE;
         resultDescription = "Document date ("+modifyDate+") was rejected by output connector";
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its date ("+modifyDate+") was rejected by output connector");
-        resultCode = "DOCUMENTBADDATE";
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -4349,231 +4350,153 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         // Use HTTP to fetch document!
         String ingestHttpAddress = convertToIngestURI(documentIdentifier);
-        if (ingestHttpAddress != null)
-        {
-
-          // Set up connection
-          HttpClient client = getInitializedClient(contextMsg);
-
-          long currentTime;
-
-          if (Logging.connectors.isInfoEnabled())
-            Logging.connectors.info("Livelink: " + ingestHttpAddress);
-
-
-          HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
-          method.setHeader(new BasicHeader("Accept","*/*"));
-
-          ExecuteMethodThread methodThread = new ExecuteMethodThread(client,method);
-          methodThread.start();
-          try
-          {
-
-            int statusCode = methodThread.getResponseCode();
-            switch (statusCode)
-            {
-            case 500:
-            case 502:
-              Logging.connectors.warn("Livelink: Service interruption during fetch "+contextMsg+" with Livelink HTTP Server, retrying...");
-              throw new ServiceInterruption("Service interruption during fetch",new ManifoldCFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
-                System.currentTimeMillis()+600000L,-1,true);
-
-            case HttpStatus.SC_UNAUTHORIZED:
-              Logging.connectors.warn("Livelink: Document fetch unauthorized for "+ingestHttpAddress+" ("+contextMsg+")");
-              // Since we logged in, we should fail here if the ingestion user doesn't have access to the
-              // the document, but if we do, don't fail hard.
-              resultCode = "UNAUTHORIZED";
-              activities.noDocument(documentIdentifier,version);
-              return;
-
-            case HttpStatus.SC_OK:
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Livelink: Created http document connection to Livelink "+contextMsg);
-              // A non-existent content length will cause a value of -1 to be returned.  This seems to indicate that the session login did not work right.
-              if (methodThread.getResponseContentLength() >= 0)
-              {
-                try
-                {
-                  InputStream is = methodThread.getSafeInputStream();
-                  try
-                  {
-                    rd.setBinary(is,dataSize);
-                            
-                    activities.ingestDocumentWithException(documentIdentifier,version,viewHttpAddress,rd);
-                    
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("Livelink: Ingesting done "+contextMsg);
-
-                  }
-                  finally
-                  {
-                    // Close stream via thread, since otherwise this can hang
-                    is.close();
-                  }
-                }
-                catch (java.net.SocketTimeoutException e)
-                {
-                  resultCode = "DATATIMEOUT";
-                  resultDescription = e.getMessage();
-                  currentTime = System.currentTimeMillis();
-                  Logging.connectors.warn("Livelink: Livelink socket timed out ingesting from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-                  throw new ServiceInterruption("Socket timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-                }
-                catch (java.net.SocketException e)
-                {
-                  resultCode = "DATASOCKETERROR";
-                  resultDescription = e.getMessage();
-                  currentTime = System.currentTimeMillis();
-                  Logging.connectors.warn("Livelink: Livelink socket error ingesting from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-                  throw new ServiceInterruption("Socket error: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-                }
-                catch (javax.net.ssl.SSLHandshakeException e)
-                {
-                  resultCode = "DATASSLHANDSHAKEERROR";
-                  resultDescription = e.getMessage();
-                  currentTime = System.currentTimeMillis();
-                  Logging.connectors.warn("Livelink: SSL handshake failed authenticating "+contextMsg+": "+e.getMessage(),e);
-                  throw new ServiceInterruption("SSL handshake error: "+e.getMessage(),e,currentTime+60000L,currentTime+300000L,-1,true);
-                }
-                catch (ConnectTimeoutException e)
-                {
-                  resultCode = "CONNECTTIMEOUT";
-                  resultDescription = e.getMessage();
-                  currentTime = System.currentTimeMillis();
-                  Logging.connectors.warn("Livelink: Livelink socket timed out connecting to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-                  throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-                }
-                catch (InterruptedException e)
-                {
-                  wasInterrupted = true;
-                  throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                }
-                catch (InterruptedIOException e)
-                {
-                  wasInterrupted = true;
-                  throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                }
-                catch (HttpException e)
-                {
-                  resultCode = "HTTPEXCEPTION";
-                  resultDescription = e.getMessage();
-                  // Treat unknown error ingesting data as a transient condition
-                  currentTime = System.currentTimeMillis();
-                  Logging.connectors.warn("Livelink: HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e);
-                  throw new ServiceInterruption("HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-                }
-                catch (IOException e)
-                {
-                  resultCode = "DATAEXCEPTION";
-                  resultDescription = e.getMessage();
-                  // Treat unknown error ingesting data as a transient condition
-                  currentTime = System.currentTimeMillis();
-                  Logging.connectors.warn("Livelink: IO exception ingesting "+contextMsg+": "+e.getMessage(),e);
-                  throw new ServiceInterruption("IO exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-                }
-                readSize = dataSize;
-              }
-              else
-              {
-                resultCode = "SESSIONLOGINFAILED";
-                activities.noDocument(documentIdentifier,version);
-              }
-              break;
-            case HttpStatus.SC_BAD_REQUEST:
-            case HttpStatus.SC_USE_PROXY:
-            case HttpStatus.SC_GONE:
-              resultCode = "ERROR "+Integer.toString(statusCode);
-              throw new ManifoldCFException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
-            default:
-              resultCode = "UNKNOWN";
-              Logging.connectors.warn("Livelink: Attempt to retrieve document from '"+ingestHttpAddress+"' received a response of "+Integer.toString(statusCode)+"; retrying in one minute");
-              currentTime = System.currentTimeMillis();
-              throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new ManifoldCFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
-                currentTime+60000L,currentTime+600000L,-1,true);
-            }
-          }
-          catch (InterruptedException e)
-          {
-            // Drop the connection on the floor
-            methodThread.interrupt();
-            methodThread = null;
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (java.net.SocketTimeoutException e)
-          {
-            Logging.connectors.warn("Livelink: Socket timed out reading from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-            resultCode = "TIMEOUT";
-            resultDescription = e.getMessage();
-            currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("Socket timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
-          }
-          catch (java.net.SocketException e)
-          {
-            Logging.connectors.warn("Livelink: Socket error reading from Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-            resultCode = "SOCKETERROR";
-            resultDescription = e.getMessage();
-            currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("Socket error: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
-          }
-          catch (javax.net.ssl.SSLHandshakeException e)
-          {
-            currentTime = System.currentTimeMillis();
-            Logging.connectors.warn("Livelink: SSL handshake failed "+contextMsg+": "+e.getMessage(),e);
-            resultCode = "SSLHANDSHAKEERROR";
-            resultDescription = e.getMessage();
-            throw new ServiceInterruption("SSL handshake error: "+e.getMessage(),e,currentTime+60000L,currentTime+300000L,-1,true);
-          }
-          catch (ConnectTimeoutException e)
-          {
-            Logging.connectors.warn("Livelink: Connect timed out reading from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-            resultCode = "CONNECTTIMEOUT";
-            resultDescription = e.getMessage();
-            currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
-          }
-          catch (InterruptedIOException e)
-          {
-            methodThread.interrupt();
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (HttpException e)
-          {
-            resultCode = "EXCEPTION";
-            resultDescription = e.getMessage();
-            throw new ManifoldCFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
-          }
-          catch (IOException e)
-          {
-            resultCode = "EXCEPTION";
-            resultDescription = e.getMessage();
-            throw new ManifoldCFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
-          }
-          finally
-          {
-            if (methodThread != null)
-            {
-              methodThread.abort();
-              if (!wasInterrupted)
-              {
-                try
-                {
-                  methodThread.finishUp();
-                }
-                catch (InterruptedException e)
-                {
-                  wasInterrupted = true;
-                  throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                }
-              }
-            }
-          }
-        }
-        else
+        if (ingestHttpAddress == null)
         {
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("Livelink: No fetch URI "+contextMsg+" - not ingesting");
           resultCode = "NOURI";
+          resultDescription = "Document had no fetch URI";
+          activities.noDocument(documentIdentifier,version);
           return;
+        }
+
+        // Set up connection
+        HttpClient client = getInitializedClient(contextMsg);
+
+        long currentTime;
+
+        if (Logging.connectors.isInfoEnabled())
+          Logging.connectors.info("Livelink: " + ingestHttpAddress);
+
+
+        HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
+        method.setHeader(new BasicHeader("Accept","*/*"));
+
+        boolean wasInterrupted = false;
+        ExecuteMethodThread methodThread = new ExecuteMethodThread(client,method);
+        methodThread.start();
+        try
+        {
+          int statusCode = methodThread.getResponseCode();
+          switch (statusCode)
+          {
+          case 500:
+          case 502:
+            Logging.connectors.warn("Livelink: Service interruption during fetch "+contextMsg+" with Livelink HTTP Server, retrying...");
+            resultCode = "FETCHFAILED";
+            resultDescription = "HTTP error code "+statusCode+" fetching document";
+            throw new ServiceInterruption("Service interruption during fetch",new ManifoldCFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
+              System.currentTimeMillis()+600000L,-1,true);
+
+          case HttpStatus.SC_UNAUTHORIZED:
+            Logging.connectors.warn("Livelink: Document fetch unauthorized for "+ingestHttpAddress+" ("+contextMsg+")");
+            // Since we logged in, we should fail here if the ingestion user doesn't have access to the
+            // the document, but if we do, don't fail hard.
+            resultCode = "UNAUTHORIZED";
+            resultDescription = "Document fetch was unauthorized by IIS";
+            activities.noDocument(documentIdentifier,version);
+            return;
+
+          case HttpStatus.SC_OK:
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("Livelink: Created http document connection to Livelink "+contextMsg);
+            // A non-existent content length will cause a value of -1 to be returned.  This seems to indicate that the session login did not work right.
+            if (methodThread.getResponseContentLength() < 0)
+            {
+              resultCode = "SESSIONLOGINFAILED";
+              resultDescription = "Response content length was -1, which usually means session login did not succeed";
+              activities.noDocument(documentIdentifier,version);
+              return;
+            }
+              
+            try
+            {
+              InputStream is = methodThread.getSafeInputStream();
+              try
+              {
+                rd.setBinary(is,dataSize);
+                            
+                activities.ingestDocumentWithException(documentIdentifier,version,viewHttpAddress,rd);
+                resultCode = "OK";
+                readSize = dataSize;
+                    
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Livelink: Ingesting done "+contextMsg);
+
+              }
+              finally
+              {
+                // Close stream via thread, since otherwise this can hang
+                is.close();
+              }
+            }
+            catch (InterruptedException e)
+            {
+              wasInterrupted = true;
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            }
+            catch (HttpException e)
+            {
+              resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              resultDescription = e.getMessage();
+              handleHttpException(contextMsg,e);
+            }
+            catch (IOException e)
+            {
+              resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              resultDescription = e.getMessage();
+              handleIOException(contextMsg,e);
+            }
+            break;
+          case HttpStatus.SC_BAD_REQUEST:
+          case HttpStatus.SC_USE_PROXY:
+          case HttpStatus.SC_GONE:
+            resultCode = "HTTPERROR";
+            resultDescription = "Http request returned status "+Integer.toString(statusCode);
+            throw new ManifoldCFException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
+          default:
+            resultCode = "UNKNOWNHTTPCODE";
+            resultDescription = "Http request returned status "+Integer.toString(statusCode);
+            Logging.connectors.warn("Livelink: Attempt to retrieve document from '"+ingestHttpAddress+"' received a response of "+Integer.toString(statusCode)+"; retrying in one minute");
+            currentTime = System.currentTimeMillis();
+            throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new ManifoldCFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
+              currentTime+60000L,currentTime+600000L,-1,true);
+          }
+        }
+        catch (InterruptedException e)
+        {
+          // Drop the connection on the floor
+          methodThread.interrupt();
+          methodThread = null;
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+        catch (HttpException e)
+        {
+          resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+          resultDescription = e.getMessage();
+          handleHttpException(contextMsg,e);
+        }
+        catch (IOException e)
+        {
+          resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+          resultDescription = e.getMessage();
+          handleIOException(contextMsg,e);
+        }
+        finally
+        {
+          if (methodThread != null)
+          {
+            methodThread.abort();
+            try
+            {
+              if (!wasInterrupted)
+                methodThread.finishUp();
+            }
+            catch (InterruptedException e)
+            {
+              throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            }
+          }
         }
       }
       else
@@ -4583,9 +4506,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               
         // Fire up the document reading thread
         DocumentReadingThread t = new DocumentReadingThread(vol,objID,0);
+        boolean wasInterrupted = false;
+        t.start();
         try 
         {
-          t.start();
           try
           {
             InputStream is = t.getSafeInputStream();
@@ -4594,17 +4518,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               // Can only index while background thread is running!
               rd.setBinary(is, dataSize);
               activities.ingestDocumentWithException(documentIdentifier, version, viewHttpAddress, rd);
+              resultCode = "OK";
+              readSize = dataSize;
             }
             finally
             {
               is.close();
             }
-          }
-          catch (ManifoldCFException e)
-          {
-            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-              wasInterrupted = true;
-            throw e;
           }
           catch (java.net.SocketTimeoutException e)
           {
@@ -4622,8 +4542,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           }
 
           // No errors.  Record the fact that we made it.
-          resultCode = "OK";
-          readSize = dataSize;
         }
         catch (InterruptedException e) 
         {
@@ -4631,49 +4549,73 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
             ManifoldCFException.INTERRUPTED);
         }
-        catch (ConnectTimeoutException e)
-        {
-          Logging.connectors.warn("Livelink: Connect timed out "+contextMsg+": "+e.getMessage(), e);
-          resultCode = "CONNECTTIMEOUT";
-          resultDescription = e.getMessage();
-          currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
-        }
-        catch (InterruptedIOException e)
-        {
-          t.interrupt();
-          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-        }
         catch (IOException e)
         {
-          resultCode = "EXCEPTION";
+          resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           resultDescription = e.getMessage();
-          throw new ManifoldCFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
-        }
-        catch (ManifoldCFException e)
-        {
-          if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
-          {
-            resultCode = "EXCEPTION";
-            resultDescription = e.getMessage();
-          }
-          throw e;
+          handleIOException(contextMsg,e);
         }
         catch (RuntimeException e)
         {
-          resultCode = "EXCEPTION";
+          resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           resultDescription = e.getMessage();
           handleLivelinkRuntimeException(e,0,true);
         }
       }
     }
+    catch (ManifoldCFException e)
+    {
+      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+        resultCode = null;
+      throw e;
+    }
     finally
     {
-      if (!wasInterrupted)
+      if (resultCode != null)
         activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,readSize,vol+":"+objID,resultCode,resultDescription,null);
     }
   }
 
+  protected static void handleHttpException(String contextMsg, HttpException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    long currentTime = System.currentTimeMillis();
+    // Treat unknown error ingesting data as a transient condition
+    Logging.connectors.warn("Livelink: HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e);
+    throw new ServiceInterruption("HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
+  }
+  
+  protected static void handleIOException(String contextMsg, IOException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    long currentTime = System.currentTimeMillis();
+    if (e instanceof java.net.SocketTimeoutException)
+    {
+      Logging.connectors.warn("Livelink: Livelink socket timed out ingesting from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      throw new ServiceInterruption("Socket timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
+    }
+    if (e instanceof java.net.SocketException)
+    {
+      Logging.connectors.warn("Livelink: Livelink socket error ingesting from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      throw new ServiceInterruption("Socket error: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
+    }
+    if (e instanceof javax.net.ssl.SSLHandshakeException)
+    {
+      Logging.connectors.warn("Livelink: SSL handshake failed authenticating "+contextMsg+": "+e.getMessage(),e);
+      throw new ServiceInterruption("SSL handshake error: "+e.getMessage(),e,currentTime+60000L,currentTime+300000L,-1,true);
+    }
+    if (e instanceof ConnectTimeoutException)
+    {
+      Logging.connectors.warn("Livelink: Livelink socket timed out connecting to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
+    }
+    if (e instanceof InterruptedIOException)
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    // Treat unknown error ingesting data as a transient condition
+    Logging.connectors.warn("Livelink: IO exception ingesting "+contextMsg+": "+e.getMessage(),e);
+    throw new ServiceInterruption("IO exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
+  }
+  
   /** Initialize a livelink client connection */
   protected HttpClient getInitializedClient(String contextMsg)
     throws ServiceInterruption, ManifoldCFException
