@@ -248,7 +248,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   @Override
   public String[] getActivitiesList()
   {
-    return new String[]{ACTIVITY_FETCH, ACTIVITY_ROBOTSPARSE};
+    return new String[]{ACTIVITY_FETCH, ACTIVITY_ROBOTSPARSE, ACTIVITY_PROCESS};
   }
 
   /** Tell the world what model this connector uses for getDocumentIdentifiers().
