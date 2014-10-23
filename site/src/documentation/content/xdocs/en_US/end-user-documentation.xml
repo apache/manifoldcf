@@ -1888,13 +1888,29 @@ curl -XGET http://localhost:9200/index/_mapping
                     <tr><td>IDLIST</td><td>A query string value containing a parenthesized list of document identifier values</td></tr>
                 </table>
                 <br/>
-                <p>Use caution when constructing queries that include time-based
+                <p>It is often necessary to construct composite values using SQL query operators in order to create the version strings, URLs,
+                      and data which the JDBC connection type needs.  Each database has its own caveats in this regard.  Consult your database
+                      manual to be sure you are constructing your queries in a manner consistent with best practices for that database.  For example,
+                      for MySQL databases, NULL column values will prevent straightforward concatenation of results.  You might expect the following
+                      to work:</p>
+                <br/>
+                <p><code>SELECT id AS $(IDCOLUMN), CONCAT("http://my.base.url/show.html?record=", id) AS $(URLCOLUMN),
+                      CONCAT(name, " ", description, " ", what_ever) AS $(DATACOLUMN)
+                      FROM accounts WHERE id IN $(IDLIST)</code></p>
+                <br/>
+                <p>But, any NULL column values will disrupt the concatenation in MySQL, so you must instead write your query like this:</p>
+                <br/>
+                <p><code>SELECT id AS $(IDCOLUMN), CONCAT("http://my.base.url/show.html?record=", id) AS $(URLCOLUMN),
+                      CONCAT(name, " ", IFNULL(description, ""), " ", IFNULL(what_ever, "")) AS $(DATACOLUMN)
+                      FROM accounts WHERE id IN $(IDLIST)</code></p>
+                <br/>
+                <p>Also, use caution when constructing queries that include time-based
                         components. "$(STARTTIME)" and "$(ENDTIME)" provide
                         times in milliseconds since epoch. If the modified date field is not
                         in this unit, the seeding query may not select the desired document
                         identifiers. You should convert "$(STARTTIME)" and
-                        "$(ENDTIME)" to the appropriate timestamp unit for your system within your query.</p>
-                <p>The following table gives several sample query fragments that can be
+                        "$(ENDTIME)" to the appropriate timestamp unit for your system within your query.
+                        The following table gives several sample query fragments that can be
                         used to convert the helper strings "$(STARTTIME)" and
                         "$(ENDTIME)" into other date and time types. The first column names
                         the SQL database type that the following query phrase corresponds to,
