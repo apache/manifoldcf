@@ -72,6 +72,7 @@
         </fileset>
     </path>
 
+
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
@@ -79,6 +80,8 @@
                 <include name="jackson-core*.jar"/>
                 <include name="jackson-databind*.jar"/>
                 <include name="jackson-annotations*.jar"/>
+                <!-- Note: tika-core MUST be placed in connector-lib, or tika doesn't work.  CONNECTORS-1079 -->
+                <include name="tika-core*.jar"/>
                 <include name="tika-parsers*.jar"/>
                 <include name="tagsoup*.jar"/>
                 <include name="poi*.jar"/>
