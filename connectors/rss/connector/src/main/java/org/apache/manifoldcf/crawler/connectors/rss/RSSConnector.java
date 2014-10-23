@@ -129,7 +129,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   // Activity types
   public final static String ACTIVITY_FETCH = "fetch";
   public final static String ACTIVITY_ROBOTSPARSE = "robots parse";
-
+  public final static String ACTIVITY_PROCESS = "process";
+  
   /** Deny access token for default authority */
   private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
 
@@ -701,6 +702,21 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     return rval;
   }
 
+  protected static Set<String> xmlContentTypes;
+  static
+  {
+    xmlContentTypes = new HashSet<String>();
+    xmlContentTypes.add("text/xml");
+    xmlContentTypes.add("application/rss+xml");
+    xmlContentTypes.add("application/xml");
+    xmlContentTypes.add("application/atom+xml");
+    xmlContentTypes.add("application/xhtml+xml");
+    xmlContentTypes.add("text/XML");
+    xmlContentTypes.add("application/rdf+xml");
+    xmlContentTypes.add("text/application");
+    xmlContentTypes.add("XML");
+  }
+
 
   /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
@@ -909,429 +925,487 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               "' and a previous Last-Modified value of '"+((lastModifiedValue==null)?"null":lastModifiedValue)+"'");
 
             // Robots check.  First, we need to separate the url into its components
+            URL url;
             try
             {
-              URL url = new URL(urlValue);
-              String protocol = url.getProtocol();
-              int port = url.getPort();
-              String hostName = url.getHost();
-              String pathPart = url.getFile();
-
-              // Check with robots to see if it's allowed
-              if (robotsUsage >= ROBOTS_DATA && !robots.isFetchAllowed(currentContext,throttleGroupName,
-                protocol,port,hostName,url.getPath(),
-                userAgent,from,
-                proxyHost, proxyPort, proxyAuthDomain, proxyAuthUsername, proxyAuthPassword,
-                activities, connectionLimit))
-              {
-                activities.recordActivity(null,ACTIVITY_FETCH,
-                  null,urlValue,Integer.toString(-2),"Robots exclusion",null);
-
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("RSS: Skipping url '"+urlValue+"' because robots.txt says to");
-                activities.deleteDocument(documentIdentifier);
-                continue;
-              }
-              
-              // Now, use the fetcher, and get the file.
-              IThrottledConnection connection = fetcher.createConnection(currentContext,
-                throttleGroupName,
-                hostName,
-                connectionLimit,
-                feedTimeout,
-                proxyHost,
-                proxyPort,
-                proxyAuthDomain,
-                proxyAuthUsername,
-                proxyAuthPassword);
-              try
-              {
-                // Begin the fetch
-                connection.beginFetch("Data");
-                try
-                {
-                  // Execute the request.
-                  // Use the connect timeout from the document specification!
-                  int status = connection.executeFetch(protocol,port,pathPart,userAgent,from,
-                    lastETagValue,lastModifiedValue);
-                  switch (status)
-                  {
-                  case IThrottledConnection.STATUS_NOCHANGE:
-                    versionString = oldVersionString;
-                    break;
-                  case IThrottledConnection.STATUS_OK:
-                    try
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("RSS: Successfully fetched "+urlValue);
-                      // Document successfully fetched!
-                      // If its content is xml, presume it's a feed...
-                      String contentType = connection.getResponseHeader("Content-Type");
-                      // Some sites have multiple content types.  We just look at the LAST one in that case.
-                      if (contentType != null)
-                      {
-                        String[] contentTypes = contentType.split(",");
-                        if (contentTypes.length > 0)
-                          contentType = contentTypes[contentTypes.length-1].trim();
-                        else
-                          contentType = null;
-                      }
-                      boolean isXML = (contentType != null &&
-                        (contentType.startsWith("text/xml") ||
-                        contentType.startsWith("application/rss+xml") ||
-                        contentType.startsWith("application/xml") ||
-                        contentType.startsWith("application/atom+xml") ||
-                        contentType.startsWith("application/xhtml+xml") ||
-                        contentType.startsWith("text/XML") ||
-                        contentType.startsWith("application/rdf+xml") ||
-                        contentType.startsWith("text/application") ||
-                        contentType.startsWith("XML") ));
-                      ingestURL = null;
-                      if (!isXML)
-                      {
-                        // If the chromed content mode is set to "skip", and we got here, it means
-                        // we should not include the content.
-                        if (f.getChromedContentMode() == CHROMED_SKIP)
-                        {
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug("RSS: Removing url '"+urlValue+"' because it no longer has dechromed content available");
-                          versionString = null;
-                          break;
-                        }
-
-                        // Decide whether to exclude this document based on what we see here.
-                        // Basically, we want to get rid of everything that we don't know what
-                        // to do with in the ingestion system.
-                        if (!isContentInteresting(activities,contentType))
-                        {
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug("RSS: Removing url '"+urlValue+"' because it had the wrong content type: "+((contentType==null)?"null":"'"+contentType+"'"));
-                          versionString = null;
-                          break;
-                        }
-
-                        ingestURL = f.mapDocumentURL(urlValue);
-                      }
-                      else
-                      {
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("RSS: The url '"+urlValue+"' is a feed");
-
-                        if (!f.isSeed(urlValue))
-                        {
-                          // Remove the feed from consideration, since it has left the list of seeds
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug("RSS: Removing feed url '"+urlValue+"' because it is not a seed.");
-                          versionString = null;
-                          break;
-                        }
-                      }
-
-                      InputStream is = connection.getResponseBodyStream();
-                      try
-                      {
-                        long checkSum = cache.addData(activities,urlValue,contentType,is);
-                        StringBuilder sb = new StringBuilder();
-                        if (ingestURL != null)
-                        {
-                          // We think it is ingestable.  The version string accordingly starts with a "+".
-
-                          // Grab what we need from the passed-down data for the document.  These will all become part
-                          // of the version string.
-                          pubDates = activities.retrieveParentData(urlValue,"pubdate");
-                          sources = activities.retrieveParentData(urlValue,"source");
-                          titles = activities.retrieveParentData(urlValue,"title");
-                          authorNames = activities.retrieveParentData(urlValue,"authorname");
-                          authorEmails = activities.retrieveParentData(urlValue,"authoremail");
-                          categories = activities.retrieveParentData(urlValue,"category");
-                          descriptions = activities.retrieveParentData(urlValue,"description");
-                          java.util.Arrays.sort(pubDates);
-                          java.util.Arrays.sort(sources);
-                          java.util.Arrays.sort(titles);
-                          java.util.Arrays.sort(authorNames);
-                          java.util.Arrays.sort(authorEmails);
-                          java.util.Arrays.sort(categories);
-                          java.util.Arrays.sort(descriptions);
-
-                          if (sources.length == 0)
-                          {
-                            if (Logging.connectors.isDebugEnabled())
-                              Logging.connectors.debug("RSS: Warning; URL '"+ingestURL+"' doesn't seem to have any RSS feed source!");
-                          }
-
-                          sb.append('+');
-                          packList(sb,acls,'+');
-                          if (acls.length > 0)
-                          {
-                            sb.append('+');
-                            pack(sb,defaultAuthorityDenyToken,'+');
-                          }
-                          else
-                            sb.append('-');
-                          // The ingestion URL
-                          pack(sb,ingestURL,'+');
-                          // The pub dates
-                          packList(sb,pubDates,'+');
-                          // The titles
-                          packList(sb,titles,'+');
-                          // The sources
-                          packList(sb,sources,'+');
-                          // The categories
-                          packList(sb,categories,'+');
-                          // The descriptions
-                          packList(sb,descriptions,'+');
-                          // The author names
-                          packList(sb,authorNames,'+');
-                          // The author emails
-                          packList(sb,authorEmails,'+');
-                        }
-                        else
-                        {
-                          sb.append('-');
-                          String etag = connection.getResponseHeader("ETag");
-                          if (etag == null)
-                            pack(sb,"",'+');
-                          else
-                            pack(sb,etag,'+');
-                          String lastModified = connection.getResponseHeader("Last-Modified");
-                          if (lastModified == null)
-                            pack(sb,"",'+');
-                          else
-                            pack(sb,lastModified,'+');
-
-                        }
-
-                        // Do the checksum part, which does not need to be parseable.
-                        sb.append(new Long(checkSum).toString());
-
-                        versionString = sb.toString();
-                      }
-                      finally
-                      {
-                        is.close();
-                      }
-                    }
-                    catch (java.net.SocketTimeoutException e)
-                    {
-                      Logging.connectors.warn("RSS: Socket timeout exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
-                      versionString = null;
-                    }
-                    catch (ConnectTimeoutException e)
-                    {
-                      Logging.connectors.warn("RSS: Connecto timeout exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
-                      versionString = null;
-                    }
-                    catch (InterruptedIOException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (IOException e)
-                    {
-                      Logging.connectors.warn("RSS: IO exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
-                      versionString = null;
-                    }
-
-                    break;
-
-                  case IThrottledConnection.STATUS_SITEERROR:
-                  case IThrottledConnection.STATUS_PAGEERROR:
-                  default:
-                    // Record an *empty* version.
-                    // This signals the processDocuments() method that we really don't want to ingest this document, but we also don't
-                    // want to blow the document out of the queue, since then we'd wind up perhaps fetching it multiple times.
-                    versionString = "";
-                    break;
-                  }
-                }
-                finally
-                {
-                  connection.doneFetch(activities);
-                }
-              }
-              finally
-              {
-                connection.close();
-              }
-                
-              if (versionString == null)
-              {
-                activities.deleteDocument(documentIdentifier);
-                continue;
-              }
-                
-              if (!(versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)))
-                continue;
-              
-              // Process document!
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("RSS: Processing '"+urlValue+"'");
-
-              // The only links we extract come from documents that we think are RSS feeds.
-              // When we think that's the case, we attempt to parse it as RSS XML.
-              if (ingestURL == null)
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("RSS: Interpreting document '"+urlValue+"' as a feed");
-
-                // We think it is a feed.
-                // If this is a continuous job, AND scanonly is true, it means that the document was either identical to the
-                // previous fetch, or was not fetched at all.  In that case, it may not even be there, and we *certainly* don't
-                // want to attempt to process it in any case.
-                //
-
-                // NOTE: I re-enabled the scan permanently because we need the TTL value to be set whatever the cost.  If the
-                // TTL value is not set, we default to the specified job's feed-rescan time, which is not going to be current enough for some feeds.
-                if (true || jobMode != JOBMODE_CONTINUOUS)
-                {
-                  handleRSSFeedSAX(urlValue,activities,f);
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("RSS: Extraction of feed '"+urlValue+"' complete");
-
-                  // Record the feed's version string, so we won't refetch unless needed.
-                  // This functionality is required for the last ETag and Last-Modified fields to be sent to the rss server, and to
-                  // keep track of the adaptive parameters.
-                  activities.recordDocument(documentIdentifier,versionString);
-                }
-                else
-                {
-                  // The problem here is that we really do need to set the rescan time to something reasonable.
-                  // But we might not even have read the feed!  So what to do??
-                  // One answer is to build a connector-specific table that carries the last value of every feed around.
-                  // Another answer is to change the version code to always read the feed (and the heck with ETag and Last-Modified).
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("RSS: Feed '"+urlValue+"' does not appear to differ from previous fetch for a continuous job; not extracting!");
-
-                  long currentTime = System.currentTimeMillis();
-
-                  Long defaultRescanTime = f.getDefaultRescanTime(currentTime);
-
-                  if (defaultRescanTime != null)
-                  {
-                    Long minimumTime = f.getMinimumRescanTime(currentTime);
-                    if (minimumTime != null)
-                    {
-                      if (defaultRescanTime.longValue() < minimumTime.longValue())
-                        defaultRescanTime = minimumTime;
-                    }
-                  }
-
-                  activities.setDocumentScheduleBounds(urlValue,defaultRescanTime,defaultRescanTime,null,null);
-
-                }
-              }
-              else
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("RSS: Interpreting '"+urlValue+"' as a document");
-
-                if (isDataIngestable(activities,urlValue))
-                {
-                  // Treat it as an ingestable document.
-                  
-                  long dataSize = cache.getDataLength(urlValue);
-                  RepositoryDocument rd = new RepositoryDocument();
-
-                  // Set content type
-                  rd.setMimeType(cache.getContentType(urlValue));
-
-                  // Turn into acls and add into description
-                  String[] denyAcls;
-                  if (acls == null)
-                    denyAcls = null;
-                  else if (acls.length == 0)
-                    denyAcls = new String[0];
-                  else
-                    denyAcls = new String[]{defaultAuthorityDenyToken};
-                      
-                  if (acls != null && denyAcls != null)
-                    rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls,denyAcls);
-
-                  if (titles != null && titles.length > 0)
-                    rd.addField("title",titles);
-                  if (authorNames != null && authorNames.length > 0)
-                    rd.addField("authorname",authorNames);
-                  if (authorEmails != null && authorEmails.length > 0)
-                    rd.addField("authoremail",authorEmails);
-                  if (descriptions != null && descriptions.length > 0)
-                    rd.addField("summary",descriptions);
-                  if (sources != null && sources.length > 0)
-                    rd.addField("source",sources);
-                  if (categories != null && categories.length > 0)
-                    rd.addField("category",categories);
-
-                  // The pubdates are a ms since epoch value; we want the minimum one for the origination time.
-                  Long minimumOrigTime = null;
-                  if (pubDates != null && pubDates.length > 0)
-                  {
-                    String[] pubDateValuesISO = new String[pubDates.length];
-                    TimeZone tz = TimeZone.getTimeZone("UTC");
-                    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-                    df.setTimeZone(tz);
-                    for (int k = 0; k < pubDates.length; k++)
-                    {
-                      String pubDate = pubDates[k];
-                      try
-                      {
-                        Long pubDateLong = new Long(pubDate);
-                        if (minimumOrigTime == null || pubDateLong.longValue() < minimumOrigTime.longValue())
-                          minimumOrigTime = pubDateLong;
-                        pubDateValuesISO[k] = df.format(new Date(pubDateLong.longValue()));
-                      }
-                      catch (NumberFormatException e)
-                      {
-                        // Do nothing; the version string seems to not mean anything
-                        pubDateValuesISO[k] = "";
-                      }
-                    }
-                    rd.addField("pubdate",pubDates);
-                    rd.addField("pubdateiso",pubDateValuesISO);
-                  }
-
-                  if (minimumOrigTime != null)
-                    activities.setDocumentOriginationTime(urlValue,minimumOrigTime);
-
-                  InputStream is = cache.getData(urlValue);
-                  if (is != null)
-                  {
-                    try
-                    {
-                      rd.setBinary(is,dataSize);
-                      try
-                      {
-                        activities.ingestDocumentWithException(documentIdentifier,versionString,ingestURL,rd);
-                      }
-                      catch (IOException e)
-                      {
-                        handleIOException(e,"reading data");
-                      }
-                    }
-                    finally
-                    {
-                      try
-                      {
-                        is.close();
-                      }
-                      catch (IOException e)
-                      {
-                        handleIOException(e,"closing stream");
-                      }
-                    }
-                  }
-                }
-                else
-                {
-                  activities.noDocument(documentIdentifier,versionString);
-
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("RSS: Skipping document '"+urlValue+"' because it cannot be indexed");
-                }
-              }
+              url = new URL(urlValue);
             }
             catch (MalformedURLException e)
             {
               Logging.connectors.debug("RSS: URL '"+urlValue+"' is malformed; skipping",e);
               activities.deleteDocument(documentIdentifier);
               continue;
+            }
+            
+            String protocol = url.getProtocol();
+            int port = url.getPort();
+            String hostName = url.getHost();
+            String pathPart = url.getFile();
+
+            // Check with robots to see if it's allowed
+            if (robotsUsage >= ROBOTS_DATA && !robots.isFetchAllowed(currentContext,throttleGroupName,
+              protocol,port,hostName,url.getPath(),
+              userAgent,from,
+              proxyHost, proxyPort, proxyAuthDomain, proxyAuthUsername, proxyAuthPassword,
+              activities, connectionLimit))
+            {
+              activities.recordActivity(null,ACTIVITY_FETCH,
+                null,urlValue,Integer.toString(-2),"Robots exclusion",null);
+
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("RSS: Skipping url '"+urlValue+"' because robots.txt says to");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+              
+            // Now, use the fetcher, and get the file.
+            IThrottledConnection connection = fetcher.createConnection(currentContext,
+              throttleGroupName,
+              hostName,
+              connectionLimit,
+              feedTimeout,
+              proxyHost,
+              proxyPort,
+              proxyAuthDomain,
+              proxyAuthUsername,
+              proxyAuthPassword);
+            try
+            {
+              // Begin the fetch
+              connection.beginFetch("Data");
+              try
+              {
+                // Execute the request.
+                // Use the connect timeout from the document specification!
+                int status = connection.executeFetch(protocol,port,pathPart,userAgent,from,
+                  lastETagValue,lastModifiedValue);
+                switch (status)
+                {
+                case IThrottledConnection.STATUS_NOCHANGE:
+                  versionString = oldVersionString;
+                  break;
+                case IThrottledConnection.STATUS_OK:
+                  try
+                  {
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("RSS: Successfully fetched "+urlValue);
+                    // Document successfully fetched!
+                    // If its content is xml, presume it's a feed...
+                    String contentType = connection.getResponseHeader("Content-Type");
+                    // Some sites have multiple content types.  We just look at the LAST one in that case.
+                    if (contentType != null)
+                    {
+                      String[] contentTypes = contentType.split(",");
+                      if (contentTypes.length > 0)
+                        contentType = contentTypes[contentTypes.length-1].trim();
+                      else
+                        contentType = null;
+                    }
+                    String strippedContentType = contentType;
+                    if (strippedContentType != null)
+                    {
+                      int pos = strippedContentType.indexOf(";");
+                      if (pos != -1)
+                        strippedContentType = strippedContentType.substring(0,pos).trim();
+                    }
+                    boolean isXML = (strippedContentType != null && xmlContentTypes.contains(strippedContentType));
+                    ingestURL = null;
+                    if (!isXML)
+                    {
+                      // If the chromed content mode is set to "skip", and we got here, it means
+                      // we should not include the content.
+                      if (f.getChromedContentMode() == CHROMED_SKIP)
+                      {
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("RSS: Removing url '"+urlValue+"' because it no longer has dechromed content available");
+                        versionString = null;
+                        break;
+                      }
+
+                      // Decide whether to exclude this document based on what we see here.
+                      // Basically, we want to get rid of everything that we don't know what
+                      // to do with in the ingestion system.
+                      if (!activities.checkMimeTypeIndexable(contentType))
+                      {
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("RSS: Removing url '"+urlValue+"' because it had the wrong content type: "+((contentType==null)?"null":"'"+contentType+"'"));
+                        versionString = null;
+                        break;
+                      }
+
+                      ingestURL = f.mapDocumentURL(urlValue);
+                    }
+                    else
+                    {
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("RSS: The url '"+urlValue+"' is a feed");
+
+                      if (!f.isSeed(urlValue))
+                      {
+                        // Remove the feed from consideration, since it has left the list of seeds
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("RSS: Removing feed url '"+urlValue+"' because it is not a seed.");
+                        versionString = null;
+                        break;
+                      }
+                    }
+
+                    InputStream is = connection.getResponseBodyStream();
+                    try
+                    {
+                      long checkSum = cache.addData(activities,urlValue,contentType,is);
+                      StringBuilder sb = new StringBuilder();
+                      if (ingestURL != null)
+                      {
+                        // We think it is ingestable.  The version string accordingly starts with a "+".
+
+                        // Grab what we need from the passed-down data for the document.  These will all become part
+                        // of the version string.
+                        pubDates = activities.retrieveParentData(urlValue,"pubdate");
+                        sources = activities.retrieveParentData(urlValue,"source");
+                        titles = activities.retrieveParentData(urlValue,"title");
+                        authorNames = activities.retrieveParentData(urlValue,"authorname");
+                        authorEmails = activities.retrieveParentData(urlValue,"authoremail");
+                        categories = activities.retrieveParentData(urlValue,"category");
+                        descriptions = activities.retrieveParentData(urlValue,"description");
+                        java.util.Arrays.sort(pubDates);
+                        java.util.Arrays.sort(sources);
+                        java.util.Arrays.sort(titles);
+                        java.util.Arrays.sort(authorNames);
+                        java.util.Arrays.sort(authorEmails);
+                        java.util.Arrays.sort(categories);
+                        java.util.Arrays.sort(descriptions);
+
+                        if (sources.length == 0)
+                        {
+                          if (Logging.connectors.isDebugEnabled())
+                            Logging.connectors.debug("RSS: Warning; URL '"+ingestURL+"' doesn't seem to have any RSS feed source!");
+                        }
+
+                        sb.append('+');
+                        packList(sb,acls,'+');
+                        if (acls.length > 0)
+                        {
+                          sb.append('+');
+                          pack(sb,defaultAuthorityDenyToken,'+');
+                        }
+                        else
+                          sb.append('-');
+                        // The ingestion URL
+                        pack(sb,ingestURL,'+');
+                        // The pub dates
+                        packList(sb,pubDates,'+');
+                        // The titles
+                        packList(sb,titles,'+');
+                        // The sources
+                        packList(sb,sources,'+');
+                        // The categories
+                        packList(sb,categories,'+');
+                        // The descriptions
+                        packList(sb,descriptions,'+');
+                        // The author names
+                        packList(sb,authorNames,'+');
+                        // The author emails
+                        packList(sb,authorEmails,'+');
+                      }
+                      else
+                      {
+                        sb.append('-');
+                        String etag = connection.getResponseHeader("ETag");
+                        if (etag == null)
+                          pack(sb,"",'+');
+                        else
+                          pack(sb,etag,'+');
+                        String lastModified = connection.getResponseHeader("Last-Modified");
+                        if (lastModified == null)
+                          pack(sb,"",'+');
+                        else
+                          pack(sb,lastModified,'+');
+
+                      }
+
+                      // Do the checksum part, which does not need to be parseable.
+                      sb.append(new Long(checkSum).toString());
+
+                      versionString = sb.toString();
+                    }
+                    finally
+                    {
+                      is.close();
+                    }
+                  }
+                  catch (java.net.SocketTimeoutException e)
+                  {
+                    Logging.connectors.warn("RSS: Socket timeout exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
+                    versionString = null;
+                  }
+                  catch (ConnectTimeoutException e)
+                  {
+                    Logging.connectors.warn("RSS: Connecto timeout exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
+                    versionString = null;
+                  }
+                  catch (InterruptedIOException e)
+                  {
+                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                  }
+                  catch (IOException e)
+                  {
+                    Logging.connectors.warn("RSS: IO exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
+                    versionString = null;
+                  }
+
+                  break;
+
+                case IThrottledConnection.STATUS_SITEERROR:
+                case IThrottledConnection.STATUS_PAGEERROR:
+                default:
+                  // Record an *empty* version.
+                  // This signals the processDocuments() method that we really don't want to ingest this document, but we also don't
+                  // want to blow the document out of the queue, since then we'd wind up perhaps fetching it multiple times.
+                  versionString = "";
+                  break;
+                }
+              }
+              finally
+              {
+                connection.doneFetch(activities);
+              }
+            }
+            finally
+            {
+              connection.close();
+            }
+                
+            if (versionString == null)
+            {
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
+                
+            if (!(versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)))
+              continue;
+              
+            // Process document!
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("RSS: Processing '"+urlValue+"'");
+
+            // The only links we extract come from documents that we think are RSS feeds.
+            // When we think that's the case, we attempt to parse it as RSS XML.
+            if (ingestURL == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("RSS: Interpreting document '"+urlValue+"' as a feed");
+
+              // We think it is a feed.
+              // If this is a continuous job, AND scanonly is true, it means that the document was either identical to the
+              // previous fetch, or was not fetched at all.  In that case, it may not even be there, and we *certainly* don't
+              // want to attempt to process it in any case.
+              //
+
+              // NOTE: I re-enabled the scan permanently because we need the TTL value to be set whatever the cost.  If the
+              // TTL value is not set, we default to the specified job's feed-rescan time, which is not going to be current enough for some feeds.
+              if (true || jobMode != JOBMODE_CONTINUOUS)
+              {
+                handleRSSFeedSAX(urlValue,activities,f);
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("RSS: Extraction of feed '"+urlValue+"' complete");
+
+                // Record the feed's version string, so we won't refetch unless needed.
+                // This functionality is required for the last ETag and Last-Modified fields to be sent to the rss server, and to
+                // keep track of the adaptive parameters.
+                activities.recordDocument(documentIdentifier,versionString);
+              }
+              else
+              {
+                // The problem here is that we really do need to set the rescan time to something reasonable.
+                // But we might not even have read the feed!  So what to do??
+                // One answer is to build a connector-specific table that carries the last value of every feed around.
+                // Another answer is to change the version code to always read the feed (and the heck with ETag and Last-Modified).
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("RSS: Feed '"+urlValue+"' does not appear to differ from previous fetch for a continuous job; not extracting!");
+
+                long currentTime = System.currentTimeMillis();
+                
+                Long defaultRescanTime = f.getDefaultRescanTime(currentTime);
+
+                if (defaultRescanTime != null)
+                {
+                  Long minimumTime = f.getMinimumRescanTime(currentTime);
+                  if (minimumTime != null)
+                  {
+                    if (defaultRescanTime.longValue() < minimumTime.longValue())
+                      defaultRescanTime = minimumTime;
+                  }
+                }
+
+                activities.setDocumentScheduleBounds(urlValue,defaultRescanTime,defaultRescanTime,null,null);
+
+              }
+            }
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("RSS: Interpreting '"+urlValue+"' as a document");
+              
+              String errorCode = null;
+              String errorDesc = null;
+              long startTime = System.currentTimeMillis();
+              Long fileLengthLong = null;
+              try
+              {
+                long documentLength = cache.getDataLength(documentIdentifier);
+                if (!activities.checkLengthIndexable(documentLength))
+                {
+                  activities.noDocument(documentIdentifier,versionString);
+                  errorCode = activities.EXCLUDED_LENGTH;
+                  errorDesc = "Document rejected because of length ("+documentLength+")";
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("RSS: Skipping document '"+urlValue+"' because its length was rejected ("+documentLength+")");
+                  continue;
+                }
+
+                if (!activities.checkURLIndexable(documentIdentifier))
+                {
+                  activities.noDocument(documentIdentifier,versionString);
+                  errorCode = activities.EXCLUDED_URL;
+                  errorDesc = "Document rejected because of URL ('"+documentIdentifier+"')";
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("RSS: Skipping document '"+urlValue+"' because its URL was rejected ('"+documentIdentifier+"')");
+                  continue;
+                }
+
+                // Check if it's a recognized content type
+                String contentType = cache.getContentType(documentIdentifier);
+                // Some sites have multiple content types.  We just look at the LAST one in that case.
+                if (contentType != null)
+                {
+                  String[] contentTypes = contentType.split(",");
+                  if (contentTypes.length > 0)
+                    contentType = contentTypes[contentTypes.length-1].trim();
+                  else
+                    contentType = null;
+                }
+                if (!activities.checkMimeTypeIndexable(contentType))
+                {
+                  activities.noDocument(documentIdentifier,versionString);
+                  errorCode = activities.EXCLUDED_MIMETYPE;
+                  errorDesc = "Document rejected because of mime type ("+contentType+")";
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("RSS: Skipping document '"+urlValue+"' because its mime type was rejected ('"+contentType+"')");
+                  continue;
+                }
+                
+                // Treat it as an ingestable document.
+                    
+                long dataSize = cache.getDataLength(urlValue);
+                RepositoryDocument rd = new RepositoryDocument();
+
+                // Set content type
+                if (contentType != null)
+                  rd.setMimeType(contentType);
+
+                // Turn into acls and add into description
+                String[] denyAcls;
+                if (acls == null)
+                  denyAcls = null;
+                else if (acls.length == 0)
+                  denyAcls = new String[0];
+                else
+                  denyAcls = new String[]{defaultAuthorityDenyToken};
+                        
+                if (acls != null && denyAcls != null)
+                  rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls,denyAcls);
+
+                if (titles != null && titles.length > 0)
+                  rd.addField("title",titles);
+                if (authorNames != null && authorNames.length > 0)
+                  rd.addField("authorname",authorNames);
+                if (authorEmails != null && authorEmails.length > 0)
+                  rd.addField("authoremail",authorEmails);
+                if (descriptions != null && descriptions.length > 0)
+                  rd.addField("summary",descriptions);
+                if (sources != null && sources.length > 0)
+                  rd.addField("source",sources);
+                if (categories != null && categories.length > 0)
+                  rd.addField("category",categories);
+
+                // The pubdates are a ms since epoch value; we want the minimum one for the origination time.
+                Long minimumOrigTime = null;
+                if (pubDates != null && pubDates.length > 0)
+                {
+                  String[] pubDateValuesISO = new String[pubDates.length];
+                  TimeZone tz = TimeZone.getTimeZone("UTC");
+                  DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+                  df.setTimeZone(tz);
+                  for (int k = 0; k < pubDates.length; k++)
+                  {
+                    String pubDate = pubDates[k];
+                    try
+                    {
+                      Long pubDateLong = new Long(pubDate);
+                      if (minimumOrigTime == null || pubDateLong.longValue() < minimumOrigTime.longValue())
+                        minimumOrigTime = pubDateLong;
+                      pubDateValuesISO[k] = df.format(new Date(pubDateLong.longValue()));
+                    }
+                    catch (NumberFormatException e)
+                    {
+                      // Do nothing; the version string seems to not mean anything
+                      pubDateValuesISO[k] = "";
+                    }
+                  }
+                  rd.addField("pubdate",pubDates);
+                  rd.addField("pubdateiso",pubDateValuesISO);
+                }
+
+                if (minimumOrigTime != null)
+                  activities.setDocumentOriginationTime(urlValue,minimumOrigTime);
+
+                InputStream is = cache.getData(urlValue);
+                if (is != null)
+                {
+                  try
+                  {
+                    rd.setBinary(is,dataSize);
+                    try
+                    {
+                      activities.ingestDocumentWithException(documentIdentifier,versionString,ingestURL,rd);
+                      errorCode = "OK";
+                      fileLengthLong = new Long(dataSize);
+                    }
+                    catch (IOException e)
+                    {
+                      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                      errorDesc = e.getMessage();
+                      handleIOException(e,"reading data");
+                    }
+                  }
+                  finally
+                  {
+                    try
+                    {
+                      is.close();
+                    }
+                    catch (IOException e)
+                    {
+                      errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                      errorDesc = e.getMessage();
+                      handleIOException(e,"closing stream");
+                    }
+                  }
+                }
+              }
+              catch (ManifoldCFException e)
+              {
+                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                  errorCode = null;
+                throw e;
+              }
+              finally
+              {
+                if (errorCode != null)
+                  activities.recordActivity(new Long(startTime),ACTIVITY_PROCESS,
+                    null,urlValue,errorCode,errorDesc,null);
+              }
             }
           }
         }
@@ -4956,62 +5030,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
   // Protected methods and classes
-
-  /** Code to check if data is interesting, based on response code and content type.
-  */
-  protected boolean isContentInteresting(IFingerprintActivity activities, String contentType)
-    throws ServiceInterruption, ManifoldCFException
-  {
-    // Look at the content type and decide if it's a kind we want.  This is defined
-    // as something we think we can either ingest, or extract links from.
-
-    // For now, we're only going to attempt to extract links from html.  This will change eventually.
-    // But the check here is just what the content type is.
-    if (contentType == null)
-      return false;
-
-    int pos = contentType.indexOf(";");
-    if (pos != -1)
-      contentType = contentType.substring(0,pos);
-    contentType = contentType.trim();
-    
-    return activities.checkMimeTypeIndexable(contentType);
-  }
-
-  /** Code to check if an already-fetched document should be ingested.
-  */
-  protected boolean isDataIngestable(IFingerprintActivity activities, String documentIdentifier)
-    throws ServiceInterruption, ManifoldCFException
-  {
-    if (activities.checkLengthIndexable(cache.getDataLength(documentIdentifier)) == false)
-      return false;
-
-    if (activities.checkURLIndexable(documentIdentifier) == false)
-      return false;
-
-    // Check if it's a recognized content type
-    String contentType = cache.getContentType(documentIdentifier);
-
-    // Some sites have multiple content types.  We just look at the LAST one in that case.
-    if (contentType != null)
-    {
-      String[] contentTypes = contentType.split(",");
-      if (contentTypes.length > 0)
-        contentType = contentTypes[contentTypes.length-1].trim();
-      else
-        contentType = null;
-    }
-
-    if (contentType == null)
-      return false;
-
-    int pos = contentType.indexOf(";");
-    if (pos != -1)
-      contentType = contentType.substring(0,pos);
-    contentType = contentType.trim();
-
-    return activities.checkMimeTypeIndexable(contentType);
-  }
 
   /** Given the current parameters, find the correct throttled fetcher object
   * (or create one if not there).
