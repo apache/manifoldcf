@@ -132,6 +132,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   // Activity types
   public final static String ACTIVITY_FETCH = "fetch";
+  public final static String ACTIVITY_PROCESS = "process";
   public final static String ACTIVITY_ROBOTSPARSE = "robots parse";
   public final static String ACTIVITY_LOGON_START = "begin logon";
   public final static String ACTIVITY_LOGON_END = "end logon";
@@ -321,7 +322,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   @Override
   public String[] getActivitiesList()
   {
-    return new String[]{ACTIVITY_FETCH, ACTIVITY_ROBOTSPARSE, ACTIVITY_LOGON_START, ACTIVITY_LOGON_END};
+    return new String[]{ACTIVITY_FETCH, ACTIVITY_PROCESS, ACTIVITY_ROBOTSPARSE, ACTIVITY_LOGON_START, ACTIVITY_LOGON_END};
   }
 
 
@@ -583,9 +584,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   {
     getSession();
 
-    // Here's the maximum number of connections we are going to allow.
-    int connectionLimit = 200;
-
     // Forced acls
     String[] acls = getAcls(spec);
     // Sort it,
@@ -601,8 +599,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     String filterVersion = filter.getVersionString();
     
-    long currentTime = System.currentTimeMillis();
-
     // There are two ways to handle any document that's not available.  The first is to remove it.  The second is to keep it, but mark it with an empty version string.
     // With the web crawler, the major concern with simply removing the document is that it might be referred to from multiple places - and in addition
     // it will get requeued every time the parent document is processed.  This is not optimal because it represents churn.
@@ -635,9 +631,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         }
           
         // Set up the initial state and state variables.
-        int sessionState = SESSIONSTATE_NORMAL;
-        String currentURI = documentIdentifier;
-        FormData formData = null;
+        // Fetch status
+        FetchStatus fetchStatus = new FetchStatus();
+
         // Calculate an event name; we'll need this to control sequencing.
         String globalSequenceEvent;
         if (sessionCredential != null)
@@ -654,500 +650,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         // We need to be sure we clean up the sequence event in case there's an error, so put a try/finally around everything.
         try
         {
-          // Login pages are special in that I *don't* require them to do a robots check.  The reason why is because it is conceivable that a
-          // site may inadvertantly exclude them via robots, and yet allow content pages to be scanned.  This would effectively exclude session login
-          // for that site if we adhered to the strict policy.  Since login pages have to be exclusively identified as being special, explicit
-          // permission is effectively granted by the user in any case.
 
-          int resultSignal = RESULT_NO_DOCUMENT;
-          // The result code to be activity logging, or null if no activity logging desired.
-          String activityResultCode = null;
-          // The result context message, which will be used for logging and activity logging if enabled.
-          String contextMessage = null;
-          // The result context exception, which will be used for logging if needed.
-          Throwable contextException = null;
-          // The checksum, which will be needed if resultSignal is RESULT_VERSION_NEEDED.
-          String checkSum = null;
-          // The headers, which will be needed if resultSignal is RESULT_VERSION_NEEDED.
-          Map<String,List<String>> headerData = null;
-            
-          while (true)
-          {
-            try
-            {
-              // Do the mapping from the current host name to the IP address
-              URL url = new URL(currentURI);
-              String hostName = url.getHost();
-              StringBuilder ipAddressBuffer = new StringBuilder();
-              int ipAddressStatus = lookupIPAddress(currentURI,activities,hostName,currentTime,ipAddressBuffer);
-              if (ipAddressStatus == RESULTSTATUS_TRUE)
-              {
-                String ipAddress = ipAddressBuffer.toString();
-                String protocol = url.getProtocol();
-                int port = url.getPort();
-                if (port == -1)
-                  port = url.getDefaultPort();
-
-                // Try to fetch the document.  We'll need its bin names first.
-                String[] binNames = getBinNames(currentURI);
-
-                // Get the credentials for this document (if any)
-                PageCredentials credential = getPageCredential(currentURI);
-                IKeystoreManager trustStore;
-                // Save effort - only bother to get a trust store if this is https
-                if (protocol.equalsIgnoreCase("https"))
-                  // null return is possible here; indicates "trust everything"
-                  trustStore = getTrustStore(currentURI);
-                else
-                  trustStore = KeystoreManagerFactory.make("");
-                // Check robots, if enabled, and if we're fetching the primary document identifier.  See comment above.
-                int robotsStatus = RESULTSTATUS_TRUE;
-                if (!documentIdentifier.equals(currentURI) || robotsUsage < ROBOTS_DATA || (robotsStatus = checkFetchAllowed(documentIdentifier,protocol,ipAddress,port,credential,trustStore,hostName,binNames,currentTime,
-                  url.getFile(),activities,connectionLimit,proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword)) == RESULTSTATUS_TRUE)
-                {
-                  // Passed the robots check!
-
-                  // Find whatever login parameters apply.  This will be null if currentURI is not a login page, and will contain
-                  // interesting information if it is.
-                  LoginCookies lc = null;
-                  if (sessionCredential != null)
-                  {
-                    lc = cookieManager.readCookies(sessionCredential.getSequenceKey());
-                  }
-
-                  // Prepare to perform the fetch, and decide what to do with the document.
-                  //
-                  IThrottledConnection connection = ThrottledFetcher.getConnection(currentContext,
-                    throttleGroupName,
-                    protocol,ipAddress,port,
-                    credential,trustStore,throttleDescription,binNames,connectionLimit,
-                    proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
-                  try
-                  {
-                    connection.beginFetch((sessionState == SESSIONSTATE_LOGIN)?FETCH_LOGIN:FETCH_STANDARD);
-                    try
-                    {
-
-                      // Execute the fetch!
-                      connection.executeFetch(url.getFile(),userAgent,from,connectionTimeoutMilliseconds,
-                        socketTimeoutMilliseconds,false,hostName,formData,lc);
-                      int response = connection.getResponseCode();
-
-                      if (response == 200 || response == 302 || response == 301)
-                      {
-                        // If this was part of the login sequence, update the cookies regardless of what else happens
-                        if (sessionState == SESSIONSTATE_LOGIN)
-                        {
-                          // Update the cookies
-                          LoginCookies lastFetchCookies = connection.getLastFetchCookies();
-                          cookieManager.updateCookies(sessionCredential.getSequenceKey(),lastFetchCookies);
-                        }
-
-                        // Decide whether to exclude this document based on what we see here.
-                        // Basically, we want to get rid of everything that we (a) don't know what
-                        // to do with in the ingestion system, and (b) we can't get useful links from.
-
-                        String contentType = extractContentType(connection.getResponseHeader("Content-Type"));
-
-                        if (isContentInteresting(activities,currentURI,response,contentType))
-                        {
-                          // Treat it as real, and cache it.
-                          checkSum = cache.addData(activities,currentURI,connection);
-                          headerData = connection.getResponseHeaders();
-                          resultSignal = RESULT_VERSION_NEEDED;
-                          activityResultCode = null;
-                        }
-                        else
-                        {
-                          contextMessage = "it had the wrong content type";
-                          resultSignal = RESULT_NO_DOCUMENT;
-                          activityResultCode = null;
-                        }
-                      }
-                      else
-                      {
-                        // We got some kind of http error code.
-                        // We don't want to remove it from the queue entirely, because that would cause us to lose track of the item, and therefore lose
-                        // control of all scheduling around it.  Instead, we leave it on the queue and give it an empty version string; that will lead it to be
-                        // reprocessed without fail on the next scheduled check.
-                        // Decode response body to the extent we can
-                        String contentType = extractContentType(connection.getResponseHeader("Content-Type"));
-                        String encoding = extractEncoding(contentType);
-                        if (encoding == null)
-                          encoding = StandardCharsets.UTF_8.name();
-                        String decodedResponse = "undecodable";
-                        try
-                        {
-                          decodedResponse = "'"+connection.getLimitedResponseBody(1024,encoding)+"'";
-                        }
-                        catch (ManifoldCFException e)
-                        {
-                          // Eat this exception unless it is an interrupt
-                          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                            throw e;
-                          connection.noteInterrupted(e);
-                        }
-                        catch (ServiceInterruption e)
-                        {
-                          // Eat this exception too
-                          connection.noteInterrupted(e);
-                        }
-                        contextMessage = "it failed to fetch (status="+Integer.toString(response)+", message="+decodedResponse+")";
-                        resultSignal = RESULT_NO_VERSION;
-                        activityResultCode = null;
-                      }
-                    }
-                    catch (ManifoldCFException e)
-                    {
-                      connection.noteInterrupted(e);
-                      throw e;
-                    }
-                    catch (ServiceInterruption e)
-                    {
-                      connection.noteInterrupted(e);
-                      throw e;
-                    }
-                    finally
-                    {
-                      connection.doneFetch(activities);
-                    }
-                  }
-                  finally
-                  {
-                    connection.close();
-                  }
-
-                  // State transition logic.  If the result indicates a successful fetch so far, we need to decide where to go next.
-                  // This happens AFTER we've released all the connections, because it's conceivable that processing here might be
-                  // significant, and we don't want to tie things up unnecessarily.
-                  String preferredLink = null;
-                  String preferredRedirection = null;
-                  formData = null;
-                  String contentLink = null;
-                  if (resultSignal == RESULT_VERSION_NEEDED)
-                  {
-                    // If we get here, we know:
-                    // (a) There's a cached version of the page on disk we can read as many times as necessary;
-                    // (b) The saved cookies have not been updated yet, so we'll need to do that where appropriate.
-
-                    // The way we determine if we're in the login sequence for a site is by TWO criteria:
-                    // (1) The URI must match the specified regular expression, and
-                    // (2) The data from that URI must contain the specified form or link information.
-                    // We use the same criteria to look for the exit from a sequence.  So, in essence, we're *always* going to need to know whether we're
-                    // officially in the sequence, or not, so we evaluate it always.
-                    boolean isLoginPage = false;
-                    if (sessionCredential != null)
-                    {
-                      Iterator iterMatches = sessionCredential.findLoginParameters(currentURI);
-                      boolean seenAnything = false;
-                      boolean seenFormError = false;
-                      boolean seenLinkError = false;
-                      boolean seenRedirectionError = false;
-                      boolean seenContentError = false;
-                      while (iterMatches.hasNext())
-                      {
-                        seenAnything = true;
-                        LoginParameters lp = (LoginParameters)iterMatches.next();
-                        // Note that more than one of the rules may match.
-                        // In that case, a clear order of precedence applies between form-style rules and link-style: form has priority.
-                        // If more than one of the same kind of rule is seen, then all bets are off, a warning is displayed, and nothing is
-                        // matched.
-
-                        // Parse the page; it had better match up!  Otherwise we get null back.
-                        FormData newFormData = findHTMLForm(currentURI,lp);
-                        if (newFormData != null)
-                        {
-                          if (formData != null)
-                          {
-                            // Oops, more than one matching form rule.  Complain.
-                            seenFormError = true;
-                            formData = null;
-                          }
-                          else if (!seenFormError)
-                          {
-                            // A form overrides links, redirection, or content
-                            formData = newFormData;
-                            preferredLink = null;
-                            preferredRedirection = null;
-                          }
-                        }
-                        else
-                        {
-                          // Look for the preferred link instead.
-                          String newPreferredLink = findHTMLLinkURI(currentURI,lp);
-                          if (newPreferredLink != null)
-                          {
-                            if (preferredLink != null)
-                            {
-                              // Oops
-                              seenLinkError = true;
-                              preferredLink = null;
-                            }
-                            else if (!seenLinkError && !seenFormError && formData == null)
-                            {
-                              // Link overrides redirection and content
-                              preferredLink = newPreferredLink;
-                              preferredRedirection = null;
-                            }
-                          }
-                          else
-                          {
-                            // Look for the preferred redirection.
-                            String newPreferredRedirection = findPreferredRedirectionURI(currentURI,lp);
-                            if (newPreferredRedirection != null)
-                            {
-                              if (preferredRedirection != null)
-                              {
-                                seenRedirectionError = true;
-                                preferredRedirection = null;
-                              }
-                              else if (!seenRedirectionError && !seenLinkError && !seenFormError && formData == null && preferredLink == null)
-                              {
-                                preferredRedirection = newPreferredRedirection;
-                              }
-                            }
-                            else
-                            {
-                              // Look for the content in the page.  The link returned may be an empty string, if matching content
-                              // is discovered but there is no override.  It will be null of the content is not found.
-                              String newContentLink = findSpecifiedContent(currentURI,lp);
-                              if (newContentLink != null)
-                              {
-                                if (contentLink != null)
-                                {
-                                  seenContentError = true;
-                                  contentLink = null;
-                                }
-                                else if (!seenContentError && !seenRedirectionError && !seenLinkError && !seenFormError && formData == null && preferredLink == null && preferredRedirection == null)
-                                {
-                                  contentLink = newContentLink;
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-
-                      // Now, evaluate all the data and pick the right rule
-                      if (formData != null)
-                      {
-                        // We found the right form!  And, we filled it in.  So now we enter the "login sequence".
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("WEB: Document '"+currentURI+"' matches form, so determined to be login page for sequence '"+sessionCredential.getSequenceKey()+"'");
-                        isLoginPage = true;
-                      }
-                      else if (preferredLink != null)
-                      {
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("WEB: Document '"+currentURI+"' matches preferred link, so determined to be login page for sequence '"+sessionCredential.getSequenceKey()+"'");
-                        isLoginPage = true;
-                      }
-                      else if (preferredRedirection != null)
-                      {
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("WEB: Document '"+currentURI+"' matches preferred redirection, so determined to be login page for sequence '"+sessionCredential.getSequenceKey()+"'");
-                        isLoginPage = true;
-                      }
-                      else if (contentLink != null)
-                      {
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("WEB: Document '"+currentURI+"' matches content, so determined to be login page for sequence '"+sessionCredential.getSequenceKey()+"'");
-                        isLoginPage = true;
-                      }
-                      else
-                      {
-                        if (seenAnything && Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("WEB: Document '"+currentURI+"' did not match expected form, link, redirection, or content for sequence '"+sessionCredential.getSequenceKey()+"'");
-                      }
-                    }
-
-                    // Should we do a state transition into the "logging in" state?
-                    if (sessionState == SESSIONSTATE_NORMAL && isLoginPage)
-                    {
-                      // Entering the login sequence.  Make sure we actually can do this...
-                      if (activities.beginEventSequence(globalSequenceEvent))
-                      {
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("WEB: For document '"+documentIdentifier+"', beginning login sequence '"+sessionCredential.getSequenceKey()+"'");
-
-                        activities.recordActivity(null,WebcrawlerConnector.ACTIVITY_LOGON_START,
-                          null,sessionCredential.getSequenceKey(),"OK",null,null);
-
-                        // Transition to the right state, etc.
-                        sessionState = SESSIONSTATE_LOGIN;
-                      }
-                      else
-                      {
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("WEB: For document '"+documentIdentifier+"', login sequence '"+sessionCredential.getSequenceKey()+"' was already in progress.");
-
-                        // Didn't make it in.  Retry the main URI when the proper conditions are met.
-                        // We don't want the cached data anymore.
-                        cache.deleteData(currentURI);
-                        contextMessage = "login sequence already in progress";
-                        resultSignal = RESULT_RETRY_DOCUMENT;
-                        activityResultCode = null;
-                      }
-                    }
-                    else if (sessionState == SESSIONSTATE_LOGIN && isLoginPage == false)
-                    {
-                      //== Exit login mode ==
-                      activities.completeEventSequence(globalSequenceEvent);
-                      activities.recordActivity(null,WebcrawlerConnector.ACTIVITY_LOGON_END,
-                        null,sessionCredential.getSequenceKey(),"OK",null,null);
-                      sessionState = SESSIONSTATE_NORMAL;
-                      // Make sure we go back and try the original document again, if we happened to have been directed somewhere else
-                      if (!currentURI.equals(documentIdentifier))
-                      {
-                        cache.deleteData(currentURI);
-                        currentURI = documentIdentifier;
-                        continue;
-                      }
-                      // Otherwise, the last fetch stands on its own.  Fall through, and allow processing and link extraction
-                    }
-                    
-                    // Now, based on the session state and the document contents, decide how to proceed
-                    if (resultSignal == RESULT_VERSION_NEEDED && sessionState == SESSIONSTATE_LOGIN)
-                    {
-                      // We are dealing with a login page!
-
-                      // We need to (a) figure out what the next URI should be, and (b) record form information that it might need.
-                      // This is a bit dicey because there's really
-                      // no good way to *guarantee* that we pick the right one, if there's more than one available.
-                      // What we do is the following:
-                      //
-                      // (a) We look for matching forms.  If we found one, we submit it.
-                      // (b) Look for redirections.
-                      // (c) If there are links that vector within the login sequence, we pick one of those preferentially.
-                      // (d) If there are no links that vector within the login sequence, we pick one of the other links.
-                      //
-                      // Note well that it's probably going to be pretty easy to get this code stuck in an infinite login sequence.
-                      // While that won't be a problem performance-wise (because everything is appropriately throttled), it
-                      // is obviously not ideal, and furthermore, it will not be possible to crawl a site for which this occurs.
-                      //
-                      // Longer time (and with higher complexity) we can solve this problem by allowing the user to *specify*
-                      // which link they want us to pick for a page.  Hopefully this would not be necessary.
-
-                      // Locate the next target URI.
-                      String targetURI;
-                      if (formData != null)
-                        targetURI = formData.getActionURI();
-                      else if (preferredLink != null)
-                        targetURI = preferredLink;
-                      else if (preferredRedirection != null)
-                        targetURI = preferredRedirection;
-                      else /* if (contentLink != null) */
-                        targetURI = contentLink;
-
-                      // Definitely we don't want the cached data anymore
-                      cache.deleteData(currentURI);
-
-                      // If the target URI is null, it means we could not find a suitable link.  If target URI is "",
-                      // it means that we found a designated logon page but the description did not include a link we
-                      // could chase.  Either way, treat this exactly the same
-                      // way as if the link found exited login mode.
-                      if (targetURI == null || targetURI.length() == 0)
-                      {
-                        //== Exiting login mode ==
-                        activities.completeEventSequence(globalSequenceEvent);
-                        activities.recordActivity(null,WebcrawlerConnector.ACTIVITY_LOGON_END,
-                          null,sessionCredential.getSequenceKey(),"NEXT LINK NOT FOUND",null,null);
-                        sessionState = SESSIONSTATE_NORMAL;
-                        // Make sure we go back and try the original document again, no matter where we got directed to
-                        currentURI = documentIdentifier;
-                      }
-                      else
-                      {
-                        currentURI = targetURI;
-                      }
-                      continue;
-                    }
-                    else if (resultSignal != RESULT_VERSION_NEEDED && sessionState == SESSIONSTATE_LOGIN)
-                    {
-                      // The next URL we fetched in the logon sequence turned out to be unsuitable.
-                      // That means that the logon sequence is fundamentally wrong.  The session thus ends,
-                      // and of course it will retry, but that's neither here nor there.
-                      //== Exiting login mode ==
-                      activities.completeEventSequence(globalSequenceEvent);
-                      activities.recordActivity(null,WebcrawlerConnector.ACTIVITY_LOGON_END,
-                        null,sessionCredential.getSequenceKey(),"LINK TARGET UNSUITABLE",null,null);
-                      sessionState = SESSIONSTATE_NORMAL;
-                      // Fall through, leaving everything else alone.
-                    }
-                  }
-
-                }
-                else
-                {
-                  if (robotsStatus == RESULTSTATUS_FALSE)
-                  {
-                    activityResultCode = "-11";
-                    contextMessage = "robots.txt says so";
-                    resultSignal = RESULT_NO_DOCUMENT;
-                  }
-                  else
-                  {
-                    // Robots prerequisite in progress
-                    activityResultCode = null;
-                    resultSignal = RESULT_RETRY_DOCUMENT;
-                    contextMessage = "robots prerequisite already in progress";
-                  }
-                }
-              }
-              else
-              {
-                if (ipAddressStatus == RESULTSTATUS_FALSE)
-                {
-                  activityResultCode = "-10";
-                  contextMessage = "ip address not found";
-                  resultSignal = RESULT_NO_DOCUMENT;
-                }
-                else
-                {
-                  // DNS prerequisite in progress
-                  activityResultCode = null;
-                  contextMessage = "dns prerequisite already in progress";
-                  resultSignal = RESULT_RETRY_DOCUMENT;
-                }
-              }
-            }
-            catch (MalformedURLException e)
-            {
-              // currentURI is malformed.
-              // If the document was the primary, we should remove it from the queue.  But if it's part of a login sequence, we'd better just retry later.
-              contextMessage = "was not a valid URL: "+e.getMessage();
-              contextException = e;
-              activityResultCode = "-12";
-              resultSignal = RESULT_NO_DOCUMENT;
-            }
-
-            // If we fail on a document that's not the primary, the result should be to retry the primary later.
-            if (!currentURI.equals(documentIdentifier))
-            {
-              activityResultCode = null;
-              if (contextMessage != null)
-                contextMessage = "for login sequence url '"+currentURI+"': "+contextMessage;
-              if (resultSignal != RESULT_VERSION_NEEDED)
-                resultSignal = RESULT_RETRY_DOCUMENT;
-            }
-
-            break;
-          }
-
-          // Now, look at the result signal, and set up the version appropriately.
-          if (activityResultCode != null)
-            activities.recordActivity(null,ACTIVITY_FETCH,null,documentIdentifier,activityResultCode,((contextMessage!=null)?contextMessage:""),null);
-
-          switch (resultSignal)
+          loginAndFetch(fetchStatus,activities,documentIdentifier,sessionCredential,globalSequenceEvent);
+        
+        
+          switch (fetchStatus.resultSignal)
           {
           case RESULT_NO_DOCUMENT:
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("WEB: Removing url '"+documentIdentifier+"'"+((contextMessage!=null)?" because "+contextMessage:""),contextException);
+              Logging.connectors.debug("WEB: Removing url '"+documentIdentifier+"'"+((fetchStatus.contextMessage!=null)?" because "+fetchStatus.contextMessage:""),fetchStatus.contextException);
             activities.deleteDocument(documentIdentifier);
             break;
           case RESULT_NO_VERSION:
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("WEB: Ignoring url '"+documentIdentifier+"'"+((contextMessage!=null)?" because "+contextMessage:""),contextException);
+              Logging.connectors.debug("WEB: Ignoring url '"+documentIdentifier+"'"+((fetchStatus.contextMessage!=null)?" because "+fetchStatus.contextMessage:""),fetchStatus.contextException);
             
             // We get here when a document didn't fetch.
             // No version 
@@ -1173,17 +689,17 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             String[] fixedListStrings = new String[2];
             // They're all folded into the same part of the version string.
             int headerCount = 0;
-            Iterator<String> headerIterator = headerData.keySet().iterator();
+            Iterator<String> headerIterator = fetchStatus.headerData.keySet().iterator();
             while (headerIterator.hasNext())
             {
               String headerName = headerIterator.next();
               String lowerHeaderName = headerName.toLowerCase(Locale.ROOT);
               if (!reservedHeaders.contains(lowerHeaderName) && !excludedHeaders.contains(lowerHeaderName))
-                headerCount += headerData.get(headerName).size();
+                headerCount += fetchStatus.headerData.get(headerName).size();
             }
             String[] fullMetadata = new String[headerCount];
             headerCount = 0;
-            headerIterator = headerData.keySet().iterator();
+            headerIterator = fetchStatus.headerData.keySet().iterator();
             while (headerIterator.hasNext())
             {
               String headerName = headerIterator.next();
@@ -1196,7 +712,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   valueSet = new HashSet<String>();
                   metaHash.put(headerName,valueSet);
                 }
-                List<String> headerValues = headerData.get(headerName);
+                List<String> headerValues = fetchStatus.headerData.get(headerName);
                 for (String headerValue : headerValues)
                 {
                   valueSet.add(headerValue);
@@ -1212,13 +728,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               
             packList(sb,fullMetadata,'+');
             // Done with the parseable part!  Add the checksum.
-            sb.append(checkSum);
+            sb.append(fetchStatus.checkSum);
             // Add the filter version
             sb.append("+");
             sb.append(filterVersion);
               
             String versionString = sb.toString();
-              
+
             // Now, extract links.
             // We'll call the "link extractor" series, so we can plug more stuff in over time.
             boolean indexDocument = extractLinks(documentIdentifier,activities,filter);
@@ -1227,125 +743,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
               continue;
             
-            // Consider this document for ingestion.
-            // We can exclude it if it does not seem to be a kind of document that the ingestion system knows
-            // about.
-            String ingestURL;
-            if (indexDocument)
-              ingestURL = isDataIngestable(activities,documentIdentifier,filter);
-            else
-              ingestURL = null;
-
-            if (ingestURL == null)
-            {
-              // In case the indexability of the document changed, we still want to notify the incremental indexer.
-              // We do this by using a null url and a null repository document.  If a document with this identifier was
-              // previously indexed, it will be removed.
-                
-              activities.noDocument(documentIdentifier,versionString);
-                
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("WEB: Decided not to ingest '"+documentIdentifier+"' because it did not match ingestability criteria");
-              continue;
-            }
+            processDocument(activities,documentIdentifier,versionString,indexDocument,metaHash,acls,filter);
+              //continue;
             
-            // Ingest the document
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("WEB: Decided to ingest '"+documentIdentifier+"'");
-
-            RepositoryDocument rd = new RepositoryDocument();
-
-            // Set the file name
-            String fileName = "";
-            try {
-              fileName = documentIdentifiertoFileName(documentIdentifier);
-            } catch (URISyntaxException e1) {
-              fileName = "";
-            }
-            if (fileName.length() > 0){
-              rd.setFileName(fileName);
-            }
-                
-            // Set the content type
-            rd.setMimeType(cache.getContentType(documentIdentifier));
-                
-            // Turn into acls and add into description
-            String[] denyAcls;
-            if (acls == null)
-              denyAcls = null;
-            else
-            {
-              if (acls.length > 0)
-                denyAcls = new String[]{defaultAuthorityDenyToken};
-              else
-                denyAcls = new String[0];
-            }
-            
-            if (acls != null && denyAcls != null)
-              rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls,denyAcls);
-
-            // Grab metadata
-            for (String key : metaHash.keySet())
-            {
-              Set<String> metaList = metaHash.get(key);
-              String[] values = new String[metaList.size()];
-              int k = 0;
-              for (String value : metaList)
-              {
-                values[k++] = value;
-              }
-              rd.addField(key,values);
-            }
-
-            long length = cache.getDataLength(documentIdentifier);
-            InputStream is = cache.getData(documentIdentifier);
-
-            if (is != null)
-            {
-              try
-              {
-                rd.setBinary(is,length);
-                try
-                {
-                  activities.ingestDocumentWithException(documentIdentifier,versionString,ingestURL,rd);
-                }
-                catch (IOException e)
-                {
-                  handleIOException(e,"reading data");
-                }
-              }
-              finally
-              {
-                try
-                {
-                  is.close();
-                }
-                catch (IOException e)
-                {
-                  handleIOException(e,"closing stream");
-                }
-              }
-            }
-            else
-              Logging.connectors.error("WEB: Expected a cached document for '"+documentIdentifier+"', but none present!");
-
-            // MHL
-              
             break;
           case RESULT_RETRY_DOCUMENT:
             // Document could not be processed right now.
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("WEB: Retrying url '"+documentIdentifier+"' later"+((contextMessage!=null)?" because "+contextMessage:""),contextException);
+              Logging.connectors.debug("WEB: Retrying url '"+documentIdentifier+"' later"+((fetchStatus.contextMessage!=null)?" because "+fetchStatus.contextMessage:""),fetchStatus.contextException);
             activities.retryDocumentProcessing(documentIdentifier);
             break;
           default:
-            throw new ManifoldCFException("Unexpected value for result signal: "+Integer.toString(resultSignal));
+            throw new IllegalStateException("Unexpected value for result signal: "+Integer.toString(fetchStatus.resultSignal));
           }
         }
         finally
         {
           // Clean up event, if there is one.
-          if (sessionState == SESSIONSTATE_LOGIN && globalSequenceEvent != null)
+          if (fetchStatus.sessionState == SESSIONSTATE_LOGIN && globalSequenceEvent != null)
           {
             // Terminate the event
             activities.completeEventSequence(globalSequenceEvent);
@@ -1359,6 +774,692 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
+  protected void loginAndFetch(FetchStatus fetchStatus, IProcessActivity activities, String documentIdentifier, SequenceCredentials sessionCredential, String globalSequenceEvent)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    long currentTime = System.currentTimeMillis();
+    // Here's the maximum number of connections we are going to allow.
+    int connectionLimit = 200;
+
+    String currentURI = documentIdentifier;
+
+    // Login pages are special in that I *don't* require them to do a robots check.  The reason why is because it is conceivable that a
+    // site may inadvertantly exclude them via robots, and yet allow content pages to be scanned.  This would effectively exclude session login
+    // for that site if we adhered to the strict policy.  Since login pages have to be exclusively identified as being special, explicit
+    // permission is effectively granted by the user in any case.
+
+    // The result code to be activity logging, or null if no activity logging desired.
+    String activityResultCode = null;
+    // Form data
+    FormData formData = null;
+    
+    while (true)
+    {
+      URL url;
+      try
+      {
+        // Do the mapping from the current host name to the IP address
+        url = new URL(currentURI);
+      }
+      catch (MalformedURLException e)
+      {
+        // currentURI is malformed.
+        // If the document was the primary, we should remove it from the queue.  But if it's part of a login sequence, we'd better just retry later.
+        fetchStatus.contextMessage = "was not a valid URL: "+e.getMessage();
+        fetchStatus.contextException = e;
+        activityResultCode = "-12";
+        fetchStatus.resultSignal = RESULT_NO_DOCUMENT;
+        break;
+      }
+
+      String hostName = url.getHost();
+      StringBuilder ipAddressBuffer = new StringBuilder();
+      int ipAddressStatus = lookupIPAddress(currentURI,activities,hostName,currentTime,ipAddressBuffer);
+      if (ipAddressStatus == RESULTSTATUS_TRUE)
+      {
+        String ipAddress = ipAddressBuffer.toString();
+        String protocol = url.getProtocol();
+        int port = url.getPort();
+        if (port == -1)
+          port = url.getDefaultPort();
+
+        // Try to fetch the document.  We'll need its bin names first.
+        String[] binNames = getBinNames(currentURI);
+
+        // Get the credentials for this document (if any)
+        PageCredentials credential = getPageCredential(currentURI);
+        IKeystoreManager trustStore;
+        // Save effort - only bother to get a trust store if this is https
+        if (protocol.equalsIgnoreCase("https"))
+          // null return is possible here; indicates "trust everything"
+          trustStore = getTrustStore(currentURI);
+        else
+          trustStore = KeystoreManagerFactory.make("");
+        // Check robots, if enabled, and if we're fetching the primary document identifier.  See comment above.
+        int robotsStatus = RESULTSTATUS_TRUE;
+        if (!documentIdentifier.equals(currentURI) || robotsUsage < ROBOTS_DATA || (robotsStatus = checkFetchAllowed(documentIdentifier,protocol,ipAddress,port,credential,trustStore,hostName,binNames,currentTime,
+          url.getFile(),activities,connectionLimit,proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword)) == RESULTSTATUS_TRUE)
+        {
+          // Passed the robots check!
+
+          // Find whatever login parameters apply.  This will be null if currentURI is not a login page, and will contain
+          // interesting information if it is.
+          LoginCookies lc = null;
+          if (sessionCredential != null)
+          {
+            lc = cookieManager.readCookies(sessionCredential.getSequenceKey());
+          }
+
+          // Prepare to perform the fetch, and decide what to do with the document.
+          //
+          IThrottledConnection connection = ThrottledFetcher.getConnection(currentContext,
+            throttleGroupName,
+            protocol,ipAddress,port,
+            credential,trustStore,throttleDescription,binNames,connectionLimit,
+            proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+          try
+          {
+            connection.beginFetch((fetchStatus.sessionState == SESSIONSTATE_LOGIN)?FETCH_LOGIN:FETCH_STANDARD);
+            try
+            {
+              // Execute the fetch!
+              connection.executeFetch(url.getFile(),userAgent,from,connectionTimeoutMilliseconds,
+                socketTimeoutMilliseconds,false,hostName,formData,lc);
+              int response = connection.getResponseCode();
+
+              if (response == 200 || response == 302 || response == 301)
+              {
+                // If this was part of the login sequence, update the cookies regardless of what else happens
+                if (fetchStatus.sessionState == SESSIONSTATE_LOGIN)
+                {
+                  // Update the cookies
+                  LoginCookies lastFetchCookies = connection.getLastFetchCookies();
+                  cookieManager.updateCookies(sessionCredential.getSequenceKey(),lastFetchCookies);
+                }
+
+                // Decide whether to exclude this document based on what we see here.
+                // Basically, we want to get rid of everything that we (a) don't know what
+                // to do with in the ingestion system, and (b) we can't get useful links from.
+
+                String contentType = extractContentType(connection.getResponseHeader("Content-Type"));
+
+                if (isContentInteresting(activities,currentURI,response,contentType))
+                {
+                  // Treat it as real, and cache it.
+                  fetchStatus.checkSum = cache.addData(activities,currentURI,connection);
+                  fetchStatus.headerData = connection.getResponseHeaders();
+                  fetchStatus.resultSignal = RESULT_VERSION_NEEDED;
+                  activityResultCode = null;
+                }
+                else
+                {
+                  fetchStatus.contextMessage = "it had the wrong content type ('"+contentType+"')";
+                  fetchStatus.resultSignal = RESULT_NO_DOCUMENT;
+                  activityResultCode = null;
+                }
+              }
+              else
+              {
+                // We got some kind of http error code.
+                // We don't want to remove it from the queue entirely, because that would cause us to lose track of the item, and therefore lose
+                // control of all scheduling around it.  Instead, we leave it on the queue and give it an empty version string; that will lead it to be
+                // reprocessed without fail on the next scheduled check.
+                // Decode response body to the extent we can
+                String contentType = extractContentType(connection.getResponseHeader("Content-Type"));
+                String encoding = extractEncoding(contentType);
+                if (encoding == null)
+                  encoding = StandardCharsets.UTF_8.name();
+                String decodedResponse = "undecodable";
+                try
+                {
+                  decodedResponse = "'"+connection.getLimitedResponseBody(1024,encoding)+"'";
+                }
+                catch (ManifoldCFException e)
+                {
+                  // Eat this exception unless it is an interrupt
+                  if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                    throw e;
+                  connection.noteInterrupted(e);
+                }
+                catch (ServiceInterruption e)
+                {
+                  // Eat this exception too
+                  connection.noteInterrupted(e);
+                }
+                fetchStatus.contextMessage = "it failed to fetch (status="+Integer.toString(response)+", message="+decodedResponse+")";
+                fetchStatus.resultSignal = RESULT_NO_VERSION;
+                activityResultCode = null;
+              }
+            }
+            catch (ManifoldCFException e)
+            {
+              connection.noteInterrupted(e);
+              throw e;
+            }
+            catch (ServiceInterruption e)
+            {
+              connection.noteInterrupted(e);
+              throw e;
+            }
+            finally
+            {
+              connection.doneFetch(activities);
+            }
+          }
+          finally
+          {
+            connection.close();
+          }
+
+          // State transition logic.  If the result indicates a successful fetch so far, we need to decide where to go next.
+          // This happens AFTER we've released all the connections, because it's conceivable that processing here might be
+          // significant, and we don't want to tie things up unnecessarily.
+          String preferredLink = null;
+          String preferredRedirection = null;
+          formData = null;
+          String contentLink = null;
+          if (fetchStatus.resultSignal == RESULT_VERSION_NEEDED)
+          {
+            // If we get here, we know:
+            // (a) There's a cached version of the page on disk we can read as many times as necessary;
+            // (b) The saved cookies have not been updated yet, so we'll need to do that where appropriate.
+
+            // The way we determine if we're in the login sequence for a site is by TWO criteria:
+            // (1) The URI must match the specified regular expression, and
+            // (2) The data from that URI must contain the specified form or link information.
+            // We use the same criteria to look for the exit from a sequence.  So, in essence, we're *always* going to need to know whether we're
+            // officially in the sequence, or not, so we evaluate it always.
+            boolean isLoginPage = false;
+            if (sessionCredential != null)
+            {
+              Iterator iterMatches = sessionCredential.findLoginParameters(currentURI);
+              boolean seenAnything = false;
+              boolean seenFormError = false;
+              boolean seenLinkError = false;
+              boolean seenRedirectionError = false;
+              boolean seenContentError = false;
+              while (iterMatches.hasNext())
+              {
+                seenAnything = true;
+                LoginParameters lp = (LoginParameters)iterMatches.next();
+                // Note that more than one of the rules may match.
+                // In that case, a clear order of precedence applies between form-style rules and link-style: form has priority.
+                // If more than one of the same kind of rule is seen, then all bets are off, a warning is displayed, and nothing is
+                // matched.
+
+                // Parse the page; it had better match up!  Otherwise we get null back.
+                FormData newFormData = findHTMLForm(currentURI,lp);
+                if (newFormData != null)
+                {
+                  if (formData != null)
+                  {
+                    // Oops, more than one matching form rule.  Complain.
+                    seenFormError = true;
+                    formData = null;
+                  }
+                  else if (!seenFormError)
+                  {
+                    // A form overrides links, redirection, or content
+                    formData = newFormData;
+                    preferredLink = null;
+                    preferredRedirection = null;
+                  }
+                }
+                else
+                {
+                  // Look for the preferred link instead.
+                  String newPreferredLink = findHTMLLinkURI(currentURI,lp);
+                  if (newPreferredLink != null)
+                  {
+                    if (preferredLink != null)
+                    {
+                      // Oops
+                      seenLinkError = true;
+                      preferredLink = null;
+                    }
+                    else if (!seenLinkError && !seenFormError && formData == null)
+                    {
+                      // Link overrides redirection and content
+                      preferredLink = newPreferredLink;
+                      preferredRedirection = null;
+                    }
+                  }
+                  else
+                  {
+                    // Look for the preferred redirection.
+                    String newPreferredRedirection = findPreferredRedirectionURI(currentURI,lp);
+                    if (newPreferredRedirection != null)
+                    {
+                      if (preferredRedirection != null)
+                      {
+                        seenRedirectionError = true;
+                        preferredRedirection = null;
+                      }
+                      else if (!seenRedirectionError && !seenLinkError && !seenFormError && formData == null && preferredLink == null)
+                      {
+                        preferredRedirection = newPreferredRedirection;
+                      }
+                    }
+                    else
+                    {
+                      // Look for the content in the page.  The link returned may be an empty string, if matching content
+                      // is discovered but there is no override.  It will be null of the content is not found.
+                      String newContentLink = findSpecifiedContent(currentURI,lp);
+                      if (newContentLink != null)
+                      {
+                        if (contentLink != null)
+                        {
+                          seenContentError = true;
+                          contentLink = null;
+                        }
+                        else if (!seenContentError && !seenRedirectionError && !seenLinkError && !seenFormError && formData == null && preferredLink == null && preferredRedirection == null)
+                        {
+                          contentLink = newContentLink;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              // Now, evaluate all the data and pick the right rule
+              if (formData != null)
+              {
+                // We found the right form!  And, we filled it in.  So now we enter the "login sequence".
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("WEB: Document '"+currentURI+"' matches form, so determined to be login page for sequence '"+sessionCredential.getSequenceKey()+"'");
+                isLoginPage = true;
+              }
+              else if (preferredLink != null)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("WEB: Document '"+currentURI+"' matches preferred link, so determined to be login page for sequence '"+sessionCredential.getSequenceKey()+"'");
+                isLoginPage = true;
+              }
+              else if (preferredRedirection != null)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("WEB: Document '"+currentURI+"' matches preferred redirection, so determined to be login page for sequence '"+sessionCredential.getSequenceKey()+"'");
+                isLoginPage = true;
+              }
+              else if (contentLink != null)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("WEB: Document '"+currentURI+"' matches content, so determined to be login page for sequence '"+sessionCredential.getSequenceKey()+"'");
+                isLoginPage = true;
+              }
+              else
+              {
+                if (seenAnything && Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("WEB: Document '"+currentURI+"' did not match expected form, link, redirection, or content for sequence '"+sessionCredential.getSequenceKey()+"'");
+              }
+            }
+
+            // Should we do a state transition into the "logging in" state?
+            if (fetchStatus.sessionState == SESSIONSTATE_NORMAL && isLoginPage)
+            {
+              // Entering the login sequence.  Make sure we actually can do this...
+              if (activities.beginEventSequence(globalSequenceEvent))
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("WEB: For document '"+documentIdentifier+"', beginning login sequence '"+sessionCredential.getSequenceKey()+"'");
+
+                activities.recordActivity(null,WebcrawlerConnector.ACTIVITY_LOGON_START,
+                  null,sessionCredential.getSequenceKey(),"OK",null,null);
+
+                // Transition to the right state, etc.
+                fetchStatus.sessionState = SESSIONSTATE_LOGIN;
+              }
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("WEB: For document '"+documentIdentifier+"', login sequence '"+sessionCredential.getSequenceKey()+"' was already in progress.");
+
+                // Didn't make it in.  Retry the main URI when the proper conditions are met.
+                // We don't want the cached data anymore.
+                cache.deleteData(currentURI);
+                fetchStatus.contextMessage = "login sequence already in progress";
+                fetchStatus.resultSignal = RESULT_RETRY_DOCUMENT;
+                activityResultCode = null;
+              }
+            }
+            else if (fetchStatus.sessionState == SESSIONSTATE_LOGIN && isLoginPage == false)
+            {
+              //== Exit login mode ==
+              activities.completeEventSequence(globalSequenceEvent);
+              activities.recordActivity(null,WebcrawlerConnector.ACTIVITY_LOGON_END,
+                null,sessionCredential.getSequenceKey(),"OK",null,null);
+              fetchStatus.sessionState = SESSIONSTATE_NORMAL;
+              // Make sure we go back and try the original document again, if we happened to have been directed somewhere else
+              if (!currentURI.equals(documentIdentifier))
+              {
+                cache.deleteData(currentURI);
+                currentURI = documentIdentifier;
+                continue;
+              }
+              // Otherwise, the last fetch stands on its own.  Fall through, and allow processing and link extraction
+            }
+              
+            // Now, based on the session state and the document contents, decide how to proceed
+            if (fetchStatus.resultSignal == RESULT_VERSION_NEEDED && fetchStatus.sessionState == SESSIONSTATE_LOGIN)
+            {
+              // We are dealing with a login page!
+
+              // We need to (a) figure out what the next URI should be, and (b) record form information that it might need.
+              // This is a bit dicey because there's really
+              // no good way to *guarantee* that we pick the right one, if there's more than one available.
+              // What we do is the following:
+              //
+              // (a) We look for matching forms.  If we found one, we submit it.
+              // (b) Look for redirections.
+              // (c) If there are links that vector within the login sequence, we pick one of those preferentially.
+              // (d) If there are no links that vector within the login sequence, we pick one of the other links.
+              //
+              // Note well that it's probably going to be pretty easy to get this code stuck in an infinite login sequence.
+              // While that won't be a problem performance-wise (because everything is appropriately throttled), it
+              // is obviously not ideal, and furthermore, it will not be possible to crawl a site for which this occurs.
+              //
+              // Longer time (and with higher complexity) we can solve this problem by allowing the user to *specify*
+              // which link they want us to pick for a page.  Hopefully this would not be necessary.
+
+              // Locate the next target URI.
+              String targetURI;
+              if (formData != null)
+                targetURI = formData.getActionURI();
+              else if (preferredLink != null)
+                targetURI = preferredLink;
+              else if (preferredRedirection != null)
+                targetURI = preferredRedirection;
+              else /* if (contentLink != null) */
+                targetURI = contentLink;
+
+              // Definitely we don't want the cached data anymore
+              cache.deleteData(currentURI);
+
+              // If the target URI is null, it means we could not find a suitable link.  If target URI is "",
+              // it means that we found a designated logon page but the description did not include a link we
+              // could chase.  Either way, treat this exactly the same
+              // way as if the link found exited login mode.
+              if (targetURI == null || targetURI.length() == 0)
+              {
+                //== Exiting login mode ==
+                activities.completeEventSequence(globalSequenceEvent);
+                activities.recordActivity(null,WebcrawlerConnector.ACTIVITY_LOGON_END,
+                  null,sessionCredential.getSequenceKey(),"NEXTLINKNOTFOUND","Could not find a usable link to the next page: "+fetchStatus.contextMessage,null);
+                fetchStatus.sessionState = SESSIONSTATE_NORMAL;
+                // Make sure we go back and try the original document again, no matter where we got directed to
+                currentURI = documentIdentifier;
+              }
+              else
+              {
+                currentURI = targetURI;
+              }
+              continue;
+            }
+            else if (fetchStatus.resultSignal != RESULT_VERSION_NEEDED && fetchStatus.sessionState == SESSIONSTATE_LOGIN)
+            {
+              // The next URL we fetched in the logon sequence turned out to be unsuitable.
+              // That means that the logon sequence is fundamentally wrong.  The session thus ends,
+              // and of course it will retry, but that's neither here nor there.
+              //== Exiting login mode ==
+              activities.completeEventSequence(globalSequenceEvent);
+              activities.recordActivity(null,WebcrawlerConnector.ACTIVITY_LOGON_END,
+                null,sessionCredential.getSequenceKey(),"LINKTARGETUNSUITABLE","Page was unsuitable for a login sequence because: "+fetchStatus.contextMessage,null);
+              fetchStatus.sessionState = SESSIONSTATE_NORMAL;
+              // Fall through, leaving everything else alone.
+            }
+          }
+
+        }
+        else if (robotsStatus == RESULTSTATUS_FALSE)
+        {
+          activityResultCode = "-11";
+          fetchStatus.contextMessage = "robots.txt says so";
+          fetchStatus.resultSignal = RESULT_NO_DOCUMENT;
+        }
+        else
+        {
+          // Robots prerequisite in progress
+          activityResultCode = null;
+          fetchStatus.resultSignal = RESULT_RETRY_DOCUMENT;
+          fetchStatus.contextMessage = "robots prerequisite already in progress";
+        }
+      }
+      else if (ipAddressStatus == RESULTSTATUS_FALSE)
+      {
+        activityResultCode = "-10";
+        fetchStatus.contextMessage = "ip address not found";
+        fetchStatus.resultSignal = RESULT_NO_DOCUMENT;
+      }
+      else
+      {
+        // DNS prerequisite in progress
+        activityResultCode = null;
+        fetchStatus.contextMessage = "dns prerequisite already in progress";
+        fetchStatus.resultSignal = RESULT_RETRY_DOCUMENT;
+      }
+      
+      // If we fail on a document that's not the primary, the result should be to retry the primary later.
+      if (!currentURI.equals(documentIdentifier))
+      {
+        activityResultCode = null;
+        if (fetchStatus.contextMessage != null)
+          fetchStatus.contextMessage = "for login sequence url '"+currentURI+"': "+fetchStatus.contextMessage;
+        if (fetchStatus.resultSignal != RESULT_VERSION_NEEDED)
+          fetchStatus.resultSignal = RESULT_RETRY_DOCUMENT;
+      }
+
+      break;
+    }
+
+    // Now, look at the result signal, and set up the version appropriately.
+    if (activityResultCode != null)
+      activities.recordActivity(null,ACTIVITY_FETCH,null,documentIdentifier,activityResultCode,fetchStatus.contextMessage,null);
+    
+  }
+
+  protected boolean processDocument(IProcessActivity activities, String documentIdentifier, String versionString,
+    boolean indexDocument, Map<String,Set<String>> metaHash, String[] acls, DocumentURLFilter filter)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // Consider this document for ingestion.
+    String errorCode = null;
+    String errorDesc = null;
+    Long fileLengthLong = null;
+    long startTime = System.currentTimeMillis();
+    
+    try
+    {
+      // We can exclude it if it does not seem to be a kind of document that the ingestion system knows
+      // about.
+      
+      if (!indexDocument)
+      {
+        errorCode = "CONTENTNOTINDEXABLE";
+        errorDesc = "Content not indexable";
+        activities.noDocument(documentIdentifier,versionString);
+        return true;
+      }
+      
+      int responseCode = cache.getResponseCode(documentIdentifier);
+      if (responseCode != 200)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because response code not indexable: "+responseCode);
+        errorCode = "RESPONSECODENOTINDEXABLE";
+        errorDesc = "HTTP response code not indexable ("+responseCode+")";
+        activities.noDocument(documentIdentifier,versionString);
+        return true;
+      }
+
+      long dataLength = cache.getDataLength(documentIdentifier);
+      if (!activities.checkLengthIndexable(dataLength))
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because pipeline thinks length "+dataLength+" is not acceptable");
+        errorCode = activities.EXCLUDED_LENGTH;
+        errorDesc = "Rejected due to length ("+dataLength+")";
+        activities.noDocument(documentIdentifier,versionString);
+        return true;
+      }
+      
+      if (activities.checkURLIndexable(documentIdentifier) == false)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want URL");
+        errorCode = activities.EXCLUDED_URL;
+        errorDesc = "Rejected due to URL ('"+documentIdentifier+"')";
+        activities.noDocument(documentIdentifier,versionString);
+        return true;
+      }
+
+      String ingestURL = filter.isDocumentIndexable(documentIdentifier);
+      if (ingestURL == null)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because document does not match web job constraints");
+        errorCode = "JOBRESTRICTION";
+        errorDesc = "Rejected because job excludes this URL ('"+documentIdentifier+"')";
+        activities.noDocument(documentIdentifier,versionString);
+        return true;
+      }
+      
+      // Check if it's a recognized content type
+      String contentType = cache.getContentType(documentIdentifier);
+
+      // Some sites have multiple content types.  We just look at the LAST one in that case.
+      if (contentType != null)
+      {
+        String[] contentTypes = contentType.split(",");
+        if (contentTypes.length > 0)
+          contentType = contentTypes[contentTypes.length-1].trim();
+        else
+          contentType = null;
+      }
+
+      if (contentType != null)
+      {
+        int pos = contentType.indexOf(";");
+        if (pos != -1)
+          contentType = contentType.substring(0,pos);
+        contentType = contentType.trim();
+      }
+
+      if (!activities.checkMimeTypeIndexable(contentType))
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want mime type '"+contentType+"'");
+        errorCode = activities.EXCLUDED_MIMETYPE;
+        errorDesc = "Rejected because of mime type ("+contentType+")";
+        activities.noDocument(documentIdentifier,versionString);
+        return true;
+      }
+      
+      // Ingest the document
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("WEB: Decided to ingest '"+documentIdentifier+"'");
+
+      RepositoryDocument rd = new RepositoryDocument();
+
+      // Set the file name
+      String fileName = "";
+      try {
+        fileName = documentIdentifiertoFileName(documentIdentifier);
+      } catch (URISyntaxException e1) {
+        fileName = "";
+      }
+      if (fileName.length() > 0){
+        rd.setFileName(fileName);
+      }
+          
+      // Set the content type
+      String mimeType = cache.getContentType(documentIdentifier);
+      if (mimeType != null)
+        rd.setMimeType(mimeType);
+          
+      // Turn into acls and add into description
+      String[] denyAcls;
+      if (acls == null)
+        denyAcls = null;
+      else
+      {
+        if (acls.length > 0)
+          denyAcls = new String[]{defaultAuthorityDenyToken};
+        else
+          denyAcls = new String[0];
+      }
+      
+      if (acls != null && denyAcls != null)
+        rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls,denyAcls);
+
+      // Grab metadata
+      for (String key : metaHash.keySet())
+      {
+        Set<String> metaList = metaHash.get(key);
+        String[] values = new String[metaList.size()];
+        int k = 0;
+        for (String value : metaList)
+        {
+          values[k++] = value;
+        }
+        rd.addField(key,values);
+      }
+
+      InputStream is = cache.getData(documentIdentifier);
+
+      if (is != null)
+      {
+        try
+        {
+          rd.setBinary(is,dataLength);
+          try
+          {
+            activities.ingestDocumentWithException(documentIdentifier,versionString,ingestURL,rd);
+            errorCode = "OK";
+            fileLengthLong = new Long(dataLength);
+          }
+          catch (IOException e)
+          {
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
+            handleIOException(e,"reading data");
+          }
+        }
+        finally
+        {
+          try
+          {
+            is.close();
+          }
+          catch (IOException e)
+          {
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
+            handleIOException(e,"closing stream");
+          }
+        }
+      }
+      else
+        Logging.connectors.error("WEB: Expected a cached document for '"+documentIdentifier+"', but none present!");
+      
+      return false;
+    }
+    catch (ManifoldCFException e)
+    {
+      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+        errorCode = null;
+      throw e;
+    }
+    finally
+    {
+      if (errorCode != null)
+        activities.recordActivity(new Long(startTime),ACTIVITY_PROCESS,
+          fileLengthLong,documentIdentifier,errorCode,errorDesc,null);
+    }
+
+
+  }
+  
   protected static String extractContentType(String contentType)
   {
     // Some sites have multiple content types.  We just look at the LAST one in that case.
@@ -5727,13 +5828,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     if (contentType == null)
       return false;
 
-    int pos = contentType.indexOf(";");
+    String strippedContentType = contentType;
+    int pos = strippedContentType.indexOf(";");
     if (pos != -1)
-      contentType = contentType.substring(0,pos);
-    contentType = contentType.trim();
+      strippedContentType = strippedContentType.substring(0,pos);
+    strippedContentType = strippedContentType.trim();
 
     // There are presumably mime types we can extract links from that we can't index?
-    if (interestingMimeTypeMap.contains(contentType))
+    if (interestingMimeTypeMap.contains(strippedContentType))
       return true;
     
     boolean rval = activities.checkMimeTypeIndexable(contentType);
@@ -5742,69 +5844,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     return rval;
   }
   
-  /** Code to check if an already-fetched document should be ingested.
-  *@return null if document should not be ingested, or the URL if it should.
-  */
-  protected String isDataIngestable(IFingerprintActivity activities, String documentIdentifier, DocumentURLFilter filter)
-    throws ServiceInterruption, ManifoldCFException
-  {
-    if (cache.getResponseCode(documentIdentifier) != 200)
-      return null;
-
-    if (activities.checkLengthIndexable(cache.getDataLength(documentIdentifier)) == false)
-    {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector thinks length "+cache.getDataLength(documentIdentifier)+" is too long");
-      return null;
-    }
-    
-    if (activities.checkURLIndexable(documentIdentifier) == false)
-    {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want URL");
-      return null;
-    }
-
-    String ingestURL = filter.isDocumentIndexable(documentIdentifier);
-    if (ingestURL == null)
-    {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because document does not match web job constraints");
-      return null;
-    }
-    
-    // Check if it's a recognized content type
-    String contentType = cache.getContentType(documentIdentifier);
-
-    // Some sites have multiple content types.  We just look at the LAST one in that case.
-    if (contentType != null)
-    {
-      String[] contentTypes = contentType.split(",");
-      if (contentTypes.length > 0)
-        contentType = contentTypes[contentTypes.length-1].trim();
-      else
-        contentType = null;
-    }
-
-    if (contentType == null)
-      return null;
-
-    int pos = contentType.indexOf(";");
-    if (pos != -1)
-      contentType = contentType.substring(0,pos);
-    contentType = contentType.trim();
-
-    boolean rval = activities.checkMimeTypeIndexable(contentType);
-    if (rval == false)
-    {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want mime type '"+contentType+"'");
-      return null;
-    }
-    
-    return ingestURL;
-  }
-
   /** Convert a document identifier to filename.
    * @param documentIdentifier
    * @return
@@ -8039,6 +8078,21 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   }
 
+  protected static class FetchStatus
+  {
+    public int sessionState = SESSIONSTATE_NORMAL;
+    public int resultSignal = RESULT_NO_DOCUMENT;
+    // The result context message, which will be used for logging and activity logging if enabled.
+    public String contextMessage = null;
+    // The result context exception, which will be used for logging if needed.
+    public Throwable contextException = null;
+    // The checksum, which will be needed if resultSignal is RESULT_VERSION_NEEDED.
+    public String checkSum = null;
+    // The headers, which will be needed if resultSignal is RESULT_VERSION_NEEDED.
+    public Map<String,List<String>> headerData = null;
+
+  }
+  
 }
 
 
