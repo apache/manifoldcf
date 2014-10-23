@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1079: Fix Tika extractor; tika core must be in connector-lib
+as well as in root jars.
+(Mingchun Zhao, Karl Wright)
+
 CONNECTORS-1078: Improve end-user documentation for the JDBC
 connection type.
 (Jens Jahnke, Karl Wright)
