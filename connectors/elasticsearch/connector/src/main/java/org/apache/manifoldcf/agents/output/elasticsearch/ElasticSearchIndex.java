@@ -144,7 +144,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           String fileName = document.getFileName();
           if (fileName != null)
             pw.print("\"_name\" : "+jsonStringEscape(fileName)+",");
-          pw.print(" \"content\" : \"");
+          // Since ES 1.0
+          pw.print(" \"_content\" : \"");
           Base64 base64 = new Base64();
           base64.encodeStream(inputStream, pw);
           pw.print("\"}");

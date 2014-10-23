@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1080: Elastic search: go from "content" field to "_content".
+(Jens Jahnke)
+
 CONNECTORS-1079: Fix Tika extractor; tika core must be in connector-lib
 as well as in root jars.
 (Mingchun Zhao, Karl Wright)
