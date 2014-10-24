@@ -295,6 +295,74 @@
           <p><strong>If the proper version of the plugin is not deployed and properly integrated, documents will not be properly secured.</strong>  Thus, it is essential to verify that the
               proper plugin version has been deployed for the version of ManifoldCF you are using.</p>
 
+          <p>To work with ManifoldCF, your ElasticSearch instance must also include the appropriate indexes created as well.
+              Here are some simple steps for creating an ElasticSearch index, using the CURL utility:</p>
+          <p></p>
+          <source>
+% curl -XPUT 'http://localhost:9200/manifoldcf'
+% curl -XPUT 'http://localhost:9200/manifoldcf/attachment/_mapping' -d '
+{
+  "attachment" : {
+    "_source" : {
+      "excludes" : [ "file" ]
+    },
+    "properties": { 
+      "allow_token_document" : { 
+        "type" : "string" 
+      },
+      "allow_token_parent" : { 
+        "type" : "string" 
+      },
+      "allow_token_share" : { 
+        "type" : "string" 
+      },
+      "attributes" : {
+        "type" : "string"
+      },
+      "createdOn" : {
+        "type" : "string"
+      },
+      "deny_token_document" : {
+        "type" : "string"
+      },
+      "deny_token_parent" : {
+        "type" : "string"
+      },
+      "deny_token_share" : {
+        "type" : "string"
+      },
+      "lastModified" : {
+        "type" : "string"
+      },
+      "shareName" : {
+        "type" : "string"
+      },
+      "file" : {
+        "type" : "attachment",
+        "path" : "full",
+        "fields" : {
+          "file" : {
+            "store" : true,
+            "term_vector" : "with_positions_offsets",
+            "type" : "string"
+          }
+        }
+      }
+    }
+  }
+}'
+          </source>
+          <p>This command creates an index called <code>manifoldcf</code> with a mapping named <code>attachment</code>
+                which has some generic fields for access tokens and a field <code>file</code> which makes use of the
+                ElasticSearch attachment mapper plugin. It is configured for highlighting (<code>"term_vector" : "with_positions_offsets"</code>).</p>
+          <p>The following part is useful for not saving the source json on the index which reduces the index size significantly. Be
+                aware that you shouldn't do this if you will need to re-index data on the ElasticSearch side or you need access to the
+                whole document:</p>
+          <source>
+"_source" : {
+  "excludes" : [ "file" ]
+},
+          </source>
         </section>
 
       </section>
