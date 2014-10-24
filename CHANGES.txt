@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1083: Add support for MariaDB.
+(Markus Schuch)
+
 CONNECTORS-1060: Implement Alfresco webscript connector integration
 test.
 (Maurizio Pillitu)
