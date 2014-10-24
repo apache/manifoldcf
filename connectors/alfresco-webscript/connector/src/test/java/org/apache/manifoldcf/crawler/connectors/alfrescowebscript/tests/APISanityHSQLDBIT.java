@@ -276,14 +276,14 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
 
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString, 12000L);
+      waitJobInactive(jobIDString, 120000L);
 
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       long count;
       count = getJobDocumentsProcessed(jobIDString);
 
-      if (count != 67)
+      if (count != 66)
         throw new ManifoldCFException("Wrong number of documents processed - expected 67, got "+new Long(count).toString());
     }
     catch (Exception e)

@@ -46,6 +46,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <alfresco.indexer.version>0.6.5</alfresco.indexer.version>
     </properties>
 
     <repositories>
@@ -164,7 +165,7 @@
                                 <artifactItem>
                                     <artifactId>alfresco-indexer-webscripts-war</artifactId>
                                     <groupId>org.alfresco.consulting.indexer</groupId>
-                                    <version>0.6.4</version>
+                                    <version>${alfresco.indexer.version}</version>
                                     <type>war</type>
                                     <overWrite>false</overWrite>
                                     <destFileName>alfresco.war</destFileName>
@@ -216,7 +217,7 @@
         <dependency>
             <groupId>org.alfresco.consulting.indexer</groupId>
             <artifactId>alfresco-indexer-client</artifactId>
-            <version>0.6.4</version>
+            <version>${alfresco.indexer.version}</version>
         </dependency>
 
         <dependency>
