@@ -165,7 +165,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       //password
       ConfigurationNode alfrescoPasswordNode = new ConfigurationNode("_PARAMETER_");
       alfrescoPasswordNode.setAttribute("name", ALFRESCO_PASSWORD_PARAM);
-      alfrescoPasswordNode.setValue(ALFRESCO_PASSWORD);
+      alfrescoPasswordNode.setValue(ManifoldCF.obfuscate(ALFRESCO_PASSWORD));
       child.addChild(child.getChildCount(), alfrescoPasswordNode);
 
       connectionObject.addChild(connectionObject.getChildCount(),child);
