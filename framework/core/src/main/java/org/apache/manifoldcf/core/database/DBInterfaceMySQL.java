@@ -19,7 +19,6 @@
 package org.apache.manifoldcf.core.database;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.system.Logging;
 import java.util.*;
 
@@ -62,6 +61,12 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
+    this(tc,_driver,databaseName,userName,password);
+  }
+
+  protected DBInterfaceMySQL(IThreadContext tc, String jdbcDriverClass, String databaseName, String userName, String password)
+    throws ManifoldCFException
+  {
     super(tc,getJdbcUrl(tc,databaseName),_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
     lockManager = LockManagerFactory.make(tc);
@@ -74,6 +79,11 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     if (server == null || server.length() == 0)
       server = "localhost";
     return "jdbc:mysql://"+server+"/"+theDatabaseName+"?useUnicode=true&characterEncoding=utf8";
+  }
+
+  protected String getJdbcDriverClass()
+  {
+	return _driver;
   }
 
   /** Reinterpret an exception tossed by the database layer.  We need to disambiguate the various kinds of exception that
@@ -622,7 +632,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
 
     // Connect to super database
 
-    Database masterDatabase = new DBInterfaceMySQL(context,"mysql",adminUserName,adminPassword);
+    Database masterDatabase = new DBInterfaceMySQL(context,getJdbcDriverClass(),"mysql",adminUserName,adminPassword);
     try
     {
       List list = new ArrayList();
@@ -667,7 +677,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     // Connect to super database
-    Database masterDatabase = new DBInterfaceMySQL(context,"mysql",adminUserName,adminPassword);
+    Database masterDatabase = new DBInterfaceMySQL(context,getJdbcDriverClass(),"mysql",adminUserName,adminPassword);
     try
     {
       masterDatabase.executeQuery("DROP DATABASE "+databaseName,null,null,invalidateKeys,null,false,0,null,null);

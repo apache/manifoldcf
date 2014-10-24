@@ -87,6 +87,7 @@
             <include name="mysql*.jar"/>
             <include name="ojdbc*.jar"/>
             <include name="jtds*.jar"/>
+            <include name="mariadb-java-client*.jar"/>
         </fileset>
 
     </path>
@@ -429,6 +430,7 @@
                 <include name="mysql*.jar"/>
                 <include name="ojdbc*.jar"/>
                 <include name="jtds*.jar"/>
+                <include name="mariadb-java-client*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
@@ -543,6 +545,7 @@
                 <include name="mysql*.jar"/>
                 <include name="ojdbc*.jar"/>
                 <include name="jtds*.jar"/>
+                <include name="mariadb-java-client*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
@@ -668,6 +671,7 @@
                 <include name="mysql*.jar"/>
                 <include name="ojdbc*.jar"/>
                 <include name="jtds*.jar"/>
+                <include name="mariadb-java-client*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui-proprietary/WEB-INF/lib">
@@ -803,6 +807,7 @@
                 <include name="mysql*.jar"/>
                 <include name="ojdbc*.jar"/>
                 <include name="jtds*.jar"/>
+                <include name="mariadb-java-client*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/combined-service-proprietary/WEB-INF/lib">
@@ -959,6 +964,7 @@
                 <include name="mysql*.jar"/>
                 <include name="ojdbc*.jar"/>
                 <include name="jtds*.jar"/>
+                <include name="mariadb-java-client*.jar"/>
             </fileset>
         </copy>
     </target>
@@ -1191,6 +1197,7 @@
             <include name="mysql-connector-java*.jar"/>
             <include name="ojdbc*.jar"/>
             <include name="jtds*.jar"/>
+            <include name="mariadb-java-client*.jar"/>
         </fileset>
     </path>
     
