@@ -1978,6 +1978,16 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </copy>
     </target>
     
+    <target name="download-mariadb">
+        <antcall target="download-via-maven">
+            <param name="target" value="lib-proprietary"/>
+            <param name="project-path" value="org/mariadb/jdbc"/>
+            <param name="artifact-version" value="1.1.7"/>
+            <param name="artifact-name" value="mariadb-java-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
     <target name="download-mysql">
         <antcall target="download-via-maven">
             <param name="target" value="lib-proprietary"/>
@@ -1998,7 +2008,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-    <target name="download-proprietary-dependencies" depends="download-mysql,download-jtds"/>
+    <target name="download-proprietary-dependencies" depends="download-mariadb,download-mysql,download-jtds"/>
     
     <target name="make-deps" depends="download-proprietary-dependencies,download-connectors-dependencies">
         <ant dir="site" target="download-dependencies"/>
