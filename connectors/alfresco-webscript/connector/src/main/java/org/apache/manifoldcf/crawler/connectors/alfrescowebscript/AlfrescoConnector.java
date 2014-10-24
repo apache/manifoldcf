@@ -78,7 +78,20 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
     String storeProtocol = getConfig(config, "storeprotocol", "workspace");
     String storeId = getConfig(config, "storeid", "SpacesStore");
     String username = getConfig(config, "username", null);
-    String password = getObfuscatedConfig(config, "password", null);
+    //@TODO - not working from APISnityHSQLDBIT
+    //String password = getObfuscatedConfig(config, "password", null);
+    String password = getConfig(config, "password", null);
+
+    System.out.println("============");
+    System.out.println(protocol);
+    System.out.println(hostname);
+    System.out.println(port);
+    System.out.println(endpoint);
+    System.out.println(storeProtocol);
+    System.out.println(storeId);
+    System.out.println(username);
+    System.out.println(password);
+    System.out.println("============");
 
     alfrescoClient = new WebScriptsAlfrescoClient(protocol, hostname + ":" + port, endpoint,
         storeProtocol, storeId, username, password);
@@ -170,6 +183,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         }
         if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
           Logging.connectors.debug(MessageFormat.format("Fetched and added {0} seed documents", new Object[]{new Integer(count)}));
+
+        System.out.println(MessageFormat.format("!!! Fetched and added {0} seed documents", new Object[]{new Integer(count)}));
 
         transactionIdsProcessed = response.getLastTransactionId() - lastTransactionId;
         aclChangesetsProcessed = response.getLastAclChangesetId() - lastAclChangesetId;
