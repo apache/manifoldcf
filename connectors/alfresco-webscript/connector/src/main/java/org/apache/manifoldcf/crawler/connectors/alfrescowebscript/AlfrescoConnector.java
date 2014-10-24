@@ -78,9 +78,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
     String storeProtocol = getConfig(config, "storeprotocol", "workspace");
     String storeId = getConfig(config, "storeid", "SpacesStore");
     String username = getConfig(config, "username", null);
-    //@TODO - not working from APISnityHSQLDBIT
-    //String password = getObfuscatedConfig(config, "password", null);
-    String password = getConfig(config, "password", null);
+    String password = getObfuscatedConfig(config, "password", null);
 
     System.out.println("============");
     System.out.println(protocol);
