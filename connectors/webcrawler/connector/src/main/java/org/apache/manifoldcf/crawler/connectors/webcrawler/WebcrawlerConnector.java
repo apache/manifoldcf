@@ -777,8 +777,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               continue;
             
             processDocument(activities,documentIdentifier,versionString,indexDocument,metaHash,metaHash2,acls,filter);
-              //continue;
-            
             break;
           case RESULT_RETRY_DOCUMENT:
             // Document could not be processed right now.
@@ -1291,7 +1289,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     
   }
 
-  protected boolean processDocument(IProcessActivity activities, String documentIdentifier, String versionString,
+  protected void processDocument(IProcessActivity activities, String documentIdentifier, String versionString,
     boolean indexDocument, Map<String,Set<String>> metaHash, Map<String,Set<String>> metaHash2, String[] acls, DocumentURLFilter filter)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -1311,7 +1309,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         errorCode = "CONTENTNOTINDEXABLE";
         errorDesc = "Content not indexable";
         activities.noDocument(documentIdentifier,versionString);
-        return true;
+        return;
       }
       
       int responseCode = cache.getResponseCode(documentIdentifier);
@@ -1322,7 +1320,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         errorCode = "RESPONSECODENOTINDEXABLE";
         errorDesc = "HTTP response code not indexable ("+responseCode+")";
         activities.noDocument(documentIdentifier,versionString);
-        return true;
+        return;
       }
 
       long dataLength = cache.getDataLength(documentIdentifier);
@@ -1333,7 +1331,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         errorCode = activities.EXCLUDED_LENGTH;
         errorDesc = "Rejected due to length ("+dataLength+")";
         activities.noDocument(documentIdentifier,versionString);
-        return true;
+        return;
       }
       
       if (activities.checkURLIndexable(documentIdentifier) == false)
@@ -1343,7 +1341,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         errorCode = activities.EXCLUDED_URL;
         errorDesc = "Rejected due to URL ('"+documentIdentifier+"')";
         activities.noDocument(documentIdentifier,versionString);
-        return true;
+        return;
       }
 
       String ingestURL = filter.isDocumentIndexable(documentIdentifier);
@@ -1354,7 +1352,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         errorCode = "JOBRESTRICTION";
         errorDesc = "Rejected because job excludes this URL ('"+documentIdentifier+"')";
         activities.noDocument(documentIdentifier,versionString);
-        return true;
+        return;
       }
       
       // Check if it's a recognized content type
@@ -1385,7 +1383,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         errorCode = activities.EXCLUDED_MIMETYPE;
         errorDesc = "Rejected because of mime type ("+contentType+")";
         activities.noDocument(documentIdentifier,versionString);
-        return true;
+        return;
       }
       
       // Ingest the document
@@ -1488,7 +1486,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       else
         Logging.connectors.error("WEB: Expected a cached document for '"+documentIdentifier+"', but none present!");
       
-      return false;
     }
     catch (ManifoldCFException e)
     {
