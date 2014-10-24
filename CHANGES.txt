@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1060: Implement Alfresco webscript connector integration
+test.
+(Maurizio Pillitu)
+
 CONNECTORS-1081: ElasticSearch documentation update.
 (Jens Jahnke)
 
