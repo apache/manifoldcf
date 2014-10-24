@@ -1,4 +1,4 @@
-/* $Id: DBInterfaceMySQL.java 999670 2010-09-21 22:18:19Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
