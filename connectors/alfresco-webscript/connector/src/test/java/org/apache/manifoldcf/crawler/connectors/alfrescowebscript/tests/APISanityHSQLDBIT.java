@@ -276,7 +276,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
 
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString, 360000L);
+      waitJobInactive(jobIDString, 12000L);
 
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
@@ -331,12 +331,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
     while (i < result.getChildCount()) {
       ConfigurationNode resultNode = result.findChild(i++);
 
-      System.out.println("!!! value: " + resultNode.getValue());
-      while (resultNode.getAttributes().hasNext()) {
-        String str = resultNode.getAttributes().next();
-        System.out.println("!!! attr: " + str);
-      }
-
       if (resultNode.getType().equals("error")) {
         throw new Exception(resultNode.getValue());
       } else if (resultNode.getType().equals("jobstatus"))
@@ -345,8 +339,12 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
         while (j < resultNode.getChildCount())
         {
           ConfigurationNode childNode = resultNode.findChild(j++);
-          if (childNode.getType().equals("status"))
+          if (childNode.getType().equals("status")) {
             status = childNode.getValue();
+            System.out.println("Type: "+resultNode.getType());
+            System.out.println("Status: "+status);
+          }
+
         }
       }
     }
