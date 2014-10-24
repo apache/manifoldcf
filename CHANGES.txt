@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1081: ElasticSearch documentation update.
+(Jens Jahnke)
+
 CONNECTORS-1080: Elastic search: go from "content" field to "_content".
 (Jens Jahnke)
 
