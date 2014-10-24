@@ -182,6 +182,12 @@
       <version>${mysql.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+      <version>${mariadb.version}</version>
+      <scope>runtime</scope>
+    </dependency>
 
     <!-- jdbc connector databases -->
     <dependency>
