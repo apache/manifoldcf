@@ -164,9 +164,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     {
       long currentTime;
       GetSessionThread t = new GetSessionThread();
+      t.start();
       try
       {
-        t.start();
         t.finishUp();
       }
       catch (InterruptedException e)
@@ -290,9 +290,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       boolean noSession = (session==null);
       getSession();
       GetListOfValuesThread t = new GetListOfValuesThread(strDQL,"attr_name");
+      t.start();
       try
       {
-        t.start();
         return t.finishUp();
       }
       catch (InterruptedException e)
@@ -369,9 +369,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       boolean noSession = (session==null);
       getSession();
       CheckConnectionThread t = new CheckConnectionThread();
+      t.start();
       try
       {
-        t.start();
         t.finishUp();
         return;
       }
@@ -453,9 +453,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       boolean noSession = (session==null);
       getSession();
       BuildDateStringThread t = new BuildDateStringThread(timevalue);
+      t.start();
       try
       {
-        t.start();
         return t.finishUp();
       }
       catch (InterruptedException e)
@@ -535,9 +535,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     if (currentTime >= lastSessionFetch + timeToRelease)
     {
       DestroySessionThread t = new DestroySessionThread();
+      t.start();
       try
       {
-        t.start();
         t.finishUp();
         session = null;
         lastSessionFetch = -1L;
@@ -681,9 +681,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     if (session != null)
     {
       DestroySessionThread t = new DestroySessionThread();
+      t.start();
       try
       {
-        t.start();
         t.finishUp();
         session = null;
         lastSessionFetch = -1L;
@@ -1166,10 +1166,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         {
           boolean noSession = (session==null);
           getSession();
-          StringQueue stringQueue = new StringQueue();
-          GetDocumentsFromQueryThread t = new GetDocumentsFromQueryThread(strDQL,stringQueue);
           try
           {
+            StringQueue stringQueue = new StringQueue();
+            GetDocumentsFromQueryThread t = new GetDocumentsFromQueryThread(strDQL,stringQueue);
             t.start();
             try
             {
@@ -1217,24 +1217,24 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               t.join();
               throw e;
             }
-            catch (RemoteException e)
-            {
-              Throwable e2 = e.getCause();
-              if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-                throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
-              if (noSession)
-              {
-                long currentTime = System.currentTimeMillis();
-                throw new ServiceInterruption("Transient error connecting to documentum service: "+e.getMessage(),currentTime + 60000L);
-              }
-              session = null;
-              lastSessionFetch = -1L;
-              // Go back around again
-            }
           }
           catch (InterruptedException e)
           {
             throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RemoteException e)
+          {
+            Throwable e2 = e.getCause();
+            if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
+              throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
+            if (noSession)
+            {
+              long currentTime = System.currentTimeMillis();
+              throw new ServiceInterruption("Transient error connecting to documentum service: "+e.getMessage(),currentTime + 60000L);
+            }
+            session = null;
+            lastSessionFetch = -1L;
+            // Go back around again
           }
         }
       }
@@ -1402,7 +1402,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           catch (DocumentumException dfe)
           {
             // Fetch failed, so log it
-            activityStatus = "Did not exist";
+            activityStatus = "NOCONTENT";
             activityMessage = dfe.getMessage();
             if (dfe.getType() != DocumentumException.TYPE_NOTALLOWED)
               throw dfe;
@@ -1413,13 +1413,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
           if (strFilePath == null)
           {
-            activityStatus = "Failed";
-            activityMessage = "Unknown";
+            activityStatus = "CONTENTDIDNOTFETCH";
+            activityMessage = "Content could not be fetched";
             // We don't know why it won't fetch, but skip it and keep going.
             return;
           }
 
-          activityStatus = "Success";
+          activityStatus = "OK";
 
           rval = new RepositoryDocument();
 
@@ -1648,109 +1648,153 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         {
           boolean noSession = (session==null);
           getSession();
-          ProcessDocumentThread t = new ProcessDocumentThread(documentIdentifier, sDesc);
-          // Start the thread
-          t.start();
+          
+          String errorCode = null;
+          String errorDesc = null;
+          Long fileLengthLong = null;
+          Long startTime = null;
+          
           try
           {
-            // Wait for version string
-            String versionString = t.getVersionString();
 
-            if (Logging.connectors.isDebugEnabled())
+            ProcessDocumentThread t = new ProcessDocumentThread(documentIdentifier, sDesc);
+            // Start the thread
+            t.start();
+            try
             {
-              if (versionString != null)
+              // Wait for version string
+              String versionString = t.getVersionString();
+
+              if (Logging.connectors.isDebugEnabled())
               {
-                Logging.connectors.debug("DCTM: Document " + documentIdentifier+" has version label: " + versionString);
+                if (versionString != null)
+                {
+                  Logging.connectors.debug("DCTM: Document " + documentIdentifier+" has version label: " + versionString);
+                }
+                else
+                {
+                  Logging.connectors.debug("DCTM: Document " + documentIdentifier+" has been removed or is hidden");
+                }
               }
-              else
+              
+              if (versionString == null)
               {
-                Logging.connectors.debug("DCTM: Document " + documentIdentifier+" has been removed or is hidden");
+                t.finishWithoutFetch();
+                activities.deleteDocument(documentIdentifier);
+                break;
               }
-            }
-            
-            if (versionString == null)
-            {
-              t.finishWithoutFetch();
-              activities.deleteDocument(documentIdentifier);
-            }
-            else
-            {
+              
               // Start the fetch part
-              // Create a temporary file for every attempt, because we don't know yet whether we'll need it or not -
-              // but probably we will.
-              File objFileTemp = File.createTempFile("_mc_dctm_", null);
               try
               {
-                t.startFetch(objFileTemp);
-                RepositoryDocument rd = t.finishUp();
-                if (rd != null)
+                // Create a temporary file for every attempt, because we don't know yet whether we'll need it or not -
+                // but probably we will.
+                File objFileTemp = File.createTempFile("_mc_dctm_", null);
+                try
                 {
-                  long fileLength = t.getContentSize().longValue();
-                  String contentType = t.getContentType();
-                  if (activities.checkLengthIndexable(fileLength) && activities.checkMimeTypeIndexable(contentType))
+                  t.startFetch(objFileTemp);
+                  RepositoryDocument rd = t.finishUp();
+                  
+                  if (rd == null)
                   {
-                    // Log the fetch activity
-                    if (t.getActivityStatus() != null)
-                      activities.recordActivity(t.getActivityStartTime(),ACTIVITY_FETCH,
-                      t.getActivityFileLength(),documentIdentifier,t.getActivityStatus(),t.getActivityMessage(),
-                      null);
-
-                    // Stream the data to the ingestion system
-                    InputStream is = new FileInputStream(objFileTemp);
-                    try
-                    {
-                      rd.setBinary(is, fileLength);
-                      // Do the ingestion
-                      activities.ingestDocumentWithException(documentIdentifier,versionString,
-                        t.getURI(), rd);
-                    }
-                    finally
-                    {
-                      is.close();
-                    }
+                    errorCode = t.getActivityStatus();
+                    errorDesc = t.getActivityMessage();
+                    activities.noDocument(documentIdentifier,versionString);
+                    break;
                   }
-                  else
+                    
+                  long fileLength = t.getContentSize().longValue();
+                  if (!activities.checkLengthIndexable(fileLength))
                   {
-                    rd = null;
-                    // Log the fetch activity
-                    if (t.getActivityStatus() != null)
-                      activities.recordActivity(t.getActivityStartTime(),ACTIVITY_FETCH,
-                      t.getActivityFileLength(),documentIdentifier,"REJECTED",null,
-                      null);
+                    errorCode = activities.EXCLUDED_LENGTH;
+                    errorDesc = "Excluded due to content length ("+fileLength+")";
+                    activities.noDocument(documentIdentifier,versionString);
+                    break;
+                  }
+                  
+                  String contentType = t.getContentType();
+                  if (!activities.checkMimeTypeIndexable(contentType))
+                  {
+                    errorCode = activities.EXCLUDED_MIMETYPE;
+                    errorDesc = "Excluded due to mime type ("+contentType+")";
+                    activities.noDocument(documentIdentifier,versionString);
+                    break;
+                  }
+
+                  // Stream the data to the ingestion system
+                  InputStream is = new FileInputStream(objFileTemp);
+                  try
+                  {
+                    rd.setBinary(is, fileLength);
+                    // Do the ingestion
+                    activities.ingestDocumentWithException(documentIdentifier,versionString,
+                      t.getURI(), rd);
+                    errorCode = t.getActivityStatus();
+                    errorDesc = t.getActivityMessage();
+                    fileLengthLong = t.getActivityFileLength();
+                    startTime = t.getActivityStartTime();
+                    break;
+                  }
+                  finally
+                  {
+                    is.close();
                   }
                 }
-                
-                if (rd == null)
-                  activities.noDocument(documentIdentifier,versionString);
+                finally
+                {
+                  objFileTemp.delete();
+                }
               }
-              finally
+              catch (java.io.IOException e)
               {
-                objFileTemp.delete();
+                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                errorDesc = e.getMessage();
+                handleIOException(e);
               }
+
+              // Leave the retry loop; go on to the next document
+              break;
+            }
+            catch (InterruptedException e)
+            {
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            }
+            catch (RemoteException e)
+            {
+              Throwable e2 = e.getCause();
+              if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
+                throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
+              if (noSession)
+              {
+                currentTime = System.currentTimeMillis();
+                throw new ServiceInterruption("Transient error connecting to documentum service: "+e.getMessage(),currentTime + 60000L);
+              }
+              session = null;
+              lastSessionFetch = -1L;
+              // Go back around again
             }
             
-            // Leave the retry loop; go on to the next document
-            break;
           }
-          catch (InterruptedException e)
+          catch (DocumentumException e)
           {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
+            throw e;
           }
-          catch (RemoteException e)
+          catch (ManifoldCFException e)
           {
-            Throwable e2 = e.getCause();
-            if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-              throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
-            if (noSession)
-            {
-              currentTime = System.currentTimeMillis();
-              throw new ServiceInterruption("Transient error connecting to documentum service: "+e.getMessage(),currentTime + 60000L);
-            }
-            session = null;
-            lastSessionFetch = -1L;
-            // Go back around again
+            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+              errorCode = null;
+            throw e;
           }
+          finally
+          {
+            if (errorCode != null)
+              activities.recordActivity(startTime,ACTIVITY_FETCH,
+                fileLengthLong,documentIdentifier,errorCode,errorDesc,null);
+          }
+                
         }
       }
     }
@@ -1765,16 +1809,18 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
       throw new ManifoldCFException(e.getMessage(),e);
     }
-    catch (java.io.InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted IO: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
-    catch (java.io.IOException e)
-    {
-      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
-    }
   }
 
+  protected static void handleIOException(IOException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (e instanceof java.net.SocketTimeoutException)
+      throw new ManifoldCFException(e.getMessage(),e);
+    else if (e instanceof InterruptedIOException)
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    throw new ManifoldCFException(e.getMessage(),e);
+  }
+  
   @Override
   public int getMaxDocumentRequest()
   {
