@@ -53,6 +53,7 @@ import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
+import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
@@ -70,6 +71,7 @@ import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.BinaryInput;
 import org.apache.manifoldcf.core.interfaces.TempFileInput;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
+import org.apache.manifoldcf.core.common.DateParser;
 import org.apache.manifoldcf.agents.system.ManifoldCF;
 import org.apache.manifoldcf.agents.system.Logging;
 
@@ -112,6 +114,9 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   
   /** cloudsearch field name for file body text. */
   private static final String FILE_BODY_TEXT_FIELDNAME = "f_bodytext";
+  
+  /** Field name we use for document's URI. */
+  private static final String DOCUMENT_URI_FIELDNAME = "document_URI";
   
   /** Constructor.
    */
@@ -305,6 +310,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   private final static Set<String> acceptableMimeTypes = new HashSet<String>();
   static
   {
+    // We presume input can be decoded using UTF-8, so we can accept only UTF-8 and others for which this also applies
     acceptableMimeTypes.add("text/plain;charset=utf-8");
     acceptableMimeTypes.add("text/plain;charset=ascii");
     acceptableMimeTypes.add("text/plain;charset=us-ascii");
@@ -321,6 +327,8 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    if (mimeType == null)
+      return false;
     return acceptableMimeTypes.contains(mimeType.toLowerCase(Locale.ROOT));
   }
 
@@ -374,7 +382,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       {
         for (int i = 0; i < elements.length; i++)
         {
-          elements[i] = new JSONStringReader(((Date)fieldValues[i]).toString());
+          elements[i] = new JSONStringReader(DateParser.formatISO8601Date((Date)fieldValues[i]));
         }
       }
       else if (fieldValues instanceof String[])
@@ -390,12 +398,16 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
       fieldReader.addNameValuePair(new JSONNameValueReader(new JSONStringReader(fieldName),new JSONArrayReader(elements)));
     }
     
+    // Add in the original URI
+    fieldReader.addNameValuePair(new JSONNameValueReader(new JSONStringReader(DOCUMENT_URI_FIELDNAME),
+      new JSONStringReader(documentURI)));
+
     // Add the primary content data in.
     fieldReader.addNameValuePair(new JSONNameValueReader(new JSONStringReader(FILE_BODY_TEXT_FIELDNAME),
       new JSONStringReader(new InputStreamReader(document.getBinaryStream(),Consts.UTF_8))));
     
-    documentChunkManager.recordDocument(uid, serverHost, serverPath, new ReaderInputStream(objectReader, Consts.UTF_8));
-    conditionallyFlushDocuments();
+    documentChunkManager.recordDocument(uid, serverHost, serverPath, documentURI, INGEST_ACTIVITY, new Long(document.getBinaryLength()), new ReaderInputStream(objectReader, Consts.UTF_8));
+    conditionallyFlushDocuments(activities);
     return DOCUMENTSTATUS_ACCEPTED;
   }
   
@@ -423,32 +435,32 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
 
     try
     {
-      documentChunkManager.recordDocument(uid, serverHost, serverPath, new ReaderInputStream(objectReader, Consts.UTF_8));
+      documentChunkManager.recordDocument(uid, serverHost, serverPath, documentURI, REMOVE_ACTIVITY, null, new ReaderInputStream(objectReader, Consts.UTF_8));
     }
     catch (IOException e)
     {
       handleIOException(e);
     }
-    conditionallyFlushDocuments();
+    conditionallyFlushDocuments(activities);
   }
   
   @Override
   public void noteJobComplete(IOutputNotifyActivity activities)
       throws ManifoldCFException, ServiceInterruption {
     getSession();
-    flushDocuments();
+    flushDocuments(activities);
   }
   
   protected static final int CHUNK_SIZE = 1000;
 
-  protected void conditionallyFlushDocuments()
+  protected void conditionallyFlushDocuments(IOutputHistoryActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     if (documentChunkManager.equalOrMoreThan(serverHost, serverPath, CHUNK_SIZE))
-      flushDocuments();
+      flushDocuments(activities);
   }
   
-  protected void flushDocuments()
+  protected void flushDocuments(IOutputHistoryActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     Logging.ingest.info("AmazonCloudSearch: Starting flush to Amazon");
@@ -476,15 +488,43 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
         String status = getStatusFromJsonResponse(responsbody);
         if("success".equals(status))
         {
+          // Activity-log the individual documents we sent
+          for (DocumentRecord dr : records)
+          {
+            activities.recordActivity(null,dr.getActivity(),dr.getDataSize(),dr.getUri(),"OK",null);
+          }
           Logging.ingest.info("AmazonCloudSearch: Successfully sent document chunk " + chunkNumber);
           //remove documents from table..
           documentChunkManager.deleteChunk(records);
         }
         else
         {
-          Logging.ingest.error("AmazonCloudSearch: Error sending document chunk "+ chunkNumber+": "+ responsbody);
-          throw new ManifoldCFException("recieved error status from service after feeding document. response body : " + responsbody);
+          // Activity-log the individual documents that failed
+          for (DocumentRecord dr : records)
+          {
+            activities.recordActivity(null,dr.getActivity(),dr.getDataSize(),dr.getUri(),"FAILED",responsbody);
+          }
+          Logging.ingest.error("AmazonCloudSearch: Error sending document chunk "+ chunkNumber+": '"+ responsbody + "'");
+          throw new ManifoldCFException("Received error status from service after feeding document.  Response body: '" + responsbody +"'");
         }
+      }
+      catch (ManifoldCFException e)
+      {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          throw e;
+        for (DocumentRecord dr : records)
+        {
+          activities.recordActivity(null,dr.getActivity(),dr.getDataSize(),dr.getUri(),e.getClass().getSimpleName().toUpperCase(Locale.ROOT),e.getMessage());
+        }
+        throw e;
+      }
+      catch (ServiceInterruption e)
+      {
+        for (DocumentRecord dr : records)
+        {
+          activities.recordActivity(null,dr.getActivity(),dr.getDataSize(),dr.getUri(),e.getClass().getSimpleName().toUpperCase(Locale.ROOT),e.getMessage());
+        }
+        throw e;
       }
       finally
       {
