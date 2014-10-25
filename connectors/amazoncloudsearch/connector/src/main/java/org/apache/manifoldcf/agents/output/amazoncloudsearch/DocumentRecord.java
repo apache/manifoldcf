@@ -27,13 +27,19 @@ public class DocumentRecord {
   protected final String host;
   protected final String path;
   protected final String uid;
+  protected final String uri;
+  protected final String activity;
+  protected final Long dataSize;
   protected final BinaryInput data;
   
-  public DocumentRecord(String host, String path, String uid, BinaryInput data)
+  public DocumentRecord(String host, String path, String uid, String uri, String activity, Long dataSize, BinaryInput data)
   {
     this.host = host;
     this.path = path;
     this.uid = uid;
+    this.uri = uri;
+    this.activity = activity;
+    this.dataSize = dataSize;
     this.data = data;
   }
 
@@ -50,6 +56,21 @@ public class DocumentRecord {
   public String getUid()
   {
     return uid;
+  }
+  
+  public String getUri()
+  {
+    return uri;
+  }
+  
+  public String getActivity()
+  {
+    return activity;
+  }
+  
+  public Long getDataSize()
+  {
+    return dataSize;
   }
   
   public long getStreamLength()
