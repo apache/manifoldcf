@@ -42,6 +42,9 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
 {
   // Database fields
   private final static String UID_FIELD = "uid";                        // This is the document key, which is a dochash value
+  private final static String URI_FIELD = "documenturi";            // This is the document URI in plain text
+  private final static String ACTIVITY_FIELD = "activity";          //  This is a flag, for activity logging, describing whether this is an indexing operation or a delete
+  private final static String LENGTH_FIELD = "doclength";          // Binary length of original document
   private final static String HOST_FIELD = "serverhost";            // The host and path are there to make sure we don't collide between connections
   private final static String PATH_FIELD = "serverpath";
   private final static String SDF_DATA_FIELD = "sdfdata";
@@ -68,12 +71,24 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
         map.put(UID_FIELD,new ColumnDescription("VARCHAR(40)",false,false,null,null,false));
         map.put(HOST_FIELD,new ColumnDescription("VARCHAR(255)",false,false,null,null,false));
         map.put(PATH_FIELD,new ColumnDescription("VARCHAR(255)",false,false,null,null,false));
+        map.put(URI_FIELD,new ColumnDescription("LONGTEXT",false,true,null,null,false));
+        map.put(ACTIVITY_FIELD,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
+        map.put(LENGTH_FIELD,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(SDF_DATA_FIELD,new ColumnDescription("BLOB",false,true,null,null,false));
         performCreate(map,null);
       }
       else
       {
         // Upgrade code, if needed, goes here
+        if (existing.get(URI_FIELD) == null)
+        {
+          // Add the new columns
+          HashMap map = new HashMap();
+          map.put(URI_FIELD,new ColumnDescription("LONGTEXT",false,true,null,null,false));
+          map.put(ACTIVITY_FIELD,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
+          map.put(LENGTH_FIELD,new ColumnDescription("BIGINT",false,true,null,null,false));
+          performAlter(map,null,null,null);
+        }
       }
 
       // Handle indexes, if needed
@@ -116,7 +131,7 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
    * @param sdfData document SDF data.
    * @throws ManifoldCFException
    */
-  public void recordDocument(String uid, String host, String path, InputStream sdfData) 
+  public void recordDocument(String uid, String host, String path, String uri, String activity, Long length, InputStream sdfData) 
       throws ManifoldCFException, IOException
   {
     TempFileInput tfi = null;
@@ -154,6 +169,10 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
             
             Map<String,Object> parameterMap = new HashMap<String,Object>();
             parameterMap.put(SDF_DATA_FIELD, tfi);
+            parameterMap.put(URI_FIELD, uri);
+            parameterMap.put(ACTIVITY_FIELD, activity);
+            if (length != null)
+              parameterMap.put(LENGTH_FIELD, length);
             
             //if record exists on table, update record.
             if(set.getRowCount() > 0)
@@ -250,6 +269,9 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
       IResultRow row = set.getRow(i);
       rval[i] = new DocumentRecord(host,path,
         (String)row.getValue(UID_FIELD),
+        (String)row.getValue(URI_FIELD),
+        (String)row.getValue(ACTIVITY_FIELD),
+        (Long)row.getValue(LENGTH_FIELD),
         (BinaryInput)row.getValue(SDF_DATA_FIELD));
     }
     return rval;
