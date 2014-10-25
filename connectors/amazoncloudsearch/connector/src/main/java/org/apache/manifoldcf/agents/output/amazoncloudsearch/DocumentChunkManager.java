@@ -80,15 +80,6 @@ public class DocumentChunkManager extends org.apache.manifoldcf.core.database.Ba
       else
       {
         // Upgrade code, if needed, goes here
-        if (existing.get(URI_FIELD) == null)
-        {
-          // Add the new columns
-          HashMap map = new HashMap();
-          map.put(URI_FIELD,new ColumnDescription("LONGTEXT",false,true,null,null,false));
-          map.put(ACTIVITY_FIELD,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
-          map.put(LENGTH_FIELD,new ColumnDescription("BIGINT",false,true,null,null,false));
-          performAlter(map,null,null,null);
-        }
       }
 
       // Handle indexes, if needed
