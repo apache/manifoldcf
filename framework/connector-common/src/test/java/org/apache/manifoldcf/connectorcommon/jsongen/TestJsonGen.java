@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.core.jsongen;
+package org.apache.manifoldcf.connectorcommon.jsongen;
 
 import java.io.*;
 import org.junit.*;
