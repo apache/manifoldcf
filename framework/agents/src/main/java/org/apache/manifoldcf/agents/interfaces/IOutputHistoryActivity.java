@@ -40,6 +40,8 @@ public interface IOutputHistoryActivity
   public static final String JSON_ERROR = "JSONERROR";
   public static final String INDEX_NOT_FOUND = "INDEXNOTFOUND";
   public static final String XPATH_EXCEPTION = "XPATHEXCEPTION";
+  public static final String BAD_URL = "BADURL";
+  public static final String NULL_URL = "NULLURL";
   /** Record time-stamped information about the activity of the output connector.
   *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
   *       activity has an associated time; the startTime field records when the activity began.  A null value
