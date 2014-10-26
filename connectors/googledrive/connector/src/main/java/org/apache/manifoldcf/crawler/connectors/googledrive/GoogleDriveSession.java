@@ -20,6 +20,7 @@
 package org.apache.manifoldcf.crawler.connectors.googledrive;
 
 import org.apache.manifoldcf.core.common.*;
+import org.apache.manifoldcf.connectorcommon.common.*;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;

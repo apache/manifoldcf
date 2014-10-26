@@ -18,6 +18,7 @@
 package org.apache.manifoldcf.crawler.connectors.jira;
 
 import org.apache.manifoldcf.core.common.*;
+import org.apache.manifoldcf.connectorcommon.common.*;
 import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
