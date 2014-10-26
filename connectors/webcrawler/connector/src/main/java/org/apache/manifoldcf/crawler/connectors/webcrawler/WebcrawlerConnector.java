@@ -25,7 +25,7 @@ import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.ui.util.Encoder;
 
-import org.apache.manifoldcf.core.fuzzyml.*;
+import org.apache.manifoldcf.connectorcommon.fuzzyml.*;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;

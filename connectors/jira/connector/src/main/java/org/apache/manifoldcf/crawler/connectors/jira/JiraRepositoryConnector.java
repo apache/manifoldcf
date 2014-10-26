@@ -21,6 +21,7 @@ package org.apache.manifoldcf.crawler.connectors.jira;
 
 import java.io.ByteArrayInputStream;
 import org.apache.manifoldcf.core.common.*;
+import org.apache.manifoldcf.connectorcommon.common.*;
 
 import java.io.IOException;
 import java.io.InputStream;

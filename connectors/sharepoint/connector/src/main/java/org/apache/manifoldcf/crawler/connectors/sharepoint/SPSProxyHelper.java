@@ -69,7 +69,7 @@ import org.w3c.dom.Document;
 public class SPSProxyHelper {
 
 
-  public static final String HTTPCLIENT_PROPERTY = org.apache.manifoldcf.core.common.CommonsHTTPSender.HTTPCLIENT_PROPERTY;
+  public static final String HTTPCLIENT_PROPERTY = org.apache.manifoldcf.connectorcommon.common.CommonsHTTPSender.HTTPCLIENT_PROPERTY;
 
   private String serverUrl;
   private String serverLocation;

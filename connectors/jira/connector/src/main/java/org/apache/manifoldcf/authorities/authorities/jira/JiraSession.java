@@ -18,6 +18,7 @@
 package org.apache.manifoldcf.authorities.authorities.jira;
 
 import org.apache.manifoldcf.core.common.*;
+import org.apache.manifoldcf.connectorcommon.common.*;
 import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.util.URLEncoder;

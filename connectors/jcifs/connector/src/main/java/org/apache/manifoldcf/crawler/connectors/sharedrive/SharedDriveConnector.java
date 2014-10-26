@@ -65,7 +65,7 @@ import org.apache.manifoldcf.crawler.interfaces.IFingerprintActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
-import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
+import org.apache.manifoldcf.connectorcommon.extmimemap.ExtensionMimeMap;
 import org.apache.manifoldcf.core.common.DateParser;
 
 /** This is the "repository connector" for a smb/cifs shared drive file system.  It's a relative of the share crawler, and should have
