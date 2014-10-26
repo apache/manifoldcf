@@ -17,7 +17,7 @@
 * limitations under the License.
 */
 
-package org.apache.manifoldcf.core.extmimemap;
+package org.apache.manifoldcf.connectorcommon.extmimemap;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.tika.Tika;
