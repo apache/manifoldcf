@@ -132,6 +132,8 @@ public class AlfrescoConnectorTest {
       .thenReturn(true);
     when(activities.checkDateIndexable((Date)anyObject()))
       .thenReturn(true);
+    when(activities.checkURLIndexable(anyString()))
+      .thenReturn(true);
     IExistingVersions statuses = mock(IExistingVersions.class);
     
     when(client.fetchNode(anyString()))
