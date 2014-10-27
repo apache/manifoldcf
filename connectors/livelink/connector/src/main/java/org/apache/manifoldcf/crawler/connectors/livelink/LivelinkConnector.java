@@ -23,9 +23,9 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
-import org.apache.manifoldcf.core.common.XThreadInputStream;
-import org.apache.manifoldcf.core.common.XThreadOutputStream;
-import org.apache.manifoldcf.core.common.InterruptibleSocketFactory;
+import org.apache.manifoldcf.connectorcommon.common.XThreadInputStream;
+import org.apache.manifoldcf.connectorcommon.common.XThreadOutputStream;
+import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
 import org.apache.manifoldcf.core.common.DateParser;
 
 import org.apache.manifoldcf.livelink.*;
