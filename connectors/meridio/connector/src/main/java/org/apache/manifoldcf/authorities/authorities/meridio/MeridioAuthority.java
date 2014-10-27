@@ -228,7 +228,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
           UserName, Password,
           InetAddress.getLocalHost().getHostName(),
           mySSLFactory,
-          org.apache.manifoldcf.core.common.CommonsHTTPSender.class,
+          org.apache.manifoldcf.connectorcommon.common.CommonsHTTPSender.class,
           "client-config.wsdd");
       }
       catch (NumberFormatException e)
