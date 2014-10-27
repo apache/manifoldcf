@@ -1338,15 +1338,11 @@
         </antcall>
     </target>
 
-    <!-- Set up example directories -->
+    <!-- Set up connector-common-lib -->
     
-    <target name="example-common" depends="wars,wars-proprietary,jar-connector-common">
-        <copy file="example-common/connectors.xml" tofile="dist/connectors.xml"/>
-        <copy file="example-common/connectors.xml" tofile="dist/connectors-proprietary.xml"/>
-        <mkdir dir="dist/connector-lib"/>
-        <mkdir dir="dist/connector-lib-proprietary"/>
-        <copy file="example-common/README.txt" todir="dist/connector-lib-proprietary"/>
-        <copy todir="dist/connector-lib">
+    <target name="connector-common-lib" depends="jar-connector-common">
+        <mkdir dir="dist/connector-common-lib"/>
+        <copy todir="dist/connector-common-lib">
             <fileset dir="build/jar">
                 <include name="mcf-connector-common.jar"/>
             </fileset>
@@ -1402,6 +1398,16 @@
                 <include name="activation*.jar"/>
             </fileset>
         </copy>
+    </target>
+    
+    <!-- Set up example directories -->
+    
+    <target name="example-common" depends="wars,wars-proprietary,connector-common-lib">
+        <copy file="example-common/connectors.xml" tofile="dist/connectors.xml"/>
+        <copy file="example-common/connectors.xml" tofile="dist/connectors-proprietary.xml"/>
+        <mkdir dir="dist/connector-lib"/>
+        <mkdir dir="dist/connector-lib-proprietary"/>
+        <copy file="example-common/README.txt" todir="dist/connector-lib-proprietary"/>
     </target>
     
     <target name="multi-processes-file" depends="lib">

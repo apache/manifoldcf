@@ -105,7 +105,7 @@
     </target>
 
     <path id="mcf-connector-build.connector-classpath">
-        <fileset dir="${mcf-dist}/connector-lib">
+        <fileset dir="${mcf-dist}/connector-common-lib">
             <include name="mcf-connector-common.jar"/>
         </fileset>
         <fileset dir="${mcf-dist}/lib">
@@ -142,7 +142,7 @@
             <include name="xml-apis*.jar"/>
             <include name="velocity*.jar"/>
         </fileset>
-        <fileset dir="${mcf-dist}/connector-lib">
+        <fileset dir="${mcf-dist}/connector-common-lib">
             <include name="tika-core*.jar"/>
             <include name="jackson-core*.jar"/>
             <include name="jackson-databind*.jar"/>
@@ -181,7 +181,7 @@
             <include name="jmatio*.jar"/>
             <include name="java-libpst*.jar"/>
         </fileset>
-        <fileset dir="${mcf-dist}/connector-lib">
+        <fileset dir="${mcf-dist}/connector-common-lib">
             <include name="axis*.jar"/>
             <include name="saaj*.jar"/>
             <include name="wsdl4j*.jar"/>
@@ -370,7 +370,7 @@
         <mkdir dir="build/wsdljava"/>
         <java classname="org.apache.axis.wsdl.WSDL2Java" fork="true">
             <classpath>
-                <fileset dir="${mcf-dist}/connector-lib">
+                <fileset dir="${mcf-dist}/connector-common-lib">
                     <include name="axis*.jar"/>
                     <include name="saaj*.jar"/>
                     <include name="wsdl*.jar"/>
@@ -396,7 +396,7 @@
         <mkdir dir="build/xsdjava"/>
         <java classname="org.exolab.castor.builder.SourceGeneratorMain" fork="true">
             <classpath>
-                <fileset dir="${mcf-dist}/connector-lib">
+                <fileset dir="${mcf-dist}/connector-common-lib">
                     <include name="castor*.jar"/>
                     <include name="geronimo-activation_1.1_spec*.jar"/>
                     <include name="geronimo-javamail_1.4_spec*.jar"/>
@@ -427,7 +427,7 @@
         <mkdir dir="build/wsdlclasses"/>
         <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
-                <fileset dir="${mcf-dist}/connector-lib">
+                <fileset dir="${mcf-dist}/connector-common-lib">
                     <include name="axis*.jar"/>
                     <include name="saaj*.jar"/>
                     <include name="wsdl*.jar"/>
@@ -449,7 +449,7 @@
         <mkdir dir="build/xsdclasses"/>
         <javac srcdir="build/xsdjava" destdir="build/xsdclasses" deprecation="true" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
-                <fileset dir="${mcf-dist}/connector-lib">
+                <fileset dir="${mcf-dist}/connector-common-lib">
                     <include name="castor*.jar"/>
                 </fileset>
             </classpath>
