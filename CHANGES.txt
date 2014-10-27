@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1087: Fix failing alfresco-webscript unit test.
+(Karl Wright)
+
 CONNECTORS-1085: Reduce binary space requirement by introducing a
 connector-common-lib.
 (Karl Wright)

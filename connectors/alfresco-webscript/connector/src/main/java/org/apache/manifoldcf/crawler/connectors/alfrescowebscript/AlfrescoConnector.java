@@ -184,8 +184,6 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
           Logging.connectors.debug(MessageFormat.format("Fetched and added {0} seed documents", new Object[]{new Integer(count)}));
 
-        System.out.println(MessageFormat.format("!!! Fetched and added {0} seed documents", new Object[]{new Integer(count)}));
-
         transactionIdsProcessed = response.getLastTransactionId() - lastTransactionId;
         aclChangesetsProcessed = response.getLastAclChangesetId() - lastAclChangesetId;
 
