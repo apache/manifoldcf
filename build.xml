@@ -309,6 +309,10 @@
         <copy todir="dist/connector-lib">
             <fileset dir="framework/dist/connector-lib"/>
         </copy>
+        <mkdir dir="dist/connector-common-lib"/>
+        <copy todir="dist/connector-common-lib">
+            <fileset dir="framework/dist/connector-common-lib"/>
+        </copy>
         <mkdir dir="dist/connector-lib-proprietary"/>
         <copy todir="dist/connector-lib-proprietary">
             <fileset dir="framework/dist/connector-lib-proprietary"/>

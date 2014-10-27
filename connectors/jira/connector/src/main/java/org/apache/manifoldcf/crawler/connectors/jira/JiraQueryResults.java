@@ -20,6 +20,7 @@
 package org.apache.manifoldcf.crawler.connectors.jira;
 
 import org.apache.manifoldcf.core.common.*;
+import org.apache.manifoldcf.connectorcommon.common.*;
 
 import java.io.IOException;
 

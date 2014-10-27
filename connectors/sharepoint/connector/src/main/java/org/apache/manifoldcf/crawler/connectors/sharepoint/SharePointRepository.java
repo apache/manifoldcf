@@ -24,7 +24,7 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.core.common.*;
-import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
+import org.apache.manifoldcf.connectorcommon.extmimemap.ExtensionMimeMap;
 import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.manifoldcf.core.util.URLDecoder;
 
@@ -278,7 +278,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       httpClient = builder.build();
 
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password,
-        org.apache.manifoldcf.core.common.CommonsHTTPSender.class, "client-config.wsdd",
+        org.apache.manifoldcf.connectorcommon.common.CommonsHTTPSender.class, "client-config.wsdd",
         httpClient );
       
     }

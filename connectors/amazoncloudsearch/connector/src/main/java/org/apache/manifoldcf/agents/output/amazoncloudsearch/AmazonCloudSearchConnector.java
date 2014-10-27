@@ -84,7 +84,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import org.apache.manifoldcf.core.jsongen.*;
+import org.apache.manifoldcf.connectorcommon.jsongen.*;
 
 public class AmazonCloudSearchConnector extends BaseOutputConnector {
 
