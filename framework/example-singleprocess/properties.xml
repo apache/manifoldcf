@@ -37,6 +37,7 @@
   <property name="org.apache.manifoldcf.connectorsconfigurationfile" value="../connectors.xml"/>
   <!-- Tell MCF where to find the connector jars -->
   <libdir path="../connector-lib"/>
+  <libdir path="../connector-common-lib"/>
   <libdir path="../connector-lib-proprietary"/>
   <!-- WSDD references -->
   <!-- Any additional properties go here -->
