@@ -24,7 +24,7 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
-import org.apache.manifoldcf.core.fuzzyml.*;
+import org.apache.manifoldcf.connectorcommon.fuzzyml.*;
 import org.apache.manifoldcf.core.common.DateParser;
 
 import org.apache.http.conn.ConnectTimeoutException;

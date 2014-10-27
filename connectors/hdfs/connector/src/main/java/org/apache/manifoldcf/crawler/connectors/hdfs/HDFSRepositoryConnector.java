@@ -28,9 +28,9 @@ import org.apache.manifoldcf.crawler.connectors.hdfs.HDFSSession;
 import org.apache.manifoldcf.crawler.connectors.hdfs.Messages;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.core.common.XThreadInputStream;
-import org.apache.manifoldcf.core.common.XThreadStringBuffer;
-import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
+import org.apache.manifoldcf.connectorcommon.common.XThreadInputStream;
+import org.apache.manifoldcf.connectorcommon.common.XThreadStringBuffer;
+import org.apache.manifoldcf.connectorcommon.extmimemap.ExtensionMimeMap;
 
 import java.util.*;
 import java.io.*;

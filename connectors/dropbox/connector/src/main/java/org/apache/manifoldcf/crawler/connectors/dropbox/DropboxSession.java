@@ -24,6 +24,7 @@
 package org.apache.manifoldcf.crawler.connectors.dropbox;
 
 import org.apache.manifoldcf.core.common.*;
+import org.apache.manifoldcf.connectorcommon.common.*;
 
 import com.dropbox.client2.session.AppKeyPair;
 import java.util.Map;

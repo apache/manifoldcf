@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.fuzzyml.*;
+import org.apache.manifoldcf.connectorcommon.fuzzyml.*;
 import java.util.*;
 
 /** This class recognizes and interprets all meta tags */

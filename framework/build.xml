@@ -31,6 +31,54 @@
     
     <path id="framework-classpath">
         <fileset dir="../lib">
+            <include name="zookeeper*.jar"/>
+            <include name="json*.jar"/>
+            <include name="commons-codec*.jar"/>
+            <include name="commons-collections*.jar"/>
+            <include name="commons-el*.jar"/>
+            <include name="commons-fileupload*.jar"/>
+            <include name="httpcore*.jar"/>
+            <include name="httpclient*.jar"/>
+            <include name="commons-io*.jar"/>
+            <include name="commons-lang*.jar"/>
+            <include name="commons-logging*.jar"/>
+            <include name="ecj*.jar"/>
+            <include name="jasper*.jar"/>
+            <include name="jetty*.jar"/>
+            <include name="slf4j*.jar"/>
+            <include name="jsp-2.1*.jar"/>
+            <include name="jsp-api*.jar"/>
+            <include name="log4j*.jar"/>
+            <include name="serializer*.jar"/>
+            <include name="javax.servlet-api*.jar"/>
+            <include name="juli*.jar"/>
+            <include name="xalan*.jar"/>
+            <include name="xercesImpl*.jar"/>
+            <include name="xml-apis*.jar"/>
+            <include name="velocity*.jar"/>
+            <include name="mail*.jar"/>
+        </fileset>
+        <fileset dir="../lib">
+            <include name="postgresql*.jar"/>
+            <include name="hsqldb*.jar"/>
+        </fileset>
+        <fileset dir="../lib">
+            <include name="junit*.jar"/>
+            <include name="mockito-core*.jar"/>
+            <include name="wiremock*.jar"/>
+            <include name="objenesis*.jar"/>
+        </fileset>
+        <fileset dir="../lib-proprietary">
+            <include name="mysql*.jar"/>
+            <include name="ojdbc*.jar"/>
+            <include name="jtds*.jar"/>
+            <include name="mariadb-java-client*.jar"/>
+        </fileset>
+
+    </path>
+    
+    <path id="connector-common-classpath">
+        <fileset dir="../lib">
             <include name="tika-core*.jar"/>
             <include name="jackson-core*.jar"/>
             <include name="jackson-databind*.jar"/>
@@ -81,51 +129,6 @@
             <include name="opensaml*.jar"/>
             <include name="activation*.jar"/>
         </fileset>
-        <fileset dir="../lib">
-            <include name="zookeeper*.jar"/>
-            <include name="json*.jar"/>
-            <include name="commons-codec*.jar"/>
-            <include name="commons-collections*.jar"/>
-            <include name="commons-el*.jar"/>
-            <include name="commons-fileupload*.jar"/>
-            <include name="httpcore*.jar"/>
-            <include name="httpclient*.jar"/>
-            <include name="commons-io*.jar"/>
-            <include name="commons-lang*.jar"/>
-            <include name="commons-logging*.jar"/>
-            <include name="ecj*.jar"/>
-            <include name="jasper*.jar"/>
-            <include name="jetty*.jar"/>
-            <include name="slf4j*.jar"/>
-            <include name="jsp-2.1*.jar"/>
-            <include name="jsp-api*.jar"/>
-            <include name="log4j*.jar"/>
-            <include name="serializer*.jar"/>
-            <include name="javax.servlet-api*.jar"/>
-            <include name="juli*.jar"/>
-            <include name="xalan*.jar"/>
-            <include name="xercesImpl*.jar"/>
-            <include name="xml-apis*.jar"/>
-            <include name="velocity*.jar"/>
-            <include name="mail*.jar"/>
-        </fileset>
-        <fileset dir="../lib">
-            <include name="postgresql*.jar"/>
-            <include name="hsqldb*.jar"/>
-        </fileset>
-        <fileset dir="../lib">
-            <include name="junit*.jar"/>
-            <include name="mockito-core*.jar"/>
-            <include name="wiremock*.jar"/>
-            <include name="objenesis*.jar"/>
-        </fileset>
-        <fileset dir="../lib-proprietary">
-            <include name="mysql*.jar"/>
-            <include name="ojdbc*.jar"/>
-            <include name="jtds*.jar"/>
-            <include name="mariadb-java-client*.jar"/>
-        </fileset>
-
     </path>
     
     <target name="doc">
@@ -135,11 +138,13 @@
             <link href="http://manifoldcf.apache.org/release/trunk/api/framework/"/>
             <classpath>
                 <path refid="framework-classpath"/>
+                <path refid="connector-common-classpath"/>
             </classpath>
             <fileset dir="core/src/main/java" includes="**/*.java"/>
             <fileset dir="agents/src/main/java" includes="**/*.java"/>
             <fileset dir="pull-agent/src/main/java" includes="**/*.java"/>
             <fileset dir="ui-core/src/main/java" includes="**/*.java"/>
+            <fileset dir="connector-common/src/main/java" includes="**/*.java"/>
             <fileset dir="script-engine/src/main/java" includes="**/*.java"/>
             <fileset dir="jetty-runner/src/main/java" includes="**/*.java"/>
         </javadoc>
@@ -174,6 +179,19 @@
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
+           </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-connector-common" depends="compile-core,compile-agents,compile-ui-core">
+        <mkdir dir="build/connector-common/classes"/>
+        <javac srcdir="connector-common/src/main/java" destdir="build/connector-common/classes" deprecation="true" target="1.7" source="1.7" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+            <classpath>
+                <path refid="framework-classpath"/>
+                <path refid="connector-common-classpath"/>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/ui-core/classes"/>
            </classpath>
         </javac>
     </target>
@@ -341,6 +359,11 @@
         <jar destfile="build/jar/mcf-agents.jar" basedir="build/agents/classes"/>
     </target>
 
+    <target name="jar-connector-common" depends="compile-connector-common">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/mcf-connector-common.jar" basedir="build/connector-common/classes"/>
+    </target>
+    
     <target name="jar-pull-agent" depends="compile-pull-agent">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/mcf-pull-agent.jar" basedir="build/pull-agent/classes"/>
@@ -369,57 +392,6 @@
     <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,jar-authority-servlet,compile-authority-service">
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
-            <fileset dir="../lib">
-                <include name="tika-core*.jar"/>
-                <include name="jackson-core*.jar"/>
-                <include name="jackson-databind*.jar"/>
-                <include name="jackson-annotations*.jar"/>
-                <include name="tika-parsers*.jar"/>
-                <include name="tagsoup*.jar"/>
-                <include name="poi*.jar"/>
-                <include name="vorbis-java*.jar"/>
-                <include name="netcdf*.jar"/>
-                <include name="unidataCommon*.jar"/>
-                <include name="commons-httpclient*.jar"/>
-                <include name="apache-mime4j-core*.jar"/>
-                <include name="apache-mime4j-dom*.jar"/>
-                <include name="commons-compress*.jar"/>
-                <include name="pdfbox*.jar"/>
-                <include name="fontbox*.jar"/>
-                <include name="jempbox*.jar"/>
-                <include name="bcmail-jdk15*.jar"/>
-                <include name="bcprov-jdk15*.jar"/>
-                <include name="xmlbeans*.jar"/>
-                <include name="dom4j*.jar"/>
-                <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm*.jar"/>
-                <include name="isoparser*.jar"/>
-                <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
-                <include name="xmpcore*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="boilerpipe*.jar"/>
-                <include name="rome*.jar"/>
-                <include name="jdom*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="juniversalchardet*.jar"/>
-                <include name="jhighlight*.jar"/>
-                <include name="jmatio*.jar"/>
-                <include name="java-libpst*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -459,57 +431,6 @@
     <target name="webapp-authority-service-proprietary" depends="jar-core,jar-agents,jar-pull-agent,jar-authority-servlet,compile-authority-service">
         <mkdir dir="build/webapp/authority-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
-            <fileset dir="../lib">
-                <include name="tika-core*.jar"/>
-                <include name="jackson-core*.jar"/>
-                <include name="jackson-databind*.jar"/>
-                <include name="jackson-annotations*.jar"/>
-                <include name="tika-parsers*.jar"/>
-                <include name="tagsoup*.jar"/>
-                <include name="poi*.jar"/>
-                <include name="vorbis-java*.jar"/>
-                <include name="netcdf*.jar"/>
-                <include name="unidataCommon*.jar"/>
-                <include name="commons-httpclient*.jar"/>
-                <include name="apache-mime4j-core*.jar"/>
-                <include name="apache-mime4j-dom*.jar"/>
-                <include name="commons-compress*.jar"/>
-                <include name="pdfbox*.jar"/>
-                <include name="fontbox*.jar"/>
-                <include name="jempbox*.jar"/>
-                <include name="bcmail-jdk15*.jar"/>
-                <include name="bcprov-jdk15*.jar"/>
-                <include name="xmlbeans*.jar"/>
-                <include name="dom4j*.jar"/>
-                <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm*.jar"/>
-                <include name="isoparser*.jar"/>
-                <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
-                <include name="xmpcore*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="boilerpipe*.jar"/>
-                <include name="rome*.jar"/>
-                <include name="jdom*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="juniversalchardet*.jar"/>
-                <include name="jhighlight*.jar"/>
-                <include name="jmatio*.jar"/>
-                <include name="java-libpst*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -556,57 +477,6 @@
         <mkdir dir="build/webapp/api-service/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="../lib">
-                <include name="tika-core*.jar"/>
-                <include name="jackson-core*.jar"/>
-                <include name="jackson-databind*.jar"/>
-                <include name="jackson-annotations*.jar"/>
-                <include name="tika-parsers*.jar"/>
-                <include name="tagsoup*.jar"/>
-                <include name="poi*.jar"/>
-                <include name="vorbis-java*.jar"/>
-                <include name="netcdf*.jar"/>
-                <include name="unidataCommon*.jar"/>
-                <include name="commons-httpclient*.jar"/>
-                <include name="apache-mime4j-core*.jar"/>
-                <include name="apache-mime4j-dom*.jar"/>
-                <include name="commons-compress*.jar"/>
-                <include name="pdfbox*.jar"/>
-                <include name="fontbox*.jar"/>
-                <include name="jempbox*.jar"/>
-                <include name="bcmail-jdk15*.jar"/>
-                <include name="bcprov-jdk15*.jar"/>
-                <include name="xmlbeans*.jar"/>
-                <include name="dom4j*.jar"/>
-                <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm*.jar"/>
-                <include name="isoparser*.jar"/>
-                <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
-                <include name="xmpcore*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="boilerpipe*.jar"/>
-                <include name="rome*.jar"/>
-                <include name="jdom*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="juniversalchardet*.jar"/>
-                <include name="jhighlight*.jar"/>
-                <include name="jmatio*.jar"/>
-                <include name="java-libpst*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
@@ -646,57 +516,6 @@
     <target name="webapp-api-service-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,compile-api-service">
         <mkdir dir="build/webapp/api-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
-            <fileset dir="../lib">
-                <include name="tika-core*.jar"/>
-                <include name="jackson-core*.jar"/>
-                <include name="jackson-databind*.jar"/>
-                <include name="jackson-annotations*.jar"/>
-                <include name="tika-parsers*.jar"/>
-                <include name="tagsoup*.jar"/>
-                <include name="poi*.jar"/>
-                <include name="vorbis-java*.jar"/>
-                <include name="netcdf*.jar"/>
-                <include name="unidataCommon*.jar"/>
-                <include name="commons-httpclient*.jar"/>
-                <include name="apache-mime4j-core*.jar"/>
-                <include name="apache-mime4j-dom*.jar"/>
-                <include name="commons-compress*.jar"/>
-                <include name="pdfbox*.jar"/>
-                <include name="fontbox*.jar"/>
-                <include name="jempbox*.jar"/>
-                <include name="bcmail-jdk15*.jar"/>
-                <include name="bcprov-jdk15*.jar"/>
-                <include name="xmlbeans*.jar"/>
-                <include name="dom4j*.jar"/>
-                <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm*.jar"/>
-                <include name="isoparser*.jar"/>
-                <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
-                <include name="xmpcore*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="boilerpipe*.jar"/>
-                <include name="rome*.jar"/>
-                <include name="jdom*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="juniversalchardet*.jar"/>
-                <include name="jhighlight*.jar"/>
-                <include name="jmatio*.jar"/>
-                <include name="java-libpst*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -743,57 +562,6 @@
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
-            <fileset dir="../lib">
-                <include name="tika-core*.jar"/>
-                <include name="jackson-core*.jar"/>
-                <include name="jackson-databind*.jar"/>
-                <include name="jackson-annotations*.jar"/>
-                <include name="tika-parsers*.jar"/>
-                <include name="tagsoup*.jar"/>
-                <include name="poi*.jar"/>
-                <include name="vorbis-java*.jar"/>
-                <include name="netcdf*.jar"/>
-                <include name="unidataCommon*.jar"/>
-                <include name="commons-httpclient*.jar"/>
-                <include name="apache-mime4j-core*.jar"/>
-                <include name="apache-mime4j-dom*.jar"/>
-                <include name="commons-compress*.jar"/>
-                <include name="pdfbox*.jar"/>
-                <include name="fontbox*.jar"/>
-                <include name="jempbox*.jar"/>
-                <include name="bcmail-jdk15*.jar"/>
-                <include name="bcprov-jdk15*.jar"/>
-                <include name="xmlbeans*.jar"/>
-                <include name="dom4j*.jar"/>
-                <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm*.jar"/>
-                <include name="isoparser*.jar"/>
-                <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
-                <include name="xmpcore*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="boilerpipe*.jar"/>
-                <include name="rome*.jar"/>
-                <include name="jdom*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="juniversalchardet*.jar"/>
-                <include name="jhighlight*.jar"/>
-                <include name="jmatio*.jar"/>
-                <include name="java-libpst*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
@@ -842,57 +610,6 @@
       <target name="webapp-crawler-ui-proprietary" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui-proprietary/WEB-INF/lib">
-            <fileset dir="../lib">
-                <include name="tika-core*.jar"/>
-                <include name="jackson-core*.jar"/>
-                <include name="jackson-databind*.jar"/>
-                <include name="jackson-annotations*.jar"/>
-                <include name="tika-parsers*.jar"/>
-                <include name="tagsoup*.jar"/>
-                <include name="poi*.jar"/>
-                <include name="vorbis-java*.jar"/>
-                <include name="netcdf*.jar"/>
-                <include name="unidataCommon*.jar"/>
-                <include name="commons-httpclient*.jar"/>
-                <include name="apache-mime4j-core*.jar"/>
-                <include name="apache-mime4j-dom*.jar"/>
-                <include name="commons-compress*.jar"/>
-                <include name="pdfbox*.jar"/>
-                <include name="fontbox*.jar"/>
-                <include name="jempbox*.jar"/>
-                <include name="bcmail-jdk15*.jar"/>
-                <include name="bcprov-jdk15*.jar"/>
-                <include name="xmlbeans*.jar"/>
-                <include name="dom4j*.jar"/>
-                <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm*.jar"/>
-                <include name="isoparser*.jar"/>
-                <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
-                <include name="xmpcore*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="boilerpipe*.jar"/>
-                <include name="rome*.jar"/>
-                <include name="jdom*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="juniversalchardet*.jar"/>
-                <include name="jhighlight*.jar"/>
-                <include name="jmatio*.jar"/>
-                <include name="java-libpst*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
@@ -950,57 +667,6 @@
         <mkdir dir="build/webapp/combined-service/WEB-INF/lib"/>
         <copy todir="build/webapp/combined-service/WEB-INF/lib">
             <fileset dir="../lib">
-                <include name="tika-core*.jar"/>
-                <include name="jackson-core*.jar"/>
-                <include name="jackson-databind*.jar"/>
-                <include name="jackson-annotations*.jar"/>
-                <include name="tika-parsers*.jar"/>
-                <include name="tagsoup*.jar"/>
-                <include name="poi*.jar"/>
-                <include name="vorbis-java*.jar"/>
-                <include name="netcdf*.jar"/>
-                <include name="unidataCommon*.jar"/>
-                <include name="commons-httpclient*.jar"/>
-                <include name="apache-mime4j-core*.jar"/>
-                <include name="apache-mime4j-dom*.jar"/>
-                <include name="commons-compress*.jar"/>
-                <include name="pdfbox*.jar"/>
-                <include name="fontbox*.jar"/>
-                <include name="jempbox*.jar"/>
-                <include name="bcmail-jdk15*.jar"/>
-                <include name="bcprov-jdk15*.jar"/>
-                <include name="xmlbeans*.jar"/>
-                <include name="dom4j*.jar"/>
-                <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm*.jar"/>
-                <include name="isoparser*.jar"/>
-                <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
-                <include name="xmpcore*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="boilerpipe*.jar"/>
-                <include name="rome*.jar"/>
-                <include name="jdom*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="juniversalchardet*.jar"/>
-                <include name="jhighlight*.jar"/>
-                <include name="jmatio*.jar"/>
-                <include name="java-libpst*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -1050,57 +716,6 @@
       <target name="webapp-combined-service-proprietary" depends="compile-combined-service,jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,jar-authority-servlet">
         <mkdir dir="build/webapp/combined-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/combined-service-proprietary/WEB-INF/lib">
-            <fileset dir="../lib">
-                <include name="tika-core*.jar"/>
-                <include name="jackson-core*.jar"/>
-                <include name="jackson-databind*.jar"/>
-                <include name="jackson-annotations*.jar"/>
-                <include name="tika-parsers*.jar"/>
-                <include name="tagsoup*.jar"/>
-                <include name="poi*.jar"/>
-                <include name="vorbis-java*.jar"/>
-                <include name="netcdf*.jar"/>
-                <include name="unidataCommon*.jar"/>
-                <include name="commons-httpclient*.jar"/>
-                <include name="apache-mime4j-core*.jar"/>
-                <include name="apache-mime4j-dom*.jar"/>
-                <include name="commons-compress*.jar"/>
-                <include name="pdfbox*.jar"/>
-                <include name="fontbox*.jar"/>
-                <include name="jempbox*.jar"/>
-                <include name="bcmail-jdk15*.jar"/>
-                <include name="bcprov-jdk15*.jar"/>
-                <include name="xmlbeans*.jar"/>
-                <include name="dom4j*.jar"/>
-                <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm*.jar"/>
-                <include name="isoparser*.jar"/>
-                <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
-                <include name="xmpcore*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="boilerpipe*.jar"/>
-                <include name="rome*.jar"/>
-                <include name="jdom*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="juniversalchardet*.jar"/>
-                <include name="jhighlight*.jar"/>
-                <include name="jmatio*.jar"/>
-                <include name="java-libpst*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
@@ -1221,57 +836,6 @@
     <target name="lib" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,jar-script-engine">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
-            <fileset dir="../lib">
-                <include name="tika-core*.jar"/>
-                <include name="jackson-core*.jar"/>
-                <include name="jackson-databind*.jar"/>
-                <include name="jackson-annotations*.jar"/>
-                <include name="tika-parsers*.jar"/>
-                <include name="tagsoup*.jar"/>
-                <include name="poi*.jar"/>
-                <include name="vorbis-java*.jar"/>
-                <include name="netcdf*.jar"/>
-                <include name="unidataCommon*.jar"/>
-                <include name="commons-httpclient*.jar"/>
-                <include name="apache-mime4j-core*.jar"/>
-                <include name="apache-mime4j-dom*.jar"/>
-                <include name="commons-compress*.jar"/>
-                <include name="pdfbox*.jar"/>
-                <include name="fontbox*.jar"/>
-                <include name="jempbox*.jar"/>
-                <include name="bcmail-jdk15*.jar"/>
-                <include name="bcprov-jdk15*.jar"/>
-                <include name="xmlbeans*.jar"/>
-                <include name="dom4j*.jar"/>
-                <include name="geronimo-stax-api_1.0_spec*.jar"/>
-                <include name="asm*.jar"/>
-                <include name="isoparser*.jar"/>
-                <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
-                <include name="xmpcore*.jar"/>
-                <include name="xml-apis*.jar"/>
-                <include name="boilerpipe*.jar"/>
-                <include name="rome*.jar"/>
-                <include name="jdom*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="vorbis-java-core*.jar"/>
-                <include name="juniversalchardet*.jar"/>
-                <include name="jhighlight*.jar"/>
-                <include name="jmatio*.jar"/>
-                <include name="java-libpst*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-                <include name="castor*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="axis*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="xmlsec*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
@@ -1511,45 +1075,6 @@
     </path>
     
     <path id="process-lib">
-        <fileset dir="../lib">
-            <include name="tika-core*.jar"/>
-            <include name="jackson-core*.jar"/>
-            <include name="jackson-databind*.jar"/>
-            <include name="jackson-annotations*.jar"/>
-            <include name="tika-parsers*.jar"/>
-            <include name="tagsoup*.jar"/>
-            <include name="poi*.jar"/>
-            <include name="vorbis-java*.jar"/>
-            <include name="netcdf*.jar"/>
-            <include name="unidataCommon*.jar"/>
-            <include name="commons-httpclient*.jar"/>
-            <include name="apache-mime4j-core*.jar"/>
-            <include name="apache-mime4j-dom*.jar"/>
-            <include name="commons-compress*.jar"/>
-            <include name="pdfbox*.jar"/>
-            <include name="fontbox*.jar"/>
-            <include name="jempbox*.jar"/>
-            <include name="bcmail-jdk15*.jar"/>
-            <include name="bcprov-jdk15*.jar"/>
-            <include name="xmlbeans*.jar"/>
-            <include name="dom4j*.jar"/>
-            <include name="geronimo-stax-api_1.0_spec*.jar"/>
-            <include name="asm*.jar"/>
-            <include name="isoparser*.jar"/>
-            <include name="aspectjrt*.jar"/>
-            <include name="metadata-extractor*.jar"/>
-            <include name="xmpcore*.jar"/>
-            <include name="xml-apis*.jar"/>
-            <include name="boilerpipe*.jar"/>
-            <include name="rome*.jar"/>
-            <include name="jdom*.jar"/>
-            <include name="xercesImpl*.jar"/>
-            <include name="vorbis-java-core*.jar"/>
-            <include name="juniversalchardet*.jar"/>
-            <include name="jhighlight*.jar"/>
-            <include name="jmatio*.jar"/>
-            <include name="java-libpst*.jar"/>
-          </fileset>
           <fileset dir="../lib">
             <include name="commons-lang*.jar"/>
             <include name="commons-codec*.jar"/>
@@ -1577,16 +1102,6 @@
             <include name="httpclient*.jar"/>
             <include name="mail*.jar"/>
             <include name="zookeeper*.jar"/>
-            <include name="castor*.jar"/>
-            <include name="geronimo-javamail_1.4_spec*.jar"/>
-            <include name="axis*.jar"/>
-            <include name="wsdl4j*.jar"/>
-            <include name="saaj-api*.jar"/>
-            <include name="saaj-impl*.jar"/>
-            <include name="activation*.jar"/>
-            <include name="wss4j*.jar"/>
-            <include name="xmlsec*.jar"/>
-            <include name="opensaml*.jar"/>
         </fileset>
     </path>
     
@@ -1823,9 +1338,71 @@
         </antcall>
     </target>
 
+    <!-- Set up connector-common-lib -->
+    
+    <target name="connector-common-lib" depends="jar-connector-common">
+        <mkdir dir="dist/connector-common-lib"/>
+        <copy todir="dist/connector-common-lib">
+            <fileset dir="build/jar">
+                <include name="mcf-connector-common.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="tika-core*.jar"/>
+                <include name="jackson-core*.jar"/>
+                <include name="jackson-databind*.jar"/>
+                <include name="jackson-annotations*.jar"/>
+                <include name="tika-parsers*.jar"/>
+                <include name="tagsoup*.jar"/>
+                <include name="poi*.jar"/>
+                <include name="vorbis-java*.jar"/>
+                <include name="netcdf*.jar"/>
+                <include name="unidataCommon*.jar"/>
+                <include name="commons-httpclient*.jar"/>
+                <include name="apache-mime4j-core*.jar"/>
+                <include name="apache-mime4j-dom*.jar"/>
+                <include name="commons-compress*.jar"/>
+                <include name="pdfbox*.jar"/>
+                <include name="fontbox*.jar"/>
+                <include name="jempbox*.jar"/>
+                <include name="bcmail-jdk15*.jar"/>
+                <include name="bcprov-jdk15*.jar"/>
+                <include name="xmlbeans*.jar"/>
+                <include name="dom4j*.jar"/>
+                <include name="geronimo-stax-api_1.0_spec*.jar"/>
+                <include name="asm*.jar"/>
+                <include name="isoparser*.jar"/>
+                <include name="aspectjrt*.jar"/>
+                <include name="metadata-extractor*.jar"/>
+                <include name="xmpcore*.jar"/>
+                <include name="xml-apis*.jar"/>
+                <include name="boilerpipe*.jar"/>
+                <include name="rome*.jar"/>
+                <include name="jdom*.jar"/>
+                <include name="xercesImpl*.jar"/>
+                <include name="vorbis-java-core*.jar"/>
+                <include name="juniversalchardet*.jar"/>
+                <include name="jhighlight*.jar"/>
+                <include name="jmatio*.jar"/>
+                <include name="java-libpst*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="axis*.jar"/>
+                <include name="wss4j*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="xmlsec*.jar"/>
+                <include name="opensaml*.jar"/>
+                <include name="activation*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+    
     <!-- Set up example directories -->
     
-    <target name="example-common" depends="wars,wars-proprietary">
+    <target name="example-common" depends="wars,wars-proprietary,connector-common-lib">
         <copy file="example-common/connectors.xml" tofile="dist/connectors.xml"/>
         <copy file="example-common/connectors.xml" tofile="dist/connectors-proprietary.xml"/>
         <mkdir dir="dist/connector-lib"/>
