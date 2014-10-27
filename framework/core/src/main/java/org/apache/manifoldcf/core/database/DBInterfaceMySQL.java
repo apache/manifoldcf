@@ -67,7 +67,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   protected DBInterfaceMySQL(IThreadContext tc, String jdbcDriverClass, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
-    super(tc,getJdbcUrl(tc,databaseName),_driver,databaseName,userName,password);
+    super(tc,getJdbcUrl(tc,databaseName),jdbcDriverClass,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
     lockManager = LockManagerFactory.make(tc);
   }
@@ -1363,4 +1363,3 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   }
 
 }
-
