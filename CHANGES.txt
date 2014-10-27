@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1087: Fix failing alfresco-webscript unit test.
+(Karl Wright)
+
 CONNECTORS-1083: Add support for MariaDB.
 (Markus Schuch)
 
