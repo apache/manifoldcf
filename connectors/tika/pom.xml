@@ -207,14 +207,24 @@
       <version>2.3.2</version>
     </dependency>
     <dependency>
-	  <groupId>com.fasterxml.jackson.core</groupId>
-	  <artifactId>jackson-annotations</artifactId>
-	  <version>2.3.0</version>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>2.3.0</version>
     </dependency>
     <dependency>
-	  <groupId>org.apache.tika</groupId>
-	  <artifactId>tika-parsers</artifactId>
-	  <version>${tika.version}</version>
+        <groupId>org.apache.tika</groupId>
+        <artifactId>tika-core</artifactId>
+        <version>${tika.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.tika</groupId>
+        <artifactId>tika-parsers</artifactId>
+        <version>${tika.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>de.l3s.boilerpipe</groupId>
+        <artifactId>boilerpipe</artifactId>
+        <version>${boilerpipe.version}</version>
     </dependency>
     
     <!-- Testing dependencies -->

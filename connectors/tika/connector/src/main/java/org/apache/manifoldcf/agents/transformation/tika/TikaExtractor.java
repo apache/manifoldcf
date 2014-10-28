@@ -32,6 +32,8 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.metadata.TikaMetadataKeys;
+import org.apache.tika.parser.html.BoilerpipeContentHandler;
+import de.l3s.boilerpipe.BoilerpipeExtractor;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -164,6 +166,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
 
+    BoilerpipeExtractor extractorClassInstance = sp.getExtractorClassInstance();
+    
     // Tika's API reads from an input stream and writes to an output Writer.
     // Since a RepositoryDocument includes readers and inputstreams exclusively, AND all downstream
     // processing needs to occur in a ManifoldCF thread, we have some constraints on the architecture we need to get this done:
@@ -217,6 +221,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             // Use tika to parse stuff
             Parser parser = new AutoDetectParser();
             ContentHandler handler = new BodyContentHandler(w);
+            if (extractorClassInstance != null)
+              handler = new BoilerpipeContentHandler(handler, extractorClassInstance);
             ParseContext pc = new ParseContext();
             try
             {
@@ -752,10 +758,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     private final Map<String,String> sourceTargets = new HashMap<String,String>();
     private final boolean keepAllMetadata;
     private final boolean ignoreTikaException;
+    private final String extractorClassName;
     
     public SpecPacker(Specification os) {
       boolean keepAllMetadata = true;
       boolean ignoreTikaException = true;
+      String extractorClassName = null;
       for (int i = 0; i < os.getChildCount(); i++) {
         SpecificationNode sn = os.getChild(i);
         
@@ -773,10 +781,13 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         } else if (sn.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION)) {
           String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
           ignoreTikaException = Boolean.parseBoolean(value);
+        } else if (sn.getType().equals(TikaConfig.NODE_BOILERPLATEPROCESSOR)) {
+          extractorClassName = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
         }
       }
       this.keepAllMetadata = keepAllMetadata;
       this.ignoreTikaException = ignoreTikaException;
+      this.extractorClassName = extractorClassName;
     }
     
     public String toPackedString() {
@@ -814,6 +825,14 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       else
         sb.append('-');
 
+      if (extractorClassName != null)
+      {
+        sb.append('+');
+        sb.append(extractorClassName);
+      }
+      else
+        sb.append('-');
+      
       return sb.toString();
     }
     
@@ -828,6 +847,24 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     public boolean ignoreTikaException() {
       return ignoreTikaException;
     }
+    
+    public BoilerpipeExtractor getExtractorClassInstance()
+      throws ManifoldCFException {
+      if (extractorClassName == null)
+        return null;
+      try {
+        ClassLoader loader = BoilerpipeExtractor.class.getClassLoader();
+        Class extractorClass = loader.loadClass(extractorClassName);
+        return (BoilerpipeExtractor)extractorClass.newInstance();
+      } catch (ClassNotFoundException e) {
+        throw new ManifoldCFException("Boilerpipe extractor class '"+extractorClassName+"' not found: "+e.getMessage(),e);
+      } catch (InstantiationException e) {
+        throw new ManifoldCFException("Boilerpipe extractor class '"+extractorClassName+"' could not be instantiated: "+e.getMessage(),e);
+      } catch (Exception e) {
+        throw new ManifoldCFException("Boilerpipe extractor class '"+extractorClassName+"' exception on instantiation: "+e.getMessage(),e);
+      }
+    }
+
   }
 
 }
