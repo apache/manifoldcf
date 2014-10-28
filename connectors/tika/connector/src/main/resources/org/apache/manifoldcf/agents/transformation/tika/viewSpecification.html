@@ -56,5 +56,16 @@
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.IgnoreTikaExceptions'))</nobr></td>
     <td class="value"><nobr>$Encoder.bodyEscape($IGNORETIKAEXCEPTIONS)</nobr></td>
   </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.BoilerplateExtractorColon'))</nobr></td>
+    <td class="value">
+#if ($BOILERPLATECLASSNAME == '')
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.NoExtractionSelected'))</nobr>
+#else
+      <nobr>$Encoder.bodyEscape($BOILERPLATECLASSNAME)</nobr>
+#end
+    </td>
+  </tr>
 
 </table>

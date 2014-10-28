@@ -35,6 +35,6 @@
 #else
 
 <input type="hidden" name="s${SEQNUM}_ignoretikaexceptions_present" value="true"/>
-<input type="hidden" name="s${SEQNUM}_ignoretikaexceptions" value="$Encoder.bodyEscape($IGNORETIKAEXCEPTIONS)"/>
+<input type="hidden" name="s${SEQNUM}_ignoretikaexceptions" value="$Encoder.attributeEscape($IGNORETIKAEXCEPTIONS)"/>
 
 #end
