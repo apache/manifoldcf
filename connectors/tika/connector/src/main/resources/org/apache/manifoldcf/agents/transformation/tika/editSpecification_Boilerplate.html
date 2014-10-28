@@ -1,0 +1,70 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TABNAME == $ResourceBundle.getString('TikaExtractor.BoilerplateTabName') && ${SEQNUM} == ${SELECTEDNUM})
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.BoilerplateExtractorColon'))</nobr></td>
+    <td class="value">
+      <select name="s${SEQNUM}_boilerplateclassname">
+  #if($BOILERPLATECLASSNAME == '')
+        <option value="" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.NoExtractionSelected'))</option>
+  #else
+        <option value="">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.NoExtractionSelected'))</option>
+  #end
+  #if($BOILERPLATECLASSNAME == 'de.l3s.boilerpipe.extractors.ArticleExtractor')
+        <option value="de.l3s.boilerpipe.extractors.ArticleExtractor" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractArticles'))</option>
+  #else
+        <option value="de.l3s.boilerpipe.extractors.ArticleExtractor">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractArticles'))</option>
+  #end
+  #if($BOILERPLATECLASSNAME == 'de.l3s.boilerpipe.extractors.ArticleSentencesExtractor')
+        <option value="de.l3s.boilerpipe.extractors.ArticleSentencesExtractor" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractArticleSentences'))</option>
+  #else
+        <option value="de.l3s.boilerpipe.extractors.ArticleSentencesExtractor">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractArticleSentences'))</option>
+  #end
+  #if($BOILERPLATECLASSNAME == 'de.l3s.boilerpipe.extractors.DefaultExtractor')
+        <option value="de.l3s.boilerpipe.extractors.DefaultExtractor" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.BasicExtraction'))</option>
+  #else
+        <option value="de.l3s.boilerpipe.extractors.DefaultExtractor">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.BasicExtraction'))</option>
+  #end
+  #if($BOILERPLATECLASSNAME == 'de.l3s.boilerpipe.extractors.KeepEverythingExtractor')
+        <option value="de.l3s.boilerpipe.extractors.KeepEverythingExtractor" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractEverything'))</option>
+  #else
+        <option value="de.l3s.boilerpipe.extractors.KeepEverythingExtractor">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractEverything'))</option>
+  #end
+  #if($BOILERPLATECLASSNAME == 'de.l3s.boilerpipe.extractors.LargestContentExtractor')
+        <option value="de.l3s.boilerpipe.extractors.LargestContentExtractor" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractLargestTextComponent'))</option>
+  #else
+        <option value="de.l3s.boilerpipe.extractors.LargestContentExtractor">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractLargestTextComponent'))</option>
+  #end
+  #if($BOILERPLATECLASSNAME == 'de.l3s.boilerpipe.extractors.NumWordsRulesExtractor')
+        <option value="de.l3s.boilerpipe.extractors.NumWordsRulesExtractor" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractNumWords'))</option>
+  #else
+        <option value="de.l3s.boilerpipe.extractors.NumWordsRulesExtractor">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractNumWords'))</option>
+  #end
+      </select>
+    </td>
+  </tr>
+</table>
+      
+#else
+
+<input type="hidden" name="s${SEQNUM}_boilerplateclassname" value="$Encoder.attributeEscape($BOILERPLATECLASSNAME)"/>
+
+#end
