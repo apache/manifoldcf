@@ -30,6 +30,7 @@ public class TikaConfig {
   public static final String NODE_FIELDMAP = "fieldmap";
   public static final String NODE_KEEPMETADATA = "keepAllMetadata";
   public static final String NODE_IGNORETIKAEXCEPTION = "ignoreException";
+  public static final String NODE_BOILERPLATEPROCESSOR = "boilerplateprocessor";
   public static final String ATTRIBUTE_SOURCE = "source";
   public static final String ATTRIBUTE_TARGET = "target";
   public static final String ATTRIBUTE_VALUE = "value";
