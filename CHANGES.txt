@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1088: Add boilerplate extraction to Tika extractor.
+(Arcadius Ahouansou, Karl Wright)
+
 CONNECTORS-1087: Fix failing alfresco-webscript unit test.
 (Karl Wright)
 

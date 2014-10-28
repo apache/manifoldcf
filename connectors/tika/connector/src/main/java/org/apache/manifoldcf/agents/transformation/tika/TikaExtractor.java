@@ -47,6 +47,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
   private static final String EDIT_SPECIFICATION_FIELDMAPPING_HTML = "editSpecification_FieldMapping.html";
   private static final String EDIT_SPECIFICATION_EXCEPTIONS_HTML = "editSpecification_Exceptions.html";
+  private static final String EDIT_SPECIFICATION_BOILERPLATE_HTML = "editSpecification_Boilerplate.html";
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 
   protected static final String ACTIVITY_EXTRACT = "extract";
@@ -373,10 +374,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     tabsArray.add(Messages.getString(locale, "TikaExtractor.FieldMappingTabName"));
     tabsArray.add(Messages.getString(locale, "TikaExtractor.ExceptionsTabName"));
+    tabsArray.add(Messages.getString(locale, "TikaExtractor.BoilerplateTabName"));
 
     // Fill in the specification header map, using data from all tabs.
     fillInFieldMappingSpecificationMap(paramMap, os);
     fillInExceptionsSpecificationMap(paramMap, os);
+    fillInBoilerplateSpecificationMap(paramMap, os);
     
     Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_JS,paramMap);
   }
@@ -407,9 +410,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     // Fill in the field mapping tab data
     fillInFieldMappingSpecificationMap(paramMap, os);
     fillInExceptionsSpecificationMap(paramMap, os);
-
+    fillInBoilerplateSpecificationMap(paramMap, os);
+    
     Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_FIELDMAPPING_HTML,paramMap);
     Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_EXCEPTIONS_HTML,paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_BOILERPLATE_HTML,paramMap);
   }
 
   /** Process a specification post.
@@ -514,6 +519,27 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       os.addChild(os.getChildCount(), node);
     }
     
+    x = variableContext.getParameter(seqPrefix+"boilerplateclassname");
+    if (x != null)
+    {
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(TikaConfig.NODE_BOILERPLATEPROCESSOR))
+          os.removeChild(i);
+        else
+          i++;
+      }
+
+      if (x.length() > 0)
+      {
+        SpecificationNode node = new SpecificationNode(TikaConfig.NODE_BOILERPLATEPROCESSOR);
+        node.setAttribute(TikaConfig.ATTRIBUTE_VALUE, x);
+        os.addChild(os.getChildCount(), node);
+      }
+    }
+    
     return null;
   }
   
@@ -537,6 +563,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     // Fill in the map with data from all tabs
     fillInFieldMappingSpecificationMap(paramMap, os);
     fillInExceptionsSpecificationMap(paramMap, os);
+    fillInBoilerplateSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out,locale,VIEW_SPECIFICATION_HTML,paramMap);
     
@@ -588,6 +615,20 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       }
     }
     paramMap.put("IGNORETIKAEXCEPTIONS",ignoreTikaExceptions);
+  }
+
+  protected static void fillInBoilerplateSpecificationMap(Map<String,Object> paramMap, Specification os)
+  {
+    String boilerplateClassName = "";
+    for (int i = 0; i < os.getChildCount(); i++)
+    {
+      SpecificationNode sn = os.getChild(i);
+      if (sn.getType().equals(TikaConfig.NODE_BOILERPLATEPROCESSOR))
+      {
+        boilerplateClassName = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+      }
+    }
+    paramMap.put("BOILERPLATECLASSNAME",boilerplateClassName);
   }
 
   protected static int handleTikaException(TikaException e)
