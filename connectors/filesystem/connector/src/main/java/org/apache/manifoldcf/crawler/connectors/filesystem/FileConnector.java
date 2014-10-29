@@ -245,187 +245,199 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     for (String documentIdentifier : documentIdentifiers)
     {
       File file = new File(documentIdentifier);
-      if (file.exists())
-      {
-        if (file.isDirectory())
-        {
-          // It's a directory.  The version ID would be the
-          // last modified date, except that doesn't work on Windows
-          // because modified dates are not transitive.
-          //long lastModified = file.lastModified();
-          //rval[i] = new Long(lastModified).toString();
-
-          // No versioning; just reference children
-          // Chained connectors scan parent nodes always
-          // Queue up stuff for directory
-          long startTime = System.currentTimeMillis();
-          String errorCode = "OK";
-          String errorDesc = null;
-          String entityReference = documentIdentifier;
-          try
-          {
-            try
-            {
-              File[] files = file.listFiles();
-              if (files != null)
-              {
-                int j = 0;
-                while (j < files.length)
-                {
-                  File f = files[j++];
-                  String canonicalPath = f.getCanonicalPath();
-                  if (checkInclude(f,canonicalPath,spec))
-                    activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
-                }
-              }
-            }
-            catch (IOException e)
-            {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
-            }
-          }
-          finally
-          {
-            activities.recordActivity(new Long(startTime),ACTIVITY_READ,null,entityReference,errorCode,errorDesc,null);
-          }
-          continue;
-        }
-        else
-        {
-          // It's a file
-          String versionString;
-          String convertPath;
-          long fileLength = file.length();
-          // Get the file's modified date.
-          long lastModified = file.lastModified();
-            
-          // Check if the path is to be converted.  We record that info in the version string so that we'll reindex documents whose
-          // URI's change.
-          convertPath = findConvertPath(spec, file);
-          StringBuilder sb = new StringBuilder();
-          if (convertPath != null)
-          {
-            // Record the path.
-            sb.append("+");
-            pack(sb,convertPath,'+');
-          }
-          else
-            sb.append("-");
-          sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString());
-          versionString = sb.toString();
-    
-          if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
-          {
-            // We've already avoided queuing documents that we don't want, based on file specifications.
-            // We still need to check based on file data.
-            if (checkIngest(file,spec))
-            {
-              String fileName = file.getName();
-              Date modifiedDate = new Date(file.lastModified());
-              String mimeType = mapExtensionToMimeType(fileName);
-              String uri;
-              if (convertPath != null) {
-                // WGET-compatible input; convert back to external URI
-                uri = convertToWGETURI(convertPath);
-              } else {
-                uri = convertToURI(documentIdentifier);
-              }
-
-              if (!activities.checkLengthIndexable(fileLength))
-              {
-                Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because length was excluded by output connector.");
-                activities.noDocument(documentIdentifier,versionString);
-                activities.recordActivity(null,ACTIVITY_READ,null,documentIdentifier,"FILETOOLONG","Document rejected because of length",null);
-                continue;
-              }
-              
-              if (!activities.checkURLIndexable(uri))
-              {
-                Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because URL was excluded by output connector.");
-                activities.noDocument(documentIdentifier,versionString);
-                activities.recordActivity(null,ACTIVITY_READ,null,documentIdentifier,"URLREJECTED","Document rejected because of URL",null);
-                continue;
-              }
-              
-              if (!activities.checkDateIndexable(modifiedDate))
-              {
-                Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because date ("+modifiedDate+") was excluded by output connector.");
-                activities.noDocument(documentIdentifier,versionString);
-                activities.recordActivity(null,ACTIVITY_READ,null,documentIdentifier,"DATEREJECTED","Document rejected because of date",null);
-                continue;
-              }
-              
-              if (!activities.checkMimeTypeIndexable(mimeType))
-              {
-                Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because mime type ('"+mimeType+"') was excluded by output connector.");
-                activities.noDocument(documentIdentifier,versionString);
-                activities.recordActivity(null,ACTIVITY_READ,null,documentIdentifier,"MIMETYPEREJECTED","Document rejected because of mime type",null);
-                continue;
-              }
-              
-              long startTime = System.currentTimeMillis();
-              String errorCode = "OK";
-              String errorDesc = null;
-              Long fileLengthLong = null;
-              String entityDescription = documentIdentifier;
-              try
-              {
-                // Ingest the document.
-                try
-                {
-                  InputStream is = new FileInputStream(file);
-                  try
-                  {
-                    RepositoryDocument data = new RepositoryDocument();
-                    data.setBinary(is,fileLength);
-                    data.setFileName(fileName);
-                    data.setMimeType(mimeType);
-                    data.setModifiedDate(modifiedDate);
-                    if (convertPath != null) {
-                      // WGET-compatible input; convert back to external URI
-                      data.addField("uri",uri);
-                    } else {
-                      data.addField("uri",file.toString());
-                    }
-                    // MHL for other metadata
-                    activities.ingestDocumentWithException(documentIdentifier,versionString,uri,data);
-                    fileLengthLong = new Long(fileLength);
-                  }
-                  finally
-                  {
-                    is.close();
-                  }
-                }
-                catch (FileNotFoundException e)
-                {
-                  //skip. throw nothing.
-                  Logging.connectors.debug("Skipping file due to " +e.getMessage());
-                }
-                catch (InterruptedIOException e)
-                {
-                  throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                }
-                catch (IOException e)
-                {
-                  errorCode = "IO ERROR";
-                  errorDesc = e.getMessage();
-                  throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
-                }
-              }
-              finally
-              {
-                activities.recordActivity(new Long(startTime),ACTIVITY_READ,fileLengthLong,entityDescription,errorCode,errorDesc,null);
-              }
-            }
-          }
-        }
-      }
-      else
+      if (!file.exists())
       {
         activities.deleteDocument(documentIdentifier);
         continue;
+      }
+      
+      if (file.isDirectory())
+      {
+        // It's a directory.  The version ID would be the
+        // last modified date, except that doesn't work on Windows
+        // because modified dates are not transitive.
+        //long lastModified = file.lastModified();
+        //rval[i] = new Long(lastModified).toString();
+
+        // No versioning; just reference children
+        // Chained connectors scan parent nodes always
+        // Queue up stuff for directory
+        long startTime = System.currentTimeMillis();
+        String errorCode = null;
+        String errorDesc = null;
+        try
+        {
+          try
+          {
+            File[] files = file.listFiles();
+            if (files != null)
+            {
+              for (File f : files)
+              {
+                String canonicalPath = f.getCanonicalPath();
+                if (checkInclude(f,canonicalPath,spec))
+                  activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
+              }
+            }
+            errorCode = "OK";
+          }
+          catch (IOException e)
+          {
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
+            throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
+          }
+        }
+        finally
+        {
+          if (errorCode != null)
+            activities.recordActivity(new Long(startTime),ACTIVITY_READ,null,documentIdentifier,errorCode,errorDesc,null);
+        }
+        continue;
+      }
+      
+      // It's a file
+      String versionString;
+      String convertPath;
+      long fileLength = file.length();
+      // Get the file's modified date.
+      long lastModified = file.lastModified();
+            
+      // Check if the path is to be converted.  We record that info in the version string so that we'll reindex documents whose
+      // URI's change.
+      convertPath = findConvertPath(spec, file);
+      StringBuilder sb = new StringBuilder();
+      if (convertPath != null)
+      {
+        // Record the path.
+        sb.append("+");
+        pack(sb,convertPath,'+');
+      }
+      else
+        sb.append("-");
+      sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString());
+      versionString = sb.toString();
+    
+      if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+        continue;
+      
+      long startTime = System.currentTimeMillis();
+      String errorCode = null;
+      String errorDesc = null;
+      Long fileLengthLong = null;
+      try
+      {
+        // We've already avoided queuing documents that we don't want, based on file specifications.
+        // We still need to check based on file data.
+        if (!checkIngest(file,spec))
+        {
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+        
+        String fileName = file.getName();
+        Date modifiedDate = new Date(file.lastModified());
+        String mimeType = mapExtensionToMimeType(fileName);
+        String uri;
+        if (convertPath != null) {
+          // WGET-compatible input; convert back to external URI
+          uri = convertToWGETURI(convertPath);
+        } else {
+          uri = convertToURI(documentIdentifier);
+        }
+
+        if (!activities.checkLengthIndexable(fileLength))
+        {
+          errorCode = activities.EXCLUDED_LENGTH;
+          errorDesc = "Excluded because of length ("+fileLength+")";
+          Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because length was excluded by output connector.");
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+              
+        if (!activities.checkURLIndexable(uri))
+        {
+          errorCode = activities.EXCLUDED_URL;
+          errorDesc = "Excluded because of URL ('"+uri+"')";
+          Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because URL was excluded by output connector.");
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+                
+        if (!activities.checkDateIndexable(modifiedDate))
+        {
+          errorCode = activities.EXCLUDED_DATE;
+          errorDesc = "Excluded because of date ("+modifiedDate+")";
+          Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because date ("+modifiedDate+") was excluded by output connector.");
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+                
+        if (!activities.checkMimeTypeIndexable(mimeType))
+        {
+          errorCode = activities.EXCLUDED_MIMETYPE;
+          errorDesc = "Excluded because mime type ('"+mimeType+"')";
+          Logging.connectors.debug("Skipping file '"+documentIdentifier+"' because mime type ('"+mimeType+"') was excluded by output connector.");
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+        
+        RepositoryDocument data = new RepositoryDocument();
+        data.setFileName(fileName);
+        data.setMimeType(mimeType);
+        data.setModifiedDate(modifiedDate);
+        if (convertPath != null) {
+          // WGET-compatible input; convert back to external URI
+          data.addField("uri",uri);
+        } else {
+          data.addField("uri",file.toString());
+        }
+        // MHL for other metadata
+        
+        // Ingest the document.
+        try
+        {
+          InputStream is = new FileInputStream(file);
+          try
+          {
+            data.setBinary(is,fileLength);
+            activities.ingestDocumentWithException(documentIdentifier,versionString,uri,data);
+            errorCode = "OK";
+            fileLengthLong = new Long(fileLength);
+          }
+          finally
+          {
+            is.close();
+          }
+        }
+        catch (FileNotFoundException e)
+        {
+          //skip. throw nothing.
+          Logging.connectors.debug("Skipping file due to " +e.getMessage());
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+        catch (InterruptedIOException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+        catch (IOException e)
+        {
+          errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+          errorDesc = e.getMessage();
+          throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
+        }
+      }
+      catch (ManifoldCFException e)
+      {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          errorCode = null;
+        throw e;
+      }
+      finally
+      {
+        if (errorCode != null)
+          activities.recordActivity(new Long(startTime),ACTIVITY_READ,fileLengthLong,documentIdentifier,errorCode,errorDesc,null);
       }
     }
   }
