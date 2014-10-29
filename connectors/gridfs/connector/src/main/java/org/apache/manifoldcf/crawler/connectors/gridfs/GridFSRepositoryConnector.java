@@ -390,13 +390,13 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
     public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
       IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
       throws ManifoldCFException, ServiceInterruption {
-        
+
         for (String documentIdentifier : documentIdentifiers) {
-          
+
             String versionString;
             GridFS gfs;
             GridFSDBFile document;
-          
+
             getSession();
             String _id = documentIdentifier;
             gfs = new GridFS(session, bucket);
@@ -410,136 +410,154 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                         ? Integer.toString(metadata.hashCode())
                         : StringUtils.EMPTY;
             }
-            
+
             if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)) {
                 long startTime = System.currentTimeMillis();
-                String errorCode = "OK";
+                String errorCode = null;
                 String errorDesc = null;
                 String version = versionString;
+                try {
 
-                if (Logging.connectors.isDebugEnabled()) {
-                    Logging.connectors.debug("GridFS: Processing document _id = " + _id);
-                }
-
-                DBObject metadata = document.getMetaData();
-                if (metadata == null) {
-                    Logging.connectors.warn("GridFS: Document " + _id + " has a null metadata - skipping.");
-                    activities.noDocument(_id,version);
-                    continue;
-                }
-
-                String urlValue = document.getMetaData().get(this.url) == null
-                        ? StringUtils.EMPTY
-                        : document.getMetaData().get(this.url).toString();
-                if (!StringUtils.isEmpty(urlValue)) {
-                    boolean validURL;
-                    try {
-                        new java.net.URI(urlValue);
-                        validURL = true;
-                    } catch (java.net.URISyntaxException e) {
-                        validURL = false;
+                    if (Logging.connectors.isDebugEnabled()) {
+                        Logging.connectors.debug("GridFS: Processing document _id = " + _id);
                     }
-                    if (validURL) {
-                        long fileLenght = document.getLength();
-                        Date createdDate = document.getUploadDate();
-                        String fileName = document.getFilename();
-                        String mimeType = document.getContentType();
-                      
-                        if (!activities.checkURLIndexable(urlValue))
-                        {
-                          Logging.connectors.warn("GridFS: Document " + _id + " has a URL excluded by the output connector ('" + urlValue + "') - skipping.");
-                          activities.noDocument(_id, version);
-                          continue;
-                        }
-                        
-                        if (!activities.checkLengthIndexable(fileLenght))
-                        {
-                          Logging.connectors.warn("GridFS: Document " + _id + " has a length excluded by the output connector (" + fileLenght + ") - skipping.");
-                          activities.noDocument(_id, version);
-                          continue;
-                        }
-                        
-                        if (!activities.checkMimeTypeIndexable(mimeType))
-                        {
-                          Logging.connectors.warn("GridFS: Document " + _id + " has a mime type excluded by the output connector ('" + mimeType + "') - skipping.");
-                          activities.noDocument(_id, version);
-                          continue;
-                        }
-                        
-                        if (!activities.checkDateIndexable(createdDate))
-                        {
-                          Logging.connectors.warn("GridFS: Document " + _id + " has a date excluded by the output connector (" + createdDate + ") - skipping.");
-                          activities.noDocument(_id, version);
-                          continue;
-                        }
-                        
-                        RepositoryDocument rd = new RepositoryDocument();
-                        rd.setCreatedDate(createdDate);
-                        rd.setModifiedDate(createdDate);
-                        rd.setFileName(fileName);
-                        rd.setMimeType(mimeType);
-                        String[] aclsArray = null;
-                        String[] denyAclsArray = null;
-                        if (acl != null) {
-                            try {
-                                Object aclObject = document.getMetaData().get(acl);
-                                if (aclObject != null) {
-                                    List<String> acls = (List<String>) aclObject;
-                                    aclsArray = (String[]) acls.toArray();
-                                }
-                            } catch (ClassCastException e) {
-                                // This is bad because security will fail
-                                Logging.connectors.warn("GridFS: Document " + _id + " metadata ACL field doesn't contain List<String> type.");
-                                throw new ManifoldCFException("Security decoding error: "+e.getMessage(),e);
-                            }
-                        }
-                        if (denyAcl != null) {
-                            try {
-                                Object denyAclObject = document.getMetaData().get(denyAcl);
-                                if (denyAclObject != null) {
-                                    List<String> denyAcls = (List<String>) denyAclObject;
-                                    denyAcls.add(GLOBAL_DENY_TOKEN);
-                                    denyAclsArray = (String[]) denyAcls.toArray();
-                                }
-                            } catch (ClassCastException e) {
-                                // This is bad because security will fail
-                                Logging.connectors.warn("GridFS: Document " + _id + " metadata DenyACL field doesn't contain List<String> type.");
-                                throw new ManifoldCFException("Security decoding error: "+e.getMessage(),e);
-                            }
-                        }
-                        rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclsArray,denyAclsArray);
 
-                        InputStream is = document.getInputStream();
+                    DBObject metadata = document.getMetaData();
+                    if (metadata == null) {
+                        errorCode = "NULLMETADATA";
+                        errorDesc = "Excluded because document had a null Metadata";
+                        Logging.connectors.warn("GridFS: Document " + _id + " has a null metadata - skipping.");
+                        activities.noDocument(_id, version);
+                        continue;
+                    }
+
+                    String urlValue = document.getMetaData().get(this.url) == null
+                            ? StringUtils.EMPTY
+                            : document.getMetaData().get(this.url).toString();
+                    if (!StringUtils.isEmpty(urlValue)) {
+                        boolean validURL;
                         try {
-                            rd.setBinary(is, fileLenght);
-                            try {
-                                activities.ingestDocumentWithException(_id, version, urlValue, rd);
-                            } catch (IOException e) {
-                                handleIOException(e);
-                            }
-                        } finally {
-                            try {
-                                is.close();
-                            } catch (IOException e) {
-                                handleIOException(e);
-                            }
+                            new java.net.URI(urlValue);
+                            validURL = true;
+                        } catch (java.net.URISyntaxException e) {
+                            validURL = false;
                         }
-                        gfs.getDB().getMongo().getConnector().close();
-                        session = null;
-                        activities.recordActivity(startTime, ACTIVITY_FETCH,
-                                fileLenght, _id, errorCode, errorDesc, null);
+                        if (validURL) {
+                            long fileLenght = document.getLength();
+                            Date createdDate = document.getUploadDate();
+                            String fileName = document.getFilename();
+                            String mimeType = document.getContentType();
+
+                            if (!activities.checkURLIndexable(urlValue)) {
+                                Logging.connectors.warn("GridFS: Document " + _id + " has a URL excluded by the output connector ('" + urlValue + "') - skipping.");
+                                errorCode = activities.EXCLUDED_URL;
+                                errorDesc = "Excluded because of URL (" + urlValue + ")";
+                                activities.noDocument(_id, version);
+                                continue;
+                            }
+
+                            if (!activities.checkLengthIndexable(fileLenght)) {
+                                Logging.connectors.warn("GridFS: Document " + _id + " has a length excluded by the output connector (" + fileLenght + ") - skipping.");
+                                errorCode = activities.EXCLUDED_LENGTH;
+                                errorDesc = "Excluded because of length (" + fileLenght + ")";
+                                activities.noDocument(_id, version);
+                                continue;
+                            }
+
+                            if (!activities.checkMimeTypeIndexable(mimeType)) {
+                                Logging.connectors.warn("GridFS: Document " + _id + " has a mime type excluded by the output connector ('" + mimeType + "') - skipping.");
+                                errorCode = activities.EXCLUDED_MIMETYPE;
+                                errorDesc = "Excluded because of mime type (" + mimeType + ")";
+                                activities.noDocument(_id, version);
+                                continue;
+                            }
+
+                            if (!activities.checkDateIndexable(createdDate)) {
+                                Logging.connectors.warn("GridFS: Document " + _id + " has a date excluded by the output connector (" + createdDate + ") - skipping.");
+                                errorCode = activities.EXCLUDED_DATE;
+                                errorDesc = "Excluded because of date (" + createdDate + ")";
+                                activities.noDocument(_id, version);
+                                continue;
+                            }
+
+                            RepositoryDocument rd = new RepositoryDocument();
+                            rd.setCreatedDate(createdDate);
+                            rd.setModifiedDate(createdDate);
+                            rd.setFileName(fileName);
+                            rd.setMimeType(mimeType);
+                            String[] aclsArray = null;
+                            String[] denyAclsArray = null;
+                            if (acl != null) {
+                                try {
+                                    Object aclObject = document.getMetaData().get(acl);
+                                    if (aclObject != null) {
+                                        List<String> acls = (List<String>) aclObject;
+                                        aclsArray = (String[]) acls.toArray();
+                                    }
+                                } catch (ClassCastException e) {
+                                    // This is bad because security will fail
+                                    Logging.connectors.warn("GridFS: Document " + _id + " metadata ACL field doesn't contain List<String> type.");
+                                    errorCode = "ACLTYPE";
+                                    errorDesc = "Allow ACL field doesn't contain List<String> type.";
+                                    throw new ManifoldCFException("Security decoding error: " + e.getMessage(), e);
+                                }
+                            }
+                            if (denyAcl != null) {
+                                try {
+                                    Object denyAclObject = document.getMetaData().get(denyAcl);
+                                    if (denyAclObject != null) {
+                                        List<String> denyAcls = (List<String>) denyAclObject;
+                                        denyAcls.add(GLOBAL_DENY_TOKEN);
+                                        denyAclsArray = (String[]) denyAcls.toArray();
+                                    }
+                                } catch (ClassCastException e) {
+                                    // This is bad because security will fail
+                                    Logging.connectors.warn("GridFS: Document " + _id + " metadata DenyACL field doesn't contain List<String> type.");
+                                    errorCode = "ACLTYPE";
+                                    errorDesc = "Deny ACL field doesn't contain List<String> type.";
+                                    throw new ManifoldCFException("Security decoding error: " + e.getMessage(), e);
+                                }
+                            }
+                            rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT, aclsArray, denyAclsArray);
+
+                            InputStream is = document.getInputStream();
+                            try {
+                                rd.setBinary(is, fileLenght);
+                                try {
+                                    activities.ingestDocumentWithException(_id, version, urlValue, rd);
+                                } catch (IOException e) {
+                                    handleIOException(e);
+                                }
+                            } finally {
+                                try {
+                                    is.close();
+                                } catch (IOException e) {
+                                    handleIOException(e);
+                                }
+                            }
+                            gfs.getDB().getMongo().getConnector().close();
+                            session = null;
+                            activities.recordActivity(startTime, ACTIVITY_FETCH,
+                                    fileLenght, _id, "OK", null, null);
+                        } else {
+                            Logging.connectors.warn("GridFS: Document " + _id + " has a invalid URL: " + urlValue + " - skipping.");
+                            errorCode = activities.BAD_URL;
+                            errorDesc = "Excluded because document had illegal URL ('" + urlValue + "')";
+                            activities.noDocument(_id, version);
+                        }
                     } else {
-                        Logging.connectors.warn("GridFS: Document " + _id + " has a invalid URL: " + urlValue + " - skipping.");
-                        activities.noDocument(_id,version);
+                        Logging.connectors.warn("GridFS: Document " + _id + " has a null URL - skipping.");
+                        errorCode = activities.NULL_URL;
+                        errorDesc = "Excluded because document had a null URL.";
+                        activities.noDocument(_id, version);
                     }
-                } else {
-                    Logging.connectors.warn("GridFS: Document " + _id + " has a null URL - skipping.");
-                    activities.noDocument(_id,version);
+                } finally {
+                    if (errorCode != null) {
+                        activities.recordActivity(startTime, ACTIVITY_FETCH, document.getLength(), _id, errorCode, errorDesc, null);
+                    }
                 }
-              
             }
         }
-
     }
 
     protected static void handleIOException(IOException e) throws ManifoldCFException, ServiceInterruption {
