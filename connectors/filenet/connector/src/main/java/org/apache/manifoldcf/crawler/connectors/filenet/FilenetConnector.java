@@ -961,10 +961,11 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         String vId = documentIdentifier.substring(0,cIndex);
 
-        long currentTime;
+        FileInfo fileInfo;
+        Integer count;
         try
         {
-          FileInfo fileInfo = doGetDocumentInformation(vId, dSpec.getMetadataFields());
+          fileInfo = doGetDocumentInformation(vId, dSpec.getMetadataFields());
           if (fileInfo == null)
           {
             if (Logging.connectors.isDebugEnabled())
@@ -972,133 +973,20 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             activities.deleteDocument(documentIdentifier);
             continue;
           }
-          else
+          
+          count = doGetDocumentContentCount(documentIdentifier);
+          if (count == null)
           {
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Filenet: Document '"+documentIdentifier+"' is a current document");
-
-            // Form a version string based on the info in fileInfo
-            // Version string will consist of:
-            // (a) metadata info
-            // (b) acl info
-            // (c) the url prefix to use
-            StringBuilder versionBuffer = new StringBuilder();
-
-            docClass = fileInfo.getDocClass();
-            DocClassSpec docclassspec = dSpec.getDocClassSpec(docClass);
-
-            // First, verify that this document matches the match criteria
-            boolean docMatches = true;
-            int q = 0;
-            while (q < docclassspec.getMatchCount())
-            {
-              String matchType = docclassspec.getMatchType(q);
-              String matchField = docclassspec.getMatchField(q);
-              String matchValue = docclassspec.getMatchValue(q);
-              q++;
-              // Grab the appropriate field value from the fileinfo.  We know it is there because we explicitly
-              // folded the match fields into the server request.
-              String matchDocValue = fileInfo.getMetadataValue(matchField);
-              docMatches = performMatch(matchType,matchDocValue,matchValue);
-              if (docMatches == false)
-                break;
-            }
-
-            if (docMatches)
-            {
-              // Metadata info
-              int metadataCount = 0;
-              Iterator iter = fileInfo.getMetadataIterator();
-              while (iter.hasNext())
-              {
-                String field = (String)iter.next();
-                if (docclassspec.checkMetadataIncluded(field))
-                  metadataCount++;
-              }
-              metadataFieldNames = new String[metadataCount];
-              int j = 0;
-              iter = fileInfo.getMetadataIterator();
-              while (iter.hasNext())
-              {
-                String field = (String)iter.next();
-                if (docclassspec.checkMetadataIncluded(field))
-                  metadataFieldNames[j++] = field;
-              }
-              java.util.Arrays.sort(metadataFieldNames);
-              // Pack field names and values
-              // For sanity, pack the names first and then the values!
-              packList(versionBuffer,metadataFieldNames,'+');
-              metadataFieldValues = new String[metadataFieldNames.length];
-              j = 0;
-              while (j < metadataFieldValues.length)
-              {
-                metadataFieldValues[j] = fileInfo.getMetadataValue(metadataFieldNames[j]);
-                if (metadataFieldValues[j] == null)
-                  metadataFieldValues[j] = "";
-                j++;
-              }
-              packList(versionBuffer,metadataFieldValues,'+');
-
-              // Acl info
-              // Future work will add "forced acls", so use a single character as a signal as to whether security is on or off.
-              if (acls != null && acls.length == 0)
-              {
-                // Security is on, so use the acls that came back from filenet
-                aclValues = new String[fileInfo.getAclCount()];
-                j = 0;
-                iter = fileInfo.getAclIterator();
-                while (iter.hasNext())
-                {
-                  aclValues[j++] = (String)iter.next();
-                }
-                denyAclValues = new String[fileInfo.getDenyAclCount()];
-                j = 0;
-                iter = fileInfo.getDenyAclIterator();
-                while (iter.hasNext())
-                {
-                  denyAclValues[j++] = (String)iter.next();
-                }
-              }
-              else if (acls != null && acls.length > 0)
-              {
-                // Forced acls
-                aclValues = acls;
-                denyAclValues = new String[]{defaultAuthorityDenyToken};
-              }
-
-              if (aclValues != null)
-              {
-                versionBuffer.append('+');
-                java.util.Arrays.sort(aclValues);
-                packList(versionBuffer,aclValues,'+');
-                if (denyAclValues == null)
-                  denyAclValues = new String[0];
-                java.util.Arrays.sort(denyAclValues);
-                packList(versionBuffer,denyAclValues,'+');
-              }
-              else
-                versionBuffer.append('-');
-
-              // Document class
-              pack(versionBuffer,docClass,'+');
-              // Document URI
-              pack(versionBuffer,docURIPrefix,'+');
-
-              versionString = versionBuffer.toString();
-            }
-            else
-            {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("FileNet: Skipping document '"+documentIdentifier+"' because doesn't match field criteria");
-              activities.deleteDocument(documentIdentifier);
-              continue;
-            }
+              Logging.connectors.debug("FileNet: Removing version '"+documentIdentifier+"' because it seems to no longer exist");
+            activities.deleteDocument(documentIdentifier);
+            continue;
           }
         }
         catch (FilenetException e)
         {
           // Base our treatment on the kind of error it is.
-          currentTime = System.currentTimeMillis();
+          long currentTime = System.currentTimeMillis();
           if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
             throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
           else if (e.getType() == FilenetException.TYPE_NOTALLOWED)
@@ -1111,214 +999,326 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           else
             throw new ManifoldCFException(e.getMessage(),e);
         }
-      }
-      else
-      {
-        // This is a naked version identifier.
-        // On every crawl, we need to convert this identifier to the individual identifiers for each bit of content.
-        // There is no versioning available for this process.
-        versionString = "";
-      }
-      
-      if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
-      {
-        // For each document, be sure to confirm job still active
-        activities.checkJobStillActive();
-
-        String documentVersion = versionString;
 
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("FileNet: Processing document identifier '"+documentIdentifier+"'");
+          Logging.connectors.debug("Filenet: Document '"+documentIdentifier+"' is a current document");
 
-        // Calculate the version id and the element number
-        if (cIndex != -1)
+        // Form a version string based on the info in fileInfo
+        // Version string will consist of:
+        // (a) metadata info
+        // (b) acl info
+        // (c) the url prefix to use
+        StringBuilder versionBuffer = new StringBuilder();
+
+        docClass = fileInfo.getDocClass();
+        DocClassSpec docclassspec = dSpec.getDocClassSpec(docClass);
+
+        // First, verify that this document matches the match criteria
+        boolean docMatches = true;
+        for (int q = 0; q < docclassspec.getMatchCount(); q++)
+        {
+          String matchType = docclassspec.getMatchType(q);
+          String matchField = docclassspec.getMatchField(q);
+          String matchValue = docclassspec.getMatchValue(q);
+          // Grab the appropriate field value from the fileinfo.  We know it is there because we explicitly
+          // folded the match fields into the server request.
+          String matchDocValue = fileInfo.getMetadataValue(matchField);
+          docMatches = performMatch(matchType,matchDocValue,matchValue);
+          if (docMatches == false)
+            break;
+        }
+
+        if (!docMatches)
         {
           if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("FileNet: Document identifier '"+documentIdentifier+"' is a document attachment");
+            Logging.connectors.debug("FileNet: Skipping document '"+documentIdentifier+"' because doesn't match field criteria");
+          activities.deleteDocument(documentIdentifier);
+          continue;
+        }
+            
+        // Metadata info
+        int metadataCount = 0;
+        Iterator iter = fileInfo.getMetadataIterator();
+        while (iter.hasNext())
+        {
+          String field = (String)iter.next();
+          if (docclassspec.checkMetadataIncluded(field))
+            metadataCount++;
+        }
+        metadataFieldNames = new String[metadataCount];
+        int j = 0;
+        iter = fileInfo.getMetadataIterator();
+        while (iter.hasNext())
+        {
+          String field = (String)iter.next();
+          if (docclassspec.checkMetadataIncluded(field))
+            metadataFieldNames[j++] = field;
+        }
+        java.util.Arrays.sort(metadataFieldNames);
+        // Pack field names and values
+        // For sanity, pack the names first and then the values!
+        packList(versionBuffer,metadataFieldNames,'+');
+        metadataFieldValues = new String[metadataFieldNames.length];
+        for (int q = 0; q < metadataFieldValues.length; q++)
+        {
+          metadataFieldValues[q] = fileInfo.getMetadataValue(metadataFieldNames[q]);
+          if (metadataFieldValues[q] == null)
+            metadataFieldValues[q] = "";
+        }
+        packList(versionBuffer,metadataFieldValues,'+');
 
-          String vId = documentIdentifier.substring(0,cIndex);
-          int elementNumber;
+        // Acl info
+        // Future work will add "forced acls", so use a single character as a signal as to whether security is on or off.
+        if (acls != null && acls.length == 0)
+        {
+          // Security is on, so use the acls that came back from filenet
+          aclValues = new String[fileInfo.getAclCount()];
+          j = 0;
+          iter = fileInfo.getAclIterator();
+          while (iter.hasNext())
+          {
+            aclValues[j++] = (String)iter.next();
+          }
+          denyAclValues = new String[fileInfo.getDenyAclCount()];
+          j = 0;
+          iter = fileInfo.getDenyAclIterator();
+          while (iter.hasNext())
+          {
+            denyAclValues[j++] = (String)iter.next();
+          }
+        }
+        else if (acls != null && acls.length > 0)
+        {
+          // Forced acls
+          aclValues = acls;
+          denyAclValues = new String[]{defaultAuthorityDenyToken};
+        }
+
+        if (aclValues != null)
+        {
+          versionBuffer.append('+');
+          java.util.Arrays.sort(aclValues);
+          packList(versionBuffer,aclValues,'+');
+          if (denyAclValues == null)
+            denyAclValues = new String[0];
+          java.util.Arrays.sort(denyAclValues);
+          packList(versionBuffer,denyAclValues,'+');
+        }
+        else
+          versionBuffer.append('-');
+        
+        // Document class
+        pack(versionBuffer,docClass,'+');
+        // Document URI
+        pack(versionBuffer,docURIPrefix,'+');
+
+        versionString = versionBuffer.toString();
+            
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("FileNet: There are "+count.toString()+" content values for '"+documentIdentifier+"'");
+
+        // Loop through all document content identifiers and add a child identifier for each
+        for (int q = 0; q < count.intValue(); q++)
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("Filenet: Adding document identifier '"+documentIdentifier+","+Integer.toString(q)+"'");
+
+          activities.addDocumentReference(documentIdentifier + "," + Integer.toString(q));
+        }
+        
+        // No more processing is necessary for document identifiers.
+        activities.noDocument(documentIdentifier,versionString);
+        continue;
+      }
+      
+      // It's a version identifier.
+      String vId = documentIdentifier.substring(0,cIndex);
+      int elementNumber;
+      try
+      {
+        elementNumber = Integer.parseInt(documentIdentifier.substring(cIndex+1));
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException("Bad number in identifier: "+documentIdentifier,e);
+      }
+
+      versionString = "";
+      
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("FileNet: Document identifier '"+documentIdentifier+"' is a document attachment");
+
+      String errorCode = null;
+      String errorDesc = null;
+      long startTime = System.currentTimeMillis();
+      Long fileLengthLong = null;
+      
+      try
+      {
+        String uri = convertToURI(docURIPrefix,vId,elementNumber,docClass);
+        if (!activities.checkURLIndexable(uri))
+        {
+          errorCode = activities.EXCLUDED_URL;
+          errorDesc = "Excluded because of url ('"+uri+"')";
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+      
+        File objFileTemp = null;
+        try
+        {
+          objFileTemp = File.createTempFile("_mc_fln_", null);
+        }
+        catch (IOException e)
+        {
+          errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+          errorDesc = e.getMessage();
+          handleIOException(e,documentIdentifier,"creating temporary file");
+        }
+        try
+        {
           try
           {
-            elementNumber = Integer.parseInt(documentIdentifier.substring(cIndex+1));
-          }
-          catch (NumberFormatException e)
-          {
-            throw new ManifoldCFException("Bad number in identifier: "+documentIdentifier,e);
-          }
-
-          //Logging.connectors.debug("Url base from version string = "+urlBase.toString());
-          try
-          {
-            // Try to ingest the document.
-            // We need to fetch the contents first
-            File objFileTemp = File.createTempFile("_mc_fln_", null);
-            try
-            {
-              long startTime = System.currentTimeMillis();
-              try
-              {
-                doGetDocumentContents(vId,elementNumber,objFileTemp.getCanonicalPath());
-              }
-              catch (FilenetException e)
-              {
-                // Base our treatment on the kind of error it is.
-                long currentTime = System.currentTimeMillis();
-                if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
-                {
-                  activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
-                    null,documentIdentifier,"Transient error",e.getMessage(),null);
-                  throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
-                }
-                else if (e.getType() == FilenetException.TYPE_NOTALLOWED)
-                {
-                  activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
-                    null,documentIdentifier,"Authorization error",e.getMessage(),null);
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("FileNet: Removing file '"+documentIdentifier+"' because: "+e.getMessage(),e);
-                  activities.noDocument(documentIdentifier,documentVersion);
-                  continue;
-                }
-                else
-                {
-                  activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
-                    null,documentIdentifier,"Miscellaneous error",e.getMessage(),null);
-                  throw new ManifoldCFException(e.getMessage(),e);
-                }
-              }
-
-              // Document fetch completed
-              long fileLength = objFileTemp.length();
-
-              activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
-                new Long(fileLength),documentIdentifier,"Success",null,null);
-
-              if (activities.checkLengthIndexable(fileLength))
-              {
-
-                InputStream is = new FileInputStream(objFileTemp);
-                try
-                {
-                  RepositoryDocument rd = new RepositoryDocument();
-                  rd.setBinary(is, fileLength);
-
-                  // Apply metadata
-                  for (int j = 0; j < metadataFieldNames.length; j++)
-                  {
-                    String metadataName = metadataFieldNames[j];
-                    String metadataValue = metadataFieldValues[j];
-                    rd.addField(metadataName,metadataValue);
-                  }
-
-                  // Apply acls
-                  if (aclValues != null)
-                  {
-                    rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclValues);
-                  }
-                  if (denyAclValues != null)
-                  {
-                    rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclValues);
-                  }
-
-                  // Ingest
-                  activities.ingestDocumentWithException(documentIdentifier,documentVersion,
-                    convertToURI(docURIPrefix,vId,elementNumber,docClass),rd);
-
-                }
-                finally
-                {
-                  try
-                  {
-                    is.close();
-                  }
-                  catch (InterruptedIOException e)
-                  {
-                    throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                  }
-                  catch (IOException e)
-                  {
-                    Logging.connectors.warn("FileNet: IOException closing file input stream: "+e.getMessage(),e);
-                  }
-                }
-              }
-              else
-                activities.noDocument(documentIdentifier,documentVersion);
-            }
-            finally
-            {
-              // Delete temp file
-              objFileTemp.delete();
-            }
-          }
-          catch (InterruptedIOException e)
-          {
-            throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            doGetDocumentContents(vId,elementNumber,objFileTemp.getCanonicalPath());
           }
           catch (IOException e)
           {
-            Logging.connectors.error("FileNet: IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
-            throw new ManifoldCFException("IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
+            handleIOException(e,documentIdentifier,"reading document");
+          }
+          catch (FilenetException e)
+          {
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
+            // Base our treatment on the kind of error it is.
+            long currentTime = System.currentTimeMillis();
+            if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
+            {
+              throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
+            }
+            else if (e.getType() == FilenetException.TYPE_NOTALLOWED)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("FileNet: Removing file '"+documentIdentifier+"' because: "+e.getMessage(),e);
+              activities.noDocument(documentIdentifier,versionString);
+              continue;
+            }
+            else
+            {
+              throw new ManifoldCFException(e.getMessage(),e);
+            }
+          }
+
+          // Document fetch completed
+          long fileLength = objFileTemp.length();
+          if (!activities.checkLengthIndexable(fileLength))
+          {
+            errorCode = activities.EXCLUDED_LENGTH;
+            errorDesc = "Excluded document because of length ("+fileLength+")";
+            activities.noDocument(documentIdentifier,versionString);
+            continue;
+          }
+
+          RepositoryDocument rd = new RepositoryDocument();
+          // Apply metadata
+          for (int j = 0; j < metadataFieldNames.length; j++)
+          {
+            String metadataName = metadataFieldNames[j];
+            String metadataValue = metadataFieldValues[j];
+            rd.addField(metadataName,metadataValue);
+          }
+
+          // Apply acls
+          if (aclValues != null)
+          {
+            rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclValues);
+          }
+          if (denyAclValues != null)
+          {
+            rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclValues);
+          }
+
+          InputStream is = null;
+          try
+          {
+            is = new FileInputStream(objFileTemp);
+          }
+          catch (IOException e)
+          {
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
+            handleIOException(e,documentIdentifier,"Opening temporary file");
+          }
+          try
+          {
+            rd.setBinary(is, fileLength);
+
+            try
+            {
+              // Ingest
+              activities.ingestDocumentWithException(documentIdentifier,versionString,uri,rd);
+              errorCode = "OK";
+              fileLengthLong = new Long(fileLength);
+            }
+            catch (IOException e)
+            {
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
+              handleIOException(e,documentIdentifier,"ingesting document");
+            }
+          }
+          finally
+          {
+            try
+            {
+              is.close();
+            }
+            catch (IOException e)
+            {
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
+              handleIOException(e,documentIdentifier,"closing input stream");
+            }
           }
         }
-        
+        finally
+        {
+          // Delete temp file
+          objFileTemp.delete();
+        }
       }
-      else
+      catch (ManifoldCFException e)
       {
-        // Need to map naked version id to the individual content element identifiers
-        // This is done even if we get a "scan only" request, because in fact this is part of the document discovery
-        // process, not the actual ingestion.
-        try
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("FileNet: Looking up content count for version identifier '"+documentIdentifier+"'");
-          Integer count = doGetDocumentContentCount(documentIdentifier);
-          if (count == null)
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("FileNet: Removing version '"+documentIdentifier+"' because it seems to no longer exist");
-
-            activities.noDocument(documentIdentifier,versionString);
-            continue;
-          }
-
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("FileNet: There are "+count.toString()+" content values for '"+documentIdentifier+"'");
-
-          // Loop through all document content identifiers and add a child identifier for each
-          int j = 0;
-          while (j < count.intValue())
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Filenet: Adding document identifier '"+documentIdentifier+","+Integer.toString(j)+"'");
-
-            activities.addDocumentReference(documentIdentifier + "," + Integer.toString(j++));
-          }
-        }
-        catch (FilenetException e)
-        {
-          // Base our treatment on the kind of error it is.
-          long currentTime = System.currentTimeMillis();
-          if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
-          {
-            throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
-          }
-          else if (e.getType() == FilenetException.TYPE_NOTALLOWED)
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("FileNet: Removing version '"+documentIdentifier+"' because: "+e.getMessage(),e);
-            activities.noDocument(documentIdentifier,versionString);
-            continue;
-          }
-          else
-          {
-            throw new ManifoldCFException(e.getMessage(),e);
-          }
-        }
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          errorCode = null;
+        throw e;
       }
-      
+      finally
+      {
+        if (errorCode != null)
+          activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
+            fileLengthLong,documentIdentifier,errorCode,errorDesc,null);
+      }
     }
   }
 
+  protected static void handleIOException(IOException e, String documentIdentifier, String context)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (e instanceof java.net.SocketTimeoutException)
+    {
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Socket timeout "+context+": "+e.getMessage(),e,currentTime+300000L,currentTime+1*60*60000L,5,true);
+    }
+    if (e instanceof InterruptedIOException)
+    {
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+    Logging.connectors.error("FileNet: IO exception on '"+documentIdentifier+"' while "+context+": "+e.getMessage(),e);
+    throw new ManifoldCFException("IO exception "+context+": "+e.getMessage(),e);
+  }
+  
   /** Emulate the query matching for filenet sql expressions. */
   protected static boolean performMatch(String matchType, String matchDocValue, String matchValue)
   {
