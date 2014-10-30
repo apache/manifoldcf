@@ -316,7 +316,7 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection
     if ("OK".equals(checkXPath(xPathStatus)))
       return;
     String error = checkXPath(xPathException);
-    setResult(activities.XPATH_EXCEPTION,Result.ERROR, error);
+    setResult("XPATHEXCEPTION",Result.ERROR, error);
     throw new ManifoldCFException("Error, unexpected response: " + error);
   }
 
