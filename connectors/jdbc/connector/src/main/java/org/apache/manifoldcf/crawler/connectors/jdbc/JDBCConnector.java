@@ -1121,6 +1121,27 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      return false;\n"+
 "    }\n"+
 "  }\n"+
+"  if (editjob."+seqPrefix+"aclquery.value != \"\")\n"+
+"  {\n"+
+"    if (editjob."+seqPrefix+"aclquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
+"    {\n"+
+"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + "\");\n"+
+"      editjob."+seqPrefix+"aclquery.focus();\n"+
+"      return false;\n"+
+"    }\n"+
+"    if (editjob."+seqPrefix+"aclquery.value.indexOf(\"$(ACCESSTOKENCOLUMN)\") == -1)\n"+
+"    {\n"+
+"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnACCESSTOKENCOLUMNInTheResult") + "\");\n"+
+"      editjob."+seqPrefix+"aclquery.focus();\n"+
+"      return false;\n"+
+"    }\n"+
+"    if (editjob."+seqPrefix+"aclquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
+"    {\n"+
+"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + "\");\n"+
+"      editjob."+seqPrefix+"aclquery.focus();\n"+
+"      return false;\n"+
+"    }\n"+
+"  }\n"+
 "  if (editjob."+seqPrefix+"dataquery.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.EnterADataQuery") + "\");\n"+
@@ -1255,11 +1276,32 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // Security tab
     // There is no native security, so all we care about are the tokens.
     i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("security"))
+      {
+        String securityValue = sn.getAttributeValue("value");
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+    }
 
     if (tabName.equals(Messages.getString(locale,"JDBCConnector.Security")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"JDBCConnector.SecurityColon")+"</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"JDBCConnector.Enabled")+"\n"+
+"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"JDBCConnector.Disabled")+"\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
       );
       // Go through forced ACL
@@ -1317,6 +1359,9 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     else
     {
+      out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
+      );
       // Finally, go through forced ACL
       i = 0;
       int k = 0;
@@ -1420,8 +1465,28 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       sn.setValue(dataQuery);
       ds.addChild(ds.getChildCount(),sn);
     }
-	
-    String xc = variableContext.getParameter(seqPrefix+"tokencount");
+
+    String xc = variableContext.getParameter(seqPrefix+"specsecurity");
+    if (xc != null)
+    {
+      // Delete all security entries first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        sn = ds.getChild(i);
+        if (sn.getType().equals("security"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode node = new SpecificationNode("security");
+      node.setAttribute("value",xc);
+      ds.addChild(ds.getChildCount(),node);
+
+    }
+
+    xc = variableContext.getParameter(seqPrefix+"tokencount");
     if (xc != null)
     {
       // Delete all tokens first
@@ -1486,7 +1551,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String idQuery = "";
     String versionQuery = "";
     String dataQuery = "";
-
+    String aclQuery = "";
+    
     int i = 0;
     while (i < ds.getChildCount())
     {
@@ -1509,6 +1575,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (dataQuery == null)
           dataQuery = "";
       }
+      else if (sn.getType().equals(JDBCConstants.aclQueryNode))
+      {
+        aclQuery = sn.getValue();
+        if (aclQuery == null)
+          aclQuery = "";
+      }
     }
 
     out.print(
@@ -1522,12 +1594,40 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(versionQuery)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AccessTokenQuery") + "</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(aclQuery)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DataQuery") + "</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</td>\n"+
 "  </tr>\n"+
 "\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("security"))
+      {
+        String securityValue = sn.getAttributeValue("value");
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+    }
+    out.print(
+"  <tr>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"JDBCConnector.SecurityColon")+"</td>\n"+
+"    <td class=\"value\">"+(securityOn?Messages.getBodyString(locale,"JDBCConnector.Enabled"):Messages.getBodyString(locale,"JDBCConnector.Disabled"))+"</td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+
     // Go through looking for access tokens
     boolean seenAny = false;
     i = 0;
