@@ -478,12 +478,19 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         String versionString = "_" + urlTemplate;   // NOT empty; we need to make ManifoldCF understand that this is a document that never will change.
         
         // Check if we need to index
-        if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
-        {
-          String compositeID = documentIdentifier;
-          String version = versionString;
-          String folderName = extractFolderNameFromDocumentIdentifier(compositeID);
-          String id = extractEmailIDFromDocumentIdentifier(compositeID);
+        if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+          continue;
+        
+        String compositeID = documentIdentifier;
+        String version = versionString;
+        String folderName = extractFolderNameFromDocumentIdentifier(compositeID);
+        String id = extractEmailIDFromDocumentIdentifier(compositeID);
+        
+        String errorCode = null;
+        String errorDesc = null;
+        Long fileLengthLong = null;
+        long startTime = System.currentTimeMillis();
+        try {
           try {
             Folder folder = openFolders.get(folderName);
             if (folder == null)
@@ -495,107 +502,165 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               openFolders.put(folderName,folder);
             }
             
-            long startTime = System.currentTimeMillis();
-            InputStream is = null;
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("Email: Processing document identifier '"
                 + compositeID + "'");
             SearchTerm messageIDTerm = new MessageIDTerm(id);
-            
+              
             getSession();
             SearchMessagesThread smt = new SearchMessagesThread(session, folder, messageIDTerm);
             smt.start();
             Message[] message = smt.finishUp();
 
-            for (Message msg : message) {
-              RepositoryDocument rd = new RepositoryDocument();
-              Date setDate = msg.getSentDate();
-              rd.setFileName(msg.getFileName());
-              is = msg.getInputStream();
-              rd.setBinary(is, msg.getSize());
-              String subject = StringUtils.EMPTY;
-              for (String metadata : requiredMetadata) {
-                if (metadata.toLowerCase().equals(EmailConfig.EMAIL_TO)) {
-                  Address[] to = msg.getRecipients(Message.RecipientType.TO);
-                  String[] toStr = new String[to.length];
-                  int j = 0;
-                  for (Address address : to) {
-                    toStr[j] = address.toString();
-                  }
-                  rd.addField(EmailConfig.EMAIL_TO, toStr);
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_FROM)) {
-                  Address[] from = msg.getFrom();
-                  String[] fromStr = new String[from.length];
-                  int j = 0;
-                  for (Address address : from) {
-                    fromStr[j] = address.toString();
-                  }
-                  rd.addField(EmailConfig.EMAIL_TO, fromStr);
+            String msgURL = makeDocumentURI(urlTemplate, folderName, id);
 
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_SUBJECT)) {
-                  subject = msg.getSubject();
-                  rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_BODY)) {
-                  Multipart mp = (Multipart) msg.getContent();
-                  for (int k = 0, n = mp.getCount(); k < n; k++) {
-                    Part part = mp.getBodyPart(k);
-                    String disposition = part.getDisposition();
-                    if ((disposition == null)) {
-                      MimeBodyPart mbp = (MimeBodyPart) part;
-                      if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
-                        rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
-                      } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
-                        rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
-                      }
+            Message msg = null;
+            for (Message msg2 : message) {
+              msg = msg2;
+            }
+            if (msg == null) {
+              // email was not found
+              activities.deleteDocument(id);
+              continue;
+            }
+              
+            if (!activities.checkURLIndexable(msgURL)) {
+              errorCode = activities.EXCLUDED_URL;
+              errorDesc = "Excluded because of URL ('"+msgURL+"')";
+              activities.noDocument(id, version);
+              continue;
+            }
+              
+            long fileLength = msg.getSize();
+            if (!activities.checkLengthIndexable(fileLength)) {
+              errorCode = activities.EXCLUDED_LENGTH;
+              errorDesc = "Excluded because of length ("+fileLength+")";
+              activities.noDocument(id, version);
+              continue;
+            }
+              
+            Date sentDate = msg.getSentDate();
+            if (!activities.checkDateIndexable(sentDate)) {
+              errorCode = activities.EXCLUDED_DATE;
+              errorDesc = "Excluded because of date ("+sentDate+")";
+              activities.noDocument(id, version);
+              continue;
+            }
+            
+            String mimeType = "text/plain";
+            if (!activities.checkMimeTypeIndexable(mimeType)) {
+              errorCode = activities.EXCLUDED_DATE;
+              errorDesc = "Excluded because of mime type ('"+mimeType+"')";
+              activities.noDocument(id, version);
+              continue;
+            }
+            
+            RepositoryDocument rd = new RepositoryDocument();
+            rd.setFileName(msg.getFileName());
+            rd.setMimeType(mimeType);
+            rd.setCreatedDate(sentDate);
+            rd.setModifiedDate(sentDate);
+            
+            String subject = StringUtils.EMPTY;
+            for (String metadata : requiredMetadata) {
+              if (metadata.toLowerCase().equals(EmailConfig.EMAIL_TO)) {
+                Address[] to = msg.getRecipients(Message.RecipientType.TO);
+                String[] toStr = new String[to.length];
+                int j = 0;
+                for (Address address : to) {
+                  toStr[j] = address.toString();
+                }
+                rd.addField(EmailConfig.EMAIL_TO, toStr);
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_FROM)) {
+                Address[] from = msg.getFrom();
+                String[] fromStr = new String[from.length];
+                int j = 0;
+                for (Address address : from) {
+                  fromStr[j] = address.toString();
+                }
+                rd.addField(EmailConfig.EMAIL_TO, fromStr);
+
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_SUBJECT)) {
+                subject = msg.getSubject();
+                rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_BODY)) {
+                Multipart mp = (Multipart) msg.getContent();
+                for (int k = 0, n = mp.getCount(); k < n; k++) {
+                  Part part = mp.getBodyPart(k);
+                  String disposition = part.getDisposition();
+                  if ((disposition == null)) {
+                    MimeBodyPart mbp = (MimeBodyPart) part;
+                    if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
+                      rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
+                    } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
+                      rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
                     }
                   }
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_DATE)) {
-                  Date sentDate = msg.getSentDate();
-                  rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
-                  Multipart mp = (Multipart) msg.getContent();
-                  if (mp != null) {
-                    String[] encoding = new String[mp.getCount()];
-                    for (int k = 0, n = mp.getCount(); k < n; k++) {
-                      Part part = mp.getBodyPart(k);
-                      String disposition = part.getDisposition();
-                      if ((disposition != null) &&
-                          ((disposition.equals(Part.ATTACHMENT) ||
-                              (disposition.equals(Part.INLINE))))) {
-                        encoding[k] = part.getFileName().split("\\?")[1];
-
-                      }
-                    }
-                    rd.addField(EmailConfig.ENCODING_FIELD, encoding);
-                  }
-                } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
-                  Multipart mp = (Multipart) msg.getContent();
-                  String[] MIMEType = new String[mp.getCount()];
+                }
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_DATE)) {
+                rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
+                Multipart mp = (Multipart) msg.getContent();
+                if (mp != null) {
+                  String[] encoding = new String[mp.getCount()];
                   for (int k = 0, n = mp.getCount(); k < n; k++) {
                     Part part = mp.getBodyPart(k);
                     String disposition = part.getDisposition();
                     if ((disposition != null) &&
                         ((disposition.equals(Part.ATTACHMENT) ||
                             (disposition.equals(Part.INLINE))))) {
-                      MIMEType[k] = part.getContentType();
+                      encoding[k] = part.getFileName().split("\\?")[1];
 
                     }
                   }
-                  rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
+                  rd.addField(EmailConfig.ENCODING_FIELD, encoding);
                 }
-              }
-              String documentURI = makeDocumentURI(urlTemplate, folderName, id);
-              activities.ingestDocumentWithException(id, version, documentURI, rd);
+              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
+                Multipart mp = (Multipart) msg.getContent();
+                String[] MIMEType = new String[mp.getCount()];
+                for (int k = 0, n = mp.getCount(); k < n; k++) {
+                  Part part = mp.getBodyPart(k);
+                  String disposition = part.getDisposition();
+                  if ((disposition != null) &&
+                      ((disposition.equals(Part.ATTACHMENT) ||
+                          (disposition.equals(Part.INLINE))))) {
+                    MIMEType[k] = part.getContentType();
 
+                  }
+                }
+                rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
+              }
+            }
+                
+            InputStream is = msg.getInputStream();
+            try {
+              rd.setBinary(is, fileLength);
+              activities.ingestDocumentWithException(id, version, msgURL, rd);
+              errorCode = "OK";
+              fileLengthLong = new Long(fileLength);
+            } finally {
+              is.close();
             }
           } catch (InterruptedException e) {
             throw new ManifoldCFException(e.getMessage(), ManifoldCFException.INTERRUPTED);
           } catch (MessagingException e) {
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
             handleMessagingException(e, "processing email");
           } catch (IOException e) {
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
             handleIOException(e, "processing email");
             throw new ManifoldCFException(e.getMessage(), e);
           }
+        } catch (ManifoldCFException e) {
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+            errorCode = null;
+          throw e;
+        } finally {
+          if (errorCode != null)
+            activities.recordActivity(new Long(startTime),EmailConfig.ACTIVITY_FETCH,
+              fileLengthLong,documentIdentifier,errorCode,errorDesc,null);
         }
       }
     }
