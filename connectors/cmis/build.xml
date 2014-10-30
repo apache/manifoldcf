@@ -98,9 +98,9 @@
         </antcall>
     </target>
 
-    <target name="run-IT-HSQLDB" depends="compile-tests,pretest-check" if="canTest">
-        <mkdir dir="test-HSQLDB-output"/>
-        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+    <target name="run-IT-derby" depends="compile-tests,pretest-check" if="canTest">
+        <mkdir dir="test-derby-output"/>
+        <junit fork="true" maxmemory="256m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
@@ -116,9 +116,9 @@
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
-            <batchtest todir="test-HSQLDB-output">
+            <batchtest todir="test-derby-output">
                 <fileset dir="build/connector-tests/classes">
-                    <include name="**/*HSQLDBIT.class"/>
+                    <include name="**/*DerbyIT.class"/>
                 </fileset>
             </batchtest>
         </junit>
