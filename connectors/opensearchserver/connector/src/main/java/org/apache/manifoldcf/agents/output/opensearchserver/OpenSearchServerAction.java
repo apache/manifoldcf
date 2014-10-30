@@ -39,6 +39,6 @@ public class OpenSearchServerAction extends OpenSearchServerConnection {
     call(method);
     if ("OK".equals(checkXPath(xPathStatus)))
       return;
-    setResult(IOutputHistoryActivity.XPATH_EXCEPTION,Result.ERROR, checkXPath(xPathException));
+    setResult("XPATHEXCEPTION",Result.ERROR, checkXPath(xPathException));
   }
 }
