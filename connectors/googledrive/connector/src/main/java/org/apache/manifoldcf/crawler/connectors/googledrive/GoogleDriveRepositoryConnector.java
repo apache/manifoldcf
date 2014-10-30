@@ -1202,9 +1202,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
                 // No errors.  Record the fact that we made it.
                 fileSize = new Long(fileLength);
-                if (doLog){
-                    activities.recordActivity(new Long(startTime), ACTIVITY_READ, fileSize, nodeId, "OK", null, null);
-                }
+                errorCode = "OK";
               } catch (InterruptedException e) {
                 t.interrupt();
                 throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
