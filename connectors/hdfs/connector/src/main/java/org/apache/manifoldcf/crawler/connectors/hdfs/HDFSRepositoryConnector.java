@@ -378,6 +378,11 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
             sb.append("-");
           sb.append(new Long(lastModified).toString());
           versionString = sb.toString();
+          // We will record document fetch as an activity
+          long startTime = System.currentTimeMillis();
+          String errorCode = null;
+          String errorDesc = null;
+          long fileSize = 0;
           
           if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)) {
             // Process file!
@@ -391,106 +396,112 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
             String fileName = fileStatus.getPath().getName();
             String mimeType = mapExtensionToMimeType(fileStatus.getPath().getName());
             Date modifiedDate = new Date(fileStatus.getModificationTime());
-            String uri;
-            if (convertPath != null) {
-              uri = convertToWGETURI(convertPath);
-            } else {
-              uri = fileStatus.getPath().toUri().toString();
-            }
-            
-            if (!activities.checkLengthIndexable(fileLength))
-            {
-              activities.noDocument(documentIdentifier,versionString);
-              continue;
-            }
-            
-            if (!activities.checkURLIndexable(uri))
-            {
-              activities.noDocument(documentIdentifier,versionString);
-              continue;
-            }
-            
-            if (!activities.checkMimeTypeIndexable(mimeType))
-            {
-              activities.noDocument(documentIdentifier,versionString);
-              continue;
-            }
-            
-            if (!activities.checkDateIndexable(modifiedDate))
-            {
-              activities.noDocument(documentIdentifier,versionString);
-              continue;
-            }
-            
-            // Prepare the metadata part of RepositoryDocument
-            RepositoryDocument data = new RepositoryDocument();
-
-            data.setFileName(fileName);
-            data.setMimeType(mimeType);
-            data.setModifiedDate(modifiedDate);
-
-            data.addField("uri",uri);
-
-            // We will record document fetch as an activity
-            long startTime = System.currentTimeMillis();
-            String errorCode = "FAILED";
-            String errorDesc = StringUtils.EMPTY;
-            long fileSize = 0;
-
             try {
-              BackgroundStreamThread t = new BackgroundStreamThread(getSession(),new Path(documentIdentifier));
-              try {
-                t.start();
-                boolean wasInterrupted = false;
-                try {
-                  InputStream is = t.getSafeInputStream();
-                  try {
-                    data.setBinary(is, fileSize);
-                    activities.ingestDocumentWithException(documentIdentifier,versionString,uri,data);
-                  } finally {
-                    is.close();
-                  }
-                } catch (java.net.SocketTimeoutException e) {
-                  throw e;
-                } catch (InterruptedIOException e) {
-                  wasInterrupted = true;
-                  throw e;
-                } catch (ManifoldCFException e) {
-                  if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) {
-                    wasInterrupted = true;
-                  }
-                  throw e;
-                } finally {
-                  if (!wasInterrupted) {
-                    // This does a join
-                    t.finishUp();
-                  }
+                String uri;
+                if (convertPath != null) {
+                    uri = convertToWGETURI(convertPath);
+                } else {
+                    uri = fileStatus.getPath().toUri().toString();
                 }
+            
+                if (!activities.checkLengthIndexable(fileLength))
+                {
+                    errorCode = activities.EXCLUDED_LENGTH;
+                    errorDesc = "Excluding document because of file length ('"+fileLength+"')";
+                    activities.noDocument(documentIdentifier,versionString);
+                    continue;
+                }
+            
+                if (!activities.checkURLIndexable(uri))
+                {
+                    errorCode = activities.EXCLUDED_URL;
+                    errorDesc = "Excluding document because of URL ('"+uri+"')";
+                    activities.noDocument(documentIdentifier,versionString);
+                    continue;
+                }
+            
+                if (!activities.checkMimeTypeIndexable(mimeType))
+                {
+                    errorCode = activities.EXCLUDED_MIMETYPE;
+                    errorDesc = "Excluding document because of mime type ("+mimeType+")";
+                    activities.noDocument(documentIdentifier,versionString);
+                    continue;
+                }
+            
+                if (!activities.checkDateIndexable(modifiedDate))
+                {
+                    errorCode = activities.EXCLUDED_DATE;
+                    errorDesc = "Excluding document because of date ("+modifiedDate+")";
+                    activities.noDocument(documentIdentifier,versionString);
+                    continue;
+                }
+            
+                // Prepare the metadata part of RepositoryDocument
+                RepositoryDocument data = new RepositoryDocument();
 
-                // No errors.  Record the fact that we made it.
-                errorCode = "OK";
-                // Length we did in bytes
-                fileSize = fileStatus.getLen();
+                data.setFileName(fileName);
+                data.setMimeType(mimeType);
+                data.setModifiedDate(modifiedDate);
 
-              } catch (InterruptedException e) {
-                // We were interrupted out of the join, most likely.  Before we abandon the thread,
-                // send a courtesy interrupt.
-                t.interrupt();
-                throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
-              } catch (java.net.SocketTimeoutException e) {
-                errorCode = "IO ERROR";
-                errorDesc = e.getMessage();
-                handleIOException(e);
-              } catch (InterruptedIOException e) {
-                t.interrupt();
-                throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
-              } catch (IOException e) {
-                errorCode = "IO ERROR";
-                errorDesc = e.getMessage();
-                handleIOException(e);
-              }
+                data.addField("uri",uri);
+
+            
+            
+                BackgroundStreamThread t = new BackgroundStreamThread(getSession(),new Path(documentIdentifier));
+                try {
+                    t.start();
+                    boolean wasInterrupted = false;
+                    try {
+                        InputStream is = t.getSafeInputStream();
+                        try {
+                            data.setBinary(is, fileSize);
+                            activities.ingestDocumentWithException(documentIdentifier,versionString,uri,data);
+                        } finally {
+                            is.close();
+                        }
+                    } catch (java.net.SocketTimeoutException e) {
+                        throw e;
+                    } catch (InterruptedIOException e) {
+                        wasInterrupted = true;
+                        throw e;
+                    } catch (ManifoldCFException e) {
+                        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) {
+                            wasInterrupted = true;
+                        }
+                        throw e;
+                    } finally {
+                        if (!wasInterrupted) {
+                            // This does a join
+                            t.finishUp();
+                        }
+                    }
+
+                    // No errors.  Record the fact that we made it.
+                    errorCode = "OK";
+                    // Length we did in bytes
+                    fileSize = fileStatus.getLen();
+
+                } catch (InterruptedException e) {
+                    // We were interrupted out of the join, most likely.  Before we abandon the thread,
+                    // send a courtesy interrupt.
+                    t.interrupt();
+                    throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+                } catch (java.net.SocketTimeoutException e) {
+                    errorCode = "IOERROR";
+                    errorDesc = e.getMessage();
+                    handleIOException(e);
+                } catch (InterruptedIOException e) {
+                    t.interrupt();
+                    throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+                } catch (IOException e) {
+                    errorCode = "IOERROR";
+                    errorDesc = e.getMessage();
+                    handleIOException(e);
+                }
             } finally {
-              activities.recordActivity(new Long(startTime),ACTIVITY_READ,new Long(fileSize),documentIdentifier,errorCode,errorDesc,null);
+                if(errorCode != null){
+                    activities.recordActivity(new Long(startTime),ACTIVITY_READ,new Long(fileSize),documentIdentifier,errorCode,errorDesc,null);
+                }
             }
           }
         }
