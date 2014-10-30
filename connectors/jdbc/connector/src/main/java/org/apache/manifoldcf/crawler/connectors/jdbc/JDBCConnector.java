@@ -1184,7 +1184,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String idQuery = "SELECT idfield AS $(IDCOLUMN) FROM documenttable WHERE modifydatefield > $(STARTTIME) AND modifydatefield <= $(ENDTIME)";
     String versionQuery = "SELECT idfield AS $(IDCOLUMN), versionfield AS $(VERSIONCOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
     String dataQuery = "SELECT idfield AS $(IDCOLUMN), urlfield AS $(URLCOLUMN), datafield AS $(DATACOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
-
+    String aclQuery = "SELECT docidfield AS $(IDCOLUMN), aclfield AS $(ACCESSTOKENCOLUMN) FROM acltable WHERE docidfield IN $(IDLIST)";
+    
     int i = 0;
     while (i < ds.getChildCount())
     {
@@ -1207,6 +1208,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (dataQuery == null)
           dataQuery = "";
       }
+      else if (sn.getType().equals(JDBCConstants.aclQueryNode))
+      {
+        aclQuery = sn.getValue();
+        if (aclQuery == null)
+          aclQuery = "";
+      }
     }
 
     // The Queries tab
@@ -1225,6 +1232,10 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    <td class=\"value\"><textarea name=\""+seqPrefix+"versionquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(versionQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AccessTokenQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsAndAccessTokensForASetOfDocuments") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.leaveBlankIfNoSecurityCapability") + "</nobr></td>\n"+
+"    <td class=\"value\"><textarea name=\""+seqPrefix+"aclquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(aclQuery)+"</textarea></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DataQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsUrlsAndDataForASetOfDocuments") + "</nobr></td>\n"+
 "    <td class=\"value\"><textarea name=\""+seqPrefix+"dataquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
@@ -1236,6 +1247,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       out.print(
 "<input type=\"hidden\" name=\""+seqPrefix+"idquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idQuery)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+seqPrefix+"versionquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(versionQuery)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"aclquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(aclQuery)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+seqPrefix+"dataquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dataQuery)+"\"/>\n"
       );
     }
@@ -1349,7 +1361,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String idQuery = variableContext.getParameter(seqPrefix+"idquery");
     String versionQuery = variableContext.getParameter(seqPrefix+"versionquery");
     String dataQuery = variableContext.getParameter(seqPrefix+"dataquery");
-
+    String aclQuery = variableContext.getParameter(seqPrefix+"aclquery");
+    
     SpecificationNode sn;
     if (idQuery != null)
     {
@@ -1377,6 +1390,20 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       sn = new SpecificationNode(JDBCConstants.versionQueryNode);
       sn.setValue(versionQuery);
+      ds.addChild(ds.getChildCount(),sn);
+    }
+    if (aclQuery != null)
+    {
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        if (ds.getChild(i).getType().equals(JDBCConstants.aclQueryNode))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      sn = new SpecificationNode(JDBCConstants.aclQueryNode);
+      sn.setValue(aclQuery);
       ds.addChild(ds.getChildCount(),sn);
     }
     if (dataQuery != null)
