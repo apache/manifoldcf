@@ -509,7 +509,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
             if (o == null)
             {
               Logging.connectors.debug("JDBC: Document '"+id+"' has a null url - skipping");
-              errorCode = "NULLURL";
+              errorCode = activities.NULL_URL;
               errorDesc = "Excluded because document had a null URL";
               activities.noDocument(id,version);
               continue;
@@ -532,7 +532,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
             if (!validURL)
             {
               Logging.connectors.debug("JDBC: Document '"+id+"' has an illegal url: '"+url+"' - skipping");
-              errorCode = "BADURL";
+              errorCode = activities.BAD_URL;
               errorDesc = "Excluded because document had illegal URL ('"+url+"')";
               activities.noDocument(id,version);
               continue;

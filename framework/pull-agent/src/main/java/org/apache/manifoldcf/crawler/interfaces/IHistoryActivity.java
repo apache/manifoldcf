@@ -32,8 +32,14 @@ public interface IHistoryActivity
   public static final String EXCLUDED_LENGTH = IOutputHistoryActivity.EXCLUDED_LENGTH;
   public static final String EXCLUDED_MIMETYPE = IOutputHistoryActivity.EXCLUDED_MIMETYPE;
   public static final String EXCLUDED_DATE = IOutputHistoryActivity.EXCLUDED_DATE;
-  public static final String BAD_URL = IOutputHistoryActivity.BAD_URL;
-  public static final String NULL_URL = IOutputHistoryActivity.NULL_URL;
+  /**
+   * Use this result code when you get URL value from repository and it is not valid.
+   */
+  public static final String BAD_URL = "BADURL";
+  /**
+   * Use this result code when you get URL value from repository and it is null.
+   */
+  public static final String NULL_URL = "NULLURL";
   /** Record time-stamped information about the activity of the connector.
   *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
   *       activity has an associated time; the startTime field records when the activity began.  A null value

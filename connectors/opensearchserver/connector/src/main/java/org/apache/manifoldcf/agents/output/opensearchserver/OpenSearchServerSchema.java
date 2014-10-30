@@ -36,6 +36,6 @@ public class OpenSearchServerSchema extends OpenSearchServerConnection {
     call(method);
     if ("1".equals(checkXPath(xpath)))
       return;
-    setResult(IOutputHistoryActivity.INDEX_NOT_FOUND,Result.ERROR, "Index not found");
+    setResult("INDEXNOTFOUND",Result.ERROR, "Index not found");
   }
 }

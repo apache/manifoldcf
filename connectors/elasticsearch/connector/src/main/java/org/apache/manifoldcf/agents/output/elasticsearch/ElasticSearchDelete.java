@@ -49,7 +49,7 @@ public class ElasticSearchDelete extends ElasticSearchConnection
         return;
       // We thought we needed to delete, but ElasticSearch disagreed.
       // Log the result as an error, but proceed anyway.
-      setResult(IOutputHistoryActivity.JSON_ERROR,Result.ERROR, error);
+      setResult("JSONERROR",Result.ERROR, error);
       Logging.connectors.warn("ES: Delete failed: "+getResponse());
   }
 }
