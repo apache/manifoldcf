@@ -35,6 +35,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.Iterator;
+import java.util.Date;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -865,8 +866,8 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       
       String versionString;
       GetObjectThread objt = new GetObjectThread(documentIdentifier);
+      objt.start();
       try {
-        objt.start();
         objt.finishUp();
       } catch (InterruptedException e) {
         objt.interrupt();
@@ -879,149 +880,190 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
 
       DropboxAPI.Entry dropboxObject = objt.getResponse();
 
-      if (!dropboxObject.isDir) {
-        if (dropboxObject.isDeleted) {
-          activities.deleteDocument(documentIdentifier);
-          continue;
-        } else if (StringUtils.isNotEmpty(dropboxObject.rev)) {
-          StringBuilder sb = new StringBuilder();
-
-          // Acls
-          packList(sb,acls,'+');
-          if (acls.length > 0) {
-            sb.append('+');
-            pack(sb,defaultAuthorityDenyToken,'+');
-          }
-          else
-            sb.append('-');
-
-          sb.append(dropboxObject.rev);
-          versionString = sb.toString();
-        } else {
-          //a document that doesn't contain versioning information will never be processed
-          activities.deleteDocument(documentIdentifier);
-          continue;
-        }
-      } else {
+      if (dropboxObject.isDir) {
         //a folder will always be processed
         versionString = StringUtils.EMPTY;
-      }
-    
-      if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
-      {
-        long startTime = System.currentTimeMillis();
-        String errorCode = "FAILED";
-        String errorDesc = StringUtils.EMPTY;
-        Long fileSize = null;
-        boolean doLog = false;
-        String nodeId = documentIdentifier;
-        String version = versionString;
         
-        try {
-          if (dropboxObject.isDir) {
+        // adding all the children + subdirs for a folder
 
-            // adding all the children + subdirs for a folder
+        List<DropboxAPI.Entry> children = dropboxObject.contents;
+        for (DropboxAPI.Entry child : children) {
+          activities.addDocumentReference(child.path, documentIdentifier, RELATIONSHIP_CHILD);
+        }
 
-            List<DropboxAPI.Entry> children = dropboxObject.contents;
-            for (DropboxAPI.Entry child : children) {
-              activities.addDocumentReference(child.path, nodeId, RELATIONSHIP_CHILD);
-            }
+        activities.noDocument(documentIdentifier,versionString);
+        continue;
+      }
+      
+      if (dropboxObject.isDeleted) {
+        activities.deleteDocument(documentIdentifier);
+        continue;
+      }
 
-          } else {
-            // its a file
-            doLog = true;
-              
-            // content ingestion
-            RepositoryDocument rd = new RepositoryDocument();
+      if (StringUtils.isEmpty(dropboxObject.rev)) {
+        //a document that doesn't contain versioning information will never be processed
+        activities.deleteDocument(documentIdentifier);
+        continue;
+      }
+      
+      StringBuilder sb = new StringBuilder();
 
-            if (acls.length > 0) {
-              rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls);
-              String[] denyAclArray = new String[]{defaultAuthorityDenyToken};
-              rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
-            }
+      // Acls
+      packList(sb,acls,'+');
+      if (acls.length > 0) {
+        sb.append('+');
+        pack(sb,defaultAuthorityDenyToken,'+');
+      }
+      else
+        sb.append('-');
+
+      sb.append(dropboxObject.rev);
+      versionString = sb.toString();
+    
+      if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+        continue;
+      
+      long startTime = System.currentTimeMillis();
+      String errorCode = null;
+      String errorDesc = null;
+      Long fileSize = null;
+      String nodeId = documentIdentifier;
+      String version = versionString;
+        
+      try {
+        // Length in bytes
+        long fileLength = dropboxObject.bytes;
+        if (!activities.checkLengthIndexable(fileLength))
+        {
+          errorCode = activities.EXCLUDED_LENGTH;
+          errorDesc = "Document excluded because of length ("+fileLength+")";
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+        
+        //documentURI
+        String documentURI = dropboxObject.path;
+        if (!activities.checkURLIndexable(documentURI))
+        {
+          errorCode = activities.EXCLUDED_URL;
+          errorDesc = "Document excluded because of URL ('"+documentURI+"')";
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+
+        //Modified date
+        Date modifiedDate;
+        if (dropboxObject.modified != null)
+          modifiedDate = com.dropbox.client2.RESTUtility.parseDate(dropboxObject.modified);
+        else
+          modifiedDate = null;
+        if (!activities.checkDateIndexable(modifiedDate))
+        {
+          errorCode = activities.EXCLUDED_DATE;
+          errorDesc = "Document excluded because of date ("+modifiedDate+")";
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+        
+        // Mime type
+        String mimeType = dropboxObject.mimeType;
+        if (!activities.checkMimeTypeIndexable(mimeType))
+        {
+          errorCode = activities.EXCLUDED_MIMETYPE;
+          errorDesc = "Document excluded because of mime type ('"+mimeType+"')";
+          activities.noDocument(documentIdentifier,versionString);
+          continue;
+        }
+        
+        // content ingestion
+        RepositoryDocument rd = new RepositoryDocument();
+
+        if (acls.length > 0) {
+          rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,acls);
+          String[] denyAclArray = new String[]{defaultAuthorityDenyToken};
+          rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclArray);
+        }
             
-            // Length in bytes
-            long fileLength = dropboxObject.bytes;
-            //documentURI
-            String documentURI = dropboxObject.path;
 
-            if (dropboxObject.path != null)
-              rd.setFileName(dropboxObject.path);
-            if (dropboxObject.mimeType != null)
-              rd.setMimeType(dropboxObject.mimeType);
-            if (dropboxObject.modified != null)
-              rd.setModifiedDate(com.dropbox.client2.RESTUtility.parseDate(dropboxObject.modified));
-            // There doesn't appear to be a created date...
+        if (dropboxObject.path != null)
+          rd.setFileName(dropboxObject.path);
+        if (dropboxObject.mimeType != null)
+          rd.setMimeType(dropboxObject.mimeType);
+        if (dropboxObject.modified != null)
+          rd.setModifiedDate(modifiedDate);
+        // There doesn't appear to be a created date...
                 
-            rd.addField("Modified", dropboxObject.modified);
-            rd.addField("Size", dropboxObject.size);
-            rd.addField("Path", dropboxObject.path);
-            rd.addField("Root", dropboxObject.root);
-            rd.addField("ClientMtime", dropboxObject.clientMtime);
-            rd.addField("mimeType", dropboxObject.mimeType);
-            rd.addField("rev", dropboxObject.rev);
+        rd.addField("Modified", dropboxObject.modified);
+        rd.addField("Size", dropboxObject.size);
+        rd.addField("Path", dropboxObject.path);
+        rd.addField("Root", dropboxObject.root);
+        rd.addField("ClientMtime", dropboxObject.clientMtime);
+        rd.addField("mimeType", dropboxObject.mimeType);
+        rd.addField("rev", dropboxObject.rev);
               
-            getSession();
-            BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
+        getSession();
+        BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
+        t.start();
+        try {
+          boolean wasInterrupted = false;
+          try {
+            InputStream is = t.getSafeInputStream();
             try {
-              t.start();
-              boolean wasInterrupted = false;
-              try {
-                InputStream is = t.getSafeInputStream();
-                try {
-                  rd.setBinary(is, fileLength);
-                  activities.ingestDocumentWithException(nodeId, version, documentURI, rd);
-                } finally {
-                  is.close();
-                }
-              } catch (java.net.SocketTimeoutException e) {
-                throw e;
-              } catch (InterruptedIOException e) {
-                wasInterrupted = true;
-                throw e;
-              } catch (ManifoldCFException e) {
-                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                  wasInterrupted = true;
-                throw e;
-              } finally {
-                if (!wasInterrupted)
-                  // This does a join
-                  t.finishUp();
-              }
-
+              rd.setBinary(is, fileLength);
+              activities.ingestDocumentWithException(nodeId, version, documentURI, rd);
               // No errors.  Record the fact that we made it.
               errorCode = "OK";
               fileSize = new Long(fileLength);
-            } catch (InterruptedException e) {
-              // We were interrupted out of the join, most likely.  Before we abandon the thread,
-              // send a courtesy interrupt.
-              t.interrupt();
-              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-                ManifoldCFException.INTERRUPTED);
-            } catch (java.net.SocketTimeoutException e) {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              handleIOException(e);
-            } catch (InterruptedIOException e) {
-              t.interrupt();
-              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-                ManifoldCFException.INTERRUPTED);
-            } catch (IOException e) {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              handleIOException(e);
-            } catch (DropboxException e) {
-              Logging.connectors.warn("DROPBOX: Error getting stream: " + e.getMessage(), e);
-              errorCode = "DROPBOX ERROR";
-              errorDesc = e.getMessage();
-              handleDropboxException(e);
+            } finally {
+              is.close();
             }
+          } catch (java.net.SocketTimeoutException e) {
+            throw e;
+          } catch (InterruptedIOException e) {
+            wasInterrupted = true;
+            throw e;
+          } catch (ManifoldCFException e) {
+            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+              wasInterrupted = true;
+            throw e;
+          } finally {
+            if (!wasInterrupted)
+              // This does a join
+              t.finishUp();
           }
-        } finally {
-          if (doLog)
-            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-              fileSize, nodeId, errorCode, errorDesc, null);
+
+        } catch (InterruptedException e) {
+          // We were interrupted out of the join, most likely.  Before we abandon the thread,
+          // send a courtesy interrupt.
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+        } catch (java.net.SocketTimeoutException e) {
+          errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+          errorDesc = e.getMessage();
+          handleIOException(e);
+        } catch (InterruptedIOException e) {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+        } catch (IOException e) {
+          errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+          errorDesc = e.getMessage();
+          handleIOException(e);
+        } catch (DropboxException e) {
+          Logging.connectors.warn("DROPBOX: Error getting stream: " + e.getMessage(), e);
+          errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+          errorDesc = e.getMessage();
+          handleDropboxException(e);
         }
+      } catch (ManifoldCFException e) {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          errorCode = null;
+        throw e;
+      } finally {
+        if (errorCode != null)
+          activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+            fileSize, nodeId, errorCode, errorDesc, null);
       }
     }
   }
