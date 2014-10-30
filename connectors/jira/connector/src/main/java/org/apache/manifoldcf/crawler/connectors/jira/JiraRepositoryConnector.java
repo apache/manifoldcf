@@ -949,131 +949,146 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
           continue;
         }
         Date rev = jiraFile.getUpdatedDate();
-        if (rev != null) {
-          StringBuilder sb = new StringBuilder();
-
-          if (acls == null) {
-            // Get acls from issue
-            List<String> users = getUsers(issueID);
-            aclsToUse = (String[])users.toArray(new String[0]);
-            java.util.Arrays.sort(aclsToUse);
-          } else {
-            aclsToUse = acls;
-          }
-          
-          // Acls
-          packList(sb,aclsToUse,'+');
-          if (aclsToUse.length > 0) {
-            sb.append('+');
-            pack(sb,defaultAuthorityDenyToken,'+');
-          } else
-            sb.append('-');
-          sb.append(rev.toString());
-          versionString = sb.toString();
-        } else {
+        if (rev == null) {
           //a jira document that doesn't contain versioning information will NEVER be processed.
           // I don't know what this means, and whether it can ever occur.
           activities.deleteDocument(documentIdentifier);
           continue;
         }
+        
+        StringBuilder sb = new StringBuilder();
+
+        if (acls == null) {
+          // Get acls from issue
+          List<String> users = getUsers(issueID);
+          aclsToUse = (String[])users.toArray(new String[0]);
+          java.util.Arrays.sort(aclsToUse);
+        } else {
+          aclsToUse = acls;
+        }
+          
+        // Acls
+        packList(sb,aclsToUse,'+');
+        if (aclsToUse.length > 0) {
+          sb.append('+');
+          pack(sb,defaultAuthorityDenyToken,'+');
+        } else
+          sb.append('-');
+        sb.append(rev.toString());
+        
+        versionString = sb.toString();
 
         if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
-        {
+          continue;
+
+        if (Logging.connectors.isDebugEnabled()) {
+          Logging.connectors.debug("JIRA: Processing document identifier '"
+              + documentIdentifier + "'");
+        }
+
+        long startTime = System.currentTimeMillis();
+        String errorCode = null;
+        String errorDesc = null;
+        Long fileSize = null;
           
-          long startTime = System.currentTimeMillis();
-          String errorCode = "FAILED";
-          String errorDesc = StringUtils.EMPTY;
-          Long fileSize = null;
-          
-          try {
-            if (Logging.connectors.isDebugEnabled()) {
-              Logging.connectors.debug("JIRA: Processing document identifier '"
-                  + documentIdentifier + "'");
-            }
-
-            // Now do standard stuff
-              
-            String mimeType = "text/plain";
-            Date createdDate = jiraFile.getCreatedDate();
-            Date modifiedDate = jiraFile.getUpdatedDate();
-            String documentURI = composeDocumentURI(getBaseUrl(session), jiraFile.getKey());
-
-            if (!activities.checkURLIndexable(documentURI))
-            {
-              activities.noDocument(documentIdentifier, versionString);
-              continue;
-            }
+        try {
+          // Now do standard stuff
             
-            if (!activities.checkMimeTypeIndexable(mimeType))
-            {
-              activities.noDocument(documentIdentifier, versionString);
-              continue;
-            }
-            
-            if (!activities.checkDateIndexable(modifiedDate))
-            {
-              activities.noDocument(documentIdentifier, versionString);
-              continue;
-            }
-            
-            //otherwise process
-            RepositoryDocument rd = new RepositoryDocument();
-              
-            // Turn into acls and add into description
-            String[] denyAclsToUse;
-            if (aclsToUse.length > 0)
-              denyAclsToUse = new String[]{defaultAuthorityDenyToken};
-            else
-              denyAclsToUse = new String[0];
-            rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclsToUse,denyAclsToUse);
+          String mimeType = "text/plain";
+          Date createdDate = jiraFile.getCreatedDate();
+          Date modifiedDate = jiraFile.getUpdatedDate();
+          String documentURI = composeDocumentURI(getBaseUrl(session), jiraFile.getKey());
 
-            rd.setMimeType(mimeType);
-            if (createdDate != null)
-              rd.setCreatedDate(createdDate);
-            if (modifiedDate != null)
-              rd.setModifiedDate(modifiedDate);
+          if (!activities.checkURLIndexable(documentURI))
+          {
+            errorCode = activities.EXCLUDED_URL;
+            errorDesc = "Excluded because of URL ('"+documentURI+"')";
+            activities.noDocument(documentIdentifier, versionString);
+            continue;
+          }
             
-            rd.addField("key", jiraFile.getKey());
-            rd.addField("self", jiraFile.getSelf());
-            rd.addField("description", jiraFile.getDescription());
-
-            // Get general document metadata
-            Map<String,String[]> metadataMap = jiraFile.getMetadata();
+          if (!activities.checkMimeTypeIndexable(mimeType))
+          {
+            errorCode = activities.EXCLUDED_MIMETYPE;
+            errorDesc = "Excluded because of mime type ('"+mimeType+"')";
+            activities.noDocument(documentIdentifier, versionString);
+            continue;
+          }
+            
+          if (!activities.checkDateIndexable(modifiedDate))
+          {
+            errorCode = activities.EXCLUDED_DATE;
+            errorDesc = "Excluded because of date ("+modifiedDate+")";
+            activities.noDocument(documentIdentifier, versionString);
+            continue;
+          }
+            
+          //otherwise process
+          RepositoryDocument rd = new RepositoryDocument();
               
-            for (Entry<String, String[]> entry : metadataMap.entrySet()) {
-              rd.addField(entry.getKey(), entry.getValue());
-            }
+          // Turn into acls and add into description
+          String[] denyAclsToUse;
+          if (aclsToUse.length > 0)
+            denyAclsToUse = new String[]{defaultAuthorityDenyToken};
+          else
+            denyAclsToUse = new String[0];
+          rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclsToUse,denyAclsToUse);
 
-            String document = getJiraBody(jiraFile);
-            try {
-              byte[] documentBytes = document.getBytes(StandardCharsets.UTF_8);
-              long fileLength = documentBytes.length;
+          rd.setMimeType(mimeType);
+          if (createdDate != null)
+            rd.setCreatedDate(createdDate);
+          if (modifiedDate != null)
+            rd.setModifiedDate(modifiedDate);
+            
+          rd.addField("key", jiraFile.getKey());
+          rd.addField("self", jiraFile.getSelf());
+          rd.addField("description", jiraFile.getDescription());
+
+          // Get general document metadata
+          Map<String,String[]> metadataMap = jiraFile.getMetadata();
               
-              if (!activities.checkLengthIndexable(fileLength))
-              {
-                activities.noDocument(documentIdentifier, versionString);
-                continue;
-              }
-                
-              InputStream is = new ByteArrayInputStream(documentBytes);
-              try {
-                rd.setBinary(is, fileLength);
-                activities.ingestDocumentWithException(documentIdentifier, versionString, documentURI, rd);
-                // No errors.  Record the fact that we made it.
-                errorCode = "OK";
-                fileSize = new Long(documentBytes.length);
-              } finally {
-                is.close();
-              }
-            } catch (java.io.IOException e) {
-              handleIOException(e);
-            }
-          } finally {
-            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-              fileSize, documentIdentifier, errorCode, errorDesc, null);
+          for (Entry<String, String[]> entry : metadataMap.entrySet()) {
+            rd.addField(entry.getKey(), entry.getValue());
           }
 
+          String document = getJiraBody(jiraFile);
+          try {
+            byte[] documentBytes = document.getBytes(StandardCharsets.UTF_8);
+            long fileLength = documentBytes.length;
+              
+            if (!activities.checkLengthIndexable(fileLength))
+            {
+              errorCode = activities.EXCLUDED_LENGTH;
+              errorDesc = "Excluded because of document length ("+fileLength+")";
+              activities.noDocument(documentIdentifier, versionString);
+              continue;
+            }
+                
+            InputStream is = new ByteArrayInputStream(documentBytes);
+            try {
+              rd.setBinary(is, fileLength);
+              activities.ingestDocumentWithException(documentIdentifier, versionString, documentURI, rd);
+              // No errors.  Record the fact that we made it.
+              errorCode = "OK";
+              fileSize = new Long(fileLength);
+            } finally {
+              is.close();
+            }
+          } catch (java.io.IOException e) {
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
+            handleIOException(e);
+          }
+        } catch (ManifoldCFException e) {
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+            errorCode = null;
+          throw e;
+        } finally {
+          if (errorCode != null)
+            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+              fileSize, documentIdentifier, errorCode, errorDesc, null);
         }
+
       } else {
         // Unrecognized identifier type
         activities.deleteDocument(documentIdentifier);
