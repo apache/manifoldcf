@@ -45,6 +45,8 @@ public class JDBCConstants
   public static String versionQueryNode = "versionquery";
   /** The node containing the process query */
   public static String dataQueryNode = "dataquery";
+  /** The node containing the acl query */
+  public static String aclQueryNode = "aclquery";
 
   /** The name of the id return column */
   public static String idReturnColumnName = "lcf__id";
