@@ -53,7 +53,7 @@ public class ElasticSearchAction extends ElasticSearchConnection
     String error = checkJson(jsonException);
     if (getResult() == Result.OK && error == null)
       return;
-    setResult(IOutputHistoryActivity.JSON_ERROR,Result.ERROR, error);
+    setResult("JSONERROR",Result.ERROR, error);
     Logging.connectors.warn("ES: Commit failed: "+getResponse());
   }
   

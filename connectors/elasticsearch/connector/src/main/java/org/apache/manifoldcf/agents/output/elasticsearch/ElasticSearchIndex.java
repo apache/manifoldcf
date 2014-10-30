@@ -282,7 +282,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     String error = checkJson(jsonException);
     if (getResult() == Result.OK && error == null)
       return true;
-    setResult(IOutputHistoryActivity.JSON_ERROR,Result.ERROR, error);
+    setResult("JSONERROR",Result.ERROR, error);
     Logging.connectors.warn("ES: Index failed: "+getResponse());
     return true;
   }
