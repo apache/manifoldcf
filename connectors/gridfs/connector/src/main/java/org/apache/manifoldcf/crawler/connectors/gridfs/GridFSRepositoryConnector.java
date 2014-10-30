@@ -537,8 +537,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                             }
                             gfs.getDB().getMongo().getConnector().close();
                             session = null;
-                            activities.recordActivity(startTime, ACTIVITY_FETCH,
-                                    fileLenght, _id, "OK", null, null);
+                            errorCode = "OK";
                         } else {
                             Logging.connectors.warn("GridFS: Document " + _id + " has a invalid URL: " + urlValue + " - skipping.");
                             errorCode = activities.BAD_URL;
