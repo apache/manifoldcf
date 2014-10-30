@@ -1017,7 +1017,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
       if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)) {
         long startTime = System.currentTimeMillis();
-        String errorCode = "FAILED";
+        String errorCode = null;
         String errorDesc = StringUtils.EMPTY;
         Long fileSize = null;
         boolean doLog = false;
@@ -1114,24 +1114,32 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
               if (!activities.checkLengthIndexable(fileLength))
               {
+                errorCode = activities.EXCLUDED_LENGTH;
+                errorDesc = "Excluding document because of file length ('"+fileLength+"')";
                 activities.noDocument(nodeId,version);
                 continue;
               }
               
               if (!activities.checkURLIndexable(documentURI))
               {
+                errorCode = activities.EXCLUDED_URL;
+                errorDesc = "Excluding document because of URL ('"+documentURI+"')";
                 activities.noDocument(nodeId,version);
                 continue;
               }
               
               if (!activities.checkMimeTypeIndexable(mimeType))
               {
+                errorCode = activities.EXCLUDED_MIMETYPE;
+                errorDesc = "Excluding document because of mime type ("+mimeType+")";
                 activities.noDocument(nodeId,version);
                 continue;
               }
               
               if (!activities.checkDateIndexable(modifiedDate))
               {
+                errorCode = activities.EXCLUDED_DATE;
+                errorDesc = "Excluding document because of date ("+modifiedDate+")";
                 activities.noDocument(nodeId,version);
                 continue;
               }
@@ -1193,8 +1201,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                 }
 
                 // No errors.  Record the fact that we made it.
-                errorCode = "OK";
                 fileSize = new Long(fileLength);
+                if (doLog){
+                    activities.recordActivity(new Long(startTime), ACTIVITY_READ, fileSize, nodeId, "OK", null, null);
+                }
               } catch (InterruptedException e) {
                 t.interrupt();
                 throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
@@ -1207,18 +1217,18 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                 throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
                   ManifoldCFException.INTERRUPTED);
               } catch (IOException e) {
-                errorCode = "IO ERROR";
+                errorCode = "IOEXCEPTION";
                 errorDesc = e.getMessage();
                 Logging.connectors.warn("GOOGLEDRIVE: Error reading document: " + e.getMessage(), e);
                 handleIOException(e);
               }
             } else {
-              errorCode = "NO LENGTH";
+              errorCode = "NOLENGTH";
               errorDesc = "Document "+nodeId+" had no length; skipping";
             }
           }
         } finally {
-          if (doLog)
+          if (doLog && errorCode != null)
             activities.recordActivity(new Long(startTime), ACTIVITY_READ,
               fileSize, nodeId, errorCode, errorDesc, null);
         }
