@@ -305,9 +305,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     TableSpec ts = new TableSpec(spec);
     
-    String[] acls = ts.getAcls();
-    // Sort these,
-    java.util.Arrays.sort(acls);
+    Set<String> acls = ts.getAcls();
 
     String[] versionsReturned = new String[documentIdentifiers.length];
 
@@ -316,15 +314,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // for all.  ProcessDocuments will then be responsible for doing document deletes itself,
     // based on the query results.
 
-    if (ts.versionQuery == null || ts.versionQuery.length() == 0)
-    {
-      int i = 0;
-      while (i < versionsReturned.length)
-      {
-        versionsReturned[i++] = "";
-      }
-    }
-    else
+    Map<String,String> documentVersions = new HashMap<String,String>();
+    if (ts.versionQuery != null && ts.versionQuery.length() > 0)
     {
       // If there IS a versions query, do it.  First set up the variables, then do the substitution.
       VariableMap vm = new VariableMap();
@@ -339,15 +330,6 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
         // Now, build a result return, and a hash table so we can correlate the returned values with the place to put them.
         // We presume that if the row is missing, the document is gone.
-        Map<String,Integer> map = new HashMap<String,Integer>();
-        int j = 0;
-        while (j < documentIdentifiers.length)
-        {
-          map.put(documentIdentifiers[j],new Integer(j));
-          versionsReturned[j] = "";
-          j++;
-        }
-
         // Fire off the query!
         getSession();
         IDynamicResultSet result;
@@ -362,8 +344,9 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         catch (ManifoldCFException e)
         {
           // If failure, record the failure.
-          activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
-            createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
+          if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
+            activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+              createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
           throw e;
         }
         try
@@ -389,23 +372,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
               if (o == null)
                 versionValue = "";
               else
-              {
-                // A real version string!  Any acls must be added to the front, if they are present...
-                sb = new StringBuilder();
-                packList(sb,acls,'+');
-                if (acls.length > 0)
-                {
-                  sb.append('+');
-                  pack(sb,defaultAuthorityDenyToken,'+');
-                }
-                else
-                  sb.append('-');
-
-                sb.append(JDBCConnection.readAsString(o)).append("=").append(ts.dataQuery);
-                versionValue = sb.toString();
-              }
-              // Versions that are "", when processed, will have their acls fetched at that time...
-              versionsReturned[map.get(idValue).intValue()] = versionValue;
+                versionValue = JDBCConnection.readAsString(o);
+              documentVersions.put(idValue,versionValue);
             }
             finally
             {
@@ -419,23 +387,150 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
       }
     }
-    
-    // Delete the documents that had no version, and work only on ones that did
-    Set<String> fetchDocuments = new HashSet<String>();
-    Map<String,String> map = new HashMap<String,String>();
-    for (int i = 0; i < documentIdentifiers.length; i++)
+    else
     {
-      String documentIdentifier = documentIdentifiers[i];
-      String versionValue = versionsReturned[i];
-      if (versionValue == null)
+      for (String documentIdentifier : documentIdentifiers)
+      {
+        documentVersions.put(documentIdentifier,"");
+      }
+    }
+
+    // Delete the documents that had no version, and work only on ones that did
+    Set<String> fetchDocuments = documentVersions.keySet();
+    for (String documentIdentifier : documentIdentifiers)
+    {
+      String documentVersion = documentVersions.get(documentIdentifier);
+      if (documentVersion == null)
       {
         activities.deleteDocument(documentIdentifier);
         continue;
       }
-      if (versionValue.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionValue))
+    }
+
+    // Pick up document acls
+    Map<String,Set<String>> documentAcls = new HashMap<String,Set<String>>();
+    if (ts.securityOn && ts.aclQuery != null && ts.aclQuery.length() > 0)
+    {
+      // If there IS an acls query, do it.  First set up the variables, then do the substitution.
+      VariableMap vm = new VariableMap();
+      addConstant(vm,JDBCConstants.idReturnVariable,JDBCConstants.idReturnColumnName);
+      addConstant(vm,JDBCConstants.tokenReturnVariable,JDBCConstants.tokenReturnColumnName);
+      if (addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,fetchDocuments))
       {
-        fetchDocuments.add(documentIdentifier);
-        map.put(documentIdentifier,versionValue);
+        // Do the substitution
+        ArrayList paramList = new ArrayList();
+        StringBuilder sb = new StringBuilder();
+        substituteQuery(ts.aclQuery,vm,sb,paramList);
+
+        // Fire off the query!
+        getSession();
+        IDynamicResultSet result;
+        String queryText = sb.toString();
+        long startTime = System.currentTimeMillis();
+        // Get a dynamic resultset.  Contract for dynamic resultset is that if
+        // one is returned, it MUST be closed, or a connection will leak.
+        try
+        {
+          result = connection.executeUncachedQuery(queryText,paramList,-1);
+        }
+        catch (ManifoldCFException e)
+        {
+          // If failure, record the failure.
+          if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
+            activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+              createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
+          throw e;
+        }
+        try
+        {
+          // If success, record that too.
+          activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+            createQueryString(queryText,paramList), "OK", null, null);
+          // Now, go through resultset
+          while (true)
+          {
+            IDynamicResultRow row = result.getNextRow();
+            if (row == null)
+              break;
+            try
+            {
+              Object o = row.getValue(JDBCConstants.idReturnColumnName);
+              if (o == null)
+                throw new ManifoldCFException("Bad acl query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
+              String idValue = JDBCConnection.readAsString(o);
+              o = row.getValue(JDBCConstants.tokenReturnColumnName);
+              String tokenValue;
+              if (o == null)
+                tokenValue = "";
+              else
+                tokenValue = JDBCConnection.readAsString(o);
+              // Versions that are "", when processed, will have their acls fetched at that time...
+              Set<String> dcs = documentAcls.get(idValue);
+              if (dcs == null)
+              {
+                dcs = new HashSet<String>();
+                documentAcls.put(idValue,dcs);
+              }
+              dcs.add(tokenValue);
+            }
+            finally
+            {
+              row.close();
+            }
+          }
+        }
+        finally
+        {
+          result.close();
+        }
+      }
+    }
+    else
+    {
+      if (ts.securityOn)
+      {
+        for (String documentIdentifier : fetchDocuments)
+        {
+          documentAcls.put(documentIdentifier,acls);
+        }
+      }
+    }
+    
+    Map<String,String> map = new HashMap<String,String>();
+    for (String documentIdentifier : fetchDocuments)
+    {
+      String documentVersion = documentVersions.get(documentIdentifier);
+      if (documentVersion.length() == 0)
+      {
+        map.put(documentIdentifier,documentVersion);
+      }
+      else
+      {
+        // Compute a full version string
+        StringBuilder sb = new StringBuilder();
+        Set<String> dAcls = documentAcls.get(documentIdentifier);
+        if (dAcls == null)
+          sb.append('-');
+        else
+        {
+          sb.append('+');
+          String[] aclValues = new String[dAcls.size()];
+          int k = 0;
+          for (String acl : dAcls)
+          {
+            aclValues[k++] = acl;
+          }
+          java.util.Arrays.sort(aclValues);
+          packList(sb,aclValues,'+');
+        }
+
+        sb.append(documentVersion).append("=").append(ts.dataQuery);
+        String versionValue = sb.toString();
+
+        if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionValue))
+        {
+          map.put(documentIdentifier,versionValue);
+        }
       }
     }
     
@@ -446,7 +541,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     addConstant(vm,JDBCConstants.urlReturnVariable,JDBCConstants.urlReturnColumnName);
     addConstant(vm,JDBCConstants.dataReturnVariable,JDBCConstants.dataReturnColumnName);
     addConstant(vm,JDBCConstants.contentTypeReturnVariable,JDBCConstants.contentTypeReturnColumnName);
-    if (!addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,fetchDocuments))
+    if (!addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,map.keySet()))
       return;
 
     // Do the substitution
@@ -589,7 +684,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
             RepositoryDocument rd = new RepositoryDocument();
             rd.setMimeType(contentType);
                         
-            applyAccessTokens(rd,ts);
+            applyAccessTokens(rd,documentAcls.get(id));
             applyMetadata(rd,row);
 
             if (contents instanceof BinaryInput)
@@ -1129,9 +1224,9 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      editjob."+seqPrefix+"aclquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
-"    if (editjob."+seqPrefix+"aclquery.value.indexOf(\"$(ACCESSTOKENCOLUMN)\") == -1)\n"+
+"    if (editjob."+seqPrefix+"aclquery.value.indexOf(\"$(TOKENCOLUMN)\") == -1)\n"+
 "    {\n"+
-"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnACCESSTOKENCOLUMNInTheResult") + "\");\n"+
+"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnTOKENCOLUMNInTheResult") + "\");\n"+
 "      editjob."+seqPrefix+"aclquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
@@ -1205,7 +1300,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String idQuery = "SELECT idfield AS $(IDCOLUMN) FROM documenttable WHERE modifydatefield > $(STARTTIME) AND modifydatefield <= $(ENDTIME)";
     String versionQuery = "SELECT idfield AS $(IDCOLUMN), versionfield AS $(VERSIONCOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
     String dataQuery = "SELECT idfield AS $(IDCOLUMN), urlfield AS $(URLCOLUMN), datafield AS $(DATACOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
-    String aclQuery = "SELECT docidfield AS $(IDCOLUMN), aclfield AS $(ACCESSTOKENCOLUMN) FROM acltable WHERE docidfield IN $(IDLIST)";
+    String aclQuery = "SELECT docidfield AS $(IDCOLUMN), aclfield AS $(TOKENCOLUMN) FROM acltable WHERE docidfield IN $(IDLIST)";
     
     int i = 0;
     while (i < ds.getChildCount())
@@ -1708,15 +1803,20 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param version is the version string.
   *@param spec is the document specification.
   */
-  protected void applyAccessTokens(RepositoryDocument rd, TableSpec ts)
+  protected void applyAccessTokens(RepositoryDocument rd, Set<String> accessTokens)
     throws ManifoldCFException
   {
-    String[] accessAcls = ts.getAcls();
-    String[] denyAcls;
-    if (accessAcls.length == 0)
-      denyAcls = new String[0];
-    else
-      denyAcls = new String[]{defaultAuthorityDenyToken};
+    if (accessTokens == null)
+      return;
+    
+    String[] accessAcls = new String[accessTokens.size()];
+    int i = 0;
+    for (String accessToken : accessTokens)
+    {
+      accessAcls[i++] = accessToken;
+    }
+    java.util.Arrays.sort(accessAcls);
+    String[] denyAcls = new String[]{defaultAuthorityDenyToken};
       
     rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,accessAcls,denyAcls);
 
@@ -1931,6 +2031,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public final String idQuery;
     public final String versionQuery;
     public final String dataQuery;
+    public final String aclQuery;
+    public final boolean securityOn;
     public final Set<String> aclMap = new HashSet<String>();
 
     public TableSpec(Specification ds)
@@ -1938,6 +2040,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       String idQuery = null;
       String versionQuery = null;
       String dataQuery = null;
+      String aclQuery = null;
+      boolean securityOn = false;
       for (int i = 0; i < ds.getChildCount(); i++)
       {
         SpecificationNode sn = ds.getChild(i);
@@ -1959,28 +2063,40 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           if (dataQuery == null)
             dataQuery = "";
         }
+        else if (sn.getType().equals(JDBCConstants.aclQueryNode))
+        {
+          aclQuery = sn.getValue();
+          if (aclQuery == null)
+            aclQuery = "";
+        }
         else if (sn.getType().equals("access"))
         {
           String token = sn.getAttributeValue("token");
           aclMap.add(token);
         }
+        else if (sn.getType().equals("security"))
+        {
+          String value = sn.getAttributeValue("value");
+          securityOn = value.equals("on");
+        }
       }
       this.idQuery = idQuery;
       this.versionQuery = versionQuery;
       this.dataQuery = dataQuery;
+      this.aclQuery = aclQuery;
+      this.securityOn = securityOn;
     }
 
-    public String[] getAcls()
+    public Set<String> getAcls()
     {
-      String[] rval = new String[aclMap.size()];
-      int i = 0;
-      for (String token : aclMap)
-      {
-        rval[i++] = token;
-      }
-      return rval;
+      return aclMap;
     }
 
+    public boolean isSecurityOn()
+    {
+      return securityOn;
+    }
+    
   }
 
 }
