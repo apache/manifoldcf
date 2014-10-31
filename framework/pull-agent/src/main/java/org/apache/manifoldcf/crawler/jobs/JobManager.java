@@ -1475,18 +1475,17 @@ public class JobManager implements IJobManager
           
           sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.getTableName()).append(" t2 WHERE ")
             .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-              new JoinClause("t2."+jobQueue.docHashField,"t0."+jobQueue.docHashField)})).append(" AND ")
-            .append("t2.").append(jobQueue.statusField).append(" IN (?,?,?,?,?,?) AND ")
-            .append("t2.").append(jobQueue.jobIDField).append("!=t0.").append(jobQueue.jobIDField)
+              new JoinClause("t2."+jobQueue.docHashField,"t0."+jobQueue.docHashField),
+              new MultiClause("t2."+jobQueue.statusField,new String[]{
+                jobQueue.statusToString(jobQueue.STATUS_ACTIVE),
+                jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY),
+                jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN),
+                jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
+                jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED),
+                jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)}),
+              new JoinClause("t2."+jobQueue.jobIDField,"t0."+jobQueue.jobIDField,"!=")}))
             .append(") ");
             
-          list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
-
           sb.append(database.constructOffsetLimitClause(0,maxCount));
           
           // The checktime is null field check is for backwards compatibility
@@ -1718,18 +1717,17 @@ public class JobManager implements IJobManager
             
           sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.getTableName()).append(" t2 WHERE ")
             .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-              new JoinClause("t2."+jobQueue.docHashField,"t0."+jobQueue.docHashField)})).append(" AND ")
-            .append("t2.").append(jobQueue.statusField).append(" IN (?,?,?,?,?,?) AND ")
-            .append("t2.").append(jobQueue.jobIDField).append("!=t0.").append(jobQueue.jobIDField)
+              new JoinClause("t2."+jobQueue.docHashField,"t0."+jobQueue.docHashField),
+              new MultiClause("t2."+jobQueue.statusField,new String[]{
+                jobQueue.statusToString(jobQueue.STATUS_ACTIVE),
+                jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY),
+                jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN),
+                jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
+                jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED),
+                jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)}),
+              new JoinClause("t2."+jobQueue.jobIDField,"t0."+jobQueue.jobIDField,"!=")}))
             .append(") ");
             
-          list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
-          
           sb.append(database.constructOffsetLimitClause(0,maxCount));
           
           // The checktime is null field check is for backwards compatibility
@@ -2257,16 +2255,16 @@ public class JobManager implements IJobManager
     
     sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.getTableName()).append(" t2 WHERE ")
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-        new JoinClause("t2."+jobQueue.docHashField,"t0."+jobQueue.docHashField)})).append(" AND ")
-      .append("t2.").append(jobQueue.statusField).append(" IN (?,?,?,?,?,?)").append(" AND ")
-      .append("t2.").append(jobQueue.jobIDField).append("!=t0.").append(jobQueue.jobIDField).append(") ");
-
-    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
+        new JoinClause("t2."+jobQueue.docHashField,"t0."+jobQueue.docHashField),
+        new MultiClause("t2."+jobQueue.statusField,new String[]{
+          jobQueue.statusToString(jobQueue.STATUS_ACTIVE),
+          jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY),
+          jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN),
+          jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
+          jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED),
+          jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)}),
+        new JoinClause("t2."+jobQueue.jobIDField,"t0."+jobQueue.jobIDField,"!=")}))
+      .append(") ");
 
     sb.append(database.constructOffsetLimitClause(0,n));
 
@@ -2807,18 +2805,17 @@ public class JobManager implements IJobManager
     
     sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.getTableName()).append(" t2 WHERE ")
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-        new JoinClause("t2."+jobQueue.docHashField,"t0."+jobQueue.docHashField)})).append(" AND ")
-      .append("t2.").append(jobQueue.statusField).append(" IN (?,?,?,?,?,?) AND ")
-      .append("t2.").append(jobQueue.jobIDField).append("!=t0.").append(jobQueue.jobIDField)
+        new JoinClause("t2."+jobQueue.docHashField,"t0."+jobQueue.docHashField),
+        new MultiClause("t2."+jobQueue.statusField,new String[]{
+          jobQueue.statusToString(jobQueue.STATUS_ACTIVE),
+          jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY),
+          jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN),
+          jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
+          jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED),
+          jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)}),
+        new JoinClause("t2."+jobQueue.jobIDField,"t0."+jobQueue.jobIDField,"!=")}))
       .append(") AND ");
 
-    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
-        
     // Prerequisite event clause: AND NOT EXISTS(SELECT 'x' FROM prereqevents t3,events t4 WHERE t3.ownerid=t0.id AND t3.name=t4.name)
     sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.prereqEventManager.getTableName()).append(" t3,").append(eventManager.getTableName()).append(" t4 WHERE t0.")
       .append(jobQueue.idField).append("=t3.").append(jobQueue.prereqEventManager.ownerField).append(" AND t3.")
