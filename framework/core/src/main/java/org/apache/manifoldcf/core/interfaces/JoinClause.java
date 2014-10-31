@@ -24,14 +24,21 @@ public class JoinClause implements ClauseDescription
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  protected String columnName;
-  protected String joinColumnName;
+  protected final String columnName;
+  protected final String joinColumnName;
+  protected final String operation;
   
   /** Construct */
   public JoinClause(String columnName, String joinColumnName)
   {
+    this(columnName,joinColumnName,"=");
+  }
+  
+  public JoinClause(String columnName, String joinColumnName, String operation)
+  {
     this.columnName = columnName;
     this.joinColumnName = joinColumnName;
+    this.operation = "=";
   }
   
   /** Get the column name */
@@ -43,7 +50,7 @@ public class JoinClause implements ClauseDescription
   /** Get the operation string */
   public String getOperation()
   {
-    return "=";
+    return operation;
   }
   
   /** Get the individual values */
