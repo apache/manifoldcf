@@ -409,85 +409,85 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     // Pick up document acls
     Map<String,Set<String>> documentAcls = new HashMap<String,Set<String>>();
-    if (ts.securityOn && ts.aclQuery != null && ts.aclQuery.length() > 0)
+    if (ts.securityOn)
     {
-      // If there IS an acls query, do it.  First set up the variables, then do the substitution.
-      VariableMap vm = new VariableMap();
-      addConstant(vm,JDBCConstants.idReturnVariable,JDBCConstants.idReturnColumnName);
-      addConstant(vm,JDBCConstants.tokenReturnVariable,JDBCConstants.tokenReturnColumnName);
-      if (addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,fetchDocuments))
+      if (acls.size() == 0 && ts.aclQuery != null && ts.aclQuery.length() > 0)
       {
-        // Do the substitution
-        ArrayList paramList = new ArrayList();
-        StringBuilder sb = new StringBuilder();
-        substituteQuery(ts.aclQuery,vm,sb,paramList);
+        // If there IS an acls query, do it.  First set up the variables, then do the substitution.
+        VariableMap vm = new VariableMap();
+        addConstant(vm,JDBCConstants.idReturnVariable,JDBCConstants.idReturnColumnName);
+        addConstant(vm,JDBCConstants.tokenReturnVariable,JDBCConstants.tokenReturnColumnName);
+        if (addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,fetchDocuments))
+        {
+          // Do the substitution
+          ArrayList paramList = new ArrayList();
+          StringBuilder sb = new StringBuilder();
+          substituteQuery(ts.aclQuery,vm,sb,paramList);
 
-        // Fire off the query!
-        getSession();
-        IDynamicResultSet result;
-        String queryText = sb.toString();
-        long startTime = System.currentTimeMillis();
-        // Get a dynamic resultset.  Contract for dynamic resultset is that if
-        // one is returned, it MUST be closed, or a connection will leak.
-        try
-        {
-          result = connection.executeUncachedQuery(queryText,paramList,-1);
-        }
-        catch (ManifoldCFException e)
-        {
-          // If failure, record the failure.
-          if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
-            activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
-              createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
-          throw e;
-        }
-        try
-        {
-          // If success, record that too.
-          activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
-            createQueryString(queryText,paramList), "OK", null, null);
-          // Now, go through resultset
-          while (true)
+          // Fire off the query!
+          getSession();
+          IDynamicResultSet result;
+          String queryText = sb.toString();
+          long startTime = System.currentTimeMillis();
+          // Get a dynamic resultset.  Contract for dynamic resultset is that if
+          // one is returned, it MUST be closed, or a connection will leak.
+          try
           {
-            IDynamicResultRow row = result.getNextRow();
-            if (row == null)
-              break;
-            try
+            result = connection.executeUncachedQuery(queryText,paramList,-1);
+          }
+          catch (ManifoldCFException e)
+          {
+            // If failure, record the failure.
+            if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
+              activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+                createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
+            throw e;
+          }
+          try
+          {
+            // If success, record that too.
+            activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+              createQueryString(queryText,paramList), "OK", null, null);
+            // Now, go through resultset
+            while (true)
             {
-              Object o = row.getValue(JDBCConstants.idReturnColumnName);
-              if (o == null)
-                throw new ManifoldCFException("Bad acl query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
-              String idValue = JDBCConnection.readAsString(o);
-              o = row.getValue(JDBCConstants.tokenReturnColumnName);
-              String tokenValue;
-              if (o == null)
-                tokenValue = "";
-              else
-                tokenValue = JDBCConnection.readAsString(o);
-              // Versions that are "", when processed, will have their acls fetched at that time...
-              Set<String> dcs = documentAcls.get(idValue);
-              if (dcs == null)
+              IDynamicResultRow row = result.getNextRow();
+              if (row == null)
+                break;
+              try
               {
-                dcs = new HashSet<String>();
-                documentAcls.put(idValue,dcs);
+                Object o = row.getValue(JDBCConstants.idReturnColumnName);
+                if (o == null)
+                  throw new ManifoldCFException("Bad acl query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
+                String idValue = JDBCConnection.readAsString(o);
+                o = row.getValue(JDBCConstants.tokenReturnColumnName);
+                String tokenValue;
+                if (o == null)
+                  tokenValue = "";
+                else
+                  tokenValue = JDBCConnection.readAsString(o);
+                // Versions that are "", when processed, will have their acls fetched at that time...
+                Set<String> dcs = documentAcls.get(idValue);
+                if (dcs == null)
+                {
+                  dcs = new HashSet<String>();
+                  documentAcls.put(idValue,dcs);
+                }
+                dcs.add(tokenValue);
               }
-              dcs.add(tokenValue);
-            }
-            finally
-            {
-              row.close();
+              finally
+              {
+                row.close();
+              }
             }
           }
-        }
-        finally
-        {
-          result.close();
+          finally
+          {
+            result.close();
+          }
         }
       }
-    }
-    else
-    {
-      if (ts.securityOn)
+      else
       {
         for (String documentIdentifier : fetchDocuments)
         {
