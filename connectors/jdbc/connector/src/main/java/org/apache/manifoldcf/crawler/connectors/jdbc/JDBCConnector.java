@@ -305,9 +305,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     TableSpec ts = new TableSpec(spec);
     
-    String[] acls = ts.getAcls();
-    // Sort these,
-    java.util.Arrays.sort(acls);
+    Set<String> acls = ts.getAcls();
 
     String[] versionsReturned = new String[documentIdentifiers.length];
 
@@ -316,15 +314,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // for all.  ProcessDocuments will then be responsible for doing document deletes itself,
     // based on the query results.
 
-    if (ts.versionQuery == null || ts.versionQuery.length() == 0)
-    {
-      int i = 0;
-      while (i < versionsReturned.length)
-      {
-        versionsReturned[i++] = "";
-      }
-    }
-    else
+    Map<String,String> documentVersions = new HashMap<String,String>();
+    if (ts.versionQuery != null && ts.versionQuery.length() > 0)
     {
       // If there IS a versions query, do it.  First set up the variables, then do the substitution.
       VariableMap vm = new VariableMap();
@@ -339,15 +330,6 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
         // Now, build a result return, and a hash table so we can correlate the returned values with the place to put them.
         // We presume that if the row is missing, the document is gone.
-        Map<String,Integer> map = new HashMap<String,Integer>();
-        int j = 0;
-        while (j < documentIdentifiers.length)
-        {
-          map.put(documentIdentifiers[j],new Integer(j));
-          versionsReturned[j] = "";
-          j++;
-        }
-
         // Fire off the query!
         getSession();
         IDynamicResultSet result;
@@ -362,8 +344,9 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         catch (ManifoldCFException e)
         {
           // If failure, record the failure.
-          activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
-            createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
+          if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
+            activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+              createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
           throw e;
         }
         try
@@ -389,23 +372,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
               if (o == null)
                 versionValue = "";
               else
-              {
-                // A real version string!  Any acls must be added to the front, if they are present...
-                sb = new StringBuilder();
-                packList(sb,acls,'+');
-                if (acls.length > 0)
-                {
-                  sb.append('+');
-                  pack(sb,defaultAuthorityDenyToken,'+');
-                }
-                else
-                  sb.append('-');
-
-                sb.append(JDBCConnection.readAsString(o)).append("=").append(ts.dataQuery);
-                versionValue = sb.toString();
-              }
-              // Versions that are "", when processed, will have their acls fetched at that time...
-              versionsReturned[map.get(idValue).intValue()] = versionValue;
+                versionValue = JDBCConnection.readAsString(o);
+              documentVersions.put(idValue,versionValue);
             }
             finally
             {
@@ -419,23 +387,150 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
       }
     }
-    
-    // Delete the documents that had no version, and work only on ones that did
-    Set<String> fetchDocuments = new HashSet<String>();
-    Map<String,String> map = new HashMap<String,String>();
-    for (int i = 0; i < documentIdentifiers.length; i++)
+    else
     {
-      String documentIdentifier = documentIdentifiers[i];
-      String versionValue = versionsReturned[i];
-      if (versionValue == null)
+      for (String documentIdentifier : documentIdentifiers)
+      {
+        documentVersions.put(documentIdentifier,"");
+      }
+    }
+
+    // Delete the documents that had no version, and work only on ones that did
+    Set<String> fetchDocuments = documentVersions.keySet();
+    for (String documentIdentifier : documentIdentifiers)
+    {
+      String documentVersion = documentVersions.get(documentIdentifier);
+      if (documentVersion == null)
       {
         activities.deleteDocument(documentIdentifier);
         continue;
       }
-      if (versionValue.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionValue))
+    }
+
+    // Pick up document acls
+    Map<String,Set<String>> documentAcls = new HashMap<String,Set<String>>();
+    if (ts.securityOn)
+    {
+      if (acls.size() == 0 && ts.aclQuery != null && ts.aclQuery.length() > 0)
       {
-        fetchDocuments.add(documentIdentifier);
-        map.put(documentIdentifier,versionValue);
+        // If there IS an acls query, do it.  First set up the variables, then do the substitution.
+        VariableMap vm = new VariableMap();
+        addConstant(vm,JDBCConstants.idReturnVariable,JDBCConstants.idReturnColumnName);
+        addConstant(vm,JDBCConstants.tokenReturnVariable,JDBCConstants.tokenReturnColumnName);
+        if (addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,fetchDocuments))
+        {
+          // Do the substitution
+          ArrayList paramList = new ArrayList();
+          StringBuilder sb = new StringBuilder();
+          substituteQuery(ts.aclQuery,vm,sb,paramList);
+
+          // Fire off the query!
+          getSession();
+          IDynamicResultSet result;
+          String queryText = sb.toString();
+          long startTime = System.currentTimeMillis();
+          // Get a dynamic resultset.  Contract for dynamic resultset is that if
+          // one is returned, it MUST be closed, or a connection will leak.
+          try
+          {
+            result = connection.executeUncachedQuery(queryText,paramList,-1);
+          }
+          catch (ManifoldCFException e)
+          {
+            // If failure, record the failure.
+            if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
+              activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+                createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
+            throw e;
+          }
+          try
+          {
+            // If success, record that too.
+            activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+              createQueryString(queryText,paramList), "OK", null, null);
+            // Now, go through resultset
+            while (true)
+            {
+              IDynamicResultRow row = result.getNextRow();
+              if (row == null)
+                break;
+              try
+              {
+                Object o = row.getValue(JDBCConstants.idReturnColumnName);
+                if (o == null)
+                  throw new ManifoldCFException("Bad acl query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
+                String idValue = JDBCConnection.readAsString(o);
+                o = row.getValue(JDBCConstants.tokenReturnColumnName);
+                String tokenValue;
+                if (o == null)
+                  tokenValue = "";
+                else
+                  tokenValue = JDBCConnection.readAsString(o);
+                // Versions that are "", when processed, will have their acls fetched at that time...
+                Set<String> dcs = documentAcls.get(idValue);
+                if (dcs == null)
+                {
+                  dcs = new HashSet<String>();
+                  documentAcls.put(idValue,dcs);
+                }
+                dcs.add(tokenValue);
+              }
+              finally
+              {
+                row.close();
+              }
+            }
+          }
+          finally
+          {
+            result.close();
+          }
+        }
+      }
+      else
+      {
+        for (String documentIdentifier : fetchDocuments)
+        {
+          documentAcls.put(documentIdentifier,acls);
+        }
+      }
+    }
+    
+    Map<String,String> map = new HashMap<String,String>();
+    for (String documentIdentifier : fetchDocuments)
+    {
+      String documentVersion = documentVersions.get(documentIdentifier);
+      if (documentVersion.length() == 0)
+      {
+        map.put(documentIdentifier,documentVersion);
+      }
+      else
+      {
+        // Compute a full version string
+        StringBuilder sb = new StringBuilder();
+        Set<String> dAcls = documentAcls.get(documentIdentifier);
+        if (dAcls == null)
+          sb.append('-');
+        else
+        {
+          sb.append('+');
+          String[] aclValues = new String[dAcls.size()];
+          int k = 0;
+          for (String acl : dAcls)
+          {
+            aclValues[k++] = acl;
+          }
+          java.util.Arrays.sort(aclValues);
+          packList(sb,aclValues,'+');
+        }
+
+        sb.append(documentVersion).append("=").append(ts.dataQuery);
+        String versionValue = sb.toString();
+
+        if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionValue))
+        {
+          map.put(documentIdentifier,versionValue);
+        }
       }
     }
     
@@ -446,7 +541,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     addConstant(vm,JDBCConstants.urlReturnVariable,JDBCConstants.urlReturnColumnName);
     addConstant(vm,JDBCConstants.dataReturnVariable,JDBCConstants.dataReturnColumnName);
     addConstant(vm,JDBCConstants.contentTypeReturnVariable,JDBCConstants.contentTypeReturnColumnName);
-    if (!addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,fetchDocuments))
+    if (!addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,map.keySet()))
       return;
 
     // Do the substitution
@@ -589,7 +684,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
             RepositoryDocument rd = new RepositoryDocument();
             rd.setMimeType(contentType);
                         
-            applyAccessTokens(rd,ts);
+            applyAccessTokens(rd,documentAcls.get(id));
             applyMetadata(rd,row);
 
             if (contents instanceof BinaryInput)
@@ -1121,6 +1216,27 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      return false;\n"+
 "    }\n"+
 "  }\n"+
+"  if (editjob."+seqPrefix+"aclquery.value != \"\")\n"+
+"  {\n"+
+"    if (editjob."+seqPrefix+"aclquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
+"    {\n"+
+"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + "\");\n"+
+"      editjob."+seqPrefix+"aclquery.focus();\n"+
+"      return false;\n"+
+"    }\n"+
+"    if (editjob."+seqPrefix+"aclquery.value.indexOf(\"$(TOKENCOLUMN)\") == -1)\n"+
+"    {\n"+
+"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnTOKENCOLUMNInTheResult") + "\");\n"+
+"      editjob."+seqPrefix+"aclquery.focus();\n"+
+"      return false;\n"+
+"    }\n"+
+"    if (editjob."+seqPrefix+"aclquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
+"    {\n"+
+"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + "\");\n"+
+"      editjob."+seqPrefix+"aclquery.focus();\n"+
+"      return false;\n"+
+"    }\n"+
+"  }\n"+
 "  if (editjob."+seqPrefix+"dataquery.value == \"\")\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.EnterADataQuery") + "\");\n"+
@@ -1184,7 +1300,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String idQuery = "SELECT idfield AS $(IDCOLUMN) FROM documenttable WHERE modifydatefield > $(STARTTIME) AND modifydatefield <= $(ENDTIME)";
     String versionQuery = "SELECT idfield AS $(IDCOLUMN), versionfield AS $(VERSIONCOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
     String dataQuery = "SELECT idfield AS $(IDCOLUMN), urlfield AS $(URLCOLUMN), datafield AS $(DATACOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
-
+    String aclQuery = "SELECT docidfield AS $(IDCOLUMN), aclfield AS $(TOKENCOLUMN) FROM acltable WHERE docidfield IN $(IDLIST)";
+    
     int i = 0;
     while (i < ds.getChildCount())
     {
@@ -1207,6 +1324,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (dataQuery == null)
           dataQuery = "";
       }
+      else if (sn.getType().equals(JDBCConstants.aclQueryNode))
+      {
+        aclQuery = sn.getValue();
+        if (aclQuery == null)
+          aclQuery = "";
+      }
     }
 
     // The Queries tab
@@ -1225,6 +1348,10 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    <td class=\"value\"><textarea name=\""+seqPrefix+"versionquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(versionQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AccessTokenQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsAndAccessTokensForASetOfDocuments") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.leaveBlankIfNoSecurityCapability") + "</nobr></td>\n"+
+"    <td class=\"value\"><textarea name=\""+seqPrefix+"aclquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(aclQuery)+"</textarea></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DataQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsUrlsAndDataForASetOfDocuments") + "</nobr></td>\n"+
 "    <td class=\"value\"><textarea name=\""+seqPrefix+"dataquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
@@ -1236,6 +1363,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       out.print(
 "<input type=\"hidden\" name=\""+seqPrefix+"idquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idQuery)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+seqPrefix+"versionquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(versionQuery)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"aclquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(aclQuery)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+seqPrefix+"dataquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dataQuery)+"\"/>\n"
       );
     }
@@ -1243,11 +1371,32 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // Security tab
     // There is no native security, so all we care about are the tokens.
     i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("security"))
+      {
+        String securityValue = sn.getAttributeValue("value");
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+    }
 
     if (tabName.equals(Messages.getString(locale,"JDBCConnector.Security")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"JDBCConnector.SecurityColon")+"</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"JDBCConnector.Enabled")+"\n"+
+"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"JDBCConnector.Disabled")+"\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
       );
       // Go through forced ACL
@@ -1305,6 +1454,9 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     else
     {
+      out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
+      );
       // Finally, go through forced ACL
       i = 0;
       int k = 0;
@@ -1349,7 +1501,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String idQuery = variableContext.getParameter(seqPrefix+"idquery");
     String versionQuery = variableContext.getParameter(seqPrefix+"versionquery");
     String dataQuery = variableContext.getParameter(seqPrefix+"dataquery");
-
+    String aclQuery = variableContext.getParameter(seqPrefix+"aclquery");
+    
     SpecificationNode sn;
     if (idQuery != null)
     {
@@ -1379,6 +1532,20 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       sn.setValue(versionQuery);
       ds.addChild(ds.getChildCount(),sn);
     }
+    if (aclQuery != null)
+    {
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        if (ds.getChild(i).getType().equals(JDBCConstants.aclQueryNode))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      sn = new SpecificationNode(JDBCConstants.aclQueryNode);
+      sn.setValue(aclQuery);
+      ds.addChild(ds.getChildCount(),sn);
+    }
     if (dataQuery != null)
     {
       int i = 0;
@@ -1393,8 +1560,28 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       sn.setValue(dataQuery);
       ds.addChild(ds.getChildCount(),sn);
     }
-	
-    String xc = variableContext.getParameter(seqPrefix+"tokencount");
+
+    String xc = variableContext.getParameter(seqPrefix+"specsecurity");
+    if (xc != null)
+    {
+      // Delete all security entries first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        sn = ds.getChild(i);
+        if (sn.getType().equals("security"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode node = new SpecificationNode("security");
+      node.setAttribute("value",xc);
+      ds.addChild(ds.getChildCount(),node);
+
+    }
+
+    xc = variableContext.getParameter(seqPrefix+"tokencount");
     if (xc != null)
     {
       // Delete all tokens first
@@ -1459,7 +1646,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String idQuery = "";
     String versionQuery = "";
     String dataQuery = "";
-
+    String aclQuery = "";
+    
     int i = 0;
     while (i < ds.getChildCount())
     {
@@ -1482,6 +1670,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (dataQuery == null)
           dataQuery = "";
       }
+      else if (sn.getType().equals(JDBCConstants.aclQueryNode))
+      {
+        aclQuery = sn.getValue();
+        if (aclQuery == null)
+          aclQuery = "";
+      }
     }
 
     out.print(
@@ -1495,12 +1689,40 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(versionQuery)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AccessTokenQuery") + "</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(aclQuery)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DataQuery") + "</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</td>\n"+
 "  </tr>\n"+
 "\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("security"))
+      {
+        String securityValue = sn.getAttributeValue("value");
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+    }
+    out.print(
+"  <tr>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"JDBCConnector.SecurityColon")+"</td>\n"+
+"    <td class=\"value\">"+(securityOn?Messages.getBodyString(locale,"JDBCConnector.Enabled"):Messages.getBodyString(locale,"JDBCConnector.Disabled"))+"</td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+
     // Go through looking for access tokens
     boolean seenAny = false;
     i = 0;
@@ -1581,15 +1803,20 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param version is the version string.
   *@param spec is the document specification.
   */
-  protected void applyAccessTokens(RepositoryDocument rd, TableSpec ts)
+  protected void applyAccessTokens(RepositoryDocument rd, Set<String> accessTokens)
     throws ManifoldCFException
   {
-    String[] accessAcls = ts.getAcls();
-    String[] denyAcls;
-    if (accessAcls.length == 0)
-      denyAcls = new String[0];
-    else
-      denyAcls = new String[]{defaultAuthorityDenyToken};
+    if (accessTokens == null)
+      return;
+    
+    String[] accessAcls = new String[accessTokens.size()];
+    int i = 0;
+    for (String accessToken : accessTokens)
+    {
+      accessAcls[i++] = accessToken;
+    }
+    java.util.Arrays.sort(accessAcls);
+    String[] denyAcls = new String[]{defaultAuthorityDenyToken};
       
     rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,accessAcls,denyAcls);
 
@@ -1832,6 +2059,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public final String idQuery;
     public final String versionQuery;
     public final String dataQuery;
+    public final String aclQuery;
+    public final boolean securityOn;
     public final Set<String> aclMap = new HashSet<String>();
 
     public TableSpec(Specification ds)
@@ -1839,6 +2068,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       String idQuery = null;
       String versionQuery = null;
       String dataQuery = null;
+      String aclQuery = null;
+      boolean securityOn = false;
       for (int i = 0; i < ds.getChildCount(); i++)
       {
         SpecificationNode sn = ds.getChild(i);
@@ -1860,28 +2091,40 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           if (dataQuery == null)
             dataQuery = "";
         }
+        else if (sn.getType().equals(JDBCConstants.aclQueryNode))
+        {
+          aclQuery = sn.getValue();
+          if (aclQuery == null)
+            aclQuery = "";
+        }
         else if (sn.getType().equals("access"))
         {
           String token = sn.getAttributeValue("token");
           aclMap.add(token);
         }
+        else if (sn.getType().equals("security"))
+        {
+          String value = sn.getAttributeValue("value");
+          securityOn = value.equals("on");
+        }
       }
       this.idQuery = idQuery;
       this.versionQuery = versionQuery;
       this.dataQuery = dataQuery;
+      this.aclQuery = aclQuery;
+      this.securityOn = securityOn;
     }
 
-    public String[] getAcls()
+    public Set<String> getAcls()
     {
-      String[] rval = new String[aclMap.size()];
-      int i = 0;
-      for (String token : aclMap)
-      {
-        rval[i++] = token;
-      }
-      return rval;
+      return aclMap;
     }
 
+    public boolean isSecurityOn()
+    {
+      return securityOn;
+    }
+    
   }
 
 }

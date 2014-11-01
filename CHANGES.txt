@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1089: Add JDBC connector access token capability.
+(Alejandro Calbazana, Karl Wright)
+
 CONNECTORS-1088: Add boilerplate extraction to Tika extractor.
 (Arcadius Ahouansou, Karl Wright)
 
