@@ -1076,7 +1076,7 @@
     
     <target name="run-LT-HSQLDB" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-HSQLDB-output"/>
-        <junit fork="true" maxmemory="384m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="512m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
