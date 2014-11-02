@@ -30,7 +30,7 @@
     <defaultexcludes add="**/.idea/**"/> 
     
     <property name="derby.version" value="10.10.2.0"/>
-    <property name="hsqldb.version" value="2.3.1"/>
+    <property name="hsqldb.version" value="2.3.2"/>
     <property name="jetty.version" value="9.2.3.v20140905"/>
     <property name="httpclient.version" value="4.3.5"/>
     <property name="httpmime.version" value="4.3.5"/>
