@@ -2787,7 +2787,7 @@ public class JobManager implements IJobManager
       .append(" t0 ").append(jobQueue.getGetNextDocumentsIndexHint()).append(" WHERE ");
     
     sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
-      //new UnitaryClause("t0."+jobQueue.docPriorityField,">=",new Long(0L)),
+      new UnitaryClause("t0."+jobQueue.docPriorityField,"<",JobQueue.nullDocPriority),  // Note: This is technically correct, but I need to confirm that it works OK for MySQL and HSQLDB
       new MultiClause("t0."+jobQueue.statusField,new Object[]{
         jobQueue.statusToString(JobQueue.STATUS_PENDING),
         jobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)}),
