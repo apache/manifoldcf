@@ -611,7 +611,10 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       return theException;
     Throwable e = theException.getCause();
     if (!(e instanceof java.sql.SQLException))
+    {
+      //e.printStackTrace();
       return theException;
+    }
     if (Logging.db.isDebugEnabled())
       Logging.db.debug("Exception "+theException.getMessage()+" is possibly a transaction abort signal");
     java.sql.SQLException sqlException = (java.sql.SQLException)e;
@@ -628,8 +631,14 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     // one could make.)
     if (sqlState != null && sqlState.equals("23505"))
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    // New Postgresql behavior (9.3): sometimes we don't get an exception thrown, but the transaction is dead nonetheless.
+    if (sqlState != null && sqlState.equals("25P02"))
+      return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+      
     if (Logging.db.isDebugEnabled())
       Logging.db.debug("Exception "+theException.getMessage()+" is NOT a transaction abort signal");
+    //e.printStackTrace();
+    //System.err.println("sqlstate = "+sqlState);
     return theException;
   }
 
