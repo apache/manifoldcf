@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1090: More PostgreSQL performance improvements.
+(Karl Wright)
+
 CONNECTORS-1089: Add JDBC connector access token capability.
 (Alejandro Calbazana, Karl Wright)
 
