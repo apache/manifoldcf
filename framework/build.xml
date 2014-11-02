@@ -1188,10 +1188,10 @@
     <target name="process-lib-proprietary-classpath" depends="lib-proprietary">
         <property name="process-lib-proprietary-classpath" location="../lib-proprietary"/>
         <pathconvert property="process-lib-proprietary-classpath-win" refid="process-lib-proprietary" dirsep="\" pathsep=";">
-            <map from="${process-lib-proprietary-classpath}" to="..\lib"/>
+            <map from="${process-lib-proprietary-classpath}" to="..\lib-proprietary"/>
         </pathconvert>
         <pathconvert property="process-lib-proprietary-classpath-unix" refid="process-lib-proprietary" dirsep="/" pathsep=":">
-            <map from="${process-lib-proprietary-classpath}" to="../lib"/>
+            <map from="${process-lib-proprietary-classpath}" to="../lib-proprietary"/>
         </pathconvert>
     </target>
 
