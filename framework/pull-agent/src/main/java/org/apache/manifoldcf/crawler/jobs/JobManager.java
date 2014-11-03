@@ -2039,57 +2039,6 @@ public class JobManager implements IJobManager
 
   // These methods support the reprioritization thread.
 
-  /** Get a list of already-processed documents to reprioritize.  Documents in all jobs will be
-  * returned by this method.  Up to n document descriptions will be returned.
-  *@param currentTime is the current time stamp for this prioritization pass.  Avoid
-  *  picking up any documents that are labeled with this timestamp or after.
-  *@param n is the maximum number of document descriptions desired.
-  *@return the document descriptions.
-  */
-  @Override
-  public DocumentDescription[] getNextAlreadyProcessedReprioritizationDocuments(long currentTime, int n)
-    throws ManifoldCFException
-  {
-    StringBuilder sb = new StringBuilder();
-    ArrayList list = new ArrayList();
-
-    // The desired query is:
-    // SELECT docid FROM jobqueue WHERE prioritysettime < (currentTime) LIMIT (n)
-
-    sb.append("SELECT ")
-      .append(jobQueue.idField).append(",")
-      .append(jobQueue.docHashField).append(",")
-      .append(jobQueue.docIDField).append(",")
-      .append(jobQueue.jobIDField)
-      .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
-    
-    sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
-      new MultiClause(jobQueue.statusField,new Object[]{
-        jobQueue.statusToString(JobQueue.STATUS_COMPLETE),
-        jobQueue.statusToString(JobQueue.STATUS_UNCHANGED),
-        jobQueue.statusToString(JobQueue.STATUS_PURGATORY)}),
-      new UnitaryClause(jobQueue.prioritySetField,"<",new Long(currentTime))})).append(" ");
-      
-    sb.append(database.constructOffsetLimitClause(0,n));
-
-    IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
-
-    DocumentDescription[] rval = new DocumentDescription[set.getRowCount()];
-
-    int i = 0;
-    while (i < set.getRowCount())
-    {
-      IResultRow row = set.getRow(i);
-      rval[i] =new DocumentDescription((Long)row.getValue(jobQueue.idField),
-        (Long)row.getValue(jobQueue.jobIDField),
-        (String)row.getValue(jobQueue.docHashField),
-        (String)row.getValue(jobQueue.docIDField));
-      i++;
-    }
-
-    return rval;
-  }
-
   /** Get a list of not-yet-processed documents to reprioritize.  Documents in all jobs will be
   * returned by this method.  Up to n document descriptions will be returned.
   *@param currentTime is the current time stamp for this prioritization pass.  Avoid
@@ -2116,9 +2065,10 @@ public class JobManager implements IJobManager
           JobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED),
           JobQueue.statusToString(jobQueue.STATUS_PENDING),
           JobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)}),
-        new UnitaryClause(jobQueue.prioritySetField,"<",new Long(currentTime))})).append(" AND ")
-      .append(jobQueue.checkActionField).append("=?").append(" AND ");
-
+        new UnitaryClause(jobQueue.prioritySetField,"<",new Long(currentTime))}));
+    
+    sb.append(" AND ")
+      .append(jobQueue.checkActionField).append("=?");
     list.add(jobQueue.actionToString(JobQueue.ACTION_RESCAN));
 
     // Per CONNECTORS-290, we need to be leaving priorities blank for jobs that aren't using them,
@@ -2130,7 +2080,7 @@ public class JobManager implements IJobManager
     // expected to be short, because typically this state is the result of an installation procedure
     // rather than willful action on the part of a user.
         
-    sb.append("EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t1 WHERE ")
+    sb.append(" AND EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t1 WHERE ")
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{
         new MultiClause("t1."+jobs.statusField,new Object[]{
           Jobs.statusToString(Jobs.STATUS_STARTINGUP),
@@ -2148,7 +2098,8 @@ public class JobManager implements IJobManager
     // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
     //jobQueue.unconditionallyAnalyzeTables();
 
-    IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
+    //IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
+    IResultSet set = database.performQuery(sb.toString(),list,null,null);
 
     DocumentDescription[] rval = new DocumentDescription[set.getRowCount()];
 
@@ -2745,7 +2696,7 @@ public class JobManager implements IJobManager
       .append(" t0 ").append(jobQueue.getGetNextDocumentsIndexHint()).append(" WHERE ");
       
     sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
-      //new UnitaryClause(jobQueue.docPriorityField,">=",new Long(0L)),
+      new UnitaryClause("t0."+jobQueue.docPriorityField,"<",JobQueue.nullDocPriority),  // Note: This is technically correct, but I need to confirm that it works OK for MySQL and HSQLDB
       new MultiClause(jobQueue.statusField,
         new Object[]{jobQueue.statusToString(JobQueue.STATUS_PENDING),
           jobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)}),
