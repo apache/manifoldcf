@@ -3,6 +3,12 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1092: Error in log during load tests.
+(Karl Wright)
+
+CONNECTORS-1091: On job start, reprioritize documents.
+(Karl Wright)
+
 CONNECTORS-1090: More PostgreSQL performance improvements.
 (Karl Wright)
 
