@@ -6,6 +6,9 @@ CONNECTORS-1090: More PostgreSQL performance improvements.
 (Karl Wright)
 
 
+======================= Release 1.7.2 =====================
+
+
 ======================= Release 1.7.1 =====================
 
 CONNECTORS-1041: Livelink connector should force HTTPS off when
