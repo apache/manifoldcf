@@ -138,6 +138,8 @@ public class StartupThread extends Thread
                   jobManager.prepareJobScan(jobID,legalLinkTypes,hopcountMethod,
                     model,jobType == IJobDescription.TYPE_CONTINUOUS,lastSeedingVersion == null,
                     requestMinimum);
+                  ManifoldCF.resetAllDocumentPriorities(threadContext,currentTime,processID);
+                  
                   if (Logging.threads.isDebugEnabled())
                     Logging.threads.debug("Prepared job "+jobID.toString()+" for execution.");
 
