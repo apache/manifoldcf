@@ -733,6 +733,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Map COMPLETE to PENDINGPURGATORY
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+    map.put(prioritySetField,new Long(0L));
     // Do not reset priorities here!  They should all be blank at this point.
     map.put(checkTimeField,new Long(0L));
     map.put(checkActionField,actionToString(ACTION_RESCAN));
@@ -790,6 +791,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Map COMPLETE to PENDINGPURGATORY.
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+    map.put(prioritySetField,new Long(0L));
     // Do not reset priorities here!  They should all be blank at this point.
     map.put(checkTimeField,new Long(0L));
     map.put(checkActionField,actionToString(ACTION_RESCAN));
