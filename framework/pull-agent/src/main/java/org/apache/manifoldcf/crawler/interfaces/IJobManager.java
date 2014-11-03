@@ -215,16 +215,6 @@ public interface IJobManager
 
   // These methods support the "set doc priority" thread
 
-  /** Get a list of already-processed documents to reprioritize.  Documents in all jobs will be
-  * returned by this method.  Up to n document descriptions will be returned.
-  *@param currentTime is the current time stamp for this prioritization pass.  Avoid
-  *  picking up any documents that are labeled with this timestamp or after.
-  *@param n is the maximum number of document descriptions desired.
-  *@return the document descriptions.
-  */
-  public DocumentDescription[] getNextAlreadyProcessedReprioritizationDocuments(long currentTime, int n)
-    throws ManifoldCFException;
-
   /** Get a list of not-yet-processed documents to reprioritize.  Documents in all jobs will be
   * returned by this method.  Up to n document descriptions will be returned.
   *@param currentTime is the current time stamp for this prioritization pass.  Avoid

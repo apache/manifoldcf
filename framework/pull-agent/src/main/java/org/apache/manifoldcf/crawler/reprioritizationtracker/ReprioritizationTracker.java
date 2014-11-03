@@ -338,16 +338,18 @@ public class ReprioritizationTracker implements IReprioritizationTracker
   {
     byte[] timeData = lockManager.readData(trackerTimestampResource);
     if (timeData == null || timeData.length != 8)
+    {
       return null;
+    }
     
-    long rval = ((long)timeData[0]) & 0xffL +
-      (((long)timeData[1]) << 8) & 0xff00L +
-      (((long)timeData[2]) << 16) & 0xff0000L +
-      (((long)timeData[3]) << 24) & 0xff000000L +
-      (((long)timeData[4]) << 32) & 0xff00000000L +
-      (((long)timeData[5]) << 40) & 0xff0000000000L +
-      (((long)timeData[6]) << 48) & 0xff000000000000L +
-      (((long)timeData[7]) << 56) & 0xff00000000000000L;
+    long rval = (((long)timeData[0]) & 0xffL) +
+      ((((long)timeData[1]) << 8) & 0xff00L) +
+      ((((long)timeData[2]) << 16) & 0xff0000L) +
+      ((((long)timeData[3]) << 24) & 0xff000000L) +
+      ((((long)timeData[4]) << 32) & 0xff00000000L) +
+      ((((long)timeData[5]) << 40) & 0xff0000000000L) +
+      ((((long)timeData[6]) << 48) & 0xff000000000000L) +
+      ((((long)timeData[7]) << 56) & 0xff00000000000000L);
     
     return new Long(rval);
   }
@@ -372,6 +374,7 @@ public class ReprioritizationTracker implements IReprioritizationTracker
       timeData[5] = (byte)((time >> 40) & 0xffL);
       timeData[6] = (byte)((time >> 48) & 0xffL);
       timeData[7] = (byte)((time >> 56) & 0xffL);
+      
       lockManager.writeData(trackerTimestampResource, timeData);
     }
   }
@@ -443,14 +446,14 @@ public class ReprioritizationTracker implements IReprioritizationTracker
     byte[] data = lockManager.readData(trackerMinimumDepthResource);
     if (data == null || data.length != 8)
       return 0.0;
-    long dataLong = ((long)data[0]) & 0xffL +
-      (((long)data[1]) << 8) & 0xff00L +
-      (((long)data[2]) << 16) & 0xff0000L +
-      (((long)data[3]) << 24) & 0xff000000L +
-      (((long)data[4]) << 32) & 0xff00000000L +
-      (((long)data[5]) << 40) & 0xff0000000000L +
-      (((long)data[6]) << 48) & 0xff000000000000L +
-      (((long)data[7]) << 56) & 0xff00000000000000L;
+    long dataLong = (((long)data[0]) & 0xffL) +
+      ((((long)data[1]) << 8) & 0xff00L) +
+      ((((long)data[2]) << 16) & 0xff0000L) +
+      ((((long)data[3]) << 24) & 0xff000000L) +
+      ((((long)data[4]) << 32) & 0xff00000000L) +
+      ((((long)data[5]) << 40) & 0xff0000000000L) +
+      ((((long)data[6]) << 48) & 0xff000000000000L) +
+      ((((long)data[7]) << 56) & 0xff00000000000000L);
 
     return Double.longBitsToDouble(dataLong);
   }
