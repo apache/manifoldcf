@@ -707,30 +707,46 @@ public class JobManager implements IJobManager
   public void assessMarkedJobs()
     throws ManifoldCFException
   {
-    database.beginTransaction();
-    try
+    while (true)
     {
-      // Query for all jobs marked "ASSESSMENT_UNKNOWN".
-      jobs.assessMarkedJobs();
-    }
-    catch (ManifoldCFException e)
-    {
-      database.signalRollback();
-      throw e;
-    }
-    catch (RuntimeException e)
-    {
-      database.signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      database.signalRollback();
-      throw e;
-    }
-    finally
-    {
-      database.endTransaction();
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Query for all jobs marked "ASSESSMENT_UNKNOWN".
+        jobs.assessMarkedJobs();
+        database.performCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction assessing jobs: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (RuntimeException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
     }
   }
 
@@ -949,6 +965,12 @@ public class JobManager implements IJobManager
           sleepAmt = getRandomAmount();
           continue;
         }
+        throw e;
+      }
+      catch (RuntimeException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       catch (Error e)
