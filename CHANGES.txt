@@ -2,8 +2,9 @@ ManifoldCF Change Log
 $Id$
 
 
-CONNECTORS-1043: Fix list item URL.
-(Lalit Jangra, Karl Wright)
+CONNECTORS-1090: More PostgreSQL performance improvements.
+(Karl Wright)
+
 
 ======================= Release 1.7.1 =====================
 
