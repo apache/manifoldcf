@@ -884,7 +884,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
-    map.put(prioritySetField,null);
+    map.put(prioritySetField,new Long(0L));
     map.put(docPriorityField,nullDocPriority);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
@@ -913,7 +913,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       checkTimeValue = null;
       // Remove document priority; we don't want to pollute the queue.  See CONNECTORS-290.
       map.put(docPriorityField,nullDocPriority);
-      map.put(prioritySetField,null);
+      map.put(prioritySetField,new Long(0L));
       break;
     case STATUS_ACTIVENEEDRESCAN:
     case STATUS_ACTIVENEEDRESCANPURGATORY:
