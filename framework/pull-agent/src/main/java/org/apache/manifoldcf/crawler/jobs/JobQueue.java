@@ -205,7 +205,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         map.put(statusField,new ColumnDescription("CHAR(1)",false,false,null,null,false));
         map.put(isSeedField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
         map.put(docPriorityField,new ColumnDescription("FLOAT",false,true,null,null,false));
-        map.put(prioritySetField,new ColumnDescription("BIGINT",false,true,null,null,false));
+        map.put(prioritySetField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(checkActionField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
         map.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
         map.put(seedingProcessIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
