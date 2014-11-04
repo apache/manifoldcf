@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 1.7.2 =====================
 
+CONNECTORS-1093: Need to preload document priorities for reset
+of all priorities, for performance.
+(Karl Wright)
+
 CONNECTORS-1092: Error in log during load tests.
 (Karl Wright)
 
