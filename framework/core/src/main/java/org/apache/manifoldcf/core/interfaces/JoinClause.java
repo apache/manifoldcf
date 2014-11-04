@@ -38,7 +38,7 @@ public class JoinClause implements ClauseDescription
   {
     this.columnName = columnName;
     this.joinColumnName = joinColumnName;
-    this.operation = "=";
+    this.operation = operation;
   }
   
   /** Get the column name */
