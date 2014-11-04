@@ -161,7 +161,19 @@ public class BigCrawlTester
     // The test data area has 3 documents and one directory, and we have to count the root directory too.
     if (status.getDocumentsProcessed() != 111111)
       throw new ManifoldCFException("Wrong number of documents processed - expected 111111, saw "+new Long(status.getDocumentsProcessed()).toString());
-      
+
+    // Now, start the job AGAIN, and wait until it completes.
+    startTime = System.currentTimeMillis();
+    jobManager.manualStart(job.getID());
+    instance.waitJobInactiveNative(jobManager,job.getID(),18000000L);
+    System.err.println("Second crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
+
+    // Check to be sure we actually processed the right number of documents.
+    JobStatus status = jobManager.getStatus(job.getID());
+    // The test data area has 3 documents and one directory, and we have to count the root directory too.
+    if (status.getDocumentsProcessed() != 111111)
+      throw new ManifoldCFException("Wrong number of documents processed - expected 111111, saw "+new Long(status.getDocumentsProcessed()).toString());
+
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
     instance.waitJobDeletedNative(jobManager,job.getID(),18000000L);
