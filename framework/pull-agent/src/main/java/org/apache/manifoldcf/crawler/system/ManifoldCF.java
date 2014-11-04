@@ -1078,8 +1078,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     IPriorityCalculator[] priorities = new IPriorityCalculator[descs.length];
 
     // Go through the documents and calculate the priorities
-    int i = 0;
-    while (i < descs.length)
+    rt.clearPreloadRequests();
+    for (int i = 0; i < descs.length; i++)
     {
       DocumentDescription dd = descs[i];
       IJobDescription job = jobDescriptionMap.get(dd.getJobID());
@@ -1111,16 +1111,16 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       {
         repositoryConnectorPool.release(connection,connector);
       }
-
-      priorities[i] = new PriorityCalculator(rt,connection,binNames);
-
-      i++;
+      PriorityCalculator p = new PriorityCalculator(rt,connection,binNames);
+      priorities[i] = p;
+      p.makePreloadRequest();
     }
-
+    rt.preloadBinValues();
+    
     // Now, write all the priorities we can.
     jobManager.writeDocumentPriorities(currentTime,descs,priorities);
 
-
+    rt.clearPreloadedValues();
   }
 
   /** Get the activities list for a given repository connection.
