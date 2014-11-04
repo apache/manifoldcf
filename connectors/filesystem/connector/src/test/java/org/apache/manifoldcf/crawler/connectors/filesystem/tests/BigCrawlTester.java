@@ -169,7 +169,7 @@ public class BigCrawlTester
     System.err.println("Second crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
 
     // Check to be sure we actually processed the right number of documents.
-    JobStatus status = jobManager.getStatus(job.getID());
+    status = jobManager.getStatus(job.getID());
     // The test data area has 3 documents and one directory, and we have to count the root directory too.
     if (status.getDocumentsProcessed() != 111111)
       throw new ManifoldCFException("Wrong number of documents processed - expected 111111, saw "+new Long(status.getDocumentsProcessed()).toString());
