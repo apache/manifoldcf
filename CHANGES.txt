@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1094: Performance improvements for document
+reprioritization.
+(Aeham Abushwashi, Karl Wright)
+
 CONNECTORS-1093: Need to preload document priorities for reset
 of all priorities, for performance.
 (Karl Wright)
