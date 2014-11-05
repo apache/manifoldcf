@@ -1077,8 +1077,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
     IPriorityCalculator[] priorities = new IPriorityCalculator[descs.length];
 
-    // Go through the documents and calculate the priorities
     rt.clearPreloadRequests();
+    
+    // Compute the list of connector instances we will need.
+    // This has a side effect of fetching all job descriptions too.
+    Set<String> connectionNames = new HashSet<String>();
     for (int i = 0; i < descs.length; i++)
     {
       DocumentDescription dd = descs[i];
@@ -1088,33 +1091,60 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         job = jobManager.load(dd.getJobID(),true);
         jobDescriptionMap.put(dd.getJobID(),job);
       }
-      String connectionName = job.getConnectionName();
+      connectionNames.add(job.getConnectionName());
+    }
+    String[] orderingKeys = new String[connectionNames.size()];
+    IRepositoryConnection[] connections = new IRepositoryConnection[connectionNames.size()];
+    int z = 0;
+    for (String connectionName : connectionNames)
+    {
+      orderingKeys[z] = connectionName;
       IRepositoryConnection connection = connectionMap.get(connectionName);
       if (connection == null)
       {
         connection = mgr.load(connectionName);
         connectionMap.put(connectionName,connection);
       }
+      connections[z] = connection;
+      z++;
+    }
 
-      String[] binNames;
-      // Grab a connector handle
-      IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
-      try
+    // Now, grab the connector instances we need
+    IRepositoryConnector[] connectors = repositoryConnectorPool.grabMultiple(orderingKeys,connections);
+    try
+    {
+      // Map from connection name to connector instance
+      Map<String,IRepositoryConnector> connectorMap = new HashMap<String,IRepositoryConnector>();
+      for (z = 0; z < orderingKeys.length; z++)
       {
+        connectorMap.put(orderingKeys[z],connectors[z]);
+      }
+      // Go through the documents and calculate the priorities
+      double minimumDepth = rt.getMinimumDepth();
+      for (int i = 0; i < descs.length; i++)
+      {
+        DocumentDescription dd = descs[i];
+        IJobDescription job = jobDescriptionMap.get(dd.getJobID());
+        String connectionName = job.getConnectionName();
+        IRepositoryConnector connector = connectorMap.get(connectionName);
+        IRepositoryConnection connection = connectionMap.get(connectionName);
+        String[] binNames;
         if (connector == null)
           binNames = new String[]{""};
         else
           // Get the bins for the document identifier
           binNames = connector.getBinNames(descs[i].getDocumentIdentifier());
+        PriorityCalculator p = new PriorityCalculator(rt,minimumDepth,connection,binNames);
+        priorities[i] = p;
+        p.makePreloadRequest();
       }
-      finally
-      {
-        repositoryConnectorPool.release(connection,connector);
-      }
-      PriorityCalculator p = new PriorityCalculator(rt,connection,binNames);
-      priorities[i] = p;
-      p.makePreloadRequest();
     }
+    finally
+    {
+      // Release all the connector instances we grabbed
+      repositoryConnectorPool.releaseMultiple(connections,connectors);
+    }
+    
     rt.preloadBinValues();
     
     // Now, write all the priorities we can.
