@@ -48,6 +48,12 @@ public class PriorityCalculator implements IPriorityCalculator
   public PriorityCalculator(IReprioritizationTracker rt, IRepositoryConnection connection, String[] documentBins)
     throws ManifoldCFException
   {
+    this(rt,rt.getMinimumDepth(),connection,documentBins);
+  }
+  
+  public PriorityCalculator(IReprioritizationTracker rt, double currentMinimumDepth, IRepositoryConnection connection, String[] documentBins)
+    throws ManifoldCFException
+  {
     this.connection = connection;
     this.binNames = documentBins;
     this.rt = rt;
@@ -86,8 +92,6 @@ public class PriorityCalculator implements IPriorityCalculator
     double[] maxFetchRates = calculateMaxFetchRates(binNames,connection);
 
     // Before calculating priority, calculate some factors that will allow us to determine the proper starting value for a bin.
-    double currentMinimumDepth = rt.getMinimumDepth();
-
     // First thing to do is to reset the bin values based on the current minimum.
     for (int i = 0; i < binNames.length; i++)
     {
