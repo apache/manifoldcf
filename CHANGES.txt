@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1095: Use https for downloading everywhere.
+(Aeham Abushwashi)
+
 CONNECTORS-1094: Performance improvements for document
 reprioritization.
 (Aeham Abushwashi, Karl Wright)
