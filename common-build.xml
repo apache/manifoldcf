@@ -18,7 +18,7 @@
 <project name="mcf-common-build">
 
     <target name="setup-maven-url">
-        <property name="maven-base-url" value="http://repo1.maven.org/maven2"/>
+        <property name="maven-base-url" value="https://repo1.maven.org/maven2"/>
     </target>
     
     <target name="download-via-maven" depends="setup-maven-url">
