@@ -942,7 +942,8 @@ curl -XGET http://localhost:9200/index/_mapping
                 <figure src="images/en_US/metadataadjuster-job-move-metadata.PNG" alt="Metadata Adjuster specification, Move Metadata tab" width="80%"/>
                 <br/><br/>
                 <p>Enter a input metadata name, and a target metadata name, and click the "Add" button to add the mapping to the list.  Uncheck the "Keep all metadata"
-                      checkbox in order to prevent unspecified metadata fields from being passed through.</p>
+                      checkbox in order to prevent unspecified metadata fields from being passed through.  Uncheck the "Remove empty metadata values" checkbox if you
+                      want to index empty metadata values.</p>
                 <p>The "Add metadata" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/metadataadjuster-job-add-metadata.PNG" alt="Metadata Adjuster specification, Add Metadata tab" width="80%"/>
