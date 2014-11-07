@@ -1863,13 +1863,14 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <figure src="images/en_US/jdbc-job-queries.PNG" alt="Generic Database Job, Queries tab" width="80%"/>
                 <br/><br/>
-                <p>You must supply at least two queries.  (A third query is optional.)  The purpose of these queries is to obtain the data needed for the database to be properly crawled.
+                <p>You must supply at least two queries.  (A third and fourth queries are optional.)  The purpose of these queries is to obtain the data needed for the database to be properly crawled.
                        But in order for you to write these queries, you must make some decisions first.  Basically, you need to figure out how best to map the constructs within your database
                        to the requirements of the Framework.</p>
                 <br/>
                 <ul>
                     <li>Obtain a list of document identifiers corresponding to changes and additions that occurred within a specified time window (see below)</li>
                     <li>Given a set of document identifiers, find the corresponding version strings (see below)</li>
+                    <li>Given a set of document identifiers, find the corresponding list of access tokens for each document identifier (see below)</li>
                     <li>Given a set of document identifiers and version strings, find information about the document, consisting of the document's data, access URL, and metadata</li>
                 </ul>
                 <br/>
@@ -1889,6 +1890,7 @@ curl -XGET http://localhost:9200/index/_mapping
                     <tr><td><b>String name</b></td><td><b>Meaning/use</b></td></tr>
                     <tr><td>IDCOLUMN</td><td>The name of an expected resultset column containing a document identifier</td></tr>
                     <tr><td>VERSIONCOLUMN</td><td>The name of an expected resultset column containing a version string</td></tr>
+                    <tr><td>TOKENCOLUMN</td><td>The name of an expected resultset column containing an access token</td></tr>
                     <tr><td>URLCOLUMN</td><td>The name of an expected resultset column containing a URL</td></tr>
                     <tr><td>DATACOLUMN</td><td>The name of an expected resultset column containing document data</td></tr>
                     <tr><td>STARTTIME</td><td>A query string value containing a start time in milliseconds since epoch</td></tr>
@@ -1959,7 +1961,9 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/>
                 <figure src="images/en_US/jdbc-job-security.PNG" alt="Generic Database Job, Security tab" width="80%"/>
                 <br/><br/>
-                <p>Enter a desired access token, and click the "Add" button.  You may enter multiple access tokens.</p>
+                <p>Here, you can turn off security, if you want no access tokens to be transmitted with each document.  Or, you can leave security "Enabled", and either create a list of access tokens
+                      by hand, using the widget on this tab, or leave these blank and provide an access token query on the "Queries" tab.  To add access tokens by hand, enter a desired access token, and
+                      click the "Add" button.  You may enter multiple access tokens.</p>
             </section>
 
             <section id="googledriverepository">
