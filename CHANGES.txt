@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1097: Update JDBC connector documentation.
+(Karl Wright)
+
 CONNECTORS-1096: Document boilerplate removal options.
 (Karl Wright)
 
