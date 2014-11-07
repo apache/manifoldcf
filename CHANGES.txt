@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1096: Document boilerplate removal options.
+(Karl Wright)
+
 CONNECTORS-1095: Use https for downloading everywhere.
 (Aeham Abushwashi)
 
