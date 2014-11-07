@@ -87,7 +87,7 @@
           <li>Generic XML repository connector</li>
           <li>Google Drive connector</li>
           <li>HDFS connector</li>
-          <li>JDBC connector, with just the PostgreSQL jdbc driver</li>
+          <li>JDBC connector, with the just the POSTGRESQL jdbc driver</li>
           <li>Atlassian Jira connector</li>
           <li>OpenText LiveLink connector, built against a LiveLink API stub</li>
           <li>Meridio connector, built against modified Meridio API WSDLs and XSDs</li>
@@ -444,6 +444,7 @@ mvn clean package
           <tr><td><em>connectors.xml</em></td><td>an xml file describing the connectors that should be registered</td></tr>
           <tr><td><em>connector-lib</em></td><td>jars for all the connectors, referred to by properties.xml</td></tr>
           <tr><td><em>connector-lib-proprietary</em></td><td>proprietary jars for all the connectors, referred to by properties.xml; not included in binary release</td></tr>
+          <tr><td><em>obfuscation-utility</em></td><td>a utility to obfuscate passwords, for inclusion in properties.xml fields</td></tr>
           <tr><td><em>lib</em></td><td>jars for all of the examples, referenced by the example scripts</td></tr>
           <tr><td><em>lib-proprietary</em></td><td>proprietary jars for all of the examples, referenced by the proprietary example scripts</td></tr>
           <tr><td><em>processes</em></td><td>scripts, classpath jars, and -D switch values needed for the required connector-specific processes</td></tr>
@@ -511,14 +512,14 @@ mvn clean package
           <p></p>
           <source>
 cd example
-&#60;java&#62; -jar start.jar
+start[.bat|.sh]
           </source>
           <p></p>
           <p>In the quick-start model, all database initialization and connector registration takes place automatically whenever ManifoldCF is started (at the cost of some startup delay).
             The crawler UI can be found at http://&#60;host&#62;:8345/mcf-crawler-ui.  The authority service can be found at http://&#60;host&#62;:8345/mcf-authority-service/UserACLs.
             The programmatic API is at http://&#60;host&#62;:8345/mcf-api-service.</p>
           <p></p>
-          <p>You can stop the quick-start ManifoldCF at any time using ^C.</p>
+          <p>You can stop the quick-start ManifoldCF at any time using ^C, or by using the script <em>stop[.bat|.sh]</em></p>
           <p></p>
           <p>Bear in mind that Hsqldb is not as full-featured a database as is PostgreSQL.  This means that any performance testing you may do against the quick start example may
             not be applicable to a full installation.  Furthermore, embedded Hsqldb only permits one process at a time to be connected to its databases, so you <strong>cannot</strong> use any
@@ -740,6 +741,7 @@ cd example
               <tr><td>org.apache.manifoldcf.core.DBCreate</td><td><em>dbuser</em> [<em>dbpassword</em>]</td><td>Create ManifoldCF database instance</td></tr>
               <tr><td>org.apache.manifoldcf.core.DBDrop</td><td><em>dbuser</em> [<em>dbpassword</em>]</td><td>Drop ManifoldCF database instance</td></tr>
               <tr><td>org.apache.manifoldcf.core.LockClean</td><td>None</td><td>Clean out synchronization directory</td></tr>
+              <tr><td>org.apache.manifoldcf.core.Obfuscate</td><td>string</td><td>Obfuscate a string, for use as an obfuscated parameter value</td></tr>
             </table>
             <p></p>
             <table>
@@ -895,6 +897,7 @@ cd example
         <ul>
           <li>PostgreSQL (preferred)</li>
           <li>MySQL (preferred)</li>
+          <li>MariaDB (not yet evaluated))</li>
           <li>HSQLDB</li>
         </ul>
         <p>You can select the database of your choice by setting the approprate properties in the applicable <em>properties.xml</em> file.  The choice of database is largely orthogonal
@@ -1018,6 +1021,7 @@ cd example
             <tr><th>Property</th><th>Required?</th><th>Function</th></tr>
             <tr><td>org.apache.manifoldcf.login.name</td><td>No</td><td>Crawler UI login user ID (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.login.password</td><td>No</td><td>Crawler UI login user password (defaults to "admin")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.password.obfuscated</td><td>No</td><td>Obfuscated crawler UI login user password (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.crawleruiwarpath</td><td>Yes, for Jetty</td><td>Location of Crawler UI war</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservicewarpath</td><td>Yes, for Jetty</td><td>Location of Authority Service war</td></tr>
             <tr><td>org.apache.manifoldcf.apiservicewarpath</td><td>Yes, for Jetty</td><td>Location of API Service war</td></tr>
@@ -1026,17 +1030,19 @@ cd example
             <tr><td>org.apache.manifoldcf.connectorsconfigurationfile</td><td>No</td><td>Location of connectors.xml file, for QuickStart, so ManifoldCF can register connectors.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperusername</td><td>No</td><td>Database superuser name, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
+            <tr><td>org.apache.manifoldcf.dbsuperuserpassword.obfuscated</td><td>No</td><td>Obfuscated database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>The maximum number of documents ManifoldCF will try to count for the job status display.  Defaults to 500000.</td></tr>
             <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.
                 Default is a built-in Hsqldb implementation.  Supported choices are:
                 org.apache.manifoldcf.core.database.DBInterfacePostgreSQL, 
                 org.apache.manifoldcf.core.database.DBInterfaceMySQL,
+                org.apache.manifoldcf.core.database.DBInterfaceMariaDB,
                 org.apache.manifoldcf.core.database.DBInterfaceHSQLDB</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.hostname</td><td>No</td><td>PostgreSQL server host name, or localhost if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.port</td><td>No</td><td>PostgreSQL server port, or standard port if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
-            <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL server name.  Defaults to 'localhost'.</td></tr>
-            <tr><td>org.apache.manifoldcf.mysql.client</td><td>No</td><td>The MySQL client property.  Defaults to 'localhost'.  You may want to set this to '%' for a multi-machine setup.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL or MariaDB server name.  Defaults to 'localhost'.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.client</td><td>No</td><td>The MySQL or MariaDB client property.  Defaults to 'localhost'.  You may want to set this to '%' for a multi-machine setup.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabasepath</td><td>No</td><td>Absolute or relative path to HSQLDB database; default is '.'.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseprotocol</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB JDBC protocol; choices are 'hsql', 'http', or 'https'. Default is blank (which means an embedded instance)</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseserver</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB remote server name.</td></tr>
@@ -1059,6 +1065,7 @@ cd example
             <tr><td>org.apache.manifoldcf.database.name</td><td>No</td><td>Describes database name for ManifoldCF; defaults to "dbname" if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.database.username</td><td>No</td><td>Describes database user name for ManifoldCF; defaults to "manifoldcf" if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.database.password</td><td>No</td><td>Describes database user's password for ManifoldCF; defaults to "local_pg_password" if not specified.</td></tr>
+            <tr><td>org.apache.manifoldcf.database.password.obfuscated</td><td>No</td><td>Obfuscated database user's password for ManifoldCF; defaults to "local_pg_password" if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.threads</td><td>No</td><td>Number of crawler worker threads created.  Suggest a value of 30.</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.expirethreads</td><td>No</td><td>Number of crawler expiration threads created.  Suggest a value of 10.</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.cleanupthreads</td><td>No</td><td>Number of crawler cleanup threads created.  Suggest a value of 10.</td></tr>
@@ -1088,7 +1095,7 @@ cd example
             <tr><td>org.apache.manifoldcf.crawler.repository.store_history</td><td>No</td><td>true</td><td>If you do not require reports from within this will disable logging to the repository history (although the reports will still run they will not contain any content). This can increase throughput and reduce the rate of growth of the database.</td></tr>
             <tr><td>org.apache.manifoldcf.db.postgres.analyze.&#60;tablename&#62;</td><td>No</td><td>2000</td><td>For postgresql, specify how many changes should be carried out before carrying out an 'ANALYZE' on the specified table.</td></tr>
             <tr><td>org.apache.manifoldcf.db.postgres.reindex.&#60;tablename&#62;</td><td>No</td><td>250000</td><td>For postgresql, specify how many changes should be carried out before carrying out an 'REINDEX' on the specified table.</td></tr>
-            <tr><td>org.apache.manifoldcf.db.mysql.analyze.&#60;tablename&#62;</td><td>No</td><td>2000</td><td>For mysql, specify how many changes should be carried out before carrying out an 'ANALYZE' on the specified table.</td></tr>
+            <tr><td>org.apache.manifoldcf.db.mysql.analyze.&#60;tablename&#62;</td><td>No</td><td>2000</td><td>For MySql or MariaDB, specify how many changes should be carried out before carrying out an 'ANALYZE' on the specified table.</td></tr>
             <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>10000</td><td>Set the upper limit for the precise document count to be returned on the 'Status and Job Management' page.</td></tr>
           </table>
           <p></p>
