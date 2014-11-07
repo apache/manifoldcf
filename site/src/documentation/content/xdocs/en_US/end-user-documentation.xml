@@ -953,6 +953,8 @@ curl -XGET http://localhost:9200/index/_mapping
 
             <section id="nulltransformer">
                 <title>Null Transformer</title>
+                <p>The null transformer does nothing other than record activity through the transformer.  It is thus useful primarily as a coding model, and a diagnostic
+                      aid.  It requires no non-standard configuration information, and provides no tabs for a job that includes it.</p>
             </section>
 
             <section id="tikaextractor">
@@ -964,8 +966,8 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>As with all document transformers,  more than one Tika Content Extractor transformation filter can be used in a single pipeline.  In the case
                       of the Tika Content Extractor, this does not seem to be of much utility.</p>
                 <p>The Tika Content Extractor transformation connection type does not require anything other than standard configuration information.</p>
-                <p>The Tika Content Extractor transformation connection type contributes two tabs to a job definition.  These are the "Field mapping" tab, and the "Exceptions" tab.
-                      The "Field mapping" tab looks like this:</p>
+                <p>The Tika Content Extractor transformation connection type contributes three tabs to a job definition.  These are the "Field mapping" tab, the "Exceptions" tab,
+                      and the "Boilerplate" tab.  The "Field mapping" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/tika-job-field-mapping.PNG" alt="Tika Content Extractor specification, Field Mapping tab" width="80%"/>
                 <br/><br/>
@@ -976,6 +978,12 @@ curl -XGET http://localhost:9200/index/_mapping
                 <figure src="images/en_US/tika-job-exceptions.PNG" alt="Tika Content Extractor specification, Exceptions tab" width="80%"/>
                 <br/><br/>
                 <p>Uncheck the checkbox to allow indexing of document metadata even when Tika fails to extract content from the document.</p>
+                <p>The "Boilerplate" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/tika-job-boilerplate.PNG" alt="Tika Content Extractor specification, Boilerplate tab" width="80%"/>
+                <br/><br/>
+                <p>Select the HTML boilerplate removal option you want.  These are implementations provided by the "Boilerpipe" project; they are lightly documented,
+                      so you will need to experiment with your particular application to find the one most appropriate for your application.</p>
             </section>
 
         </section>
