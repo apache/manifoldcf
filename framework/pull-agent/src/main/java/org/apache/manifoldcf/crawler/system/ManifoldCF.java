@@ -62,7 +62,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String connectorsConfigurationFileProperty = "org.apache.manifoldcf.connectorsconfigurationfile";
   protected static final String databaseSuperuserNameProperty = "org.apache.manifoldcf.dbsuperusername";
   protected static final String databaseSuperuserPasswordProperty = "org.apache.manifoldcf.dbsuperuserpassword";
-  protected static final String saltProperty = "org.apache.manifoldcf.salt";
 
   
   /** Initialize environment.
@@ -676,22 +675,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         {
           
           // Write IV as a prefix:
-          SecureRandom random = new SecureRandom();
-          byte[] iv = new byte[IV_LENGTH];
-          random.nextBytes(iv);
+          byte[] iv = getSecureRandom();
           os.write(iv);
           os.flush();
           
-          Cipher cipher = null; 
-          try
-          {
-            cipher = getCipher(threadContext, Cipher.ENCRYPT_MODE, passCode, iv);
-          }
-          catch (GeneralSecurityException gse)
-          {
-            throw new ManifoldCFException("Could not encrypt configuratiom file: " + gse.getMessage());
-          }
-          
+          Cipher cipher = getCipher(threadContext, Cipher.ENCRYPT_MODE, passCode, iv);
           cos = new CipherOutputStream(os, cipher);
           zos = new java.util.zip.ZipOutputStream(cos);
         }
@@ -821,15 +809,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           byte[] iv = new byte[IV_LENGTH];
           is.read(iv);
 
-          Cipher cipher = null; 
-          try
-          {
-            cipher = getCipher(threadContext, Cipher.DECRYPT_MODE, passCode, iv);
-          }
-          catch (GeneralSecurityException gse)
-          {
-            throw new ManifoldCFException("Could not decrypt configuratiom file: " + gse.getMessage());
-          }
+          Cipher cipher = getCipher(threadContext, Cipher.DECRYPT_MODE, passCode, iv);
           cis = new CipherInputStream(is, cipher);
           zis = new java.util.zip.ZipInputStream(cis);
         }
@@ -1196,28 +1176,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     java.util.Arrays.sort(activityList);
     return activityList;
   }
-  
-  private static final int IV_LENGTH = 16;
-  
-  private static Cipher getCipher(IThreadContext threadContext, final int mode, final String passCode, final byte[] iv) throws GeneralSecurityException,
-    ManifoldCFException
-  {
-    final String saltValue = LockManagerFactory.getProperty(threadContext, saltProperty);
-
-    if (saltValue == null || saltValue.length() == 0)
-      throw new ManifoldCFException("Missing required SALT value");
-    
-    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-    KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(), 1024, 128);
-    SecretKey secretKey = factory.generateSecret(keySpec);
-
-    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    SecretKeySpec key = new SecretKeySpec(secretKey.getEncoded(), "AES");
-    IvParameterSpec parameterSpec = new IvParameterSpec(iv);
-    cipher.init(mode, key, parameterSpec);
-    return cipher;
-  }
-  
   
   // ========================== API support ===========================
   

@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1076: Revamp ManifoldCF obfuscation to use a
+standard encryption algorithm.
+(Karl Wright)
+
 CONNECTORS-1099: Update Metadata Adjuster documentation.
 (Karl Wright)
 
