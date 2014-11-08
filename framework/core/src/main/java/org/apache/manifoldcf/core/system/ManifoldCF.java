@@ -20,9 +20,27 @@ package org.apache.manifoldcf.core.system;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 public class ManifoldCF
 {
@@ -145,6 +163,9 @@ public class ManifoldCF
   public static final String configSignalCommandProperty = "org.apache.manifoldcf.configuration.change.command";
   /** File to look for to block access to UI during database maintenance */
   public static final String maintenanceFileSignalProperty = "org.apache.manifoldcf.database.maintenanceflag";
+
+  /** Encryption salt property */
+  public static final String saltProperty = "org.apache.manifoldcf.salt";
 
   /** Reset environment, minting a thread context for convenience and backwards
   * compatibility.
@@ -560,7 +581,9 @@ public class ManifoldCF
   public static String hash(String input)
     throws ManifoldCFException
   {
-    return encrypt(input);
+    MessageDigest hash = startHash();
+    addToHash(hash,input);
+    return getHashValue(hash);
   }
 
   /** Start creating a hash
@@ -637,22 +660,171 @@ public class ManifoldCF
     return false;
   }
   
-  /** Perform standard one-way encryption of a string.
-  *@param input is the string to encrypt.
-  *@return the encrypted string.
-  */
-  public static String encrypt(String input)
+  protected static final int IV_LENGTH = 16;
+
+  protected static String getSaltValue(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    MessageDigest hash = startHash();
-    addToHash(hash,input);
-    return getHashValue(hash);
-  }
+    final String saltValue = LockManagerFactory.getProperty(threadContext, saltProperty);
 
+    if (saltValue == null || saltValue.length() == 0)
+      throw new ManifoldCFException("Missing required SALT value");
+
+    return saltValue;
+  }
+  
+  protected static Cipher getCipher(IThreadContext threadContext, final int mode, final String passCode, final byte[] iv)
+    throws ManifoldCFException
+  {
+    return getCipher(getSaltValue(threadContext), mode, passCode, iv);
+  }
+  
+  protected static Cipher getCipher(String saltValue, final int mode, final String passCode, final byte[] iv)
+    throws ManifoldCFException
+  {
+    try
+    {
+      SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+      KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(), 1024, 128);
+      SecretKey secretKey = factory.generateSecret(keySpec);
+
+      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      SecretKeySpec key = new SecretKeySpec(secretKey.getEncoded(), "AES");
+      IvParameterSpec parameterSpec = new IvParameterSpec(iv);
+      cipher.init(mode, key, parameterSpec);
+      return cipher;
+    }
+    catch (GeneralSecurityException gse)
+    {
+      throw new ManifoldCFException("Could not build a cipher: " + gse.getMessage(),gse);
+    }
+  }
+  
+  protected static byte[] getSecureRandom()
+  {
+    SecureRandom random = new SecureRandom();
+    byte[] iv = new byte[IV_LENGTH];
+    random.nextBytes(iv);
+    return iv;
+  }
+  
+  private static String OBFUSCATION_PASSCODE = "NowIsTheTime";
+  private static String OBFUSCATION_SALT = "Salty";
+  
   /** Encode a string in a reversible obfuscation.
   *@param input is the input string.
   *@return the output string.
   */
+  public static String obfuscate(String input)
+    throws ManifoldCFException
+  {
+    return encrypt(OBFUSCATION_SALT, OBFUSCATION_PASSCODE, input);
+  }
+  
+  /** Decode a string encoded using the obfuscation
+  * technique.
+  *@param input is the input string.
+  *@return the decoded string.
+  */
+  public static String deobfuscate(String input)
+    throws ManifoldCFException
+  {
+    return decrypt(OBFUSCATION_SALT, OBFUSCATION_PASSCODE, input);
+  }
+  
+  /** Encrypt a string in a reversible encryption.
+  *@param saltValue is the salt value.
+  *@param passCode is the pass code.
+  *@param input is the input string.
+  *@return the output string.
+  */
+  public static String encrypt(String saltValue, String passCode, String input)
+    throws ManifoldCFException
+  {
+    if (input == null)
+      return null;
+    if (input.length() == 0)
+      return input;
+
+    try
+    {
+      ByteArrayOutputStream os = new ByteArrayOutputStream();
+      
+      // Write IV as a prefix:
+      byte[] iv = getSecureRandom();
+      os.write(iv);
+      os.flush();
+            
+      Cipher cipher = getCipher(saltValue, Cipher.ENCRYPT_MODE, passCode, iv);
+      CipherOutputStream cos = new CipherOutputStream(os, cipher);
+      Writer w = new OutputStreamWriter(cos,java.nio.charset.StandardCharsets.UTF_8);
+      w.write(input);
+      w.flush();
+      // These two shouldn't be necessary, but they are.
+      cos.flush();
+      cos.close();
+      byte[] bytes = os.toByteArray();
+      return new org.apache.manifoldcf.core.common.Base64().encodeByteArray(bytes);
+    }
+    catch (IOException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+        
+  /** Decrypt a string.
+  *@param saltValue is the salt value.
+  *@param passCode is the pass code.
+  *@param input is the input string.
+  *@return the decoded string.
+  */
+  public static String decrypt(String saltValue, String passCode, String input)
+    throws ManifoldCFException
+  {
+    if (input == null)
+      return null;
+    if (input.length() == 0)
+      return input;
+
+    try
+    {
+      ByteArrayInputStream is = new ByteArrayInputStream(new org.apache.manifoldcf.core.common.Base64().decodeString(input));
+      
+      byte[] iv = new byte[IV_LENGTH];
+      int pointer = 0;
+      while (pointer < iv.length)
+      {
+        int amt = is.read(iv,pointer,iv.length-pointer);
+        if (amt == -1)
+          throw new ManifoldCFException("String can't be decrypted: too short");
+        pointer += amt;
+      }
+
+      Cipher cipher = getCipher(saltValue, Cipher.DECRYPT_MODE, passCode, iv);
+      CipherInputStream cis = new CipherInputStream(is, cipher);
+      InputStreamReader reader = new InputStreamReader(cis,java.nio.charset.StandardCharsets.UTF_8);
+      StringBuilder sb = new StringBuilder();
+      char[] buffer = new char[65536];
+      while (true)
+      {
+        int amt = reader.read(buffer,0,buffer.length);
+        if (amt == -1)
+          break;
+        sb.append(buffer,0,amt);
+      }
+      return sb.toString();
+    }
+    catch (IOException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Encode a string in a reversible obfuscation.
+  *@param input is the input string.
+  *@return the output string.
+  */
+  /*
   public static String obfuscate(String input)
     throws ManifoldCFException
   {
@@ -686,11 +858,12 @@ public class ManifoldCF
       }
       return rval.toString();
   }
-
+*/
   /** Write a hex nibble.
   *@param value is the value to write.
   *@return the character.
   */
+
   protected static char writeNibble(int value)
   {
     if (value >= 10)
@@ -699,11 +872,13 @@ public class ManifoldCF
       return (char)(value+'0');
   }
 
+
   /** Decode a string encoded using the obfuscation
   * technique.
   *@param input is the input string.
   *@return the decoded string.
   */
+  /*
   public static String deobfuscate(String input)
     throws ManifoldCFException
   {
@@ -742,7 +917,8 @@ public class ManifoldCF
       // Convert from utf-8 to a string
       return new String(bytes,StandardCharsets.UTF_8);
   }
-
+  */
+  
   /** Read a hex nibble.
   *@param value is the character.
   *@return the value.

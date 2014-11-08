@@ -42,7 +42,9 @@ public class Obfuscate
     String string = args[0];
     try
     {
-      UTF8Stdout.println(ManifoldCF.obfuscate(string));
+      String ob = ManifoldCF.obfuscate(string);
+      UTF8Stdout.println(ob);
+      //System.err.println("("+ManifoldCF.deobfuscate(ob)+")");
     }
     catch (ManifoldCFException e)
     {
