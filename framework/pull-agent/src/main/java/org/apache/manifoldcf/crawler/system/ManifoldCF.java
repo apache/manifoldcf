@@ -993,13 +993,25 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   /** Reset all (active) document priorities.  This operation may occur due to various externally-triggered
   * events, such a job abort, pause, resume, wait, or unwait.
   */
-  public static void resetAllDocumentPriorities(IThreadContext threadContext)
+  public static void resetAllDocumentPriorities(IThreadContext threadContext, String processID)
     throws ManifoldCFException
   {
+    // The reprioritization cycle is as follows now:
+    // (1) We reset the reprioritization tracker, which causes all bins to be be reset, and locks reprioritization so that it is blocked;
+    // (2) We clear all document priorities;
+    // (3) We unlock reprioritization, so that it may proceed.
     IJobManager jobManager = JobManagerFactory.make(threadContext);
+    IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
+
+    String reproID = IDFactory.make(threadContext);
+
+    rt.startReprioritization(System.currentTimeMillis(),processID,reproID);
+
     jobManager.clearAllDocumentPriorities();
 
-    /*
+    rt.doneReprioritization(reproID);
+
+  /*
     ILockManager lockManager = LockManagerFactory.make(threadContext);
     IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
     IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
