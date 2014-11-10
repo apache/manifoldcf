@@ -106,7 +106,7 @@ public class JobResetThread extends Thread
           {
             Logging.threads.debug("Job reset thread reprioritizing documents...");
 
-            ManifoldCF.resetAllDocumentPriorities(threadContext);
+            ManifoldCF.resetAllDocumentPriorities(threadContext,processID);
             
             Logging.threads.debug("Job reset thread done reprioritizing documents.");
 
