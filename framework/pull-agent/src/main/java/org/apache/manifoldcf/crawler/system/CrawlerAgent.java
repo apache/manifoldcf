@@ -153,7 +153,7 @@ public class CrawlerAgent implements IAgent
     // to take care of are dangling ones that won't get done because the process that was doing them went
     // away.  BUT: somebody may have blown away lock info, in which case we won't know anything at all.
     // So we do everything in that case.
-    ManifoldCF.resetAllDocumentPriorities(threadContext,System.currentTimeMillis(),currentProcessID);
+    ManifoldCF.resetAllDocumentPriorities(threadContext);
   }
   
   /** Cleanup after agents process.
@@ -170,6 +170,8 @@ public class CrawlerAgent implements IAgent
   {
     IJobManager jobManager = JobManagerFactory.make(threadContext);
     jobManager.cleanupProcessData(cleanupProcessID);
+	  
+    /*
     IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
     String reproID = rt.isSpecifiedProcessReprioritizing(cleanupProcessID);
     if (reproID != null)
@@ -213,6 +215,7 @@ public class CrawlerAgent implements IAgent
       
       rt.doneReprioritization(reproID);
     }
+    */
   }
 
   /** Start the agent.  This method should spin up the agent threads, and

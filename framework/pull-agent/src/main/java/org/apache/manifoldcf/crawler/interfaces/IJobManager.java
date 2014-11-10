@@ -215,6 +215,14 @@ public interface IJobManager
 
   // These methods support the "set doc priority" thread
 
+  /** Clear all document priorities, in preparation for reprioritization of all previously-prioritized documents.
+  * This method is called to start the dynamic reprioritization cycle, which follows this
+  * method with explicit prioritization of all documents, piece-meal, using getNextNotYetProcessedReprioritizationDocuments(),
+  * and writeDocumentPriorities().
+  */
+  public void clearAllDocumentPriorities()
+    throws ManifoldCFException;
+
   /** Get a list of not-yet-processed documents to reprioritize.  Documents in all jobs will be
   * returned by this method.  Up to n document descriptions will be returned.
   *@param n is the maximum number of document descriptions desired.
