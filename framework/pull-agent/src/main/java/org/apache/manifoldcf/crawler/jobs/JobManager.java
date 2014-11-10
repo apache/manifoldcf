@@ -2014,6 +2014,55 @@ public class JobManager implements IJobManager
 
   // These methods support the reprioritization thread.
 
+  /** Clear all document priorities, in preparation for reprioritization of all previously-prioritized documents.
+  * This method is called to start the dynamic reprioritization cycle, which follows this
+  * method with explicit prioritization of all documents, piece-meal, using getNextNotYetProcessedReprioritizationDocuments(),
+  * and writeDocumentPriorities().
+  */
+  public void clearAllDocumentPriorities()
+    throws ManifoldCFException
+  {
+    // Note: This can be called at any time, even while worker and seeding threads are also reprioritizing documents.
+    // Need to resolve the race condition somehow. ???
+    
+    // Retry loop - in case we get a deadlock despite our best efforts
+    while (true)
+    {
+      long sleepAmt = 0L;
+
+      // Start the transaction now
+      database.beginTransaction();
+      try
+      {
+        jobQueue.clearAllDocPriorities();
+        database.performCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction clearing doc priorities for reprioritization: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
   /** Get a list of not-yet-processed documents to reprioritize.  Documents in all jobs will be
   * returned by this method.  Up to n document descriptions will be returned.
   *@param n is the maximum number of document descriptions desired.

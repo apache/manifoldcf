@@ -893,6 +893,22 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     noteModifications(0,1,0);
   }
   
+  /** Clear all document priorities globally for all documents that
+  * have priorities set, and signal that we need new priorities for all.
+  */
+  public void clearAllDocPriorities()
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    map.put(needPriorityField,needPriorityToString(true));
+    map.put(docPriorityField,nullDocPriority);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(docPriorityField,"<",nullDocPriority)});
+    performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
+  }
+  
   /** Set the "completed" status for a record.
   */
   public void updateCompletedRecord(Long recID, int currentStatus)
