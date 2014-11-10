@@ -188,6 +188,7 @@ public class CrawlerAgent implements IAgent
       // activity.
       // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
       // priorities.
+      // ??? -- start the process of reprioritization ONLY; don't do the whole thing.
       while (true)
       {
         long startTime = System.currentTimeMillis();
@@ -200,12 +201,12 @@ public class CrawlerAgent implements IAgent
         }
         long updateTime = currentTimeValue.longValue();
         
-        DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(updateTime, 10000);
+        DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(10000);
         if (docs.length == 0)
           break;
 
         // Calculate new priorities for all these documents
-        ManifoldCF.writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,updateTime);
+        ManifoldCF.writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap);
 
         Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
       }

@@ -946,7 +946,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
 
     // Now, requeue the documents with the new priorities
-    jobManager.carrydownChangeDocumentMultiple(requeueCandidates,currentTime,docPriorities);
+    jobManager.carrydownChangeDocumentMultiple(requeueCandidates,docPriorities);
   }
 
   /** Stuff colons so we can't have conflicts. */
@@ -1014,6 +1014,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // activity.
     // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
     // priorities.
+    // ???? Should only start the process of reprioritization, not complete it.
     while (true)
     {
       long startTime = System.currentTimeMillis();
@@ -1026,12 +1027,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       long updateTime = currentTimeValue.longValue();
       
-      DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(updateTime, 10000);
+      DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(10000);
       if (docs.length == 0)
         break;
 
       // Calculate new priorities for all these documents
-      writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,updateTime);
+      writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap);
 
       Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
     }
@@ -1042,8 +1043,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   /** Write a set of document priorities, based on the current queue tracker.
   */
   public static void writeDocumentPriorities(IThreadContext threadContext, DocumentDescription[] descs,
-    Map<String,IRepositoryConnection> connectionMap, Map<Long,IJobDescription> jobDescriptionMap,
-    long currentTime)
+    Map<String,IRepositoryConnection> connectionMap, Map<Long,IJobDescription> jobDescriptionMap)
     throws ManifoldCFException
   {
     IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
@@ -1128,7 +1128,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     rt.preloadBinValues();
     
     // Now, write all the priorities we can.
-    jobManager.writeDocumentPriorities(currentTime,descs,priorities);
+    jobManager.writeDocumentPriorities(descs,priorities);
 
     rt.clearPreloadedValues();
   }
