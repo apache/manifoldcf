@@ -41,10 +41,10 @@ import java.util.*;
  * <tr><td>status</td><td>CHAR(1)</td><td></td></tr>
  * <tr><td>isseed</td><td>CHAR(1)</td><td></td></tr>
  * <tr><td>docpriority</td><td>FLOAT</td><td></td></tr>
- * <tr><td>priorityset</td><td>BIGINT</td><td></td></tr>
  * <tr><td>checkaction</td><td>CHAR(1)</td><td></td></tr>
  * <tr><td>processid</td><td>VARCHAR(16)</td><td></td></tr>
  * <tr><td>seedingprocessid</td><td>VARCHAR(16)</td><td></td></tr>
+ * <tr><td>needpriority</td><td>CHAR(1)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -114,10 +114,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public static final String failCountField = "failcount";
   public static final String isSeedField = "isseed";
   public static final String docPriorityField = "docpriority";
-  public static final String prioritySetField = "priorityset";
   public static final String checkActionField = "checkaction";
   public static final String processIDField = "processid";
   public static final String seedingProcessIDField = "seedingprocessid";
+  public static final String needPriorityField = "needpriority";
   
   public static final double noDocPriorityValue = 1e9;
   public static final Double nullDocPriority = new Double(noDocPriorityValue + 1.0);
@@ -205,10 +205,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         map.put(statusField,new ColumnDescription("CHAR(1)",false,false,null,null,false));
         map.put(isSeedField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
         map.put(docPriorityField,new ColumnDescription("FLOAT",false,true,null,null,false));
-        map.put(prioritySetField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(checkActionField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
         map.put(processIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
         map.put(seedingProcessIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
+        map.put(needPriorityField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
         performCreate(map,null);
       }
       else
@@ -225,7 +225,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       IndexDescription jobSeedIndex = new IndexDescription(false,new String[]{isSeedField,jobIDField});
       IndexDescription failTimeIndex = new IndexDescription(false,new String[]{failTimeField,jobIDField});
       IndexDescription actionTimeStatusIndex = new IndexDescription(false,new String[]{statusField,checkActionField,checkTimeField});
-      IndexDescription prioritysetStatusIndex = new IndexDescription(false,new String[]{statusField,prioritySetField});
+      IndexDescription needPriorityIndex = new IndexDescription(false,new String[]{needPriorityField});
       // No evidence that the extra fields help at all, for any database...
       IndexDescription docpriorityIndex = new IndexDescription(false,new String[]{docPriorityField,statusField,checkActionField,checkTimeField});
 
@@ -239,6 +239,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
         if (uniqueIndex != null && id.equals(uniqueIndex))
           uniqueIndex = null;
+        else if (needPriorityIndex != null && id.equals(needPriorityIndex))
+          needPriorityIndex = null;
         else if (jobStatusIndex != null && id.equals(jobStatusIndex))
           jobStatusIndex = null;
         else if (jobSeedIndex != null && id.equals(jobSeedIndex))
@@ -247,8 +249,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
           failTimeIndex = null;
         else if (actionTimeStatusIndex != null && id.equals(actionTimeStatusIndex))
           actionTimeStatusIndex = null;
-        else if (prioritysetStatusIndex != null && id.equals(prioritysetStatusIndex))
-          prioritysetStatusIndex = null;
         else if (docpriorityIndex != null && id.equals(docpriorityIndex))
           docpriorityIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
@@ -261,6 +261,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       if (jobStatusIndex != null)
         performAddIndex(null,jobStatusIndex);
 
+      if (needPriorityIndex != null)
+        performAddIndex(null,needPriorityIndex);
+      
       if (jobSeedIndex != null)
         performAddIndex(null,jobSeedIndex);
 
@@ -269,9 +272,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       
       if (actionTimeStatusIndex != null)
         performAddIndex(null,actionTimeStatusIndex);
-
-      if (prioritysetStatusIndex != null)
-        performAddIndex(null,prioritysetStatusIndex);
 
       if (docpriorityIndex != null)
         performAddIndex(null,docpriorityIndex);
@@ -733,7 +733,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Map COMPLETE to PENDINGPURGATORY
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
-    map.put(prioritySetField,new Long(0L));
+    map.put(needPriorityField,needPriorityToString(true));
     // Do not reset priorities here!  They should all be blank at this point.
     map.put(checkTimeField,new Long(0L));
     map.put(checkActionField,actionToString(ACTION_RESCAN));
@@ -791,7 +791,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Map COMPLETE to PENDINGPURGATORY.
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
-    map.put(prioritySetField,new Long(0L));
+    map.put(needPriorityField,needPriorityToString(true));
     // Do not reset priorities here!  They should all be blank at this point.
     map.put(checkTimeField,new Long(0L));
     map.put(checkActionField,actionToString(ACTION_RESCAN));
@@ -866,11 +866,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** Write out a document priority */
-  public void writeDocPriority(long currentTime, Long rowID, IPriorityCalculator priority)
+  public void writeDocPriority(Long rowID, IPriorityCalculator priority)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
-    map.put(prioritySetField,new Long(currentTime));
+    map.put(needPriorityField,needPriorityToString(false));
     map.put(docPriorityField,new Double(priority.getDocumentPriority()));
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
@@ -879,12 +879,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     noteModifications(0,1,0);
   }
 
-  /** Clear all document priorities for a job */
+  /** Clear all document priorities for a job that is going to sleep */
   public void clearDocPriorities(Long jobID)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
-    map.put(prioritySetField,new Long(0L));
+    map.put(needPriorityField,needPriorityToString(false));
     map.put(docPriorityField,nullDocPriority);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
@@ -913,7 +913,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       checkTimeValue = null;
       // Remove document priority; we don't want to pollute the queue.  See CONNECTORS-290.
       map.put(docPriorityField,nullDocPriority);
-      map.put(prioritySetField,new Long(0L));
+      map.put(needPriorityField,needPriorityToString(false));
       break;
     case STATUS_ACTIVENEEDRESCAN:
     case STATUS_ACTIVENEEDRESCANPURGATORY:
@@ -1186,7 +1186,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   * The record is presumed to exist and have been locked, via "FOR UPDATE".
   */
   public void updateExistingRecordInitial(Long recordID, int currentStatus, Long checkTimeValue,
-    long desiredExecuteTime, long currentTime, IPriorityCalculator desiredPriority, String[] prereqEvents,
+    long desiredExecuteTime, IPriorityCalculator desiredPriority, String[] prereqEvents,
     String processID)
     throws ManifoldCFException
   {
@@ -1225,7 +1225,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       map.put(failCountField,null);
       // Update the doc priority.
       map.put(docPriorityField,new Double(desiredPriority.getDocumentPriority()));
-      map.put(prioritySetField,new Long(currentTime));
+      map.put(needPriorityField,needPriorityToString(false));
       break;
 
     case STATUS_PENDING:
@@ -1282,7 +1282,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param docID is the local document identifier.
   */
   public void insertNewRecordInitial(Long jobID, String docHash, String docID, IPriorityCalculator desiredDocPriority,
-    long desiredExecuteTime, long currentTime, String[] prereqEvents, String processID)
+    long desiredExecuteTime, String[] prereqEvents, String processID)
     throws ManifoldCFException
   {
     // No prerequisites should be possible at this point.
@@ -1302,7 +1302,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(seedingProcessIDField,processID);
     // Set the document priority
     map.put(docPriorityField,new Double(desiredDocPriority.getDocumentPriority()));
-    map.put(prioritySetField,new Long(currentTime));
+    map.put(needPriorityField,needPriorityToString(false));
     performInsert(map,null);
     prereqEventManager.addRows(recordID,prereqEvents);
     noteModifications(1,0,0);
@@ -1483,7 +1483,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   * The record is presumed to exist and have been locked, via "FOR UPDATE".
   */
   public void updateExistingRecord(Long recordID, int currentStatus, Long checkTimeValue,
-    long desiredExecuteTime, long currentTime, boolean otherChangesSeen,
+    long desiredExecuteTime, boolean otherChangesSeen,
     IPriorityCalculator desiredPriority, String[] prereqEvents)
     throws ManifoldCFException
   {
@@ -1501,7 +1501,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       map.put(failCountField,null);
       // Going into pending: set the docpriority.
       map.put(docPriorityField,new Double(desiredPriority.getDocumentPriority()));
-      map.put(prioritySetField,new Long(currentTime));
+      map.put(needPriorityField,needPriorityToString(false));
       break;
     case STATUS_COMPLETE:
     case STATUS_BEINGCLEANED:
@@ -1518,7 +1518,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         map.put(failCountField,null);
         // Going into pending: set the docpriority.
         map.put(docPriorityField,new Double(desiredPriority.getDocumentPriority()));
-        map.put(prioritySetField,new Long(currentTime));
+        map.put(needPriorityField,needPriorityToString(false));
         break;
       }
       return;
@@ -1547,7 +1547,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         map.put(failCountField,null);
         // Going into pending: set the docpriority.
         map.put(docPriorityField,new Double(desiredPriority.getDocumentPriority()));
-        map.put(prioritySetField,new Long(currentTime));
+        map.put(needPriorityField,needPriorityToString(false));
         break;
       }
       return;
@@ -1571,7 +1571,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         map.put(failCountField,null);
         // Going into pending: set the docpriority.
         map.put(docPriorityField,new Double(desiredPriority.getDocumentPriority()));
-        map.put(prioritySetField,new Long(currentTime));
+        map.put(needPriorityField,needPriorityToString(false));
         break;
       }
       return;
@@ -1613,7 +1613,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *
   */
   public void insertNewRecord(Long jobID, String docIDHash, String docID, IPriorityCalculator desiredDocPriority, long desiredExecuteTime,
-    long currentTime, String[] prereqEvents)
+    String[] prereqEvents)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
@@ -1627,7 +1627,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(statusField,statusToString(STATUS_PENDING));
     // Be sure to set the priority also
     map.put(docPriorityField,new Double(desiredDocPriority.getDocumentPriority()));
-    map.put(prioritySetField,new Long(currentTime));
+    map.put(needPriorityField,needPriorityToString(false));
     performInsert(map,null);
     prereqEventManager.addRows(recordID,prereqEvents);
     noteModifications(1,0,0);
@@ -1694,6 +1694,26 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
+  /** Convert need priority value to boolean.
+  */
+  public static boolean stringToNeedPriority(String value)
+    throws ManifoldCFException
+  {
+    if (value != null && value.equals("T"))
+      return true;
+    return false;
+  }
+  
+  /** Convert boolean to need priority value.
+  */
+  public static String needPriorityToString(boolean value)
+    throws ManifoldCFException
+  {
+    if (value)
+      return "T";
+    return "F";
+  }
+  
   /** Convert status field value to integer.
   *@param value is the string.
   *@return the integer.
