@@ -225,10 +225,11 @@ public interface IJobManager
 
   /** Get a list of not-yet-processed documents to reprioritize.  Documents in all jobs will be
   * returned by this method.  Up to n document descriptions will be returned.
+  *@param processID is the process that requests the reprioritization documents.
   *@param n is the maximum number of document descriptions desired.
   *@return the document descriptions.
   */
-  public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(int n)
+  public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(String processID, int n)
     throws ManifoldCFException;
 
   /** Save a set of document priorities.  In the case where a document was eligible to have its
