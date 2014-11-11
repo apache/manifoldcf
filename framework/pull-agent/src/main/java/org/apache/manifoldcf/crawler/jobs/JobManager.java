@@ -2023,7 +2023,6 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // Note: This can be called at any time, even while worker and seeding threads are also reprioritizing documents.
-    // Need to resolve the race condition somehow. ???
     
     // Retry loop - in case we get a deadlock despite our best efforts
     while (true)
@@ -2150,8 +2149,23 @@ public class JobManager implements IJobManager
             throw new ManifoldCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
           int index = x.intValue();
           DocumentDescription dd = documentDescriptions[index];
-          IPriorityCalculator priority = priorities[index];
-          jobQueue.writeDocPriority(dd.getID(),priority);
+          // Query for the status
+          ArrayList list = new ArrayList();
+          String query = database.buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobQueue.idField,dd.getID())});
+          IResultSet set = database.performQuery("SELECT "+jobQueue.needPriorityField+" FROM "+jobQueue.getTableName()+" WHERE "+
+            query+" FOR UPDATE",list,null,null);
+          if (set.getRowCount() > 0)
+          {
+            IResultRow row = set.getRow(0);
+            // Grab the needPriority value
+            boolean needPriority = jobQueue.stringToNeedPriority((String)row.getValue(jobQueue.needPriorityField));
+            if (needPriority)
+            {
+              IPriorityCalculator priority = priorities[index];
+              jobQueue.writeDocPriority(dd.getID(),priority);
+            }
+          }
         }
         database.performCommit();
         break;

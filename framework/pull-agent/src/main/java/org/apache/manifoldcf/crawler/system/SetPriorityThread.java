@@ -145,7 +145,7 @@ public class SetPriorityThread extends Thread
             }
 
             Logging.threads.debug("Done reprioritizing because no more documents to reprioritize");
-            ManifoldCF.sleep(30000L);
+            ManifoldCF.sleep(5000L);
             break;
 
           }

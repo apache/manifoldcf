@@ -85,7 +85,7 @@ public interface IReprioritizationTracker
   */
   public void clearPreloadedValues();
 
-  /** Get a bin value.
+  /** Get a bin value.  Must be called INSIDE a transaction.
   *@param binName is the bin name.
   *@param weightedMinimumDepth is the minimum depth to use.
   *@return the bin value.
