@@ -135,7 +135,7 @@ public class SetPriorityThread extends Thread
             // We may well wind up calculating priority for documents that wind up having their
             // state changed before we can write back, but this is okay because update is only
             // going to be permitted for rows that still have the right state.
-            DocumentDescription[] descs = jobManager.getNextNotYetProcessedReprioritizationDocuments(1000);
+            DocumentDescription[] descs = jobManager.getNextNotYetProcessedReprioritizationDocuments(processID,1000);
             if (descs.length > 0)
             {
               ManifoldCF.writeDocumentPriorities(threadContext,

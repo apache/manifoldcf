@@ -33,6 +33,7 @@ public class JobManager implements IJobManager
   public static final String _rcsid = "@(#)$Id: JobManager.java 998576 2010-09-19 01:11:02Z kwright $";
 
   protected static final String stufferLock = "_STUFFER_";
+  protected static final String reprioritizationLock = "_REPRIORITIZER_";
   protected static final String deleteStufferLock = "_DELETESTUFFER_";
   protected static final String expireStufferLock = "_EXPIRESTUFFER_";
   protected static final String cleanStufferLock = "_CLEANSTUFFER_";
@@ -2064,47 +2065,106 @@ public class JobManager implements IJobManager
 
   /** Get a list of not-yet-processed documents to reprioritize.  Documents in all jobs will be
   * returned by this method.  Up to n document descriptions will be returned.
+  *@param processID is the process that requests the reprioritization documents.
   *@param n is the maximum number of document descriptions desired.
   *@return the document descriptions.
   */
   @Override
-  public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(int n)
+  public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(String processID, int n)
     throws ManifoldCFException
   {
-    StringBuilder sb = new StringBuilder("SELECT ");
-    ArrayList list = new ArrayList();
-
-    // This query MUST return only documents that are in a pending state which belong to an active job!!!
-
-    sb.append(jobQueue.idField).append(",")
-      .append(jobQueue.docHashField).append(",")
-      .append(jobQueue.docIDField).append(",")
-      .append(jobQueue.jobIDField)
-      .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
-      .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-        new UnitaryClause(jobQueue.needPriorityField,jobQueue.needPriorityToString(true))})).append(" ")
-      .append(database.constructOffsetLimitClause(0,n));
-
-    // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
-    //jobQueue.unconditionallyAnalyzeTables();
-
-    //IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
-    IResultSet set = database.performQuery(sb.toString(),list,null,null);
-
-    DocumentDescription[] rval = new DocumentDescription[set.getRowCount()];
-
-    int i = 0;
-    while (i < set.getRowCount())
+    // Retry loop - in case we get a deadlock despite our best efforts
+    while (true)
     {
-      IResultRow row = set.getRow(i);
-      rval[i] =new DocumentDescription((Long)row.getValue(jobQueue.idField),
-        (Long)row.getValue(jobQueue.jobIDField),
-        (String)row.getValue(jobQueue.docHashField),
-        (String)row.getValue(jobQueue.docIDField));
-      i++;
-    }
+      long sleepAmt = 0L;
 
-    return rval;
+      // Write lock insures that only one thread cluster-wide can be doing this at a given time, so FOR UPDATE is unneeded.
+      lockManager.enterWriteLock(reprioritizationLock);
+      try
+      {
+        // Start the transaction now
+        database.beginTransaction();
+        try
+        {
+
+          StringBuilder sb = new StringBuilder("SELECT ");
+          ArrayList list = new ArrayList();
+
+          // This query MUST return only documents that are in a pending state which belong to an active job!!!
+
+          sb.append(jobQueue.idField).append(",")
+            .append(jobQueue.docHashField).append(",")
+            .append(jobQueue.docIDField).append(",")
+            .append(jobQueue.jobIDField)
+            .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
+            .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+              new UnitaryClause(jobQueue.needPriorityField,jobQueue.needPriorityToString(JobQueue.NEEDPRIORITY_TRUE))})).append(" ")
+            .append(database.constructOffsetLimitClause(0,n));
+
+          // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
+          //jobQueue.unconditionallyAnalyzeTables();
+
+          //IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
+          IResultSet set = database.performQuery(sb.toString(),list,null,null);
+
+          DocumentDescription[] rval = new DocumentDescription[set.getRowCount()];
+          // To avoid deadlock, we want to update the document id hashes in order.  This means reading into a structure I can sort by docid hash,
+          // before updating any rows in jobqueue.
+          String[] docIDHashes = new String[set.getRowCount()];
+          Map<String,DocumentDescription> storageMap = new HashMap<String,DocumentDescription>();
+
+          for (int i = 0 ; i < set.getRowCount() ; i++)
+          {
+            IResultRow row = set.getRow(i);
+            String docHash = (String)row.getValue(jobQueue.docHashField);
+            Long jobID = (Long)row.getValue(jobQueue.jobIDField);
+            rval[i] = new DocumentDescription((Long)row.getValue(jobQueue.idField),
+              jobID,
+              docHash,
+              (String)row.getValue(jobQueue.docIDField));
+            // Compute the doc ID hash
+            docIDHashes[i] = docHash + ":" + jobID;
+            storageMap.put(docIDHashes[i],rval[i]);
+          }
+          
+          java.util.Arrays.sort(docIDHashes);
+          for (String docIDHash : docIDHashes)
+          {
+            DocumentDescription dd = storageMap.get(docIDHash);
+            jobQueue.markNeedPriorityInProgress(dd.getID(),processID);
+          }
+
+          database.performCommit();
+          return rval;
+        }
+        catch (ManifoldCFException e)
+        {
+          database.signalRollback();
+          if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+          {
+            if (Logging.perf.isDebugEnabled())
+              Logging.perf.debug("Aborted transaction finding documents for reprioritization: "+e.getMessage());
+            sleepAmt = getRandomAmount();
+            continue;
+          }
+          throw e;
+        }
+        catch (Error e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        finally
+        {
+          database.endTransaction();
+        }
+      }
+      finally
+      {
+        lockManager.leaveWriteLock(reprioritizationLock);
+        sleepFor(sleepAmt);
+      }
+    }
   }
 
   /** Save a set of document priorities.  In the case where a document was eligible to have its
@@ -2159,8 +2219,8 @@ public class JobManager implements IJobManager
           {
             IResultRow row = set.getRow(0);
             // Grab the needPriority value
-            boolean needPriority = jobQueue.stringToNeedPriority((String)row.getValue(jobQueue.needPriorityField));
-            if (needPriority)
+            int needPriority = jobQueue.stringToNeedPriority((String)row.getValue(jobQueue.needPriorityField));
+            if (needPriority == JobQueue.NEEDPRIORITY_INPROGRESS)
             {
               IPriorityCalculator priority = priorities[index];
               jobQueue.writeDocPriority(dd.getID(),priority);
@@ -2882,8 +2942,8 @@ public class JobManager implements IJobManager
             // To avoid deadlock, we want to update the document id hashes in order.  This means reading into a structure I can sort by docid hash,
             // before updating any rows in jobqueue.
             String[] docIDHashes = new String[set.getRowCount()];
-            Map storageMap = new HashMap();
-            Map statusMap = new HashMap();
+            Map<String,DocumentDescription> storageMap = new HashMap<String,DocumentDescription>();
+            Map<String,Integer> statusMap = new HashMap<String,Integer>();
 
             int i = 0;
             while (i < set.getRowCount())
