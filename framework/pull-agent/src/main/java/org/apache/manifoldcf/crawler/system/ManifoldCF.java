@@ -1005,7 +1005,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
     String reproID = IDFactory.make(threadContext);
 
-    rt.startReprioritization(System.currentTimeMillis(),processID,reproID);
+    rt.startReprioritization(processID,reproID);
 
     jobManager.clearAllDocumentPriorities();
 
