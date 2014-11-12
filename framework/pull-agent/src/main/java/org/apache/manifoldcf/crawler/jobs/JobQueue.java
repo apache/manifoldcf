@@ -227,15 +227,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       }
       else
       {
-        // Upgrade; null docpriority fields bashed to 'infinity', so they don't slow down MySQL
+        // Upgrade; null docpriority fields bashed to 'infinity', so they don't slow down the docpriority index
         Map map = new HashMap();
         map.put(docPriorityField,nullDocPriority);
         performUpdate(map,"WHERE "+docPriorityField+" IS NULL",null,null);
-        
-        // ???
-        map = new HashMap();
-        map.put(prioritySetField,new Long(0L));
-        performUpdate(map,"WHERE "+prioritySetField+" IS NULL",null,null);
         
         // Also, add processIDField
         if (existing.get(processIDField) == null)
@@ -252,6 +247,89 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
           insertMap.put(seedingProcessIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
           performAlter(insertMap,null,null,null);
         }
+        
+        if (existing.get(needPriorityField) == null && existing.get(needPriorityProcessIDField) == null)
+        {
+          Map insertMap = new HashMap();
+          insertMap.put(needPriorityField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
+          insertMap.put(needPriorityProcessIDField,new ColumnDescription("VARCHAR(16)",false,true,null,null,false));
+          performAlter(insertMap,null,null,null);
+          
+          // Read all jobs and their statuses
+          IResultSet jobStatusResults = performQuery("SELECT "+Jobs.idField+","+Jobs.statusField+" FROM jobs",null,null,null);
+          Map<Long,Integer> statusMap = new HashMap<Long,Integer>();
+          for (int i = 0; i < jobStatusResults.getRowCount(); i++)
+          {
+            IResultRow row = jobStatusResults.getRow(i);
+            statusMap.put((Long)row.getValue(Jobs.idField),new Integer(Jobs.stringToStatus((String)row.getValue(Jobs.statusField))));
+          }
+          
+          // The needPriority field should be set only for documents that are active.
+          // And we need to work in small chunks for memory reasons.
+          while (true)
+          {
+            ArrayList params = new ArrayList();
+            IResultSet set = performQuery("SELECT "+idField+","+statusField+","+jobIDField+" FROM "+getTableName()+" WHERE "+
+              buildConjunctionClause(params,new ClauseDescription[]{
+                new NullCheckClause(needPriorityField,true)})+
+              " "+constructOffsetLimitClause(0,10000),
+              params,null,null);
+            
+            if (set.getRowCount() == 0)
+              break;
+            for (int i = 0 ; i < set.getRowCount() ; i++)
+            {
+              IResultRow row = set.getRow(i);
+              Long rowID = (Long)row.getValue(idField);
+              int status = stringToStatus((String)row.getValue(statusField));
+              Long jobID = (Long)row.getValue(jobIDField);
+              int jobStatus = statusMap.get(jobID).intValue();
+              
+              int needsPriority = NEEDPRIORITY_FALSE;
+              if ((status == STATUS_PENDING ||
+                status == STATUS_ACTIVE ||
+                status == STATUS_PENDINGPURGATORY || 
+                status == STATUS_ACTIVEPURGATORY ||
+                status == STATUS_ACTIVENEEDRESCAN ||
+                status == STATUS_ACTIVENEEDRESCANPURGATORY ||
+                status == STATUS_HOPCOUNTREMOVED) &&
+                (jobStatus == Jobs.STATUS_ACTIVE ||
+                jobStatus == Jobs.STATUS_ACTIVESEEDING ||
+                jobStatus == Jobs.STATUS_ACTIVEWAITING ||
+                jobStatus == Jobs.STATUS_ACTIVEWAITINGSEEDING ||
+                jobStatus == Jobs.STATUS_PAUSING ||
+                jobStatus == Jobs.STATUS_PAUSINGSEEDING ||
+                jobStatus == Jobs.STATUS_PAUSINGWAITING ||
+                jobStatus == Jobs.STATUS_PAUSINGWAITINGSEEDING ||
+                jobStatus == Jobs.STATUS_STARTINGUP ||
+                jobStatus == Jobs.STATUS_STARTINGUPMINIMAL ||
+                jobStatus == Jobs.STATUS_ACTIVE_UNINSTALLED ||
+                jobStatus == Jobs.STATUS_ACTIVESEEDING_UNINSTALLED ||
+                jobStatus == Jobs.STATUS_ACTIVE_NOOUTPUT ||
+                jobStatus == Jobs.STATUS_ACTIVESEEDING_NOOUTPUT ||
+                jobStatus == Jobs.STATUS_ACTIVE_NEITHER ||
+                jobStatus == Jobs.STATUS_ACTIVESEEDING_NEITHER))
+                needsPriority = NEEDPRIORITY_TRUE;
+                
+              Map updateMap = new HashMap();
+              updateMap.put(needPriorityField,needPriorityToString(needsPriority));
+              ArrayList updateParams = new ArrayList();
+              updateParams.add(rowID);
+              performUpdate(updateMap,"WHERE "+idField+"=?",updateParams,null);
+
+            }
+          }
+        }
+        
+        // Upgrade: If there's a priorityset field, remove it
+        if (existing.get("priorityset") != null)
+        {
+          List deleteList = new ArrayList();
+          deleteList.add("priorityset");
+          performAlter(null,null,deleteList,null);
+        }
+        
+
       }
 
       // Secondary table installation
