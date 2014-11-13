@@ -687,7 +687,7 @@
 
             <section id="amazoncloudsearchoutputconnector">
                 <title>Amazon Cloud Search Output Connection</title>
-                <p>The Amazon Cloud Search Output Connection type send documents to a specific path within a specified Amazon Cloud Search instance.  The
+                <p>The Amazon Cloud Search output connection type send documents to a specific path within a specified Amazon Cloud Search instance.  The
                       connection type furthermore "batches" documents to reduce cost as much as is reasonable.  As a result, some specified documents may be sent at the
                       end of a job run, rather than at the time they would typically be indexed.</p>
                 <p>The connection configuration information for the Amazon Cloud Search Output Connection type includes one additional tab: the "Server" tab.
@@ -700,6 +700,14 @@
                 <p>The Amazon Cloud Search Output Connection type can only accept text content that is encoded in a UTF-8-compatible manner.  It is highly
                       recommended to use the Tika Content Extractor in the pipeline prior to the Amazon Cloud Search Output Connection type in order to
                       convert documents to an indexable form.</p>
+                <p></p>
+                <p>In order to successfully index ManifoldCF documents in Amazon Cloud Search, you will need to describe a Cloud Search schema for
+                      receiving them.  The fields that the Amazon Cloud Search output connection type sends are those that it gets specifically from the document
+                      as it comes through the ManifoldCF pipeline, with the addition of two hard-wired fields: "f_bodytext", containing the document body content,
+                      and "document_uri", containing the document's URI.  You may also need to use the Metadata Adjuster transformation connection type to make
+                      sure that document metadata sent to Amazon Cloud Search agree with the schema you have defined there.  Please refer to
+                      <a href="http://docs.aws.amazon.com/cloudsearch/latest/developerguide/configuring-index-fields.html">this document</a> for details of how to set up an Amazon Cloud Search
+                      schema.</p>
             </section>
             
             <section id="elasticsearchoutputconnector">
