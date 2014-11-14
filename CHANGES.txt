@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1102: Don't do a hard reindex on jobqueue.restart,
+since it is expensive and may be unnecessary.
+(Aeham Abushwashi, Karl Wright)
+
 CONNECTORS-1101: Fix shutdown hang caused by poor interrupt
 handling in MySQL driver.
 (Karl Wright)
