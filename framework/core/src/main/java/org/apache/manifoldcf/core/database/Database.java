@@ -731,20 +731,29 @@ public abstract class Database
     {
       // Try to kill the background thread - but we can't wait for it...
       t.interrupt();
-      // VERY IMPORTANT: Try to close the connection, so nothing is left dangling.  The connection will be abandoned anyhow.
-      try
-      {
-        if (!connection.getAutoCommit())
-          connection.rollback();
-        connection.close();
-      }
-      catch (Exception e2)
-      {
-      }
+      interruptCleanup(connection);
       // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
       throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
 
+  }
+
+  /** This method must clean up after a execute query thread has been forcibly interrupted.
+  * It has been separated because some JDBC drivers don't handle forcible interrupts
+  * appropriately.
+  */
+  protected void interruptCleanup(Connection connection)
+  {
+    // VERY IMPORTANT: Try to close the connection, so nothing is left dangling.  The connection will be abandoned anyhow.
+    try
+    {
+      if (!connection.getAutoCommit())
+        connection.rollback();
+      connection.close();
+    }
+    catch (Exception e2)
+    {
+    }
   }
 
   /** This method does NOT appear in any interface; it is here to

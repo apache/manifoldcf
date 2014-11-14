@@ -21,6 +21,7 @@ package org.apache.manifoldcf.core.database;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.Logging;
 import java.util.*;
+import java.sql.Connection;
 
 public class DBInterfaceMySQL extends Database implements IDBInterface
 {
@@ -84,6 +85,16 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   protected String getJdbcDriverClass()
   {
     return _driver;
+  }
+
+  /** This method must clean up after a execute query thread has been forcibly interrupted.
+  * It has been separated because some JDBC drivers don't handle forcible interrupts
+  * appropriately.
+  */
+  @Override
+  protected void interruptCleanup(Connection connection)
+  {
+    // Do nothing in the case of MySQL.
   }
 
   /** Reinterpret an exception tossed by the database layer.  We need to disambiguate the various kinds of exception that
@@ -158,6 +169,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   /** Initialize.  This method is called once per JVM instance, in order to set up
   * database communication.
   */
+  @Override
   public void openDatabase()
     throws ManifoldCFException
   {
@@ -167,6 +179,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   /** Uninitialize.  This method is called during JVM shutdown, in order to close
   * all database communication.
   */
+  @Override
   public void closeDatabase()
     throws ManifoldCFException
   {
@@ -176,6 +189,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   /** Get the database general cache key.
   *@return the general cache key for the database.
   */
+  @Override
   public String getDatabaseCacheKey()
   {
     return cacheKey;
@@ -187,6 +201,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * invalidated.
   *@param parameterMap is the map of column name/values to write.
   */
+  @Override
   public void performInsert(String tableName, Map<String,Object> parameterMap, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -240,6 +255,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
+  @Override
   public void performUpdate(String tableName, Map<String,Object> parameterMap, String whereClause,
     List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException
@@ -306,6 +322,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
+  @Override
   public void performDelete(String tableName, String whereClause, List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -332,6 +349,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * layer.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
+  @Override
   public void performCreate(String tableName, Map<String,ColumnDescription> columnMap, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -402,6 +420,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param columnDeleteList is the list of column names to delete.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
+  @Override
   public void performAlter(String tableName, Map<String,ColumnDescription> columnMap,
     Map<String,ColumnDescription> columnModifyMap, List<String> columnDeleteList,
     StringSet invalidateKeys)
@@ -470,6 +489,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param columnList is the list of columns that need to be included
   * in the index, in order.
   */
+  @Override
   public void addTableIndex(String tableName, boolean unique, List<String> columnList)
     throws ManifoldCFException
   {
@@ -488,6 +508,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param indexName is the optional name of the table index.  If null, a name will be chosen automatically.
   *@param description is the index description.
   */
+  @Override
   public void performAddIndex(String indexName, String tableName, IndexDescription description)
     throws ManifoldCFException
   {
@@ -524,6 +545,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param indexName is the name of the index to remove.
   *@param tableName is the table the index belongs to.
   */
+  @Override
   public void performRemoveIndex(String indexName, String tableName)
     throws ManifoldCFException
   {
@@ -558,6 +580,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   /** Analyze a table.
   *@param tableName is the name of the table to analyze/calculate statistics for.
   */
+  @Override
   public void analyzeTable(String tableName)
     throws ManifoldCFException
   {
@@ -592,6 +615,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   /** Reindex a table.
   *@param tableName is the name of the table to rebuild indexes for.
   */
+  @Override
   public void reindexTable(String tableName)
     throws ManifoldCFException
   {
@@ -611,6 +635,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param tableName is the name of the table to drop.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
+  @Override
   public void performDrop(String tableName, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -622,6 +647,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
+  @Override
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -673,6 +699,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
+  @Override
   public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -693,6 +720,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param params are the parameterized values, if needed.
   *@param invalidateKeys are the cache keys to invalidate.
   */
+  @Override
   public void performModification(String query, List params, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -712,6 +740,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param queryClass is the name of the query class, or null.
   *@return a map of column names and ColumnDescription objects, describing the schema.
   */
+  @Override
   public Map<String,ColumnDescription> getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
@@ -773,6 +802,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param queryClass is the name of the query class, or null.
   *@return a map of index names and IndexDescription objects, describing the indexes.
   */
+  @Override
   public Map<String,IndexDescription> getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
@@ -838,6 +868,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param queryClass is the name of the query class, or null.
   *@return the set of tables.
   */
+  @Override
   public StringSet getAllTables(StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
@@ -867,6 +898,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * or null if no LRU behavior desired.
   *@return a resultset.
   */
+  @Override
   public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
@@ -890,6 +922,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param returnLimit is a description of how to limit the return result, or null if no limit.
   *@return a resultset.
   */
+  @Override
   public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass,
     int maxResults, ILimitChecker returnLimit)
     throws ManifoldCFException
@@ -915,6 +948,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param returnLimit is a description of how to limit the return result, or null if no limit.
   *@return a resultset.
   */
+  @Override
   public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass,
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws ManifoldCFException
@@ -937,6 +971,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@return the query chunk that should go between the table names and the WHERE
   * clause.
   */
+  @Override
   public String constructIndexHintClause(String tableName, IndexDescription description)
     throws ManifoldCFException
   {
@@ -961,6 +996,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param value is the value to be cast.
   *@return the query chunk needed.
   */
+  @Override
   public String constructDoubleCastClause(String value)
   {
     return value;
@@ -972,6 +1008,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param column is the column string to be counted.
   *@return the query chunk needed.
   */
+  @Override
   public String constructCountClause(String column)
   {
     return "COUNT("+column+")";
@@ -984,6 +1021,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param caseInsensitive is true of the regular expression match is to be case insensitive.
   *@return the query chunk needed, not padded with spaces on either side.
   */
+  @Override
   public String constructRegexpClause(String column, String regularExpression, boolean caseInsensitive)
   {
     // MHL - do what MySQL requires, whatever that is...
@@ -998,6 +1036,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param caseInsensitive is true if the regular expression match is to be case insensitive.
   *@return the expression chunk needed, not padded with spaces on either side.
   */
+  @Override
   public String constructSubstringClause(String column, String regularExpression, boolean caseInsensitive)
   {
     // MHL for mysql
@@ -1011,6 +1050,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param afterOrderBy is true if this offset/limit comes after an ORDER BY.
   *@return the proper clause, with no padding spaces on either side.
   */
+  @Override
   public String constructOffsetLimitClause(int offset, int limit, boolean afterOrderBy)
   {
     StringBuilder sb = new StringBuilder();
@@ -1041,6 +1081,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the base query column value, e.g. "value AS key"
   *@return a revised query that performs the necessary DISTINCT ON operation.  The list outputParameters will also be appropriately filled in.
   */
+  @Override
   public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters,
     String[] distinctFields, String[] orderFields, boolean[] orderFieldsAscending, Map<String,String> otherFields)
   {
@@ -1098,6 +1139,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * to drop.
   *@return the maximum number of IN clause members.
   */
+  @Override
   public int getMaxInClause()
   {
     return 100;
@@ -1108,6 +1150,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * to drop.
   *@return the maximum number of OR clause members.
   */
+  @Override
   public int getMaxOrClause()
   {
     return 25;
@@ -1117,6 +1160,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * that can reasonably be expected to complete in an acceptable time.
   *@return the maximum number of rows.
   */
+  @Override
   public int getWindowedReportMaxRows()
   {
     return 5000;
@@ -1130,6 +1174,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * calls to executeQuery().  After this should be a catch for every exception type, including Error, which should call the
   * signalRollback() method, and rethrow the exception.  Then, after that a finally{} block which calls endTransaction().
   */
+  @Override
   public void beginTransaction()
     throws ManifoldCFException
   {
@@ -1152,6 +1197,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * signalRollback() method, and rethrow the exception.  Then, after that a finally{} block which calls endTransaction().
   *@param transactionType is the kind of transaction desired.
   */
+  @Override
   public void beginTransaction(int transactionType)
     throws ManifoldCFException
   {
@@ -1221,6 +1267,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
 
   /** Signal that a rollback should occur on the next endTransaction().
   */
+  @Override
   public void signalRollback()
   {
     if (serializableDepth == 0)
@@ -1230,6 +1277,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   /** End a database transaction, either performing a commit or a rollback (depending on whether
   * signalRollback() was called within the transaction).
   */
+  @Override
   public void endTransaction()
     throws ManifoldCFException
   {
