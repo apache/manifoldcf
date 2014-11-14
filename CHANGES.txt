@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1101: Fix shutdown hang caused by poor interrupt
+handling in MySQL driver.
+(Karl Wright)
 
 CONNECTORS-1086: Document Amazon Cloud Search fields.
 (Karl Wright)
