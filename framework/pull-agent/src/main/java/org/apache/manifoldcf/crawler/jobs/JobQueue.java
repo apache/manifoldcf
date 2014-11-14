@@ -396,8 +396,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(seedingProcessIDField,processID)});
     performUpdate(map,"WHERE "+query,list,null);
 
-    // Reindex the jobqueue table, since we've probably made lots of bad tuples doing the above operations.
-    reindexTable();
+    // Not accurate, but best we can do without overhead.  This number is chosen so that default
+    // values of the reindexing parameters will cause reindexing to occur at this point, but users
+    // can configure them higher and shut this down.
+    noteModifications(0,50000,0);
+    // Always analyze.
     unconditionallyAnalyzeTables();
 
     TrackerClass.noteGlobalChange("Restart");
@@ -456,8 +459,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED))});
     performUpdate(map,"WHERE "+query,list,null);
 
-    // Reindex the jobqueue table, since we've probably made lots of bad tuples doing the above operations.
-    reindexTable();
+    // Not accurate, but best we can do without overhead.  This number is chosen so that default
+    // values of the reindexing parameters will cause reindexing to occur at this point, but users
+    // can configure them higher and shut this down.
+    noteModifications(0,50000,0);
     unconditionallyAnalyzeTables();
 
     TrackerClass.noteGlobalChange("Restart cluster");
