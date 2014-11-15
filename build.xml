@@ -436,12 +436,16 @@
 
     <!-- General connectors utility targets -->
     
+    <target name="clean-framework">
+        <ant dir="framework" target="clean"/>
+    </target>
+    
     <target name="clean-connectors" depends="deliver-framework" if="downloaded">
         <connectors-crawl target="clean"/>
     </target>
     
     <!-- General targets -->
-    <target name="clean" depends="clean-connectors">
+    <target name="clean" depends="clean-framework,clean-connectors">
         <delete>
           <fileset dir="." includes="apache-manifoldcf-*.zip"/>
           <fileset dir="." includes="apache-manifoldcf-*.tar.gz"/>
