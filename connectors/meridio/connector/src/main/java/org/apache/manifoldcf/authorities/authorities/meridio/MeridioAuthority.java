@@ -27,6 +27,7 @@ import org.tempuri.GroupResult;
 import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
 import org.apache.manifoldcf.authorities.interfaces.AuthorizationResponse;
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
 
 import java.rmi.RemoteException;
 import java.util.*;

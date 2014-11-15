@@ -27,6 +27,7 @@ import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
 import org.apache.manifoldcf.core.common.DateParser;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.*;

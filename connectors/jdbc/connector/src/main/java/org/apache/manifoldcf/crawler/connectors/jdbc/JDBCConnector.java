@@ -23,6 +23,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.core.database.*;
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
 import org.apache.manifoldcf.jdbc.JDBCConnection;
 import org.apache.manifoldcf.jdbc.JDBCConstants;
 import org.apache.manifoldcf.jdbc.IDynamicResultSet;

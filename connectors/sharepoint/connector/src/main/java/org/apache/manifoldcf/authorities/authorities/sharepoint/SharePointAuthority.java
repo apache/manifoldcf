@@ -25,6 +25,7 @@ import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
 import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.manifoldcf.core.util.URLDecoder;
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
 
 import java.io.*;
 import java.util.*;

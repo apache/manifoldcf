@@ -22,6 +22,8 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.Logging;
 
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
+
 // POIFS stuff
 import org.apache.poi.poifs.eventfilesystem.POIFSReader;
 import org.apache.poi.poifs.eventfilesystem.POIFSReaderListener;
