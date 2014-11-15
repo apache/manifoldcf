@@ -24,6 +24,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

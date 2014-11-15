@@ -24,6 +24,8 @@ import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
 
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
+
 import org.apache.manifoldcf.livelink.*;
 
 import java.io.*;

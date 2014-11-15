@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
 import org.apache.manifoldcf.connectorcommon.common.DeflateInputStream;
 import org.apache.manifoldcf.connectorcommon.common.XThreadInputStream;
 import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;

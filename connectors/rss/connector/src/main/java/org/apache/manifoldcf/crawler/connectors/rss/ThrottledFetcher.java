@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.rss;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
 import org.apache.manifoldcf.connectorcommon.common.XThreadInputStream;
 import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
 import org.apache.manifoldcf.agents.interfaces.*;

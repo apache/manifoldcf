@@ -40,13 +40,13 @@ import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.IDFactory;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
-import org.apache.manifoldcf.core.interfaces.IKeystoreManager;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
+import org.apache.manifoldcf.connectorcommon.interfaces.KeystoreManagerFactory;
+import org.apache.manifoldcf.connectorcommon.interfaces.IKeystoreManager;
 
 
 /** This is the output connector for SOLR.  Currently, no frills.

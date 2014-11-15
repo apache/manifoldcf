@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.util.regex.*;

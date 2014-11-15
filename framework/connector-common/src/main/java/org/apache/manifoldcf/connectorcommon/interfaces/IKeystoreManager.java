@@ -1,5 +1,3 @@
-package org.apache.manifoldcf.core.interfaces;
-
 /* $Id: IKeystoreManager.java 988245 2010-08-23 18:39:35Z kwright $ */
 
 /**
@@ -18,6 +16,10 @@ package org.apache.manifoldcf.core.interfaces;
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
+package org.apache.manifoldcf.connectorcommon.interfaces;
+
+import org.apache.manifoldcf.core.interfaces.*;
 import java.io.*;
 
 /** This interface describes a class that manages keys and certificates in a secure manner.
