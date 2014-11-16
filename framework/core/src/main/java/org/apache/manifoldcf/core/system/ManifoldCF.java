@@ -72,7 +72,10 @@ public class ManifoldCF
   protected static DatabaseShutdown dbShutdown = null;
   
   /** Array of cleanup hooks (for managing shutdown) */
-  protected static ArrayList cleanupHooks = new ArrayList(); 
+  protected final static List<IShutdownHook> cleanupHooks = new ArrayList<IShutdownHook>(); 
+  
+  /** Array of polling hooks (for managing polling) */
+  protected final static List<IPollingHook> pollingHooks = new ArrayList<IPollingHook>();
   
   /** Shutdown thread */
   protected static Thread shutdownThread;
@@ -275,8 +278,13 @@ public class ManifoldCF
           masterDatabaseUsername = LockManagerFactory.getStringProperty(threadContext,masterDatabaseUsernameProperty,"manifoldcf");
           masterDatabasePassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,masterDatabasePasswordProperty,"local_pg_passwd");
 
-          // Register the throttler for cleanup on shutdown
+          // Register the throttler
           addShutdownHook(new ThrottlerShutdown());
+          addPollingHook(new ThrottlerPoll());
+
+          // Put the cache manager in the polling loop
+          addPollingHook(new CachePoll());
+
           // Register the file tracker for cleanup on shutdown
           tracker = new FileTrack();
           addShutdownHook(tracker);
@@ -1423,6 +1431,29 @@ public class ManifoldCF
       cleanupHooks.add(hook);
     }
   }
+
+  /** Add a polling hook to the list.  These hooks will be evaluated in the
+  * order they were added.
+  *@param hook is the polling hook that needs to be added to the sequence.
+  */
+  public static void addPollingHook(IPollingHook hook)
+  {
+    synchronized (pollingHooks)
+    {
+      pollingHooks.add(hook);
+    }
+  }
+  
+  /** Poll all the registered polling services.
+  */
+  public static void pollAll(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    for (IPollingHook hook : pollingHooks)
+    {
+      hook.doPoll(threadContext);
+    }
+  }
   
   /** Create a new resource loader based on the default one.  This is used by
   * connectors wishing to make their own resource loaders for isolation purposes.
@@ -1465,7 +1496,7 @@ public class ManifoldCF
           while (i > 0)
           {
             i--;
-            IShutdownHook hook = (IShutdownHook)cleanupHooks.get(i);
+            IShutdownHook hook = cleanupHooks.get(i);
             try
             {
               hook.doCleanup(threadContext);
@@ -1548,6 +1579,22 @@ public class ManifoldCF
 
   }
 
+  /** Class that polls throttler */
+  protected static class ThrottlerPoll implements IPollingHook
+  {
+    public ThrottlerPoll()
+    {
+    }
+    
+    @Override
+    public void doPoll(IThreadContext threadContext)
+      throws ManifoldCFException
+    {
+      IThrottleGroups connectionThrottler = ThrottleGroupsFactory.make(threadContext);
+      connectionThrottler.poll();
+    }
+  }
+  
   /** Class that cleans up throttler on exit */
   protected static class ThrottlerShutdown implements IShutdownHook
   {
@@ -1578,6 +1625,23 @@ public class ManifoldCF
       }
     }
 
+  }
+  
+  /** Class that cleans up expired cache objects on polling.
+  */
+  protected static class CachePoll implements IPollingHook
+  {
+    public CachePoll()
+    {
+    }
+    
+    @Override
+    public void doPoll(IThreadContext threadContext)
+      throws ManifoldCFException
+    {
+      ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
+      cacheManager.expireObjects(System.currentTimeMillis());
+    }
   }
   
   /** Class that cleans up database handles on exit */

@@ -51,16 +51,12 @@ public class IdleCleanupThread extends Thread
     {
       // Create a thread context object.
       IThreadContext threadContext = ThreadContextFactory.make();
-      // Get the cache handle.
-      ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
       
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
       ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
       IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(threadContext);
       IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(threadContext);
-      
-      IThrottleGroups throttleGroups = ThrottleGroupsFactory.make(threadContext);
 
       // Loop
       while (true)
@@ -74,11 +70,9 @@ public class IdleCleanupThread extends Thread
           transformationConnectorPool.pollAllConnectors();
           authorityConnectorPool.pollAllConnectors();
           mappingConnectorPool.pollAllConnectors();
-          
-          throttleGroups.poll();
-          
-          cacheManager.expireObjects(System.currentTimeMillis());
-          
+          // Poll all basic services
+          ManifoldCF.pollAll(threadContext);
+
           // Sleep for the retry interval.
           ManifoldCF.sleep(5000L);
         }
