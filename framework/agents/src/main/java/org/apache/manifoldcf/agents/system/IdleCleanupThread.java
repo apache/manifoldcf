@@ -51,14 +51,10 @@ public class IdleCleanupThread extends Thread
     {
       // Create a thread context object.
       IThreadContext threadContext = ThreadContextFactory.make();
-      // Get the cache handle.
-      ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
       // Get the output connector pool handle
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
       // Get the transformation connector pool handle
       ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
-      // Throttler subsystem
-      IThrottleGroups throttleGroups = ThrottleGroupsFactory.make(threadContext);
       
       /* For HSQLDB debugging...
       IDBInterface database = DBInterfaceFactory.make(threadContext,
@@ -93,10 +89,8 @@ public class IdleCleanupThread extends Thread
           // Do the cleanup
           outputConnectorPool.pollAllConnectors();
           transformationConnectorPool.pollAllConnectors();
-          // Poll connection bins
-          throttleGroups.poll();
-          // Expire objects
-          cacheManager.expireObjects(System.currentTimeMillis());
+          // Poll all basic services
+          ManifoldCF.pollAll(threadContext);
           
           // Sleep for the retry interval.
           ManifoldCF.sleep(5000L);
