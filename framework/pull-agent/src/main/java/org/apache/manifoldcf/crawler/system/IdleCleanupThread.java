@@ -54,8 +54,6 @@ public class IdleCleanupThread extends Thread
     {
       // Create a thread context object.
       IThreadContext threadContext = ThreadContextFactory.make();
-      // Get the cache handle.
-      ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
       
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
       
@@ -67,7 +65,7 @@ public class IdleCleanupThread extends Thread
         {
           // Do the cleanup
           repositoryConnectorPool.pollAllConnectors();
-          cacheManager.expireObjects(System.currentTimeMillis());
+          ManifoldCF.pollAll(threadContext);
           
           // Sleep for the retry interval.
           ManifoldCF.sleep(5000L);
