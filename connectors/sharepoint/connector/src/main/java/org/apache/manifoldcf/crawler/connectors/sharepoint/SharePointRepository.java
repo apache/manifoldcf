@@ -66,6 +66,7 @@ import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.HttpHost;
 
 /** This is the "repository connector" for Microsoft SharePoint.
 * Document identifiers for this connector come in three forms:
@@ -216,6 +217,24 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         ntlmDomain = null;
       }
 
+      String proxyHost = params.getParameter(SharePointConfig.PARAM_PROXYHOST);
+      String proxyPortString = params.getParameter(SharePointConfig.PARAM_PROXYPORT);
+      int proxyPort = 8080;
+      if (proxyPortString != null && proxyPortString.length() > 0)
+      {
+        try
+        {
+          proxyPort = Integer.parseInt(proxyPortString);
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e);
+        }
+      }
+      String proxyUsername = params.getParameter(SharePointConfig.PARAM_PROXYUSER);
+      String proxyPassword = params.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+      String proxyDomain = params.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
+      
       serverUrl = serverProtocol + "://" + serverName;
       if (serverProtocol.equals("https"))
       {
@@ -261,6 +280,28 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           .setExpectContinueEnabled(false)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
+
+      // If there's a proxy, set that too.
+      if (proxyHost != null && proxyHost.length() > 0)
+      {
+
+        // Configure proxy authentication
+        if (proxyUsername != null && proxyUsername.length() > 0)
+        {
+          if (proxyPassword == null)
+            proxyPassword = "";
+          if (proxyDomain == null)
+            proxyDomain = "";
+
+          credentialsProvider.setCredentials(
+            new AuthScope(proxyHost, proxyPort),
+            new NTCredentials(proxyUsername, proxyPassword, currentHost, proxyDomain));
+        }
+
+        HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+
+        requestBuilder.setProxy(proxy);
+      }
 
       HttpClientBuilder builder = HttpClients.custom()
         .setConnectionManager(connectionManager)
@@ -2228,13 +2269,33 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (serverLocation != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERLOCATION,serverLocation);
 
-    String userName = variableContext.getParameter("userName");
+    String userName = variableContext.getParameter("serverUserName");
     if (userName != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERUSERNAME,userName);
 
-    String password = variableContext.getParameter("password");
+    String password = variableContext.getParameter("serverPassword");
     if (password != null)
       parameters.setObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD,variableContext.mapKeyToPassword(password));
+
+    String proxyHost = variableContext.getParameter("proxyhost");
+    if (proxyHost != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYHOST,proxyHost);
+    
+    String proxyPort = variableContext.getParameter("proxyport");
+    if (proxyPort != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYPORT,proxyPort);
+    
+    String proxyUser = variableContext.getParameter("proxyuser");
+    if (proxyUser != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYUSER,proxyUser);
+    
+    String proxyPassword = variableContext.getParameter("proxypassword");
+    if (proxyPassword != null)
+      parameters.setObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD,variableContext.mapKeyToPassword(proxyPassword));
+    
+    String proxyDomain = variableContext.getParameter("proxydomain");
+    if (proxyDomain != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYDOMAIN,proxyDomain);
 
     String keystoreValue = variableContext.getParameter("keystoredata");
     if (keystoreValue != null)
@@ -2385,18 +2446,45 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       certificates.add(certificate);
     }
     
+    String proxyHost = parameters.getParameter(SharePointConfig.PARAM_PROXYHOST);
+    if (proxyHost == null)
+      proxyHost = "";
+    
+    String proxyPort = parameters.getParameter(SharePointConfig.PARAM_PROXYPORT);
+    if (proxyPort == null)
+      proxyPort = "";
+    
+    String proxyUser = parameters.getParameter(SharePointConfig.PARAM_PROXYUSER);
+    if (proxyUser == null)
+      proxyUser = "";
+    
+    String proxyPassword = parameters.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+    if (proxyPassword == null)
+      proxyPassword = "";
+    else
+      proxyPassword = out.mapPasswordToKey(proxyPassword);
+
+    String proxyDomain = parameters.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
+    if (proxyDomain == null)
+      proxyDomain = "";
+
     // Fill in context
     velocityContext.put("SERVERVERSION", serverVersion);
     velocityContext.put("SERVERPROTOCOL", serverProtocol);
     velocityContext.put("SERVERNAME", serverName);
     velocityContext.put("SERVERPORT", serverPort);
     velocityContext.put("SERVERLOCATION", serverLocation);
-    velocityContext.put("USERNAME", userName);
-    velocityContext.put("PASSWORD", password);
+    velocityContext.put("SERVERUSERNAME", userName);
+    velocityContext.put("SERVERPASSWORD", password);
     if (keystore != null)
       velocityContext.put("KEYSTORE", keystore);
     velocityContext.put("CERTIFICATELIST", certificates);
     
+    velocityContext.put("PROXYHOST", proxyHost);
+    velocityContext.put("PROXYPORT", proxyPort);
+    velocityContext.put("PROXYUSER", proxyUser);
+    velocityContext.put("PROXYPASSWORD", proxyPassword);
+    velocityContext.put("PROXYDOMAIN", proxyDomain);
   }
 
   /** Output the specification header section.
