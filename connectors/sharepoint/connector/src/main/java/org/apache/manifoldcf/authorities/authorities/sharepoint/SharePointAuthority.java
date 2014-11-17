@@ -56,6 +56,7 @@ import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.HttpHost;
 
 
 /** This is the native SharePoint implementation of the IAuthorityConnector interface.
@@ -89,6 +90,12 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   private String strippedUserName = null;
   private String encodedServerLocation = null;
   private String keystoreData = null;
+  
+  private String proxyHost = null;
+  private String proxyPortString = null;
+  private String proxyUsername = null;
+  private String proxyPassword = null;
+  private String proxyDomain = null;
   
   private String cacheLRUsize = null;
   private String cacheLifetime = null;
@@ -205,6 +212,12 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       ntlmDomain = null;
     }
     
+    proxyHost = params.getParameter(SharePointConfig.PARAM_PROXYHOST);
+    proxyPortString = params.getParameter(SharePointConfig.PARAM_PROXYPORT);
+    proxyUsername = params.getParameter(SharePointConfig.PARAM_PROXYUSER);
+    proxyPassword = params.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+    proxyDomain = params.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
+
     keystoreData = params.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
 
   }
@@ -289,6 +302,12 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     encodedServerLocation = null;
     serverPort = -1;
 
+    proxyHost = null;
+    proxyPortString = null;
+    proxyUsername = null;
+    proxyPassword = null;
+    proxyDomain = null;
+    
     keystoreData = null;
     keystoreManager = null;
 
@@ -741,6 +760,19 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
         throw new ManifoldCFException(e.getMessage(),e);
       }
       
+      int proxyPort = 8080;
+      if (proxyPortString != null && proxyPortString.length() > 0)
+      {
+        try
+        {
+          proxyPort = Integer.parseInt(proxyPortString);
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e);
+        }
+      }
+
       serverUrl = serverProtocol + "://" + serverName;
       if (serverProtocol.equals("https"))
       {
@@ -785,6 +817,28 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
           .setExpectContinueEnabled(false)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
+
+      // If there's a proxy, set that too.
+      if (proxyHost != null && proxyHost.length() > 0)
+      {
+
+        // Configure proxy authentication
+        if (proxyUsername != null && proxyUsername.length() > 0)
+        {
+          if (proxyPassword == null)
+            proxyPassword = "";
+          if (proxyDomain == null)
+            proxyDomain = "";
+
+          credentialsProvider.setCredentials(
+            new AuthScope(proxyHost, proxyPort),
+            new NTCredentials(proxyUsername, proxyPassword, currentHost, proxyDomain));
+        }
+
+        HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+
+        requestBuilder.setProxy(proxy);
+      }
 
       HttpClientBuilder builder = HttpClients.custom()
         .setConnectionManager(connectionManager)

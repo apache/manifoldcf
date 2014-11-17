@@ -66,6 +66,7 @@ import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.HttpHost;
 
 /** This is the "repository connector" for Microsoft SharePoint.
 * Document identifiers for this connector come in three forms:
@@ -216,6 +217,24 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         ntlmDomain = null;
       }
 
+      String proxyHost = params.getParameter(SharePointConfig.PARAM_PROXYHOST);
+      String proxyPortString = params.getParameter(SharePointConfig.PARAM_PROXYPORT);
+      int proxyPort = 8080;
+      if (proxyPortString != null && proxyPortString.length() > 0)
+      {
+        try
+        {
+          proxyPort = Integer.parseInt(proxyPortString);
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e);
+        }
+      }
+      String proxyUsername = params.getParameter(SharePointConfig.PARAM_PROXYUSER);
+      String proxyPassword = params.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+      String proxyDomain = params.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
+      
       serverUrl = serverProtocol + "://" + serverName;
       if (serverProtocol.equals("https"))
       {
@@ -261,6 +280,28 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           .setExpectContinueEnabled(false)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
+
+      // If there's a proxy, set that too.
+      if (proxyHost != null && proxyHost.length() > 0)
+      {
+
+        // Configure proxy authentication
+        if (proxyUsername != null && proxyUsername.length() > 0)
+        {
+          if (proxyPassword == null)
+            proxyPassword = "";
+          if (proxyDomain == null)
+            proxyDomain = "";
+
+          credentialsProvider.setCredentials(
+            new AuthScope(proxyHost, proxyPort),
+            new NTCredentials(proxyUsername, proxyPassword, currentHost, proxyDomain));
+        }
+
+        HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+
+        requestBuilder.setProxy(proxy);
+      }
 
       HttpClientBuilder builder = HttpClients.custom()
         .setConnectionManager(connectionManager)
