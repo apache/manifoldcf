@@ -30,7 +30,7 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
-    <property name="alfresco.version" value="0.6.5"/>
+    <property name="alfresco.indexer.version" value="0.6.6"/>
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
@@ -69,16 +69,16 @@
     </target>
 
     <target name="setup-alfresco-indexer-url">
-        <property name="alfresco-indexer-base-url" value="https://repository-maoo.forge.cloudbees.com/release"/>
+        <property name="alfresco-indexer-base-url" value="https://repository-apachemaoo.forge.cloudbees.com/alfresco-indexer"/>
     </target>
-    
+
     <target name="download-via-alfresco-indexer" depends="setup-alfresco-indexer-url">
         <get src="${alfresco-indexer-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}-${artifact-version}.${artifact-type}"/>
     </target>
 
     <target name="download-dependencies">
         <property name="alfresco-package" value="org/alfresco/consulting/indexer"/>
-        <antcall target="download-via-alfresco-indexer"><param name="project-path" value="${alfresco-package}"/><param name="artifact-version" value="${alfresco.version}"/><param name="target" value="test-materials-proprietary"/>
+        <antcall target="download-via-alfresco-indexer"><param name="project-path" value="${alfresco-package}"/><param name="artifact-version" value="${alfresco.indexer.version}"/><param name="target" value="test-materials-proprietary"/>
             <param name="artifact-name" value="alfresco-indexer-webscripts-war"/>
             <param name="artifact-type" value="war"/>
         </antcall>
@@ -91,7 +91,7 @@
     </target>
 
     <target name="calculate-testcode-condition">
-        <available file="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco.version}.war" property="alfrescoTestcodeStatus"/>
+        <available file="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco.indexer.version}.war" property="alfrescoTestcodeStatus"/>
         <condition property="tests-present">
             <isset property="alfrescoTestcodeStatus"/>
         </condition>
@@ -119,7 +119,7 @@
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
-            <jvmarg value="-DalfrescoServerWarPath=../test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco.version}.war"/>
+            <jvmarg value="-DalfrescoServerWarPath=../test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco.indexer.version}.war"/>
             <jvmarg value="-Xms512m"/>
             <jvmarg value="-Xmx1024m"/>
             <jvmarg value="-Xss1024k"/>
