@@ -65,7 +65,8 @@ public class IdleCleanupThread extends Thread
         {
           // Do the cleanup
           repositoryConnectorPool.pollAllConnectors();
-          ManifoldCF.pollAll(threadContext);
+          // This is unnecessary because agents.interfaces.IdleCleanupThread does it.
+          //ManifoldCF.pollAll(threadContext);
           
           // Sleep for the retry interval.
           ManifoldCF.sleep(5000L);
