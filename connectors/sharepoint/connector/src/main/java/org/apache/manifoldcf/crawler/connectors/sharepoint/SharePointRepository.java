@@ -2236,6 +2236,26 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (password != null)
       parameters.setObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD,variableContext.mapKeyToPassword(password));
 
+    String proxyHost = variableContext.getParameter("proxyhost");
+    if (proxyHost != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYHOST,proxyHost);
+    
+    String proxyPort = variableContext.getParameter("proxyport");
+    if (proxyPort != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYPORT,proxyPort);
+    
+    String proxyUser = variableContext.getParameter("proxyuser");
+    if (proxyUser != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYUSER,proxyUser);
+    
+    String proxyPassword = variableContext.getParameter("proxypassword");
+    if (proxyPassword != null)
+      parameters.setObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD,variableContext.mapKeyToPassword(proxyPassword));
+    
+    String proxyDomain = variableContext.getParameter("proxydomain");
+    if (proxyDomain != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYDOMAIN,proxyDomain);
+
     String keystoreValue = variableContext.getParameter("keystoredata");
     if (keystoreValue != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERKEYSTORE,keystoreValue);
@@ -2385,6 +2405,28 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       certificates.add(certificate);
     }
     
+    String proxyHost = parameters.getParameter(SharePointConfig.PARAM_PROXYHOST);
+    if (proxyHost == null)
+      proxyHost = "";
+    
+    String proxyPort = parameters.getParameter(SharePointConfig.PARAM_PROXYPORT);
+    if (proxyPort == null)
+      proxyPort = "";
+    
+    String proxyUser = parameters.getParameter(SharePointConfig.PARAM_PROXYUSER);
+    if (proxyUser == null)
+      proxyUser = "";
+    
+    String proxyPassword = parameters.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+    if (proxyPassword == null)
+      proxyPassword = "";
+    else
+      proxyPassword = out.mapPasswordToKey(proxyPassword);
+
+    String proxyDomain = parameters.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
+    if (proxyDomain == null)
+      proxyDomain = "";
+
     // Fill in context
     velocityContext.put("SERVERVERSION", serverVersion);
     velocityContext.put("SERVERPROTOCOL", serverProtocol);
@@ -2397,6 +2439,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       velocityContext.put("KEYSTORE", keystore);
     velocityContext.put("CERTIFICATELIST", certificates);
     
+    velocityContext.put("PROXYHOST", proxyHost);
+    velocityContext.put("PROXYPORT", proxyPort);
+    velocityContext.put("PROXYUSER", proxyUser);
+    velocityContext.put("PROXYPASSWORD", proxyPassword);
+    velocityContext.put("PROXYDOMAIN", proxyDomain);
   }
 
   /** Output the specification header section.
