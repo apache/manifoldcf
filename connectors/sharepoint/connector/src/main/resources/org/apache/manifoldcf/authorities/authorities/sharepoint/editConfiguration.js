@@ -25,6 +25,12 @@ function checkConfig()
     editconnection.serverPort.focus();
     return false;
   }
+  if (editconnection.proxyport.value != "" && !isInteger(editconnection.proxyport.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.PleaseSupplyAValidNumber'))");
+    editconnection.proxyport.focus();
+    return false;
+  }
   if (editconnection.serverName.value.indexOf("/") >= 0)
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.PleaseSpecifyAnyServerPathInformation'))");
@@ -44,10 +50,10 @@ function checkConfig()
     editconnection.serverLocation.focus();
     return false;
   }
-  if (editconnection.userName.value != "" && editconnection.userName.value.indexOf("\\") <= 0)
+  if (editconnection.serverUserName.value != "" && editconnection.serverUserName.value.indexOf("\\") <= 0)
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AValidSharePointUserNameHasTheForm'))");
-    editconnection.userName.focus();
+    editconnection.serverUserName.focus();
     return false;
   }
   return true;
@@ -119,11 +125,11 @@ function checkConfigForSave()
     editconnection.serverPort.focus();
     return false;
   }
-  if (editconnection.userName.value != "" && editconnection.userName.value.indexOf("\\") <= 0)
+  if (editconnection.serverUserName.value != "" && editconnection.serverUserName.value.indexOf("\\") <= 0)
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.TheConnectionRequiresAValidSharePointUserName'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Server'))");
-    editconnection.userName.focus();
+    editconnection.serverUserName.focus();
     return false;
   }
   return true;

@@ -43,7 +43,17 @@ public class SharePointConfig
   public static final String PARAM_SERVERPASSWORD = "password";
   /** SharePoint server certificate store */
   public static final String PARAM_SERVERKEYSTORE = "keystore";
-	
+  /** Proxy host */
+  public static final String PARAM_PROXYHOST = "proxyHost";
+  /** Proxy port */
+  public static final String PARAM_PROXYPORT = "proxyPort";
+  /** Proxy user name */
+  public static final String PARAM_PROXYUSER = "proxyUser";
+  /** Proxy password */
+  public static final String PARAM_PROXYPASSWORD = "proxyPassword";
+  /** Proxy authentication domain */
+  public static final String PARAM_PROXYDOMAIN = "proxyDomain";
+  
   /** Authority type */
   public static final String PARAM_AUTHORITYTYPE = "authorityType";
 }
