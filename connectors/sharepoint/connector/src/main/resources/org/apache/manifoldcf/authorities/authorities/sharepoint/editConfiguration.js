@@ -25,6 +25,12 @@ function checkConfig()
     editconnection.serverPort.focus();
     return false;
   }
+  if (editconnection.proxyport.value != "" && !isInteger(editconnection.proxyport.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.PleaseSupplyAValidNumber'))");
+    editconnection.proxyport.focus();
+    return false;
+  }
   if (editconnection.serverName.value.indexOf("/") >= 0)
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.PleaseSpecifyAnyServerPathInformation'))");
