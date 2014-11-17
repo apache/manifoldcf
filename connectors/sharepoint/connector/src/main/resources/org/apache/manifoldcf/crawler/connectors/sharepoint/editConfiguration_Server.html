@@ -81,11 +81,11 @@
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.UserName'))</nobr></td>
-    <td class="value"><input type="text" size="32" name="userName" value="$Encoder.attributeEscape($USERNAME)"/></td>
+    <td class="value"><input type="text" size="32" name="serverUserName" value="$Encoder.attributeEscape($SERVERUSERNAME)"/></td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.Password'))</nobr></td>
-    <td class="value"><input type="password" size="32" name="password" value="$Encoder.attributeEscape($PASSWORD)"/></td>
+    <td class="value"><input type="password" size="32" name="serverPassword" value="$Encoder.attributeEscape($SERVERPASSWORD)"/></td>
   </tr>
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
@@ -144,8 +144,8 @@
 <input type="hidden" name="serverName" value="$Encoder.attributeEscape($SERVERNAME)"/>
 <input type="hidden" name="serverPort" value="$SERVERPORT"/>
 <input type="hidden" name="serverLocation" value="$Encoder.attributeEscape($SERVERLOCATION)"/>
-<input type="hidden" name="userName" value="$Encoder.attributeEscape($USERNAME)"/>
-<input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)"/>
+<input type="hidden" name="serverUserName" value="$Encoder.attributeEscape($SERVERUSERNAME)"/>
+<input type="hidden" name="serverPassword" value="$Encoder.attributeEscape($SERVERPASSWORD)"/>
 <input type="hidden" name="proxyhost" value="$Encoder.attributeEscape($PROXYHOST)"/>
 <input type="hidden" name="proxyport" value="$Encoder.attributeEscape($PROXYPORT)"/>
 <input type="hidden" name="proxyuser" value="$Encoder.attributeEscape($PROXYUSER)"/>
