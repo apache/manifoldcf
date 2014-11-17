@@ -87,6 +87,28 @@
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.Password'))</nobr></td>
     <td class="value"><input type="password" size="32" name="password" value="$Encoder.attributeEscape($PASSWORD)"/></td>
   </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.ProxyHost'))</nobr></td>
+    <td class="value"><input type="text" size="64" name="proxyhost" value="$Encoder.attributeEscape($PROXYHOST)"/></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.ProxyPort'))</nobr></td>
+    <td class="value"><input type="text" size="5" name="proxyport" value="$PROXYPORT"/></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.ProxyUser'))</nobr></td>
+    <td class="value"><input type="text" size="32" name="proxyuser" value="$Encoder.attributeEscape($PROXYUSER)"/></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.ProxyPassword'))</nobr></td>
+    <td class="value"><input type="password" size="32" name="proxypassword" value="$Encoder.attributeEscape($PROXYPASSWORD)"/></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.ProxyDomain'))</nobr></td>
+    <td class="value"><input type="text" size="32" name="proxydomain" value="$Encoder.attributeEscape($PROXYDOMAIN)"/></td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.SSLCertificateList'))</nobr></td>
     <td class="value">
@@ -113,6 +135,7 @@
       <input name="shpcertificate" size="50" type="file"/>
     </td>
   </tr>
+
 </table>
 
 #else
@@ -123,5 +146,10 @@
 <input type="hidden" name="serverLocation" value="$Encoder.attributeEscape($SERVERLOCATION)"/>
 <input type="hidden" name="userName" value="$Encoder.attributeEscape($USERNAME)"/>
 <input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)"/>
+<input type="hidden" name="proxyhost" value="$Encoder.attributeEscape($PROXYHOST)"/>
+<input type="hidden" name="proxyport" value="$Encoder.attributeEscape($PROXYPORT)"/>
+<input type="hidden" name="proxyuser" value="$Encoder.attributeEscape($PROXYUSER)"/>
+<input type="hidden" name="proxypassword" value="$Encoder.attributeEscape($PROXYPASSWORD)"/>
+<input type="hidden" name="proxydomain" value="$Encoder.attributeEscape($PROXYDOMAIN)"/>
 
 #end
