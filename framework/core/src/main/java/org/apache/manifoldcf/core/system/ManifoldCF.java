@@ -265,6 +265,17 @@ public class ManifoldCF
             logConfigFile = new File(configPath,"logging.ini");
           }
 
+          // Make sure that the registered entry points for polling and cleanup are cleared, just in case.
+          // This prevents classloader-style registration, which is actually not a good one for MCF architecture.
+          synchronized (cleanupHooks)
+          {
+            cleanupHooks.clear();
+          }
+          synchronized (pollingHooks)
+          {
+            pollingHooks.clear();
+          }
+          
           Logging.initializeLoggingSystem(logConfigFile);
 
           // Set up local loggers
@@ -1449,9 +1460,12 @@ public class ManifoldCF
   public static void pollAll(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    for (IPollingHook hook : pollingHooks)
+    synchronized (pollingHooks)
     {
-      hook.doPoll(threadContext);
+      for (IPollingHook hook : pollingHooks)
+      {
+        hook.doPoll(threadContext);
+      }
     }
   }
   
@@ -1507,6 +1521,10 @@ public class ManifoldCF
             }
           }
           cleanupHooks.clear();
+        }
+        synchronized (pollingHooks)
+        {
+          pollingHooks.clear();
         }
         alreadyShutdown = true;
       }
