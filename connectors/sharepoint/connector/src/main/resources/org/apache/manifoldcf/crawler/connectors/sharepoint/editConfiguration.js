@@ -71,10 +71,10 @@ function checkConfig()
     editconnection.serverLocation.focus();
     return false;
   }
-  if (editconnection.userName.value != "" && editconnection.userName.value.indexOf("\\") <= 0)
+  if (editconnection.serverUserName.value != "" && editconnection.serverUserName.value.indexOf("\\") <= 0)
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.AValidSharePointUserNameHasTheForm'))");
-    editconnection.userName.focus();
+    editconnection.serverUserName.focus();
     return false;
   }
   return true;
@@ -118,11 +118,11 @@ function checkConfigForSave()
     editconnection.serverPort.focus();
     return false;
   }
-  if (editconnection.userName.value != "" && editconnection.userName.value.indexOf("\\") <= 0)
+  if (editconnection.serverUserName.value != "" && editconnection.serverUserName.value.indexOf("\\") <= 0)
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.TheConnectionRequiresAValidSharePointUserName'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointRepository.Server'))");
-    editconnection.userName.focus();
+    editconnection.serverUserName.focus();
     return false;
   }
   return true;

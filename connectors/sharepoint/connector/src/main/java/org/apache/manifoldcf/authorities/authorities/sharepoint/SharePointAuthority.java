@@ -513,8 +513,8 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     velocityContext.put("SERVERNAME", serverName);
     velocityContext.put("SERVERPORT", serverPort);
     velocityContext.put("SERVERLOCATION", serverLocation);
-    velocityContext.put("USERNAME", userName);
-    velocityContext.put("PASSWORD", password);
+    velocityContext.put("SERVERUSERNAME", userName);
+    velocityContext.put("SERVERPASSWORD", password);
     if (keystore != null)
       velocityContext.put("KEYSTORE", keystore);
     velocityContext.put("CERTIFICATELIST", certificates);
@@ -588,11 +588,11 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     if (serverLocation != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERLOCATION,serverLocation);
 
-    String userName = variableContext.getParameter("userName");
+    String userName = variableContext.getParameter("serverUserName");
     if (userName != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERUSERNAME,userName);
 
-    String password = variableContext.getParameter("password");
+    String password = variableContext.getParameter("serverPassword");
     if (password != null)
       parameters.setObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD,variableContext.mapKeyToPassword(password));
 

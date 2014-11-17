@@ -2228,11 +2228,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (serverLocation != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERLOCATION,serverLocation);
 
-    String userName = variableContext.getParameter("userName");
+    String userName = variableContext.getParameter("serverUserName");
     if (userName != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERUSERNAME,userName);
 
-    String password = variableContext.getParameter("password");
+    String password = variableContext.getParameter("serverPassword");
     if (password != null)
       parameters.setObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD,variableContext.mapKeyToPassword(password));
 
@@ -2433,8 +2433,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     velocityContext.put("SERVERNAME", serverName);
     velocityContext.put("SERVERPORT", serverPort);
     velocityContext.put("SERVERLOCATION", serverLocation);
-    velocityContext.put("USERNAME", userName);
-    velocityContext.put("PASSWORD", password);
+    velocityContext.put("SERVERUSERNAME", userName);
+    velocityContext.put("SERVERPASSWORD", password);
     if (keystore != null)
       velocityContext.put("KEYSTORE", keystore);
     velocityContext.put("CERTIFICATELIST", certificates);
