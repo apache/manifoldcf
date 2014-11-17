@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1104: Add proxy support to SharePoint connector.
+(Karl Wright)
+
 CONNECTORS-1102: Don't do a hard reindex on jobqueue.restart,
 since it is expensive and may be unnecessary.
 (Aeham Abushwashi, Karl Wright)

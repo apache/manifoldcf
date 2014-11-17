@@ -56,6 +56,7 @@ import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.HttpHost;
 
 
 /** This is the native SharePoint implementation of the IAuthorityConnector interface.
@@ -89,6 +90,12 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   private String strippedUserName = null;
   private String encodedServerLocation = null;
   private String keystoreData = null;
+  
+  private String proxyHost = null;
+  private String proxyPortString = null;
+  private String proxyUsername = null;
+  private String proxyPassword = null;
+  private String proxyDomain = null;
   
   private String cacheLRUsize = null;
   private String cacheLifetime = null;
@@ -205,6 +212,12 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       ntlmDomain = null;
     }
     
+    proxyHost = params.getParameter(SharePointConfig.PARAM_PROXYHOST);
+    proxyPortString = params.getParameter(SharePointConfig.PARAM_PROXYPORT);
+    proxyUsername = params.getParameter(SharePointConfig.PARAM_PROXYUSER);
+    proxyPassword = params.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+    proxyDomain = params.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
+
     keystoreData = params.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
 
   }
@@ -289,6 +302,12 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     encodedServerLocation = null;
     serverPort = -1;
 
+    proxyHost = null;
+    proxyPortString = null;
+    proxyUsername = null;
+    proxyPassword = null;
+    proxyDomain = null;
+    
     keystoreData = null;
     keystoreManager = null;
 
@@ -484,6 +503,28 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       certificates.add(certificate);
     }
     
+    String proxyHost = parameters.getParameter(SharePointConfig.PARAM_PROXYHOST);
+    if (proxyHost == null)
+      proxyHost = "";
+    
+    String proxyPort = parameters.getParameter(SharePointConfig.PARAM_PROXYPORT);
+    if (proxyPort == null)
+      proxyPort = "";
+    
+    String proxyUser = parameters.getParameter(SharePointConfig.PARAM_PROXYUSER);
+    if (proxyUser == null)
+      proxyUser = "";
+    
+    String proxyPassword = parameters.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+    if (proxyPassword == null)
+      proxyPassword = "";
+    else
+      proxyPassword = out.mapPasswordToKey(proxyPassword);
+
+    String proxyDomain = parameters.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
+    if (proxyDomain == null)
+      proxyDomain = "";
+
     // Fill in context
     velocityContext.put("SERVERVERSION", serverVersion);
     velocityContext.put("SERVERCLAIMSPACE", serverClaimSpace);
@@ -491,12 +532,18 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     velocityContext.put("SERVERNAME", serverName);
     velocityContext.put("SERVERPORT", serverPort);
     velocityContext.put("SERVERLOCATION", serverLocation);
-    velocityContext.put("USERNAME", userName);
-    velocityContext.put("PASSWORD", password);
+    velocityContext.put("SERVERUSERNAME", userName);
+    velocityContext.put("SERVERPASSWORD", password);
     if (keystore != null)
       velocityContext.put("KEYSTORE", keystore);
     velocityContext.put("CERTIFICATELIST", certificates);
-    
+
+    velocityContext.put("PROXYHOST", proxyHost);
+    velocityContext.put("PROXYPORT", proxyPort);
+    velocityContext.put("PROXYUSER", proxyUser);
+    velocityContext.put("PROXYPASSWORD", proxyPassword);
+    velocityContext.put("PROXYDOMAIN", proxyDomain);
+
   }
 
   protected static void fillInCacheTab(Map<String,Object> velocityContext, IPasswordMapperActivity mapper, ConfigParams parameters)
@@ -560,13 +607,33 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     if (serverLocation != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERLOCATION,serverLocation);
 
-    String userName = variableContext.getParameter("userName");
+    String userName = variableContext.getParameter("serverUserName");
     if (userName != null)
       parameters.setParameter(SharePointConfig.PARAM_SERVERUSERNAME,userName);
 
-    String password = variableContext.getParameter("password");
+    String password = variableContext.getParameter("serverPassword");
     if (password != null)
       parameters.setObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD,variableContext.mapKeyToPassword(password));
+
+    String proxyHost = variableContext.getParameter("proxyhost");
+    if (proxyHost != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYHOST,proxyHost);
+    
+    String proxyPort = variableContext.getParameter("proxyport");
+    if (proxyPort != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYPORT,proxyPort);
+    
+    String proxyUser = variableContext.getParameter("proxyuser");
+    if (proxyUser != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYUSER,proxyUser);
+    
+    String proxyPassword = variableContext.getParameter("proxypassword");
+    if (proxyPassword != null)
+      parameters.setObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD,variableContext.mapKeyToPassword(proxyPassword));
+    
+    String proxyDomain = variableContext.getParameter("proxydomain");
+    if (proxyDomain != null)
+      parameters.setParameter(SharePointConfig.PARAM_PROXYDOMAIN,proxyDomain);
 
     String keystoreValue = variableContext.getParameter("keystoredata");
     if (keystoreValue != null)
@@ -693,6 +760,19 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
         throw new ManifoldCFException(e.getMessage(),e);
       }
       
+      int proxyPort = 8080;
+      if (proxyPortString != null && proxyPortString.length() > 0)
+      {
+        try
+        {
+          proxyPort = Integer.parseInt(proxyPortString);
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e);
+        }
+      }
+
       serverUrl = serverProtocol + "://" + serverName;
       if (serverProtocol.equals("https"))
       {
@@ -737,6 +817,28 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
           .setExpectContinueEnabled(false)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
+
+      // If there's a proxy, set that too.
+      if (proxyHost != null && proxyHost.length() > 0)
+      {
+
+        // Configure proxy authentication
+        if (proxyUsername != null && proxyUsername.length() > 0)
+        {
+          if (proxyPassword == null)
+            proxyPassword = "";
+          if (proxyDomain == null)
+            proxyDomain = "";
+
+          credentialsProvider.setCredentials(
+            new AuthScope(proxyHost, proxyPort),
+            new NTCredentials(proxyUsername, proxyPassword, currentHost, proxyDomain));
+        }
+
+        HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+
+        requestBuilder.setProxy(proxy);
+      }
 
       HttpClientBuilder builder = HttpClients.custom()
         .setConnectionManager(connectionManager)
