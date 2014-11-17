@@ -46,7 +46,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <alfresco.indexer.version>0.6.5</alfresco.indexer.version>
+        <alfresco.indexer.version>0.6.6</alfresco.indexer.version>
     </properties>
 
     <repositories>
@@ -56,7 +56,7 @@
         </repository>
         <repository>
             <id>alfresco-indexer-release</id>
-            <url>https://repository-maoo.forge.cloudbees.com/release/</url>
+            <url>https://repository-apachemaoo.forge.cloudbees.com/alfresco-indexer/</url>
         </repository>
     </repositories>
 
