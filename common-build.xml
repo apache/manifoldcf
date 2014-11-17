@@ -26,7 +26,7 @@
     </target>
 
     <target name="setup-alfresco-indexer-url">
-        <property name="alfresco-indexer-base-url" value="https://repository-maoo.forge.cloudbees.com/release"/>
+        <property name="alfresco-indexer-base-url" value="https://repository-apachemaoo.forge.cloudbees.com/alfresco-indexer"/>
     </target>
     
     <target name="download-via-alfresco-indexer" depends="setup-alfresco-indexer-url">
