@@ -2929,6 +2929,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       HashMap map = new HashMap();
       switch (status)
       {
+      case STATUS_ABORTINGSHUTTINGDOWN:
       case STATUS_ABORTING:
         // Mark status of job as "inactive"
         map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
