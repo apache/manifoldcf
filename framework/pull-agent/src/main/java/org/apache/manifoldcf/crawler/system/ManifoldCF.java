@@ -966,7 +966,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
 
     // Now, requeue the documents with the new priorities
-    jobManager.carrydownChangeDocumentMultiple(requeueCandidates,currentTime,docPriorities);
+    jobManager.carrydownChangeDocumentMultiple(requeueCandidates,docPriorities);
   }
 
   /** Stuff colons so we can't have conflicts. */
@@ -1013,11 +1013,26 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   /** Reset all (active) document priorities.  This operation may occur due to various externally-triggered
   * events, such a job abort, pause, resume, wait, or unwait.
   */
-  public static void resetAllDocumentPriorities(IThreadContext threadContext, long currentTime, String processID)
+  public static void resetAllDocumentPriorities(IThreadContext threadContext, String processID)
     throws ManifoldCFException
   {
-    ILockManager lockManager = LockManagerFactory.make(threadContext);
+    // The reprioritization cycle is as follows now:
+    // (1) We reset the reprioritization tracker, which causes all bins to be be reset, and locks reprioritization so that it is blocked;
+    // (2) We clear all document priorities;
+    // (3) We unlock reprioritization, so that it may proceed.
     IJobManager jobManager = JobManagerFactory.make(threadContext);
+    IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
+
+    String reproID = IDFactory.make(threadContext);
+
+    rt.startReprioritization(processID,reproID);
+
+    jobManager.clearAllDocumentPriorities();
+
+    rt.doneReprioritization(reproID);
+
+  /*
+    ILockManager lockManager = LockManagerFactory.make(threadContext);
     IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
     IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
@@ -1034,6 +1049,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // activity.
     // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
     // priorities.
+    // ???? Should only start the process of reprioritization, not complete it.
     while (true)
     {
       long startTime = System.currentTimeMillis();
@@ -1046,24 +1062,24 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       long updateTime = currentTimeValue.longValue();
       
-      DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(updateTime, 10000);
+      DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(10000);
       if (docs.length == 0)
         break;
 
       // Calculate new priorities for all these documents
-      writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap,updateTime);
+      writeDocumentPriorities(threadContext,docs,connectionMap,jobDescriptionMap);
 
       Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
     }
     
     rt.doneReprioritization(reproID);
+    */
   }
   
   /** Write a set of document priorities, based on the current queue tracker.
   */
   public static void writeDocumentPriorities(IThreadContext threadContext, DocumentDescription[] descs,
-    Map<String,IRepositoryConnection> connectionMap, Map<Long,IJobDescription> jobDescriptionMap,
-    long currentTime)
+    Map<String,IRepositoryConnection> connectionMap, Map<Long,IJobDescription> jobDescriptionMap)
     throws ManifoldCFException
   {
     IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
@@ -1148,7 +1164,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     rt.preloadBinValues();
     
     // Now, write all the priorities we can.
-    jobManager.writeDocumentPriorities(currentTime,descs,priorities);
+    jobManager.writeDocumentPriorities(descs,priorities);
 
     rt.clearPreloadedValues();
   }

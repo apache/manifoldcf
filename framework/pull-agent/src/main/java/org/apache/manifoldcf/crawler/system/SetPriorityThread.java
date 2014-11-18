@@ -121,31 +121,31 @@ public class SetPriorityThread extends Thread
             }
 
             // Cycle through the current list of stuffer-identified documents until we come to the end.  Reprioritize these
-            // first.
+            // first.  NOTE: These documents will already have document priorities.
             DocumentDescription desc = blockingDocuments.getBlockingDocument();
             if (desc != null)
             {
               ManifoldCF.writeDocumentPriorities(threadContext,
-                new DocumentDescription[]{desc},connectionMap,jobDescriptionMap,currentTime);
+                new DocumentDescription[]{desc},connectionMap,jobDescriptionMap);
               processedCount++;
               continue;
             }
-            /* no longer useful given current architecture; only need to reprioritize blocking documents
+	    
             // Grab a list of document identifiers to set priority on.
             // We may well wind up calculating priority for documents that wind up having their
             // state changed before we can write back, but this is okay because update is only
             // going to be permitted for rows that still have the right state.
-            // I found that a limit of 1000 causes postgresql to basically do a linear scan, while a limit of 20 does not!
-            DocumentDescription[] descs = jobManager.getNextReprioritizationDocuments(currentTime,20);
+            DocumentDescription[] descs = jobManager.getNextNotYetProcessedReprioritizationDocuments(processID,1000);
             if (descs.length > 0)
             {
-              writePriorities(threadContext,mgr,jobManager,descs,connectionMap,jobDescriptionMap,currentTime);
+              ManifoldCF.writeDocumentPriorities(threadContext,
+                descs,connectionMap,jobDescriptionMap);
               processedCount += descs.length;
               continue;
             }
-            */
+
             Logging.threads.debug("Done reprioritizing because no more documents to reprioritize");
-            ManifoldCF.sleep(30000L);
+            ManifoldCF.sleep(5000L);
             break;
 
           }

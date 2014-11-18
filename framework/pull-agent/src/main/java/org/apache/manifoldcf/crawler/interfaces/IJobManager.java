@@ -215,23 +215,29 @@ public interface IJobManager
 
   // These methods support the "set doc priority" thread
 
+  /** Clear all document priorities, in preparation for reprioritization of all previously-prioritized documents.
+  * This method is called to start the dynamic reprioritization cycle, which follows this
+  * method with explicit prioritization of all documents, piece-meal, using getNextNotYetProcessedReprioritizationDocuments(),
+  * and writeDocumentPriorities().
+  */
+  public void clearAllDocumentPriorities()
+    throws ManifoldCFException;
+
   /** Get a list of not-yet-processed documents to reprioritize.  Documents in all jobs will be
   * returned by this method.  Up to n document descriptions will be returned.
-  *@param currentTime is the current time stamp for this prioritization pass.  Avoid
-  *  picking up any documents that are labeled with this timestamp or after.
+  *@param processID is the process that requests the reprioritization documents.
   *@param n is the maximum number of document descriptions desired.
   *@return the document descriptions.
   */
-  public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(long currentTime, int n)
+  public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(String processID, int n)
     throws ManifoldCFException;
 
   /** Save a set of document priorities.  In the case where a document was eligible to have its
   * priority set, but it no longer is eligible, then the provided priority will not be written.
-  *@param currentTime is the time in milliseconds since epoch.
   *@param descriptions are the document descriptions.
   *@param priorities are the desired priorities.
   */
-  public void writeDocumentPriorities(long currentTime, DocumentDescription[] descriptions, IPriorityCalculator[] priorities)
+  public void writeDocumentPriorities(DocumentDescription[] descriptions, IPriorityCalculator[] priorities)
     throws ManifoldCFException;
 
   // This method supports the "expiration" thread
@@ -414,7 +420,7 @@ public interface IJobManager
   *@param documentDescriptions is the set of description objects for the documents that have had their parent carrydown information changed.
   *@param docPriorities are the document priorities to assign to the documents, if needed.
   */
-  public void carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, IPriorityCalculator[] docPriorities)
+  public void carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, IPriorityCalculator[] docPriorities)
     throws ManifoldCFException;
 
   /** Requeue a document because of carrydown changes.
@@ -423,7 +429,7 @@ public interface IJobManager
   *@param documentDescription is the description object for the document that has had its parent carrydown information changed.
   *@param docPriority is the document priority to assign to the document, if needed.
   */
-  public void carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, IPriorityCalculator docPriority)
+  public void carrydownChangeDocument(DocumentDescription documentDescription, IPriorityCalculator docPriority)
     throws ManifoldCFException;
 
   /** Requeue a document for further processing in the future.
@@ -558,14 +564,13 @@ public interface IJobManager
   *@param docIDs are the local document identifiers.
   *@param overrideSchedule is true if any existing document schedule should be overridden.
   *@param hopcountMethod is either accurate, nodelete, or neverdelete.
-  *@param currentTime is the current time in milliseconds since epoch.
   *@param documentPriorities are the document priorities corresponding to the document identifiers.
   *@param prereqEventNames are the events that must be completed before each document can be processed.
   */
   public void addDocumentsInitial(String processID,
     Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs, boolean overrideSchedule,
-    int hopcountMethod, long currentTime, IPriorityCalculator[] documentPriorities,
+    int hopcountMethod, IPriorityCalculator[] documentPriorities,
     String[][] prereqEventNames)
     throws ManifoldCFException;
 
@@ -650,7 +655,6 @@ public interface IJobManager
   *@param dataNames are the names of the data to carry down to the child from this parent.
   *@param dataValues are the values to carry down to the child from this parent, corresponding to dataNames above.  If CharacterInput objects are passed in here,
   *       it is the caller's responsibility to clean these up.
-  *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
   *@param priority is the desired document priority for the document.
   *@param prereqEventNames are the events that must be completed before the document can be processed.
   */
@@ -660,7 +664,7 @@ public interface IJobManager
     String parentIdentifierHash,
     String relationshipType,
     int hopcountMethod, String[] dataNames, Object[][] dataValues,
-    long currentTime, IPriorityCalculator priority, String[] prereqEventNames)
+    IPriorityCalculator priority, String[] prereqEventNames)
     throws ManifoldCFException;
 
   /** Add documents to the queue in bulk.
@@ -680,7 +684,6 @@ public interface IJobManager
   *@param dataNames are the names of the data to carry down to the child from this parent.
   *@param dataValues are the values to carry down to the child from this parent, corresponding to dataNames above.  If CharacterInput objects are passed in here,
   *       it is the caller's responsibility to clean these up.
-  *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
   *@param priorities are the desired document priorities for the documents.
   *@param prereqEventNames are the events that must be completed before each document can be processed.
   */
@@ -690,7 +693,7 @@ public interface IJobManager
     String parentIdentifierHash,
     String relationshipType,
     int hopcountMethod, String[][] dataNames, Object[][][] dataValues,
-    long currentTime, IPriorityCalculator[] priorities,
+    IPriorityCalculator[] priorities,
     String[][] prereqEventNames)
     throws ManifoldCFException;
 
