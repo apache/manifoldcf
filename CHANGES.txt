@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1106: Missing state handling for abort case.
+(Kamil Żyta, Karl Wright)
+
 CONNECTORS-1104: Add proxy support to SharePoint connector.
 (Karl Wright)
 
