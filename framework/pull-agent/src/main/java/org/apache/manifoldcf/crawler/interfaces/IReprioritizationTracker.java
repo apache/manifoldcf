@@ -31,21 +31,13 @@ public interface IReprioritizationTracker
   public static final String _rcsid = "@(#)$Id$";
 
   /** Start a reprioritization activity.
-  *@param prioritizationTime is the timestamp of the prioritization.
   *@param processID is the process ID of the process performing/waiting for the prioritization
   * to complete.
   *@param reproID is the reprocessing thread ID
   */
-  public void startReprioritization(long prioritizationTime, String processID, String reproID)
+  public void startReprioritization(String processID, String reproID)
     throws ManifoldCFException;
   
-  /** Retrieve the current reprioritization time stamp.  This should be obtained before
-  * performing any prioritization steps.
-  *@return the current prioritization timestamp, or null if no prioritization is in effect.
-  */
-  public Long checkReprioritizationInProgress()
-    throws ManifoldCFException;
-
   /** Complete a reprioritization activity.  Prioritization will be marked as complete
   * only if the processID matches the one that started the current reprioritization.
   *@param processID is the process ID of the process completing the prioritization.
@@ -93,7 +85,7 @@ public interface IReprioritizationTracker
   */
   public void clearPreloadedValues();
 
-  /** Get a bin value.
+  /** Get a bin value.  Must be called INSIDE a transaction.
   *@param binName is the bin name.
   *@param weightedMinimumDepth is the minimum depth to use.
   *@return the bin value.

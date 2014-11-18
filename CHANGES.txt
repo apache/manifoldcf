@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1100: Change how reprioritization is done to improve
+overall usability at large scale.
+(Aeham Abushwashi, Karl Wright)
+
 CONNECTORS-1106: Missing state handling for abort case.
 (Kamil Żyta, Karl Wright)
 

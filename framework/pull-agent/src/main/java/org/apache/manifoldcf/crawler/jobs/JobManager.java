@@ -33,6 +33,7 @@ public class JobManager implements IJobManager
   public static final String _rcsid = "@(#)$Id: JobManager.java 998576 2010-09-19 01:11:02Z kwright $";
 
   protected static final String stufferLock = "_STUFFER_";
+  protected static final String reprioritizationLock = "_REPRIORITIZER_";
   protected static final String deleteStufferLock = "_DELETESTUFFER_";
   protected static final String expireStufferLock = "_EXPIRESTUFFER_";
   protected static final String cleanStufferLock = "_CLEANSTUFFER_";
@@ -2061,92 +2062,165 @@ public class JobManager implements IJobManager
 
   // These methods support the reprioritization thread.
 
+  /** Clear all document priorities, in preparation for reprioritization of all previously-prioritized documents.
+  * This method is called to start the dynamic reprioritization cycle, which follows this
+  * method with explicit prioritization of all documents, piece-meal, using getNextNotYetProcessedReprioritizationDocuments(),
+  * and writeDocumentPriorities().
+  */
+  public void clearAllDocumentPriorities()
+    throws ManifoldCFException
+  {
+    // Note: This can be called at any time, even while worker and seeding threads are also reprioritizing documents.
+    
+    // Retry loop - in case we get a deadlock despite our best efforts
+    while (true)
+    {
+      long sleepAmt = 0L;
+
+      // Start the transaction now
+      database.beginTransaction();
+      try
+      {
+        jobQueue.clearAllDocPriorities();
+        database.performCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction clearing doc priorities for reprioritization: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
   /** Get a list of not-yet-processed documents to reprioritize.  Documents in all jobs will be
   * returned by this method.  Up to n document descriptions will be returned.
-  *@param currentTime is the current time stamp for this prioritization pass.  Avoid
-  *  picking up any documents that are labeled with this timestamp or after.
+  *@param processID is the process that requests the reprioritization documents.
   *@param n is the maximum number of document descriptions desired.
   *@return the document descriptions.
   */
   @Override
-  public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(long currentTime, int n)
+  public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(String processID, int n)
     throws ManifoldCFException
   {
-    StringBuilder sb = new StringBuilder("SELECT ");
-    ArrayList list = new ArrayList();
-
-    // This query MUST return only documents that are in a pending state which belong to an active job!!!
-
-    sb.append(jobQueue.idField).append(",")
-      .append(jobQueue.docHashField).append(",")
-      .append(jobQueue.docIDField).append(",")
-      .append(jobQueue.jobIDField)
-      .append(" FROM ").append(jobQueue.getTableName()).append(" t0 WHERE ")
-      .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-        new MultiClause(jobQueue.statusField,new Object[]{
-          JobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED),
-          JobQueue.statusToString(jobQueue.STATUS_PENDING),
-          JobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)}),
-        new UnitaryClause(jobQueue.prioritySetField,"<",new Long(currentTime))}));
-    
-    sb.append(" AND ")
-      .append(jobQueue.checkActionField).append("=?");
-    list.add(jobQueue.actionToString(JobQueue.ACTION_RESCAN));
-
-    // Per CONNECTORS-290, we need to be leaving priorities blank for jobs that aren't using them,
-    // so this will be changed to not include jobs where the priorities have been bashed to null.
-    //
-    // I've included ALL states that might have non-null doc priorities.  This includes states
-    // corresponding to uninstalled connectors, since there is no transition that cleans out the
-    // document priorities in these states.  The time during which a connector is uninstalled is
-    // expected to be short, because typically this state is the result of an installation procedure
-    // rather than willful action on the part of a user.
-        
-    sb.append(" AND EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t1 WHERE ")
-      .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-        new MultiClause("t1."+jobs.statusField,new Object[]{
-          Jobs.statusToString(Jobs.STATUS_STARTINGUP),
-          Jobs.statusToString(Jobs.STATUS_STARTINGUPMINIMAL),
-          Jobs.statusToString(Jobs.STATUS_ACTIVE),
-          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING),
-          Jobs.statusToString(Jobs.STATUS_ACTIVE_UNINSTALLED),
-          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED)
-          }),
-        new JoinClause("t1."+jobs.idField,"t0."+jobQueue.jobIDField)}))
-      .append(") ");
-
-    sb.append(database.constructOffsetLimitClause(0,n));
-
-    // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
-    //jobQueue.unconditionallyAnalyzeTables();
-
-    //IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
-    IResultSet set = database.performQuery(sb.toString(),list,null,null);
-
-    DocumentDescription[] rval = new DocumentDescription[set.getRowCount()];
-
-    int i = 0;
-    while (i < set.getRowCount())
+    // Retry loop - in case we get a deadlock despite our best efforts
+    while (true)
     {
-      IResultRow row = set.getRow(i);
-      rval[i] =new DocumentDescription((Long)row.getValue(jobQueue.idField),
-        (Long)row.getValue(jobQueue.jobIDField),
-        (String)row.getValue(jobQueue.docHashField),
-        (String)row.getValue(jobQueue.docIDField));
-      i++;
-    }
+      long sleepAmt = 0L;
 
-    return rval;
+      // Write lock insures that only one thread cluster-wide can be doing this at a given time, so FOR UPDATE is unneeded.
+      lockManager.enterWriteLock(reprioritizationLock);
+      try
+      {
+        // Start the transaction now
+        database.beginTransaction();
+        try
+        {
+
+          StringBuilder sb = new StringBuilder("SELECT ");
+          ArrayList list = new ArrayList();
+
+          // This query MUST return only documents that are in a pending state which belong to an active job!!!
+
+          sb.append(jobQueue.idField).append(",")
+            .append(jobQueue.docHashField).append(",")
+            .append(jobQueue.docIDField).append(",")
+            .append(jobQueue.jobIDField)
+            .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
+            .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+              new UnitaryClause(jobQueue.needPriorityField,jobQueue.needPriorityToString(JobQueue.NEEDPRIORITY_TRUE))})).append(" ")
+            .append(database.constructOffsetLimitClause(0,n));
+
+          // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
+          //jobQueue.unconditionallyAnalyzeTables();
+
+          //IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
+          IResultSet set = database.performQuery(sb.toString(),list,null,null);
+
+          DocumentDescription[] rval = new DocumentDescription[set.getRowCount()];
+          // To avoid deadlock, we want to update the document id hashes in order.  This means reading into a structure I can sort by docid hash,
+          // before updating any rows in jobqueue.
+          String[] docIDHashes = new String[set.getRowCount()];
+          Map<String,DocumentDescription> storageMap = new HashMap<String,DocumentDescription>();
+
+          for (int i = 0 ; i < set.getRowCount() ; i++)
+          {
+            IResultRow row = set.getRow(i);
+            String docHash = (String)row.getValue(jobQueue.docHashField);
+            Long jobID = (Long)row.getValue(jobQueue.jobIDField);
+            rval[i] = new DocumentDescription((Long)row.getValue(jobQueue.idField),
+              jobID,
+              docHash,
+              (String)row.getValue(jobQueue.docIDField));
+            // Compute the doc ID hash
+            docIDHashes[i] = docHash + ":" + jobID;
+            storageMap.put(docIDHashes[i],rval[i]);
+          }
+          
+          java.util.Arrays.sort(docIDHashes);
+          for (String docIDHash : docIDHashes)
+          {
+            DocumentDescription dd = storageMap.get(docIDHash);
+            jobQueue.markNeedPriorityInProgress(dd.getID(),processID);
+          }
+
+          database.performCommit();
+          return rval;
+        }
+        catch (ManifoldCFException e)
+        {
+          database.signalRollback();
+          if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+          {
+            if (Logging.perf.isDebugEnabled())
+              Logging.perf.debug("Aborted transaction finding documents for reprioritization: "+e.getMessage());
+            sleepAmt = getRandomAmount();
+            continue;
+          }
+          throw e;
+        }
+        catch (Error e)
+        {
+          database.signalRollback();
+          throw e;
+        }
+        finally
+        {
+          database.endTransaction();
+        }
+      }
+      finally
+      {
+        lockManager.leaveWriteLock(reprioritizationLock);
+        sleepFor(sleepAmt);
+      }
+    }
   }
 
   /** Save a set of document priorities.  In the case where a document was eligible to have its
   * priority set, but it no longer is eligible, then the provided priority will not be written.
-  *@param currentTime is the time in milliseconds since epoch.
   *@param documentDescriptions are the document descriptions.
   *@param priorities are the desired priorities.
   */
   @Override
-  public void writeDocumentPriorities(long currentTime, DocumentDescription[] documentDescriptions, IPriorityCalculator[] priorities)
+  public void writeDocumentPriorities(DocumentDescription[] documentDescriptions, IPriorityCalculator[] priorities)
     throws ManifoldCFException
   {
 
@@ -2154,16 +2228,14 @@ public class JobManager implements IJobManager
     while (true)
     {
       // This should be ordered by document identifier hash in order to prevent potential deadlock conditions
-      HashMap indexMap = new HashMap();
+      Map<String,Integer> indexMap = new HashMap<String,Integer>();
       String[] docIDHashes = new String[documentDescriptions.length];
 
-      int i = 0;
-      while (i < documentDescriptions.length)
+      for (int i = 0; i < documentDescriptions.length; i++)
       {
         String documentIDHash = documentDescriptions[i].getDocumentIdentifierHash() + ":"+documentDescriptions[i].getJobID();
         docIDHashes[i] = documentIDHash;
         indexMap.put(documentIDHash,new Integer(i));
-        i++;
       }
 
       java.util.Arrays.sort(docIDHashes);
@@ -2176,18 +2248,31 @@ public class JobManager implements IJobManager
       {
 
         // Need to order the writes by doc id.
-        i = 0;
-        while (i < docIDHashes.length)
+        for (int i = 0; i < docIDHashes.length; i++)
         {
           String docIDHash = docIDHashes[i];
-          Integer x = (Integer)indexMap.remove(docIDHash);
+          Integer x = indexMap.remove(docIDHash);
           if (x == null)
             throw new ManifoldCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
           int index = x.intValue();
           DocumentDescription dd = documentDescriptions[index];
-          IPriorityCalculator priority = priorities[index];
-          jobQueue.writeDocPriority(currentTime,dd.getID(),priority);
-          i++;
+          // Query for the status
+          ArrayList list = new ArrayList();
+          String query = database.buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobQueue.idField,dd.getID())});
+          IResultSet set = database.performQuery("SELECT "+jobQueue.needPriorityField+" FROM "+jobQueue.getTableName()+" WHERE "+
+            query+" FOR UPDATE",list,null,null);
+          if (set.getRowCount() > 0)
+          {
+            IResultRow row = set.getRow(0);
+            // Grab the needPriority value
+            int needPriority = jobQueue.stringToNeedPriority((String)row.getValue(jobQueue.needPriorityField));
+            if (needPriority == JobQueue.NEEDPRIORITY_INPROGRESS)
+            {
+              IPriorityCalculator priority = priorities[index];
+              jobQueue.writeDocPriority(dd.getID(),priority);
+            }
+          }
         }
         database.performCommit();
         break;
@@ -2517,10 +2602,7 @@ public class JobManager implements IJobManager
     // But, after I did this, it was no longer necessary to have such a large transaction either.
 
 
-    // Anything older than 10 minutes ago is considered eligible for reprioritization.
-    long prioritizationTime = currentTime - 60000L * 10L;
-
-    ThrottleLimit vList = new ThrottleLimit(n,prioritizationTime);
+    ThrottleLimit vList = new ThrottleLimit(n);
 
     IResultSet jobconnections = jobs.getActiveJobConnections();
     HashMap connectionSet = new HashMap();
@@ -2802,8 +2884,7 @@ public class JobManager implements IJobManager
       .append(jobQueue.docIDField).append(",t0.")
       .append(jobQueue.statusField).append(",t0.")
       .append(jobQueue.failTimeField).append(",t0.")
-      .append(jobQueue.failCountField).append(",t0.")
-      .append(jobQueue.prioritySetField).append(" FROM ").append(jobQueue.getTableName())
+      .append(jobQueue.failCountField).append(" FROM ").append(jobQueue.getTableName())
       .append(" t0 ").append(jobQueue.getGetNextDocumentsIndexHint()).append(" WHERE ");
     
     sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
@@ -2908,8 +2989,8 @@ public class JobManager implements IJobManager
             // To avoid deadlock, we want to update the document id hashes in order.  This means reading into a structure I can sort by docid hash,
             // before updating any rows in jobqueue.
             String[] docIDHashes = new String[set.getRowCount()];
-            Map storageMap = new HashMap();
-            Map statusMap = new HashMap();
+            Map<String,DocumentDescription> storageMap = new HashMap<String,DocumentDescription>();
+            Map<String,Integer> statusMap = new HashMap<String,Integer>();
 
             int i = 0;
             while (i < set.getRowCount())
@@ -4343,14 +4424,13 @@ public class JobManager implements IJobManager
   *@param docIDs are the local document identifiers.
   *@param overrideSchedule is true if any existing document schedule should be overridden.
   *@param hopcountMethod is either accurate, nodelete, or neverdelete.
-  *@param currentTime is the current time in milliseconds since epoch.
   *@param documentPriorities are the document priorities corresponding to the document identifiers.
   *@param prereqEventNames are the events that must be completed before each document can be processed.
   */
   @Override
   public void addDocumentsInitial(String processID, Long jobID, String[] legalLinkTypes,
     String[] docIDHashes, String[] docIDs, boolean overrideSchedule,
-    int hopcountMethod, long currentTime, IPriorityCalculator[] documentPriorities,
+    int hopcountMethod, IPriorityCalculator[] documentPriorities,
     String[][] prereqEventNames)
     throws ManifoldCFException
   {
@@ -4437,12 +4517,12 @@ public class JobManager implements IJobManager
             int status = jobQueue.stringToStatus((String)row.getValue(jobQueue.statusField));
             Long checkTimeValue = (Long)row.getValue(jobQueue.checkTimeField);
 
-            jobQueue.updateExistingRecordInitial(rowID,status,checkTimeValue,executeTime,currentTime,docPriority,docPrereqs,processID);
+            jobQueue.updateExistingRecordInitial(rowID,status,checkTimeValue,executeTime,docPriority,docPrereqs,processID);
           }
           else
           {
             // Not found.  Attempt an insert instead.  This may fail due to constraints, but if this happens, the whole transaction will be retried.
-            jobQueue.insertNewRecordInitial(jobID,docIDHash,docID,docPriority,executeTime,currentTime,docPrereqs,processID);
+            jobQueue.insertNewRecordInitial(jobID,docIDHash,docID,docPriority,executeTime,docPrereqs,processID);
           }
 
           z++;
@@ -4868,7 +4948,7 @@ public class JobManager implements IJobManager
     String[] docIDHashes, String[] docIDs,
     String parentIdentifierHash, String relationshipType,
     int hopcountMethod, String[][] dataNames, Object[][][] dataValues,
-    long currentTime, IPriorityCalculator[] documentPriorities,
+    IPriorityCalculator[] documentPriorities,
     String[][] prereqEventNames)
     throws ManifoldCFException
   {
@@ -5043,7 +5123,7 @@ public class JobManager implements IJobManager
           else
           {
             // Not found.  Attempt an insert instead.  This may fail due to constraints, but if this happens, the whole transaction will be retried.
-            jobQueue.insertNewRecord(jobID,docIDHash,reorderedDocumentIdentifiers[z],reorderedDocumentPriorities[z],0L,currentTime,reorderedDocumentPrerequisites[z]);
+            jobQueue.insertNewRecord(jobID,docIDHash,reorderedDocumentIdentifiers[z],reorderedDocumentPriorities[z],0L,reorderedDocumentPrerequisites[z]);
           }
 
         }
@@ -5069,7 +5149,7 @@ public class JobManager implements IJobManager
             // helps us determine whether we're going to need to "flip" HOPCOUNTREMOVED documents
             // to the PENDING state.  If the new link ended in an existing record, THEN we need to flip them all!
             jobQueue.updateExistingRecord(jr.getRecordID(),jr.getStatus(),jr.getCheckTimeValue(),
-              0L,currentTime,carrydownChangesSeen[z] || (hopcountChangesSeen!=null && hopcountChangesSeen[z]),
+              0L,carrydownChangesSeen[z] || (hopcountChangesSeen!=null && hopcountChangesSeen[z]),
               reorderedDocumentPriorities[z],reorderedDocumentPrerequisites[z]);
             // Signal if we need to perform the flip
             if (hopcountChangesSeen != null && hopcountChangesSeen[z])
@@ -5140,7 +5220,6 @@ public class JobManager implements IJobManager
   *@param hopcountMethod is the desired method for managing hopcounts.
   *@param dataNames are the names of the data to carry down to the child from this parent.
   *@param dataValues are the values to carry down to the child from this parent, corresponding to dataNames above.
-  *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
   *@param priority is the desired document priority for the document.
   *@param prereqEventNames are the events that must be completed before the document can be processed.
   */
@@ -5149,13 +5228,13 @@ public class JobManager implements IJobManager
     Long jobID, String[] legalLinkTypes, String docIDHash, String docID,
     String parentIdentifierHash, String relationshipType,
     int hopcountMethod, String[] dataNames, Object[][] dataValues,
-    long currentTime, IPriorityCalculator priority, String[] prereqEventNames)
+    IPriorityCalculator priority, String[] prereqEventNames)
     throws ManifoldCFException
   {
     addDocuments(processID,jobID,legalLinkTypes,
       new String[]{docIDHash},new String[]{docID},
       parentIdentifierHash,relationshipType,hopcountMethod,new String[][]{dataNames},
-      new Object[][][]{dataValues},currentTime,new IPriorityCalculator[]{priority},new String[][]{prereqEventNames});
+      new Object[][][]{dataValues},new IPriorityCalculator[]{priority},new String[][]{prereqEventNames});
   }
 
   /** Undo the addition of child documents to the queue, for a set of documents.
@@ -5507,7 +5586,7 @@ public class JobManager implements IJobManager
   *@param docPriorities are the document priorities to assign to the documents, if needed.
   */
   @Override
-  public void carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, IPriorityCalculator[] docPriorities)
+  public void carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, IPriorityCalculator[] docPriorities)
     throws ManifoldCFException
   {
     if (documentDescriptions.length == 0)
@@ -5587,7 +5666,7 @@ public class JobManager implements IJobManager
           if (jr != null)
             // It was an existing row; do the update logic; use the 'carrydown changes' flag = true all the time.
             jobQueue.updateExistingRecord(jr.getRecordID(),jr.getStatus(),jr.getCheckTimeValue(),
-              0L,currentTime,true,docPriorities[originalIndex],null);
+              0L,true,docPriorities[originalIndex],null);
           j++;
         }
         database.performCommit();
@@ -5625,10 +5704,10 @@ public class JobManager implements IJobManager
   *@param docPriority is the document priority to assign to the document, if needed.
   */
   @Override
-  public void carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, IPriorityCalculator docPriority)
+  public void carrydownChangeDocument(DocumentDescription documentDescription, IPriorityCalculator docPriority)
     throws ManifoldCFException
   {
-    carrydownChangeDocumentMultiple(new DocumentDescription[]{documentDescription},currentTime,new IPriorityCalculator[]{docPriority});
+    carrydownChangeDocumentMultiple(new DocumentDescription[]{documentDescription},new IPriorityCalculator[]{docPriority});
   }
 
   /** Sleep a random amount of time after a transaction abort.
@@ -8198,6 +8277,7 @@ public class JobManager implements IJobManager
         // All the job's documents need to have their docpriority set to null, to clear dead wood out of the docpriority index.
         // See CONNECTORS-290.
         // We do this BEFORE updating the job state.
+        
         jobQueue.clearDocPriorities(jobID);
             
         IJobDescription jobDesc = jobs.load(jobID,true);
@@ -9495,30 +9575,30 @@ public class JobManager implements IJobManager
   {
     // For each connection, there is (a) a number (which is the maximum per bin), and (b)
     // a current running count per bin.  These are stored as elements in a hash map.
-    protected HashMap connectionMap = new HashMap();
+    protected Map<String,ThrottleJobItem> connectionMap = new HashMap<String,ThrottleJobItem>();
 
     // The maximum number of jobs that have reached their chunk size limit that we
     // need
-    protected int n;
+    protected final int n;
 
     // This is the hash table that maps a job ID to the object that tracks the number
     // of documents already accumulated for this resultset.  The count of the number
     // of queue records we have is tallied by going through each job in this table
     // and adding the records outstanding for it.
-    protected HashMap jobQueueHash = new HashMap();
+    protected final Map<Long,QueueHashItem> jobQueueHash = new HashMap<Long,QueueHashItem>();
 
     // This is the map from jobid to connection name
-    protected HashMap jobConnection = new HashMap();
+    protected Map<Long,String> jobConnection = new HashMap<Long,String>();
 
     // This is the set of allowed connection names.  We discard all documents that are
     // not from that set.
-    protected HashMap activeConnections = new HashMap();
+    protected Map<String,IRepositoryConnector> activeConnections = new HashMap<String,IRepositoryConnector>();
 
     // This is the number of documents per set per connection.
-    protected HashMap setSizes = new HashMap();
+    protected Map<String,Integer> setSizes = new HashMap<String,Integer>();
 
     // These are the individual connection maximums, keyed by connection name.
-    protected HashMap maxConnectionCounts = new HashMap();
+    protected Map<String,MutableInteger> maxConnectionCounts = new HashMap<String,MutableInteger>();
 
     // This is the maximum number of documents per set over all the connections we are looking at.  This helps us establish a sanity limit.
     protected int maxSetSize = 0;
@@ -9527,19 +9607,15 @@ public class JobManager implements IJobManager
     protected int documentsProcessed = 0;
 
     // This is where we accumulate blocking documents.  This is an arraylist of DocumentDescription objects.
-    protected ArrayList blockingDocumentArray = new ArrayList();
-
-    // Cutoff time for documents eligible for prioritization
-    protected long prioritizationTime;
+    protected final List<DocumentDescription> blockingDocumentArray = new ArrayList<DocumentDescription>();
 
     /** Constructor.
     * This class is built up piecemeal, so the constructor does nothing.
     *@param n is the maximum number of full job descriptions we want at this time.
     */
-    public ThrottleLimit(int n, long prioritizationTime)
+    public ThrottleLimit(int n)
     {
       this.n = n;
-      this.prioritizationTime = prioritizationTime;
       Logging.perf.debug("Limit instance created");
     }
 
@@ -9588,7 +9664,7 @@ public class JobManager implements IJobManager
       if (Logging.perf.isDebugEnabled())
         Logging.perf.debug(" Adding fetch limit of "+Integer.toString(upperLimit)+" fetches for expression '"+regexp+"' for connection '"+connectionName+"'");
 
-      ThrottleJobItem ji = (ThrottleJobItem)connectionMap.get(connectionName);
+      ThrottleJobItem ji = connectionMap.get(connectionName);
       if (ji == null)
       {
         ji = new ThrottleJobItem();
@@ -9629,7 +9705,7 @@ public class JobManager implements IJobManager
     /** Make a deep copy */
     public ThrottleLimit makeDeepCopy()
     {
-      ThrottleLimit rval = new ThrottleLimit(n,prioritizationTime);
+      ThrottleLimit rval = new ThrottleLimit(n);
       // Create a true copy of all the structures in which counts are kept.  The referential structures (e.g. connection hashes)
       // do not need a deep copy.
       rval.activeConnections = activeConnections;
@@ -9639,18 +9715,13 @@ public class JobManager implements IJobManager
       rval.jobConnection = jobConnection;
       // The structures where counts are maintained DO need a deep copy.
       rval.documentsProcessed = documentsProcessed;
-      Iterator iter;
-      iter = connectionMap.keySet().iterator();
-      while (iter.hasNext())
+      for (String key : connectionMap.keySet())
       {
-        Object key = iter.next();
-        rval.connectionMap.put(key,((ThrottleJobItem)connectionMap.get(key)).duplicate());
+        rval.connectionMap.put(key,connectionMap.get(key).duplicate());
       }
-      iter = jobQueueHash.keySet().iterator();
-      while (iter.hasNext())
+      for (Long key : jobQueueHash.keySet())
       {
-        Object key = iter.next();
-        rval.jobQueueHash.put(key,((QueueHashItem)jobQueueHash.get(key)).duplicate());
+        rval.jobQueueHash.put(key,jobQueueHash.get(key).duplicate());
       }
       return rval;
     }
@@ -9698,13 +9769,13 @@ public class JobManager implements IJobManager
       Long jobIDValue = (Long)row.getValue(JobQueue.jobIDField);
 
       // Get the connection name for this row
-      String connectionName = (String)jobConnection.get(jobIDValue);
+      String connectionName = jobConnection.get(jobIDValue);
       if (connectionName == null)
       {
         Logging.perf.debug(" Row does not have an eligible job - excluding");
         return false;
       }
-      IRepositoryConnector connectorInstance = (IRepositoryConnector)activeConnections.get(connectionName);
+      IRepositoryConnector connectorInstance = activeConnections.get(connectionName);
       if (connectorInstance == null)
       {
         Logging.perf.debug(" Row does not have an eligible connector instance - excluding");
@@ -9712,7 +9783,7 @@ public class JobManager implements IJobManager
       }
 
       // Find the connection limit for this document
-      MutableInteger connectionLimit = (MutableInteger)maxConnectionCounts.get(connectionName);
+      MutableInteger connectionLimit = maxConnectionCounts.get(connectionName);
       if (connectionLimit != null)
       {
         if (connectionLimit.intValue() == 0)
@@ -9724,11 +9795,11 @@ public class JobManager implements IJobManager
       }
 
       // Tally this item in the job queue hash, so we can detect when to stop
-      QueueHashItem queueItem = (QueueHashItem)jobQueueHash.get(jobIDValue);
+      QueueHashItem queueItem = jobQueueHash.get(jobIDValue);
       if (queueItem == null)
       {
         // Need to talk to the connector to get a max number of docs per chunk
-        int maxCount = ((Integer)setSizes.get(connectionName)).intValue();
+        int maxCount = setSizes.get(connectionName).intValue();
         queueItem = new QueueHashItem(maxCount);
         jobQueueHash.put(jobIDValue,queueItem);
 
@@ -9744,7 +9815,7 @@ public class JobManager implements IJobManager
       documentsProcessed++;
       //scanRecord.addBins(binNames);
 
-      ThrottleJobItem item = (ThrottleJobItem)connectionMap.get(connectionName);
+      ThrottleJobItem item = connectionMap.get(connectionName);
 
       // If there is no schedule-based throttling on this connection, we're done.
       if (item == null)
@@ -9763,8 +9834,11 @@ public class JobManager implements IJobManager
           if (Logging.perf.isDebugEnabled())
             Logging.perf.debug(" Bin "+binNames[j]+" has no more available fetches - excluding");
 
-          Object o = row.getValue(JobQueue.prioritySetField);
-          if (o == null || ((Long)o).longValue() <= prioritizationTime)
+          //???
+          //Object o = row.getValue(JobQueue.prioritySetField);
+          //if (o == null || ((Long)o).longValue() <= prioritizationTime)
+          // Fully enabling blocking document logic, for now.
+          if (true)
           {
             // Need to add a document descriptor based on this row to the blockingDocuments object!
             // This will cause it to be reprioritized preferentially, getting it out of the way if it shouldn't
@@ -9799,12 +9873,10 @@ public class JobManager implements IJobManager
         return false;
 
       // If the number of chunks exceeds n, we are done
-      Iterator iter = jobQueueHash.keySet().iterator();
       int count = 0;
-      while (iter.hasNext())
+      for (Long jobID : jobQueueHash.keySet())
       {
-        Long jobID = (Long)iter.next();
-        QueueHashItem item = (QueueHashItem)jobQueueHash.get(jobID);
+        QueueHashItem item = jobQueueHash.get(jobID);
         count += item.getChunkCount();
         if (count > n)
           return false;
@@ -9821,7 +9893,7 @@ public class JobManager implements IJobManager
   protected static class QueueHashItem
   {
     // The number of items per chunk for this job
-    int itemsPerChunk;
+    final int itemsPerChunk;
     // The number of chunks so far, INCLUDING incomplete chunks
     int chunkCount = 0;
     // The number of documents in the current incomplete chunk
@@ -9873,10 +9945,10 @@ public class JobManager implements IJobManager
   protected static class ThrottleJobItem
   {
     /** These are the bin limits.  This is an array of ThrottleLimitSpec objects. */
-    protected ArrayList throttleLimits = new ArrayList();
+    protected List<ThrottleLimitSpec> throttleLimits = new ArrayList<ThrottleLimitSpec>();
     /** This is a map of the bins and their current counts. If an entry doesn't exist, it's considered to be
     * the same as maxBinCount. */
-    protected HashMap binCounts = new HashMap();
+    protected final Map<String,MutableInteger> binCounts = new HashMap<String,MutableInteger>();
 
     /** Constructor. */
     public ThrottleJobItem()
@@ -9906,11 +9978,9 @@ public class JobManager implements IJobManager
     {
       ThrottleJobItem rval = new ThrottleJobItem();
       rval.throttleLimits = throttleLimits;
-      Iterator iter = binCounts.keySet().iterator();
-      while (iter.hasNext())
+      for (String key : binCounts.keySet())
       {
-        String key = (String)iter.next();
-        this.binCounts.put(key,((MutableInteger)binCounts.get(key)).duplicate());
+        this.binCounts.put(key,binCounts.get(key).duplicate());
       }
       return rval;
     }
@@ -9921,7 +9991,7 @@ public class JobManager implements IJobManager
     */
     public boolean isEmpty(String binName)
     {
-      MutableInteger value = (MutableInteger)binCounts.get(binName);
+      MutableInteger value = binCounts.get(binName);
       int remaining;
       if (value == null)
       {
@@ -9940,7 +10010,7 @@ public class JobManager implements IJobManager
     */
     public void decrement(String binName)
     {
-      MutableInteger value = (MutableInteger)binCounts.get(binName);
+      MutableInteger value = binCounts.get(binName);
       if (value == null)
       {
         int x = findMaxCount(binName);
@@ -9985,7 +10055,7 @@ public class JobManager implements IJobManager
       int i = 0;
       while (i < throttleLimits.size())
       {
-        ThrottleLimitSpec spec = (ThrottleLimitSpec)throttleLimits.get(i++);
+        ThrottleLimitSpec spec = throttleLimits.get(i++);
         Pattern p = spec.getRegexp();
         Matcher m = p.matcher(binName);
         if (m.find())
@@ -10004,9 +10074,9 @@ public class JobManager implements IJobManager
   protected static class ThrottleLimitSpec
   {
     /** Regexp */
-    protected Pattern regexp;
+    protected final Pattern regexp;
     /** The fetch limit for all bins matching that regexp */
-    protected int maxCount;
+    protected final int maxCount;
 
     /** Constructor */
     public ThrottleLimitSpec(String regexp, int maxCount)

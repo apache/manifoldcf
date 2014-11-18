@@ -1965,7 +1965,7 @@ public class WorkerThread extends Thread
 
         jobManager.addDocuments(processID,
           jobID,legalLinkTypes,docidHashes,docids,db.getParentIdentifierHash(),db.getLinkType(),hopcountMode,
-          dataNames,dataValues,currentTime,priorities,eventNames);
+          dataNames,dataValues,priorities,eventNames);
         
         rt.clearPreloadedValues();
       }
