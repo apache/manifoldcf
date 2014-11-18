@@ -215,22 +215,24 @@ public class SeedingActivity implements ISeedingActivity
     throws ManifoldCFException
   {
     // First, prioritize the documents using the queue tracker
-    long prioritizationTime = System.currentTimeMillis();
     IPriorityCalculator[] docPriorities = new IPriorityCalculator[docIDHashes.length];
 
-    int i = 0;
-    while (i < docIDHashes.length)
+    rt.clearPreloadRequests();
+
+    for (int i = 0 ; i < docIDHashes.length ; i++)
     {
       // Calculate desired document priority based on current queuetracker status.
       String[] bins = connector.getBinNames(docIDs[i]);
-      docPriorities[i] = new PriorityCalculator(rt,connection,bins);
-
-      i++;
+      PriorityCalculator p = new PriorityCalculator(rt,connection,bins);
+      docPriorities[i] = p;
+      p.makePreloadRequest();
     }
+
+    rt.preloadBinValues();
 
     jobManager.addDocumentsInitial(processID,
       jobID,legalLinkTypes,docIDHashes,docIDs,overrideSchedule,hopcountMethod,
-      prioritizationTime,docPriorities,prereqEventNames);
+      docPriorities,prereqEventNames);
 
   }
 
