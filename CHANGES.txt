@@ -6,6 +6,10 @@ $Id$
 CONNECTORS-1107: Fix configuration import from 1.6 or later.
 (Karl Wright)
 
+CONNECTORS-1108: Turn most jobs logging messages from DEBUG
+to INFO.
+(Aeham Abushwashi)
+
 CONNECTORS-1100: Change how reprioritization is done to improve
 overall usability at large scale.
 (Aeham Abushwashi, Karl Wright)
