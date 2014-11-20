@@ -185,7 +185,7 @@ public class JDBCAuthority extends BaseAuthorityConnector {
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException {
     // Construct a cache description object
-    ICacheDescription objectDescription = new JdbcAuthorizationResponseDescription(userName, createCacheConnectionString(), this.responseLifetime, this.LRUsize);
+    ICacheDescription objectDescription = new JdbcAuthorizationResponseDescription(userName, createCacheConnectionString(), idQuery, tokenQuery, this.responseLifetime, this.LRUsize);
 
     // Enter the cache
     ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription}, null, null);
@@ -813,15 +813,19 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     /**
      * The user name
      */
-    protected String userName;
+    protected final String userName;
     /**
      * LDAP connection string with server name and base DN
      */
-    protected String connectionString;
+    protected final String connectionString;
+    /** The user query. */
+    protected final String userQuery;
+    /** The token query. */
+    protected final String tokenQuery;
     /**
      * The response lifetime
      */
-    protected long responseLifetime;
+    protected final long responseLifetime;
     /**
      * The expiration time
      */
@@ -830,10 +834,12 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     /**
      * Constructor.
      */
-    public JdbcAuthorizationResponseDescription(String userName, String connectionString, long responseLifetime, int LRUsize) {
+    public JdbcAuthorizationResponseDescription(String userName, String connectionString, String userQuery, String tokenQuery, long responseLifetime, int LRUsize) {
       super("JDBCAuthority", LRUsize);
       this.userName = userName;
       this.connectionString = connectionString;
+      this.userQuery = userQuery;
+      this.tokenQuery = tokenQuery;
       this.responseLifetime = responseLifetime;
     }
 
@@ -850,7 +856,8 @@ public class JDBCAuthority extends BaseAuthorityConnector {
      */
     public String getCriticalSectionName() {
       StringBuilder sb = new StringBuilder(getClass().getName());
-      sb.append("-").append(userName).append("-").append(connectionString);
+      sb.append("-").append(userName).append("-").append(connectionString).append("-")
+        .append(userQuery).append("-").append(tokenQuery);
       return sb.toString();
     }
 
@@ -867,7 +874,8 @@ public class JDBCAuthority extends BaseAuthorityConnector {
 
     @Override
     public int hashCode() {
-      return userName.hashCode() + connectionString.hashCode();
+      return userName.hashCode() + connectionString.hashCode() +
+        userQuery.hashCode() + tokenQuery.hashCode();
     }
 
     @Override
@@ -880,6 +888,12 @@ public class JDBCAuthority extends BaseAuthorityConnector {
         return false;
       }
       if (!ard.connectionString.equals(connectionString)) {
+        return false;
+      }
+      if (!ard.userQuery.equals(userQuery)) {
+        return false;
+      }
+      if (!ard.tokenQuery.equals(tokenQuery)) {
         return false;
       }
       return true;
