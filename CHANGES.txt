@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1109: Bad cache key for JDBC authority.
+(Alejandro Calbazana, Karl Wright)
+
 CONNECTORS-1108: Turn most jobs logging messages from DEBUG
 to INFO.
 (Aeham Abushwashi)
