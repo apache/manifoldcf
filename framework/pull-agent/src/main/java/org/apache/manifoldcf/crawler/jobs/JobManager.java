@@ -8231,7 +8231,7 @@ public class JobManager implements IJobManager
         // See CONNECTORS-290.
         // We do this BEFORE updating the job state.
         
-        jobQueue.clearDocPriorities(jobID);
+        clearDocPriorities(jobID);
             
         IJobDescription jobDesc = jobs.load(jobID,true);
         modifiedJobs.add(jobDesc);
@@ -8250,6 +8250,51 @@ public class JobManager implements IJobManager
     }
   }
 
+  protected void clearDocPriorities(Long jobID)
+    throws ManifoldCFException
+  {
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobQueue.clearDocPriorities(jobID);
+        database.performCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction clearing document priorities: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (RuntimeException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+  
   /** Reset eligible jobs either back to the "inactive" state, or make them active again.  The
   * latter will occur if the cleanup phase of the job generated more pending documents.
   *
