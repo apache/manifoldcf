@@ -3390,9 +3390,21 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         {
           // See what uri was used before for this doc, if any
           ArrayList list = new ArrayList();
-          String query = buildConjunctionClause(list,new ClauseDescription[]{
-            new UnitaryClause(docKeyField,docKey),
-            new UnitaryClause(outputConnNameField,outputConnectionName)});
+          String query;
+          if (componentHash == null || componentHash.length() == 0)
+          {
+            query = buildConjunctionClause(list,new ClauseDescription[]{
+              new UnitaryClause(docKeyField,docKey),
+              new UnitaryClause(outputConnNameField,outputConnectionName),
+              new NullCheckClause(componentHashField,true)});
+          }
+          else
+          {
+            query = buildConjunctionClause(list,new ClauseDescription[]{
+              new UnitaryClause(docKeyField,docKey),
+              new UnitaryClause(outputConnNameField,outputConnectionName),
+              new UnitaryClause(componentHashField,componentHash)});
+          }
             
           IResultSet set = performQuery("SELECT "+docURIField+","+uriHashField+","+lastOutputVersionField+" FROM "+getTableName()+
             " WHERE "+query,list,null,null);
