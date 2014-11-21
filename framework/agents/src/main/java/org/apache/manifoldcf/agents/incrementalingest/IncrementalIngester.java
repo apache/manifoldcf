@@ -1016,26 +1016,26 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // No transactions.  Time for the operation may exceed transaction timeout.
 
       // Obtain the current URIs of all of these.
-      DeleteInfo[] uris = getDocumentURIMultiple(outputConnectionName,identifierClasses,identifierHashes);
+      List<DeleteInfo> uris = getDocumentURIMultiple(outputConnectionName,identifierClasses,identifierHashes);
 
       // Grab critical section locks so that we can't attempt to ingest at the same time we are deleting.
       // (This guarantees that when this operation is complete the database reflects reality.)
       int validURIcount = 0;
-      for (int i = 0; i < uris.length; i++)
+      for (DeleteInfo uri : uris)
       {
-        if (uris[i] != null && uris[i].getURI() != null)
+        if (uri.getURI() != null)
           validURIcount++;
       }
       String[] lockArray = new String[validURIcount];
       String[] validURIArray = new String[validURIcount];
       String[] validURIHashArray = new String[validURIcount];
       validURIcount = 0;
-      for (int i = 0; i < uris.length; i++)
+      for (DeleteInfo uri : uris)
       {
-        if (uris[i] != null && uris[i].getURI() != null)
+        if (uri.getURI() != null)
         {
-          validURIArray[validURIcount] = uris[i].getURI();
-          validURIHashArray[validURIcount] = uris[i].getURIHash();
+          validURIArray[validURIcount] = uri.getURI();
+          validURIHashArray[validURIcount] = uri.getURIHash();
           lockArray[validURIcount] = outputConnectionName+":"+validURIHashArray[validURIcount];
           validURIcount++;
         }
@@ -1045,10 +1045,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       try
       {
         // Fetch the document URIs for the listed documents
-        for (int i = 0; i < uris.length; i++)
+        for (DeleteInfo uri : uris)
         {
-          if (uris[i] != null && uris[i].getURI() != null)
-            removeDocument(connection,uris[i].getURI(),uris[i].getOutputVersion(),activities);
+          if (uri.getURI() != null)
+            removeDocument(connection,uri.getURI(),uri.getOutputVersion(),activities);
         }
 
         // Now, get rid of all rows that match the given uris.
@@ -1232,26 +1232,26 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // No transactions.  Time for the operation may exceed transaction timeout.
 
       // Obtain the current URIs of all of these.
-      DeleteInfo[] uris = getDocumentURIMultiple(outputConnectionName,identifierClasses,identifierHashes,componentHash);
+      List<DeleteInfo> uris = getDocumentURIMultiple(outputConnectionName,identifierClasses,identifierHashes,componentHash);
 
       // Grab critical section locks so that we can't attempt to ingest at the same time we are deleting.
       // (This guarantees that when this operation is complete the database reflects reality.)
       int validURIcount = 0;
-      for (int i = 0; i < uris.length; i++)
+      for (DeleteInfo uri : uris)
       {
-        if (uris[i] != null && uris[i].getURI() != null)
+        if (uri.getURI() != null)
           validURIcount++;
       }
       String[] lockArray = new String[validURIcount];
       String[] validURIArray = new String[validURIcount];
       String[] validURIHashArray = new String[validURIcount];
       validURIcount = 0;
-      for (int i = 0; i < uris.length; i++)
+      for (DeleteInfo uri : uris)
       {
-        if (uris[i] != null && uris[i].getURI() != null)
+        if (uri.getURI() != null)
         {
-          validURIArray[validURIcount] = uris[i].getURI();
-          validURIHashArray[validURIcount] = uris[i].getURIHash();
+          validURIArray[validURIcount] = uri.getURI();
+          validURIHashArray[validURIcount] = uri.getURIHash();
           lockArray[validURIcount] = outputConnectionName+":"+validURIHashArray[validURIcount];
           validURIcount++;
         }
@@ -1261,10 +1261,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       try
       {
         // Fetch the document URIs for the listed documents
-        for (int i = 0; i < uris.length; i++)
+        for (DeleteInfo uri : uris)
         {
-          if (uris[i] != null && uris[i].getURI() != null)
-            removeDocument(connection,uris[i].getURI(),uris[i].getOutputVersion(),activities);
+          if (uri.getURI() != null)
+            removeDocument(connection,uri.getURI(),uri.getOutputVersion(),activities);
         }
 
         // Now, get rid of all rows that match the given uris.
@@ -1579,37 +1579,29 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@return the array of current document uri's.  Null returned for identifiers
   * that don't exist in the index.
   */
-  protected DeleteInfo[] getDocumentURIMultiple(String outputConnectionName, String[] identifierClasses, String[] identifierHashes)
+  protected List<DeleteInfo> getDocumentURIMultiple(String outputConnectionName, String[] identifierClasses, String[] identifierHashes)
     throws ManifoldCFException
   {
-    DeleteInfo[] rval = new DeleteInfo[identifierHashes.length];
-    Map<String,Integer> map = new HashMap<String,Integer>();
-    for (int i = 0; i < identifierHashes.length; i++)
-    {
-      map.put(makeKey(identifierClasses[i],identifierHashes[i]),new Integer(i));
-      rval[i] = null;
-    }
-
+    List<DeleteInfo> rval = new ArrayList<DeleteInfo>();
     beginTransaction();
     try
     {
       List<String> list = new ArrayList<String>();
       int maxCount = maxClauseDocumentURIChunk(outputConnectionName);
       int j = 0;
-      Iterator<String> iter = map.keySet().iterator();
-      while (iter.hasNext())
+      for (int i = 0; i < identifierHashes.length; i++)
       {
         if (j == maxCount)
         {
-          getDocumentURIChunk(rval,map,outputConnectionName,list);
+          getDocumentURIChunk(rval,outputConnectionName,list);
           j = 0;
           list.clear();
         }
-        list.add(iter.next());
+        list.add(makeKey(identifierClasses[i],identifierHashes[i]));
         j++;
       }
       if (j > 0)
-        getDocumentURIChunk(rval,map,outputConnectionName,list);
+        getDocumentURIChunk(rval,outputConnectionName,list);
       return rval;
     }
     catch (ManifoldCFException e)
@@ -1636,37 +1628,29 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@return the array of current document uri's.  Null returned for identifiers
   * that don't exist in the index.
   */
-  protected DeleteInfo[] getDocumentURIMultiple(String outputConnectionName, String[] identifierClasses, String[] identifierHashes, String componentHash)
+  protected List<DeleteInfo> getDocumentURIMultiple(String outputConnectionName, String[] identifierClasses, String[] identifierHashes, String componentHash)
     throws ManifoldCFException
   {
-    DeleteInfo[] rval = new DeleteInfo[identifierHashes.length];
-    Map<String,Integer> map = new HashMap<String,Integer>();
-    for (int i = 0; i < identifierHashes.length; i++)
-    {
-      map.put(makeKey(identifierClasses[i],identifierHashes[i]),new Integer(i));
-      rval[i] = null;
-    }
-
+    List<DeleteInfo> rval = new ArrayList<DeleteInfo>();
     beginTransaction();
     try
     {
       List<String> list = new ArrayList<String>();
       int maxCount = maxClauseDocumentURIChunk(outputConnectionName,componentHash);
       int j = 0;
-      Iterator<String> iter = map.keySet().iterator();
-      while (iter.hasNext())
+      for (int i = 0; i < identifierHashes.length; i++)
       {
         if (j == maxCount)
         {
-          getDocumentURIChunk(rval,map,outputConnectionName,list,componentHash);
+          getDocumentURIChunk(rval,outputConnectionName,list,componentHash);
           j = 0;
           list.clear();
         }
-        list.add(iter.next());
+        list.add(makeKey(identifierClasses[i],identifierHashes[i]));
         j++;
       }
       if (j > 0)
-        getDocumentURIChunk(rval,map,outputConnectionName,list,componentHash);
+        getDocumentURIChunk(rval,outputConnectionName,list,componentHash);
       return rval;
     }
     catch (ManifoldCFException e)
@@ -2222,7 +2206,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param clause is the in clause for the query.
   *@param list are the doc keys for the query.
   */
-  protected void getDocumentURIChunk(DeleteInfo[] rval, Map<String,Integer> map, String outputConnectionName,
+  protected void getDocumentURIChunk(List<DeleteInfo> rval, String outputConnectionName,
     List<String> list)
     throws ManifoldCFException
   {
@@ -2238,19 +2222,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     for (int i = 0; i < set.getRowCount(); i++)
     {
       IResultRow row = set.getRow(i);
-      String docHash = row.getValue(docKeyField).toString();
-      Integer position = map.get(docHash);
-      if (position != null)
-      {
-        String lastURI = (String)row.getValue(docURIField);
-        if (lastURI != null && lastURI.length() == 0)
-          lastURI = null;
-        String lastURIHash = (String)row.getValue(uriHashField);
-        if (lastURIHash != null && lastURIHash.length() == 0)
-          lastURIHash = null;
-        String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
-        rval[position.intValue()] = new DeleteInfo(lastURI,lastURIHash,lastOutputVersion);
-      }
+      //String docHash = row.getValue(docKeyField).toString();
+      String lastURI = (String)row.getValue(docURIField);
+      if (lastURI != null && lastURI.length() == 0)
+        lastURI = null;
+      String lastURIHash = (String)row.getValue(uriHashField);
+      if (lastURIHash != null && lastURIHash.length() == 0)
+        lastURIHash = null;
+      String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
+      rval.add(new DeleteInfo(lastURI,lastURIHash,lastOutputVersion));
     }
   }
 
@@ -2270,7 +2250,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param list are the doc keys for the query.
   *@param componentHash is the component hash, if any, for the query.
   */
-  protected void getDocumentURIChunk(DeleteInfo[] rval, Map<String,Integer> map, String outputConnectionName,
+  protected void getDocumentURIChunk(List<DeleteInfo> rval, String outputConnectionName,
     List<String> list, String componentHash)
     throws ManifoldCFException
   {
@@ -2287,19 +2267,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     for (int i = 0; i < set.getRowCount(); i++)
     {
       IResultRow row = set.getRow(i);
-      String docHash = row.getValue(docKeyField).toString();
-      Integer position = (Integer)map.get(docHash);
-      if (position != null)
-      {
-        String lastURI = (String)row.getValue(docURIField);
-        if (lastURI != null && lastURI.length() == 0)
-          lastURI = null;
-        String lastURIHash = (String)row.getValue(uriHashField);
-        if (lastURIHash != null && lastURIHash.length() == 0)
-          lastURIHash = null;
-        String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
-        rval[position.intValue()] = new DeleteInfo(lastURI,lastURIHash,lastOutputVersion);
-      }
+      //String docHash = row.getValue(docKeyField).toString();
+      String lastURI = (String)row.getValue(docURIField);
+      if (lastURI != null && lastURI.length() == 0)
+        lastURI = null;
+      String lastURIHash = (String)row.getValue(uriHashField);
+      if (lastURIHash != null && lastURIHash.length() == 0)
+        lastURIHash = null;
+      String lastOutputVersion = (String)row.getValue(lastOutputVersionField);
+      rval.add(new DeleteInfo(lastURI,lastURIHash,lastOutputVersion));
     }
   }
 
