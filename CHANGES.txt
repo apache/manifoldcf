@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1111: Component cleanup did not work properly.
+(Markus Schuch, Karl Wright)
+
 CONNECTORS-1110: Component documents getting deleted wrongly
 when additional components added.
 (Markus Schuch, Karl Wright)
