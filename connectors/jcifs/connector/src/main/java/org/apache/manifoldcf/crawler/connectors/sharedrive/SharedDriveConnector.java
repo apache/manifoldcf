@@ -3463,9 +3463,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecAddMapping(\""+seqPrefix+"mapping_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddToMappings") + "\" value=\"Add\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
-"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.MatchRegexp") + "<input type=\"text\" name=\""+seqPrefix+"specmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.MatchRegexp") + "<input type=\"text\" name=\""+seqPrefix+"specmatch\" size=\"32\" value=\"\"/></nobr></td>\n"+
 "    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\">" + Messages.getBodyString(locale,"SharedDriveConnector.ReplaceString") + "<input type=\"text\" name=\""+seqPrefix+"specreplace\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.ReplaceString") + "<input type=\"text\" name=\""+seqPrefix+"specreplace\" size=\"32\" value=\"\"/></nobr></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
