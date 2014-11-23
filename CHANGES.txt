@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1112: Reduce contention for zookeeper resources by
+caching local configuration data, and by reorganizing stuffer thread.
+(Aeham Abushwashi, Karl Wright)
+
 CONNECTORS-1111: Component cleanup did not work properly.
 (Markus Schuch, Karl Wright)
 

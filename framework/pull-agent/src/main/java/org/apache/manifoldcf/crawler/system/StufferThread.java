@@ -224,6 +224,7 @@ public class StufferThread extends Thread
           String[] documentIDHashes = new String[descs.length];
 
           // Go through the documents and set up jobs, prefixed id's
+          Set<String> connectionNames = new HashSet<String>();
           for (int i = 0; i < descs.length; i++)
           {
             DocumentDescription dd = descs[i];
@@ -235,6 +236,7 @@ public class StufferThread extends Thread
             }
             jobs[i] = job;
             String connectionName = job.getConnectionName();
+            connectionNames.add(connectionName);
             documentClasses[i] = connectionName;
             pipelineSpecifications[i] = new PipelineSpecificationBasic(job);
             IRepositoryConnection connection = connectionMap.get(connectionName);
@@ -266,74 +268,102 @@ public class StufferThread extends Thread
           // We need to go through the list, and segregate them by job, so the individual
           // connectors can work in batch.
           documentSets.clear();
-          for (int i = 0; i < descs.length; i++)
+
+          // Prepare to grab all the connector instances we'll need
+          String[] orderingKeys = new String[connectionNames.size()];
+          IRepositoryConnection[] grabConnections = new IRepositoryConnection[connectionNames.size()];
+          int z = 0;
+          for (String connectionName : connectionNames)
           {
-            Long jobID = jobs[i].getID();
+            orderingKeys[z] = connectionName;
+            IRepositoryConnection connection = connectionMap.get(connectionName);
+            grabConnections[z] = connection;
+            z++;
+          }
 
-            // We have to see how we are doing with respect to the limit for this connector.
-            // We also need to log the queuing activity to the queue tracker, so that
-            // the priority setter thread can do its thing properly.
-
-            // Get a repository connection appropriate for this document.
-            IRepositoryConnection connection = connections[i];
-            int maxDocuments;
-            String[] binNames;
+          String[][] descBinNames = new String[descs.length][];
+          int[] descMaxDocuments = new int[descs.length];
+          try
+          {
+            IRepositoryConnector[] connectors = repositoryConnectorPool.grabMultiple(orderingKeys,grabConnections);
             try
             {
-              // Grab a connector handle
-              IRepositoryConnector connector = repositoryConnectorPool.grab(connection);
-              if (connector == null)
+              // Map from connection name to connector instance
+              Map<String,IRepositoryConnector> connectorMap = new HashMap<String,IRepositoryConnector>();
+              for (z = 0; z < orderingKeys.length; z++)
               {
-                maxDocuments = 1;
-                binNames = new String[]{""};
+                connectorMap.put(orderingKeys[z],connectors[z]);
               }
-              else
+
+              for (int i = 0; i < descs.length; i++)
               {
-                try
+                // We have to see how we are doing with respect to the limit for this connector.
+                // We also need to log the queuing activity to the queue tracker, so that
+                // the priority setter thread can do its thing properly.
+
+                // Get a repository connection appropriate for this document.
+                IRepositoryConnection connection = connections[i];
+                int maxDocuments;
+                String[] binNames;
+                // Grab a connector handle
+                IRepositoryConnector connector = connectorMap.get(connection.getName());
+                if (connector == null)
+                {
+                  maxDocuments = 1;
+                  binNames = new String[]{""};
+                }
+                else
                 {
                   // Convert the document identifier to a URI
                   maxDocuments = connector.getMaxDocumentRequest();
                   // Get the bins for the document identifier
                   binNames = connector.getBinNames(descs[i].getDocumentIdentifier());
                 }
-                finally
-                {
-                  repositoryConnectorPool.release(connection,connector);
-                }
+                descBinNames[i] = binNames;
+                descMaxDocuments[i] = maxDocuments;
               }
             }
-            catch (ManifoldCFException e)
+            finally
             {
-              // If we were interrupted, then we are allowed to leave, because the process is terminating, but that's the only exception to the rule
-              if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                throw e;
+              // Release all the connector instances we grabbed
+              repositoryConnectorPool.releaseMultiple(grabConnections,connectors);
+            }
+            
+          }
+          catch (ManifoldCFException e)
+          {
+            // If we were interrupted, then we are allowed to leave, because the process is terminating, but that's the only exception to the rule
+            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+              throw e;
 
-              // Note: We really should never leave this block by throwing an exception, since that could easily leave dangling
-              // active jobqueue entries around.  Instead, log the error and continue IN ALL CASES.
-              Logging.threads.error("Stuffer thread ManifoldCF Exception thrown: "+e.getMessage()+" - continuing",
-                e);
-              maxDocuments = 1;
-              binNames = new String[]{""};
-            }
-            catch (OutOfMemoryError e)
-            {
-              System.err.println("agents process ran out of memory - shutting down");
-              e.printStackTrace(System.err);
-              System.exit(-200);
-              // These are needed because the compiler doesn't know System.exit ends the thread.
-              maxDocuments = 1;
-              binNames = new String[]{""};
-            }
-            catch (Throwable e)
-            {
-              // Note: We really should never leave this block by throwing an exception, since that could easily leave dangling
-              // active jobqueue entries around.  Instead, log the error and continue IN ALL CASES.
-              Logging.threads.fatal("Stuffer thread Throwable thrown: "+e.getMessage()+" - continuing",
-                e);
-              maxDocuments = 1;
-              binNames = new String[]{""};
-            }
+            // Note: We really should never leave this block by throwing an exception, since that could easily leave dangling
+            // active jobqueue entries around.  Instead, log the error and continue IN ALL CASES.
+            Logging.threads.error("Stuffer thread ManifoldCF Exception thrown: "+e.getMessage()+" - continuing",
+              e);
+          }
+          catch (OutOfMemoryError e)
+          {
+            System.err.println("agents process ran out of memory - shutting down");
+            e.printStackTrace(System.err);
+            System.exit(-200);
+          }
+          catch (Throwable e)
+          {
+            // Note: We really should never leave this block by throwing an exception, since that could easily leave dangling
+            // active jobqueue entries around.  Instead, log the error and continue IN ALL CASES.
+            Logging.threads.fatal("Stuffer thread Throwable thrown: "+e.getMessage()+" - continuing",
+              e);
+          }
 
+          for (int i = 0; i < descs.length; i++)
+          {
+            Long jobID = jobs[i].getID();
+            String[] binNames = descBinNames[i];
+            if (binNames == null)
+              binNames = new String[]{""};
+            int maxDocuments = descMaxDocuments[i];
+            if (maxDocuments == 0)
+              maxDocuments = 1;
             QueuedDocument qd = new QueuedDocument(descs[i],(Map<String,DocumentIngestStatusSet>)versions[i],binNames);
 
             // Grab the arraylist that's there, or create it.
