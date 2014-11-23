@@ -57,6 +57,9 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   protected static Integer ephemeralPoolLocker = new Integer(0);
   protected static ZooKeeperEphemeralNodePool myEphemeralNodes = null;
 
+  // Cached local values
+  protected ManifoldCFConfiguration cachedConfiguration = null;
+  
   /** Constructor */
   public ZooKeeperLockManager()
     throws ManifoldCFException
@@ -660,27 +663,31 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   public ManifoldCFConfiguration getSharedConfiguration()
     throws ManifoldCFException
   {
-    try
+    if (cachedConfiguration == null)
     {
-      ZooKeeperConnection connection = pool.grab();
       try
       {
-        // Read as a byte array, then parse
-        byte[] configurationData = connection.readData(CONFIGURATION_PATH);
-        if (configurationData != null)
-          return new ManifoldCFConfiguration(new ByteArrayInputStream(configurationData));
-        else
-          return new ManifoldCFConfiguration();
+        ZooKeeperConnection connection = pool.grab();
+        try
+        {
+          // Read as a byte array, then parse
+          byte[] configurationData = connection.readData(CONFIGURATION_PATH);
+          if (configurationData != null)
+            cachedConfiguration = new ManifoldCFConfiguration(new ByteArrayInputStream(configurationData));
+          else
+            cachedConfiguration = new ManifoldCFConfiguration();
+        }
+        finally
+        {
+          pool.release(connection);
+        }
       }
-      finally
+      catch (InterruptedException e)
       {
-        pool.release(connection);
+        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
     }
-    catch (InterruptedException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
+    return cachedConfiguration;
   }
 
   /** Write shared configuration.  Caller closes the input stream.
