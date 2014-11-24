@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1063: Add section to how-to-build-and-deploy on
+the Alfresco Webscript connector.
+(Karl Wright, Maurizio Pillitu)
+
 CONNECTORS-1112: Reduce contention for zookeeper resources by
 caching local configuration data, and by reorganizing stuffer thread.
 (Aeham Abushwashi, Karl Wright)
