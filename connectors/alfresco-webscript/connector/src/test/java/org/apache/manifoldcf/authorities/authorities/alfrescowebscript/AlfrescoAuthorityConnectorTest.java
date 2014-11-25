@@ -16,7 +16,7 @@
  */
 package org.apache.manifoldcf.authorities.authorities.alfrescowebscript;
 
-import org.alfresco.consulting.indexer.client.AlfrescoClient;
+import com.github.maoo.indexer.client.AlfrescoClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

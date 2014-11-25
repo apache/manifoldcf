@@ -16,10 +16,10 @@
  */
 package org.apache.manifoldcf.authorities.authorities.alfrescowebscript;
 
-import org.alfresco.consulting.indexer.client.AlfrescoClient;
-import org.alfresco.consulting.indexer.client.AlfrescoDownException;
-import org.alfresco.consulting.indexer.client.AlfrescoUser;
-import org.alfresco.consulting.indexer.client.WebScriptsAlfrescoClient;
+import com.github.maoo.indexer.client.AlfrescoClient;
+import com.github.maoo.indexer.client.AlfrescoDownException;
+import com.github.maoo.indexer.client.AlfrescoUser;
+import com.github.maoo.indexer.client.WebScriptsAlfrescoClient;
 import org.apache.manifoldcf.authorities.authorities.BaseAuthorityConnector;
 import org.apache.manifoldcf.authorities.interfaces.AuthorizationResponse;
 import org.apache.manifoldcf.authorities.system.Logging;
