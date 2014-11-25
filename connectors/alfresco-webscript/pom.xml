@@ -46,17 +46,13 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <alfresco.indexer.version>0.6.6</alfresco.indexer.version>
+        <alfresco.indexer.version>0.7.0</alfresco.indexer.version>
     </properties>
 
     <repositories>
         <repository>
             <id>alfresco-release</id>
             <url>https://artifacts.alfresco.com/nexus/content/repositories/releases</url>
-        </repository>
-        <repository>
-            <id>alfresco-indexer-release</id>
-            <url>https://repository-apachemaoo.forge.cloudbees.com/alfresco-indexer/</url>
         </repository>
     </repositories>
 
@@ -164,7 +160,7 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <artifactId>alfresco-indexer-webscripts-war</artifactId>
-                                    <groupId>org.alfresco.consulting.indexer</groupId>
+                                    <groupId>com.github.maoo.indexer</groupId>
                                     <version>${alfresco.indexer.version}</version>
                                     <type>war</type>
                                     <overWrite>false</overWrite>
@@ -215,7 +211,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.alfresco.consulting.indexer</groupId>
+            <groupId>com.github.maoo.indexer</groupId>
             <artifactId>alfresco-indexer-client</artifactId>
             <version>${alfresco.indexer.version}</version>
         </dependency>

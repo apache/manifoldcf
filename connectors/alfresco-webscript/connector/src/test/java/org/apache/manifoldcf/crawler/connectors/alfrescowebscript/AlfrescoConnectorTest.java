@@ -35,14 +35,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Date;
 
-import org.alfresco.consulting.indexer.client.AlfrescoClient;
-import org.alfresco.consulting.indexer.client.AlfrescoFilters;
-import org.alfresco.consulting.indexer.client.AlfrescoResponse;
+import com.github.maoo.indexer.client.AlfrescoClient;
+import com.github.maoo.indexer.client.AlfrescoFilters;
+import com.github.maoo.indexer.client.AlfrescoResponse;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
-import org.apache.manifoldcf.crawler.connectors.alfrescowebscript.AlfrescoConnector;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.system.SeedingActivity;

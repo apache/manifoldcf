@@ -16,10 +16,10 @@
  */
 package org.apache.manifoldcf.crawler.connectors.alfrescowebscript;
 
-import org.alfresco.consulting.indexer.client.AlfrescoClient;
-import org.alfresco.consulting.indexer.client.AlfrescoDownException;
-import org.alfresco.consulting.indexer.client.AlfrescoResponse;
-import org.alfresco.consulting.indexer.client.WebScriptsAlfrescoClient;
+import com.github.maoo.indexer.client.AlfrescoClient;
+import com.github.maoo.indexer.client.AlfrescoDownException;
+import com.github.maoo.indexer.client.AlfrescoResponse;
+import com.github.maoo.indexer.client.WebScriptsAlfrescoClient;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.*;
