@@ -1505,7 +1505,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(docKeyField,paramValues),
       new UnitaryClause(outputConnNameField,outputConnectionName),
-      new UnitaryClause(componentHashField,componentHash)});
+      (componentHash==null || componentHash.length() == 0)?new NullCheckClause(componentHashField,true):new UnitaryClause(componentHashField,componentHash)});
       
     IResultSet set = performQuery("SELECT "+idField+" FROM "+
       getTableName()+" WHERE "+query,list,null,null);

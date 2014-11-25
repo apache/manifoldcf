@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1114: SQL exception calling removeDocument().
+(Markus Schuch, Karl Wright)
+
 CONNECTORS-1063: Add section to how-to-build-and-deploy on
 the Alfresco Webscript connector.
 (Karl Wright, Maurizio Pillitu)
