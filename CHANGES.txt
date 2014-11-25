@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1115: Add ability to retain all components of a document,
+so that individual ones do not need to be specified.
+(Markus Schuch, Karl Wright)
+
 CONNECTORS-1114: SQL exception calling removeDocument().
 (Markus Schuch, Karl Wright)
 
