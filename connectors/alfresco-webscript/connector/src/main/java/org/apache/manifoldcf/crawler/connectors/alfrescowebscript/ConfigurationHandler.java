@@ -16,16 +16,11 @@
  */
 package org.apache.manifoldcf.crawler.connectors.alfrescowebscript;
 
+import com.github.maoo.indexer.client.AlfrescoFilters;
 import com.google.common.collect.ImmutableMultimap;
-import org.alfresco.consulting.indexer.client.AlfrescoFilters;
-import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.*;
 
 public class ConfigurationHandler {
