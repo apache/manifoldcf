@@ -30,7 +30,7 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
-    <property name="alfresco.indexer.version" value="0.7.0"/>
+    <property name="alfresco-indexer.version" value="0.7.0"/>
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
@@ -74,10 +74,20 @@
 
     <target name="download-dependencies">
         <property name="alfresco-package" value="com/github/maoo/indexer"/>
-        <antcall target="download-via-alfresco-indexer"><param name="project-path" value="${alfresco-package}"/><param name="artifact-version" value="${alfresco.indexer.version}"/><param name="target" value="test-materials-proprietary"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="${alfresco-package}"/>
+            <param name="artifact-version" value="${alfresco-indexer.version}"/>
+            <param name="target" value="test-materials-proprietary"/>
             <param name="artifact-name" value="alfresco-indexer-webscripts-war"/>
             <param name="artifact-type" value="war"/>
         </antcall>
+    </target>
+
+    <target name="integration">
+        <mkdir dir="dist/integration/alfresco-webscript"/>
+        <copy todir="dist/integration/alfresco-webscript">
+          <fileset dir="../../lib/alfresco-webscript"/>
+        </copy>
     </target>
 
     <target name="download-cleanup">
