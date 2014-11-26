@@ -161,7 +161,7 @@
           <title>Building and testing the Alfresco Webscript connector</title>
           <p></p>
           <p>The Alfresco Webscript connector is built against an open-source Alfresco Indexer client, which requires a corresponding Alfresco Indexer plugin
-                to be installed on your Alfresco instance.  This Alfresco Indexer plugin is currently available for download.  Installation of the plugin should follow the
+                to be installed on your Alfresco instance.  This Alfresco Indexer plugin is included with ManifoldCF distributions.  Installation of the plugin should follow the
                 standard Alfresco installation steps, as described <a href="http://docs.alfresco.com/4.1/tasks/amp-install.html">here</a>.
                 See <a href="https://github.com/maoo/alfresco-indexer">this page</a> for configuration details, and for the plugin itself.</p>
           <p></p>
