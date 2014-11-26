@@ -647,6 +647,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     return rval;
   }
 
+  // Only fetch 200 jobs at a time, for resource reasons
+  protected final int MAX_FETCH = 200;
+
   /** Get a list of all jobs which are not in the process of being deleted already.
   *@return the array of all jobs.
   */
@@ -671,15 +674,15 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       IResultSet set = performQuery("SELECT "+idField+","+descriptionField+" FROM "+
         getTableName()+" WHERE "+statusField+"!=? AND "+statusField+"!=? AND "+statusField+"!=? AND "+statusField+"!=?"+
         " ORDER BY "+descriptionField+" ASC",list,cacheKeys,null);
-      // Convert to an array of id's, and then load them
+      
       Long[] ids = new Long[set.getRowCount()];
       boolean[] readOnlies = new boolean[set.getRowCount()];
-      int i = 0;
-      while (i < ids.length)
+      
+      for (int i = 0; i < set.getRowCount(); i++)
       {
         IResultRow row = set.getRow(i);
         ids[i] = (Long)row.getValue(idField);
-        readOnlies[i++] = true;
+        readOnlies[i] = true;
       }
       return loadMultiple(ids,readOnlies);
     }
@@ -819,21 +822,50 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public IJobDescription[] loadMultiple(Long[] ids, boolean[] readOnlies)
     throws ManifoldCFException
   {
-    // Build description objects
-    JobObjectDescription[] objectDescriptions = new JobObjectDescription[ids.length];
-    int i = 0;
-    StringSetBuffer ssb = new StringSetBuffer();
-    while (i < ids.length)
+    IJobDescription[] rval = new IJobDescription[ids.length];
+    if (ids.length == 0)
+      return rval;
+    
+    List<Long> idsToDo = new ArrayList<Long>();
+    List<Boolean> readOnliesToDo = new ArrayList<Boolean>();
+    int outputIndex = 0;
+    for (int i = 0; i < ids.length; i++)
     {
+      if (idsToDo.size() == MAX_FETCH)
+      {
+        outputIndex = loadMultipleInternal(rval,outputIndex,idsToDo,readOnliesToDo);
+        idsToDo.clear();
+        readOnliesToDo.clear();
+      }
+      idsToDo.add(ids[i]);
+      readOnliesToDo.add(readOnlies[i]);
+    }
+    loadMultipleInternal(rval,outputIndex,idsToDo,readOnliesToDo);
+    return rval;
+  }
+
+  protected int loadMultipleInternal(IJobDescription[] rval, int outputIndex, List<Long> ids, List<Boolean> readOnlies)
+    throws ManifoldCFException
+  {
+    // Build description objects
+    JobObjectDescription[] objectDescriptions = new JobObjectDescription[ids.size()];
+    StringSetBuffer ssb = new StringSetBuffer();
+    for (int i = 0; i < ids.size(); i++)
+    {
+      Long id = ids.get(i);
       ssb.clear();
-      ssb.add(getJobIDKey(ids[i]));
-      objectDescriptions[i] = new JobObjectDescription(ids[i],new StringSet(ssb));
-      i++;
+      ssb.add(getJobIDKey(id));
+      objectDescriptions[i] = new JobObjectDescription(id,new StringSet(ssb));
     }
 
     JobObjectExecutor exec = new JobObjectExecutor(this,objectDescriptions);
     cacheManager.findObjectsAndExecute(objectDescriptions,null,exec,getTransactionID());
-    return exec.getResults(readOnlies);
+    IJobDescription[] results = exec.getResults(readOnlies);
+    for (IJobDescription result : results)
+    {
+      rval[outputIndex++] = result;
+    }
+    return outputIndex;
   }
 
   /** Save a job description.
@@ -3584,18 +3616,16 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     /** Get the result.
     *@return the looked-up or read cached instances.
     */
-    public JobDescription[] getResults(boolean[] readOnlies)
+    public JobDescription[] getResults(List<Boolean> readOnlies)
     {
       JobDescription[] rval = new JobDescription[returnValues.length];
-      int i = 0;
-      while (i < rval.length)
+      for (int i = 0; i < rval.length; i++)
       {
         JobDescription jd = returnValues[i];
         if (jd != null)
-          rval[i] = jd.duplicate(readOnlies[i]);
+          rval[i] = jd.duplicate(readOnlies.get(i));
         else
           rval[i] = null;
-        i++;
       }
       return rval;
     }

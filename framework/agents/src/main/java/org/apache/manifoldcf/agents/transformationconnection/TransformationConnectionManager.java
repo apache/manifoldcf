@@ -196,12 +196,10 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
       IResultSet set = performQuery("SELECT "+nameField+",lower("+nameField+") AS sortfield FROM "+getTableName()+" ORDER BY sortfield ASC",null,
         localCacheKeys,null);
       String[] names = new String[set.getRowCount()];
-      int i = 0;
-      while (i < names.length)
+      for (int i = 0; i < names.length; i++)
       {
         IResultRow row = set.getRow(i);
         names[i] = row.getValue(nameField).toString();
-        i++;
       }
       return loadMultiple(names);
     }
@@ -231,6 +229,8 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
     return loadMultiple(new String[]{name})[0];
   }
 
+  protected final static int FETCH_MAX = 200;
+
   /** Load multiple transformation connections by name.
   *@param names are the names to load.
   *@return the loaded connection objects.
@@ -238,21 +238,47 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
   public ITransformationConnection[] loadMultiple(String[] names)
     throws ManifoldCFException
   {
+    ITransformationConnection[] rval = new ITransformationConnection[names.length];
+    if (names.length == 0)
+      return rval;
+    List<String> fetchNames = new ArrayList<String>();
+    int outputIndex = 0;
+    for (String name : names)
+    {
+      if (fetchNames.size() == FETCH_MAX)
+      {
+        outputIndex = loadMultipleInternal(rval,outputIndex,fetchNames);
+        fetchNames.clear();
+      }
+      fetchNames.add(name);
+    }
+    loadMultipleInternal(rval,outputIndex,fetchNames);
+    return rval;
+  }
+  
+  protected int loadMultipleInternal(ITransformationConnection[] rval, int outputIndex, List<String> fetchNames)
+    throws ManifoldCFException
+  {
+
     // Build description objects
-    TransformationConnectionDescription[] objectDescriptions = new TransformationConnectionDescription[names.length];
-    int i = 0;
+    TransformationConnectionDescription[] objectDescriptions = new TransformationConnectionDescription[fetchNames.size()];
     StringSetBuffer ssb = new StringSetBuffer();
-    while (i < names.length)
+    for (int i = 0; i < fetchNames.size(); i++)
     {
       ssb.clear();
-      ssb.add(getTransformationConnectionKey(names[i]));
-      objectDescriptions[i] = new TransformationConnectionDescription(names[i],new StringSet(ssb));
-      i++;
+      String name = fetchNames.get(i);
+      ssb.add(getTransformationConnectionKey(name));
+      objectDescriptions[i] = new TransformationConnectionDescription(name,new StringSet(ssb));
     }
 
     TransformationConnectionExecutor exec = new TransformationConnectionExecutor(this,objectDescriptions);
     cacheManager.findObjectsAndExecute(objectDescriptions,null,exec,getTransactionID());
-    return exec.getResults();
+    ITransformationConnection[] results = exec.getResults();
+    for (ITransformationConnection result : results)
+    {
+      rval[outputIndex++] = result;
+    }
+    return outputIndex;
   }
 
   /** Create a new transformation connection object.
