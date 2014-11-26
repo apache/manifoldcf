@@ -1157,6 +1157,8 @@ public class WorkerThread extends Thread
     protected final Set<String> documentDeletedSet = new HashSet<String>();
     
     // Whether a component was touched or not, keyed by document identifier.
+    // If there's an entry here, then it means that *all* components for the document are to be retained.
+    protected final Set<String> allComponentsSet = new HashSet<String>();
     // This does not include primary document.  The set is keyed by component id hash.
     protected final Map<String,Set<String>> touchedComponentSet = new HashMap<String,Set<String>>();
     // This represents primary documents.
@@ -1229,6 +1231,8 @@ public class WorkerThread extends Thread
     public boolean wasDocumentComponentTouched(String documentIdentifier,
       String componentIdentifierHash)
     {
+      if (allComponentsSet.contains(documentIdentifier))
+        return true;
       Set<String> components = touchedComponentSet.get(documentIdentifier);
       if (components == null)
         return false;
@@ -1711,6 +1715,19 @@ public class WorkerThread extends Thread
       noDocument(documentIdentifier,version);
     }
 
+    /** Retain all existing document components of a primary document.  Use this method to signal that
+    * no document components need to be reindexed.  The default behavior is to remove
+    * components that are not mentioned during processing.
+    *@param documentIdentifier is the document's identifier.
+    */
+    @Override
+    public void retainAllComponentDocument(String documentIdentifier)
+      throws ManifoldCFException
+    {
+      checkAllComponentsMultipleDispositions(documentIdentifier);
+      touchAllComponentsSet(documentIdentifier);
+    }
+
     /** Delete the specified document from the search engine index, and from the status table.  This
     *  method does NOT keep track of version
     * information for the document and thus can lead to "churn", whereby the same document is queued, processed,
@@ -2124,6 +2141,17 @@ public class WorkerThread extends Thread
       return ManifoldCF.createJobSpecificString(jobID,simpleString);
     }
 
+    protected void checkAllComponentsMultipleDispositions(String documentIdentifier)
+    {
+      if (abortSet.contains(documentIdentifier))
+        throw new IllegalStateException("Multiple document dispositions not allowed: Abort cannot be combined with component disposition; document '"+documentIdentifier+"'");
+      if (documentDeletedSet.contains(documentIdentifier))
+        throw new IllegalStateException("Multiple document dispositions not allowed: Document delete cannot be combined with component disposition; document '"+documentIdentifier+"'");
+      Set<String> components = touchedComponentSet.get(documentIdentifier);
+      if (components != null && components.size() > 0)
+        throw new IllegalStateException("Multiple document dispositions not allowed: Retain all components cannot be combined with individual component disposition; document '"+documentIdentifier+"'");
+    }
+    
     protected void checkMultipleDispositions(String documentIdentifier, String componentIdentifier, String componentIdentifierHash)
     {
       if (abortSet.contains(documentIdentifier))
@@ -2138,10 +2166,17 @@ public class WorkerThread extends Thread
       }
       else
       {
+        if (allComponentsSet.contains(documentIdentifier))
+          throw new IllegalStateException("Multiple document component dispositions not allowed: document '"+documentIdentifier+"', component '"+componentIdentifier+"'");
         Set<String> components = touchedComponentSet.get(documentIdentifier);
         if (components != null && components.contains(componentIdentifierHash))
           throw new IllegalStateException("Multiple document component dispositions not allowed: document '"+documentIdentifier+"', component '"+componentIdentifier+"'");
       }
+    }
+    
+    protected void touchAllComponentsSet(String documentIdentifier)
+    {
+      allComponentsSet.add(documentIdentifier);
     }
     
     protected void touchComponentSet(String documentIdentifier, String componentIdentifierHash)
