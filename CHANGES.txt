@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-1116: Prevent requirement of unlimited handles for
+cached loads by limiting number of cached loads to 200 at a time.
+(Adrian Conlon, Karl Wright)
+
 CONNECTORS-1115: Add ability to retain all components of a document,
 so that individual ones do not need to be specified.
 (Markus Schuch, Karl Wright)

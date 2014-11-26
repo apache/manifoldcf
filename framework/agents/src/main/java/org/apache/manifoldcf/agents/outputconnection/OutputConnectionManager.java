@@ -196,12 +196,10 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       IResultSet set = performQuery("SELECT "+nameField+",lower("+nameField+") AS sortfield FROM "+getTableName()+" ORDER BY sortfield ASC",null,
         localCacheKeys,null);
       String[] names = new String[set.getRowCount()];
-      int i = 0;
-      while (i < names.length)
+      for (int i = 0; i < names.length; i++)
       {
         IResultRow row = set.getRow(i);
         names[i] = row.getValue(nameField).toString();
-        i++;
       }
       return loadMultiple(names);
     }
@@ -231,6 +229,8 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     return loadMultiple(new String[]{name})[0];
   }
 
+  protected final static int FETCH_MAX = 200;
+
   /** Load multiple output connections by name.
   *@param names are the names to load.
   *@return the loaded connection objects.
@@ -238,21 +238,46 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   public IOutputConnection[] loadMultiple(String[] names)
     throws ManifoldCFException
   {
+    IOutputConnection[] rval = new IOutputConnection[names.length];
+    if (names.length == 0)
+      return rval;
+    List<String> fetchNames = new ArrayList<String>();
+    int outputIndex = 0;
+    for (String name : names)
+    {
+      if (fetchNames.size() == FETCH_MAX)
+      {
+        outputIndex = loadMultipleInternal(rval,outputIndex,fetchNames);
+        fetchNames.clear();
+      }
+      fetchNames.add(name);
+    }
+    loadMultipleInternal(rval,outputIndex,fetchNames);
+    return rval;
+  }
+  
+  protected int loadMultipleInternal(IOutputConnection[] rval, int outputIndex, List<String> fetchNames)
+    throws ManifoldCFException
+  {
     // Build description objects
-    OutputConnectionDescription[] objectDescriptions = new OutputConnectionDescription[names.length];
-    int i = 0;
+    OutputConnectionDescription[] objectDescriptions = new OutputConnectionDescription[fetchNames.size()];
     StringSetBuffer ssb = new StringSetBuffer();
-    while (i < names.length)
+    for (int i = 0; i < fetchNames.size(); i++)
     {
       ssb.clear();
-      ssb.add(getOutputConnectionKey(names[i]));
-      objectDescriptions[i] = new OutputConnectionDescription(names[i],new StringSet(ssb));
-      i++;
+      String name = fetchNames.get(i);
+      ssb.add(getOutputConnectionKey(name));
+      objectDescriptions[i] = new OutputConnectionDescription(name,new StringSet(ssb));
     }
 
     OutputConnectionExecutor exec = new OutputConnectionExecutor(this,objectDescriptions);
     cacheManager.findObjectsAndExecute(objectDescriptions,null,exec,getTransactionID());
-    return exec.getResults();
+    IOutputConnection[] results = exec.getResults();
+    for (IOutputConnection result : results)
+    {
+      rval[outputIndex++] = result;
+    }
+    return outputIndex;
   }
 
   /** Create a new output connection object.

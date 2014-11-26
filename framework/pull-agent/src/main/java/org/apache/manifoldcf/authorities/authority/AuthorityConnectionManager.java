@@ -346,12 +346,10 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       sb.append(buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(authDomainField,authDomain)}));
       IResultSet set = performQuery(sb.toString(),list,localCacheKeys,null);
       String[] names = new String[set.getRowCount()];
-      int i = 0;
-      while (i < names.length)
+      for (int i = 0; i < names.length; i++)
       {
         IResultRow row = set.getRow(i);
         names[i] = row.getValue(nameField).toString();
-        i++;
       }
       return loadMultiple(names);
     }
@@ -388,12 +386,10 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       IResultSet set = performQuery("SELECT "+nameField+",lower("+nameField+") AS sortfield FROM "+getTableName()+" ORDER BY sortfield ASC",null,
         localCacheKeys,null);
       String[] names = new String[set.getRowCount()];
-      int i = 0;
-      while (i < names.length)
+      for (int i = 0; i < names.length; i++)
       {
         IResultRow row = set.getRow(i);
         names[i] = row.getValue(nameField).toString();
-        i++;
       }
       return loadMultiple(names);
     }
@@ -424,6 +420,8 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     return loadMultiple(new String[]{name})[0];
   }
 
+  protected final static int FETCH_MAX = 200;
+
   /** Load multiple repository connections by name.
   *@param names are the names to load.
   *@return the loaded connection objects.
@@ -432,21 +430,46 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   public IAuthorityConnection[] loadMultiple(String[] names)
     throws ManifoldCFException
   {
+    IAuthorityConnection[] rval = new IAuthorityConnection[names.length];
+    if (names.length == 0)
+      return rval;
+    List<String> fetchNames = new ArrayList<String>();
+    int outputIndex = 0;
+    for (String name : names)
+    {
+      if (fetchNames.size() == FETCH_MAX)
+      {
+        outputIndex = loadMultipleInternal(rval,outputIndex,fetchNames);
+        fetchNames.clear();
+      }
+      fetchNames.add(name);
+    }
+    loadMultipleInternal(rval,outputIndex,fetchNames);
+    return rval;
+  }
+  
+  protected int loadMultipleInternal(IAuthorityConnection[] rval, int outputIndex, List<String> fetchNames)
+    throws ManifoldCFException
+  {
     // Build description objects
-    AuthorityConnectionDescription[] objectDescriptions = new AuthorityConnectionDescription[names.length];
-    int i = 0;
+    AuthorityConnectionDescription[] objectDescriptions = new AuthorityConnectionDescription[fetchNames.size()];
     StringSetBuffer ssb = new StringSetBuffer();
-    while (i < names.length)
+    for (int i = 0; i < fetchNames.size(); i++)
     {
       ssb.clear();
-      ssb.add(getAuthorityConnectionKey(names[i]));
-      objectDescriptions[i] = new AuthorityConnectionDescription(names[i],new StringSet(ssb));
-      i++;
+      String name = fetchNames.get(i);
+      ssb.add(getAuthorityConnectionKey(name));
+      objectDescriptions[i] = new AuthorityConnectionDescription(name,new StringSet(ssb));
     }
 
     AuthorityConnectionExecutor exec = new AuthorityConnectionExecutor(this,objectDescriptions);
     cacheManager.findObjectsAndExecute(objectDescriptions,null,exec,getTransactionID());
-    return exec.getResults();
+    IAuthorityConnection[] results = exec.getResults();
+    for (IAuthorityConnection result : results)
+    {
+      rval[outputIndex++] = result;
+    }
+    return outputIndex;
   }
 
   /** Create a new repository connection object.
