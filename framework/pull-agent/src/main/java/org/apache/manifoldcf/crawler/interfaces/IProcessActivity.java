@@ -224,6 +224,14 @@ public interface IProcessActivity extends IVersionActivity
     String componentIdentifier)
     throws ManifoldCFException;
 
+  /** Retain all existing document components of a primary document.  Use this method to signal that
+  * no document components need to be reindexed.  The default behavior is to remove
+  * components that are not mentioned during processing.
+  *@param documentIdentifier is the document's identifier.
+  */
+  public void retainAllComponentDocument(String documentIdentifier)
+    throws ManifoldCFException;
+
   /** Record a document version, WITHOUT reindexing it, or removing it.  (Other
   * documents with the same URL, however, will still be removed.)  This is
   * useful if the version string changes but the document contents are known not
