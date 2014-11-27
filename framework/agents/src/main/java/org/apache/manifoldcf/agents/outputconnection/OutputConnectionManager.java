@@ -241,31 +241,27 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     IOutputConnection[] rval = new IOutputConnection[names.length];
     if (names.length == 0)
       return rval;
-    List<String> fetchNames = new ArrayList<String>();
+    int inputIndex = 0;
     int outputIndex = 0;
-    for (String name : names)
+    while (names.length - inputIndex > FETCH_MAX)
     {
-      if (fetchNames.size() == FETCH_MAX)
-      {
-        outputIndex = loadMultipleInternal(rval,outputIndex,fetchNames);
-        fetchNames.clear();
-      }
-      fetchNames.add(name);
+      outputIndex = loadMultipleInternal(rval,outputIndex,names,inputIndex,FETCH_MAX);
+      inputIndex += FETCH_MAX;
     }
-    loadMultipleInternal(rval,outputIndex,fetchNames);
+    loadMultipleInternal(rval,outputIndex,names,inputIndex,names.length-inputIndex);
     return rval;
   }
   
-  protected int loadMultipleInternal(IOutputConnection[] rval, int outputIndex, List<String> fetchNames)
+  protected int loadMultipleInternal(IOutputConnection[] rval, int outputIndex, String[] fetchNames, int inputIndex, int length)
     throws ManifoldCFException
   {
     // Build description objects
-    OutputConnectionDescription[] objectDescriptions = new OutputConnectionDescription[fetchNames.size()];
+    OutputConnectionDescription[] objectDescriptions = new OutputConnectionDescription[length];
     StringSetBuffer ssb = new StringSetBuffer();
-    for (int i = 0; i < fetchNames.size(); i++)
+    for (int i = 0; i < length; i++)
     {
       ssb.clear();
-      String name = fetchNames.get(i);
+      String name = fetchNames[inputIndex + i];
       ssb.add(getOutputConnectionKey(name));
       objectDescriptions[i] = new OutputConnectionDescription(name,new StringSet(ssb));
     }

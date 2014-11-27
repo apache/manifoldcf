@@ -359,31 +359,27 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     IRepositoryConnection[] rval = new IRepositoryConnection[names.length];
     if (names.length == 0)
       return rval;
-    List<String> fetchNames = new ArrayList<String>();
+    int inputIndex = 0;
     int outputIndex = 0;
-    for (String name : names)
+    while (names.length - inputIndex > FETCH_MAX)
     {
-      if (fetchNames.size() == FETCH_MAX)
-      {
-        outputIndex = loadMultipleInternal(rval,outputIndex,fetchNames);
-        fetchNames.clear();
-      }
-      fetchNames.add(name);
+      outputIndex = loadMultipleInternal(rval,outputIndex,names,inputIndex,FETCH_MAX);
+      inputIndex += FETCH_MAX;
     }
-    loadMultipleInternal(rval,outputIndex,fetchNames);
+    loadMultipleInternal(rval,outputIndex,names,inputIndex,names.length-inputIndex);
     return rval;
   }
   
-  protected int loadMultipleInternal(IRepositoryConnection[] rval, int outputIndex, List<String> fetchNames)
+  protected int loadMultipleInternal(IRepositoryConnection[] rval, int outputIndex, String[] fetchNames, int inputIndex, int length)
     throws ManifoldCFException
   {
     // Build description objects
-    RepositoryConnectionDescription[] objectDescriptions = new RepositoryConnectionDescription[fetchNames.size()];
+    RepositoryConnectionDescription[] objectDescriptions = new RepositoryConnectionDescription[length];
     StringSetBuffer ssb = new StringSetBuffer();
-    for (int i = 0; i < fetchNames.size(); i++)
+    for (int i = 0; i < length; i++)
     {
       ssb.clear();
-      String name = fetchNames.get(i);
+      String name = fetchNames[inputIndex + i];
       ssb.add(getRepositoryConnectionKey(name));
       objectDescriptions[i] = new RepositoryConnectionDescription(name,new StringSet(ssb));
     }
