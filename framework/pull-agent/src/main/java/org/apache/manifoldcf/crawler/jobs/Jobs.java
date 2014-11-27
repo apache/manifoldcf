@@ -738,7 +738,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   // Only fetch 200 jobs at a time, for resource reasons
-  protected final int MAX_FETCH = 200;
+  protected final int FETCH_MAX = 200;
 
   /** Get a list of all jobs which are not in the process of being deleted already.
   *@return the array of all jobs.
@@ -916,34 +916,27 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     IJobDescription[] rval = new IJobDescription[ids.length];
     if (ids.length == 0)
       return rval;
-    
-    List<Long> idsToDo = new ArrayList<Long>();
-    List<Boolean> readOnliesToDo = new ArrayList<Boolean>();
+
+    int inputIndex = 0;
     int outputIndex = 0;
-    for (int i = 0; i < ids.length; i++)
+    while (ids.length - inputIndex > FETCH_MAX)
     {
-      if (idsToDo.size() == MAX_FETCH)
-      {
-        outputIndex = loadMultipleInternal(rval,outputIndex,idsToDo,readOnliesToDo);
-        idsToDo.clear();
-        readOnliesToDo.clear();
-      }
-      idsToDo.add(ids[i]);
-      readOnliesToDo.add(readOnlies[i]);
+      outputIndex = loadMultipleInternal(rval,outputIndex,ids,readOnlies,inputIndex,FETCH_MAX);
+      inputIndex += FETCH_MAX;
     }
-    loadMultipleInternal(rval,outputIndex,idsToDo,readOnliesToDo);
+    loadMultipleInternal(rval,outputIndex,ids,readOnlies,inputIndex,ids.length-inputIndex);
     return rval;
   }
 
-  protected int loadMultipleInternal(IJobDescription[] rval, int outputIndex, List<Long> ids, List<Boolean> readOnlies)
+  protected int loadMultipleInternal(IJobDescription[] rval, int outputIndex, Long[] ids, boolean[] readOnlies, int inputIndex, int length)
     throws ManifoldCFException
   {
     // Build description objects
-    JobObjectDescription[] objectDescriptions = new JobObjectDescription[ids.size()];
+    JobObjectDescription[] objectDescriptions = new JobObjectDescription[length];
     StringSetBuffer ssb = new StringSetBuffer();
-    for (int i = 0; i < ids.size(); i++)
+    for (int i = 0; i < length; i++)
     {
-      Long id = ids.get(i);
+      Long id = ids[inputIndex + i];
       ssb.clear();
       ssb.add(getJobIDKey(id));
       objectDescriptions[i] = new JobObjectDescription(id,new StringSet(ssb));
@@ -951,7 +944,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
     JobObjectExecutor exec = new JobObjectExecutor(this,objectDescriptions);
     cacheManager.findObjectsAndExecute(objectDescriptions,null,exec,getTransactionID());
-    IJobDescription[] results = exec.getResults(readOnlies);
+    IJobDescription[] results = exec.getResults(readOnlies,inputIndex);
     for (IJobDescription result : results)
     {
       rval[outputIndex++] = result;
@@ -3714,14 +3707,14 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     /** Get the result.
     *@return the looked-up or read cached instances.
     */
-    public JobDescription[] getResults(List<Boolean> readOnlies)
+    public JobDescription[] getResults(boolean[] readOnlies, int inputIndex)
     {
       JobDescription[] rval = new JobDescription[returnValues.length];
       for (int i = 0; i < rval.length; i++)
       {
         JobDescription jd = returnValues[i];
         if (jd != null)
-          rval[i] = jd.duplicate(readOnlies.get(i));
+          rval[i] = jd.duplicate(readOnlies[inputIndex + i]);
         else
           rval[i] = null;
       }

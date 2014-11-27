@@ -241,32 +241,27 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
     ITransformationConnection[] rval = new ITransformationConnection[names.length];
     if (names.length == 0)
       return rval;
-    List<String> fetchNames = new ArrayList<String>();
+    int inputIndex = 0;
     int outputIndex = 0;
-    for (String name : names)
+    while (names.length - inputIndex > FETCH_MAX)
     {
-      if (fetchNames.size() == FETCH_MAX)
-      {
-        outputIndex = loadMultipleInternal(rval,outputIndex,fetchNames);
-        fetchNames.clear();
-      }
-      fetchNames.add(name);
+      outputIndex = loadMultipleInternal(rval,outputIndex,names,inputIndex,FETCH_MAX);
+      inputIndex += FETCH_MAX;
     }
-    loadMultipleInternal(rval,outputIndex,fetchNames);
+    loadMultipleInternal(rval,outputIndex,names,inputIndex,names.length-inputIndex);
     return rval;
   }
   
-  protected int loadMultipleInternal(ITransformationConnection[] rval, int outputIndex, List<String> fetchNames)
+  protected int loadMultipleInternal(ITransformationConnection[] rval, int outputIndex, String[] fetchNames, int inputIndex, int length)
     throws ManifoldCFException
   {
-
     // Build description objects
-    TransformationConnectionDescription[] objectDescriptions = new TransformationConnectionDescription[fetchNames.size()];
+    TransformationConnectionDescription[] objectDescriptions = new TransformationConnectionDescription[length];
     StringSetBuffer ssb = new StringSetBuffer();
-    for (int i = 0; i < fetchNames.size(); i++)
+    for (int i = 0; i < length; i++)
     {
       ssb.clear();
-      String name = fetchNames.get(i);
+      String name = fetchNames[inputIndex + i];
       ssb.add(getTransformationConnectionKey(name));
       objectDescriptions[i] = new TransformationConnectionDescription(name,new StringSet(ssb));
     }
