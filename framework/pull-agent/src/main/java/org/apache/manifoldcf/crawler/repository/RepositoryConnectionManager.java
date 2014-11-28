@@ -67,14 +67,18 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   protected static Random random = new Random();
 
   // Handle for repository history manager
-  protected RepositoryHistoryManager historyManager;
+  protected final RepositoryHistoryManager historyManager;
   // Handle for throttle spec storage
-  protected ThrottleSpecManager throttleSpecManager;
+  protected final ThrottleSpecManager throttleSpecManager;
 
   // Cache manager
-  ICacheManager cacheManager;
+  protected final ICacheManager cacheManager;
   // Thread context
-  IThreadContext threadContext;
+  protected final IThreadContext threadContext;
+  // Lock manager
+  protected final ILockManager lockManager;
+  
+  protected final String repositoriesLock = "REPOSITORIES_LOCK";
   
   /** Constructor.
   *@param threadContext is the thread context.
@@ -87,6 +91,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     historyManager = new RepositoryHistoryManager(threadContext,database);
     throttleSpecManager = new ThrottleSpecManager(database);
     cacheManager = CacheManagerFactory.make(threadContext);
+    lockManager = LockManagerFactory.make(threadContext);
     this.threadContext = threadContext;
   }
 
@@ -256,7 +261,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   public IRepositoryConnection[] getAllConnections()
     throws ManifoldCFException
   {
-    beginTransaction();
+    lockManager.enterReadLock(repositoriesLock);
     try
     {
       // Read all the tools
@@ -273,19 +278,9 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       }
       return loadMultiple(names);
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
     finally
     {
-      endTransaction();
+      lockManager.leaveReadLock(repositoriesLock);
     }
   }
 
@@ -363,116 +358,124 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   public boolean save(IRepositoryConnection object)
     throws ManifoldCFException
   {
-    StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getRepositoryConnectionsKey());
-    ssb.add(getRepositoryConnectionKey(object.getName()));
-    StringSet cacheKeys = new StringSet(ssb);
-    while (true)
+    lockManager.enterWriteLock(repositoriesLock);
+    try
     {
-      // Catch deadlock condition
-      long sleepAmt = 0L;
-      try
+      StringSetBuffer ssb = new StringSetBuffer();
+      ssb.add(getRepositoryConnectionsKey());
+      ssb.add(getRepositoryConnectionKey(object.getName()));
+      StringSet cacheKeys = new StringSet(ssb);
+      while (true)
       {
-        ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
+        // Catch deadlock condition
+        long sleepAmt = 0L;
         try
         {
-          beginTransaction();
+          ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
           try
           {
-            //performLock();
-            // Notify of a change to the configuration
-            ManifoldCF.noteConfigurationChange();
-            boolean isNew = object.getIsNew();
-            // See whether the instance exists
-            ArrayList params = new ArrayList();
-            String query = buildConjunctionClause(params,new ClauseDescription[]{
-              new UnitaryClause(nameField,object.getName())});
-            IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-              query+" FOR UPDATE",params,null,null);
-            HashMap values = new HashMap();
-            values.put(descriptionField,object.getDescription());
-            values.put(classNameField,object.getClassName());
-            values.put(groupNameField,object.getACLAuthority());
-            values.put(maxCountField,new Long((long)object.getMaxConnections()));
-            String configXML = object.getConfigParams().toXML();
-            values.put(configField,configXML);
-            boolean notificationNeeded = false;
-            boolean isCreated;
-            
-            if (set.getRowCount() > 0)
+            beginTransaction();
+            try
             {
-              // If the object is supposedly new, it is bad that we found one that already exists.
-              if (isNew)
-                throw new ManifoldCFException("Repository connection '"+object.getName()+"' already exists");
-              isCreated = false;
-              IResultRow row = set.getRow(0);
-              String oldXML = (String)row.getValue(configField);
-              if (oldXML == null || !oldXML.equals(configXML))
-                notificationNeeded = true;
-              
-              // Update
-              params.clear();
-              query = buildConjunctionClause(params,new ClauseDescription[]{
+              //performLock();
+              // Notify of a change to the configuration
+              ManifoldCF.noteConfigurationChange();
+              boolean isNew = object.getIsNew();
+              // See whether the instance exists
+              ArrayList params = new ArrayList();
+              String query = buildConjunctionClause(params,new ClauseDescription[]{
                 new UnitaryClause(nameField,object.getName())});
-              performUpdate(values," WHERE "+query,params,null);
-              throttleSpecManager.deleteRows(object.getName());
+              IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+                query+" FOR UPDATE",params,null,null);
+              HashMap values = new HashMap();
+              values.put(descriptionField,object.getDescription());
+              values.put(classNameField,object.getClassName());
+              values.put(groupNameField,object.getACLAuthority());
+              values.put(maxCountField,new Long((long)object.getMaxConnections()));
+              String configXML = object.getConfigParams().toXML();
+              values.put(configField,configXML);
+              boolean notificationNeeded = false;
+              boolean isCreated;
+              
+              if (set.getRowCount() > 0)
+              {
+                // If the object is supposedly new, it is bad that we found one that already exists.
+                if (isNew)
+                  throw new ManifoldCFException("Repository connection '"+object.getName()+"' already exists");
+                isCreated = false;
+                IResultRow row = set.getRow(0);
+                String oldXML = (String)row.getValue(configField);
+                if (oldXML == null || !oldXML.equals(configXML))
+                  notificationNeeded = true;
+                
+                // Update
+                params.clear();
+                query = buildConjunctionClause(params,new ClauseDescription[]{
+                  new UnitaryClause(nameField,object.getName())});
+                performUpdate(values," WHERE "+query,params,null);
+                throttleSpecManager.deleteRows(object.getName());
+              }
+              else
+              {
+                // If the object is not supposed to be new, it is bad that we did not find one.
+                if (!isNew)
+                  throw new ManifoldCFException("Repository connection '"+object.getName()+"' no longer exists");
+                isCreated = true;
+                // Insert
+                values.put(nameField,object.getName());
+                // We only need the general key because this is new.
+                performInsert(values,null);
+              }
+
+              // Write secondary table stuff
+              throttleSpecManager.writeRows(object.getName(),object);
+
+              // If notification required, do it.
+              if (notificationNeeded)
+              {
+                IJobManager jobManager = JobManagerFactory.make(threadContext);
+                jobManager.noteConnectionChange(object.getName());
+              }
+
+              cacheManager.invalidateKeys(ch);
+              return isCreated;
             }
-            else
+            catch (ManifoldCFException e)
             {
-              // If the object is not supposed to be new, it is bad that we did not find one.
-              if (!isNew)
-                throw new ManifoldCFException("Repository connection '"+object.getName()+"' no longer exists");
-              isCreated = true;
-              // Insert
-              values.put(nameField,object.getName());
-              // We only need the general key because this is new.
-              performInsert(values,null);
+              signalRollback();
+              throw e;
             }
-
-            // Write secondary table stuff
-            throttleSpecManager.writeRows(object.getName(),object);
-
-            // If notification required, do it.
-            if (notificationNeeded)
+            catch (Error e)
             {
-              IJobManager jobManager = JobManagerFactory.make(threadContext);
-              jobManager.noteConnectionChange(object.getName());
+              signalRollback();
+              throw e;
             }
-
-            cacheManager.invalidateKeys(ch);
-            return isCreated;
-          }
-          catch (ManifoldCFException e)
-          {
-            signalRollback();
-            throw e;
-          }
-          catch (Error e)
-          {
-            signalRollback();
-            throw e;
+            finally
+            {
+              endTransaction();
+            }
           }
           finally
           {
-            endTransaction();
+            cacheManager.leaveCache(ch);
           }
+        }
+        catch (ManifoldCFException e)
+        {
+          // Is this a deadlock exception?  If so, we want to try again.
+          if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+            throw e;
+          sleepAmt = getSleepAmt();
         }
         finally
         {
-          cacheManager.leaveCache(ch);
+          sleepFor(sleepAmt);
         }
       }
-      catch (ManifoldCFException e)
-      {
-        // Is this a deadlock exception?  If so, we want to try again.
-        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-          throw e;
-        sleepAmt = getSleepAmt();
-      }
-      finally
-      {
-        sleepFor(sleepAmt);
-      }
+    }
+    finally
+    {
+      lockManager.leaveWriteLock(repositoriesLock);
     }
   }
 
@@ -485,49 +488,55 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   {
     // Grab a job manager handle.  We will need to check if any jobs refer to this connection.
     IJobManager jobManager = JobManagerFactory.make(threadContext);
-
-    StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getRepositoryConnectionsKey());
-    ssb.add(getRepositoryConnectionKey(name));
-    StringSet cacheKeys = new StringSet(ssb);
-    ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
+    lockManager.enterWriteLock(repositoriesLock);
     try
     {
-      beginTransaction();
+      StringSetBuffer ssb = new StringSetBuffer();
+      ssb.add(getRepositoryConnectionsKey());
+      ssb.add(getRepositoryConnectionKey(name));
+      StringSet cacheKeys = new StringSet(ssb);
+      ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
       try
       {
-        // Check if any jobs refer to this connection name
-        if (jobManager.checkIfReference(name))
-          throw new ManifoldCFException("Can't delete repository connection '"+name+"': existing jobs refer to it");
-        ManifoldCF.noteConfigurationChange();
-        throttleSpecManager.deleteRows(name);
-        historyManager.deleteOwner(name);
-        ArrayList params = new ArrayList();
-        String query = buildConjunctionClause(params,new ClauseDescription[]{
-          new UnitaryClause(nameField,name)});
-        performDelete("WHERE "+query,params,null);
-        cacheManager.invalidateKeys(ch);
-      }
-      catch (ManifoldCFException e)
-      {
-        signalRollback();
-        throw e;
-      }
-      catch (Error e)
-      {
-        signalRollback();
-        throw e;
+        beginTransaction();
+        try
+        {
+          // Check if any jobs refer to this connection name
+          if (jobManager.checkIfReference(name))
+            throw new ManifoldCFException("Can't delete repository connection '"+name+"': existing jobs refer to it");
+          ManifoldCF.noteConfigurationChange();
+          throttleSpecManager.deleteRows(name);
+          historyManager.deleteOwner(name);
+          ArrayList params = new ArrayList();
+          String query = buildConjunctionClause(params,new ClauseDescription[]{
+            new UnitaryClause(nameField,name)});
+          performDelete("WHERE "+query,params,null);
+          cacheManager.invalidateKeys(ch);
+        }
+        catch (ManifoldCFException e)
+        {
+          signalRollback();
+          throw e;
+        }
+        catch (Error e)
+        {
+          signalRollback();
+          throw e;
+        }
+        finally
+        {
+          endTransaction();
+        }
       }
       finally
       {
-        endTransaction();
+        cacheManager.leaveCache(ch);
       }
     }
     finally
     {
-      cacheManager.leaveCache(ch);
+      lockManager.leaveWriteLock(repositoriesLock);
     }
-
   }
 
   /** Return true if the specified authority name is referenced.

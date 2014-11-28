@@ -55,10 +55,14 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   protected final static String mappingField = "mappingname";
 
   // Cache manager
-  ICacheManager cacheManager;
+  protected final ICacheManager cacheManager;
   // Thread context
-  IThreadContext threadContext;
-
+  protected final IThreadContext threadContext;
+  // Lock manager
+  protected final ILockManager lockManager;
+  
+  protected final static String mappingsLock = "MAPPINGS_LOCK";
+  
   /** Constructor.
   *@param threadContext is the thread context.
   */
@@ -68,6 +72,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
     super(database,"mapconnections");
 
     cacheManager = CacheManagerFactory.make(threadContext);
+    lockManager = LockManagerFactory.make(threadContext);
     this.threadContext = threadContext;
   }
 
@@ -288,7 +293,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   public IMappingConnection[] getAllConnections()
     throws ManifoldCFException
   {
-    beginTransaction();
+    lockManager.enterReadLock(mappingsLock);
     try
     {
       // Read all the tools
@@ -305,19 +310,9 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
       }
       return loadMultiple(names);
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
     finally
     {
-      endTransaction();
+      lockManager.leaveReadLock(mappingsLock);
     }
   }
 
@@ -399,97 +394,105 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   public boolean save(IMappingConnection object)
     throws ManifoldCFException
   {
-    StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getMappingConnectionsKey());
-    ssb.add(getMappingConnectionKey(object.getName()));
-    StringSet cacheKeys = new StringSet(ssb);
-    while (true)
+    lockManager.enterWriteLock(mappingsLock);
+    try
     {
-      long sleepAmt = 0L;
-      try
+      StringSetBuffer ssb = new StringSetBuffer();
+      ssb.add(getMappingConnectionsKey());
+      ssb.add(getMappingConnectionKey(object.getName()));
+      StringSet cacheKeys = new StringSet(ssb);
+      while (true)
       {
-        ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
+        long sleepAmt = 0L;
         try
         {
-          beginTransaction();
+          ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
           try
           {
-            //performLock();
-            ManifoldCF.noteConfigurationChange();
-            boolean isNew = object.getIsNew();
-            // See whether the instance exists
-            ArrayList params = new ArrayList();
-            String query = buildConjunctionClause(params,new ClauseDescription[]{
-              new UnitaryClause(nameField,object.getName())});
-            IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-              query+" FOR UPDATE",params,null,null);
-            HashMap values = new HashMap();
-            values.put(descriptionField,object.getDescription());
-            values.put(classNameField,object.getClassName());
-            values.put(maxCountField,new Long((long)object.getMaxConnections()));
-            values.put(configField,object.getConfigParams().toXML());
-            values.put(mappingField,object.getPrerequisiteMapping());
-
-            boolean isCreated;
-            
-            if (set.getRowCount() > 0)
+            beginTransaction();
+            try
             {
-              // If the object is supposedly new, it is bad that we found one that already exists.
-              if (isNew)
-                throw new ManifoldCFException("Authority connection '"+object.getName()+"' already exists");
-              isCreated = false;
-              // Update
-              params.clear();
-              query = buildConjunctionClause(params,new ClauseDescription[]{
+              //performLock();
+              ManifoldCF.noteConfigurationChange();
+              boolean isNew = object.getIsNew();
+              // See whether the instance exists
+              ArrayList params = new ArrayList();
+              String query = buildConjunctionClause(params,new ClauseDescription[]{
                 new UnitaryClause(nameField,object.getName())});
-              performUpdate(values," WHERE "+query,params,null);
-            }
-            else
-            {
-              // If the object is not supposed to be new, it is bad that we did not find one.
-              if (!isNew)
-                throw new ManifoldCFException("Mapping connection '"+object.getName()+"' no longer exists");
-              isCreated = true;
-              // Insert
-              values.put(nameField,object.getName());
-              // We only need the general key because this is new.
-              performInsert(values,null);
-            }
+              IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+                query+" FOR UPDATE",params,null,null);
+              HashMap values = new HashMap();
+              values.put(descriptionField,object.getDescription());
+              values.put(classNameField,object.getClassName());
+              values.put(maxCountField,new Long((long)object.getMaxConnections()));
+              values.put(configField,object.getConfigParams().toXML());
+              values.put(mappingField,object.getPrerequisiteMapping());
 
-            cacheManager.invalidateKeys(ch);
-            return isCreated;
-          }
-          catch (ManifoldCFException e)
-          {
-            signalRollback();
-            throw e;
-          }
-          catch (Error e)
-          {
-            signalRollback();
-            throw e;
+              boolean isCreated;
+              
+              if (set.getRowCount() > 0)
+              {
+                // If the object is supposedly new, it is bad that we found one that already exists.
+                if (isNew)
+                  throw new ManifoldCFException("Authority connection '"+object.getName()+"' already exists");
+                isCreated = false;
+                // Update
+                params.clear();
+                query = buildConjunctionClause(params,new ClauseDescription[]{
+                  new UnitaryClause(nameField,object.getName())});
+                performUpdate(values," WHERE "+query,params,null);
+              }
+              else
+              {
+                // If the object is not supposed to be new, it is bad that we did not find one.
+                if (!isNew)
+                  throw new ManifoldCFException("Mapping connection '"+object.getName()+"' no longer exists");
+                isCreated = true;
+                // Insert
+                values.put(nameField,object.getName());
+                // We only need the general key because this is new.
+                performInsert(values,null);
+              }
+
+              cacheManager.invalidateKeys(ch);
+              return isCreated;
+            }
+            catch (ManifoldCFException e)
+            {
+              signalRollback();
+              throw e;
+            }
+            catch (Error e)
+            {
+              signalRollback();
+              throw e;
+            }
+            finally
+            {
+              endTransaction();
+            }
           }
           finally
           {
-            endTransaction();
+            cacheManager.leaveCache(ch);
           }
+        }
+        catch (ManifoldCFException e)
+        {
+          // Is this a deadlock exception?  If so, we want to try again.
+          if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+            throw e;
+          sleepAmt = getSleepAmt();
         }
         finally
         {
-          cacheManager.leaveCache(ch);
+          sleepFor(sleepAmt);
         }
       }
-      catch (ManifoldCFException e)
-      {
-        // Is this a deadlock exception?  If so, we want to try again.
-        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-          throw e;
-        sleepAmt = getSleepAmt();
-      }
-      finally
-      {
-        sleepFor(sleepAmt);
-      }
+    }
+    finally
+    {
+      lockManager.leaveWriteLock(mappingsLock);
     }
   }
 
@@ -505,48 +508,55 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
     // Grab authority connection manager handle, to check on legality of deletion.
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
 
-    StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getMappingConnectionsKey());
-    ssb.add(getMappingConnectionKey(name));
-    StringSet cacheKeys = new StringSet(ssb);
-    ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
+    lockManager.enterWriteLock(mappingsLock);
     try
     {
-      beginTransaction();
+      StringSetBuffer ssb = new StringSetBuffer();
+      ssb.add(getMappingConnectionsKey());
+      ssb.add(getMappingConnectionKey(name));
+      StringSet cacheKeys = new StringSet(ssb);
+      ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
       try
       {
-        // Check if any other mapping refers to this connection name
-        if (isReferenced(name))
-          throw new ManifoldCFException("Can't delete mapping connection '"+name+"': existing mapping connections refer to it");
-        if (authManager.isMappingReferenced(name))
-          throw new ManifoldCFException("Can't delete mapping connection '"+name+"': existing authority connections refer to it");
-        ManifoldCF.noteConfigurationChange();
-        ArrayList params = new ArrayList();
-        String query = buildConjunctionClause(params,new ClauseDescription[]{
-          new UnitaryClause(nameField,name)});
-        performDelete("WHERE "+query,params,null);
-        cacheManager.invalidateKeys(ch);
-      }
-      catch (ManifoldCFException e)
-      {
-        signalRollback();
-        throw e;
-      }
-      catch (Error e)
-      {
-        signalRollback();
-        throw e;
+        beginTransaction();
+        try
+        {
+          // Check if any other mapping refers to this connection name
+          if (isReferenced(name))
+            throw new ManifoldCFException("Can't delete mapping connection '"+name+"': existing mapping connections refer to it");
+          if (authManager.isMappingReferenced(name))
+            throw new ManifoldCFException("Can't delete mapping connection '"+name+"': existing authority connections refer to it");
+          ManifoldCF.noteConfigurationChange();
+          ArrayList params = new ArrayList();
+          String query = buildConjunctionClause(params,new ClauseDescription[]{
+            new UnitaryClause(nameField,name)});
+          performDelete("WHERE "+query,params,null);
+          cacheManager.invalidateKeys(ch);
+        }
+        catch (ManifoldCFException e)
+        {
+          signalRollback();
+          throw e;
+        }
+        catch (Error e)
+        {
+          signalRollback();
+          throw e;
+        }
+        finally
+        {
+          endTransaction();
+        }
       }
       finally
       {
-        endTransaction();
+        cacheManager.leaveCache(ch);
       }
     }
     finally
     {
-      cacheManager.leaveCache(ch);
+      lockManager.leaveWriteLock(mappingsLock);
     }
-
   }
 
   /** Get the mapping connection name column.
