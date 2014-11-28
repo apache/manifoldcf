@@ -288,17 +288,17 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
   public boolean save(ITransformationConnection object)
     throws ManifoldCFException
   {
-    lockManager.enterWriteLock(transformationsLock);
-    try
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getTransformationConnectionsKey());
+    ssb.add(getTransformationConnectionKey(object.getName()));
+    StringSet cacheKeys = new StringSet(ssb);
+    while (true)
     {
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getTransformationConnectionsKey());
-      ssb.add(getTransformationConnectionKey(object.getName()));
-      StringSet cacheKeys = new StringSet(ssb);
-      while (true)
+      // Catch deadlock condition
+      long sleepAmt = 0L;
+      try
       {
-        // Catch deadlock condition
-        long sleepAmt = 0L;
+        lockManager.enterNonExWriteLock(transformationsLock);
         try
         {
           ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
@@ -382,22 +382,22 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
             cacheManager.leaveCache(ch);
           }
         }
-        catch (ManifoldCFException e)
-        {
-          // Is this a deadlock exception?  If so, we want to try again.
-          if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-            throw e;
-          sleepAmt = getSleepAmt();
-        }
         finally
         {
-          sleepFor(sleepAmt);
+          lockManager.leaveNonExWriteLock(transformationsLock);
         }
       }
-    }
-    finally
-    {
-      lockManager.leaveWriteLock(transformationsLock);
+      catch (ManifoldCFException e)
+      {
+        // Is this a deadlock exception?  If so, we want to try again.
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        sleepAmt = getSleepAmt();
+      }
+      finally
+      {
+        sleepFor(sleepAmt);
+      }
     }
   }
 
@@ -408,13 +408,13 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
   public void delete(String name)
     throws ManifoldCFException
   {
-    lockManager.enterWriteLock(transformationsLock);
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getTransformationConnectionsKey());
+    ssb.add(getTransformationConnectionKey(name));
+    StringSet cacheKeys = new StringSet(ssb);
+    lockManager.enterNonExWriteLock(transformationsLock);
     try
     {
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getTransformationConnectionsKey());
-      ssb.add(getTransformationConnectionKey(name));
-      StringSet cacheKeys = new StringSet(ssb);
       ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
       try
       {
@@ -453,7 +453,7 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
     }
     finally
     {
-      lockManager.leaveWriteLock(transformationsLock);
+      lockManager.leaveNonExWriteLock(transformationsLock);
     }
   }
 
