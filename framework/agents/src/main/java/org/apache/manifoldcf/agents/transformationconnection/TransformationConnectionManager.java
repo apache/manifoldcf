@@ -62,7 +62,11 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
   protected final ICacheManager cacheManager;
   // Thread context
   protected final IThreadContext threadContext;
-
+  // Lock manager
+  protected final ILockManager lockManager;
+  
+  protected final static String transformationsLock = "TRANSFORMATIONS_LOCK";
+  
   /** Constructor.
   *@param threadContext is the thread context.
   */
@@ -72,6 +76,7 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
     super(database,"transformationconnections");
 
     cacheManager = CacheManagerFactory.make(threadContext);
+    lockManager = LockManagerFactory.make(threadContext);
     this.threadContext = threadContext;
   }
 
@@ -186,7 +191,7 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
   public ITransformationConnection[] getAllConnections()
     throws ManifoldCFException
   {
-    beginTransaction();
+    lockManager.enterReadLock(transformationsLock);
     try
     {
       // Read all the tools
@@ -203,19 +208,9 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
       }
       return loadMultiple(names);
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
     finally
     {
-      endTransaction();
+      lockManager.leaveReadLock(transformationsLock);
     }
   }
 
@@ -293,108 +288,116 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
   public boolean save(ITransformationConnection object)
     throws ManifoldCFException
   {
-    StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getTransformationConnectionsKey());
-    ssb.add(getTransformationConnectionKey(object.getName()));
-    StringSet cacheKeys = new StringSet(ssb);
-    while (true)
+    lockManager.enterWriteLock(transformationsLock);
+    try
     {
-      // Catch deadlock condition
-      long sleepAmt = 0L;
-      try
+      StringSetBuffer ssb = new StringSetBuffer();
+      ssb.add(getTransformationConnectionsKey());
+      ssb.add(getTransformationConnectionKey(object.getName()));
+      StringSet cacheKeys = new StringSet(ssb);
+      while (true)
       {
-        ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
+        // Catch deadlock condition
+        long sleepAmt = 0L;
         try
         {
-          beginTransaction();
+          ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
           try
           {
-            //performLock();
-            // Notify of a change to the configuration
-            ManifoldCF.noteConfigurationChange();
-            boolean isNew = object.getIsNew();
-            // See whether the instance exists
-            ArrayList params = new ArrayList();
-            String query = buildConjunctionClause(params,new ClauseDescription[]{
-              new UnitaryClause(nameField,object.getName())});
-            IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-              query+" FOR UPDATE",params,null,null);
-            HashMap values = new HashMap();
-            values.put(descriptionField,object.getDescription());
-            values.put(classNameField,object.getClassName());
-            values.put(maxCountField,new Long((long)object.getMaxConnections()));
-            String configXML = object.getConfigParams().toXML();
-            values.put(configField,configXML);
-            boolean notificationNeeded = false;
-            boolean isCreated;
-            
-            if (set.getRowCount() > 0)
+            beginTransaction();
+            try
             {
-              // If the object is supposedly new, it is bad that we found one that already exists.
-              if (isNew)
-                throw new ManifoldCFException("Transformation connection '"+object.getName()+"' already exists");
-              isCreated = false;
-              IResultRow row = set.getRow(0);
-              String oldXML = (String)row.getValue(configField);
-              if (oldXML == null || !oldXML.equals(configXML))
-                notificationNeeded = true;
-
-              // Update
-              params.clear();
-              query = buildConjunctionClause(params,new ClauseDescription[]{
+              //performLock();
+              // Notify of a change to the configuration
+              ManifoldCF.noteConfigurationChange();
+              boolean isNew = object.getIsNew();
+              // See whether the instance exists
+              ArrayList params = new ArrayList();
+              String query = buildConjunctionClause(params,new ClauseDescription[]{
                 new UnitaryClause(nameField,object.getName())});
-              performUpdate(values," WHERE "+query,params,null);
-            }
-            else
-            {
-              // If the object is not supposed to be new, it is bad that we did not find one.
-              if (!isNew)
-                throw new ManifoldCFException("Transformation connection '"+object.getName()+"' no longer exists");
-              isCreated = true;
-              // Insert
-              values.put(nameField,object.getName());
-              // We only need the general key because this is new.
-              performInsert(values,null);
-            }
-            
-            // If notification required, do it.
-            if (notificationNeeded)
-              AgentManagerFactory.noteTransformationConnectionChange(threadContext,object.getName());
+              IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+                query+" FOR UPDATE",params,null,null);
+              HashMap values = new HashMap();
+              values.put(descriptionField,object.getDescription());
+              values.put(classNameField,object.getClassName());
+              values.put(maxCountField,new Long((long)object.getMaxConnections()));
+              String configXML = object.getConfigParams().toXML();
+              values.put(configField,configXML);
+              boolean notificationNeeded = false;
+              boolean isCreated;
+              
+              if (set.getRowCount() > 0)
+              {
+                // If the object is supposedly new, it is bad that we found one that already exists.
+                if (isNew)
+                  throw new ManifoldCFException("Transformation connection '"+object.getName()+"' already exists");
+                isCreated = false;
+                IResultRow row = set.getRow(0);
+                String oldXML = (String)row.getValue(configField);
+                if (oldXML == null || !oldXML.equals(configXML))
+                  notificationNeeded = true;
 
-            cacheManager.invalidateKeys(ch);
-            return isCreated;
-          }
-          catch (ManifoldCFException e)
-          {
-            signalRollback();
-            throw e;
-          }
-          catch (Error e)
-          {
-            signalRollback();
-            throw e;
+                // Update
+                params.clear();
+                query = buildConjunctionClause(params,new ClauseDescription[]{
+                  new UnitaryClause(nameField,object.getName())});
+                performUpdate(values," WHERE "+query,params,null);
+              }
+              else
+              {
+                // If the object is not supposed to be new, it is bad that we did not find one.
+                if (!isNew)
+                  throw new ManifoldCFException("Transformation connection '"+object.getName()+"' no longer exists");
+                isCreated = true;
+                // Insert
+                values.put(nameField,object.getName());
+                // We only need the general key because this is new.
+                performInsert(values,null);
+              }
+              
+              // If notification required, do it.
+              if (notificationNeeded)
+                AgentManagerFactory.noteTransformationConnectionChange(threadContext,object.getName());
+
+              cacheManager.invalidateKeys(ch);
+              return isCreated;
+            }
+            catch (ManifoldCFException e)
+            {
+              signalRollback();
+              throw e;
+            }
+            catch (Error e)
+            {
+              signalRollback();
+              throw e;
+            }
+            finally
+            {
+              endTransaction();
+            }
           }
           finally
           {
-            endTransaction();
+            cacheManager.leaveCache(ch);
           }
+        }
+        catch (ManifoldCFException e)
+        {
+          // Is this a deadlock exception?  If so, we want to try again.
+          if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+            throw e;
+          sleepAmt = getSleepAmt();
         }
         finally
         {
-          cacheManager.leaveCache(ch);
+          sleepFor(sleepAmt);
         }
       }
-      catch (ManifoldCFException e)
-      {
-        // Is this a deadlock exception?  If so, we want to try again.
-        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-          throw e;
-        sleepAmt = getSleepAmt();
-      }
-      finally
-      {
-        sleepFor(sleepAmt);
-      }
+    }
+    finally
+    {
+      lockManager.leaveWriteLock(transformationsLock);
     }
   }
 
@@ -405,46 +408,53 @@ public class TransformationConnectionManager extends org.apache.manifoldcf.core.
   public void delete(String name)
     throws ManifoldCFException
   {
-    StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getTransformationConnectionsKey());
-    ssb.add(getTransformationConnectionKey(name));
-    StringSet cacheKeys = new StringSet(ssb);
-    ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
+    lockManager.enterWriteLock(transformationsLock);
     try
     {
-      beginTransaction();
+      StringSetBuffer ssb = new StringSetBuffer();
+      ssb.add(getTransformationConnectionsKey());
+      ssb.add(getTransformationConnectionKey(name));
+      StringSet cacheKeys = new StringSet(ssb);
+      ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
       try
       {
-        // Check if anything refers to this connection name
-        if (AgentManagerFactory.isTransformationConnectionInUse(threadContext,name))
-          throw new ManifoldCFException("Can't delete transformation connection '"+name+"': existing entities refer to it");
-        ManifoldCF.noteConfigurationChange();
-        ArrayList params = new ArrayList();
-        String query = buildConjunctionClause(params,new ClauseDescription[]{
-          new UnitaryClause(nameField,name)});
-        performDelete("WHERE "+query,params,null);
-        cacheManager.invalidateKeys(ch);
-      }
-      catch (ManifoldCFException e)
-      {
-        signalRollback();
-        throw e;
-      }
-      catch (Error e)
-      {
-        signalRollback();
-        throw e;
+        beginTransaction();
+        try
+        {
+          // Check if anything refers to this connection name
+          if (AgentManagerFactory.isTransformationConnectionInUse(threadContext,name))
+            throw new ManifoldCFException("Can't delete transformation connection '"+name+"': existing entities refer to it");
+          ManifoldCF.noteConfigurationChange();
+          ArrayList params = new ArrayList();
+          String query = buildConjunctionClause(params,new ClauseDescription[]{
+            new UnitaryClause(nameField,name)});
+          performDelete("WHERE "+query,params,null);
+          cacheManager.invalidateKeys(ch);
+        }
+        catch (ManifoldCFException e)
+        {
+          signalRollback();
+          throw e;
+        }
+        catch (Error e)
+        {
+          signalRollback();
+          throw e;
+        }
+        finally
+        {
+          endTransaction();
+        }
       }
       finally
       {
-        endTransaction();
+        cacheManager.leaveCache(ch);
       }
     }
     finally
     {
-      cacheManager.leaveCache(ch);
+      lockManager.leaveWriteLock(transformationsLock);
     }
-
   }
 
   /** Get a list of output connections that share the same connector.
