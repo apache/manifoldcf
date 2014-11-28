@@ -375,16 +375,16 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   public boolean save(IAuthorityConnection object)
     throws ManifoldCFException
   {
-    lockManager.enterWriteLock(authoritiesLock);
-    try
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getAuthorityConnectionsKey());
+    ssb.add(getAuthorityConnectionKey(object.getName()));
+    StringSet cacheKeys = new StringSet(ssb);
+    while (true)
     {
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getAuthorityConnectionsKey());
-      ssb.add(getAuthorityConnectionKey(object.getName()));
-      StringSet cacheKeys = new StringSet(ssb);
-      while (true)
+      long sleepAmt = 0L;
+      try
       {
-        long sleepAmt = 0L;
+        lockManager.enterNonExWriteLock(authoritiesLock);
         try
         {
           ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
@@ -460,22 +460,22 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
             cacheManager.leaveCache(ch);
           }
         }
-        catch (ManifoldCFException e)
-        {
-          // Is this a deadlock exception?  If so, we want to try again.
-          if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-            throw e;
-          sleepAmt = getSleepAmt();
-        }
         finally
         {
-          sleepFor(sleepAmt);
+          lockManager.leaveNonExWriteLock(authoritiesLock);
         }
       }
-    }
-    finally
-    {
-      lockManager.leaveWriteLock(authoritiesLock);
+      catch (ManifoldCFException e)
+      {
+        // Is this a deadlock exception?  If so, we want to try again.
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        sleepAmt = getSleepAmt();
+      }
+      finally
+      {
+        sleepFor(sleepAmt);
+      }
     }
   }
 
@@ -487,13 +487,13 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   public void delete(String name)
     throws ManifoldCFException
   {
-    lockManager.enterWriteLock(authoritiesLock);
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getAuthorityConnectionsKey());
+    ssb.add(getAuthorityConnectionKey(name));
+    StringSet cacheKeys = new StringSet(ssb);
+    lockManager.enterNonExWriteLock(authoritiesLock);
     try
     {
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getAuthorityConnectionsKey());
-      ssb.add(getAuthorityConnectionKey(name));
-      StringSet cacheKeys = new StringSet(ssb);
       ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
       try
       {
@@ -529,7 +529,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     }
     finally
     {
-      lockManager.leaveWriteLock(authoritiesLock);
+      lockManager.leaveNonExWriteLock(authoritiesLock);
     }
   }
 

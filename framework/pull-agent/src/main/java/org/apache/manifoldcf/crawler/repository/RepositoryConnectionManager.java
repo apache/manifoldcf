@@ -358,17 +358,17 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   public boolean save(IRepositoryConnection object)
     throws ManifoldCFException
   {
-    lockManager.enterWriteLock(repositoriesLock);
-    try
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getRepositoryConnectionsKey());
+    ssb.add(getRepositoryConnectionKey(object.getName()));
+    StringSet cacheKeys = new StringSet(ssb);
+    while (true)
     {
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getRepositoryConnectionsKey());
-      ssb.add(getRepositoryConnectionKey(object.getName()));
-      StringSet cacheKeys = new StringSet(ssb);
-      while (true)
+      // Catch deadlock condition
+      long sleepAmt = 0L;
+      try
       {
-        // Catch deadlock condition
-        long sleepAmt = 0L;
+        lockManager.enterNonExWriteLock(repositoriesLock);
         try
         {
           ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
@@ -460,22 +460,22 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
             cacheManager.leaveCache(ch);
           }
         }
-        catch (ManifoldCFException e)
-        {
-          // Is this a deadlock exception?  If so, we want to try again.
-          if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-            throw e;
-          sleepAmt = getSleepAmt();
-        }
         finally
         {
-          sleepFor(sleepAmt);
+          lockManager.leaveNonExWriteLock(repositoriesLock);
         }
       }
-    }
-    finally
-    {
-      lockManager.leaveWriteLock(repositoriesLock);
+      catch (ManifoldCFException e)
+      {
+        // Is this a deadlock exception?  If so, we want to try again.
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        sleepAmt = getSleepAmt();
+      }
+      finally
+      {
+        sleepFor(sleepAmt);
+      }
     }
   }
 
@@ -488,13 +488,13 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   {
     // Grab a job manager handle.  We will need to check if any jobs refer to this connection.
     IJobManager jobManager = JobManagerFactory.make(threadContext);
-    lockManager.enterWriteLock(repositoriesLock);
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getRepositoryConnectionsKey());
+    ssb.add(getRepositoryConnectionKey(name));
+    StringSet cacheKeys = new StringSet(ssb);
+    lockManager.enterNonExWriteLock(repositoriesLock);
     try
     {
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getRepositoryConnectionsKey());
-      ssb.add(getRepositoryConnectionKey(name));
-      StringSet cacheKeys = new StringSet(ssb);
       ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
       try
       {
@@ -535,7 +535,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     }
     finally
     {
-      lockManager.leaveWriteLock(repositoriesLock);
+      lockManager.leaveNonExWriteLock(repositoriesLock);
     }
   }
 

@@ -766,7 +766,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void delete(Long id)
     throws ManifoldCFException
   {
-    lockManager.enterWriteLock(jobsLock);
+    lockManager.enterNonExWriteLock(jobsLock);
     try
     {
       StringSetBuffer ssb = new StringSetBuffer();
@@ -802,7 +802,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     }
     finally
     {
-      lockManager.leaveWriteLock(jobsLock);
+      lockManager.leaveNonExWriteLock(jobsLock);
     }
   }
 
@@ -869,20 +869,20 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void save(IJobDescription jobDescription)
     throws ManifoldCFException
   {
-    lockManager.enterWriteLock(jobsLock);
-    try
-    {
-      // The invalidation keys for this are both the general and the specific.
-      Long id = jobDescription.getID();
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getJobsKey());
-      ssb.add(getJobStatusKey());
-      ssb.add(getJobIDKey(id));
-      StringSet invKeys = new StringSet(ssb);
+    // The invalidation keys for this are both the general and the specific.
+    Long id = jobDescription.getID();
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getJobsKey());
+    ssb.add(getJobStatusKey());
+    ssb.add(getJobIDKey(id));
+    StringSet invKeys = new StringSet(ssb);
 
-      while (true)
+    while (true)
+    {
+      long sleepAmt = 0L;
+      try
       {
-        long sleepAmt = 0L;
+        lockManager.enterNonExWriteLock(jobsLock);
         try
         {
           ICacheHandle ch = cacheManager.enterCache(null,invKeys,getTransactionID());
@@ -996,22 +996,22 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
             cacheManager.leaveCache(ch);
           }
         }
-        catch (ManifoldCFException e)
-        {
-          if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-            throw e;
-          sleepAmt = getSleepAmt();
-          continue;
-        }
         finally
         {
-          sleepFor(sleepAmt);
+          lockManager.leaveNonExWriteLock(jobsLock);
         }
       }
-    }
-    finally
-    {
-      lockManager.leaveWriteLock(jobsLock);
+      catch (ManifoldCFException e)
+      {
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        sleepAmt = getSleepAmt();
+        continue;
+      }
+      finally
+      {
+        sleepFor(sleepAmt);
+      }
     }
   }
 
