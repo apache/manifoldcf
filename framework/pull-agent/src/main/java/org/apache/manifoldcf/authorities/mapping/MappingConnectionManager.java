@@ -394,16 +394,16 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   public boolean save(IMappingConnection object)
     throws ManifoldCFException
   {
-    lockManager.enterWriteLock(mappingsLock);
-    try
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getMappingConnectionsKey());
+    ssb.add(getMappingConnectionKey(object.getName()));
+    StringSet cacheKeys = new StringSet(ssb);
+    while (true)
     {
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getMappingConnectionsKey());
-      ssb.add(getMappingConnectionKey(object.getName()));
-      StringSet cacheKeys = new StringSet(ssb);
-      while (true)
+      long sleepAmt = 0L;
+      try
       {
-        long sleepAmt = 0L;
+        lockManager.enterNonExWriteLock(mappingsLock);
         try
         {
           ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
@@ -477,22 +477,22 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
             cacheManager.leaveCache(ch);
           }
         }
-        catch (ManifoldCFException e)
-        {
-          // Is this a deadlock exception?  If so, we want to try again.
-          if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-            throw e;
-          sleepAmt = getSleepAmt();
-        }
         finally
         {
-          sleepFor(sleepAmt);
+          lockManager.leaveNonExWriteLock(mappingsLock);
         }
       }
-    }
-    finally
-    {
-      lockManager.leaveWriteLock(mappingsLock);
+      catch (ManifoldCFException e)
+      {
+        // Is this a deadlock exception?  If so, we want to try again.
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        sleepAmt = getSleepAmt();
+      }
+      finally
+      {
+        sleepFor(sleepAmt);
+      }
     }
   }
 
@@ -507,14 +507,14 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
 
     // Grab authority connection manager handle, to check on legality of deletion.
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getMappingConnectionsKey());
+    ssb.add(getMappingConnectionKey(name));
+    StringSet cacheKeys = new StringSet(ssb);
 
-    lockManager.enterWriteLock(mappingsLock);
+    lockManager.enterNonExWriteLock(mappingsLock);
     try
     {
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getMappingConnectionsKey());
-      ssb.add(getMappingConnectionKey(name));
-      StringSet cacheKeys = new StringSet(ssb);
       ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
       try
       {
@@ -555,7 +555,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
     }
     finally
     {
-      lockManager.leaveWriteLock(mappingsLock);
+      lockManager.leaveNonExWriteLock(mappingsLock);
     }
   }
 

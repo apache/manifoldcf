@@ -288,17 +288,17 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   public boolean save(IOutputConnection object)
     throws ManifoldCFException
   {
-    lockManager.enterWriteLock(outputsLock);
-    try
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getOutputConnectionsKey());
+    ssb.add(getOutputConnectionKey(object.getName()));
+    StringSet cacheKeys = new StringSet(ssb);
+    while (true)
     {
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getOutputConnectionsKey());
-      ssb.add(getOutputConnectionKey(object.getName()));
-      StringSet cacheKeys = new StringSet(ssb);
-      while (true)
+      // Catch deadlock condition
+      long sleepAmt = 0L;
+      try
       {
-        // Catch deadlock condition
-        long sleepAmt = 0L;
+        lockManager.enterNonExWriteLock(outputsLock);
         try
         {
           ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
@@ -382,22 +382,22 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
             cacheManager.leaveCache(ch);
           }
         }
-        catch (ManifoldCFException e)
-        {
-          // Is this a deadlock exception?  If so, we want to try again.
-          if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-            throw e;
-          sleepAmt = getSleepAmt();
-        }
         finally
         {
-          sleepFor(sleepAmt);
+          lockManager.leaveNonExWriteLock(outputsLock);
         }
       }
-    }
-    finally
-    {
-      lockManager.leaveWriteLock(outputsLock);
+      catch (ManifoldCFException e)
+      {
+        // Is this a deadlock exception?  If so, we want to try again.
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        sleepAmt = getSleepAmt();
+      }
+      finally
+      {
+        sleepFor(sleepAmt);
+      }
     }
   }
 
@@ -408,13 +408,13 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   public void delete(String name)
     throws ManifoldCFException
   {
-    lockManager.enterWriteLock(outputsLock);
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getOutputConnectionsKey());
+    ssb.add(getOutputConnectionKey(name));
+    StringSet cacheKeys = new StringSet(ssb);
+    lockManager.enterNonExWriteLock(outputsLock);
     try
     {
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getOutputConnectionsKey());
-      ssb.add(getOutputConnectionKey(name));
-      StringSet cacheKeys = new StringSet(ssb);
       ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
       try
       {
@@ -453,7 +453,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     }
     finally
     {
-      lockManager.leaveWriteLock(outputsLock);
+      lockManager.leaveNonExWriteLock(outputsLock);
     }
   }
 
