@@ -351,8 +351,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   protected final IRepositoryConnectionManager connectionMgr;
   protected final ITransformationConnectionManager transMgr;
   
+  protected final ILockManager lockManager;
+  
   protected final IThreadContext threadContext;
   
+  protected final static String jobsLock = "JOBS_LOCK";
   /** Constructor.
   *@param database is the database handle.
   */
@@ -367,7 +370,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     pipelineManager = new PipelineManager(threadContext,database);
     
     cacheManager = CacheManagerFactory.make(threadContext);
-
+    lockManager = LockManagerFactory.make(threadContext);
+    
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
     connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
     transMgr = TransformationConnectionManagerFactory.make(threadContext);
@@ -747,7 +751,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     // Begin transaction
-    beginTransaction();
+    lockManager.enterReadLock(jobsLock);
     try
     {
       // Put together cache key
@@ -776,19 +780,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       }
       return loadMultiple(ids,readOnlies);
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
     finally
     {
-      endTransaction();
+      lockManager.leaveReadLock(jobsLock);
     }
   }
 
@@ -862,36 +856,44 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void delete(Long id)
     throws ManifoldCFException
   {
-    StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getJobsKey());
-    ssb.add(getJobStatusKey());
-    ssb.add(getJobIDKey(id));
-    StringSet cacheKeys = new StringSet(ssb);
-    beginTransaction();
+    lockManager.enterWriteLock(jobsLock);
     try
     {
-      scheduleManager.deleteRows(id);
-      hopFilterManager.deleteRows(id);
-      forcedParamManager.deleteRows(id);
-      pipelineManager.deleteRows(id);
-      ArrayList params = new ArrayList();
-      String query = buildConjunctionClause(params,new ClauseDescription[]{
-        new UnitaryClause(idField,id)});
-      performDelete("WHERE "+query,params,cacheKeys);
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
+      StringSetBuffer ssb = new StringSetBuffer();
+      ssb.add(getJobsKey());
+      ssb.add(getJobStatusKey());
+      ssb.add(getJobIDKey(id));
+      StringSet cacheKeys = new StringSet(ssb);
+      beginTransaction();
+      try
+      {
+        scheduleManager.deleteRows(id);
+        hopFilterManager.deleteRows(id);
+        forcedParamManager.deleteRows(id);
+        pipelineManager.deleteRows(id);
+        ArrayList params = new ArrayList();
+        String query = buildConjunctionClause(params,new ClauseDescription[]{
+          new UnitaryClause(idField,id)});
+        performDelete("WHERE "+query,params,cacheKeys);
+      }
+      catch (ManifoldCFException e)
+      {
+        signalRollback();
+        throw e;
+      }
+      catch (Error e)
+      {
+        signalRollback();
+        throw e;
+      }
+      finally
+      {
+        endTransaction();
+      }
     }
     finally
     {
-      endTransaction();
+      lockManager.leaveWriteLock(jobsLock);
     }
   }
 
@@ -958,147 +960,155 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void save(IJobDescription jobDescription)
     throws ManifoldCFException
   {
-    // The invalidation keys for this are both the general and the specific.
-    Long id = jobDescription.getID();
-    StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getJobsKey());
-    ssb.add(getJobStatusKey());
-    ssb.add(getJobIDKey(id));
-    StringSet invKeys = new StringSet(ssb);
-
-    while (true)
+    lockManager.enterWriteLock(jobsLock);
+    try
     {
-      long sleepAmt = 0L;
-      try
+      // The invalidation keys for this are both the general and the specific.
+      Long id = jobDescription.getID();
+      StringSetBuffer ssb = new StringSetBuffer();
+      ssb.add(getJobsKey());
+      ssb.add(getJobStatusKey());
+      ssb.add(getJobIDKey(id));
+      StringSet invKeys = new StringSet(ssb);
+
+      while (true)
       {
-        ICacheHandle ch = cacheManager.enterCache(null,invKeys,getTransactionID());
+        long sleepAmt = 0L;
         try
         {
-          beginTransaction();
+          ICacheHandle ch = cacheManager.enterCache(null,invKeys,getTransactionID());
           try
           {
-            //performLock();
-            // See whether the instance exists
-            ArrayList params = new ArrayList();
-            String query = buildConjunctionClause(params,new ClauseDescription[]{
-              new UnitaryClause(idField,id)});
-            IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-              query+" FOR UPDATE",params,null,null);
-            HashMap values = new HashMap();
-            values.put(descriptionField,jobDescription.getDescription());
-            values.put(connectionNameField,jobDescription.getConnectionName());
-            String newXML = jobDescription.getSpecification().toXML();
-            values.put(documentSpecField,newXML);
-            values.put(typeField,typeToString(jobDescription.getType()));
-            values.put(startMethodField,startMethodToString(jobDescription.getStartMethod()));
-            values.put(intervalField,jobDescription.getInterval());
-            values.put(maxIntervalField,jobDescription.getMaxInterval());
-            values.put(reseedIntervalField,jobDescription.getReseedInterval());
-            values.put(expirationField,jobDescription.getExpiration());
-            values.put(priorityField,new Integer(jobDescription.getPriority()));
-            values.put(hopcountModeField,hopcountModeToString(jobDescription.getHopcountMode()));
-
-            if (set.getRowCount() > 0)
+            beginTransaction();
+            try
             {
-              // Update
-              // We need to reset the seedingVersionField if there are any changes that
-              // could affect what set of documents we allow!!!
-
-              IResultRow row = set.getRow(0);
-
-              // Determine whether we need to reset the scan time for documents.
-              // Basically, any change to job parameters that could affect ingestion should clear isSame so that we
-              // relook at all the documents, not just the recent ones.
-
-              boolean isSame = pipelineManager.compareRows(id,jobDescription);
-              if (!isSame)
-              {
-                int currentStatus = stringToStatus((String)row.getValue(statusField));
-                if (currentStatus == STATUS_ACTIVE || currentStatus == STATUS_ACTIVESEEDING ||
-                  currentStatus == STATUS_ACTIVE_UNINSTALLED || currentStatus == STATUS_ACTIVESEEDING_UNINSTALLED)
-                  values.put(assessmentStateField,assessmentStateToString(ASSESSMENT_UNKNOWN));
-              }
-
-              if (isSame)
-              {
-                String oldDocSpecXML = (String)row.getValue(documentSpecField);
-                if (!oldDocSpecXML.equals(newXML))
-                  isSame = false;
-              }
-
-              if (isSame)
-                isSame = hopFilterManager.compareRows(id,jobDescription);
-
-              if (isSame)
-                isSame = forcedParamManager.compareRows(id,jobDescription);
-
-              if (!isSame)
-                values.put(seedingVersionField,null);
-
-              params.clear();
-              query = buildConjunctionClause(params,new ClauseDescription[]{
+              //performLock();
+              // See whether the instance exists
+              ArrayList params = new ArrayList();
+              String query = buildConjunctionClause(params,new ClauseDescription[]{
                 new UnitaryClause(idField,id)});
-              performUpdate(values," WHERE "+query,params,null);
-              pipelineManager.deleteRows(id);
-              scheduleManager.deleteRows(id);
-              hopFilterManager.deleteRows(id);
-              forcedParamManager.deleteRows(id);
-            }
-            else
-            {
-              // Insert
-              values.put(startTimeField,null);
-              values.put(seedingVersionField,null);
-              values.put(endTimeField,null);
-              values.put(statusField,statusToString(STATUS_INACTIVE));
-              values.put(lastTimeField,new Long(System.currentTimeMillis()));
-              values.put(idField,id);
-              performInsert(values,null);
-            }
+              IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+                query+" FOR UPDATE",params,null,null);
+              HashMap values = new HashMap();
+              values.put(descriptionField,jobDescription.getDescription());
+              values.put(connectionNameField,jobDescription.getConnectionName());
+              String newXML = jobDescription.getSpecification().toXML();
+              values.put(documentSpecField,newXML);
+              values.put(typeField,typeToString(jobDescription.getType()));
+              values.put(startMethodField,startMethodToString(jobDescription.getStartMethod()));
+              values.put(intervalField,jobDescription.getInterval());
+              values.put(maxIntervalField,jobDescription.getMaxInterval());
+              values.put(reseedIntervalField,jobDescription.getReseedInterval());
+              values.put(expirationField,jobDescription.getExpiration());
+              values.put(priorityField,new Integer(jobDescription.getPriority()));
+              values.put(hopcountModeField,hopcountModeToString(jobDescription.getHopcountMode()));
 
-            // Write pipeline rows
-            pipelineManager.writeRows(id,jobDescription);
-            // Write schedule records
-            scheduleManager.writeRows(id,jobDescription);
-            // Write hop filter rows
-            hopFilterManager.writeRows(id,jobDescription);
-            // Write forced params
-            forcedParamManager.writeRows(id,jobDescription);
-            
-            cacheManager.invalidateKeys(ch);
-            break;
-          }
-          catch (ManifoldCFException e)
-          {
-            signalRollback();
-            throw e;
-          }
-          catch (Error e)
-          {
-            signalRollback();
-            throw e;
+              if (set.getRowCount() > 0)
+              {
+                // Update
+                // We need to reset the seedingVersionField if there are any changes that
+                // could affect what set of documents we allow!!!
+
+                IResultRow row = set.getRow(0);
+
+                // Determine whether we need to reset the scan time for documents.
+                // Basically, any change to job parameters that could affect ingestion should clear isSame so that we
+                // relook at all the documents, not just the recent ones.
+
+                boolean isSame = pipelineManager.compareRows(id,jobDescription);
+                if (!isSame)
+                {
+                  int currentStatus = stringToStatus((String)row.getValue(statusField));
+                  if (currentStatus == STATUS_ACTIVE || currentStatus == STATUS_ACTIVESEEDING ||
+                    currentStatus == STATUS_ACTIVE_UNINSTALLED || currentStatus == STATUS_ACTIVESEEDING_UNINSTALLED)
+                    values.put(assessmentStateField,assessmentStateToString(ASSESSMENT_UNKNOWN));
+                }
+
+                if (isSame)
+                {
+                  String oldDocSpecXML = (String)row.getValue(documentSpecField);
+                  if (!oldDocSpecXML.equals(newXML))
+                    isSame = false;
+                }
+
+                if (isSame)
+                  isSame = forcedParamManager.compareRows(id,jobDescription);
+                
+                if (isSame)
+                  isSame = hopFilterManager.compareRows(id,jobDescription);
+
+                if (!isSame)
+                  values.put(seedingVersionField,null);
+
+                params.clear();
+                query = buildConjunctionClause(params,new ClauseDescription[]{
+                  new UnitaryClause(idField,id)});
+                performUpdate(values," WHERE "+query,params,null);
+                pipelineManager.deleteRows(id);
+                scheduleManager.deleteRows(id);
+                hopFilterManager.deleteRows(id);
+                forcedParamManager.deleteRows(id);
+              }
+              else
+              {
+                // Insert
+                values.put(startTimeField,null);
+                values.put(seedingVersionField,null);
+                values.put(endTimeField,null);
+                values.put(statusField,statusToString(STATUS_INACTIVE));
+                values.put(lastTimeField,new Long(System.currentTimeMillis()));
+                values.put(idField,id);
+                performInsert(values,null);
+              }
+
+              // Write pipeline rows
+              pipelineManager.writeRows(id,jobDescription);
+              // Write schedule records
+              scheduleManager.writeRows(id,jobDescription);
+              // Write hop filter rows
+              hopFilterManager.writeRows(id,jobDescription);
+              // Write forced params
+              forcedParamManager.writeRows(id,jobDescription);
+
+              cacheManager.invalidateKeys(ch);
+              break;
+            }
+            catch (ManifoldCFException e)
+            {
+              signalRollback();
+              throw e;
+            }
+            catch (Error e)
+            {
+              signalRollback();
+              throw e;
+            }
+            finally
+            {
+              endTransaction();
+            }
           }
           finally
           {
-            endTransaction();
+            cacheManager.leaveCache(ch);
           }
+        }
+        catch (ManifoldCFException e)
+        {
+          if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+            throw e;
+          sleepAmt = getSleepAmt();
+          continue;
         }
         finally
         {
-          cacheManager.leaveCache(ch);
+          sleepFor(sleepAmt);
         }
       }
-      catch (ManifoldCFException e)
-      {
-        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-          throw e;
-        sleepAmt = getSleepAmt();
-        continue;
-      }
-      finally
-      {
-        sleepFor(sleepAmt);
-      }
+    }
+    finally
+    {
+      lockManager.leaveWriteLock(jobsLock);
     }
   }
 
@@ -3086,8 +3096,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public IJobDescription[] findJobsForConnection(String connectionName)
     throws ManifoldCFException
   {
-    // Begin transaction
-    beginTransaction();
+    lockManager.enterReadLock(jobsLock);
     try
     {
       // Put together cache key
@@ -3105,28 +3114,17 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       // Convert to an array of id's, and then load them
       Long[] ids = new Long[set.getRowCount()];
       boolean[] readOnlies = new boolean[set.getRowCount()];
-      int i = 0;
-      while (i < ids.length)
+      for (int i = 0; i < ids.length; i++)
       {
         IResultRow row = set.getRow(i);
         ids[i] = (Long)row.getValue(idField);
-        readOnlies[i++] = true;
+        readOnlies[i] = true;
       }
       return loadMultiple(ids,readOnlies);
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
     finally
     {
-      endTransaction();
+      lockManager.leaveReadLock(jobsLock);
     }
 
   }
