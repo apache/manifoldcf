@@ -174,7 +174,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     
     String serverVersion = configParams.getParameter( SharePointConfig.PARAM_SERVERVERSION );
     if (serverVersion == null)
-      serverVersion = "2.0";
+      serverVersion = "4.0";
     // Authority needs to do nothing with SharePoint version right now.
 
     String serverClaimSpace = configParams.getParameter( SharePointConfig.PARAM_SERVERCLAIMSPACE);
