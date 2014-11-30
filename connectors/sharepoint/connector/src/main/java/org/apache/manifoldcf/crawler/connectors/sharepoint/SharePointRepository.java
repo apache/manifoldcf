@@ -162,7 +162,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     {
       String serverVersion = params.getParameter( SharePointConfig.PARAM_SERVERVERSION );
       if (serverVersion == null)
-        serverVersion = "2.0";
+        serverVersion = "4.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
       dspStsWorks = serverVersion.equals("2.0") || serverVersion.equals("3.0");
       attachmentsSupported = !serverVersion.equals("2.0");
@@ -2397,7 +2397,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     String serverVersion = parameters.getParameter(SharePointConfig.PARAM_SERVERVERSION);
     if (serverVersion == null)
-      serverVersion = "2.0";
+      serverVersion = "4.0";
 
     String serverProtocol = parameters.getParameter(SharePointConfig.PARAM_SERVERPROTOCOL);
     if (serverProtocol == null)
