@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-969: Don't use JSON as an output specification format.
+(Karl Wright)
+
 CONNECTORS-974: Make SharePoint 2010 be the default selection.
 (Karl Wright)
 
