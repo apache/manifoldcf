@@ -2396,7 +2396,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     String serverVersion = parameters.getParameter(SharePointConfig.PARAM_SERVERVERSION);
     if (serverVersion == null)
-      serverVersion = "2.0";
+      serverVersion = "4.0";
 
     String serverProtocol = parameters.getParameter(SharePointConfig.PARAM_SERVERPROTOCOL);
     if (serverProtocol == null)
