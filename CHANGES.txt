@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.8-dev =====================
 
+CONNECTORS-974: Make SharePoint 2010 be the default selection.
+(Karl Wright)
+
 CONNECTORS-1116: Prevent requirement of unlimited handles for
 cached loads by limiting number of cached loads to 200 at a time.
 (Adrian Conlon, Karl Wright)
