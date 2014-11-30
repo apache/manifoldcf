@@ -25,12 +25,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.apache.commons.io.IOUtils;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -252,7 +258,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   @Override
   public VersionContext getPipelineDescription(Specification spec) throws ManifoldCFException, ServiceInterruption {
     HDFSOutputSpecs specs = new HDFSOutputSpecs(getSpecNode(spec));
-    return new VersionContext(specs.toJson().toString(),params,spec);
+    return new VersionContext(specs.toVersionString(),params,spec);
   }
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -323,9 +329,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       Long startTime = new Long(System.currentTimeMillis());
       deleteFile(path,activities,documentURI);
       activities.recordActivity(startTime, REMOVE_ACTIVITY, null, documentURI, "OK", null);
-    } catch (JSONException e) {
-      activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,e.getClass().getSimpleName().toUpperCase(Locale.ROOT),"Failed to delete document due to: " + e.getMessage());
-      handleJSONException(e);
     } catch (URISyntaxException e) {
       activities.recordActivity(null,REMOVE_ACTIVITY,null,documentURI,e.getClass().getSimpleName().toUpperCase(Locale.ROOT),"Failed to delete document due to: " + e.getMessage());
       handleURISyntaxException(e);
@@ -853,6 +856,114 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     public HDFSSession getResult() {
       return session;
     }
+  }
+
+  public static class HDFSOutputSpecs extends HDFSOutputParam {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1145652730572662025L;
+
+    final public static ParameterEnum[] SPECIFICATIONLIST = {
+      ParameterEnum.rootpath
+    };
+
+    private final String rootPath;
+
+    /** Build a set of ElasticSearch parameters by reading an JSON object
+     * 
+     * @param json
+     * @throws JSONException
+     * @throws ManifoldCFException
+     */
+    public HDFSOutputSpecs(String versionString) throws ManifoldCFException {
+      super(SPECIFICATIONLIST);
+      int index = 0;
+      StringBuilder rootPathBuffer = new StringBuilder();
+      index = unpack(rootPathBuffer,versionString,index,'+');
+      this.rootPath = rootPathBuffer.toString();
+      // MHL
+    }
+
+    /** Build a set of ElasticSearch parameters by reading an instance of
+     * SpecificationNode.
+     * 
+     * @param node
+     * @throws ManifoldCFException
+     */
+    public HDFSOutputSpecs(ConfigurationNode node) throws ManifoldCFException {
+      super(SPECIFICATIONLIST);
+      String rootPath = null;
+      for (ParameterEnum param : SPECIFICATIONLIST) {
+        String value = null;
+        if (node != null) {
+          value = node.getAttributeValue(param.name());
+        }
+        if (value == null) {
+          value = param.defaultValue;
+        }
+        put(param, value);
+      }
+      rootPath = getRootPath();
+      this.rootPath = rootPath;
+    }
+
+    /**
+      * @param variableContext
+      * @param specNode
+      */
+    public static void contextToSpecNode(IPostParameters variableContext, ConfigurationNode specNode, int sequenceNumber) {
+      for (ParameterEnum param : SPECIFICATIONLIST) {
+        String p = variableContext.getParameter("s"+sequenceNumber+"_"+param.name().toLowerCase());
+        if (p != null) {
+          specNode.setAttribute(param.name(), p);
+        }
+      }
+    }
+
+    /** @return a JSON representation of the parameter list */
+    public String toVersionString() {
+      StringBuilder sb = new StringBuilder();
+      pack(sb,rootPath,'+');
+      return sb.toString();
+    }
+
+    /**
+     * @return
+     */
+    public String getRootPath() {
+      return get(ParameterEnum.rootpath);
+    }
+
+    /**
+     * @param content
+     * @return
+     * @throws ManifoldCFException
+     */
+    private final static TreeSet<String> createStringSet(String content) throws ManifoldCFException {
+      TreeSet<String> set = new TreeSet<String>();
+      BufferedReader br = null;
+      StringReader sr = null;
+      try {
+        sr = new StringReader(content);
+        br = new BufferedReader(sr);
+        String line = null;
+        while ((line = br.readLine()) != null) {
+          line = line.trim();
+          if (line.length() > 0) {
+            set.add(line);
+          }
+        }
+        return set;
+      } catch (IOException e) {
+        throw new ManifoldCFException(e.getMessage(),e);
+      } finally {
+        if (br != null) {
+          IOUtils.closeQuietly(br);
+        }
+      }
+    }
+
   }
 
 }
