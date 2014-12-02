@@ -247,29 +247,56 @@ public class ZooKeeperConnection
       try
       {
         //System.out.println("Creating child '"+childName+"' of nodepath '"+nodePath+"'");
-        while (true)
-        {
-          try
-          {
-            zookeeper.create(nodePath + "/" + CHILD_PREFIX + childName, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-            break;
-          }
-          catch (KeeperException.NoNodeException e)
-          {
-            try
-            {
-              zookeeper.create(nodePath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-            }
-            catch (KeeperException.NodeExistsException e2)
-            {
-            }
-          }
-        }
+        createPersistentPath(nodePath + "/" + CHILD_PREFIX + childName, null);
         break;
       }
       catch (KeeperException e)
       {
         handleKeeperException(e,true);
+      }
+    }
+  }
+
+  protected void createPersistentPath(String path, byte[] data)
+    throws KeeperException, InterruptedException
+  {
+    // Loop until we've created the entire path, but initially try the whole thing for performance
+    while (true)
+    {
+      try
+      {
+        zookeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        // Break on success
+        break;
+      }
+      catch (KeeperException.NoNodeException e)
+      {
+        // Strip off last part of path, and try recursively
+        int lastIndex = path.lastIndexOf("/");
+        // No last path: rethrow because we don't have a clue what is going on
+        if (lastIndex == -1 || lastIndex == 0)
+          throw e;
+        createPersistentPath(path.substring(0,lastIndex),null);
+        // Retry
+      }
+      catch (KeeperException.NodeExistsException e)
+      {
+        // Path is there: someone else beat us to it
+        // But we do have to set the data.
+        // NOTE: This code relies on the fact that only leaf persistent nodes have data.
+        if (data != null)
+        {
+          try
+          {
+            zookeeper.setData(path, data, -1);
+          }
+          catch (KeeperException.NoNodeException e2)
+          {
+            // Repeat, since we've lost our node
+            continue;
+          }
+        }
+        break;
       }
     }
   }
@@ -842,34 +869,21 @@ public class ZooKeeperConnection
           try
           {
             zookeeper.delete(resourcePath, -1);
-            break;
           }
           catch (KeeperException.NoNodeException e)
           {
-            break;
           }
+          break;
         }
         else
         {
-          while (true)
+          try
           {
-            try
-            {
-              zookeeper.setData(resourcePath, data, -1);
-              break;
-            }
-            catch (KeeperException.NoNodeException e)
-            {
-              try
-              {
-                zookeeper.create(resourcePath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                break;
-              }
-              catch (KeeperException.NodeExistsException e2)
-              {
-                continue;
-              }
-            }
+            zookeeper.setData(resourcePath, data, -1);
+          }
+          catch (KeeperException.NoNodeException e)
+          {
+            createPersistentPath(resourcePath, data);
           }
           break;
         }
@@ -888,15 +902,8 @@ public class ZooKeeperConnection
     {
       try
       {
-        try
-        {
-          zookeeper.create(flagPath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-          break;
-        }
-        catch (KeeperException.NodeExistsException e)
-        {
-          break;
-        }
+        createPersistentPath(flagPath, null);
+        break;
       }
       catch (KeeperException e)
       {
@@ -915,12 +922,11 @@ public class ZooKeeperConnection
         try
         {
           zookeeper.delete(flagPath,-1);
-          break;
         }
         catch (KeeperException.NoNodeException e)
         {
-          break;
         }
+        break;
       }
       catch (KeeperException e)
       {

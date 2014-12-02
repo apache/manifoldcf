@@ -37,14 +37,14 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   protected final static String zookeeperConnectStringParameter = "org.apache.manifoldcf.zookeeper.connectstring";
   protected final static String zookeeperSessionTimeoutParameter = "org.apache.manifoldcf.zookeeper.sessiontimeout";
 
-  private final static String CONFIGURATION_PATH = "/org.apache.manifoldcf.configuration";
-  private final static String RESOURCE_PATH_PREFIX = "/org.apache.manifoldcf.resources-";
-  private final static String FLAG_PATH_PREFIX = "/org.apache.manifoldcf.flags-";
-  private final static String SERVICETYPE_LOCK_PATH_PREFIX = "/org.apache.manifoldcf.servicelock-";
-  private final static String SERVICETYPE_ACTIVE_PATH_PREFIX = "/org.apache.manifoldcf.serviceactive-";
-  private final static String SERVICETYPE_REGISTER_PATH_PREFIX = "/org.apache.manifoldcf.service-";
+  private final static String CONFIGURATION_PATH = "/org.apache.manifoldcf/configuration";
+  private final static String RESOURCE_PATH_PREFIX = "/org.apache.manifoldcf/resources-";
+  private final static String FLAG_PATH_PREFIX = "/org.apache.manifoldcf/flags-";
+  private final static String SERVICETYPE_LOCK_PATH_PREFIX = "/org.apache.manifoldcf/servicelock-";
+  private final static String SERVICETYPE_ACTIVE_PATH_PREFIX = "/org.apache.manifoldcf/serviceactive-";
+  private final static String SERVICETYPE_REGISTER_PATH_PREFIX = "/org.apache.manifoldcf/service-";
   /** Anonymous global variable name prefix, to be followed by the service type */
-  private final static String SERVICETYPE_ANONYMOUS_COUNTER_PREFIX = "/org.apache.manifoldcf.serviceanon-";
+  private final static String SERVICETYPE_ANONYMOUS_COUNTER_PREFIX = "/org.apache.manifoldcf/serviceanon-";
   
   /** Anonymous service name prefix, to be followed by an integer */
   protected final static String anonymousServiceNamePrefix = "_ANON_";

@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-921: Change Zookeeper paths so all ManifoldCF nodes
+are under one root.
+(Graeme Seaton, Karl Wright)
+
 CONNECTORS-969: Don't use JSON as an output specification format.
 (Karl Wright)
 
