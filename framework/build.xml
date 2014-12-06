@@ -1759,17 +1759,17 @@
 
             <test name="org.apache.manifoldcf.core.common.DateTest" todir="test-output"/>
             <test name="org.apache.manifoldcf.core.lockmanager.TestZooKeeperLocks" todir="test-output"/>
-            <test name="org.apache.manifoldcf.core.throttler.TestThrottler" todir="test-output"/>
 
         </junit>
     </target>
 
-    <target name="run-connector-common-tests" depends="compile-connector-common,compile-connector-common-tests,compile-core">
+    <target name="run-connector-common-tests" depends="compile-connector-common,compile-connector-common-tests,compile-core,compile-core-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
+                <pathelement location="build/core-tests/classes"/>
                 <pathelement location="build/connector-common/classes"/>
                 <pathelement location="build/connector-common-tests/classes"/>
             </classpath>
@@ -1777,6 +1777,7 @@
 
             <test name="org.apache.manifoldcf.connectorcommon.fuzzyml.TestFuzzyML" todir="test-output"/>
             <test name="org.apache.manifoldcf.connectorcommon.jsongen.TestJsonGen" todir="test-output"/>
+            <test name="org.apache.manifoldcf.connectorcommon.throttler.TestThrottler" todir="test-output"/>
 
         </junit>
     </target>
@@ -1899,7 +1900,6 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.core.throttler.TestThrottler" todir="test-HSQLDB-output"/>
             <test name="org.apache.manifoldcf.agents.tests.SanityHSQLDBTest" todir="test-HSQLDB-output"/>
             <test name="org.apache.manifoldcf.crawler.tests.SanityHSQLDBTest" todir="test-HSQLDB-output"/>
 

@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.core.system;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import java.lang.reflect.*;
 import java.io.*;
 import java.util.*;
 import java.nio.charset.StandardCharsets;
@@ -289,9 +290,8 @@ public class ManifoldCF
           masterDatabaseUsername = LockManagerFactory.getStringProperty(threadContext,masterDatabaseUsernameProperty,"manifoldcf");
           masterDatabasePassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,masterDatabasePasswordProperty,"local_pg_passwd");
 
-          // Register the throttler
-          addShutdownHook(new ThrottlerShutdown());
-          addPollingHook(new ThrottlerPoll());
+          // Register the connector services
+          registerConnectorServices();
 
           // Put the cache manager in the polling loop
           addPollingHook(new CachePoll());
@@ -313,6 +313,41 @@ public class ManifoldCF
       initializeLevel++;
     }
 
+  }
+
+  /** Register connector services provided in connectors and connector-commons
+  */
+  protected static void registerConnectorServices()
+    throws ManifoldCFException
+  {
+    try
+    {
+      Class connectorServicesManifoldCF = findClass("org.apache.manifoldcf.connectorcommon.system.ManifoldCF");
+      Method m = connectorServicesManifoldCF.getMethod("registerConnectorServices",new Class[0]);
+      m.invoke(new Object[0]);
+    }
+    catch (ClassNotFoundException e)
+    {
+      Logging.root.warn("Could not find connectorcommon main class: "+e.getMessage(),e);
+    }
+    catch (NoSuchMethodException e)
+    {
+      Logging.root.warn("ManifoldCF.registerConnectorServices not found: "+e.getMessage(),e);
+    }
+    catch (IllegalAccessException e)
+    {
+      Logging.root.warn("Connectorcommon main class had illegal access: "+e.getMessage(),e);
+    }
+    catch (InvocationTargetException e)
+    {
+      Throwable z = e.getTargetException();
+      if (z instanceof Error)
+        throw (Error)z;
+      else if (z instanceof RuntimeException)
+        throw (RuntimeException)z;
+      else
+        throw new RuntimeException("Unknown exception type: "+z.getClass().getName()+": "+z.getMessage(),z);
+    }
   }
   
   /** For local properties (not shared!!), this class allows them to be overridden directly from the command line.
@@ -1597,53 +1632,6 @@ public class ManifoldCF
 
   }
 
-  /** Class that polls throttler */
-  protected static class ThrottlerPoll implements IPollingHook
-  {
-    public ThrottlerPoll()
-    {
-    }
-    
-    @Override
-    public void doPoll(IThreadContext threadContext)
-      throws ManifoldCFException
-    {
-      IThrottleGroups connectionThrottler = ThrottleGroupsFactory.make(threadContext);
-      connectionThrottler.poll();
-    }
-  }
-  
-  /** Class that cleans up throttler on exit */
-  protected static class ThrottlerShutdown implements IShutdownHook
-  {
-    public ThrottlerShutdown()
-    {
-    }
-    
-    @Override
-    public void doCleanup(IThreadContext threadContext)
-      throws ManifoldCFException
-    {
-      IThrottleGroups connectionThrottler = ThrottleGroupsFactory.make(threadContext);
-      connectionThrottler.destroy();
-    }
-    
-    /** Finalizer, which is designed to catch class unloading that tomcat 5.5 does.
-    */
-    protected void finalize()
-      throws Throwable
-    {
-      try
-      {
-        doCleanup(ThreadContextFactory.make());
-      }
-      finally
-      {
-        super.finalize();
-      }
-    }
-
-  }
   
   /** Class that cleans up expired cache objects on polling.
   */
