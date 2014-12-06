@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.core.interfaces;
+package org.apache.manifoldcf.connectorcommon.interfaces;
 
 
 /** An IThrottleSpec object describes what throttling criteria to apply

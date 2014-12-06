@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.core.interfaces;
+package org.apache.manifoldcf.connectorcommon.interfaces;
 
 /** An IConnectionThrottler object is meant to be embedded in an InputStream.  It is not
 * thread-local, and does not require access to a thread context.  It thus also does not

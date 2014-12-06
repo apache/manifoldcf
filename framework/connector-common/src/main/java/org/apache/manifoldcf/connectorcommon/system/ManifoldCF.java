@@ -16,35 +16,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.core.interfaces;
+package org.apache.manifoldcf.connectorcommon.system;
 
-/** Thread-local IThrottleGroups factory.
-*/
-public class ThrottleGroupsFactory
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
+
+public class ManifoldCF
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  // name to use in thread context pool of objects
-  private final static String objectName = "_ThrottleGroups_";
-
-  private ThrottleGroupsFactory()
+  public static void registerConnectorServices()
   {
+    ThrottleGroupsFactory.register();
   }
-
-  /** Make a connection throttle handle.
-  *@param tc is the thread context.
-  *@return the handle.
-  */
-  public static IThrottleGroups make(IThreadContext tc)
-    throws ManifoldCFException
-  {
-    Object o = tc.get(objectName);
-    if (o == null || !(o instanceof IThrottleGroups))
-    {
-      o = new org.apache.manifoldcf.core.throttler.ThrottleGroups(tc);
-      tc.save(objectName,o);
-    }
-    return (IThrottleGroups)o;
-  }
-
+  
 }
