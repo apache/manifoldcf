@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.0-dev =====================
+======================= Release 2.0 =====================
 
 CONNECTORS-1118: Change IIncrementalIngester interface to allow
 for cached connection instances.
