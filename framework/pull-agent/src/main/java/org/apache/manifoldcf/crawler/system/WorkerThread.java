@@ -76,6 +76,8 @@ public class WorkerThread extends Thread
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IBinManager binManager = BinManagerFactory.make(threadContext);
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
+      ITransformationConnectionManager transformationConnectionManager = TransformationConnectionManagerFactory.make(threadContext);
+      IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadContext);
       IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
@@ -357,8 +359,8 @@ public class WorkerThread extends Thread
                     }
                     
                     ProcessActivity activity = new ProcessActivity(job.getID(),processID,
-                      threadContext,rt,jobManager,ingester,
-                      connectionName,pipelineSpecification,
+                      rt,jobManager,ingester,
+                      connectionName,pipelineSpecification,transformationConnectionManager,outputConnectionManager,
                       previousDocuments,
                       currentTime,
                       job.getExpiration(),
@@ -1108,6 +1110,181 @@ public class WorkerThread extends Thread
 
   // Nested classes
 
+  /** Pipeline connections implementation.
+  */
+  protected static class PipelineConnections implements IPipelineConnections
+  {
+    protected final IPipelineSpecification spec;
+    protected final String[] transformationConnectionNames;
+    protected final ITransformationConnection[] transformationConnections;
+    protected final String[] outputConnectionNames;
+    protected final IOutputConnection[] outputConnections;
+    // We need a way to get from stage index to connection index.
+    // These arrays are looked up by stage index, and return the appropriate connection index.
+    protected final Map<Integer,Integer> transformationConnectionLookupMap = new HashMap<Integer,Integer>();
+    protected final Map<Integer,Integer> outputConnectionLookupMap = new HashMap<Integer,Integer>();
+    
+    public PipelineConnections(ITransformationConnectionManager transformationConnectionManager,
+      IOutputConnectionManager outputConnectionManager, IPipelineSpecification spec)
+      throws ManifoldCFException
+    {
+      this.spec = spec;
+      IPipelineSpecificationBasic basicSpec = spec.getBasicPipelineSpecification();
+      // Now, load all the connections we'll ever need, being sure to only load one copy of each.
+      // We first segregate them into unique transformation and output connections.
+      int count = basicSpec.getStageCount();
+      Set<String> transformations = new HashSet<String>();
+      Set<String> outputs = new HashSet<String>();
+      for (int i = 0; i < count; i++)
+      {
+        if (basicSpec.checkStageOutputConnection(i))
+          outputs.add(basicSpec.getStageConnectionName(i));
+        else
+          transformations.add(basicSpec.getStageConnectionName(i));
+      }
+      
+      Map<String,Integer> transformationNameMap = new HashMap<String,Integer>();
+      Map<String,Integer> outputNameMap = new HashMap<String,Integer>();
+      transformationConnectionNames = new String[transformations.size()];
+      outputConnectionNames = new String[outputs.size()];
+      int index = 0;
+      for (String connectionName : transformations)
+      {
+        transformationConnectionNames[index] = connectionName;
+        transformationNameMap.put(connectionName,new Integer(index++));
+      }
+      index = 0;
+      for (String connectionName : outputs)
+      {
+        outputConnectionNames[index] = connectionName;
+        outputNameMap.put(connectionName,new Integer(index++));
+      }
+      // Load!
+      transformationConnections = transformationConnectionManager.loadMultiple(transformationConnectionNames);
+      outputConnections = outputConnectionManager.loadMultiple(outputConnectionNames);
+      
+      for (int i = 0; i < count; i++)
+      {
+        Integer k;
+        if (basicSpec.checkStageOutputConnection(i))
+        {
+          outputConnectionLookupMap.put(new Integer(i),outputNameMap.get(basicSpec.getStageConnectionName(i)));
+        }
+        else
+        {
+          transformationConnectionLookupMap.put(new Integer(i),transformationNameMap.get(basicSpec.getStageConnectionName(i)));
+        }
+      }
+    }
+    
+    @Override
+    public IPipelineSpecification getSpecification()
+    {
+      return spec;
+    }
+    
+    @Override
+    public String[] getTransformationConnectionNames()
+    {
+      return transformationConnectionNames;
+    }
+    
+    @Override
+    public ITransformationConnection[] getTransformationConnections()
+    {
+      return transformationConnections;
+    }
+    
+    @Override
+    public String[] getOutputConnectionNames()
+    {
+      return outputConnectionNames;
+    }
+    
+    @Override
+    public IOutputConnection[] getOutputConnections()
+    {
+      return outputConnections;
+    }
+    
+    @Override
+    public Integer getTransformationConnectionIndex(int stage)
+    {
+      return transformationConnectionLookupMap.get(new Integer(stage));
+    }
+    
+    @Override
+    public Integer getOutputConnectionIndex(int stage)
+    {
+      return outputConnectionLookupMap.get(new Integer(stage));
+    }
+    
+  }
+
+  /** IPipelineConnectionsWithVersions implementation.
+  */
+  protected static class PipelineConnectionsWithVersions implements IPipelineConnectionsWithVersions
+  {
+    protected final IPipelineConnections pipelineConnections;
+    protected final IPipelineSpecificationWithVersions pipelineSpecificationWithVersions;
+    
+    public PipelineConnectionsWithVersions(IPipelineConnections pipelineConnections, IPipelineSpecificationWithVersions pipelineSpecificationWithVersions)
+      throws ManifoldCFException
+    {
+      this.pipelineConnections = pipelineConnections;
+      this.pipelineSpecificationWithVersions = pipelineSpecificationWithVersions;
+    }
+    
+    @Override
+    public IPipelineSpecification getSpecification()
+    {
+      return pipelineConnections.getSpecification();
+    }
+    
+    @Override
+    public String[] getTransformationConnectionNames()
+    {
+      return pipelineConnections.getTransformationConnectionNames();
+    }
+    
+    @Override
+    public ITransformationConnection[] getTransformationConnections()
+    {
+      return pipelineConnections.getTransformationConnections();
+    }
+    
+    @Override
+    public String[] getOutputConnectionNames()
+    {
+      return pipelineConnections.getOutputConnectionNames();
+    }
+    
+    @Override
+    public IOutputConnection[] getOutputConnections()
+    {
+      return pipelineConnections.getOutputConnections();
+    }
+    
+    @Override
+    public Integer getTransformationConnectionIndex(int stage)
+    {
+      return pipelineConnections.getTransformationConnectionIndex(stage);
+    }
+    
+    @Override
+    public Integer getOutputConnectionIndex(int stage)
+    {
+      return pipelineConnections.getOutputConnectionIndex(stage);
+    }
+
+    @Override
+    public IPipelineSpecificationWithVersions getSpecificationWithVersions()
+    {
+      return pipelineSpecificationWithVersions;
+    }
+    
+  }
+
   /** Process activity class wraps access to the ingester and job queue.
   */
   protected static class ProcessActivity implements IProcessActivity
@@ -1115,11 +1292,12 @@ public class WorkerThread extends Thread
     // Member variables
     protected final Long jobID;
     protected final String processID;
-    protected final IThreadContext threadContext;
     protected final IJobManager jobManager;
     protected final IIncrementalIngester ingester;
     protected final String connectionName;
     protected final IPipelineSpecification pipelineSpecification;
+    protected final ITransformationConnectionManager transformationConnectionManager;
+    protected final IOutputConnectionManager outputConnectionManager;
     protected final Map<String,QueuedDocument> previousDocuments;
     protected final long currentTime;
     protected final Long expireInterval;
@@ -1134,6 +1312,9 @@ public class WorkerThread extends Thread
     protected final OutputActivity ingestLogger;
     protected final IReprioritizationTracker rt;
     protected final String parameterVersion;
+
+    protected IPipelineConnections pipelineConnections = null;
+    protected IPipelineConnectionsWithVersions pipelineConnectionsWithVersions = null;
     
     // We submit references in bulk, because that's way more efficient.
     protected final Map<DocumentReference,DocumentReference> referenceList = new HashMap<DocumentReference,DocumentReference>();
@@ -1164,16 +1345,23 @@ public class WorkerThread extends Thread
     // This represents primary documents.
     protected final Set<String> touchedPrimarySet = new HashSet<String>();
     
+    protected IPipelineConnections getPipelineConnections()
+      throws ManifoldCFException
+    {
+      if (pipelineConnections == null)
+        pipelineConnections = new PipelineConnections(transformationConnectionManager,outputConnectionManager,pipelineSpecification);
+      return pipelineConnections;
+    }
+    
     /** Constructor.
     *@param jobManager is the job manager
     *@param ingester is the ingester
     */
     public ProcessActivity(Long jobID, String processID,
-      IThreadContext threadContext,
       IReprioritizationTracker rt, IJobManager jobManager,
       IIncrementalIngester ingester,
       String connectionName,
-      IPipelineSpecification pipelineSpecification,
+      IPipelineSpecification pipelineSpecification, ITransformationConnectionManager transformationConnectionManager, IOutputConnectionManager outputConnectionManager,
       Map<String,QueuedDocument> previousDocuments,
       long currentTime,
       Long expireInterval,
@@ -1187,12 +1375,13 @@ public class WorkerThread extends Thread
     {
       this.jobID = jobID;
       this.processID = processID;
-      this.threadContext = threadContext;
       this.rt = rt;
       this.jobManager = jobManager;
       this.ingester = ingester;
       this.connectionName = connectionName;
       this.pipelineSpecification = pipelineSpecification;
+      this.transformationConnectionManager = transformationConnectionManager;
+      this.outputConnectionManager = outputConnectionManager;
       this.previousDocuments = previousDocuments;
       this.currentTime = currentTime;
       this.expireInterval = expireInterval;
@@ -1608,7 +1797,7 @@ public class WorkerThread extends Thread
       // indicates that it should always be refetched.  But I have no way to describe this situation
       // in the database at the moment.
       ingester.documentIngest(
-        computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier),
+        new PipelineConnectionsWithVersions(getPipelineConnections(),computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier)),
         connectionName,documentIdentifierHash,componentIdentifierHash,
         version,parameterVersion,
         connection.getACLAuthority(),
@@ -1651,7 +1840,7 @@ public class WorkerThread extends Thread
       checkMultipleDispositions(documentIdentifier,componentIdentifier,componentIdentifierHash);
 
       ingester.documentNoData(
-        computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier),
+        new PipelineConnectionsWithVersions(getPipelineConnections(),computePipelineSpecification(documentIdentifierHash,componentIdentifierHash,documentIdentifier)),
         connectionName,documentIdentifierHash,componentIdentifierHash,
         version,parameterVersion,
         connection.getACLAuthority(),
@@ -1962,6 +2151,7 @@ public class WorkerThread extends Thread
 
         long currentTime = System.currentTimeMillis();
 
+        double currentMinimumDepth = rt.getMinimumDepth();
         rt.clearPreloadRequests();
         for (int j = 0; j < docidHashes.length; j++)
         {
@@ -1974,7 +2164,7 @@ public class WorkerThread extends Thread
 
           // Calculate desired document priority based on current queuetracker status.
           String[] bins = ManifoldCF.calculateBins(connector,dr.getLocalIdentifier());
-          PriorityCalculator p = new PriorityCalculator(rt,connection,bins);
+          PriorityCalculator p = new PriorityCalculator(rt,currentMinimumDepth,connection,bins);
           priorities[j] = p;
           p.makePreloadRequest();
         }
@@ -2054,7 +2244,7 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkDateIndexable(
-        pipelineSpecification,date,
+        getPipelineConnections(),date,
         ingestLogger);
     }
 
@@ -2067,7 +2257,7 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkMimeTypeIndexable(
-        pipelineSpecification,mimeType,
+        getPipelineConnections(),mimeType,
         ingestLogger);
     }
 
@@ -2080,7 +2270,7 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkDocumentIndexable(
-        pipelineSpecification,localFile,
+        getPipelineConnections(),localFile,
         ingestLogger);
     }
 
@@ -2093,7 +2283,7 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkLengthIndexable(
-        pipelineSpecification,length,
+        getPipelineConnections(),length,
         ingestLogger);
     }
 
@@ -2107,7 +2297,7 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       return ingester.checkURLIndexable(
-        pipelineSpecification,url,
+        getPipelineConnections(),url,
         ingestLogger);
     }
 
