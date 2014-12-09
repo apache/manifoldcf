@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.0-dev =====================
 
+CONNECTORS-1118: Change IIncrementalIngester interface to allow
+for cached connection instances.
+(Aeham Abushwashi, Karl Wright)
+
 CONNECTORS-921: Change Zookeeper paths so all ManifoldCF nodes
 are under one root.
 (Graeme Seaton, Karl Wright)
