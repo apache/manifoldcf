@@ -1841,6 +1841,7 @@ public class WorkerThread extends Thread
 
         long currentTime = System.currentTimeMillis();
 
+        double currentMinimumDepth = rt.getMinimumDepth();
         rt.clearPreloadRequests();
         for (int j = 0; j < docidHashes.length; j++)
         {
@@ -1853,7 +1854,7 @@ public class WorkerThread extends Thread
 
           // Calculate desired document priority based on current queuetracker status.
           String[] bins = ManifoldCF.calculateBins(connector,dr.getLocalIdentifier());
-          PriorityCalculator p = new PriorityCalculator(rt,connection,bins);
+          PriorityCalculator p = new PriorityCalculator(rt,currentMinimumDepth,connection,bins);
           priorities[j] = p;
           p.makePreloadRequest();
         }
