@@ -91,63 +91,63 @@ public interface IIncrementalIngester
     throws ManifoldCFException, ServiceInterruption;
 
   /** Check if a document date is indexable.
-  *@param pipelineSpecification is the pipeline specification.
+  *@param pipelineConnections is the IPipelineConnections object for this pipeline.
   *@param date is the date to check
   *@param activity are the activities available to this method.
   *@return true if the document with that date is indexable.
   */
   public boolean checkDateIndexable(
-    IPipelineSpecification pipelineSpecification,
+    IPipelineConnections pipelineConnections,
     Date date,
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Check if a mime type is indexable.
-  *@param pipelineSpecification is the pipeline specification.
+  *@param pipelineConnections is the pipeline connections object for this pipeline.
   *@param mimeType is the mime type to check.
   *@param activity are the activities available to this method.
   *@return true if the mimeType is indexable.
   */
   public boolean checkMimeTypeIndexable(
-    IPipelineSpecification pipelineSpecification,
+    IPipelineConnections pipelineConnections,
     String mimeType,
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Check if a file is indexable.
-  *@param pipelineSpecification is the pipeline specification.
+  *@param pipelineConnections is the pipeline connections object for this pipeline.
   *@param localFile is the local file to check.
   *@param activity are the activities available to this method.
   *@return true if the local file is indexable.
   */
   public boolean checkDocumentIndexable(
-    IPipelineSpecification pipelineSpecification,
+    IPipelineConnections pipelineConnections,
     File localFile,
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
   * to help filter out documents that are too long to be indexable.
-  *@param pipelineSpecification is the pipeline specification.
+  *@param pipelineConnections is the pipeline connections object for this pipeline.
   *@param length is the length of the document.
   *@param activity are the activities available to this method.
   *@return true if the file is indexable.
   */
   public boolean checkLengthIndexable(
-    IPipelineSpecification pipelineSpecification,
+    IPipelineConnections pipelineConnections,
     long length,
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
   * to help filter out documents that not indexable.
-  *@param pipelineSpecification is the pipeline specification.
+  *@param pipelineConnections is the pipeline connections object for this pipeline.
   *@param url is the url of the document.
   *@param activity are the activities available to this method.
   *@return true if the file is indexable.
   */
   public boolean checkURLIndexable(
-    IPipelineSpecification pipelineSpecification,
+    IPipelineConnections pipelineConnections,
     String url,
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption;
@@ -188,7 +188,7 @@ public interface IIncrementalIngester
   * This method is conceptually similar to documentIngest(), but does not actually take
   * a document or allow it to be transformed.  If there is a document already
   * indexed, it is removed from the index.
-  *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
+  *@param pipelineConnectionsWithVersions is the pipeline connections with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
   *@param componentHash is the hashed component identifier, if any.
@@ -199,7 +199,7 @@ public interface IIncrementalIngester
   *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
   */
   public void documentNoData(
-    IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
+    IPipelineConnectionsWithVersions pipelineConnectionsWithVersions,
     String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String parameterVersion,
@@ -213,7 +213,7 @@ public interface IIncrementalIngester
   * method also REMOVES ALL OLD METADATA.  When complete, the index will contain only the metadata
   * described by the RepositoryDocument object passed to this method.
   * ServiceInterruption is thrown if the document ingestion must be rescheduled.
-  *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
+  *@param pipelineConnectionsWithVersions is the pipeline connections with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
   *@param componentHash is the hashed component identifier, if any.
@@ -228,7 +228,7 @@ public interface IIncrementalIngester
   *@throws IOException only if data stream throws an IOException.
   */
   public boolean documentIngest(
-    IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
+    IPipelineConnectionsWithVersions pipelineConnectionsWithVersions,
     String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String parameterVersion,
