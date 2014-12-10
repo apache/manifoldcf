@@ -38,24 +38,140 @@ public class PipelineSpecificationWithVersions implements IPipelineSpecification
     this.componentIDHash = componentIDHash;
   }
   
-  /** Get pipeline specification.
-  *@return the pipeline specification.
-  */
-  @Override
-  public IPipelineSpecification getPipelineSpecification()
-  {
-    return pipelineSpecification;
-  }
-
   protected DocumentIngestStatus getStatus(int index)
   {
-    IPipelineSpecificationBasic basic = pipelineSpecification.getBasicPipelineSpecification();
-    DocumentIngestStatusSet set = queuedDocument.getLastIngestedStatus(basic.getStageConnectionName(basic.getOutputStage(index)));
+    DocumentIngestStatusSet set = queuedDocument.getLastIngestedStatus(pipelineSpecification.getStageConnectionName(pipelineSpecification.getOutputStage(index)));
     if (set == null)
       return null;
     return set.getComponent(componentIDHash);
   }
+
+  /** Get a count of all stages.
+  *@return the total count of all stages.
+  */
+  @Override
+  public int getStageCount()
+  {
+    return pipelineSpecification.getStageCount();
+  }
   
+  /** Find children of a given pipeline stage.  Pass -1 to find the children of the root stage.
+  *@param stage is the stage index to get the children of.
+  *@return the pipeline stages that represent those children.
+  */
+  @Override
+  public int[] getStageChildren(int stage)
+  {
+    return pipelineSpecification.getStageChildren(stage);
+  }
+  
+  /** Find parent of a given pipeline stage.  Returns -1 if there's no parent (it's the root).
+  *@param stage is the stage index to get the parent of.
+  *@return the pipeline stage that is the parent, or -1.
+  */
+  @Override
+  public int getStageParent(int stage)
+  {
+    return pipelineSpecification.getStageParent(stage);
+  }
+
+  /** Get the connection name for a pipeline stage.
+  *@param stage is the stage to get the connection name for.
+  *@return the connection name for that stage.
+  */
+  @Override
+  public String getStageConnectionName(int stage)
+  {
+    return pipelineSpecification.getStageConnectionName(stage);
+  }
+
+  /** Check if a stage is an output stage.
+  *@param stage is the stage to check.
+  *@return true if the stage represents an output connection.
+  */
+  @Override
+  public boolean checkStageOutputConnection(int stage)
+  {
+    return pipelineSpecification.checkStageOutputConnection(stage);
+  }
+  
+  /** Return the number of output connections.
+  *@return the total number of output connections in this specification.
+  */
+  @Override
+  public int getOutputCount()
+  {
+    return pipelineSpecification.getOutputCount();
+  }
+  
+  /** Given an output index, return the stage number for that output.
+  *@param index is the output connection index.
+  *@return the stage number.
+  */
+  @Override
+  public int getOutputStage(int index)
+  {
+    return pipelineSpecification.getOutputStage(index);
+  }
+
+  /** Get the transformation connection names mentioned by the IPipelineSpecification
+  * object. */
+  @Override
+  public String[] getTransformationConnectionNames()
+  {
+    return pipelineSpecification.getTransformationConnectionNames();
+  }
+  
+  /** Get the transformation connection instances mentioned by the IPipelineSpecification
+  * object. */
+  @Override
+  public ITransformationConnection[] getTransformationConnections()
+  {
+    return pipelineSpecification.getTransformationConnections();
+  }
+  
+  /** Get the output connection names mentioned by the IPipelineSpecification
+  * object. */
+  @Override
+  public String[] getOutputConnectionNames()
+  {
+    return pipelineSpecification.getOutputConnectionNames();
+  }
+  
+  /** Get the output connection instances mentioned by the IPipelineSpecification
+  * object. */
+  @Override
+  public IOutputConnection[] getOutputConnections()
+  {
+    return pipelineSpecification.getOutputConnections();
+  }
+  
+  /** Get the index of the transformation connection corresponding to a
+  * specific pipeline stage. */
+  @Override
+  public Integer getTransformationConnectionIndex(int stage)
+  {
+    return pipelineSpecification.getTransformationConnectionIndex(stage);
+  }
+  
+  /** Get the index of the output connection corresponding to a
+  * specific pipeline stage. */
+  @Override
+  public Integer getOutputConnectionIndex(int stage)
+  {
+    return pipelineSpecification.getOutputConnectionIndex(stage);
+  }
+
+  /** Get the description string for a pipeline stage.
+  *@param stage is the stage to get the connection name for.
+  *@return the description string that stage.
+  */
+  @Override
+  public VersionContext getStageDescriptionString(int stage)
+  {
+    return pipelineSpecification.getStageDescriptionString(stage);
+  }
+
   /** For a given output index, return a document version string.
   *@param index is the output index.
   *@return the document version string.

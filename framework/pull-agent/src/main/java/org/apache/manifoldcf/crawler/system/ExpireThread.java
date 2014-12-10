@@ -70,6 +70,8 @@ public class ExpireThread extends Thread
       IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
+      ITransformationConnectionManager transformationConnectionManager = TransformationConnectionManagerFactory.make(threadContext);
+      IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadContext);
       IReprioritizationTracker rt = ReprioritizationTrackerFactory.make(threadContext);
 
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
@@ -100,7 +102,7 @@ public class ExpireThread extends Thread
 
           IJobDescription job = dds.getJobDescription();
           String connectionName = job.getConnectionName();
-          IPipelineSpecificationBasic pipelineSpecificationBasic = new PipelineSpecificationBasic(job);
+          IPipelineConnections pipelineConnections = new PipelineConnections(new PipelineSpecificationBasic(job),transformationConnectionManager,outputConnectionManager);
           
           try
           {
@@ -180,7 +182,7 @@ public class ExpireThread extends Thread
               // If we fail, we need to put the documents back on the queue.
               try
               {
-                ingester.documentDeleteMultiple(pipelineSpecificationBasic,docClassesToRemove,hashedDocsToRemove,activities);
+                ingester.documentDeleteMultiple(pipelineConnections,docClassesToRemove,hashedDocsToRemove,activities);
                 // Success!  Label all these as needing deletion from queue.
                 for (int k = 0; k < arrayDocHashes.size(); k++)
                 {
