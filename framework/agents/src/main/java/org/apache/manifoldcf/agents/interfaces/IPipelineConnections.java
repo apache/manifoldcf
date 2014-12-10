@@ -21,12 +21,8 @@ package org.apache.manifoldcf.agents.interfaces;
 /** This interface caches IOutputConnection and ITransformationConnection objects
 * required by an IPipelineSpecification.
 */
-public interface IPipelineConnections
+public interface IPipelineConnections extends IPipelineSpecificationBasic
 {
-  /** Get the underlying IPipelineSpecification object.
-  */
-  public IPipelineSpecification getSpecification();
-  
   /** Get the transformation connection names mentioned by the IPipelineSpecification
   * object. */
   public String[] getTransformationConnectionNames();

@@ -228,19 +228,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Check if a date is indexable.
-  *@param pipelineConnections is the IPipelineConnections object for this pipeline.
+  *@param pipelineSpecification is the IPipelineSpecification object for this pipeline.
   *@param date is the date to check.
   *@param activity are the activities available to this method.
   *@return true if the mimeType is indexable.
   */
   @Override
   public boolean checkDateIndexable(
-    IPipelineConnections pipelineConnections,
+    IPipelineSpecification pipelineSpecification,
     Date date,
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
-    PipelineObject pipeline = pipelineGrab(pipelineConnections);
+    PipelineObject pipeline = pipelineGrab(pipelineSpecification);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("One or more connectors are not installed",0L);
@@ -255,19 +255,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Check if a mime type is indexable.
-  *@param pipelineConnections is the pipeline connections object for this pipeline.
+  *@param pipelineSpecification is the IPipelineSpecification object for this pipeline.
   *@param mimeType is the mime type to check.
   *@param activity are the activities available to this method.
   *@return true if the mimeType is indexable.
   */
   @Override
   public boolean checkMimeTypeIndexable(
-    IPipelineConnections pipelineConnections,
+    IPipelineSpecification pipelineSpecification,
     String mimeType,
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
-    PipelineObject pipeline = pipelineGrab(pipelineConnections);
+    PipelineObject pipeline = pipelineGrab(pipelineSpecification);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("One or more connectors are not installed",0L);
@@ -282,19 +282,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Check if a file is indexable.
-  *@param pipelineConnections is the pipeline connections object for this pipeline.
+  *@param pipelineSpecification is the IPipelineSpecification object for this pipeline.
   *@param localFile is the local file to check.
   *@param activity are the activities available to this method.
   *@return true if the local file is indexable.
   */
   @Override
   public boolean checkDocumentIndexable(
-    IPipelineConnections pipelineConnections,
+    IPipelineSpecification pipelineSpecification,
     File localFile,
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
-    PipelineObject pipeline = pipelineGrab(pipelineConnections);
+    PipelineObject pipeline = pipelineGrab(pipelineSpecification);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("One or more connectors are not installed",0L);
@@ -310,19 +310,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
   * to help filter out documents that are too long to be indexable.
-  *@param pipelineConnections is the pipeline connections object for this pipeline.
+  *@param pipelineSpecification is the IPipelineSpecification object for this pipeline.
   *@param length is the length of the document.
   *@param activity are the activities available to this method.
   *@return true if the file is indexable.
   */
   @Override
   public boolean checkLengthIndexable(
-    IPipelineConnections pipelineConnections,
+    IPipelineSpecification pipelineSpecification,
     long length,
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
-    PipelineObject pipeline = pipelineGrab(pipelineConnections);
+    PipelineObject pipeline = pipelineGrab(pipelineSpecification);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("One or more connectors are not installed",0L);
@@ -338,19 +338,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
   * to help filter out documents that not indexable.
-  *@param pipelineConnections is the pipeline connections object for this pipeline.
+  *@param pipelineSpecification is the IPipelineSpecification object for this pipeline.
   *@param url is the url of the document.
   *@param activity are the activities available to this method.
   *@return true if the file is indexable.
   */
   @Override
   public boolean checkURLIndexable(
-    IPipelineConnections pipelineConnections,
+    IPipelineSpecification pipelineSpecification,
     String url,
     IOutputCheckActivity activity)
     throws ManifoldCFException, ServiceInterruption
   {
-    PipelineObject pipeline = pipelineGrab(pipelineConnections);
+    PipelineObject pipeline = pipelineGrab(pipelineSpecification);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("One or more connectors are not installed",0L);
@@ -371,7 +371,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param outputDescriptionString - the output description string
   *@return the pipeline description, or null if any part of the pipeline cannot be grabbed.
   */
-  protected PipelineObjectWithVersions pipelineGrabWithVersions(IPipelineConnectionsWithVersions pipelineConnections)
+  protected PipelineObjectWithVersions pipelineGrabWithVersions(IPipelineSpecificationWithVersions pipelineConnections)
     throws ManifoldCFException
   {
     // Pick up all needed transformation connectors
@@ -421,7 +421,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param outputDescriptionString - the output description string
   *@return the pipeline description, or null if any part of the pipeline cannot be grabbed.
   */
-  protected PipelineObject pipelineGrab(IPipelineConnections pipelineConnections)
+  protected PipelineObject pipelineGrab(IPipelineSpecification pipelineConnections)
     throws ManifoldCFException
   {
     // Pick up all needed transformation connectors
@@ -465,16 +465,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Get an output version string for a document.
-  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputConnection is the output connection associated with this action.
   *@param spec is the output specification.
   *@return the description string.
   */
   @Override
-  public VersionContext getOutputDescription(String outputConnectionName, Specification spec)
+  public VersionContext getOutputDescription(IOutputConnection outputConnection, Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
-    IOutputConnection connection = connectionManager.load(outputConnectionName);
-    IOutputConnector connector = outputConnectorPool.grab(connection);
+    IOutputConnector connector = outputConnectorPool.grab(outputConnection);
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Output connector not installed",0L);
@@ -484,22 +483,21 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      outputConnectorPool.release(connection,connector);
+      outputConnectorPool.release(outputConnection,connector);
     }
 
   }
 
   /** Get transformation version string for a document.
-  *@param transformationConnectionName is the names of the transformation connection associated with this action.
+  *@param transformationConnection is the transformation connection associated with this action.
   *@param spec is the transformation specification.
   *@return the description string.
   */
   @Override
-  public VersionContext getTransformationDescription(String transformationConnectionName, Specification spec)
+  public VersionContext getTransformationDescription(ITransformationConnection transformationConnection, Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
-    ITransformationConnection connection = transformationConnectionManager.load(transformationConnectionName);
-    ITransformationConnector connector = transformationConnectorPool.grab(connection);
+    ITransformationConnector connector = transformationConnectorPool.grab(transformationConnection);
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Transformation connector not installed",0L);
@@ -509,7 +507,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      transformationConnectorPool.release(connection,connector);
+      transformationConnectorPool.release(transformationConnection,connector);
     }
   }
 
@@ -530,12 +528,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   {
     if (newAuthorityNameString == null)
       newAuthorityNameString = "";
-    IPipelineSpecification pipelineSpecification = pipelineSpecificationWithVersions.getPipelineSpecification();
-    IPipelineSpecificationBasic basicSpecification = pipelineSpecification.getBasicPipelineSpecification();
     // Cycle through the outputs
-    for (int i = 0; i < basicSpecification.getOutputCount(); i++)
+    for (int i = 0; i < pipelineSpecificationWithVersions.getOutputCount(); i++)
     {
-      int stage = basicSpecification.getOutputStage(i);
+      int stage = pipelineSpecificationWithVersions.getOutputStage(i);
       String oldDocumentVersion = pipelineSpecificationWithVersions.getOutputDocumentVersionString(i);
       String oldOutputVersion = pipelineSpecificationWithVersions.getOutputVersionString(i);
       String oldAuthorityName = pipelineSpecificationWithVersions.getAuthorityNameString(i);
@@ -545,11 +541,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // Look first at the version strings that aren't pipeline dependent
       if (!oldDocumentVersion.equals(newDocumentVersion) ||
         !oldAuthorityName.equals(newAuthorityNameString) ||
-        !oldOutputVersion.equals(pipelineSpecification.getStageDescriptionString(stage).getVersionString()))
+        !oldOutputVersion.equals(pipelineSpecificationWithVersions.getStageDescriptionString(stage).getVersionString()))
         return true;
       
       // Everything matches so far.  Next step is to compute a transformation path an corresponding version string.
-      String newTransformationVersion = computePackedTransformationVersion(pipelineSpecification,stage);
+      String newTransformationVersion = computePackedTransformationVersion(pipelineSpecificationWithVersions,stage);
       if (!pipelineSpecificationWithVersions.getOutputTransformationVersionString(i).equals(newTransformationVersion))
         return true;
     }
@@ -564,13 +560,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   protected static String computePackedTransformationVersion(IPipelineSpecification pipelineSpecification, int stage)
   {
-    IPipelineSpecificationBasic basicSpecification = pipelineSpecification.getBasicPipelineSpecification();
     // First, count the stages we need to represent
     int stageCount = 0;
     int currentStage = stage;
     while (true)
     {
-      int newStage = basicSpecification.getStageParent(currentStage);
+      int newStage = pipelineSpecification.getStageParent(currentStage);
       if (newStage == -1)
         break;
       stageCount++;
@@ -583,10 +578,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     currentStage = stage;
     while (true)
     {
-      int newStage = basicSpecification.getStageParent(currentStage);
+      int newStage = pipelineSpecification.getStageParent(currentStage);
       if (newStage == -1)
         break;
-      stageNames[stageCount] = basicSpecification.getStageConnectionName(newStage);
+      stageNames[stageCount] = pipelineSpecification.getStageConnectionName(newStage);
       stageDescriptions[stageCount] = pipelineSpecification.getStageDescriptionString(newStage).getVersionString();
       stageCount++;
       currentStage = newStage;
@@ -674,7 +669,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   * This method is conceptually similar to documentIngest(), but does not actually take
   * a document or allow it to be transformed.  If there is a document already
   * indexed, it is removed from the index.
-  *@param pipelineConnectionsWithVersions is the pipeline connections with already-fetched output versioning information.
+  *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
   *@param componentHash is the hashed component identifier, if any.
@@ -685,7 +680,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   @Override
   public void documentNoData(
-    IPipelineConnectionsWithVersions pipelineConnectionsWithVersions,
+    IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
     String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String authorityName,
@@ -697,11 +692,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
     if (Logging.ingest.isDebugEnabled())
     {
-      Logging.ingest.debug("Logging empty document '"+docKey+"' component hash "+((componentHash==null)?"(None)":("'"+componentHash+"'"))+" into output connections '"+extractOutputConnectionNames(pipelineConnectionsWithVersions.getSpecification().getBasicPipelineSpecification())+"'");
+      Logging.ingest.debug("Logging empty document '"+docKey+"' component hash "+((componentHash==null)?"(None)":("'"+componentHash+"'"))+" into output connections '"+extractOutputConnectionNames(pipelineSpecificationWithVersions)+"'");
     }
 
     // Set up a pipeline
-    PipelineObjectWithVersions pipeline = pipelineGrabWithVersions(pipelineConnectionsWithVersions);
+    PipelineObjectWithVersions pipeline = pipelineGrabWithVersions(pipelineSpecificationWithVersions);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Pipeline connector not installed",0L);
@@ -720,7 +715,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   * method also REMOVES ALL OLD METADATA.  When complete, the index will contain only the metadata
   * described by the RepositoryDocument object passed to this method.
   * ServiceInterruption is thrown if the document ingestion must be rescheduled.
-  *@param pipelineConnectionsWithVersions is the pipeline connections with already-fetched output versioning information.
+  *@param pipelineSpecificationWithVersions is the pipeline specification with already-fetched output versioning information.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
   *@param componentHash is the hashed component identifier, if any.
@@ -735,7 +730,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   @Override
   public boolean documentIngest(
-    IPipelineConnectionsWithVersions pipelineConnectionsWithVersions,
+    IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
     String identifierClass, String identifierHash, String componentHash,
     String documentVersion,
     String authorityName,
@@ -748,14 +743,14 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
     if (Logging.ingest.isDebugEnabled())
     {
-      Logging.ingest.debug("Ingesting document '"+docKey+"' component hash "+((componentHash==null)?"(None)":("'"+componentHash+"'"))+" into output connections '"+extractOutputConnectionNames(pipelineConnectionsWithVersions.getSpecification().getBasicPipelineSpecification())+"'");
+      Logging.ingest.debug("Ingesting document '"+docKey+"' component hash "+((componentHash==null)?"(None)":("'"+componentHash+"'"))+" into output connections '"+extractOutputConnectionNames(pipelineSpecificationWithVersions)+"'");
     }
 
     // Set indexing date
     data.setIndexingDate(new Date());
     
     // Set up a pipeline
-    PipelineObjectWithVersions pipeline = pipelineGrabWithVersions(pipelineConnectionsWithVersions);
+    PipelineObjectWithVersions pipeline = pipelineGrabWithVersions(pipelineSpecificationWithVersions);
     if (pipeline == null)
       // A connector is not installed; treat this as a service interruption.
       throw new ServiceInterruption("Pipeline connector not installed",0L);
@@ -1960,40 +1955,44 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Reset all documents belonging to a specific output connection, because we've got information that
   * that system has been reconfigured.  This will force all such documents to be reindexed the next time
   * they are checked.
-  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputConnection is the output connection associated with this action.
   */
   @Override
-  public void resetOutputConnection(String outputConnectionName)
+  public void resetOutputConnection(IOutputConnection outputConnection)
     throws ManifoldCFException
   {
+    if (outputConnection == null)
+      return;
+
     // We're not going to blow away the records, but we are going to set their versions to mean, "reindex required"
     HashMap map = new HashMap();
     map.put(lastVersionField,null);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(outputConnNameField,outputConnectionName)});
+      new UnitaryClause(outputConnNameField,outputConnection.getName())});
       
     performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Remove all knowledge of an output index from the system.  This is appropriate
   * when the output index no longer exists and you wish to delete the associated job.
-  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputConnection is the output connection associated with this action.
   */
   @Override
-  public void removeOutputConnection(String outputConnectionName)
+  public void removeOutputConnection(IOutputConnection outputConnection)
     throws ManifoldCFException
   {
-    IOutputConnection connection = connectionManager.load(outputConnectionName);
-    
+    if (outputConnection == null)
+      return;
+
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(outputConnNameField,outputConnectionName)});
+      new UnitaryClause(outputConnNameField,outputConnection.getName())});
       
     performDelete("WHERE "+query,list,null);
       
     // Notify the output connection of the removal of all the records for the connection
-    IOutputConnector connector = outputConnectorPool.grab(connection);
+    IOutputConnector connector = outputConnectorPool.grab(outputConnection);
     if (connector == null)
       return;
     try
@@ -2002,7 +2001,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
     finally
     {
-      outputConnectorPool.release(connection,connector);
+      outputConnectorPool.release(outputConnection,connector);
     }
 
   }
@@ -2556,12 +2555,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   
   protected class PipelineObject
   {
-    public final IPipelineConnections pipelineConnections;
+    public final IPipelineSpecification pipelineConnections;
     public final IOutputConnector[] outputConnectors;
     public final ITransformationConnector[] transformationConnectors;
     
     public PipelineObject(
-      IPipelineConnections pipelineConnections,
+      IPipelineSpecification pipelineConnections,
       ITransformationConnector[] transformationConnectors,
       IOutputConnector[] outputConnectors)
     {
@@ -2624,15 +2623,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // Create the current set
       Map<Integer,PipelineCheckEntryPoint> currentSet = new HashMap<Integer,PipelineCheckEntryPoint>();
       // First, locate all the output stages, and enter them into the set
-      IPipelineSpecification spec = pipelineConnections.getSpecification();
-      IPipelineSpecificationBasic basicSpec = spec.getBasicPipelineSpecification();
-      int count = basicSpec.getOutputCount();
+      int count = pipelineConnections.getOutputCount();
       for (int i = 0; i < count; i++)
       {
-        int outputStage = basicSpec.getOutputStage(i);
+        int outputStage = pipelineConnections.getOutputStage(i);
         PipelineCheckEntryPoint outputStageEntryPoint = new PipelineCheckEntryPoint(
           outputConnectors[pipelineConnections.getOutputConnectionIndex(outputStage).intValue()],
-          spec.getStageDescriptionString(outputStage),finalActivity);
+          pipelineConnections.getStageDescriptionString(outputStage),finalActivity);
         currentSet.put(new Integer(outputStage), outputStageEntryPoint);
       }
       // Cycle through the "current set"
@@ -2642,9 +2639,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         int[] siblings = null;
         for (Integer outputStage : currentSet.keySet())
         {
-          parent = basicSpec.getStageParent(outputStage.intValue());
+          parent = pipelineConnections.getStageParent(outputStage.intValue());
           // Look up the children
-          siblings = basicSpec.getStageChildren(parent);
+          siblings = pipelineConnections.getStageChildren(parent);
           // Are all the siblings in the current set yet?  If not, we can't proceed with this entry.
           boolean skipToNext = false;
           for (int sibling : siblings)
@@ -2679,7 +2676,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           return pcf;
         PipelineCheckEntryPoint newEntry = new PipelineCheckEntryPoint(
           transformationConnectors[pipelineConnections.getTransformationConnectionIndex(parent).intValue()],
-          spec.getStageDescriptionString(parent),pcf);
+          pipelineConnections.getStageDescriptionString(parent),pcf);
         currentSet.put(new Integer(parent), newEntry);
       }
     }
@@ -2687,15 +2684,15 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   
   protected class PipelineObjectWithVersions extends PipelineObject
   {
-    protected final IPipelineConnectionsWithVersions pipelineConnectionsWithVersions;
+    protected final IPipelineSpecificationWithVersions pipelineSpecificationWithVersions;
     
     public PipelineObjectWithVersions(
-      IPipelineConnectionsWithVersions pipelineConnectionsWithVersions,
+      IPipelineSpecificationWithVersions pipelineSpecificationWithVersions,
       ITransformationConnector[] transformationConnectors,
       IOutputConnector[] outputConnectors)
     {
-      super(pipelineConnectionsWithVersions,transformationConnectors,outputConnectors);
-      this.pipelineConnectionsWithVersions = pipelineConnectionsWithVersions;
+      super(pipelineSpecificationWithVersions,transformationConnectors,outputConnectors);
+      this.pipelineSpecificationWithVersions = pipelineSpecificationWithVersions;
     }
 
     public int addOrReplaceDocumentWithException(String docKey, String componentHash, String documentURI, RepositoryDocument document, String newDocumentVersion, String authorityNameString, IOutputActivity finalActivity, long ingestTime)
@@ -2726,14 +2723,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // Create the current set
       Map<Integer,PipelineAddEntryPoint> currentSet = new HashMap<Integer,PipelineAddEntryPoint>();
       // First, locate all the output stages, and enter them into the set
-      IPipelineSpecificationWithVersions fullSpec = pipelineConnectionsWithVersions.getSpecificationWithVersions();
-      IPipelineSpecification pipelineSpec = fullSpec.getPipelineSpecification();
-      IPipelineSpecificationBasic basicSpec = pipelineSpec.getBasicPipelineSpecification();
+      IPipelineSpecificationWithVersions fullSpec = pipelineSpecificationWithVersions;
       
-      int outputCount = basicSpec.getOutputCount();
+      int outputCount = fullSpec.getOutputCount();
       for (int i = 0; i < outputCount; i++)
       {
-        int outputStage = basicSpec.getOutputStage(i);
+        int outputStage = fullSpec.getOutputStage(i);
         
         // Compute whether we need to reindex this record to this output or not, based on spec.
         String oldDocumentVersion = fullSpec.getOutputDocumentVersionString(i);
@@ -2742,13 +2737,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         String oldAuthorityName = fullSpec.getAuthorityNameString(i);
 
         // Compute the transformation version string.  Must always be computed if we're going to reindex, since we save it.
-        String newTransformationVersion = computePackedTransformationVersion(pipelineSpec,outputStage);
+        String newTransformationVersion = computePackedTransformationVersion(fullSpec,outputStage);
         
         boolean needToReindex = (oldDocumentVersion == null);
         if (needToReindex == false)
         {
           needToReindex = (!oldDocumentVersion.equals(newDocumentVersion) ||
-            !oldOutputVersion.equals(pipelineSpec.getStageDescriptionString(outputStage)) ||
+            !oldOutputVersion.equals(fullSpec.getStageDescriptionString(outputStage)) ||
             !oldAuthorityName.equals(newAuthorityNameString));
         }
         if (needToReindex == false)
@@ -2756,13 +2751,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           needToReindex = (!oldTransformationVersion.equals(newTransformationVersion));
         }
 
-        int connectionIndex = pipelineConnectionsWithVersions.getOutputConnectionIndex(outputStage).intValue();
+        int connectionIndex = fullSpec.getOutputConnectionIndex(outputStage).intValue();
         PipelineAddEntryPoint outputStageEntryPoint = new OutputAddEntryPoint(
           outputConnectors[connectionIndex],
-          pipelineSpec.getStageDescriptionString(outputStage),
-          new OutputActivitiesWrapper(finalActivity,basicSpec.getStageConnectionName(outputStage)),
+          fullSpec.getStageDescriptionString(outputStage),
+          new OutputActivitiesWrapper(finalActivity,fullSpec.getStageConnectionName(outputStage)),
           needToReindex,
-          basicSpec.getStageConnectionName(outputStage),
+          fullSpec.getStageConnectionName(outputStage),
           newTransformationVersion,
           ingestTime,
           newDocumentVersion,
@@ -2778,9 +2773,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         int[] siblings = null;
         for (Integer outputStage : currentSet.keySet())
         {
-          parent = basicSpec.getStageParent(outputStage.intValue());
+          parent = fullSpec.getStageParent(outputStage.intValue());
           // Look up the children
-          siblings = basicSpec.getStageChildren(parent);
+          siblings = fullSpec.getStageChildren(parent);
           // Are all the siblings in the current set yet?  If not, we can't proceed with this entry.
           boolean skipToNext = false;
           for (int sibling : siblings)
@@ -2812,13 +2807,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         // Wrap the entry points in a fan-out class, which has pipe connector-like methods that fire across all the connectors.
         PipelineAddFanout pcf = new PipelineAddFanout(siblingEntryPoints,
           (parent==-1)?null:new TransformationRecordingActivity(finalActivity,
-            basicSpec.getStageConnectionName(parent)),
+            fullSpec.getStageConnectionName(parent)),
           finalActivity);
         if (parent == -1)
           return pcf;
         PipelineAddEntryPoint newEntry = new PipelineAddEntryPoint(
-          transformationConnectors[pipelineConnections.getTransformationConnectionIndex(parent).intValue()],
-          pipelineSpec.getStageDescriptionString(parent),newAuthorityNameString,pcf,pcf.checkNeedToReindex());
+          transformationConnectors[fullSpec.getTransformationConnectionIndex(parent).intValue()],
+          fullSpec.getStageDescriptionString(parent),newAuthorityNameString,pcf,pcf.checkNeedToReindex());
         currentSet.put(new Integer(parent), newEntry);
       }
 
@@ -3431,202 +3426,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     if (oldURI != null && (documentURI == null || !documentURI.equals(oldURI)))
       lockArray[uriCount++] = outputConnectionName+":"+oldURI;
     return lockArray;
-  }
-  
-  /** Basic pipeline specification for backwards-compatible methods */
-  protected static class RuntPipelineSpecificationBasic implements IPipelineSpecificationBasic
-  {
-    protected final String outputConnectionName;
-    
-    public RuntPipelineSpecificationBasic(String outputConnectionName)
-    {
-      this.outputConnectionName = outputConnectionName;
-    }
-    
-    /** Get a count of all stages.
-    *@return the total count of all stages.
-    */
-    @Override
-    public int getStageCount()
-    {
-      return 1;
-    }
-
-    /** Find children of a given pipeline stage.  Pass -1 to find the children of the root stage.
-    *@param stage is the stage index to get the children of.
-    *@return the pipeline stages that represent those children.
-    */
-    @Override
-    public int[] getStageChildren(int stage)
-    {
-      if (stage == -1)
-        return new int[]{0};
-      return new int[0];
-    }
-
-    /** Find parent of a given pipeline stage.  Returns -1 if there's no parent (it's the root).
-    *@param stage is the stage index to get the parent of.
-    *@return the pipeline stage that is the parent, or -1.
-    */
-    @Override
-    public int getStageParent(int stage)
-    {
-      return -1;
-    }
-
-    /** Get the connection name for a pipeline stage.
-    *@param stage is the stage to get the connection name for.
-    *@return the connection name for that stage.
-    */
-    @Override
-    public String getStageConnectionName(int stage)
-    {
-      if (stage == 0)
-        return outputConnectionName;
-      return null;
-    }
-
-    /** Check if a stage is an output stage.
-    *@param stage is the stage to check.
-    *@return true if the stage represents an output connection.
-    */
-    @Override
-    public boolean checkStageOutputConnection(int stage)
-    {
-      return true;
-    }
-
-    /** Return the number of output connections.
-    *@return the total number of output connections in this specification.
-    */
-    @Override
-    public int getOutputCount()
-    {
-      return 1;
-    }
-    
-    /** Given an output index, return the stage number for that output.
-    *@param index is the output connection index.
-    *@return the stage number.
-    */
-    @Override
-    public int getOutputStage(int index)
-    {
-      return 0;
-    }
-
-  }
-  
-  /** Pipeline specification for backwards-compatible methods without pipelines */
-  protected static class RuntPipelineSpecification extends RuntPipelineSpecificationBasic implements IPipelineSpecification
-  {
-    protected final VersionContext outputDescriptionString;
-    
-    public RuntPipelineSpecification(String outputConnectionName, VersionContext outputDescriptionString)
-    {
-      super(outputConnectionName);
-      this.outputDescriptionString = outputDescriptionString;
-    }
-
-    /** Get the basic pipeline specification.
-    *@return the specification.
-    */
-    @Override
-    public IPipelineSpecificationBasic getBasicPipelineSpecification()
-    {
-      return this;
-    }
-
-    /** Get the description string for a pipeline stage.
-    *@param stage is the stage to get the connection name for.
-    *@return the description string that stage.
-    */
-    @Override
-    public VersionContext getStageDescriptionString(int stage)
-    {
-      if (stage == 0)
-        return outputDescriptionString;
-      return null;
-    }
-
-  }
-
-  /** Pipeline specification for backwards-compatible methods without pipelines */
-  protected static class RuntPipelineSpecificationWithVersions extends RuntPipelineSpecification implements IPipelineSpecificationWithVersions
-  {
-    protected final String oldDocumentVersion;
-    protected final String oldOutputVersion;
-    protected final String oldTransformationVersion;
-    protected final String oldAuthorityNameString;
-    
-    public RuntPipelineSpecificationWithVersions(String outputConnectionName, VersionContext outputDescriptionString,
-      String oldDocumentVersion, String oldOutputVersion, String oldTransformationVersion,
-      String oldAuthorityNameString)
-    {
-      super(outputConnectionName,outputDescriptionString);
-      this.oldDocumentVersion = oldDocumentVersion;
-      this.oldOutputVersion = oldOutputVersion;
-      this.oldTransformationVersion = oldTransformationVersion;
-      this.oldAuthorityNameString = oldAuthorityNameString;
-    }
-
-    /** Get pipeline specification.
-    *@return the pipeline specification.
-    */
-    @Override
-    public IPipelineSpecification getPipelineSpecification()
-    {
-      return this;
-    }
-
-    /** For a given output index, return a document version string.
-    *@param index is the output index.
-    *@return the document version string.
-    */
-    @Override
-    public String getOutputDocumentVersionString(int index)
-    {
-      if (index == 0)
-        return oldDocumentVersion;
-      return null;
-    }
-    
-    /** For a given output index, return a transformation version string.
-    *@param index is the output index.
-    *@return the transformation version string.
-    */
-    @Override
-    public String getOutputTransformationVersionString(int index)
-    {
-      if (index == 0)
-        return oldTransformationVersion;
-      return null;
-    }
-
-    /** For a given output index, return an output version string.
-    *@param index is the output index.
-    *@return the output version string.
-    */
-    @Override
-    public String getOutputVersionString(int index)
-    {
-      if (index == 0)
-        return oldOutputVersion;
-      return null;
-    }
-    
-    /** For a given output index, return an authority name string.
-    *@param index is the output index.
-    *@return the authority name string.
-    */
-    @Override
-    public String getAuthorityNameString(int index)
-    {
-      if (index == 0)
-        return oldAuthorityNameString;
-      return null;
-    }
-
   }
   
   /** This class passes everything through, and monitors what happens so that the
