@@ -148,7 +148,8 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   {
     // Blow away the incremental ingestion table first
     IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
-    ingester.resetOutputConnection(connectionName);
+    IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadContext);
+    ingester.resetOutputConnection(outputConnectionManager.load(connectionName));
     // Now, signal to all agents that the output connection configuration has changed.  Do this second, so that there cannot be documents
     // resulting from this signal that find themselves "unchanged".
     AgentManagerFactory.noteOutputConnectionChange(threadContext,connectionName);
@@ -165,7 +166,8 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   {
     // Blow away the incremental ingestion table first
     IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
-    ingester.removeOutputConnection(connectionName);
+    IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadContext);
+    ingester.removeOutputConnection(outputConnectionManager.load(connectionName));
     // Now, signal to all agents that the output connection configuration has changed.  Do this second, so that there cannot be documents
     // resulting from this signal that find themselves "unchanged".
     AgentManagerFactory.noteOutputConnectionChange(threadContext,connectionName);
