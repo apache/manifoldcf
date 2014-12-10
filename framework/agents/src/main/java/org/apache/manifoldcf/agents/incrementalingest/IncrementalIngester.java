@@ -765,7 +765,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Remove a document component from the search engine index.
-  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param pipelineConnections is the pipeline specification.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hash of the id of the document.
   *@param componentHash is the hashed component identifier, if any.
@@ -773,12 +773,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   @Override
   public void documentRemove(
-    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    IPipelineConnections pipelineConnections,
     String identifierClass, String identifierHash, String componentHash,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    documentRemoveMultiple(pipelineSpecificationBasic,
+    documentRemoveMultiple(pipelineConnections,
       new String[]{identifierClass},
       new String[]{identifierHash},
       componentHash,
@@ -921,24 +921,24 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
 
   /** Delete multiple documents from the search engine index.
-  *@param pipelineSpecificationBasics are the pipeline specifications associated with the documents.
+  *@param pipelineConnections are the pipeline specifications associated with the documents.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
   *@param identifierHashes is tha array of document identifier hashes if the documents.
   *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
   */
   @Override
   public void documentDeleteMultiple(
-    IPipelineSpecificationBasic[] pipelineSpecificationBasics,
+    IPipelineConnections[] pipelineConnections,
     String[] identifierClasses, String[] identifierHashes,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     // Segregate request by pipeline spec instance address.  Not perfect but works in the
     // environment it is used it.
-    Map<IPipelineSpecificationBasic,List<Integer>> keyMap = new HashMap<IPipelineSpecificationBasic,List<Integer>>();
-    for (int i = 0; i < pipelineSpecificationBasics.length; i++)
+    Map<IPipelineConnections,List<Integer>> keyMap = new HashMap<IPipelineConnections,List<Integer>>();
+    for (int i = 0; i < pipelineConnections.length; i++)
     {
-      IPipelineSpecificationBasic spec = pipelineSpecificationBasics[i];
+      IPipelineConnections spec = pipelineConnections[i];
       List<Integer> list = keyMap.get(spec);
       if (list == null)
       {
@@ -949,10 +949,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
 
     // Create the return array.
-    Iterator<IPipelineSpecificationBasic> iter = keyMap.keySet().iterator();
+    Iterator<IPipelineConnections> iter = keyMap.keySet().iterator();
     while (iter.hasNext())
     {
-      IPipelineSpecificationBasic spec = iter.next();
+      IPipelineConnections spec = iter.next();
       List<Integer> list = keyMap.get(spec);
       String[] localIdentifierClasses = new String[list.size()];
       String[] localIdentifierHashes = new String[list.size()];
@@ -967,21 +967,20 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Delete multiple documents from the search engine index.
-  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param pipelineConnections is the pipeline specification.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
   *@param identifierHashes is tha array of document identifier hashes if the documents.
   *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
   */
   @Override
   public void documentDeleteMultiple(
-    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    IPipelineConnections pipelineConnections,
     String[] identifierClasses, String[] identifierHashes,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    String[] outputConnectionNames = extractOutputConnectionNames(pipelineSpecificationBasic);
-    // Load connection managers up front to save time
-    IOutputConnection[] outputConnections = connectionManager.loadMultiple(outputConnectionNames);
+    String[] outputConnectionNames = pipelineConnections.getOutputConnectionNames();
+    IOutputConnection[] outputConnections = pipelineConnections.getOutputConnections();
     
     // No transactions here, so we can cycle through the connection names one at a time
     for (int z = 0; z < outputConnectionNames.length; z++)
@@ -1182,7 +1181,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Remove multiple document components from the search engine index.
-  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param pipelineConnections is the pipeline specification.
   *@param identifierClasses are the names of the spaces in which the identifier hash should be interpreted.
   *@param identifierHashes are the hashes of the ids of the documents.
   *@param componentHash is the hashed component identifier, if any.
@@ -1190,14 +1189,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   @Override
   public void documentRemoveMultiple(
-    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    IPipelineConnections pipelineConnections,
     String[] identifierClasses, String[] identifierHashes, String componentHash,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    String[] outputConnectionNames = extractOutputConnectionNames(pipelineSpecificationBasic);
-    // Load connection managers up front to save time
-    IOutputConnection[] outputConnections = connectionManager.loadMultiple(outputConnectionNames);
+    String[] outputConnectionNames = pipelineConnections.getOutputConnectionNames();
+    IOutputConnection[] outputConnections = pipelineConnections.getOutputConnections();
     
     // No transactions here, so we can cycle through the connection names one at a time
     for (int z = 0; z < outputConnectionNames.length; z++)
@@ -1545,19 +1543,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Delete a document from the search engine index.
-  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param pipelineConnections is the pipeline specification.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hash of the id of the document.
   *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
   */
   @Override
   public void documentDelete(
-    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    IPipelineConnections pipelineConnections,
     String identifierClass, String identifierHash,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    documentDeleteMultiple(pipelineSpecificationBasic,new String[]{identifierClass},new String[]{identifierHash},activities);
+    documentDeleteMultiple(pipelineConnections,new String[]{identifierClass},new String[]{identifierHash},activities);
   }
 
   /** Find out what URIs a SET of document URIs are currently ingested.

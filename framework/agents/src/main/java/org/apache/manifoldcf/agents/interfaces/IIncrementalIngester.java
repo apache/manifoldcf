@@ -233,27 +233,27 @@ public interface IIncrementalIngester
     throws ManifoldCFException, ServiceInterruption, IOException;
 
   /** Remove a document component from the search engine index.
-  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param pipelineConnections is the pipeline specification.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hash of the id of the document.
   *@param componentHash is the hashed component identifier, if any.
   *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
   */
   public void documentRemove(
-    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    IPipelineConnections pipelineConnections,
     String identifierClass, String identifierHash, String componentHash,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Remove multiple document components from the search engine index.
-  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param pipelineConnections is the pipeline specification.
   *@param identifierClasses are the names of the spaces in which the identifier hash should be interpreted.
   *@param identifierHashes are the hashes of the ids of the documents.
   *@param componentHash is the hashed component identifier, if any.
   *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
   */
   public void documentRemoveMultiple(
-    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    IPipelineConnections pipelineConnections,
     String[] identifierClasses, String[] identifierHashes, String componentHash,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
@@ -285,37 +285,37 @@ public interface IIncrementalIngester
     throws ManifoldCFException;
 
   /** Delete multiple documents, and their components, from the search engine index.
-  *@param pipelineSpecificationBasics are the pipeline specifications associated with the documents.
+  *@param pipelineConnections are the pipeline specifications associated with the documents.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
   *@param identifierHashes is tha array of document identifier hashes if the documents.
   *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
   */
   public void documentDeleteMultiple(
-    IPipelineSpecificationBasic[] pipelineSpecificationBasics,
+    IPipelineConnections[] pipelineConnections,
     String[] identifierClasses, String[] identifierHashes,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Delete multiple documents, and their components, from the search engine index.
-  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param pipelineConnections is the pipeline specification.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
   *@param identifierHashes is tha array of document identifier hashes if the documents.
   *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
   */
   public void documentDeleteMultiple(
-    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    IPipelineConnections pipelineConnections,
     String[] identifierClasses, String[] identifierHashes,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Delete a document, and all its components, from the search engine index.
-  *@param pipelineSpecificationBasic is the basic pipeline specification.
+  *@param pipelineConnections is the pipeline specification.
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hash of the id of the document.
   *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
   */
   public void documentDelete(
-    IPipelineSpecificationBasic pipelineSpecificationBasic,
+    IPipelineConnections pipelineConnections,
     String identifierClass, String identifierHash,
     IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption;
