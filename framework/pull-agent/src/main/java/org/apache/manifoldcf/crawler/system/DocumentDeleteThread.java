@@ -79,7 +79,9 @@ public class DocumentDeleteThread extends Thread
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
       IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
-
+      ITransformationConnectionManager transformationConnectionManager = TransformationConnectionManagerFactory.make(threadContext);
+      IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -100,7 +102,7 @@ public class DocumentDeleteThread extends Thread
           
           IJobDescription job = dds.getJobDescription();
           String connectionName = job.getConnectionName();
-          IPipelineSpecificationBasic pipelineSpecificationBasic = new PipelineSpecificationBasic(job);
+          IPipelineConnections pipelineConnections = new PipelineConnections(new PipelineSpecificationBasic(job),transformationConnectionManager,outputConnectionManager);
           
           try
           {
@@ -129,7 +131,7 @@ public class DocumentDeleteThread extends Thread
                 
             try
             {
-              ingester.documentDeleteMultiple(pipelineSpecificationBasic,docClassesToRemove,hashedDocsToRemove,logger);
+              ingester.documentDeleteMultiple(pipelineConnections,docClassesToRemove,hashedDocsToRemove,logger);
               for (int j = 0; j < dds.getCount(); j++)
               {
                 deleteFromQueue[j] = true;
