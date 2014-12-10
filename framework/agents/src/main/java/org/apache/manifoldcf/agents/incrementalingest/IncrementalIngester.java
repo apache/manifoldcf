@@ -83,8 +83,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected final IOutputConnectionManager connectionManager;
   // Output connector pool manager
   protected final IOutputConnectorPool outputConnectorPool;
-  // Transformation connection manager
-  protected final ITransformationConnectionManager transformationConnectionManager;
   // Transformation connector pool manager
   protected final ITransformationConnectorPool transformationConnectorPool;
   
@@ -98,7 +96,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     lockManager = LockManagerFactory.make(threadContext);
     connectionManager = OutputConnectionManagerFactory.make(threadContext);
     outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
-    transformationConnectionManager = TransformationConnectionManagerFactory.make(threadContext);
     transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
   }
 
