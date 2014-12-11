@@ -703,6 +703,14 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="lib-proprietary/*.jar"/>
           <exclude name="scripts/*.env.win"/>
           <exclude name="scripts/*.env.unix"/>
+          <exclude name="scripts-hsqldb/*.env.win"/>
+          <exclude name="scripts-hsqldb/*.env.unix"/>
+          <exclude name="scripts-zookeeper/*.env.win"/>
+          <exclude name="scripts-zookeeper/*.env.unix"/>
+          <exclude name="scripts-start/*.env.win"/>
+          <exclude name="scripts-start/*.env.unix"/>
+          <exclude name="obfuscate-scripts/*.env.win"/>
+          <exclude name="obfuscate-scripts/*.env.unix"/>
           <exclude name="scripts-jetty/*.env.win"/>
           <exclude name="scripts-jetty/*.env.unix"/>
           <exclude name="scripts-combined/*.env.win"/>
