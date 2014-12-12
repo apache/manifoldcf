@@ -52,4 +52,17 @@ public class ElasticSearchDelete extends ElasticSearchConnection
       setResult("JSONERROR",Result.ERROR, error);
       Logging.connectors.warn("ES: Delete failed: "+getResponse());
   }
+  
+  @Override
+  protected boolean handleResultCode(int code, String response)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (code == 404)
+    {
+      setResult("OK",Result.OK, null);
+      return true;
+    }
+    return super.handleResultCode(code, response);
+  }
+
 }
