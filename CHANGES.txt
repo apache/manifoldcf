@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 2.0 =====================
 
+CONNECTORS-1120: ElasticSearch: Handle case of deleting already
+deleted document.
+(Kamil Żyta, Karl Wright)
+
 CONNECTORS-1118: Change IIncrementalIngester interface to allow
 for cached connection instances.
 (Aeham Abushwashi, Karl Wright)
