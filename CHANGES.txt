@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 2.0 =====================
 
+CONNECTORS-1121: Plugins have moved in the dist repository, so
+point at them properly.
+(Kamil Żyta, Karl Wright)
+
 CONNECTORS-1120: ElasticSearch: Handle case of deleting already
 deleted document.
 (Kamil Żyta, Karl Wright)
