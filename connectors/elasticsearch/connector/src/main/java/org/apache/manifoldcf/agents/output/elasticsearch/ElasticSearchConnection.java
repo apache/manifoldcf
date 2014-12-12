@@ -224,7 +224,7 @@ public class ElasticSearchConnection
     }
   }
 
-  private boolean handleResultCode(int code, String response)
+  protected boolean handleResultCode(int code, String response)
     throws ManifoldCFException, ServiceInterruption
   {
     if (code == 200 || code == 201)
