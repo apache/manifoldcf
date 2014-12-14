@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.8-dev =====================
+======================= Release 1.8 =====================
 
 CONNECTORS-1121: Plugins have moved in the dist repository, so
 point at them properly.

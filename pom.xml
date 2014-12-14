@@ -28,7 +28,7 @@
 
   <groupId>org.apache.manifoldcf</groupId>
   <artifactId>mcf-parent</artifactId>
-  <version>1.8-SNAPSHOT</version>
+  <version>1.8</version>
 
   <name>ManifoldCF</name>
   <packaging>pom</packaging>
