@@ -118,6 +118,13 @@ public interface IJobManager
   public boolean checkIfReference(String connectionName)
     throws ManifoldCFException;
 
+  /** See if there's a reference to a notification connection name.
+  *@param connectionName is the name of the connection.
+  *@return true if there is a reference, false otherwise.
+  */
+  public boolean checkIfNotificationReference(String connectionName)
+    throws ManifoldCFException;
+
   /** See if there's a reference to an output connection name.
   *@param connectionName is the name of the connection.
   *@return true if there is a reference, false otherwise.
@@ -971,6 +978,13 @@ public interface IJobManager
   * is signalled.
   */
   public void noteConnectionChange(String connectionName)
+    throws ManifoldCFException;
+
+  /** Note a change in notification connection configuration.
+  * This method will be called whenever a connection's configuration is modified, or when an external repository change
+  * is signalled.
+  */
+  public void noteNotificationConnectionChange(String connectionName)
     throws ManifoldCFException;
     
   /**  Note the deregistration of an output connector used by the specified connections.

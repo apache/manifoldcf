@@ -635,6 +635,17 @@ public class JobManager implements IJobManager
     jobs.noteConnectionChange(connectionName);
   }
 
+  /** Note a change in notification connection configuration.
+  * This method will be called whenever a notification connection's configuration is modified, or when an external repository change
+  * is signalled.
+  */
+  @Override
+  public void noteNotificationConnectionChange(String connectionName)
+    throws ManifoldCFException
+  {
+    jobs.noteConnectionChange(connectionName);
+  }
+
   /** Note a change in output connection configuration.
   * This method will be called whenever a connection's configuration is modified, or when an external target config change
   * is signalled.
@@ -826,6 +837,17 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     return jobs.checkIfReference(connectionName);
+  }
+
+  /** See if there's a reference to a notification connection name.
+  *@param connectionName is the name of the connection.
+  *@return true if there is a reference, false otherwise.
+  */
+  @Override
+  public boolean checkIfNotificationReference(String connectionName)
+    throws ManifoldCFException
+  {
+    return jobs.checkIfNotificationReference(connectionName);
   }
 
   /** See if there's a reference to an output connection name.
