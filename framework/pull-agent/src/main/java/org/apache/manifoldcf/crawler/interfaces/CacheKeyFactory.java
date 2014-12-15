@@ -63,6 +63,24 @@ public class CacheKeyFactory extends org.apache.manifoldcf.agents.interfaces.Cac
     return "REPOSITORYCONNECTION_"+connectionName;
   }
 
+  /** Construct a key which represents the general list of notification connectors.
+  *@return the cache key.
+  */
+  public static String makeNotificationConnectionsKey()
+  {
+    return "NOTIFICATIONCONNECTIONS";
+  }
+
+  /** Construct a key which represents an individual notification connection.
+  *@param connectionName is the name of the connector.
+  *@return the cache key.
+  */
+  public static String makeNotificationConnectionKey(String connectionName)
+  {
+    return "NOTIFICATIONCONNECTION_"+connectionName;
+  }
+
+
   /** Construct a key which represents the general list of jobs - for queries
   * that depend on the fixed kind of job data, not the dynamic data (e.g. status)
   *@return the cache key.

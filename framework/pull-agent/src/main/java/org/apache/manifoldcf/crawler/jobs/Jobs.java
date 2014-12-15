@@ -1542,6 +1542,16 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(newValues,"WHERE "+query,list,null);
   }
 
+  /** Note a change in notification connection configuration.
+  * This method will be called whenever a notification connection's configuration is modified, or when an external repository change
+  * is signalled.
+  */
+  public void noteNotificationConnectionChange(String connectionName)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
   /** Note a change in output connection configuration.
   * This method will be called whenever a connection's configuration is modified, or when an external target config change
   * is signalled.
@@ -2960,6 +2970,17 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+
       " WHERE "+query,list,new StringSet(getJobsKey()),null);
     return set.getRowCount() > 0;
+  }
+
+  /** See if there's a reference to a notification connection name.
+  *@param connectionName is the name of the connection.
+  *@return true if there is a reference, false otherwise.
+  */
+  public boolean checkIfNotificationReference(String connectionName)
+    throws ManifoldCFException
+  {
+    // MHL
+    return false;
   }
 
   /** See if there's a reference to an output connection name.
