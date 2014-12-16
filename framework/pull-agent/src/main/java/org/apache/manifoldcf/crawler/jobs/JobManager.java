@@ -388,6 +388,116 @@ public class JobManager implements IJobManager
     }
   }
 
+  /**  Note the deregistration of a notification connector used by the specified connections.
+  * This method will be called when the connector is deregistered.  Jobs that use these connections
+  *  must therefore enter appropriate states.
+  *@param connectionNames is the set of connection names.
+  */
+  @Override
+  public void noteNotificationConnectorDeregistration(String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
+    List<String> list = new ArrayList<String>();
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    int i = 0;
+    while (i < connectionNames.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteNotificationConnectionDeregistration(list);
+        list.clear();
+        currentCount = 0;
+      }
+
+      list.add(connectionNames[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteNotificationConnectionDeregistration(list);
+  }
+
+  /** Note deregistration for a batch of notification connection names.
+  */
+  protected void noteNotificationConnectionDeregistration(List<String> list)
+    throws ManifoldCFException
+  {
+    // MHL
+    /*
+    ArrayList newList = new ArrayList();
+    String query = database.buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(jobs.connectionNameField,list)});
+    // Query for the matching jobs, and then for each job potentially adjust the state
+    IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
+      jobs.getTableName()+" WHERE "+query+" FOR UPDATE",
+      newList,null,null);
+    int i = 0;
+    while (i < set.getRowCount())
+    {
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
+      int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+      jobs.noteConnectorDeregistration(jobID,statusValue);
+    }
+    */
+  }
+
+  /** Note the registration of a notification connector used by the specified connections.
+  * This method will be called when a connector is registered, on which the specified
+  * connections depend.
+  *@param connectionNames is the set of connection names.
+  */
+  @Override
+  public void noteNotificationConnectorRegistration(String[] connectionNames)
+    throws ManifoldCFException
+  {
+    // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
+    List<String> list = new ArrayList<String>();
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    int i = 0;
+    while (i < connectionNames.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteNotificationConnectionRegistration(list);
+        list.clear();
+        currentCount = 0;
+      }
+
+      list.add(connectionNames[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteNotificationConnectionRegistration(list);
+  }
+
+  /** Note registration for a batch of connection names.
+  */
+  protected void noteNotificationConnectionRegistration(List<String> list)
+    throws ManifoldCFException
+  {
+    // Query for the matching jobs, and then for each job potentially adjust the state
+    // MHL
+    /*
+    ArrayList newList = new ArrayList();
+    String query = database.buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(jobs.connectionNameField,list)});
+    IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
+      jobs.getTableName()+" WHERE "+query+" FOR UPDATE",
+      newList,null,null);
+    int i = 0;
+    while (i < set.getRowCount())
+    {
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
+      int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+      jobs.noteConnectorRegistration(jobID,statusValue);
+    }
+    */
+  }
+
   /**  Note the deregistration of an output connector used by the specified connections.
   * This method will be called when the connector is deregistered.  Jobs that use these connections
   *  must therefore enter appropriate states.

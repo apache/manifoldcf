@@ -973,6 +973,22 @@ public interface IJobManager
   public void noteConnectorRegistration(String[] connectionNames)
     throws ManifoldCFException;
 
+  /**  Note the deregistration of a notification connector used by the specified connections.
+  * This method will be called when the connector is deregistered.  Jobs that use these connections
+  *  must therefore enter appropriate states.
+  *@param connectionNames is the set of connection names.
+  */
+  public void noteNotificationConnectorDeregistration(String[] connectionNames)
+    throws ManifoldCFException;
+
+  /** Note the registration of a notification connector used by the specified connections.
+  * This method will be called when a connector is registered, on which the specified
+  * connections depend.
+  *@param connectionNames is the set of connection names.
+  */
+  public void noteNotificationConnectorRegistration(String[] connectionNames)
+    throws ManifoldCFException;
+
   /** Note a change in connection configuration.
   * This method will be called whenever a connection's configuration is modified, or when an external repository change
   * is signalled.

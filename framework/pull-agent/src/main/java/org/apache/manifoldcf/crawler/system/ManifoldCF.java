@@ -198,6 +198,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String NODE_TRANSFORMATIONCONNECTOR = "transformationconnector";
   protected static final String NODE_MAPPINGCONNECTOR = "mappingconnector";
   protected static final String NODE_AUTHORITYCONNECTOR = "authorityconnector";
+  protected static final String NODE_NOTIFICATIONCONNECTOR = "notificationconnector";
   protected static final String NODE_REPOSITORYCONNECTOR = "repositoryconnector";
   protected static final String ATTRIBUTE_NAME = "name";
   protected static final String ATTRIBUTE_CLASS = "class";
@@ -214,6 +215,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     Map<String,String> desiredTransformationConnectors = new HashMap<String,String>();
     Map<String,String> desiredMappingConnectors = new HashMap<String,String>();
     Map<String,String> desiredAuthorityConnectors = new HashMap<String,String>();
+    Map<String,String> desiredNotificationConnectors = new HashMap<String,String>();
     Map<String,String> desiredRepositoryConnectors = new HashMap<String,String>();
 
     Map<String,String> desiredDomains = new HashMap<String,String>();
@@ -252,6 +254,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
           String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
           desiredAuthorityConnectors.put(className,name);
+        }
+        else if (cn.getType().equals(NODE_NOTIFICATIONCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          desiredNotificationConnectors.put(className,name);
         }
         else if (cn.getType().equals(NODE_REPOSITORYCONNECTOR))
         {
@@ -407,6 +415,49 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       System.err.println("Successfully unregistered all authority connectors");
     }
       
+    // Notification connectors...
+    {
+      INotificationConnectorManager mgr = NotificationConnectorManagerFactory.make(tc);
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      INotificationConnectionManager connManager = NotificationConnectionManagerFactory.make(tc);
+      IResultSet classNames = mgr.getConnectors();
+      int i = 0;
+      while (i < classNames.getRowCount())
+      {
+        IResultRow row = classNames.getRow(i++);
+        String className = (String)row.getValue("classname");
+        String description = (String)row.getValue("description");
+        if (desiredNotificationConnectors.get(className) == null || !desiredNotificationConnectors.get(className).equals(description))
+        {
+          // Deregistration should be done in a transaction
+          database.beginTransaction();
+          try
+          {
+            // Find the connection names that come with this class
+            String[] connectionNames = connManager.findConnectionsForConnector(className);
+            // For each connection name, modify the jobs to note that the connector is no longer installed
+            jobManager.noteNotificationConnectorDeregistration(connectionNames);
+            // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
+            mgr.unregisterConnector(className);
+          }
+          catch (ManifoldCFException e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          catch (Error e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          finally
+          {
+            database.endTransaction();
+          }
+        }
+      }
+    }
+    
     // Repository connectors...
     {
       IConnectorManager mgr = ConnectorManagerFactory.make(tc);
@@ -562,6 +613,41 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           mgr.registerConnector(name,className);
           System.err.println("Successfully registered mapping connector '"+className+"'");
         }
+        else if (cn.getType().equals(NODE_NOTIFICATIONCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          INotificationConnectorManager mgr = NotificationConnectorManagerFactory.make(tc);
+          IJobManager jobManager = JobManagerFactory.make(tc);
+          INotificationConnectionManager connManager = NotificationConnectionManagerFactory.make(tc);
+          // Deregistration should be done in a transaction
+          database.beginTransaction();
+          try
+          {
+            // First, register connector
+            mgr.registerConnector(name,className);
+            // Then, signal to all jobs that might depend on this connector that they can switch state
+            // Find the connection names that come with this class
+            String[] connectionNames = connManager.findConnectionsForConnector(className);
+            // For each connection name, modify the jobs to note that the connector is now installed
+            jobManager.noteNotificationConnectorRegistration(connectionNames);
+          }
+          catch (ManifoldCFException e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          catch (Error e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          finally
+          {
+            database.endTransaction();
+          }
+          System.err.println("Successfully registered notification connector '"+className+"'");
+        }
         else if (cn.getType().equals(NODE_REPOSITORYCONNECTOR))
         {
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
@@ -611,11 +697,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
+    INotificationConnectorManager notConnMgr = NotificationConnectorManagerFactory.make(threadcontext);
+    INotificationConnectionManager notCon = NotificationConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
     IBinManager binManager = BinManagerFactory.make(threadcontext);
     org.apache.manifoldcf.authorities.system.ManifoldCF.installSystemTables(threadcontext);
     repConnMgr.install();
     repCon.install();
+    notConnMgr.install();
+    notCon.install();
     jobManager.install();
     binManager.install();
   }
@@ -628,10 +718,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
+    INotificationConnectorManager notConnMgr = NotificationConnectorManagerFactory.make(threadcontext);
+    INotificationConnectionManager notCon = NotificationConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
     IBinManager binManager = BinManagerFactory.make(threadcontext);
     binManager.deinstall();
     jobManager.deinstall();
+    notCon.deinstall();
+    notConnMgr.deinstall();
     repCon.deinstall();
     repConnMgr.deinstall();
     org.apache.manifoldcf.authorities.system.ManifoldCF.deinstallSystemTables(threadcontext);
@@ -652,6 +746,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     ITransformationConnectionManager transManager = TransformationConnectionManagerFactory.make(threadContext);
     IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
+    INotificationConnectionManager notificationConnManager = NotificationConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -728,6 +823,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
             connManager.exportConfiguration(zos);
             zos.closeEntry();
 
+            java.util.zip.ZipEntry notConnEntry = new java.util.zip.ZipEntry("notifications");
+            zos.putNextEntry(notConnEntry);
+            notificationConnManager.exportConfiguration(zos);
+            zos.closeEntry();
+
             java.util.zip.ZipEntry jobsEntry = new java.util.zip.ZipEntry("jobs");
             zos.putNextEntry(jobsEntry);
             jobManager.exportConfiguration(zos);
@@ -787,6 +887,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     ITransformationConnectionManager transManager = TransformationConnectionManagerFactory.make(threadContext);
     IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
+    INotificationConnectionManager notificationConnManager = NotificationConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -845,6 +946,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
                 authManager.importConfiguration(zis);
               else if (name.equals("connections"))
                 connManager.importConfiguration(zis);
+              else if (name.equals("notifications"))
+                notificationConnManager.importConfiguration(zis);
               else if (name.equals("jobs"))
                 jobManager.importConfiguration(zis);
               else
