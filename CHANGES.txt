@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.8 =====================
 
+CONNECTORS-1123: Reduce the maximum number of zookeeper lock
+nodes, by hashing the lock names that correspond to documents.
+(Aeham Abushwashi, Karl Wright)
+
 CONNECTORS-1035: Introduce connector-common jar, to get
 legacy Alfresco connector working again.
 (Karl Wright)
