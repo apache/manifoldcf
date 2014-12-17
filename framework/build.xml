@@ -1665,14 +1665,14 @@
 
     <target name="compile-connector-common-tests" depends="compile-connector-common">
         <mkdir dir="build/connector-common-tests/classes"/>
-        <javac srcdir="connector-common/src/test/java" destdir="build/connector-common-tests/classes" deprecation="true" target="1.7" source="1.7" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <!--javac srcdir="connector-common/src/test/java" destdir="build/connector-common-tests/classes" deprecation="true" target="1.7" source="1.7" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
                 <pathelement location="build/connector-common/classes"/>
             </classpath>
-        </javac>
+        </javac -->
     </target>
 
     <target name="compile-agents-tests" depends="compile-core-tests,compile-agents">
