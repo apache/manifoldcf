@@ -15,7 +15,7 @@
 *
 * $Id$
 */
-package org.apache.manifoldcf.core.common;
+package org.apache.manifoldcf.connectorcommon.common;
 
 import org.apache.manifoldcf.core.common.XThreadInputStream;
 

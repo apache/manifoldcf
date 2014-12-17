@@ -183,6 +183,11 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-connector-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>mcf-agents</artifactId>
       <version>${project.version}</version>
     </dependency>
