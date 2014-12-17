@@ -35,6 +35,7 @@
   <property name="org.apache.manifoldcf.connectorsconfigurationfile" value="../connectors-proprietary.xml"/>
   <!-- Tell MCF where to find the connector jars -->
   <libdir path="../connector-lib"/>
+  <libdir path="../connector-common-lib"/>
   <libdir path="../connector-lib-proprietary"/>
   <!-- Any additional local properties go here -->
 </configuration>

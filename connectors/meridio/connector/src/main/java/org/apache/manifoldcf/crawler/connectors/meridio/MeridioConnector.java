@@ -188,7 +188,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           params.getObfuscatedParameter("Password"),
           InetAddress.getLocalHost().getHostName(),
           mySSLFactory,
-          org.apache.manifoldcf.core.common.CommonsHTTPSender.class,
+          org.apache.manifoldcf.connectorcommon.common.CommonsHTTPSender.class,
           "client-config.wsdd");
       }
       catch (NumberFormatException e)
