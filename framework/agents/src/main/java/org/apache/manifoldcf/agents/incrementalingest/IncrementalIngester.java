@@ -999,15 +999,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
-  protected static String createURILockName(String outputConnectionName, String uriHash)
-  {
-    // The lock name needs to be constrained to some acceptably small number in order to avoid
-    // a lot of zookeeper locks.  See CONNECTORS-1123.
-    int hashCode = outputConnectionName.hashCode() + uriHash.hashCode();
-    hashCode &= 0xffff;
-    return "URILOCK-"+hashCode;
-  }
-  
   /** Delete multiple documents from the search engine index.
   *@param pipelineConnections is the pipeline specification.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
@@ -1063,7 +1054,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         {
           validURIArray[validURIcount] = uri.getURI();
           validURIHashArray[validURIcount] = uri.getURIHash();
-          lockArray[validURIcount] = createURILockName(outputConnectionName,validURIHashArray[validURIcount]);
+          lockArray[validURIcount] = outputConnectionName+":"+validURIHashArray[validURIcount];
           validURIcount++;
         }
       }
@@ -1278,7 +1269,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         {
           validURIArray[validURIcount] = uri.getURI();
           validURIHashArray[validURIcount] = uri.getURIHash();
-          lockArray[validURIcount] = createURILockName(outputConnectionName,validURIHashArray[validURIcount]);
+          lockArray[validURIcount] = outputConnectionName+":"+validURIHashArray[validURIcount];
           validURIcount++;
         }
       }
@@ -3464,19 +3455,19 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
-  protected static String[] computeLockArray(String documentURIHash, String oldURIHash, String outputConnectionName)
+  protected static String[] computeLockArray(String documentURI, String oldURI, String outputConnectionName)
   {
     int uriCount = 0;
-    if (documentURIHash != null)
+    if (documentURI != null)
       uriCount++;
-    if (oldURIHash != null && (documentURIHash == null || !documentURIHash.equals(oldURIHash)))
+    if (oldURI != null && (documentURI == null || !documentURI.equals(oldURI)))
       uriCount++;
     String[] lockArray = new String[uriCount];
     uriCount = 0;
-    if (documentURIHash != null)
-      lockArray[uriCount++] = createURILockName(outputConnectionName,documentURIHash);
-    if (oldURIHash != null && (documentURIHash == null || !documentURIHash.equals(oldURIHash)))
-      lockArray[uriCount++] = createURILockName(outputConnectionName,oldURIHash);
+    if (documentURI != null)
+      lockArray[uriCount++] = outputConnectionName+":"+documentURI;
+    if (oldURI != null && (documentURI == null || !documentURI.equals(oldURI)))
+      lockArray[uriCount++] = outputConnectionName+":"+oldURI;
     return lockArray;
   }
   

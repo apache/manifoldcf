@@ -102,7 +102,7 @@ public class JobResetThread extends Thread
           // not predicted by the algorithm that assigned those priorities.  This is, of course, quite expensive,
           // but it cannot be helped (at least, I cannot find a way to avoid it).
           //
-          if (jobStops.size() > 0 /*|| jobResumes.size() > 0 */)
+          if (jobStops.size() > 0 || jobResumes.size() > 0)
           {
             Logging.threads.debug("Job reset thread reprioritizing documents...");
 
