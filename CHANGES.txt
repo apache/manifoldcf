@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.8 =====================
 
+CONNECTORS-1035: Introduce connector-common jar, to get
+legacy Alfresco connector working again.
+(Karl Wright)
+
 CONNECTORS-1121: Plugins have moved in the dist repository, so
 point at them properly.
 (Kamil Żyta, Karl Wright)
