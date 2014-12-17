@@ -1058,6 +1058,12 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>Note that in this example, the Active Directory connection is not responding, which is leading to an error status message instead of "Connection working".</p>
             </section>
 
+            <section id="alfrescowebscriptauthority">
+                <title>Alfresco Webscript Authority Connection</title>
+                <p>The Alfresco Webscript authority connection type helps secure documents indexed using the Alfresco Webscript repository connection type.</p>
+                <p>RAFA: Please fill out</p>
+            </section>
+            
             <section id="cmisauthority">
               <title>CMIS Authority Connection</title>
               <p>A CMIS authority connection is required for enforcing security for documents retrieved from CMIS repositories.</p>
@@ -1462,6 +1468,14 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
             </section>
 
+            <section id="alfrescowebscriptrepository">
+              <title>Alfresco Webscript Repository Connection</title>
+              <p>The Alfresco Webscript Repository connection type allows you to index content from an Alfresco repository.  It also supports document
+                    security, in conjunction with the Alfresco Webscript Authority connection Type.</p>
+              <p>This connector is compatible with any Alfresco version (???).  RAFA: Please fill this out.</p>
+
+            </section>
+            
             <section id="cmisrepository">
               <title>CMIS Repository Connection</title>
               <p>The CMIS Repository Connection type allows you to index content from any CMIS-compliant repository.</p>
