@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
+import org.apache.manifoldcf.connectorcommon.extmimemap.ExtensionMimeMap;
 import java.util.*;
 import java.io.*;
 import java.net.URI;
