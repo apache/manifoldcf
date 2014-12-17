@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 2.0 =====================
 
+CONNECTORS-1123: Reduce the maximum number of zookeeper lock
+nodes, by hashing the lock names that correspond to documents.
+(Aeham Abushwashi, Karl Wright)
+
 CONNECTORS-1121: Plugins have moved in the dist repository, so
 point at them properly.
 (Kamil Żyta, Karl Wright)
