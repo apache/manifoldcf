@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 2.0 =====================
 
+CONNECTORS-1125: Make sure xz jar is delivered to where Tika needs
+it.
+(Kamil Żyta, Karl Wright)
+
 CONNECTORS-1123: Reduce the maximum number of zookeeper lock
 nodes, by hashing the lock names that correspond to documents.
 (Aeham Abushwashi, Karl Wright)
