@@ -1614,7 +1614,7 @@
         <mkdir dir="build/example-proprietary"/>
         <manifest file="build/example-proprietary/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
-            <attribute name="Class-Path" value="../lib/mcf-core.jar ../lib/mcf-agents.jar ../lib/mcf-pull-agent.jar ../lib/mcf-ui-core.jar ../lib/mcf-jetty-runner.jar ${database-lib-manifest} ${process-manifest-cp} ${jetty-manifest-cp} ${process-manifest-cp-proprietary}"/>
+            <attribute name="Class-Path" value="../lib/mcf-core.jar ../lib/mcf-agents.jar ../lib/mcf-pull-agent.jar ../lib/mcf-ui-core.jar ../lib/mcf-jetty-runner.jar ${database-manifest-cp} ${process-manifest-cp} ${jetty-manifest-cp} ${process-manifest-cp-proprietary}"/>
         </manifest>
         <jar destfile="dist/example-proprietary/start.jar" manifest="build/example-proprietary/manifest"/>
     </target>

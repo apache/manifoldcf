@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 2.0 =====================
 
+CONNECTORS-1124: start.jar in example-proprietary not working.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-1125: Make sure xz jar is delivered to where Tika needs
 it.
 (Kamil Żyta, Karl Wright)
