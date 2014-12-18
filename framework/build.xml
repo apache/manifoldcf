@@ -118,6 +118,7 @@
             <include name="jhighlight*.jar"/>
             <include name="jmatio*.jar"/>
             <include name="java-libpst*.jar"/>
+            <include name="xz*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="castor*.jar"/>
@@ -1399,6 +1400,7 @@
                 <include name="jhighlight*.jar"/>
                 <include name="jmatio*.jar"/>
                 <include name="java-libpst*.jar"/>
+                <include name="xz*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
