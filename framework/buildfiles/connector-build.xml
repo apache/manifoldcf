@@ -180,6 +180,7 @@
             <include name="jhighlight*.jar"/>
             <include name="jmatio*.jar"/>
             <include name="java-libpst*.jar"/>
+            <include name="xz*.jar"/>
         </fileset>
         <fileset dir="${mcf-dist}/connector-common-lib">
             <include name="axis*.jar"/>
