@@ -380,6 +380,9 @@ License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 This product includes an isoparser.jar.
 License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
+This product includes an xz.jar.
+License: Public domain
+
 This product includes a jetty-server.jar, jetty-servlet.jar, jetty-io.jar, jetty-jndi.jar, jetty-webapp.jar,
 jetty-plus.jar, jetty-util.jar, jetty-http.jar, jetty-security.jar, jetty-continuation.jar, jetty-xml.jar,
 jetty-jsp-jdt.jar, and jetty-schemas.jar.
