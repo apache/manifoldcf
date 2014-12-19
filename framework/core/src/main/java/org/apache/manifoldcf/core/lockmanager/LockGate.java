@@ -106,7 +106,7 @@ public class LockGate
   
   public void makeInvalid()
   {
-    synchronized (lockObject)
+    synchronized (this)
     {
       this.lockPool = null;
       lockObject.makeInvalid();
@@ -199,12 +199,12 @@ public class LockGate
   public void leaveWriteLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    synchronized (lockObject)
+    synchronized (this)
     {
       // Leave, and if we succeed, flush from pool.
       if (lockObject.leaveWriteLock())
       {
-        if (lockPool != null)
+        if (threadRequests.size() == 0 && lockPool != null)
           lockPool.releaseObject(lockKey, this);
       }
     }
@@ -241,12 +241,12 @@ public class LockGate
   public void leaveNonExWriteLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    synchronized (lockObject)
+    synchronized (this)
     {
       // Leave, and if we succeed, flush from pool.
       if (lockObject.leaveNonExWriteLock())
       {
-        if (lockPool != null)
+        if (threadRequests.size() == 0 && lockPool != null)
           lockPool.releaseObject(lockKey, this);
       }
     }
@@ -283,12 +283,12 @@ public class LockGate
   public void leaveReadLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    // Leave, and if we succeed, flush from pool.
-    synchronized (lockObject)
+    // Leave, and if we succeed (and the thread queue is empty), flush from pool.
+    synchronized (this)
     {
       if (lockObject.leaveReadLock())
       {
-        if (lockPool != null)
+        if (threadRequests.size() == 0 && lockPool != null)
           lockPool.releaseObject(lockKey, this);
       }
     }
