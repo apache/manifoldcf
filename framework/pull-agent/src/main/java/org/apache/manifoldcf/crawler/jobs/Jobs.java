@@ -42,6 +42,7 @@ import java.util.*;
  * <tr><td>endtime</td><td>BIGINT</td><td>operational field</td></tr>
  * <tr><td>docspec</td><td>LONGTEXT</td><td></td></tr>
  * <tr><td>connectionname</td><td>VARCHAR(32)</td><td>Reference:repoconnections.connectionname</td></tr>
+ * <tr><td>notificationname</td><td>VARCHAR(32)</td><td>Reference:notificationconnections.connectionname</td></tr>
  * <tr><td>type</td><td>CHAR(1)</td><td></td></tr>
  * <tr><td>intervaltime</td><td>BIGINT</td><td></td></tr>
  * <tr><td>maxintervaltime</td><td>BIGINT</td><td></td></tr>
@@ -157,6 +158,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public final static String descriptionField = "description";
   public final static String documentSpecField = "docspec";
   public final static String connectionNameField = "connectionname";
+  public final static String notificationNameField = "notificationname";
   public final static String typeField = "type";
   /** This is the minimum reschedule interval for a document being crawled adaptively (in ms.) */
   public final static String intervalField = "intervaltime";
@@ -379,7 +381,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   */
   public void install(String transTableName, String transNameField,
     String outputTableName, String outputNameField,
-    String connectionTableName, String connectionNameField)
+    String connectionTableName, String connectionNameField,
+    String notificationConnectionTableName, String notificationConnectionNameField)
     throws ManifoldCFException
   {
     // Standard practice: Have a loop around everything, in case upgrade needs it.
@@ -406,6 +409,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         map.put(endTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(documentSpecField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(this.connectionNameField,new ColumnDescription("VARCHAR(32)",false,false,connectionTableName,connectionNameField,false));
+        map.put(this.notificationNameField,new ColumnDescription("VARCHAR(32)",false,true,notificationConnectionTableName,notificationConnectionNameField,false));
         map.put(typeField,new ColumnDescription("CHAR(1)",false,false,null,null,false));
         map.put(intervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(maxIntervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
@@ -426,6 +430,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       else
       {
         // Do any needed upgrades
+        if (existing.get(notificationNameField) == null)
+        {
+          HashMap map = new HashMap();
+          map.put(this.notificationNameField,new ColumnDescription("VARCHAR(32)",false,true,notificationConnectionTableName,notificationConnectionNameField,false));
+          performAlter(map,null,null,null);
+        }
       }
 
       // Handle related tables
@@ -449,6 +459,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       IndexDescription statusIndex = new IndexDescription(false,new String[]{statusField,idField,priorityField});
       IndexDescription statusProcessIndex = new IndexDescription(false,new String[]{statusField,processIDField});
       IndexDescription connectionIndex = new IndexDescription(false,new String[]{connectionNameField});
+      IndexDescription notificationIndex = new IndexDescription(false,new String[]{notificationNameField});
       IndexDescription failTimeIndex = new IndexDescription(false,new String[]{failTimeField});
 
       // Get rid of indexes that shouldn't be there
@@ -465,6 +476,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           statusProcessIndex = null;
         else if (connectionIndex != null && id.equals(connectionIndex))
           connectionIndex = null;
+        else if (notificationIndex != null && id.equals(notificationIndex))
+          notificationIndex = null;
         else if (failTimeIndex != null && id.equals(failTimeIndex))
           failTimeIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
@@ -479,6 +492,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         performAddIndex(null,statusProcessIndex);
       if (connectionIndex != null)
         performAddIndex(null,connectionIndex);
+      if (notificationIndex != null)
+        performAddIndex(null,notificationIndex);
       if (failTimeIndex != null)
         performAddIndex(null,failTimeIndex);
 
