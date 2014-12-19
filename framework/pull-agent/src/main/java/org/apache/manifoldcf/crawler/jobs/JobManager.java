@@ -426,11 +426,9 @@ public class JobManager implements IJobManager
   protected void noteNotificationConnectionDeregistration(List<String> list)
     throws ManifoldCFException
   {
-    // MHL
-    /*
     ArrayList newList = new ArrayList();
     String query = database.buildConjunctionClause(newList,new ClauseDescription[]{
-      new MultiClause(jobs.connectionNameField,list)});
+      new MultiClause(jobs.notificationNameField,list)});
     // Query for the matching jobs, and then for each job potentially adjust the state
     IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
       jobs.getTableName()+" WHERE "+query+" FOR UPDATE",
@@ -441,10 +439,9 @@ public class JobManager implements IJobManager
       IResultRow row = set.getRow(i++);
       Long jobID = (Long)row.getValue(jobs.idField);
       int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
-      jobs.noteConnectorDeregistration(jobID,statusValue);
+      jobs.noteNotificationConnectorDeregistration(jobID,statusValue);
     }
-    */
-  }
+ }
 
   /** Note the registration of a notification connector used by the specified connections.
   * This method will be called when a connector is registered, on which the specified
@@ -482,11 +479,9 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // Query for the matching jobs, and then for each job potentially adjust the state
-    // MHL
-    /*
     ArrayList newList = new ArrayList();
     String query = database.buildConjunctionClause(newList,new ClauseDescription[]{
-      new MultiClause(jobs.connectionNameField,list)});
+      new MultiClause(jobs.notificationNameField,list)});
     IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
       jobs.getTableName()+" WHERE "+query+" FOR UPDATE",
       newList,null,null);
@@ -496,9 +491,8 @@ public class JobManager implements IJobManager
       IResultRow row = set.getRow(i++);
       Long jobID = (Long)row.getValue(jobs.idField);
       int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
-      jobs.noteConnectorRegistration(jobID,statusValue);
+      jobs.noteNotificationConnectorRegistration(jobID,statusValue);
     }
-    */
   }
 
   /**  Note the deregistration of an output connector used by the specified connections.
