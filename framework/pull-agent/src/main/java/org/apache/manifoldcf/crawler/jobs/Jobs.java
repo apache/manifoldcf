@@ -1491,6 +1491,16 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     invalidateCurrentUnregisteredState(jobID,oldStatusValue);
   }
   
+  /** Signal to a job that its underlying notification connector has gone away.
+  *@param jobID is the identifier of the job.
+  *@param oldStatusValue is the current status value for the job.
+  */
+  public void noteNotificationConnectorDeregistration(Long jobID, int oldStatusValue)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+  
   /** Signal to a job that its underlying connector has gone away.
   *@param jobID is the identifier of the job.
   *@param oldStatusValue is the current status value for the job.
@@ -1531,6 +1541,16 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(newValues,"WHERE "+query,list,invKey);
   }
   
+  /** Signal to a job that its underlying notification connector has returned.
+  *@param jobID is the identifier of the job.
+  *@param oldStatusValue is the current status value for the job.
+  */
+  public void noteNotificationConnectorRegistration(Long jobID, int oldStatusValue)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
   /** Signal to a job that its underlying connector has returned.
   *@param jobID is the identifier of the job.
   *@param oldStatusValue is the current status value for the job.
