@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1126: Fix LockGate release logic to not flush LockGate
+objects so aggressively.
 
 ======================= Release 2.0 =====================
 
