@@ -46,6 +46,7 @@ public class JobManager implements IJobManager
   protected final IDBInterface database;
   protected final IOutputConnectionManager outputMgr;
   protected final IRepositoryConnectionManager connectionMgr;
+  protected final INotificationConnectionManager notificationMgr;
   protected final ITransformationConnectionManager transformationMgr;
   
   protected final IOutputConnectorManager outputConnectorMgr;
@@ -80,6 +81,7 @@ public class JobManager implements IJobManager
     eventManager = new EventManager(database);
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
     connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+    notificationMgr = NotificationConnectionManagerFactory.make(threadContext);
     transformationMgr = TransformationConnectionManagerFactory.make(threadContext);
     outputConnectorMgr = OutputConnectorManagerFactory.make(threadContext);
     connectorMgr = ConnectorManagerFactory.make(threadContext);
@@ -96,7 +98,8 @@ public class JobManager implements IJobManager
   {
     jobs.install(transformationMgr.getTableName(),transformationMgr.getConnectionNameColumn(),
       outputMgr.getTableName(),outputMgr.getConnectionNameColumn(),
-      connectionMgr.getTableName(),connectionMgr.getConnectionNameColumn());
+      connectionMgr.getTableName(),connectionMgr.getConnectionNameColumn(),
+      notificationMgr.getTableName(),notificationMgr.getConnectionNameColumn());
     jobQueue.install(jobs.getTableName(),jobs.idField);
     hopCount.install(jobs.getTableName(),jobs.idField);
     carryDown.install(jobs.getTableName(),jobs.idField);
