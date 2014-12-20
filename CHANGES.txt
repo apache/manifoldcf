@@ -1,7 +1,11 @@
 ManifoldCF Change Log
 $Id$
 
+
 ======================= Release 2.0 =====================
+
+CONNECTORS-1126: Fix LockGate release logic to not flush LockGate
+objects so aggressively.
 
 CONNECTORS-1124: start.jar in example-proprietary not working.
 (Shinichiro Abe, Karl Wright)
