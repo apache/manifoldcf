@@ -113,6 +113,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (Logging.root != null)
         Logging.root.warn("Exception tossed on repository connector pool cleanup: "+e.getMessage(),e);
     }
+    try
+    {
+      NotificationConnectorPoolFactory.make(tc).closeAllConnectors();
+    }
+    catch (ManifoldCFException e)
+    {
+      if (Logging.root != null)
+        Logging.root.warn("Exception tossed on notification connector pool cleanup: "+e.getMessage(),e);
+    }
   }
   
   /** Create system database using superuser properties from properties.xml.
