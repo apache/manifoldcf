@@ -36,5 +36,7 @@
     <!-- Add your authority connectors here -->
     
     <!-- Add your repository connectors here -->
-    
+
+    <!-- Add your notification connectors here -->
+
 </connectors>
