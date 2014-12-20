@@ -3,10 +3,15 @@ $Id$
 
 ======================= 1.9-dev =====================
 
-CONNECTORS-1126: Fix LockGate release logic to not flush LockGate
-objects so aggressively.
 
 ======================= Release 1.8 =====================
+
+CONNECTORS-1127: Fix boilerplate extraction to be compatible with
+current version of boilerplate.
+(Kamil Żyta, Karl Wright)
+
+CONNECTORS-1126: Fix LockGate release logic to not flush LockGate
+objects so aggressively.
 
 CONNECTORS-1124: start.jar in example-proprietary not working.
 (Shinichiro Abe, Karl Wright)
