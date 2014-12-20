@@ -42,7 +42,6 @@ import java.util.*;
  * <tr><td>endtime</td><td>BIGINT</td><td>operational field</td></tr>
  * <tr><td>docspec</td><td>LONGTEXT</td><td></td></tr>
  * <tr><td>connectionname</td><td>VARCHAR(32)</td><td>Reference:repoconnections.connectionname</td></tr>
- * <tr><td>notificationname</td><td>VARCHAR(32)</td><td>Reference:notificationconnections.connectionname</td></tr>
  * <tr><td>type</td><td>CHAR(1)</td><td></td></tr>
  * <tr><td>intervaltime</td><td>BIGINT</td><td></td></tr>
  * <tr><td>maxintervaltime</td><td>BIGINT</td><td></td></tr>
@@ -158,7 +157,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public final static String descriptionField = "description";
   public final static String documentSpecField = "docspec";
   public final static String connectionNameField = "connectionname";
-  public final static String notificationNameField = "notificationname";
   public final static String typeField = "type";
   /** This is the minimum reschedule interval for a document being crawled adaptively (in ms.) */
   public final static String intervalField = "intervaltime";
@@ -347,6 +345,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   protected final ScheduleManager scheduleManager;
   protected final HopFilterManager hopFilterManager;
   protected final PipelineManager pipelineManager;
+  protected final NotificationManager notificationManager;
   
   protected final IOutputConnectionManager outputMgr;
   protected final IRepositoryConnectionManager connectionMgr;
@@ -368,6 +367,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     scheduleManager = new ScheduleManager(threadContext,database);
     hopFilterManager = new HopFilterManager(threadContext,database);
     pipelineManager = new PipelineManager(threadContext,database);
+    notificationManager = new NotificationManager(threadContext,database);
     
     cacheManager = CacheManagerFactory.make(threadContext);
     lockManager = LockManagerFactory.make(threadContext);
@@ -409,7 +409,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         map.put(endTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(documentSpecField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(this.connectionNameField,new ColumnDescription("VARCHAR(32)",false,false,connectionTableName,connectionNameField,false));
-        map.put(this.notificationNameField,new ColumnDescription("VARCHAR(32)",false,true,notificationConnectionTableName,notificationConnectionNameField,false));
         map.put(typeField,new ColumnDescription("CHAR(1)",false,false,null,null,false));
         map.put(intervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
         map.put(maxIntervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
@@ -430,12 +429,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       else
       {
         // Do any needed upgrades
-        if (existing.get(notificationNameField) == null)
-        {
-          HashMap map = new HashMap();
-          map.put(this.notificationNameField,new ColumnDescription("VARCHAR(32)",false,true,notificationConnectionTableName,notificationConnectionNameField,false));
-          performAlter(map,null,null,null);
-        }
       }
 
       // Handle related tables
@@ -452,6 +445,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           pipelineManager.writeOutputStage(id,outputConnectionName,outputConnectionSpec);
         }
       }
+      notificationManager.install(getTableName(),idField,notificationConnectionTableName,notificationConnectionNameField);
       scheduleManager.install(getTableName(),idField);
       hopFilterManager.install(getTableName(),idField);
 
@@ -459,7 +453,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       IndexDescription statusIndex = new IndexDescription(false,new String[]{statusField,idField,priorityField});
       IndexDescription statusProcessIndex = new IndexDescription(false,new String[]{statusField,processIDField});
       IndexDescription connectionIndex = new IndexDescription(false,new String[]{connectionNameField});
-      IndexDescription notificationIndex = new IndexDescription(false,new String[]{notificationNameField});
       IndexDescription failTimeIndex = new IndexDescription(false,new String[]{failTimeField});
 
       // Get rid of indexes that shouldn't be there
@@ -476,8 +469,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           statusProcessIndex = null;
         else if (connectionIndex != null && id.equals(connectionIndex))
           connectionIndex = null;
-        else if (notificationIndex != null && id.equals(notificationIndex))
-          notificationIndex = null;
         else if (failTimeIndex != null && id.equals(failTimeIndex))
           failTimeIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
@@ -492,8 +483,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         performAddIndex(null,statusProcessIndex);
       if (connectionIndex != null)
         performAddIndex(null,connectionIndex);
-      if (notificationIndex != null)
-        performAddIndex(null,notificationIndex);
       if (failTimeIndex != null)
         performAddIndex(null,failTimeIndex);
 
@@ -512,6 +501,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     {
       hopFilterManager.deinstall();
       scheduleManager.deinstall();
+      notificationManager.deinstall();
       pipelineManager.deinstall();
       performDrop(null);
     }
@@ -547,6 +537,27 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     analyzeTable();
+  }
+
+  /** Find a list of jobs matching specified notification names.
+  */
+  public Long[] findJobsMatchingNotifications(List<String> notificationConnectionNames)
+    throws ManifoldCFException
+  {
+    StringBuilder query = new StringBuilder();
+    ArrayList params = new ArrayList();
+    query.append("SELECT ").append(idField)
+      .append(" FROM ").append(getTableName()).append(" t1 WHERE EXISTS(");
+    notificationManager.buildNotificationQueryClause(query,params,"t1."+idField,notificationConnectionNames);
+    query.append(")");
+    IResultSet set = performQuery(query.toString(),params,null,null);
+    Long[] rval = new Long[set.getRowCount()];
+    for (int i = 0; i < rval.length; i++)
+    {
+      IResultRow row = set.getRow(i);
+      rval[i] = (Long)row.getValue(idField);
+    }
+    return rval;
   }
 
   /** Find a list of jobs matching specified transformation names.
@@ -795,6 +806,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         scheduleManager.deleteRows(id);
         hopFilterManager.deleteRows(id);
         pipelineManager.deleteRows(id);
+        notificationManager.deleteRows(id);
         ArrayList params = new ArrayList();
         String query = buildConjunctionClause(params,new ClauseDescription[]{
           new UnitaryClause(idField,id)});
@@ -948,6 +960,14 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
                     values.put(assessmentStateField,assessmentStateToString(ASSESSMENT_UNKNOWN));
                 }
 
+                // Changing notifications should never reset seeding.
+                /*
+                if (isSame)
+                {
+                  isSame = notificationManager.compareRows(id,jobDescription);
+                }
+                */
+                
                 if (isSame)
                 {
                   String oldDocSpecXML = (String)row.getValue(documentSpecField);
@@ -966,6 +986,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
                   new UnitaryClause(idField,id)});
                 performUpdate(values," WHERE "+query,params,null);
                 pipelineManager.deleteRows(id);
+                notificationManager.deleteRows(id);
                 scheduleManager.deleteRows(id);
                 hopFilterManager.deleteRows(id);
               }
@@ -983,6 +1004,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
               // Write pipeline rows
               pipelineManager.writeRows(id,jobDescription);
+              // Write notification rows
+              notificationManager.writeRows(id,jobDescription);
               // Write schedule records
               scheduleManager.writeRows(id,jobDescription);
               // Write hop filter rows
@@ -3014,8 +3037,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public boolean checkIfNotificationReference(String connectionName)
     throws ManifoldCFException
   {
-    // MHL
-    return false;
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(notificationManager.notificationNameField,connectionName)});
+    IResultSet set = performQuery("SELECT "+notificationManager.ownerIDField+" FROM "+notificationManager.getTableName()+
+      " WHERE "+query,list,new StringSet(getJobsKey()),null);
+    return set.getRowCount() > 0;
   }
 
   /** See if there's a reference to an output connection name.
@@ -3575,6 +3602,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
       // Fill in schedules for jobs
       pipelineManager.getRows(returnValues,idList,params);
+      notificationManager.getRows(returnValues,idList,params);
       scheduleManager.getRows(returnValues,idList,params);
       hopFilterManager.getRows(returnValues,idList,params);
     }
