@@ -44,6 +44,7 @@ public class JobDescription implements IJobDescription
   protected String description = null;
   protected String connectionName = null;
   protected final List<PipelineStage> pipelineStages = new ArrayList<PipelineStage>();
+  protected final List<Notification> notifications = new ArrayList<Notification>();
   protected int type = TYPE_CONTINUOUS;
   protected int startMethod = START_WINDOWBEGIN;
   protected int priority = 5;
@@ -100,6 +101,12 @@ public class JobDescription implements IJobDescription
         pipelineStage.getDescription(),
         pipelineStage.getSpecification().duplicate(readOnly)));
     }
+    for (Notification notification : notifications)
+    {
+      rval.notifications.add(new Notification(notification.getConnectionName(),
+        notification.getDescription(),
+        notification.getSpecification().duplicate(readOnly)));
+    }
     rval.description = description;
     rval.type = type;
     // No direct modification of this object is possible
@@ -134,6 +141,10 @@ public class JobDescription implements IJobDescription
     for (PipelineStage pipelineStage : pipelineStages)
     {
       pipelineStage.getSpecification().makeReadOnly();
+    }
+    for (Notification notification : notifications)
+    {
+      notification.getSpecification().makeReadOnly();
     }
     documentSpecification.makeReadOnly();
   }
@@ -333,6 +344,8 @@ public class JobDescription implements IJobDescription
   @Override
   public void deletePipelineStage(int index)
   {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
     PipelineStage ps = pipelineStages.remove(index);
     int stage = index;
     while (stage < pipelineStages.size())
@@ -347,6 +360,9 @@ public class JobDescription implements IJobDescription
   @Override
   public void clearNotifications()
   {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    notifications.clear();
   }
   
   /** Add a notification.
@@ -357,8 +373,11 @@ public class JobDescription implements IJobDescription
   @Override
   public Specification addNotification(String notificationConnectionName, String notificationDescription)
   {
-    // MHL
-    return null;
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    Notification ps = new Notification(notificationConnectionName,notificationDescription);
+    notifications.add(ps);
+    return ps.getSpecification();
   }
   
   /** Get a count of pipeline connections.
@@ -367,8 +386,7 @@ public class JobDescription implements IJobDescription
   @Override
   public int countNotifications()
   {
-    // MHL
-    return 0;
+    return notifications.size();
   }
   
   /** Get a specific notification connection name.
@@ -378,8 +396,7 @@ public class JobDescription implements IJobDescription
   @Override
   public String getNotificationConnectionName(int index)
   {
-    // MHL
-    return null;
+    return notifications.get(index).getConnectionName();
   }
 
   /** Get a specific notification description.
@@ -389,8 +406,7 @@ public class JobDescription implements IJobDescription
   @Override
   public String getNotificationDescription(int index)
   {
-    // MHL
-    return null;
+    return notifications.get(index).getDescription();
   }
 
   /** Get a specific notification specification.
@@ -400,8 +416,7 @@ public class JobDescription implements IJobDescription
   @Override
   public Specification getNotificationSpecification(int index)
   {
-    // MHL
-    return null;
+    return notifications.get(index).getSpecification();
   }
 
   /** Delete a notification.
@@ -410,7 +425,9 @@ public class JobDescription implements IJobDescription
   @Override
   public void deleteNotification(int index)
   {
-    // MHL
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    notifications.remove(index);
   }
   
   /** Insert a new notification.
@@ -422,8 +439,14 @@ public class JobDescription implements IJobDescription
   @Override
   public Specification insertNotification(int index, String notificationConnectionName, String notificationDescription)
   {
-    // MHL
-    return null;
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    // What we do here depends on the kind of stage we're inserting.
+    // Both kinds take the current stage's prerequisite as their own.  But what happens to the current stage will
+    // differ as to whether its reference changes or not.
+    Notification ps = new Notification(notificationConnectionName,notificationDescription);
+    notifications.add(index,ps);
+    return ps.getSpecification();
   }
   
   /** Set the job type.
@@ -686,6 +709,43 @@ public class JobDescription implements IJobDescription
     hopcountMode = mode;
   }
 
+  protected static class Notification
+  {
+    protected final String connectionName;
+    protected final String description;
+    protected final Specification specification;
+    
+    public Notification(String connectionName, String description)
+    {
+      this.connectionName = connectionName;
+      this.description = description;
+      this.specification = new Specification();
+    }
+
+    public Notification(String connectionName, String description, Specification spec)
+    {
+      this.connectionName = connectionName;
+      this.description = description;
+      this.specification = spec;
+    }
+
+    public Specification getSpecification()
+    {
+      return specification;
+    }
+    
+    public String getConnectionName()
+    {
+      return connectionName;
+    }
+    
+    public String getDescription()
+    {
+      return description;
+    }
+
+  }
+  
   protected static class PipelineStage
   {
     protected int prerequisiteStage;
