@@ -1312,11 +1312,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String API_AUTHORIZATIONDOMAINNODE = "authorizationdomain";
   protected static final String API_AUTHORITYGROUPNODE = "authoritygroup";
   protected static final String API_REPOSITORYCONNECTORNODE = "repositoryconnector";
+  protected static final String API_NOTIFICATIONCONNECTORNODE = "notificationconnector";
   protected static final String API_OUTPUTCONNECTORNODE = "outputconnector";
   protected static final String API_TRANSFORMATIONCONNECTORNODE = "transformationconnector";
   protected static final String API_AUTHORITYCONNECTORNODE = "authorityconnector";
   protected static final String API_MAPPINGCONNECTORNODE = "mappingconnector";
   protected static final String API_REPOSITORYCONNECTIONNODE = "repositoryconnection";
+  protected static final String API_NOTIFICATIONCONNECTIONNODE = "notificationconnection";
   protected static final String API_OUTPUTCONNECTIONNODE = "outputconnection";
   protected static final String API_TRANSFORMATIONCONNECTIONNODE = "transformationconnection";
   protected static final String API_AUTHORITYCONNECTIONNODE = "authorityconnection";
@@ -1636,6 +1638,47 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
   
+  /** Read a notification connection status */
+  protected static int apiReadNotificationConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(tc);
+      INotificationConnectionManager connectionManager = NotificationConnectionManagerFactory.make(tc);
+      INotificationConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+          
+      String results;
+      // Grab a connection handle, and call the test method
+      INotificationConnector connector = notificationConnectorPool.grab(connection);
+      try
+      {
+        results = connector.check();
+      }
+      catch (ManifoldCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        notificationConnectorPool.release(connection,connector);
+      }
+          
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      output.addChild(output.getChildCount(),response);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
   
   /** Read an output connection's info */
   protected static int apiReadOutputConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
@@ -1727,6 +1770,39 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       finally
       {
         repositoryConnectorPool.release(connection,connector);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Read a notification connection's info */
+  protected static int apiReadNotificationConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+    throws ManifoldCFException
+  {
+    try
+    {
+      INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(tc);
+      INotificationConnectionManager connectionManager = NotificationConnectionManagerFactory.make(tc);
+      INotificationConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+
+      // Grab a connection handle, and call the test method
+      INotificationConnector connector = notificationConnectorPool.grab(connection);
+      try
+      {
+        return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
+      }
+      finally
+      {
+        notificationConnectorPool.release(connection,connector);
       }
     }
     catch (ManifoldCFException e)
@@ -2154,6 +2230,57 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
 
+  /** Get notification connections */
+  protected static int apiReadNotificationConnections(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      INotificationConnectionManager connManager = NotificationConnectionManagerFactory.make(tc);
+      INotificationConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_NOTIFICATIONCONNECTIONNODE);
+        formatNotificationConnection(connectionNode,connections[i++]);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read notification connection */
+  protected static int apiReadNotificationConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      INotificationConnectionManager connectionManager = NotificationConnectionManagerFactory.make(tc);
+      INotificationConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_NOTIFICATIONCONNECTIONNODE);
+        formatNotificationConnection(connectionNode,connection);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+      else
+      {
+        createErrorNode(output,"Notification connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
   /** List output connectors */
   protected static int apiReadOutputConnectors(IThreadContext tc, Configuration output)
     throws ManifoldCFException
@@ -2377,6 +2504,42 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
 
+  /** List notification connectors */
+  protected static int apiReadNotificationConnectors(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    // List registered notification connectors
+    try
+    {
+      IConnectorManager manager = ConnectorManagerFactory.make(tc);
+      IResultSet resultSet = manager.getConnectors();
+      int j = 0;
+      while (j < resultSet.getRowCount())
+      {
+        IResultRow row = resultSet.getRow(j++);
+        ConfigurationNode child = new ConfigurationNode(API_NOTIFICATIONCONNECTORNODE);
+        String description = (String)row.getValue("description");
+        String className = (String)row.getValue("classname");
+        ConfigurationNode node;
+        if (description != null)
+        {
+          node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+          node.setValue(description);
+          child.addChild(child.getChildCount(),node);
+        }
+        node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+        node.setValue(className);
+        child.addChild(child.getChildCount(),node);
+
+        output.addChild(output.getChildCount(),child);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
       
   protected final static Map<String,Integer> docState;
   static
@@ -3183,6 +3346,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
       return apiReadRepositoryConnection(tc,output,connectionName);
     }
+    else if (path.equals("notificationconnections"))
+    {
+      return apiReadNotificationConnections(tc,output);
+    }
+    else if (path.startsWith("notificationconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("notificationconnections/".length()));
+      return apiReadNotificationConnection(tc,output,connectionName);
+    }
     else if (path.equals("outputconnectors"))
     {
       return apiReadOutputConnectors(tc,output);
@@ -3202,6 +3374,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (path.equals("repositoryconnectors"))
     {
       return apiReadRepositoryConnectors(tc,output);
+    }
+    else if (path.equals("notificationconnectors"))
+    {
+      return apiReadNotificationConnectors(tc,output);
     }
     else if (path.equals("authorizationdomains"))
     {
@@ -3658,6 +3834,41 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return WRITERESULT_FOUND;
   }
 
+  /** Write notification connection.
+  */
+  protected static int apiWriteNotificationConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+    throws ManifoldCFException
+  {
+    ConfigurationNode connectionNode = findConfigurationNode(input,API_NOTIFICATIONCONNECTIONNODE);
+    if (connectionNode == null)
+      throw new ManifoldCFException("Input argument must have '"+API_NOTIFICATIONCONNECTIONNODE+"' field");
+      
+    // Turn the configuration node into an NotificationConnection
+    org.apache.manifoldcf.crawler.notification.NotificationConnection notificationConnection = new org.apache.manifoldcf.crawler.notification.NotificationConnection();
+    processNotificationConnection(notificationConnection,connectionNode);
+      
+    if (notificationConnection.getName() == null)
+      notificationConnection.setName(connectionName);
+    else
+    {
+      if (!notificationConnection.getName().equals(connectionName))
+        throw new ManifoldCFException("Connection name in path and in object must agree");
+    }
+
+    try
+    {
+      // Save the connection.
+      INotificationConnectionManager connectionManager = NotificationConnectionManagerFactory.make(tc);
+      if (connectionManager.save(notificationConnection))
+        return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+
   /** Reset output connection (reset version of all recorded documents).
   */
   protected static int apiWriteClearVersionsOutputConnection(IThreadContext tc, Configuration output, String connectionName)
@@ -3776,6 +3987,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
       return apiWriteRepositoryConnection(tc,output,input,connectionName);
+    }
+    else if (path.startsWith("notificationconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("notificationconnections/".length()));
+      return apiWriteNotificationConnection(tc,output,input,connectionName);
     }
     else if (path.startsWith("clearhistory/"))
     {
@@ -3914,6 +4130,23 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     return DELETERESULT_FOUND;
   }
+
+  /** Delete notification connection.
+  */
+  protected static int apiDeleteNotificationConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      INotificationConnectionManager connectionManager = NotificationConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
+  }
   
   /** Execute specified delete command.
   *@param tc is the thread context.
@@ -3948,6 +4181,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
       return apiDeleteRepositoryConnection(tc,output,connectionName);
+    }
+    else if (path.startsWith("notificationconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("notificationconnections/".length()));
+      return apiDeleteNotificationConnection(tc,output,connectionName);
     }
     else
     {
@@ -5472,6 +5710,118 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
+  }
+
+  // Notification connection node handling
+  
+  /** Convert input hierarchy into a NotificationConnection object.
+  */
+  protected static void processNotificationConnection(org.apache.manifoldcf.crawler.notification.NotificationConnection connection, ConfigurationNode connectionNode)
+    throws ManifoldCFException
+  {
+    // Walk through the node's children
+    int i = 0;
+    while (i < connectionNode.getChildCount())
+    {
+      ConfigurationNode child = connectionNode.findChild(i++);
+      String childType = child.getType();
+      if (childType.equals(CONNECTIONNODE_ISNEW))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection isnew node requires a value");
+        connection.setIsNew(child.getValue().equals("true"));
+      }
+      else if (childType.equals(CONNECTIONNODE_NAME))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection name node requires a value");
+        connection.setName(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_CLASSNAME))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection classname node requires a value");
+        connection.setClassName(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection maxconnections node requires a value");
+        try
+        {
+          connection.setMaxConnections(Integer.parseInt(child.getValue()));
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException("Error parsing max connections: "+e.getMessage(),e);
+        }
+      }
+      else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection description node requires a value");
+        connection.setDescription(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
+      {
+        // Get the connection's configuration, clear out the children, and copy new ones from the child.
+        ConfigParams cp = connection.getConfigParams();
+        cp.clearChildren();
+        int j = 0;
+        while (j < child.getChildCount())
+        {
+          ConfigurationNode cn = child.findChild(j++);
+          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
+        }
+      }
+      else
+        throw new ManifoldCFException("Unrecognized notification connection field: '"+childType+"'");
+    }
+    if (connection.getClassName() == null)
+      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+
+  }
+
+  /** Format a notification connection.
+  */
+  protected static void formatNotificationConnection(ConfigurationNode connectionNode, INotificationConnection connection)
+  {
+    ConfigurationNode child;
+    int j;
+
+    child = new ConfigurationNode(CONNECTIONNODE_ISNEW);
+    child.setValue(connection.getIsNew()?"true":"false");
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_NAME);
+    child.setValue(connection.getName());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_CLASSNAME);
+    child.setValue(connection.getClassName());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_MAXCONNECTIONS);
+    child.setValue(Integer.toString(connection.getMaxConnections()));
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    if (connection.getDescription() != null)
+    {
+      child = new ConfigurationNode(CONNECTIONNODE_DESCRIPTION);
+      child.setValue(connection.getDescription());
+      connectionNode.addChild(connectionNode.getChildCount(),child);
+    }
+    
+    ConfigParams cp = connection.getConfigParams();
+    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
+    j = 0;
+    while (j < cp.getChildCount())
+    {
+      ConfigurationNode cn = cp.findChild(j++);
+      child.addChild(child.getChildCount(),cn);
+    }
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
   }
 
   // End of connection API code
