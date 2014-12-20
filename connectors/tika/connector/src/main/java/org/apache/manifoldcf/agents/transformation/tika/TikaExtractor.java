@@ -896,11 +896,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       try {
         ClassLoader loader = BoilerpipeExtractor.class.getClassLoader();
         Class extractorClass = loader.loadClass(extractorClassName);
-        return (BoilerpipeExtractor)extractorClass.newInstance();
+        java.lang.reflect.Field f = extractorClass.getField("INSTANCE");
+        return (BoilerpipeExtractor)f.get(null);
       } catch (ClassNotFoundException e) {
         throw new ManifoldCFException("Boilerpipe extractor class '"+extractorClassName+"' not found: "+e.getMessage(),e);
-      } catch (InstantiationException e) {
-        throw new ManifoldCFException("Boilerpipe extractor class '"+extractorClassName+"' could not be instantiated: "+e.getMessage(),e);
       } catch (Exception e) {
         throw new ManifoldCFException("Boilerpipe extractor class '"+extractorClassName+"' exception on instantiation: "+e.getMessage(),e);
       }
