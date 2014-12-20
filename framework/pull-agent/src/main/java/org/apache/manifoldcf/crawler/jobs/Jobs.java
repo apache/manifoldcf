@@ -1584,7 +1584,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void noteNotificationConnectionChange(String connectionName)
     throws ManifoldCFException
   {
-    // MHL
+    // Notification configuration change does not change anything in a crawl
   }
 
   /** Note a change in output connection configuration.

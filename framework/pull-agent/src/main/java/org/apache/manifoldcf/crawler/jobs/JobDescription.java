@@ -342,6 +342,90 @@ public class JobDescription implements IJobDescription
     }
   }
 
+  /** Clear notification connections.
+  */
+  @Override
+  public void clearNotifications()
+  {
+  }
+  
+  /** Add a notification.
+  *@param notificationConnectionName is the name of the notification connection to add.
+  *@param notificationDescription is a description of the notification being added.
+  *@return the empty specification for this notification.
+  */
+  @Override
+  public Specification addNotification(String notificationConnectionName, String notificationDescription)
+  {
+    // MHL
+    return null;
+  }
+  
+  /** Get a count of pipeline connections.
+  *@return the current number of pipeline connections.
+  */
+  @Override
+  public int countNotifications()
+  {
+    // MHL
+    return 0;
+  }
+  
+  /** Get a specific notification connection name.
+  *@param index is the index of the notification whose connection name to get.
+  *@return the name of the connection.
+  */
+  @Override
+  public String getNotificationConnectionName(int index)
+  {
+    // MHL
+    return null;
+  }
+
+  /** Get a specific notification description.
+  *@param index is the index of the notification whose description to get.
+  *@return the name of the connection.
+  */
+  @Override
+  public String getNotificationDescription(int index)
+  {
+    // MHL
+    return null;
+  }
+
+  /** Get a specific notification specification.
+  *@param index is the index of the notification whose specification is needed.
+  *@return the specification for the connection.
+  */
+  @Override
+  public Specification getNotificationSpecification(int index)
+  {
+    // MHL
+    return null;
+  }
+
+  /** Delete a notification.
+  *@param index is the index of the notification to delete.
+  */
+  @Override
+  public void deleteNotification(int index)
+  {
+    // MHL
+  }
+  
+  /** Insert a new notification.
+  *@param index is the index to insert pipeline stage before
+  *@param notificationConnectionName is the connection name.
+  *@param notificationDescription is the description.
+  *@return the newly-created output specification.
+  */
+  @Override
+  public Specification insertNotification(int index, String notificationConnectionName, String notificationDescription)
+  {
+    // MHL
+    return null;
+  }
+  
   /** Set the job type.
   *@param type is the type (as an integer).
   */
