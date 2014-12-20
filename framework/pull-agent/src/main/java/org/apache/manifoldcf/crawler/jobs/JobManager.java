@@ -426,13 +426,20 @@ public class JobManager implements IJobManager
   protected void noteNotificationConnectionDeregistration(List<String> list)
     throws ManifoldCFException
   {
-    ArrayList newList = new ArrayList();
-    String query = database.buildConjunctionClause(newList,new ClauseDescription[]{
-      new MultiClause(jobs.notificationNameField,list)});
     // Query for the matching jobs, and then for each job potentially adjust the state
-    IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
-      jobs.getTableName()+" WHERE "+query+" FOR UPDATE",
-      newList,null,null);
+    Long[] jobIDs = jobs.findJobsMatchingNotifications(list);
+    if (jobIDs.length == 0)
+      return;
+
+    StringBuilder query = new StringBuilder();
+    ArrayList newList = new ArrayList();
+    
+    query.append("SELECT ").append(jobs.idField).append(",").append(jobs.statusField)
+      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(newList,new ClauseDescription[]{
+        new MultiClause(jobs.idField,jobIDs)}))
+      .append(" FOR UPDATE");
+    IResultSet set = database.performQuery(query.toString(),newList,null,null);
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -479,19 +486,26 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // Query for the matching jobs, and then for each job potentially adjust the state
+    Long[] jobIDs = jobs.findJobsMatchingNotifications(list);
+    if (jobIDs.length == 0)
+      return;
+
+    StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();
-    String query = database.buildConjunctionClause(newList,new ClauseDescription[]{
-      new MultiClause(jobs.notificationNameField,list)});
-    IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
-      jobs.getTableName()+" WHERE "+query+" FOR UPDATE",
-      newList,null,null);
+    
+    query.append("SELECT ").append(jobs.idField).append(",").append(jobs.statusField)
+      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(newList,new ClauseDescription[]{
+        new MultiClause(jobs.idField,jobIDs)}))
+      .append(" FOR UPDATE");
+    IResultSet set = database.performQuery(query.toString(),newList,null,null);
     int i = 0;
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
       Long jobID = (Long)row.getValue(jobs.idField);
       int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
-      jobs.noteNotificationConnectorRegistration(jobID,statusValue);
+      jobs.noteNotificationConnectorDeregistration(jobID,statusValue);
     }
   }
 
