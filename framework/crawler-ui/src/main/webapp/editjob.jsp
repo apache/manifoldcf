@@ -33,6 +33,8 @@
 	IJobManager manager = JobManagerFactory.make(threadContext);
 	IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(threadContext);
 	IRepositoryConnection[] connList = connMgr.getAllConnections();
+	INotificationConnectionManager notificationMgr = NotificationConnectionManagerFactory.make(threadContext);
+	INotificationConnection[] notificationList = notificationMgr.getAllConnections();
 	IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(threadContext);
 	IOutputConnection[] outputList = outputMgr.getAllConnections();
 	ITransformationConnectionManager transformationMgr = TransformationConnectionManagerFactory.make(threadContext);
@@ -40,6 +42,7 @@
 
 	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
 	IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+	INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(threadContext);
 	ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
 
 	// Figure out tab name and sequence number
@@ -88,6 +91,10 @@
 	boolean[] pipelineIsOutputs = new boolean[0];
 	int[] pipelinePrerequisites = new int[0];
 	Specification[] pipelineSpecifications = new Specification[0];
+	
+	String[] notificationConnectionNames = new String[0];
+	String[] notificationDescriptions = new String[0];
+	Specification[] notificationSpecifications = new Specification[0];
 	
 	ArrayList scheduleRecords = new ArrayList();
 
@@ -139,6 +146,16 @@
 			pipelinePrerequisites[j] = job.getPipelineStagePrerequisite(j);
 			pipelineSpecifications[j] = job.getPipelineStageSpecification(j);
 		}
+		notificationConnectionNames = new String[job.countNotifications()];
+		notificationDescriptions = new String[job.countNotifications()];
+		notificationSpecifications = new Specification[job.countNotifications()];
+		for (int j = 0; j < job.countNotifications(); j++)
+		{
+			notificationConnectionNames[j] = job.getNotificationConnectionName(j);
+			notificationDescriptions[j] = job.getNotificationDescription(j);
+			notificationSpecifications[j] = job.getNotificationSpecification(j);
+		}
+		
 		type = job.getType();
 		startMethod = job.getStartMethod();
 		hopcountMode = job.getHopcountMode();
@@ -204,10 +221,18 @@
 	String saveCheckMethod = "checkSpecificationForSave";
 	String[] pipelineCheckMethods = new String[pipelineConnectionNames.length];
 	String[] pipelineCheckForSaveMethods = new String[pipelineConnectionNames.length];
+	String[] notificationCheckMethods = new String[notificationConnectionNames.length];
+	String[] notificationCheckForSaveMethods = new String[notificationConnectionNames.length];
+	
 	for (int j = 0; j < pipelineConnectionNames.length; j++)
 	{
 		pipelineCheckMethods[j] = "unknown";
 		pipelineCheckForSaveMethods[j] = "unknown";
+	}
+	for (int j = 0; j < notificationConnectionNames.length; j++)
+	{
+		notificationCheckMethods[j] = "unknown";
+		notificationCheckForSaveMethods[j] = "unknown";
 	}
 	
 	if (connection != null)
@@ -250,6 +275,20 @@
 		}
 	}
 
+	for (int j = 0; j < notificationConnectionNames.length; j++)
+	{
+		INotificationConnection notificationConnection = notificationMgr.load(notificationConnectionNames[j]);
+		if (notificationConnection != null)
+		{
+			INotificationConnector notificationConnector = NotificationConnectorFactory.getConnectorNoCheck(notificationConnection.getClassName());
+			if (notificationConnector != null)
+			{
+				notificationCheckMethods[j] = notificationConnector.getFormCheckJavascriptMethodName(1+pipelineConnectionNames.length+j);
+				notificationCheckForSaveMethods[j] = notificationConnector.getFormPresaveCheckJavascriptMethodName(1+pipelineConnectionNames.length+j);
+			}
+
+		}
+	}
 %>
 
 <?xml version="1.0" encoding="utf-8"?>
@@ -413,7 +452,28 @@
 		else
 			postFormSetAnchor("pipeline_"+(n-1)+"_tag");
 	}
+
+	function AppendNotification()
+	{
+		if (editjob.notification_connectionname.value == "")
+		{
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.SelectANotificationConnectionName")%>");
+			editjob.notification_connectionname.focus();
+			return;
+		}
+		document.editjob.notification_op.value="Add";
+		postFormSetAnchor("notification_tag");
+	}
 	
+	function DeleteNotification(n)
+	{
+		eval("document.editjob.notification_"+n+"_op.value = 'Delete'");
+		if (n == 0)
+			postFormSetAnchor("notification_tag");
+		else
+			postFormSetAnchor("notification_"+(n-1)+"_tag");
+	}
+
 	function AddScheduledTime()
 	{
 		if (editjob.duration.value != "" && !isInteger(editjob.duration.value))
@@ -1081,7 +1141,94 @@
 					</table>
 				</td>
 			</tr>
-			
+
+<%
+		alreadyPresent = new HashSet<String>();
+		for (int j = 0; j < notificationConnectionNames.length; j++)
+		{
+			alreadyPresent.add(notificationConnectionNames[j]);
+		}
+		if (notificationList.length > 0)
+		{
+%>
+			<tr>
+				<td colspan="1" class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NotificationsColon")%></nobr></td>
+				<td class="boxcell" colspan="3">
+					<table class="formtable">
+						<tr class="formheaderrow">
+							<td class="formcolumnheader">
+								<input name="pipeline_count" type="hidden" value="<%=notificationConnectionNames.length%>"/>
+							</td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NotificationNumber")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NotificationDescription")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NotificationConnectionName")%></nobr></td>
+						</tr>
+<%
+			rowCounter = 0;
+			for (int j = 0; j < notificationConnectionNames.length; j++)
+			{
+				String notificationConnectionName = notificationConnectionNames[j];
+				String notificationDescription = notificationDescriptions[j];
+				if (notificationDescription == null)
+					notificationDescription = "";
+%>
+						<tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
+							<td class="formcolumncell">
+								<input name="notification_<%=j%>_op" type="hidden" value="Continue"/>
+								<a name="notification_<%=j%>_tag"/>
+								<input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Delete")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Deletenotification")%>' onclick="javascript:DeleteNotification(<%=j%>);"/>
+							</td>
+							<td class="formcolumncell"><%=(j+pipelineConnectionNames.length+2)%>.</td>
+							<td class="formcolumncell">
+								<input name="notification_<%=j%>_description" type="text" size="30" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationDescription)%>"/>
+							</td>
+							<td class="formcolumncell">
+								<nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(notificationConnectionName)%></nobr>
+								<input name="notification_<%=j%>_connectionname" type="hidden" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationConnectionName)%>"/>
+							</td>
+						</tr>
+<%
+			}
+			if (notificationList.length != alreadyPresent.size())
+			{
+%>
+						<tr class="formrow"><td class="formseparator" colspan="4"><hr/></td></tr>
+						<tr class="formrow">
+							<td class="formcolumncell">
+								<a name="notification_tag"/>
+								<input type="button" value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddNotification")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddANotification")%>' onclick="javascript:AppendNotification();"/>
+								<input name="notification_op" type="hidden" value="Continue"/>
+							</td>
+							<td class="formcolumncell"></td>
+							<td class="formcolumncell">
+								<input name="notification_description" type="text" size="30" value=""/>
+							</td>
+							<td class="formcolumncell">
+								<select name="notification_connectionname" size="1">
+									<option selected="selected" value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+<%
+				for (INotificationConnection conn : notificationList)
+				{
+					if (!alreadyPresent.contains(conn.getName()))
+					{
+%>
+									<option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+<%
+					}
+				}
+%>
+								</select>
+							</td>
+						</tr>
+<%
+			}
+%>
+					</table>
+				</td>
+			</tr>
+<%
+		}
+%>
 			<tr><td class="separator" colspan="4"><hr/></td></tr>
 			
 			<tr>
@@ -1117,6 +1264,7 @@
 %>
 		  <input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
 		  <input type="hidden" name="pipeline_count" value="<%=pipelineConnectionNames.length%>"/>
+		  <input type="hidden" name="notification_count" value="<%=notificationConnectionNames.length%>"/>
 <%
 		for (int j = 0; j < pipelineConnectionNames.length; j++)
 		{
@@ -1131,6 +1279,18 @@
 		  <input type="hidden" name="pipeline_<%=j%>_description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineDescription)%>"/>
 <%
 		}
+		for (int j = 0; j < notificationConnectionNames.length; j++)
+		{
+			String notificationConnectionName = notificationConnectionNames[j];
+			String notificationDescription = notificationDescriptions[j];
+			if (notificationDescription == null)
+				notificationDescription = "";
+%>
+		  <input type="hidden" name="notification_<%=j%>_connectionname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationConnectionName)%>"/>
+		  <input type="hidden" name="notification_<%=j%>_description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationDescription)%>"/>
+<%
+		}
+
 %>
 		  <input type="hidden" name="priority" value='<%=priority%>'/>
 		  <input type="hidden" name="startmethod" value='<%=startMethod%>'/>
