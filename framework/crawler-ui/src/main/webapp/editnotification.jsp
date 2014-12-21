@@ -29,16 +29,16 @@
     try
     {
 	// Get the connection manager handle
-	IOutputConnectionManager connMgr = OutputConnectionManagerFactory.make(threadContext);
+	INotificationConnectionManager connMgr = NotificationConnectionManagerFactory.make(threadContext);
 	// Also get the list of available connectors
-	IOutputConnectorManager connectorManager = OutputConnectorManagerFactory.make(threadContext);
+	INotificationConnectorManager connectorManager = NotificationConnectorManagerFactory.make(threadContext);
 
 	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
-		tabName = Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name");
+		tabName = Messages.getString(pageContext.getRequest().getLocale(),"editnotification.Name");
 	String connectionName = null;
-	IOutputConnection connection = (IOutputConnection)threadContext.get("ConnectionObject");
+	INotificationConnection connection = (INotificationConnection)threadContext.get("ConnectionObject");
 	if (connection == null)
 	{
 		// We did not go through execute.jsp
@@ -79,10 +79,10 @@
 	ArrayList tabsArray = new ArrayList();
 
 	// Set up the predefined tabs
-	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name"));
-	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Type"));
+	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editnotification.Name"));
+	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editnotification.Type"));
 	if (className.length() > 0)
-		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Throttling"));
+		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editnotification.Throttling"));
 
 %>
 
@@ -95,7 +95,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.ApacheManifoldCFEditOutputConnection")%>
+		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editnotification.ApacheManifoldCFEditNotificationConnection")%>
 	</title>
 
 	<script type="text/javascript">
@@ -143,8 +143,8 @@
 			// Check our part of the form, for save
 			if (editconnection.connname.value == "")
 			{
-				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.ConnectionMustHaveAName")%>");
-				SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.Name")%>");
+				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editnotification.ConnectionMustHaveAName")%>");
+				SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editnotification.Name")%>");
 				document.editconnection.connname.focus();
 				return;
 			}
@@ -183,7 +183,7 @@
 	{
 		if (!isInteger(editconnection.maxconnections.value))
 		{
-			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editnotification.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
 			editconnection.maxconnections.focus();
 			return false;
 		}
@@ -214,7 +214,7 @@
 	//-->
 	</script>
 <%
-	OutputConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabsArray);
+	NotificationConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabsArray);
 %>
 
 </head>
@@ -231,8 +231,8 @@
 	if (set.getRowCount() == 0)
 	{
 %>
-	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.EditOutputConnection")%></p>
-	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.NoOutputConnectorsRegistered")%></td></tr></table>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editnotification.EditNotificationConnection2")%></p>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editnotification.NoNotificationConnectorsRegistered")%></td></tr></table>
 <%
 	}
 	else
@@ -241,7 +241,7 @@
 
 	<form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
 	    <input type="hidden" name="op" value="Continue"/>
-	    <input type="hidden" name="type" value="output"/>
+	    <input type="hidden" name="type" value="notification"/>
 	    <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
 	    <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
 	    <table class="tabtable">
@@ -252,14 +252,14 @@
 	  if (description.length() > 0)
 	  {
 %>
-			<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.EditOutputConnection")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+			  <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editnotification.EditNotificationConnection")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
 <%
 	  }
 	  else
 	  {
 %>
 
-		          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.EditAnOutputConnection")%></nobr>
+		          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editnotification.EditANotificationConnection")%></nobr>
 <%
 	  }
 %>
@@ -283,7 +283,7 @@
 		else
 		{
 %>
-		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
+		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
 <%
 		}
 	  }
@@ -295,13 +295,13 @@
 
 
 	  // Name tab
-	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name")))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editnotification.Name")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.NameColon")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editnotification.NameColon")%></nobr></td><td class="value" colspan="4">
 <%
 	    // If the connection doesn't exist yet, we are allowed to change the name.
 	    if (connection == null || connectionName.length() < 1)
@@ -321,7 +321,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.DescriptionColon")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editnotification.DescriptionColon")%></nobr></td><td class="value" colspan="4">
 					<input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 				</td>
 			</tr>
@@ -339,13 +339,13 @@
 
 
 	  // "Type" tab
-	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Type")))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editnotification.Type")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editnotification.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
 <%
 	    if (className.length() > 0)
 	    {
@@ -353,7 +353,7 @@
 		if (value == null)
 		{
 %>
-					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
+					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editnotification.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
 <%
 		}
 		else
@@ -402,13 +402,13 @@
 
 
 	  // The "Throttling" tab
-	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Throttling")))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editnotification.Throttling")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="2"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.MaxConnectionsColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editnotification.MaxConnectionsColon")%></nobr></td>
 				<td class="value"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
 			</tr>
 		    </table>
@@ -423,7 +423,7 @@
 	  }
 
 	  if (className.length() > 0)
-		OutputConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
+		NotificationConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
 
 %>
 		    <table class="displaytable">
@@ -433,20 +433,20 @@
 	  if (className.length() > 0)
 	  {
 %>
-			    <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.SaveThisOutputConnection")%>"/>
+			    <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.SaveThisNotificationConnection")%>"/>
 <%
 	  }
 	  else
 	  {
-		if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Type")))
+		if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editnotification.Type")))
 		{
 %>
-			    <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.ContinueToNextPage")%>"/>
+			    <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.ContinueToNextPage")%>"/>
 <%
 		}
 	  }
 %>
-			    &nbsp;<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.CancelOutputConnectionEditing")%>"/></nobr></td>
+			    &nbsp;<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.CancelNotificationConnectionEditing")%>"/></nobr></td>
 			</tr>
 		    </table>
 		</td>
@@ -472,7 +472,7 @@
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());
-	variableContext.setParameter("target","listoutputs.jsp");
+	variableContext.setParameter("target","listnotifications.jsp");
 %>
 	<jsp:forward page="error.jsp"/>
 <%
