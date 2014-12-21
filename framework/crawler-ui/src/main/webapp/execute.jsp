@@ -47,7 +47,7 @@
 		IJobManager manager = JobManagerFactory.make(threadContext);
 		IAuthorityGroupManager authGroupManager = AuthorityGroupManagerFactory.make(threadContext);
 		IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
-		INotificationConnectionManager connManager = NotificationConnectionManagerFactory.make(threadContext);
+		INotificationConnectionManager notificationManager = NotificationConnectionManagerFactory.make(threadContext);
 		IAuthorityConnectionManager authConnManager = AuthorityConnectionManagerFactory.make(threadContext);
 		IMappingConnectionManager mappingConnManager = MappingConnectionManagerFactory.make(threadContext);
 		IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
