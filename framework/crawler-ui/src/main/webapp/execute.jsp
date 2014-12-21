@@ -56,6 +56,7 @@
 		IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
 		ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
 		IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+		INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(threadContext);
 		
 		String type = variableContext.getParameter("type");
 		String op = variableContext.getParameter("op");
@@ -1034,6 +1035,21 @@
 							job.addPipelineStage(precedent, isOutput, connectionName, description);
 						}
 					}
+					x = variableContext.getParameter("notification_count");
+					if (x != null)
+					{
+						// Do we need to keep the old specifications around, or can we destroy them?
+						// Not clear that retention is required., so I'm not wasting time trying to implement that.
+						int count = Integer.parseInt(x);
+						job.clearNotifications();
+						for (int j = 0; j < count; j++)
+						{
+							// Gather everything first; we'll look at edits later
+							String connectionName = variableContext.getParameter("notification_"+j+"_connectionname");
+							String description = variableContext.getParameter("notification_"+j+"_description");
+							job.addNotification(connectionName, description);
+						}
+					}
 
 					x = variableContext.getParameter("schedulerecords");
 					String[] y;
@@ -1354,6 +1370,34 @@
 						}
 					}
 
+					for (int j = 0; j < job.countNotifications(); j++)
+					{
+						INotificationConnection notificationConnection = notificationManager.load(job.getNotificationConnectionName(j));
+						if (notificationConnection != null)
+						{
+							INotificationConnector notificationConnector = notificationConnectorPool.grab(notificationConnection);
+							if (notificationConnector != null)
+							{
+								try
+								{
+									String error = notificationConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getNotificationSpecification(j),1+job.countPipelineStages()+j);
+									if (error != null)
+									{
+										variableContext.setParameter("text",error);
+										variableContext.setParameter("target","listjobs.jsp");
+%>
+									<jsp:forward page="error.jsp"/>
+<%
+									}
+								}
+								finally
+								{
+									notificationConnectorPool.release(notificationConnection,notificationConnector);
+								}
+							}
+						}
+					}
+					
 					// Now, after gathering is complete, consider doing changes to the pipeline.
 					int currentStage = 0;
 					for (int j = 0; j < job.countPipelineStages(); j++)
@@ -1384,6 +1428,7 @@
 						else
 							currentStage++;
 					}
+
 					x = variableContext.getParameter("output_op");
 					if (x != null && x.equals("Add"))
 					{
@@ -1394,6 +1439,28 @@
 						job.addPipelineStage(precedent,true,connectionName,description);
 					}
 					
+					currentStage = 0;
+					for (int j = 0; j < job.countNotifications(); j++)
+					{
+						// Look at the operation
+						x = variableContext.getParameter("notification_"+j+"_op");
+						if (x != null && x.equals("Delete"))
+						{
+							// Delete this pipeline stage (and rewire other stages according to rules)
+							job.deleteNotification(currentStage);
+						}
+						else
+							currentStage++;
+					}
+					x = variableContext.getParameter("notification_op");
+					if (x != null && x.equals("Add"))
+					{
+						// Append a new stage at the end
+						String connectionName = variableContext.getParameter("notification_connectionname");
+						String description = variableContext.getParameter("notification_description");
+						job.addNotification(connectionName,description);
+					}
+
 					if (op.equals("Continue"))
 					{
 						threadContext.save("JobObject",job);
