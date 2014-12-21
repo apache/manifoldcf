@@ -47,6 +47,7 @@
 		IJobManager manager = JobManagerFactory.make(threadContext);
 		IAuthorityGroupManager authGroupManager = AuthorityGroupManagerFactory.make(threadContext);
 		IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
+		INotificationConnectionManager connManager = NotificationConnectionManagerFactory.make(threadContext);
 		IAuthorityConnectionManager authConnManager = AuthorityConnectionManagerFactory.make(threadContext);
 		IMappingConnectionManager mappingConnManager = MappingConnectionManagerFactory.make(threadContext);
 		IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
@@ -860,6 +861,121 @@
 				// Error
 				variableContext.setParameter("text","Illegal parameter to transformation connection execution page");
 				variableContext.setParameter("target","listtransformations.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
+		}
+		else if (type != null && op != null && type.equals("notification"))
+		{
+			// -- Notification connection editing operations --
+			if (op.equals("Save") || op.equals("Continue"))
+			{
+				try
+				{
+					// Set up a connection object that is a merge of an existing connection object plus what was posted.
+					INotificationConnection connection = null;
+					boolean isNew = true;
+					String x = variableContext.getParameter("isnewconnection");
+					if (x != null)
+						isNew = x.equals("true");
+
+					String connectionName = variableContext.getParameter("connname");
+					// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
+					if (connectionName != null && connectionName.length() > 0 && !isNew)
+					{
+						connection = notificationManager.load(connectionName);
+					}
+					
+					if (connection == null)
+					{
+						connection = notificationManager.create();
+						if (connectionName != null && connectionName.length() > 0)
+							connection.setName(connectionName);
+					}
+
+					// Gather all the data from the form.
+					connection.setIsNew(isNew);
+					x = variableContext.getParameter("description");
+					if (x != null)
+						connection.setDescription(x);
+					x = variableContext.getParameter("classname");
+					if (x != null)
+						connection.setClassName(x);
+					x = variableContext.getParameter("maxconnections");
+					if (x != null && x.length() > 0)
+						connection.setMaxConnections(Integer.parseInt(x));
+
+					String error = NotificationConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
+					
+					if (error != null)
+					{
+						variableContext.setParameter("text",error);
+						variableContext.setParameter("target","listnotifications.jsp");
+%>
+						<jsp:forward page="error.jsp"/>
+<%
+					}
+					
+					if (op.equals("Continue"))
+					{
+						threadContext.save("ConnectionObject",connection);
+%>
+						<jsp:forward page="editnotification.jsp"/>
+<%
+					}
+					else if (op.equals("Save"))
+					{
+						notificationManager.save(connection);
+						variableContext.setParameter("connname",connectionName);
+%>
+						<jsp:forward page="viewnotification.jsp"/>
+<%
+					}
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listnotifications.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Delete"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new ManifoldCFException("Missing connection parameter");
+					notificationManager.delete(connectionName);
+%>
+					<jsp:forward page="listnotifications.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listnotifications.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Cancel"))
+			{
+%>
+				<jsp:forward page="listnotifications.jsp"/>
+<%
+			}
+			else
+			{
+				// Error
+				variableContext.setParameter("text","Illegal parameter to notification connection execution page");
+				variableContext.setParameter("target","listnotifications.jsp");
 %>
 				<jsp:forward page="error.jsp"/>
 <%
